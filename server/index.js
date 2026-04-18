@@ -1,3 +1,6 @@
+const PORT = process.env.PORT || 4000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -30,10 +33,18 @@ const {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: {
+    origin: [CLIENT_URL, "http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
-const PORT = 4000;
+
+
+app.get("/", (_req, res) => {
+  res.send("Gauntlet server is running.");
+});
 
 function makeReconnectToken() {
   return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -840,6 +851,8 @@ io.on("connection", (socket) => {
   });
 });
 
+const PORT = process.env.PORT || 4000;
+
 server.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
