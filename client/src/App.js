@@ -423,17 +423,7 @@ export default function App() {
         }, 0) + (useHeraBonus ? 2 : 0)
       : 0;
 
-  const myHandAttacks = !isSpectator ? game.handAttacks.filter((a) => a.player === player) : [];
-
-  const myOwnedLaneCards =
-  isSpectator
-    ? []
-    : game.lanes
-        .map((lane, idx) => ({
-          laneIndex: idx,
-          card: lane.facedown[player]
-        }))
-        .filter((x) => x.card);
+ 
 
   const clickableTargets = isSpectator
   ? {
@@ -1560,7 +1550,7 @@ export default function App() {
                       </button>
                     </div>
                   )}
-
+                  
                   {!isSpectator &&
                     game.phase === "end" &&
                     i === currentEndLane &&
