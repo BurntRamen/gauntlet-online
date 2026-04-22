@@ -38,28 +38,134 @@ function clearReconnectInfo() {
   localStorage.removeItem(STORAGE_KEYS.role);
 }
 
+function getSuitSymbol(suit) {
+  if (!suit) return "";
+  if (["♠", "♣", "♥", "♦"].includes(suit)) return suit;
+
+  const map = {
+    S: "♠",
+    C: "♣",
+    H: "♥",
+    D: "♦",
+    spades: "♠",
+    clubs: "♣",
+    hearts: "♥",
+    diamonds: "♦"
+  };
+
+  return map[String(suit).toLowerCase()] || suit;
+}
+
+function isRedSuit(suit) {
+  const symbol = getSuitSymbol(suit);
+  return symbol === "♥" || symbol === "♦";
+}
+
+function getCardNumericValue(card) {
+  if (!card) return 0;
+  const raw = card.value;
+
+  if (raw === "A" || raw === 1 || raw === "1" || raw === 14 || raw === "14") {
+    return 14;
+  }
+  if (raw === "K" || raw === 13 || raw === "13") return 13;
+  if (raw === "Q" || raw === 12 || raw === "12") return 12;
+  if (raw === "J" || raw === 11 || raw === "11") return 11;
+
+  const num = Number(raw);
+  return Number.isNaN(num) ? 0 : num;
+}
+
+function getCardRank(card) {
+  const value = getCardNumericValue(card);
+
+  if (value === 14) return "A";
+  if (value === 13) return "K";
+  if (value === 12) return "Q";
+  if (value === 11) return "J";
+  return String(value);
+}
+
+function getCardShortLabel(card) {
+  if (!card) return "None";
+  return `${getCardRank(card)}${getSuitSymbol(card.suit)}`;
+}
+
 function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb" }) {
+  const suit = getSuitSymbol(card.suit);
+  const rank = getCardRank(card);
+  const suitColor = isRedSuit(card.suit) ? "#b91c1c" : "#111827";
+
   return (
     <div
       style={{
         border: selected ? `3px solid ${accent}` : "1px solid black",
-        borderRadius: 10,
-        padding: 10,
-        minWidth: 126,
+        borderRadius: 12,
+        padding: 12,
+        minWidth: 170,
+        minHeight: 280,
         background: bg,
-        boxShadow: selected ? `0 0 0 3px ${accent}22` : "none"
+        boxShadow: selected ? `0 0 0 3px ${accent}22` : "none",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
       }}
     >
-      <div style={{ fontWeight: "bold", marginBottom: 8, fontSize: 18 }}>
-        {card.value}
-        {card.suit}
-        {card.tempBuff ? ` (+${card.tempBuff})` : ""}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start"
+        }}
+      >
+        <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
+          <div style={{ fontSize: 30 }}>{rank}</div>
+          <div style={{ fontSize: 28 }}>{suit}</div>
+        </div>
+
+        <div style={{ fontSize: 11, color: "#666", textAlign: "right" }}>
+          {card.tempBuff ? <div>Buff: +{card.tempBuff}</div> : null}
+          <div>Value: {getCardNumericValue(card)}</div>
+        </div>
       </div>
-      {card.name && <div style={{ fontSize: 12, marginBottom: 4 }}>{card.name}</div>}
-      {card.faction && (
-        <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>{card.faction}</div>
-      )}
-      {children}
+
+      <div
+        style={{
+          textAlign: "center",
+          fontSize: 72,
+          lineHeight: 1,
+          color: suitColor,
+          margin: "4px 0"
+        }}
+      >
+        {suit}
+      </div>
+
+      <div style={{ marginBottom: 10 }}>
+        {card.name && <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 4 }}>{card.name}</div>}
+        {card.faction && (
+          <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>{card.faction}</div>
+        )}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          right: 12,
+          bottom: 92,
+          transform: "rotate(180deg)",
+          color: suitColor,
+          fontWeight: "bold",
+          lineHeight: 1,
+          textAlign: "center"
+        }}
+      >
+        <div style={{ fontSize: 24 }}>{rank}</div>
+        <div style={{ fontSize: 22 }}>{suit}</div>
+      </div>
+
+      <div>{children}</div>
     </div>
   );
 }
@@ -374,6 +480,7 @@ export default function App() {
     })();
 
   const opponentNumber = !isSpectator ? (player === 1 ? 2 : 1) : null;
+
   const hasIncomingAttack =
     !isSpectator &&
     (
@@ -381,11 +488,15 @@ export default function App() {
       game.lanes.some((lane) => lane.attack && lane.attack.player === opponentNumber)
     );
 
+  const hasAnyUnresolvedAttack =
+    game.handAttacks.length > 0 ||
+    game.lanes.some((lane) => !!lane.attack);
+
   const canDeclareAttack =
     !isSpectator &&
     game.phase === "priority" &&
     isMyPriority &&
-    !hasIncomingAttack &&
+    !hasAnyUnresolvedAttack &&
     !attackMode &&
     !blockMode &&
     !placementMode &&
@@ -397,8 +508,8 @@ export default function App() {
       attackMode?.from === "hand" && selectedAttackCardIndex != null
         ? me.hand[selectedAttackCardIndex]
         : attackMode?.from === "lane"
-        ? game.lanes[attackMode.lane]?.facedown?.[player]
-        : null
+          ? game.lanes[attackMode.lane]?.facedown?.[player]
+          : null
     );
 
   const activeBlockCard =
@@ -419,45 +530,43 @@ export default function App() {
     !isSpectator
       ? payments.reduce((sum, i) => {
           const card = me.hand[i];
-          return sum + (card ? card.value : 0);
+          return sum + getCardNumericValue(card);
         }, 0) + (useHeraBonus ? 2 : 0)
       : 0;
 
- 
-
   const clickableTargets = isSpectator
-  ? {
-      poleaPlaceLanes: [],
-      poleaSwitchableLanes: [],
-      poleaPeekTargets: [],
-      poleaBuffLaneCards: [],
-      poleaBuffLaneAttacks: [],
-      poleaBuffHandAttacks: [],
-      lafayetteLanes: [],
-      focusLaneCards: [],
-      focusLaneAttacks: [],
-      focusHandAttacks: []
-    }
-  : {
-      poleaPlaceLanes: [0, 1, 2].filter((laneIdx) => !game.lanes[laneIdx].facedown[player]),
-      poleaSwitchableLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-      poleaPeekTargets: [1, 2].flatMap((p) =>
-        [0, 1, 2]
-          .filter((laneIdx) => !!game.lanes[laneIdx].facedown[p])
-          .map((laneIdx) => ({ targetPlayer: p, lane: laneIdx }))
-      ),
-      poleaBuffLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-      poleaBuffLaneAttacks: [0, 1, 2].filter(
-        (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
-      ),
-      poleaBuffHandAttacks: game.handAttacks.filter((a) => a.player === player),
-      lafayetteLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-      focusLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-      focusLaneAttacks: [0, 1, 2].filter(
-        (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
-      ),
-      focusHandAttacks: game.handAttacks.filter((a) => a.player === player)
-    };
+    ? {
+        poleaPlaceLanes: [],
+        poleaSwitchableLanes: [],
+        poleaPeekTargets: [],
+        poleaBuffLaneCards: [],
+        poleaBuffLaneAttacks: [],
+        poleaBuffHandAttacks: [],
+        lafayetteLanes: [],
+        focusLaneCards: [],
+        focusLaneAttacks: [],
+        focusHandAttacks: []
+      }
+    : {
+        poleaPlaceLanes: [0, 1, 2].filter((laneIdx) => !game.lanes[laneIdx].facedown[player]),
+        poleaSwitchableLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
+        poleaPeekTargets: [1, 2].flatMap((p) =>
+          [0, 1, 2]
+            .filter((laneIdx) => !!game.lanes[laneIdx].facedown[p])
+            .map((laneIdx) => ({ targetPlayer: p, lane: laneIdx }))
+        ),
+        poleaBuffLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
+        poleaBuffLaneAttacks: [0, 1, 2].filter(
+          (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
+        ),
+        poleaBuffHandAttacks: game.handAttacks.filter((a) => a.player === player),
+        lafayetteLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
+        focusLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
+        focusLaneAttacks: [0, 1, 2].filter(
+          (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
+        ),
+        focusHandAttacks: game.handAttacks.filter((a) => a.player === player)
+      };
 
   function startAttackFromHand() {
     resetSelections();
@@ -537,8 +646,8 @@ export default function App() {
     if (!blockMode) return;
 
     socket.emit("confirmBlock", {
-      lane: blockMode.lane,
-      handAttackId: blockMode.handAttackId,
+      lane: blockMode.type === "laneAttack" ? blockMode.lane : null,
+      handAttackId: blockMode.type === "handAttack" ? blockMode.handAttackId : null,
       blockCardIndex: selectedBlockCardIndex,
       paymentIndexes: payments,
       useHeraBonus
@@ -654,9 +763,14 @@ export default function App() {
     }
 
     if (game.phase === "priority") {
-      if (isMyPriority && hasIncomingAttack) {
-        return "You have priority, but you must block or resolve the incoming attack before declaring a new attack.";
+      if (hasIncomingAttack) {
+        return "You must block or resolve the incoming attack before declaring a new attack.";
       }
+
+      if (hasAnyUnresolvedAttack) {
+        return "Combat is still unresolved. Finish blocks and damage before declaring another attack.";
+      }
+
       return isMyPriority
         ? "It is your priority. You may attack, block, use abilities, or pass."
         : "Waiting for the other player.";
@@ -698,7 +812,7 @@ export default function App() {
           )}
           <p style={{ margin: "6px 0 0 0" }}>
             <strong>Selected attack card:</strong>{" "}
-            {activeAttackCard ? `${activeAttackCard.value}${activeAttackCard.suit}` : "None selected"}
+            {activeAttackCard ? getCardShortLabel(activeAttackCard) : "None selected"}
           </p>
         </div>
 
@@ -714,11 +828,11 @@ export default function App() {
         )}
 
         <p><strong>Payment total:</strong> {paymentTotal}</p>
-        <p><strong>Required:</strong> {activeAttackCard ? activeAttackCard.value : "-"}</p>
+        <p><strong>Required:</strong> {activeAttackCard ? getCardNumericValue(activeAttackCard) : "-"}</p>
 
         <button
           onClick={confirmAttack}
-          disabled={!activeAttackCard || paymentTotal < activeAttackCard.value}
+          disabled={!activeAttackCard || paymentTotal < getCardNumericValue(activeAttackCard)}
           style={{ marginRight: 10 }}
         >
           Confirm Attack
@@ -738,11 +852,11 @@ export default function App() {
           <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
             <p style={{ margin: 0 }}>
               <strong>Incoming attack:</strong>{" "}
-              {attack ? `${attack.card.value}${attack.card.suit}` : "None"}
+              {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}
             </p>
             <p style={{ margin: "6px 0 0 0" }}>
               <strong>Selected block card:</strong>{" "}
-              {activeBlockCard ? `${activeBlockCard.value}${activeBlockCard.suit}` : "None selected"}
+              {activeBlockCard ? getCardShortLabel(activeBlockCard) : "None selected"}
             </p>
           </div>
 
@@ -758,11 +872,11 @@ export default function App() {
           )}
 
           <p><strong>Payment total:</strong> {paymentTotal}</p>
-          <p><strong>Required:</strong> {activeBlockCard ? activeBlockCard.value : "-"}</p>
+          <p><strong>Required:</strong> {activeBlockCard ? getCardNumericValue(activeBlockCard) : "-"}</p>
 
           <button
             onClick={confirmBlock}
-            disabled={!activeBlockCard || paymentTotal < activeBlockCard.value}
+            disabled={!activeBlockCard || paymentTotal < getCardNumericValue(activeBlockCard)}
             style={{ marginRight: 10 }}
           >
             Confirm Block
@@ -784,11 +898,11 @@ export default function App() {
           <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
           <p style={{ margin: "6px 0 0 0" }}>
             <strong>Incoming attack:</strong>{" "}
-            {laneAttack ? `${laneAttack.card.value}${laneAttack.card.suit}` : "None"}
+            {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}
           </p>
           <p style={{ margin: "6px 0 0 0" }}>
             <strong>Lane blocker:</strong>{" "}
-            {laneBlocker ? `${laneBlocker.value}${laneBlocker.suit}` : "No facedown card in this lane"}
+            {laneBlocker ? getCardShortLabel(laneBlocker) : "No facedown card in this lane"}
           </p>
         </div>
 
@@ -804,11 +918,11 @@ export default function App() {
         )}
 
         <p><strong>Payment total:</strong> {paymentTotal}</p>
-        <p><strong>Required:</strong> {laneBlocker ? laneBlocker.value : "-"}</p>
+        <p><strong>Required:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "-"}</p>
 
         <button
           onClick={confirmBlock}
-          disabled={!laneBlocker || paymentTotal < laneBlocker.value}
+          disabled={!laneBlocker || paymentTotal < getCardNumericValue(laneBlocker)}
           style={{ marginRight: 10 }}
         >
           Confirm Lane Block
@@ -826,7 +940,7 @@ export default function App() {
           <p style={{ margin: 0 }}><strong>Lane:</strong> {placementMode.lane + 1}</p>
           <p style={{ margin: "6px 0 0 0" }}>
             <strong>Selected card:</strong>{" "}
-            {activePlacementCard ? `${activePlacementCard.value}${activePlacementCard.suit}` : "None selected"}
+            {activePlacementCard ? getCardShortLabel(activePlacementCard) : "None selected"}
           </p>
         </div>
 
@@ -885,7 +999,7 @@ export default function App() {
                 <option value="">Select hand card</option>
                 {me.hand.map((card, idx) => (
                   <option key={card.id} value={idx}>
-                    {idx}: {card.value}{card.suit}
+                    {idx}: {getCardShortLabel(card)}
                   </option>
                 ))}
               </select>
@@ -1052,7 +1166,7 @@ export default function App() {
                   <option value="">Select hand attack</option>
                   {clickableTargets.poleaBuffHandAttacks.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {a.id} - {a.card.value}{a.card.suit}
+                      {a.id} - {getCardShortLabel(a.card)}
                     </option>
                   ))}
                 </select>
@@ -1098,7 +1212,7 @@ export default function App() {
             <option value="">Select hand card</option>
             {me.hand.map((card, idx) => (
               <option key={card.id} value={idx}>
-                {idx}: {card.value}{card.suit}
+                {idx}: {getCardShortLabel(card)}
               </option>
             ))}
           </select>
@@ -1184,7 +1298,7 @@ export default function App() {
               <option value="">Select hand attack</option>
               {clickableTargets.focusHandAttacks.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.id} - {a.card.value}{a.card.suit}
+                  {a.id} - {getCardShortLabel(a.card)}
                 </option>
               ))}
             </select>
@@ -1325,9 +1439,9 @@ export default function App() {
                   <button onClick={resolveDamage}>Resolve Damage</button>
                 )}
 
-                {hasIncomingAttack && game.phase === "priority" && (
+                {hasAnyUnresolvedAttack && game.phase === "priority" && (
                   <p style={{ marginTop: 12, color: "#b91c1c" }}>
-                    You cannot declare a new attack until the incoming attack is blocked or damage resolves.
+                    You cannot declare a new attack until all current blocks and damage resolve.
                   </p>
                 )}
               </SectionCard>
@@ -1433,7 +1547,7 @@ export default function App() {
                     <p><strong>Attack ID:</strong> {attack.id}</p>
                     <p>
                       <strong>Attacking:</strong> Player {attack.player} with{" "}
-                      {attack.card.value}{attack.card.suit} (from hand)
+                      {getCardShortLabel(attack.card)} (from hand)
                     </p>
                     <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
                     {attack.notes?.length > 0 && (
@@ -1445,7 +1559,7 @@ export default function App() {
                         <strong>Blocks:</strong>{" "}
                         {attack.block.map((entry, idx) => (
                           <span key={idx} style={{ marginRight: 8 }}>
-                            P{entry.player}:{entry.card.value}{entry.card.suit}
+                            P{entry.player}:{getCardShortLabel(entry.card)}
                           </span>
                         ))}
                       </p>
@@ -1453,7 +1567,7 @@ export default function App() {
                       <p><strong>Blocks:</strong> None</p>
                     )}
 
-                    {!isSpectator && game.phase === "priority" && isMyPriority && iAmDefender && (
+                    {!isSpectator && game.phase === "priority" && iAmDefender && (
                       <button onClick={() => startBlockHandAttack(attack.id)}>
                         Block This Hand Attack
                       </button>
@@ -1489,21 +1603,21 @@ export default function App() {
                       <p>
                         <strong>Your facedown card:</strong>{" "}
                         {lane.facedown[player]
-                          ? `${lane.facedown[player].value}${lane.facedown[player].suit}${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}`
+                          ? `${getCardShortLabel(lane.facedown[player])}${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}`
                           : "None"}
                       </p>
 
                       <p>
                         <strong>Opponent facedown card:</strong>{" "}
                         {lane.facedown[player === 1 ? 2 : 1]
-                          ? `${lane.facedown[player === 1 ? 2 : 1].value}${lane.facedown[player === 1 ? 2 : 1].suit}${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}`
+                          ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])}${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}`
                           : "None"}
                       </p>
                     </>
                   ) : (
                     <>
-                      <p><strong>Player 1 facedown:</strong> {lane.facedown[1] ? `${lane.facedown[1].value}${lane.facedown[1].suit}` : "None"}</p>
-                      <p><strong>Player 2 facedown:</strong> {lane.facedown[2] ? `${lane.facedown[2].value}${lane.facedown[2].suit}` : "None"}</p>
+                      <p><strong>Player 1 facedown:</strong> {lane.facedown[1] ? getCardShortLabel(lane.facedown[1]) : "None"}</p>
+                      <p><strong>Player 2 facedown:</strong> {lane.facedown[2] ? getCardShortLabel(lane.facedown[2]) : "None"}</p>
                     </>
                   )}
 
@@ -1511,7 +1625,7 @@ export default function App() {
                     <>
                       <p>
                         <strong>Attacking:</strong> Player {lane.attack.player} with{" "}
-                        {lane.attack.card.value}{lane.attack.card.suit} (from lane)
+                        {getCardShortLabel(lane.attack.card)} (from lane)
                       </p>
                       <p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>
                       {lane.attack.notes?.length > 0 && (
@@ -1527,7 +1641,7 @@ export default function App() {
                       <strong>Blocks:</strong>{" "}
                       {lane.block.map((entry, idx) => (
                         <span key={idx} style={{ marginRight: 8 }}>
-                          P{entry.player}:{entry.card.value}{entry.card.suit} ({entry.source})
+                          P{entry.player}:{getCardShortLabel(entry.card)} ({entry.source})
                         </span>
                       ))}
                     </p>
@@ -1543,7 +1657,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {!isSpectator && game.phase === "priority" && isMyPriority && lane.attack && iAmDefender && (
+                  {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && (
                     <div style={{ marginTop: 10 }}>
                       <button onClick={() => startBlockLaneAttack(i)}>
                         Block With Card In This Lane
