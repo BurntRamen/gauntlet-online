@@ -35,6 +35,26 @@ function resetPriorityPassed(game) {
   game.priorityPassed = { 1: false, 2: false };
 }
 
+function getBaseCardValue(card) {
+  if (!card) return 0;
+
+  if (card.rank === "A") return 14;
+  if (card.value === 1) return 14;
+  if (card.value === "A") return 14;
+
+  if (typeof card.value === "string") {
+    const upper = card.value.toUpperCase();
+    if (upper === "J") return 11;
+    if (upper === "Q") return 12;
+    if (upper === "K") return 13;
+    if (upper === "A") return 14;
+    const parsed = Number(card.value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return Number(card.value) || 0;
+}
+
 function removeIndexesFromHandToDiscard(player, indexes) {
   const sorted = [...indexes].sort((a, b) => b - a);
   sorted.forEach((i) => {
@@ -54,7 +74,7 @@ function refillHands(game) {
 }
 
 function getCardCurrentValue(card) {
-  return card.value + (card.tempBuff || 0);
+  return getBaseCardValue(card) + (card.tempBuff || 0);
 }
 
 function addTempBuff(card, amount) {
@@ -87,19 +107,21 @@ function clearEndTurnBuffs(game) {
 function registerCardPlayed(player, card) {
   const td = player.turnData;
   const notes = [];
+  const cardBaseValue = getBaseCardValue(card);
 
   if (
     player.faction.id === "frumo" &&
     !td.ristusBonusUsed &&
     td.previousPlayedValue != null &&
-    Math.abs(card.value - td.previousPlayedValue) === 1
+    Math.abs(cardBaseValue - td.previousPlayedValue) === 1
   ) {
     addTempBuff(card, 2);
     td.ristusBonusUsed = true;
     notes.push("Ristus +2");
   }
 
-  td.previousPlayedValue = card.value;
+  td.previousPlayedValue = cardBaseValue;
+
   if (!td.suitsPlayedThisTurn.includes(card.suit)) {
     td.suitsPlayedThisTurn.push(card.suit);
   }
@@ -112,6 +134,7 @@ function calculateAttackBonuses(player, card) {
   const attackNumber = td.attacksDeclaredThisTurn + 1;
   let bonus = 0;
   const notes = [];
+  const cardBaseValue = getBaseCardValue(card);
 
   if (player.faction.id === "rumin") {
     if (
@@ -144,7 +167,7 @@ function calculateAttackBonuses(player, card) {
   }
 
   if (player.faction.id === "sheen") {
-    if (td.beliHighCostAttackBuffAvailable && card.value >= 10) {
+    if (td.beliHighCostAttackBuffAvailable && cardBaseValue >= 10) {
       bonus += 2;
       td.beliHighCostAttackBuffAvailable = false;
       notes.push("Beli +2");
@@ -155,20 +178,22 @@ function calculateAttackBonuses(player, card) {
 }
 
 function getAttackPaymentRequirement(player, card) {
+  const cardBaseValue = getBaseCardValue(card);
+
   if (
     player.faction.id === "rumin" &&
     player.turnData.meerusFreeAttackAvailable &&
-    card.value <= 3
+    cardBaseValue <= 3
   ) {
     return { required: 0, freeAttackUsed: true };
   }
 
-  return { required: card.value, freeAttackUsed: false };
+  return { required: cardBaseValue, freeAttackUsed: false };
 }
 
 function getPaymentTotal(player, paymentIndexes, useHeraBonus = false) {
   const paymentCards = paymentIndexes.map((i) => player.hand[i]).filter(Boolean);
-  let total = paymentCards.reduce((sum, card) => sum + card.value, 0);
+  let total = paymentCards.reduce((sum, card) => sum + getBaseCardValue(card), 0);
   let heraUsedNow = false;
 
   if (
@@ -392,6 +417,7 @@ module.exports = {
   resetPriorityPassed,
   removeIndexesFromHandToDiscard,
   refillHands,
+  getBaseCardValue,
   getCardCurrentValue,
   addTempBuff,
   registerCardPlayed,

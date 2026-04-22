@@ -27,7 +27,8 @@ const {
   reopenPriorityAfterDamage,
   currentEndPlacementPlayer,
   startEndPhase,
-  advanceEndPlacement
+  advanceEndPlacement,
+  getBaseCardValue
 } = require("./game/gameLogic");
 
 const app = express();
@@ -432,7 +433,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("passPriority", () => {
+    socket.on("passPriority", () => {
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -443,16 +444,19 @@ io.on("connection", (socket) => {
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
 
+        if (hasPendingAttacks(game)) {
+      socket.emit(
+        "errorMessage",
+        "You cannot declare a new attack until the current attack is blocked or damage resolves."
+      );
+      return;
+    }
+
     game.priorityPassed[playerNum] = true;
     game.priority = getOtherPlayer(playerNum);
 
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
-      if (hasPendingAttacks(game)) {
-        game.phase = "damage";
-        game.message = "Damage Resolution Phase.";
-      } else {
-        startEndPhase(game);
-      }
+      startEndPhase(game);
     }
 
     emitState(roomState);
@@ -631,10 +635,12 @@ io.on("connection", (socket) => {
       }
 
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
-      if (payment.total < blockCard.value) {
+           const blockRequired = getBaseCardValue(blockCard);
+
+      if (payment.total < blockRequired) {
         socket.emit(
           "errorMessage",
-          `Not enough payment to block. Need ${blockCard.value}, but only have ${payment.total}.`
+          `Not enough payment to block. Need ${blockRequired}, but only have ${payment.total}.`
         );
         return;
       }
@@ -650,7 +656,7 @@ io.on("connection", (socket) => {
       removeIndexesFromHandToDiscard(player, adjustedPaymentIndexes);
 
       if (payment.heraUsedNow) player.turnData.heraUsed = true;
-      addAccelerationIfOverpaid(player, payment.total, blockCard.value);
+            addAccelerationIfOverpaid(player, payment.total, blockRequired);
 
       const blockInfo = applyBlockBonuses(player, blockCard);
 
@@ -700,10 +706,12 @@ io.on("connection", (socket) => {
     }
 
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
-    if (payment.total < laneBlockCard.value) {
+       const laneBlockRequired = getBaseCardValue(laneBlockCard);
+
+    if (payment.total < laneBlockRequired) {
       socket.emit(
         "errorMessage",
-        `Not enough payment to block. Need ${laneBlockCard.value}, but only have ${payment.total}.`
+        `Not enough payment to block. Need ${laneBlockRequired}, but only have ${payment.total}.`
       );
       return;
     }
@@ -714,7 +722,7 @@ io.on("connection", (socket) => {
     currentLane.facedown[playerNum] = null;
 
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
-    addAccelerationIfOverpaid(player, payment.total, laneBlockCard.value);
+        addAccelerationIfOverpaid(player, payment.total, laneBlockRequired);
 
     const blockInfo = applyBlockBonuses(player, laneBlockCard);
 
