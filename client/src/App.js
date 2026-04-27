@@ -229,6 +229,75 @@ function FactionChoiceCard({ faction, selected, onSelect }) {
   );
 }
 
+// Game Over Modal Component
+function GameOverModal({ winner, winnerMessage, onRematch, onReturnToLobby }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: 20,
+          padding: 32,
+          textAlign: "center",
+          maxWidth: 400,
+          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+        }}
+      >
+        <div style={{ fontSize: 64, marginBottom: 16 }}>
+          {winner === null ? "🤝" : "🏆"}
+        </div>
+        <h2 style={{ marginTop: 0, marginBottom: 8 }}>{winnerMessage}</h2>
+        <p style={{ color: "#666", marginBottom: 24 }}>
+          {winner === null
+            ? "Both players were eliminated at the same time."
+            : "Congratulations on your victory!"}
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          <button
+            onClick={onRematch}
+            style={{
+              padding: "10px 20px",
+              background: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer"
+            }}
+          >
+            Request Rematch
+          </button>
+          <button
+            onClick={onReturnToLobby}
+            style={{
+              padding: "10px 20px",
+              background: "#e5e7eb",
+              color: "#333",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer"
+            }}
+          >
+            Return to Lobby
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -239,6 +308,7 @@ export default function App() {
   const [useHeraBonus, setUseHeraBonus] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
+  const [gameOver, setGameOver] = useState(null); // { winner, message }
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -263,6 +333,7 @@ export default function App() {
     const onAssign = (payload) => {
       setRole(payload.role);
       setPlayer(payload.playerNum);
+      setGameOver(null);
       saveReconnectInfo({
         roomCode: payload.roomCode,
         reconnectToken: payload.reconnectToken,
@@ -273,16 +344,52 @@ export default function App() {
     const onAssignSpectator = (payload) => {
       setRole("spectator");
       setPlayer(null);
+      setGameOver(null);
       saveReconnectInfo({
         roomCode: payload.roomCode,
         role: "spectator"
       });
     };
 
-    const onState = (newGame) => setGame(newGame);
+    const onState = (newGame) => {
+      setGame(newGame);
+      // Clear game over if game is still active
+      if (newGame.phase !== "gameOver" && gameOver) {
+        setGameOver(null);
+      }
+    };
+    
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
     const onPeek = (text) => setPeekResult(text);
+    
+    const onGameEnded = (data) => {
+      const isPlayerWinner = data.winner === player;
+      let winnerMessage = "";
+      
+      if (data.tie) {
+        winnerMessage = "It's a Tie!";
+      } else if (isPlayerWinner) {
+        winnerMessage = "You Win! 🎉";
+      } else {
+        winnerMessage = "You Lose! 💀";
+      }
+      
+      setGameOver({
+        winner: data.winner,
+        message: winnerMessage,
+        tie: data.tie || false
+      });
+      
+      // Update game state to reflect game over
+      if (game) {
+        setGame({
+          ...game,
+          phase: "gameOver",
+          winner: data.winner
+        });
+      }
+    };
 
     socket.on("assign", onAssign);
     socket.on("assignSpectator", onAssignSpectator);
@@ -290,6 +397,7 @@ export default function App() {
     socket.on("lobbyState", onLobbyState);
     socket.on("errorMessage", onError);
     socket.on("peekResult", onPeek);
+    socket.on("gameEnded", onGameEnded);
 
     return () => {
       socket.off("assign", onAssign);
@@ -298,8 +406,9 @@ export default function App() {
       socket.off("lobbyState", onLobbyState);
       socket.off("errorMessage", onError);
       socket.off("peekResult", onPeek);
+      socket.off("gameEnded", onGameEnded);
     };
-  }, []);
+  }, [player, game, gameOver]);
 
   useEffect(() => {
     if (!game?.message) return;
@@ -324,11 +433,13 @@ export default function App() {
 
   function createRoom() {
     clearReconnectInfo();
+    setGameOver(null);
     socket.emit("createRoom");
   }
 
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
+    setGameOver(null);
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator });
   }
 
@@ -338,6 +449,19 @@ export default function App() {
 
   function startGame() {
     socket.emit("startGame");
+  }
+
+  function requestRematch() {
+    socket.emit("requestRematch");
+  }
+
+  function returnToLobby() {
+    socket.emit("leaveRoom");
+    setGame(null);
+    setLobby(null);
+    setGameOver(null);
+    setRole(null);
+    setPlayer(null);
   }
 
   function togglePayment(i) {
@@ -357,6 +481,22 @@ export default function App() {
   function selectBlockCard(i) {
     setSelectedBlockCardIndex(i);
     setPayments((prev) => prev.filter((x) => x !== i));
+  }
+
+  // If game is over, show modal on top of game screen
+  if (gameOver && game && game.phase === "gameOver") {
+    return (
+      <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
+        {/* Render the game UI dimmed (optional) or just the modal */}
+        <GameOverModal
+          winner={gameOver.winner}
+          winnerMessage={gameOver.message}
+          onRematch={requestRematch}
+          onReturnToLobby={returnToLobby}
+        />
+        {/* Optionally render the game screen dimmed behind modal */}
+      </div>
+    );
   }
 
   if (!role && !lobby) {
@@ -760,6 +900,10 @@ export default function App() {
   function phaseHelpText() {
     if (isSpectator) {
       return "Watching game.";
+    }
+
+    if (game.phase === "gameOver") {
+      return "Game has ended.";
     }
 
     if (game.phase === "priority") {
@@ -1346,7 +1490,7 @@ export default function App() {
           }}
         >
           <StatusPill label="Turn" value={game.turn} bg="white" />
-          <StatusPill label="Phase" value={game.phase} bg="white" />
+          <StatusPill label="Phase" value={game.phase === "gameOver" ? "Game Over" : game.phase} bg="white" />
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
           <StatusPill label="End Placement Lane" value={game.endPlacementLaneIndex + 1} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
@@ -1367,14 +1511,16 @@ export default function App() {
             <p>
               <strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life —{" "}
               {game.players[1].connected ? "Connected" : "Disconnected"}
+              {game.players[1].life <= 0 && " 💀 ELIMINATED"}
             </p>
             <p>
               <strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life —{" "}
               {game.players[2].connected ? "Connected" : "Disconnected"}
+              {game.players[2].life <= 0 && " 💀 ELIMINATED"}
             </p>
           </SectionCard>
 
-          {!isSpectator && (
+          {!isSpectator && game.phase !== "gameOver" && (
             <>
               <SectionCard
                 title={`Your Faction: ${me.faction.name}`}
@@ -1567,7 +1713,7 @@ export default function App() {
                       <p><strong>Blocks:</strong> None</p>
                     )}
 
-                    {!isSpectator && game.phase === "priority" && iAmDefender && (
+                    {!isSpectator && game.phase !== "gameOver" && game.phase === "priority" && iAmDefender && (
                       <button onClick={() => startBlockHandAttack(attack.id)}>
                         Block This Hand Attack
                       </button>
@@ -1649,7 +1795,7 @@ export default function App() {
                     <p><strong>Blocks:</strong> None</p>
                   )}
 
-                  {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && (
+                  {!isSpectator && game.phase !== "gameOver" && canDeclareAttack && !lane.attack && lane.facedown[player] && (
                     <div style={{ marginTop: 10 }}>
                       <button onClick={() => startAttackFromLane(i)}>
                         Attack from Lane
@@ -1657,7 +1803,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && (
+                  {!isSpectator && game.phase !== "gameOver" && game.phase === "priority" && lane.attack && iAmDefender && (
                     <div style={{ marginTop: 10 }}>
                       <button onClick={() => startBlockLaneAttack(i)}>
                         Block With Card In This Lane
@@ -1665,7 +1811,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {!isSpectator &&
+                  {!isSpectator && game.phase !== "gameOver" &&
                     game.phase === "end" &&
                     i === currentEndLane &&
                     isMyEndPlacementTurn &&
@@ -1684,7 +1830,7 @@ export default function App() {
                       </div>
                     )}
 
-                  {!isSpectator &&
+                  {!isSpectator && game.phase !== "gameOver" &&
                     game.phase === "end" &&
                     i === currentEndLane &&
                     isMyEndPlacementTurn &&
@@ -1738,6 +1884,16 @@ export default function App() {
           </SectionCard>
         </div>
       </div>
+      
+      {/* Game Over Modal - rendered inline when game over */}
+      {gameOver && game && game.phase === "gameOver" && (
+        <GameOverModal
+          winner={gameOver.winner}
+          winnerMessage={gameOver.message}
+          onRematch={requestRematch}
+          onReturnToLobby={returnToLobby}
+        />
+      )}
     </div>
   );
 }

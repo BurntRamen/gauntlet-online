@@ -41,8 +41,6 @@ const io = new Server(server, {
   }
 });
 
-
-
 app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
 });
@@ -70,6 +68,58 @@ function emitState(roomState) {
 function emitPeek(socketId, text) {
   io.to(socketId).emit("peekResult", text);
 }
+
+// ========== NEW: Winner Detection Function ==========
+function checkAndHandleGameWinner(roomState) {
+  const game = roomState.game;
+  if (!game) return false;
+  if (game.winner) return true; // Already ended
+  
+  const p1Life = game.players[1].life;
+  const p2Life = game.players[2].life;
+  
+  // Both dead -> tie
+  if (p1Life <= 0 && p2Life <= 0) {
+    game.winner = null; // Tie
+    game.phase = "gameOver";
+    
+    io.to(roomState.roomCode).emit("gameEnded", {
+      winner: null,
+      tie: true
+    });
+    emitState(roomState);
+    return true;
+  }
+  
+  // Player 1 dead -> Player 2 wins
+  if (p1Life <= 0) {
+    game.winner = 2;
+    game.phase = "gameOver";
+    
+    io.to(roomState.roomCode).emit("gameEnded", {
+      winner: 2,
+      tie: false
+    });
+    emitState(roomState);
+    return true;
+  }
+  
+  // Player 2 dead -> Player 1 wins
+  if (p2Life <= 0) {
+    game.winner = 1;
+    game.phase = "gameOver";
+    
+    io.to(roomState.roomCode).emit("gameEnded", {
+      winner: 1,
+      tie: false
+    });
+    emitState(roomState);
+    return true;
+  }
+  
+  return false;
+}
+// ===================================================
 
 function hasIncomingAttackAgainst(game, playerNum) {
   const opponent = playerNum === 1 ? 2 : 1;
@@ -433,7 +483,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-    socket.on("passPriority", () => {
+  socket.on("passPriority", () => {
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -444,7 +494,7 @@ io.on("connection", (socket) => {
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
 
-        if (hasPendingAttacks(game)) {
+    if (hasPendingAttacks(game)) {
       socket.emit(
         "errorMessage",
         "You cannot declare a new attack until the current attack is blocked or damage resolves."
@@ -635,7 +685,7 @@ io.on("connection", (socket) => {
       }
 
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
-           const blockRequired = getBaseCardValue(blockCard);
+      const blockRequired = getBaseCardValue(blockCard);
 
       if (payment.total < blockRequired) {
         socket.emit(
@@ -656,7 +706,7 @@ io.on("connection", (socket) => {
       removeIndexesFromHandToDiscard(player, adjustedPaymentIndexes);
 
       if (payment.heraUsedNow) player.turnData.heraUsed = true;
-            addAccelerationIfOverpaid(player, payment.total, blockRequired);
+      addAccelerationIfOverpaid(player, payment.total, blockRequired);
 
       const blockInfo = applyBlockBonuses(player, blockCard);
 
@@ -706,7 +756,7 @@ io.on("connection", (socket) => {
     }
 
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
-       const laneBlockRequired = getBaseCardValue(laneBlockCard);
+    const laneBlockRequired = getBaseCardValue(laneBlockCard);
 
     if (payment.total < laneBlockRequired) {
       socket.emit(
@@ -722,7 +772,7 @@ io.on("connection", (socket) => {
     currentLane.facedown[playerNum] = null;
 
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
-        addAccelerationIfOverpaid(player, payment.total, laneBlockRequired);
+    addAccelerationIfOverpaid(player, payment.total, laneBlockRequired);
 
     const blockInfo = applyBlockBonuses(player, laneBlockCard);
 
@@ -755,6 +805,12 @@ io.on("connection", (socket) => {
     if (game.phase !== "damage") return;
 
     resolveDamage(game);
+    
+    // ========== NEW: Check for winner after damage ==========
+    if (checkAndHandleGameWinner(roomState)) {
+      return; // Game ended, don't continue
+    }
+    // ========================================================
 
     if (!game.winner) {
       reopenPriorityAfterDamage(game);
@@ -858,7 +914,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
