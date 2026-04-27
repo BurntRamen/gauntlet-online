@@ -5,9 +5,9 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 
-const { listFactions, getFactionById } = require("./game/factions");
-const { createRoom, getRoom, deleteRoom, getRoomForSocket } = require("./game/roomStore");
-const { createGameFromLobby } = require("./game/gameFactory");
+const { listFactions, getFactionById } = require("./factions");
+const { createRoom, getRoom, deleteRoom, getRoomForSocket } = require("./roomStore");
+const { createGameFromLobby } = require("./gameFactory");
 const {
   getOtherPlayer,
   getPlayerNumberBySocket,
@@ -29,7 +29,7 @@ const {
   startEndPhase,
   advanceEndPlacement,
   getBaseCardValue
-} = require("./game/gameLogic");
+} = require("./gameLogic");
 
 const app = express();
 const server = http.createServer(app);
@@ -69,7 +69,7 @@ function emitPeek(socketId, text) {
   io.to(socketId).emit("peekResult", text);
 }
 
-// ========== NEW: Winner Detection Function ==========
+// ========== Winner Detection Function ==========
 function checkAndHandleGameWinner(roomState) {
   const game = roomState.game;
   if (!game) return false;
@@ -78,11 +78,14 @@ function checkAndHandleGameWinner(roomState) {
   const p1Life = game.players[1].life;
   const p2Life = game.players[2].life;
   
+  console.log(`[Winner Check] P1 life: ${p1Life}, P2 life: ${p2Life}`);
+  
   // Both dead -> tie
   if (p1Life <= 0 && p2Life <= 0) {
     game.winner = null; // Tie
     game.phase = "gameOver";
     
+    console.log(`[Winner Check] Tie game!`);
     io.to(roomState.roomCode).emit("gameEnded", {
       winner: null,
       tie: true
@@ -96,6 +99,7 @@ function checkAndHandleGameWinner(roomState) {
     game.winner = 2;
     game.phase = "gameOver";
     
+    console.log(`[Winner Check] Player 2 wins!`);
     io.to(roomState.roomCode).emit("gameEnded", {
       winner: 2,
       tie: false
@@ -109,6 +113,7 @@ function checkAndHandleGameWinner(roomState) {
     game.winner = 1;
     game.phase = "gameOver";
     
+    console.log(`[Winner Check] Player 1 wins!`);
     io.to(roomState.roomCode).emit("gameEnded", {
       winner: 1,
       tie: false
@@ -232,13 +237,17 @@ function tryReconnect(roomState, reconnectToken, socket) {
 }
 
 io.on("connection", (socket) => {
+  console.log(`[Socket] New connection: ${socket.id}`);
+  
   socket.on("createRoom", () => {
+    console.log(`[Socket] createRoom from ${socket.id}`);
     const roomState = createRoom();
     assignPlayerSeat(roomState, 1, socket);
     emitLobbyState(roomState);
   });
 
   socket.on("joinRoom", ({ roomCode, asSpectator = false }) => {
+    console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator} from ${socket.id}`);
     const normalized = String(roomCode || "").trim().toUpperCase();
     const roomState = getRoom(normalized);
 
@@ -264,6 +273,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("reconnectToRoom", ({ roomCode, reconnectToken }) => {
+    console.log(`[Socket] reconnectToRoom: ${roomCode} from ${socket.id}`);
     const normalized = String(roomCode || "").trim().toUpperCase();
     const roomState = getRoom(normalized);
 
@@ -276,6 +286,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("selectFaction", ({ factionId }) => {
+    console.log(`[Socket] selectFaction: ${factionId} from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
     if (socket.data.role !== "player") return;
@@ -291,6 +302,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("startGame", () => {
+    console.log(`[Socket] startGame from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
     if (socket.data.role !== "player") return;
@@ -312,6 +324,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("usePolea", (payload) => {
+    console.log(`[Socket] usePolea from ${socket.id}`, payload);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -405,6 +418,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("useLafayette", ({ lane, handIndex }) => {
+    console.log(`[Socket] useLafayette from ${socket.id}, lane: ${lane}, handIndex: ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -439,6 +453,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("useFocusBuff", ({ targetType, lane, handAttackId }) => {
+    console.log(`[Socket] useFocusBuff from ${socket.id}, targetType: ${targetType}, lane: ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -483,7 +498,9 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
+  // ========== FIXED: passPriority - now allows passing even with pending attacks ==========
   socket.on("passPriority", () => {
+    console.log(`[Socket] passPriority from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -494,25 +511,40 @@ io.on("connection", (socket) => {
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
 
-    if (hasPendingAttacks(game)) {
-      socket.emit(
-        "errorMessage",
-        "You cannot declare a new attack until the current attack is blocked or damage resolves."
-      );
-      return;
-    }
-
+    // REMOVED: the hasPendingAttacks check was blocking priority pass
+    // Now players can always pass priority, even with pending attacks
+    
     game.priorityPassed[playerNum] = true;
     game.priority = getOtherPlayer(playerNum);
+    
+    console.log(`[passPriority] Player ${playerNum} passed. Both passed? ${game.priorityPassed[1] && game.priorityPassed[2]}`);
 
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
-      startEndPhase(game);
+      // If there are pending attacks, move to damage resolution
+      if (hasPendingAttacks(game)) {
+        console.log(`[passPriority] Both passed with pending attacks - resolving damage`);
+        resolveDamage(game);
+        
+        // Check for winner after damage
+        if (checkAndHandleGameWinner(roomState)) {
+          return;
+        }
+        
+        if (!game.winner) {
+          reopenPriorityAfterDamage(game);
+        }
+      } else {
+        console.log(`[passPriority] Both passed - starting end phase`);
+        startEndPhase(game);
+      }
     }
 
     emitState(roomState);
   });
+  // =======================================================================================
 
   socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus }) => {
+    console.log(`[Socket] confirmAttack from ${socket.id}, from: ${from}, lane: ${lane}, attackCardIndex: ${attackCardIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -582,6 +614,8 @@ io.on("connection", (socket) => {
         ],
         block: []
       });
+      
+      console.log(`[confirmAttack] Hand attack created. Total hand attacks: ${game.handAttacks.length}`);
     } else if (from === "lane") {
       lane = Number(lane);
       if (lane < 0 || lane > 2) return;
@@ -624,6 +658,8 @@ io.on("connection", (socket) => {
           ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])
         ]
       };
+      
+      console.log(`[confirmAttack] Lane attack created in lane ${lane}`);
     } else {
       return;
     }
@@ -636,7 +672,9 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
+  // ========== FIXED: confirmBlock - added better error logging ==========
   socket.on("confirmBlock", ({ lane, handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
+    console.log(`[Socket] confirmBlock from ${socket.id}, handAttackId: ${handAttackId}, lane: ${lane}, blockCardIndex: ${blockCardIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -653,12 +691,14 @@ io.on("connection", (socket) => {
     if (handAttackId) {
       const attack = game.handAttacks.find((a) => a.id === handAttackId);
       if (!attack) {
+        console.log(`[confirmBlock] Attack not found: ${handAttackId}`);
         socket.emit("errorMessage", "That hand attack could not be found.");
         return;
       }
 
       const defender = getOtherPlayer(attack.player);
       if (playerNum !== defender) {
+        console.log(`[confirmBlock] Player ${playerNum} is not defender (defender is ${defender})`);
         socket.emit("errorMessage", "You are not the defender for that hand attack.");
         return;
       }
@@ -686,6 +726,8 @@ io.on("connection", (socket) => {
 
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
       const blockRequired = getBaseCardValue(blockCard);
+      
+      console.log(`[confirmBlock] Block card value: ${blockRequired}, Payment total: ${payment.total}`);
 
       if (payment.total < blockRequired) {
         socket.emit(
@@ -727,6 +769,7 @@ io.on("connection", (socket) => {
       game.priority = getOtherPlayer(playerNum);
       game.message = `Player ${playerNum} blocked a hand attack. Priority passes back.`;
 
+      console.log(`[confirmBlock] Block successful. Attack now has ${attack.block.length} blocks`);
       emitState(roomState);
       return;
     }
@@ -757,6 +800,8 @@ io.on("connection", (socket) => {
 
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
     const laneBlockRequired = getBaseCardValue(laneBlockCard);
+    
+    console.log(`[confirmBlock] Lane block card value: ${laneBlockRequired}, Payment total: ${payment.total}`);
 
     if (payment.total < laneBlockRequired) {
       socket.emit(
@@ -793,10 +838,13 @@ io.on("connection", (socket) => {
     game.priority = getOtherPlayer(playerNum);
     game.message = `Player ${playerNum} blocked in lane ${lane + 1}. Priority passes back.`;
 
+    console.log(`[confirmBlock] Lane block successful`);
     emitState(roomState);
   });
+  // =====================================================================
 
   socket.on("resolveDamage", () => {
+    console.log(`[Socket] resolveDamage from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -806,11 +854,10 @@ io.on("connection", (socket) => {
 
     resolveDamage(game);
     
-    // ========== NEW: Check for winner after damage ==========
+    // Check for winner after damage
     if (checkAndHandleGameWinner(roomState)) {
       return; // Game ended, don't continue
     }
-    // ========================================================
 
     if (!game.winner) {
       reopenPriorityAfterDamage(game);
@@ -820,6 +867,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("placeFacedown", ({ lane, handIndex }) => {
+    console.log(`[Socket] placeFacedown from ${socket.id}, lane: ${lane}, handIndex: ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -851,6 +899,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("skipEndPlacement", ({ lane }) => {
+    console.log(`[Socket] skipEndPlacement from ${socket.id}, lane: ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
@@ -872,6 +921,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    console.log(`[Socket] disconnect: ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState) return;
 
