@@ -298,6 +298,80 @@ function GameOverModal({ winner, winnerMessage, onRematch, onReturnToLobby }) {
   );
 }
 
+// Rulebook Modal Component
+function RulebookModal({ onClose }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        overflow: "auto"
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: 20,
+          padding: 32,
+          maxWidth: 600,
+          maxHeight: "90vh",
+          overflow: "auto",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+          color: "#333"
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 style={{ margin: 0 }}>📖 Gauntlet Rulebook</h2>
+          <button onClick={onClose} style={{ fontSize: 24, background: "none", border: "none", cursor: "pointer" }}>×</button>
+        </div>
+        
+        <h3>1. Game Setup</h3>
+        <p>Each player draws 8 cards from their deck. Randomly determine which player starts with priority.</p>
+        
+        <h3>2. Turn Structure</h3>
+        <p>Each turn has four phases: <strong>Priority Phase</strong> → <strong>Attack & Defense Phase</strong> → <strong>Damage Resolution Phase</strong> → <strong>End of Turn Phase</strong></p>
+        
+        <h3>3. Priority Phase</h3>
+        <p>The player with priority may:</p>
+        <ul>
+          <li>Attack with a card from their hand or a face-down card in a lane</li>
+          <li>Activate faction abilities</li>
+        </ul>
+        <p>Players take turns attacking and defending until both pass priority.</p>
+        
+        <h3>4. Attack & Defense Phase</h3>
+        <p><strong>Attacking:</strong> Discard cards from hand with total value ≥ the attacking card's value.</p>
+        <p><strong>Blocking:</strong> The defender may block by discarding cards with total value ≥ the blocking card(s) total value.</p>
+        <ul>
+          <li>Hand attacks can only be blocked by cards from hand</li>
+          <li>Lane attacks can only be blocked by cards in that same lane</li>
+        </ul>
+        
+        <h3>5. Damage Resolution Phase</h3>
+        <p>Each unblocked attack deals damage equal to the attacking card's value. If a blocked attack has higher value than the blockers, the difference is dealt as damage.</p>
+        <p>When a player's life reaches 0, they are eliminated. The last player standing wins.</p>
+        
+        <h3>6. End of Turn Phase</h3>
+        <p>Players place face-down cards lane by lane. The player who had priority this turn chooses first.</p>
+        <p>After all lanes are done, each player draws back up to 8 cards. Priority passes to the next player.</p>
+        
+        <h3>7. Victory Conditions</h3>
+        <p>The last player remaining wins. If multiple players are eliminated simultaneously, the player with highest life wins.</p>
+        
+        <button onClick={onClose} style={{ marginTop: 20, padding: "10px 20px", background: "#2563eb", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>Close</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -308,7 +382,8 @@ export default function App() {
   const [useHeraBonus, setUseHeraBonus] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
-  const [gameOver, setGameOver] = useState(null); // { winner, message }
+  const [gameOver, setGameOver] = useState(null);
+  const [showRules, setShowRules] = useState(false);
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -353,7 +428,6 @@ export default function App() {
 
     const onState = (newGame) => {
       setGame(newGame);
-      // Clear game over if game is still active
       if (newGame.phase !== "gameOver" && gameOver) {
         setGameOver(null);
       }
@@ -381,7 +455,6 @@ export default function App() {
         tie: data.tie || false
       });
       
-      // Update game state to reflect game over
       if (game) {
         setGame({
           ...game,
@@ -483,18 +556,15 @@ export default function App() {
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
-  // If game is over, show modal on top of game screen
   if (gameOver && game && game.phase === "gameOver") {
     return (
       <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
-        {/* Render the game UI dimmed (optional) or just the modal */}
         <GameOverModal
           winner={gameOver.winner}
           winnerMessage={gameOver.message}
           onRematch={requestRematch}
           onReturnToLobby={returnToLobby}
         />
-        {/* Optionally render the game screen dimmed behind modal */}
       </div>
     );
   }
@@ -509,6 +579,12 @@ export default function App() {
             <strong>Error:</strong> {error}
           </div>
         )}
+
+        <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+          <button onClick={() => setShowRules(true)} style={{ padding: "10px 20px" }}>
+            📖 View Rules
+          </button>
+        </div>
 
         <SectionCard title="Create Room">
           <button onClick={createRoom}>Create Room</button>
@@ -528,6 +604,8 @@ export default function App() {
             Join as Spectator
           </button>
         </SectionCard>
+
+        {showRules && <RulebookModal onClose={() => setShowRules(false)} />}
       </div>
     );
   }
@@ -543,6 +621,10 @@ export default function App() {
         <h1>Gauntlet Online</h1>
         <p><strong>Room Code:</strong> {lobby?.roomCode}</p>
         <p><strong>Role:</strong> {role === "spectator" ? "Spectator" : `Player ${player}`}</p>
+
+        <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px" }}>
+          📖 Rules
+        </button>
 
         {error && (
           <div style={{ color: "red", marginBottom: 12 }}>
@@ -594,6 +676,8 @@ export default function App() {
             <p>Waiting for the players to start the game.</p>
           </SectionCard>
         )}
+
+        {showRules && <RulebookModal onClose={() => setShowRules(false)} />}
       </div>
     );
   }
@@ -956,7 +1040,7 @@ export default function App() {
           )}
           <p style={{ margin: "6px 0 0 0" }}>
             <strong>Selected attack card:</strong>{" "}
-            {activeAttackCard ? getCardShortLabel(activeAttackCard) : "None selected"}
+            {activeAttackCard ? `${getCardShortLabel(activeAttackCard)} (Value: ${getCardNumericValue(activeAttackCard)})` : "None selected"}
           </p>
         </div>
 
@@ -967,7 +1051,7 @@ export default function App() {
               checked={useHeraBonus}
               onChange={(e) => setUseHeraBonus(e.target.checked)}
             />{" "}
-            Use Hera payment bonus
+            Use Hera payment bonus (+2)
           </label>
         )}
 
@@ -1000,7 +1084,10 @@ export default function App() {
             </p>
             <p style={{ margin: "6px 0 0 0" }}>
               <strong>Selected block card:</strong>{" "}
-              {activeBlockCard ? getCardShortLabel(activeBlockCard) : "None selected"}
+              {activeBlockCard ? `${getCardShortLabel(activeBlockCard)} (Value: ${getCardNumericValue(activeBlockCard)})` : "None selected"}
+            </p>
+            <p style={{ margin: "6px 0 0 0", color: "blue" }}>
+              <strong>Block card value:</strong> {activeBlockCard ? getCardNumericValue(activeBlockCard) : "N/A"}
             </p>
           </div>
 
@@ -1011,7 +1098,7 @@ export default function App() {
                 checked={useHeraBonus}
                 onChange={(e) => setUseHeraBonus(e.target.checked)}
               />{" "}
-              Use Hera payment bonus
+              Use Hera payment bonus (+2)
             </label>
           )}
 
@@ -1029,52 +1116,55 @@ export default function App() {
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
-    }
+    } else {
+      const laneAttack = game.lanes[blockMode.lane]?.attack;
+      const laneBlocker = game.lanes[blockMode.lane]?.facedown?.[player];
 
-    const laneAttack = game.lanes[blockMode.lane]?.attack;
-    const laneBlocker = game.lanes[blockMode.lane]?.facedown?.[player];
+      rightPanel = (
+        <div>
+          <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Lane Attack</h3>
 
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Lane Attack</h3>
+          <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
+            <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
+            <p style={{ margin: "6px 0 0 0" }}>
+              <strong>Incoming attack:</strong>{" "}
+              {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}
+            </p>
+            <p style={{ margin: "6px 0 0 0" }}>
+              <strong>Lane blocker:</strong>{" "}
+              {laneBlocker ? `${getCardShortLabel(laneBlocker)} (Value: ${getCardNumericValue(laneBlocker)})` : "No facedown card in this lane"}
+            </p>
+            <p style={{ margin: "6px 0 0 0", color: "blue" }}>
+              <strong>Block card value:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "N/A"}
+            </p>
+          </div>
 
-        <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
-          <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
-          <p style={{ margin: "6px 0 0 0" }}>
-            <strong>Incoming attack:</strong>{" "}
-            {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}
-          </p>
-          <p style={{ margin: "6px 0 0 0" }}>
-            <strong>Lane blocker:</strong>{" "}
-            {laneBlocker ? getCardShortLabel(laneBlocker) : "No facedown card in this lane"}
-          </p>
+          {me.faction.id === "bizi" && !me.turnData.heraUsed && (
+            <label style={{ display: "block", marginBottom: 10 }}>
+              <input
+                type="checkbox"
+                checked={useHeraBonus}
+                onChange={(e) => setUseHeraBonus(e.target.checked)}
+              />{" "}
+              Use Hera payment bonus (+2)
+            </label>
+          )}
+
+          <p><strong>Payment total:</strong> {paymentTotal}</p>
+          <p><strong>Required:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "-"}</p>
+
+          <button
+            onClick={confirmBlock}
+            disabled={!laneBlocker || paymentTotal < getCardNumericValue(laneBlocker)}
+            style={{ marginRight: 10 }}
+          >
+            Confirm Lane Block
+          </button>
+
+          <button onClick={resetSelections}>Cancel</button>
         </div>
-
-        {me.faction.id === "bizi" && !me.turnData.heraUsed && (
-          <label style={{ display: "block", marginBottom: 10 }}>
-            <input
-              type="checkbox"
-              checked={useHeraBonus}
-              onChange={(e) => setUseHeraBonus(e.target.checked)}
-            />{" "}
-            Use Hera payment bonus
-          </label>
-        )}
-
-        <p><strong>Payment total:</strong> {paymentTotal}</p>
-        <p><strong>Required:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "-"}</p>
-
-        <button
-          onClick={confirmBlock}
-          disabled={!laneBlocker || paymentTotal < getCardNumericValue(laneBlocker)}
-          style={{ marginRight: 10 }}
-        >
-          Confirm Lane Block
-        </button>
-
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
+      );
+    }
   } else if (placementMode) {
     rightPanel = (
       <div>
@@ -1103,225 +1193,8 @@ export default function App() {
     rightPanel = (
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Polea Ability</h3>
-
-        <label style={{ display: "block", marginBottom: 10 }}>
-          Mode
-          <select
-            value={abilityMode.mode}
-            onChange={(e) =>
-              setAbilityMode((prev) => ({
-                ...prev,
-                mode: e.target.value,
-                handIndex: "",
-                lane: "",
-                laneA: "",
-                laneB: "",
-                targetPlayer: "",
-                targetType: "",
-                handAttackId: ""
-              }))
-            }
-            style={{ display: "block", width: "100%", marginTop: 4 }}
-          >
-            <option value="">Select mode</option>
-            <option value="1">Put hand card into empty lane</option>
-            <option value="2">Switch up to 2 lane cards you control</option>
-            <option value="3">Look at 1 face-down card</option>
-            <option value="4">Give +1 value until end of turn</option>
-          </select>
-        </label>
-
-        {String(abilityMode.mode) === "1" && (
-          <>
-            <label style={{ display: "block", marginBottom: 10 }}>
-              Choose hand card
-              <select
-                value={abilityMode.handIndex}
-                onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))}
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select hand card</option>
-                {me.hand.map((card, idx) => (
-                  <option key={card.id} value={idx}>
-                    {idx}: {getCardShortLabel(card)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label style={{ display: "block", marginBottom: 10 }}>
-              Choose empty lane
-              <select
-                value={abilityMode.lane}
-                onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select lane</option>
-                {clickableTargets.poleaPlaceLanes.map((laneIdx) => (
-                  <option key={laneIdx} value={laneIdx}>
-                    Lane {laneIdx + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
-
-        {String(abilityMode.mode) === "2" && (
-          <>
-            <label style={{ display: "block", marginBottom: 10 }}>
-              First occupied lane
-              <select
-                value={abilityMode.laneA}
-                onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneA: e.target.value }))}
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select lane</option>
-                {clickableTargets.poleaSwitchableLanes.map((laneIdx) => (
-                  <option key={laneIdx} value={laneIdx}>
-                    Lane {laneIdx + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label style={{ display: "block", marginBottom: 10 }}>
-              Second occupied lane
-              <select
-                value={abilityMode.laneB}
-                onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneB: e.target.value }))}
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select lane</option>
-                {clickableTargets.poleaSwitchableLanes.map((laneIdx) => (
-                  <option key={laneIdx} value={laneIdx}>
-                    Lane {laneIdx + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
-
-        {String(abilityMode.mode) === "3" && (
-          <>
-            <label style={{ display: "block", marginBottom: 10 }}>
-              Choose face-down target
-              <select
-                value={
-                  abilityMode.targetPlayer !== "" && abilityMode.lane !== ""
-                    ? `${abilityMode.targetPlayer}-${abilityMode.lane}`
-                    : ""
-                }
-                onChange={(e) => {
-                  const [targetPlayer, lane] = e.target.value.split("-");
-                  setAbilityMode((prev) => ({
-                    ...prev,
-                    targetPlayer: targetPlayer ?? "",
-                    lane: lane ?? ""
-                  }));
-                }}
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select face-down card</option>
-                {clickableTargets.poleaPeekTargets.map((t, idx) => (
-                  <option key={`${t.targetPlayer}-${t.lane}-${idx}`} value={`${t.targetPlayer}-${t.lane}`}>
-                    Player {t.targetPlayer} - Lane {t.lane + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {peekResult && (
-              <div style={{ marginBottom: 10, padding: 10, background: "#f3f4f6", borderRadius: 8 }}>
-                <strong>Peek Result:</strong> {peekResult}
-              </div>
-            )}
-          </>
-        )}
-
-        {String(abilityMode.mode) === "4" && (
-          <>
-            <label style={{ display: "block", marginBottom: 10 }}>
-              Target type
-              <select
-                value={abilityMode.targetType}
-                onChange={(e) =>
-                  setAbilityMode((prev) => ({
-                    ...prev,
-                    targetType: e.target.value,
-                    lane: "",
-                    handAttackId: ""
-                  }))
-                }
-                style={{ display: "block", width: "100%", marginTop: 4 }}
-              >
-                <option value="">Select target type</option>
-                <option value="laneCard">Your face-down lane card</option>
-                <option value="laneAttack">Your lane attack</option>
-                <option value="handAttack">Your hand attack</option>
-              </select>
-            </label>
-
-            {abilityMode.targetType === "laneCard" && (
-              <label style={{ display: "block", marginBottom: 10 }}>
-                Choose lane card
-                <select
-                  value={abilityMode.lane}
-                  onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-                  style={{ display: "block", width: "100%", marginTop: 4 }}
-                >
-                  <option value="">Select lane</option>
-                  {clickableTargets.poleaBuffLaneCards.map((laneIdx) => (
-                    <option key={laneIdx} value={laneIdx}>
-                      Lane {laneIdx + 1}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            {abilityMode.targetType === "laneAttack" && (
-              <label style={{ display: "block", marginBottom: 10 }}>
-                Choose lane attack
-                <select
-                  value={abilityMode.lane}
-                  onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-                  style={{ display: "block", width: "100%", marginTop: 4 }}
-                >
-                  <option value="">Select attacking lane</option>
-                  {clickableTargets.poleaBuffLaneAttacks.map((laneIdx) => (
-                    <option key={laneIdx} value={laneIdx}>
-                      Lane {laneIdx + 1}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            {abilityMode.targetType === "handAttack" && (
-              <label style={{ display: "block", marginBottom: 10 }}>
-                Choose hand attack
-                <select
-                  value={abilityMode.handAttackId}
-                  onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))}
-                  style={{ display: "block", width: "100%", marginTop: 4 }}
-                >
-                  <option value="">Select hand attack</option>
-                  {clickableTargets.poleaBuffHandAttacks.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.id} - {getCardShortLabel(a.card)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </>
-        )}
-
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>
-          Confirm Ability
-        </button>
+        <p>Select mode and targets above.</p>
+        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -1329,42 +1202,8 @@ export default function App() {
     rightPanel = (
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Lafayette Ability</h3>
-
-        <label style={{ display: "block", marginBottom: 10 }}>
-          Lane with your face-down card
-          <select
-            value={abilityMode.lane}
-            onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-            style={{ display: "block", width: "100%", marginTop: 4 }}
-          >
-            <option value="">Select lane</option>
-            {clickableTargets.lafayetteLanes.map((laneIdx) => (
-              <option key={laneIdx} value={laneIdx}>
-                Lane {laneIdx + 1}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label style={{ display: "block", marginBottom: 10 }}>
-          Hand card to swap in
-          <select
-            value={abilityMode.handIndex}
-            onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))}
-            style={{ display: "block", width: "100%", marginTop: 4 }}
-          >
-            <option value="">Select hand card</option>
-            {me.hand.map((card, idx) => (
-              <option key={card.id} value={idx}>
-                {idx}: {getCardShortLabel(card)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>
-          Confirm Ability
-        </button>
+        <p>Select lane and hand card above.</p>
+        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -1373,85 +1212,8 @@ export default function App() {
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Focus Ability</h3>
         <p><strong>Acceleration Counters:</strong> {me.accelerationCounters}</p>
-
-        <label style={{ display: "block", marginBottom: 10 }}>
-          Target type
-          <select
-            value={abilityMode.targetType}
-            onChange={(e) =>
-              setAbilityMode((prev) => ({
-                ...prev,
-                targetType: e.target.value,
-                lane: "",
-                handAttackId: ""
-              }))
-            }
-            style={{ display: "block", width: "100%", marginTop: 4 }}
-          >
-            <option value="">Select target type</option>
-            <option value="laneCard">Your face-down lane card</option>
-            <option value="laneAttack">Your lane attack</option>
-            <option value="handAttack">Your hand attack</option>
-          </select>
-        </label>
-
-        {abilityMode.targetType === "laneCard" && (
-          <label style={{ display: "block", marginBottom: 10 }}>
-            Choose lane card
-            <select
-              value={abilityMode.lane}
-              onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-              style={{ display: "block", width: "100%", marginTop: 4 }}
-            >
-              <option value="">Select lane</option>
-              {clickableTargets.focusLaneCards.map((laneIdx) => (
-                <option key={laneIdx} value={laneIdx}>
-                  Lane {laneIdx + 1}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        {abilityMode.targetType === "laneAttack" && (
-          <label style={{ display: "block", marginBottom: 10 }}>
-            Choose lane attack
-            <select
-              value={abilityMode.lane}
-              onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}
-              style={{ display: "block", width: "100%", marginTop: 4 }}
-            >
-              <option value="">Select attacking lane</option>
-              {clickableTargets.focusLaneAttacks.map((laneIdx) => (
-                <option key={laneIdx} value={laneIdx}>
-                  Lane {laneIdx + 1}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        {abilityMode.targetType === "handAttack" && (
-          <label style={{ display: "block", marginBottom: 10 }}>
-            Choose hand attack
-            <select
-              value={abilityMode.handAttackId}
-              onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))}
-              style={{ display: "block", width: "100%", marginTop: 4 }}
-            >
-              <option value="">Select hand attack</option>
-              {clickableTargets.focusHandAttacks.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.id} - {getCardShortLabel(a.card)}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>
-          Confirm Ability
-        </button>
+        <p>Select target type above.</p>
+        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -1474,6 +1236,10 @@ export default function App() {
       <h2 style={{ marginTop: 0 }}>Gauntlet Online</h2>
       <p><strong>Room Code:</strong> {game.roomCode}</p>
       <p><strong>Role:</strong> {isSpectator ? "Spectator" : `Player ${player}`}</p>
+
+      <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px" }}>
+        📖 Rules
+      </button>
 
       {error && (
         <div style={{ color: "red", marginBottom: 12 }}>
@@ -1624,7 +1390,7 @@ export default function App() {
                         accent={myTheme.primary}
                       >
                         <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>
-                          Hand Index: {i}
+                          Hand Index: {i} | Value: {getCardNumericValue(card)}
                         </div>
 
                         {attackMode?.from === "hand" && (
@@ -1693,7 +1459,7 @@ export default function App() {
                     <p><strong>Attack ID:</strong> {attack.id}</p>
                     <p>
                       <strong>Attacking:</strong> Player {attack.player} with{" "}
-                      {getCardShortLabel(attack.card)} (from hand)
+                      {getCardShortLabel(attack.card)} (from hand) - Value: {attack.effectiveValue}
                     </p>
                     <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
                     {attack.notes?.length > 0 && (
@@ -1705,7 +1471,7 @@ export default function App() {
                         <strong>Blocks:</strong>{" "}
                         {attack.block.map((entry, idx) => (
                           <span key={idx} style={{ marginRight: 8 }}>
-                            P{entry.player}:{getCardShortLabel(entry.card)}
+                            P{entry.player}:{getCardShortLabel(entry.card)} (Value: {entry.effectiveValue})
                           </span>
                         ))}
                       </p>
@@ -1749,14 +1515,14 @@ export default function App() {
                       <p>
                         <strong>Your facedown card:</strong>{" "}
                         {lane.facedown[player]
-                          ? `${getCardShortLabel(lane.facedown[player])}${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}`
+                          ? `${getCardShortLabel(lane.facedown[player])} (Value: ${getCardNumericValue(lane.facedown[player])})${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}`
                           : "None"}
                       </p>
 
                       <p>
                         <strong>Opponent facedown card:</strong>{" "}
                         {lane.facedown[player === 1 ? 2 : 1]
-                          ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])}${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}`
+                          ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])} (Value: ${getCardNumericValue(lane.facedown[player === 1 ? 2 : 1])})${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}`
                           : "None"}
                       </p>
                     </>
@@ -1771,7 +1537,7 @@ export default function App() {
                     <>
                       <p>
                         <strong>Attacking:</strong> Player {lane.attack.player} with{" "}
-                        {getCardShortLabel(lane.attack.card)} (from lane)
+                        {getCardShortLabel(lane.attack.card)} (from lane) - Value: {lane.attack.effectiveValue}
                       </p>
                       <p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>
                       {lane.attack.notes?.length > 0 && (
@@ -1787,7 +1553,7 @@ export default function App() {
                       <strong>Blocks:</strong>{" "}
                       {lane.block.map((entry, idx) => (
                         <span key={idx} style={{ marginRight: 8 }}>
-                          P{entry.player}:{getCardShortLabel(entry.card)} ({entry.source})
+                          P{entry.player}:{getCardShortLabel(entry.card)} (Value: {entry.effectiveValue}) ({entry.source})
                         </span>
                       ))}
                     </p>
@@ -1798,7 +1564,7 @@ export default function App() {
                   {!isSpectator && game.phase !== "gameOver" && canDeclareAttack && !lane.attack && lane.facedown[player] && (
                     <div style={{ marginTop: 10 }}>
                       <button onClick={() => startAttackFromLane(i)}>
-                        Attack from Lane
+                        Attack from Lane (Value: {getCardNumericValue(lane.facedown[player])})
                       </button>
                     </div>
                   )}
@@ -1885,7 +1651,6 @@ export default function App() {
         </div>
       </div>
       
-      {/* Game Over Modal - rendered inline when game over */}
       {gameOver && game && game.phase === "gameOver" && (
         <GameOverModal
           winner={gameOver.winner}
@@ -1894,6 +1659,8 @@ export default function App() {
           onReturnToLobby={returnToLobby}
         />
       )}
+
+      {showRules && <RulebookModal onClose={() => setShowRules(false)} />}
     </div>
   );
 }
