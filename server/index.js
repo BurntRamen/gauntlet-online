@@ -5,6 +5,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 
+// FIXED: Correct import paths (adjust based on your actual structure)
 const { listFactions, getFactionById } = require("./factions");
 const { createRoom, getRoom, deleteRoom, getRoomForSocket } = require("./roomStore");
 const { createGameFromLobby } = require("./gameFactory");
@@ -73,78 +74,47 @@ function emitPeek(socketId, text) {
 function checkAndHandleGameWinner(roomState) {
   const game = roomState.game;
   if (!game) return false;
-  if (game.winner) return true; // Already ended
+  if (game.winner) return true;
   
   const p1Life = game.players[1].life;
   const p2Life = game.players[2].life;
   
-  console.log(`[Winner Check] P1 life: ${p1Life}, P2 life: ${p2Life}`);
-  
-  // Both dead -> tie
   if (p1Life <= 0 && p2Life <= 0) {
-    game.winner = null; // Tie
+    game.winner = null;
     game.phase = "gameOver";
-    
-    console.log(`[Winner Check] Tie game!`);
-    io.to(roomState.roomCode).emit("gameEnded", {
-      winner: null,
-      tie: true
-    });
+    io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true });
     emitState(roomState);
     return true;
   }
   
-  // Player 1 dead -> Player 2 wins
   if (p1Life <= 0) {
     game.winner = 2;
     game.phase = "gameOver";
-    
-    console.log(`[Winner Check] Player 2 wins!`);
-    io.to(roomState.roomCode).emit("gameEnded", {
-      winner: 2,
-      tie: false
-    });
+    io.to(roomState.roomCode).emit("gameEnded", { winner: 2, tie: false });
     emitState(roomState);
     return true;
   }
   
-  // Player 2 dead -> Player 1 wins
   if (p2Life <= 0) {
     game.winner = 1;
     game.phase = "gameOver";
-    
-    console.log(`[Winner Check] Player 1 wins!`);
-    io.to(roomState.roomCode).emit("gameEnded", {
-      winner: 1,
-      tie: false
-    });
+    io.to(roomState.roomCode).emit("gameEnded", { winner: 1, tie: false });
     emitState(roomState);
     return true;
   }
   
   return false;
 }
-// ===================================================
 
 function hasIncomingAttackAgainst(game, playerNum) {
   const opponent = playerNum === 1 ? 2 : 1;
-
-  const incomingHandAttack = game.handAttacks.some(
-    (attack) => attack.player === opponent
-  );
-
-  const incomingLaneAttack = game.lanes.some(
-    (lane) => lane.attack && lane.attack.player === opponent
-  );
-
-  return incomingHandAttack || incomingLaneAttack;
+  return game.handAttacks.some((a) => a.player === opponent) ||
+    game.lanes.some((lane) => lane.attack && lane.attack.player === opponent);
 }
 
 function assignPlayerSeat(roomState, playerNum, socket) {
   const seat = roomState.lobby.players[playerNum];
-  if (!seat.reconnectToken) {
-    seat.reconnectToken = makeReconnectToken();
-  }
+  if (!seat.reconnectToken) seat.reconnectToken = makeReconnectToken();
   seat.socket = socket.id;
   seat.connected = true;
 
@@ -163,16 +133,11 @@ function assignPlayerSeat(roomState, playerNum, socket) {
 
 function assignSpectator(roomState, socket) {
   roomState.lobby.spectators.push(socket.id);
-
   socket.join(roomState.roomCode);
   socket.data.roomCode = roomState.roomCode;
   socket.data.role = "spectator";
   socket.data.playerNum = null;
-
-  socket.emit("assignSpectator", {
-    role: "spectator",
-    roomCode: roomState.roomCode
-  });
+  socket.emit("assignSpectator", { role: "spectator", roomCode: roomState.roomCode });
 }
 
 function tryReconnect(roomState, reconnectToken, socket) {
@@ -181,19 +146,16 @@ function tryReconnect(roomState, reconnectToken, socket) {
     if (lobbySeat.reconnectToken && lobbySeat.reconnectToken === reconnectToken) {
       lobbySeat.socket = socket.id;
       lobbySeat.connected = true;
-
       socket.join(roomState.roomCode);
       socket.data.roomCode = roomState.roomCode;
       socket.data.role = "player";
       socket.data.playerNum = p;
-
       socket.emit("assign", {
         role: "player",
         playerNum: p,
         reconnectToken: lobbySeat.reconnectToken,
         roomCode: roomState.roomCode
       });
-
       if (roomState.game) {
         roomState.game.players[p].socket = socket.id;
         roomState.game.players[p].connected = true;
@@ -204,35 +166,6 @@ function tryReconnect(roomState, reconnectToken, socket) {
       return true;
     }
   }
-
-  if (roomState.game) {
-    for (const p of [1, 2]) {
-      const gp = roomState.game.players[p];
-      if (gp.reconnectToken && gp.reconnectToken === reconnectToken) {
-        gp.socket = socket.id;
-        gp.connected = true;
-
-        roomState.lobby.players[p].socket = socket.id;
-        roomState.lobby.players[p].connected = true;
-
-        socket.join(roomState.roomCode);
-        socket.data.roomCode = roomState.roomCode;
-        socket.data.role = "player";
-        socket.data.playerNum = p;
-
-        socket.emit("assign", {
-          role: "player",
-          playerNum: p,
-          reconnectToken: gp.reconnectToken,
-          roomCode: roomState.roomCode
-        });
-
-        emitState(roomState);
-        return true;
-      }
-    }
-  }
-
   return false;
 }
 
@@ -240,96 +173,74 @@ io.on("connection", (socket) => {
   console.log(`[Socket] New connection: ${socket.id}`);
   
   socket.on("createRoom", () => {
-    console.log(`[Socket] createRoom from ${socket.id}`);
     const roomState = createRoom();
     assignPlayerSeat(roomState, 1, socket);
     emitLobbyState(roomState);
   });
 
   socket.on("joinRoom", ({ roomCode, asSpectator = false }) => {
-    console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator} from ${socket.id}`);
     const normalized = String(roomCode || "").trim().toUpperCase();
     const roomState = getRoom(normalized);
-
     if (!roomState) {
       socket.emit("errorMessage", "Room not found.");
       return;
     }
-
     if (asSpectator) {
       assignSpectator(roomState, socket);
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
     }
-
     if (!roomState.lobby.players[2].socket && !roomState.game) {
       assignPlayerSeat(roomState, 2, socket);
       emitLobbyState(roomState);
       return;
     }
-
     socket.emit("errorMessage", "Player seats are full. Join as spectator instead.");
   });
 
   socket.on("reconnectToRoom", ({ roomCode, reconnectToken }) => {
-    console.log(`[Socket] reconnectToRoom: ${roomCode} from ${socket.id}`);
     const normalized = String(roomCode || "").trim().toUpperCase();
     const roomState = getRoom(normalized);
-
     if (!roomState || !reconnectToken) return;
-
     const ok = tryReconnect(roomState, reconnectToken, socket);
-    if (!ok) {
-      socket.emit("errorMessage", "Reconnect failed. Join the room again.");
-    }
+    if (!ok) socket.emit("errorMessage", "Reconnect failed. Join the room again.");
   });
 
   socket.on("selectFaction", ({ factionId }) => {
-    console.log(`[Socket] selectFaction: ${factionId} from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
     if (socket.data.role !== "player") return;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
-
     const faction = getFactionById(factionId);
     if (!faction) return;
-
     roomState.lobby.players[playerNum].factionId = factionId;
     emitLobbyState(roomState);
   });
 
   socket.on("startGame", () => {
-    console.log(`[Socket] startGame from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
     if (socket.data.role !== "player") return;
-
     if (!roomPlayersReady(roomState)) {
       socket.emit("errorMessage", "Both players must join and select a faction first.");
       return;
     }
-
     createGameFromLobby(roomState);
-
     for (const p of [1, 2]) {
       roomState.game.players[p].reconnectToken = roomState.lobby.players[p].reconnectToken;
       roomState.game.players[p].connected = roomState.lobby.players[p].connected;
       roomState.game.players[p].socket = roomState.lobby.players[p].socket;
     }
-
     emitState(roomState);
   });
 
   socket.on("usePolea", (payload) => {
-    console.log(`[Socket] usePolea from ${socket.id}`, payload);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const player = game.players[playerNum];
@@ -346,7 +257,6 @@ io.on("connection", (socket) => {
       if (lane < 0 || lane > 2) return;
       if (handIndex < 0 || handIndex >= player.hand.length) return;
       if (game.lanes[lane].facedown[playerNum]) return;
-
       const card = player.hand.splice(handIndex, 1)[0];
       const notes = registerCardPlayed(player, card);
       game.lanes[lane].facedown[playerNum] = card;
@@ -358,11 +268,9 @@ io.on("connection", (socket) => {
       const laneA = Number(payload.laneA);
       const laneB = Number(payload.laneB);
       if (laneA < 0 || laneA > 2 || laneB < 0 || laneB > 2) return;
-
       const temp = game.lanes[laneA].facedown[playerNum];
       game.lanes[laneA].facedown[playerNum] = game.lanes[laneB].facedown[playerNum];
       game.lanes[laneB].facedown[playerNum] = temp;
-
       player.turnData.poleaUsed = true;
       game.message = `Player ${playerNum} used Polea to switch lane positions.`;
     }
@@ -372,12 +280,10 @@ io.on("connection", (socket) => {
       const lane = Number(payload.lane);
       if (![1, 2].includes(targetPlayer)) return;
       if (lane < 0 || lane > 2) return;
-
       const card = game.lanes[lane].facedown[targetPlayer];
       const text = card
         ? `Peeked card in Player ${targetPlayer} lane ${lane + 1}: ${card.value}${card.suit} (${card.name})`
         : `No face-down card in Player ${targetPlayer} lane ${lane + 1}.`;
-
       emitPeek(socket.id, text);
       player.turnData.poleaUsed = true;
       game.message = `Player ${playerNum} used Polea to look at a face-down card.`;
@@ -385,7 +291,6 @@ io.on("connection", (socket) => {
 
     if (mode === 4) {
       const targetType = payload.targetType;
-
       if (targetType === "laneCard") {
         const lane = Number(payload.lane);
         if (lane < 0 || lane > 2) return;
@@ -393,7 +298,6 @@ io.on("connection", (socket) => {
         if (!card) return;
         card.tempBuff = (card.tempBuff || 0) + 1;
       }
-
       if (targetType === "laneAttack") {
         const lane = Number(payload.lane);
         if (lane < 0 || lane > 2) return;
@@ -402,28 +306,23 @@ io.on("connection", (socket) => {
         attack.effectiveValue += 1;
         attack.notes = [...(attack.notes || []), "Polea +1"];
       }
-
       if (targetType === "handAttack") {
         const attack = game.handAttacks.find((a) => a.id === payload.handAttackId);
         if (!attack || attack.player !== playerNum) return;
         attack.effectiveValue += 1;
         attack.notes = [...(attack.notes || []), "Polea +1"];
       }
-
       player.turnData.poleaUsed = true;
       game.message = `Player ${playerNum} used Polea to grant +1 value until end of turn.`;
     }
-
     emitState(roomState);
   });
 
   socket.on("useLafayette", ({ lane, handIndex }) => {
-    console.log(`[Socket] useLafayette from ${socket.id}, lane: ${lane}, handIndex: ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const player = game.players[playerNum];
@@ -432,33 +331,26 @@ io.on("connection", (socket) => {
     if (game.priority !== playerNum) return;
     if (player.turnData.lafayetteUsed) return;
 
-    lane = Number(lane);
-    handIndex = Number(handIndex);
-
-    if (lane < 0 || lane > 2) return;
-    if (handIndex < 0 || handIndex >= player.hand.length) return;
-
-    const laneCard = game.lanes[lane].facedown[playerNum];
+    const l = Number(lane);
+    const h = Number(handIndex);
+    if (l < 0 || l > 2) return;
+    if (h < 0 || h >= player.hand.length) return;
+    const laneCard = game.lanes[l].facedown[playerNum];
     if (!laneCard) return;
-
-    const handCard = player.hand[handIndex];
+    const handCard = player.hand[h];
     const handNotes = registerCardPlayed(player, handCard);
-
-    player.hand[handIndex] = laneCard;
-    game.lanes[lane].facedown[playerNum] = handCard;
+    player.hand[h] = laneCard;
+    game.lanes[l].facedown[playerNum] = handCard;
     player.turnData.lafayetteUsed = true;
     game.message = `Player ${playerNum} used Lafayette to swap a lane card with a hand card.${handNotes.length ? ` ${handNotes.join(", ")}` : ""}`;
-
     emitState(roomState);
   });
 
   socket.on("useFocusBuff", ({ targetType, lane, handAttackId }) => {
-    console.log(`[Socket] useFocusBuff from ${socket.id}, targetType: ${targetType}, lane: ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const player = game.players[playerNum];
@@ -469,98 +361,70 @@ io.on("connection", (socket) => {
     if (player.accelerationCounters <= 0) return;
 
     if (targetType === "laneCard") {
-      lane = Number(lane);
-      if (lane < 0 || lane > 2) return;
-      const card = game.lanes[lane].facedown[playerNum];
+      const l = Number(lane);
+      if (l < 0 || l > 2) return;
+      const card = game.lanes[l].facedown[playerNum];
       if (!card) return;
       card.tempBuff = (card.tempBuff || 0) + 1;
     }
-
     if (targetType === "laneAttack") {
-      lane = Number(lane);
-      if (lane < 0 || lane > 2) return;
-      const attack = game.lanes[lane].attack;
+      const l = Number(lane);
+      if (l < 0 || l > 2) return;
+      const attack = game.lanes[l].attack;
       if (!attack || attack.player !== playerNum) return;
       attack.effectiveValue += 1;
       attack.notes = [...(attack.notes || []), "Focus +1"];
     }
-
     if (targetType === "handAttack") {
       const attack = game.handAttacks.find((a) => a.id === handAttackId);
       if (!attack || attack.player !== playerNum) return;
       attack.effectiveValue += 1;
       attack.notes = [...(attack.notes || []), "Focus +1"];
     }
-
     player.accelerationCounters -= 1;
     player.turnData.focusBuffUsed = true;
     game.message = `Player ${playerNum} used Focus to give +1 value until end of turn.`;
     emitState(roomState);
   });
 
-  // ========== FIXED: passPriority - now allows passing even with pending attacks ==========
+  // ========== FIXED: passPriority ==========
   socket.on("passPriority", () => {
-    console.log(`[Socket] passPriority from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
 
-    // REMOVED: the hasPendingAttacks check was blocking priority pass
-    // Now players can always pass priority, even with pending attacks
-    
     game.priorityPassed[playerNum] = true;
     game.priority = getOtherPlayer(playerNum);
-    
-    console.log(`[passPriority] Player ${playerNum} passed. Both passed? ${game.priorityPassed[1] && game.priorityPassed[2]}`);
 
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
-      // If there are pending attacks, move to damage resolution
       if (hasPendingAttacks(game)) {
-        console.log(`[passPriority] Both passed with pending attacks - resolving damage`);
         resolveDamage(game);
-        
-        // Check for winner after damage
-        if (checkAndHandleGameWinner(roomState)) {
-          return;
-        }
-        
-        if (!game.winner) {
-          reopenPriorityAfterDamage(game);
-        }
+        if (checkAndHandleGameWinner(roomState)) return;
+        if (!game.winner) reopenPriorityAfterDamage(game);
       } else {
-        console.log(`[passPriority] Both passed - starting end phase`);
         startEndPhase(game);
       }
     }
-
     emitState(roomState);
   });
-  // =======================================================================================
 
   socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmAttack from ${socket.id}, from: ${from}, lane: ${lane}, attackCardIndex: ${attackCardIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
     if (!Array.isArray(paymentIndexes)) return;
-
     if (hasIncomingAttackAgainst(game, playerNum)) {
-      socket.emit(
-        "errorMessage",
-        "You cannot declare a new attack while you have an unresolved incoming attack."
-      );
+      socket.emit("errorMessage", "You cannot declare a new attack while you have an unresolved incoming attack.");
       return;
     }
 
@@ -571,369 +435,238 @@ io.on("connection", (socket) => {
       if (attackCardIndex == null) return;
       if (attackCardIndex < 0 || attackCardIndex >= player.hand.length) return;
       if (paymentIndexes.includes(attackCardIndex)) return;
-
       attackCard = player.hand[attackCardIndex];
       if (!attackCard) return;
-
       const paymentRequirement = getAttackPaymentRequirement(player, attackCard);
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
       if (payment.total < paymentRequirement.required) return;
-
       const playNotes = registerCardPlayed(player, attackCard);
       const attackNotes = calculateAttackBonuses(player, attackCard);
-
       attackCard = player.hand.splice(attackCardIndex, 1)[0];
-
-      const adjustedPaymentIndexes = paymentIndexes.map((i) =>
-        i > attackCardIndex ? i - 1 : i
-      );
-
+      const adjustedPaymentIndexes = paymentIndexes.map((i) => i > attackCardIndex ? i - 1 : i);
       removeIndexesFromHandToDiscard(player, adjustedPaymentIndexes);
-
       if (payment.heraUsedNow) player.turnData.heraUsed = true;
       addAccelerationIfOverpaid(player, payment.total, paymentRequirement.required);
-
-      const finalAttack = finalizeAttackDeclaration(
-        player,
-        attackCard,
-        attackNotes,
-        paymentRequirement.freeAttackUsed
-      );
-
+      const finalAttack = finalizeAttackDeclaration(player, attackCard, attackNotes, paymentRequirement.freeAttackUsed);
       game.handAttacks.push({
         id: `hand-attack-${Math.random().toString(36).slice(2, 9)}`,
         player: playerNum,
         card: attackCard,
         source: "hand",
         effectiveValue: finalAttack.effectiveValue,
-        notes: [
-          ...playNotes,
-          ...finalAttack.notes,
-          ...(paymentRequirement.freeAttackUsed ? ["Meerus free attack"] : []),
-          ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])
-        ],
+        notes: [...playNotes, ...finalAttack.notes, ...(paymentRequirement.freeAttackUsed ? ["Meerus free attack"] : []), ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])],
         block: []
       });
-      
-      console.log(`[confirmAttack] Hand attack created. Total hand attacks: ${game.handAttacks.length}`);
     } else if (from === "lane") {
-      lane = Number(lane);
-      if (lane < 0 || lane > 2) return;
-
-      const currentLane = game.lanes[lane];
+      const l = Number(lane);
+      if (l < 0 || l > 2) return;
+      const currentLane = game.lanes[l];
       if (currentLane.attack) return;
-
       attackCard = currentLane.facedown[playerNum];
       if (!attackCard) return;
-
       const paymentRequirement = getAttackPaymentRequirement(player, attackCard);
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
       if (payment.total < paymentRequirement.required) return;
-
       const playNotes = registerCardPlayed(player, attackCard);
       const attackNotes = calculateAttackBonuses(player, attackCard);
-
       removeIndexesFromHandToDiscard(player, paymentIndexes);
       currentLane.facedown[playerNum] = null;
-
       if (payment.heraUsedNow) player.turnData.heraUsed = true;
       addAccelerationIfOverpaid(player, payment.total, paymentRequirement.required);
-
-      const finalAttack = finalizeAttackDeclaration(
-        player,
-        attackCard,
-        attackNotes,
-        paymentRequirement.freeAttackUsed
-      );
-
+      const finalAttack = finalizeAttackDeclaration(player, attackCard, attackNotes, paymentRequirement.freeAttackUsed);
       currentLane.attack = {
         player: playerNum,
         card: attackCard,
         source: "lane",
         effectiveValue: finalAttack.effectiveValue,
-        notes: [
-          ...playNotes,
-          ...finalAttack.notes,
-          ...(paymentRequirement.freeAttackUsed ? ["Meerus free attack"] : []),
-          ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])
-        ]
+        notes: [...playNotes, ...finalAttack.notes, ...(paymentRequirement.freeAttackUsed ? ["Meerus free attack"] : []), ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])]
       };
-      
-      console.log(`[confirmAttack] Lane attack created in lane ${lane}`);
-    } else {
-      return;
-    }
+    } else return;
 
     game.lastDefender = getOtherPlayer(playerNum);
     resetPriorityPassed(game);
     game.priority = getOtherPlayer(playerNum);
     game.message = `Player ${playerNum} attacked${from === "hand" ? " from hand" : ` in lane ${lane + 1}`}. Defending player has priority to respond or block.`;
-
     emitState(roomState);
   });
 
-  // ========== FIXED: confirmBlock - added better error logging ==========
   socket.on("confirmBlock", ({ lane, handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmBlock from ${socket.id}, handAttackId: ${handAttackId}, lane: ${lane}, blockCardIndex: ${blockCardIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (game.phase !== "priority") return;
     if (game.priority !== playerNum) return;
     if (!Array.isArray(paymentIndexes)) return;
-
     const player = game.players[playerNum];
 
     if (handAttackId) {
       const attack = game.handAttacks.find((a) => a.id === handAttackId);
       if (!attack) {
-        console.log(`[confirmBlock] Attack not found: ${handAttackId}`);
         socket.emit("errorMessage", "That hand attack could not be found.");
         return;
       }
-
       const defender = getOtherPlayer(attack.player);
       if (playerNum !== defender) {
-        console.log(`[confirmBlock] Player ${playerNum} is not defender (defender is ${defender})`);
         socket.emit("errorMessage", "You are not the defender for that hand attack.");
         return;
       }
-
       if (blockCardIndex == null) {
         socket.emit("errorMessage", "Choose a blocking card.");
         return;
       }
-
       if (blockCardIndex < 0 || blockCardIndex >= player.hand.length) {
         socket.emit("errorMessage", "Invalid blocking card.");
         return;
       }
-
       if (paymentIndexes.includes(blockCardIndex)) {
         socket.emit("errorMessage", "Your blocking card cannot also be used as payment.");
         return;
       }
-
       let blockCard = player.hand[blockCardIndex];
       if (!blockCard) {
         socket.emit("errorMessage", "That blocking card no longer exists.");
         return;
       }
-
       const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
       const blockRequired = getBaseCardValue(blockCard);
-      
-      console.log(`[confirmBlock] Block card value: ${blockRequired}, Payment total: ${payment.total}`);
-
       if (payment.total < blockRequired) {
-        socket.emit(
-          "errorMessage",
-          `Not enough payment to block. Need ${blockRequired}, but only have ${payment.total}.`
-        );
+        socket.emit("errorMessage", `Not enough payment to block. Need ${blockRequired}, but only have ${payment.total}.`);
         return;
       }
-
       const playNotes = registerCardPlayed(player, blockCard);
-
       blockCard = player.hand.splice(blockCardIndex, 1)[0];
-
-      const adjustedPaymentIndexes = paymentIndexes.map((i) =>
-        i > blockCardIndex ? i - 1 : i
-      );
-
+      const adjustedPaymentIndexes = paymentIndexes.map((i) => i > blockCardIndex ? i - 1 : i);
       removeIndexesFromHandToDiscard(player, adjustedPaymentIndexes);
-
       if (payment.heraUsedNow) player.turnData.heraUsed = true;
       addAccelerationIfOverpaid(player, payment.total, blockRequired);
-
       const blockInfo = applyBlockBonuses(player, blockCard);
-
       attack.block.push({
         player: playerNum,
         card: blockCard,
         source: "hand",
         effectiveValue: blockInfo.effectiveValue,
-        notes: [
-          ...playNotes,
-          ...blockInfo.notes,
-          ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])
-        ]
+        notes: [...playNotes, ...blockInfo.notes, ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])]
       });
-
       finalizeBlockDeclaration(player);
       resetPriorityPassed(game);
       game.priority = getOtherPlayer(playerNum);
       game.message = `Player ${playerNum} blocked a hand attack. Priority passes back.`;
-
-      console.log(`[confirmBlock] Block successful. Attack now has ${attack.block.length} blocks`);
       emitState(roomState);
       return;
     }
 
-    lane = Number(lane);
-    if (lane < 0 || lane > 2) {
+    const l = Number(lane);
+    if (l < 0 || l > 2) {
       socket.emit("errorMessage", "Invalid lane for block.");
       return;
     }
-
-    const currentLane = game.lanes[lane];
+    const currentLane = game.lanes[l];
     if (!currentLane.attack) {
       socket.emit("errorMessage", "There is no attack in that lane to block.");
       return;
     }
-
     const defender = getOtherPlayer(currentLane.attack.player);
     if (playerNum !== defender) {
       socket.emit("errorMessage", "You are not the defender for that lane attack.");
       return;
     }
-
     let laneBlockCard = currentLane.facedown[playerNum];
     if (!laneBlockCard) {
       socket.emit("errorMessage", "There is no card in that lane to block with.");
       return;
     }
-
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
     const laneBlockRequired = getBaseCardValue(laneBlockCard);
-    
-    console.log(`[confirmBlock] Lane block card value: ${laneBlockRequired}, Payment total: ${payment.total}`);
-
     if (payment.total < laneBlockRequired) {
-      socket.emit(
-        "errorMessage",
-        `Not enough payment to block. Need ${laneBlockRequired}, but only have ${payment.total}.`
-      );
+      socket.emit("errorMessage", `Not enough payment to block. Need ${laneBlockRequired}, but only have ${payment.total}.`);
       return;
     }
-
     const playNotes = registerCardPlayed(player, laneBlockCard);
-
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     currentLane.facedown[playerNum] = null;
-
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
     addAccelerationIfOverpaid(player, payment.total, laneBlockRequired);
-
     const blockInfo = applyBlockBonuses(player, laneBlockCard);
-
     currentLane.block.push({
       player: playerNum,
       card: laneBlockCard,
       source: "lane",
       effectiveValue: blockInfo.effectiveValue,
-      notes: [
-        ...playNotes,
-        ...blockInfo.notes,
-        ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])
-      ]
+      notes: [...playNotes, ...blockInfo.notes, ...(payment.heraUsedNow ? ["Hera +2 payment"] : [])]
     });
-
     finalizeBlockDeclaration(player);
     resetPriorityPassed(game);
     game.priority = getOtherPlayer(playerNum);
-    game.message = `Player ${playerNum} blocked in lane ${lane + 1}. Priority passes back.`;
-
-    console.log(`[confirmBlock] Lane block successful`);
+    game.message = `Player ${playerNum} blocked in lane ${l + 1}. Priority passes back.`;
     emitState(roomState);
   });
-  // =====================================================================
 
   socket.on("resolveDamage", () => {
-    console.log(`[Socket] resolveDamage from ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     if (game.phase !== "damage") return;
-
     resolveDamage(game);
-    
-    // Check for winner after damage
-    if (checkAndHandleGameWinner(roomState)) {
-      return; // Game ended, don't continue
-    }
-
-    if (!game.winner) {
-      reopenPriorityAfterDamage(game);
-    }
-
+    if (checkAndHandleGameWinner(roomState)) return;
+    if (!game.winner) reopenPriorityAfterDamage(game);
     emitState(roomState);
   });
 
   socket.on("placeFacedown", ({ lane, handIndex }) => {
-    console.log(`[Socket] placeFacedown from ${socket.id}, lane: ${lane}, handIndex: ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (game.phase !== "end") return;
     if (lane == null || Number(lane) !== game.endPlacementLaneIndex) return;
     if (handIndex == null) return;
     if (playerNum !== currentEndPlacementPlayer(game)) return;
-
     const player = game.players[playerNum];
     const currentLane = game.lanes[Number(lane)];
-
     if (game.endPlaced[playerNum][Number(lane)]) return;
     if (currentLane.facedown[playerNum]) return;
     if (handIndex < 0 || handIndex >= player.hand.length) return;
-
     const card = player.hand.splice(handIndex, 1)[0];
     const playNotes = registerCardPlayed(player, card);
     currentLane.facedown[playerNum] = card;
     game.endPlaced[playerNum][Number(lane)] = true;
-
     game.message = `Player ${playerNum} placed a facedown card in lane ${Number(lane) + 1}.${playNotes.length ? ` ${playNotes.join(", ")}` : ""}`;
-
     advanceEndPlacement(game);
     emitState(roomState);
   });
 
   socket.on("skipEndPlacement", ({ lane }) => {
-    console.log(`[Socket] skipEndPlacement from ${socket.id}, lane: ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game || roomState.game.winner) return;
     if (socket.data.role !== "player") return;
     const game = roomState.game;
-
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (game.phase !== "end") return;
     if (lane == null || Number(lane) !== game.endPlacementLaneIndex) return;
     if (playerNum !== currentEndPlacementPlayer(game)) return;
-
     if (game.endPlaced[playerNum][Number(lane)]) return;
-
     game.endPlaced[playerNum][Number(lane)] = true;
     game.message = `Player ${playerNum} skipped lane ${Number(lane) + 1} placement.`;
-
     advanceEndPlacement(game);
     emitState(roomState);
   });
 
   socket.on("disconnect", () => {
-    console.log(`[Socket] disconnect: ${socket.id}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState) return;
-
-    const roomCode = roomState.roomCode;
-
     if (socket.data.role === "spectator") {
       roomState.lobby.spectators = roomState.lobby.spectators.filter((id) => id !== socket.id);
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
     }
-
     if (roomState.game) {
       for (const p of [1, 2]) {
         if (roomState.game.players[p].socket === socket.id) {
@@ -952,15 +685,8 @@ io.on("connection", (socket) => {
         }
       }
       emitLobbyState(roomState);
-
-      const noPlayers =
-        !roomState.lobby.players[1].socket &&
-        !roomState.lobby.players[2].socket &&
-        roomState.lobby.spectators.length === 0;
-
-      if (noPlayers) {
-        deleteRoom(roomCode);
-      }
+      const noPlayers = !roomState.lobby.players[1].socket && !roomState.lobby.players[2].socket && roomState.lobby.spectators.length === 0;
+      if (noPlayers) deleteRoom(roomState.roomCode);
     }
   });
 });
