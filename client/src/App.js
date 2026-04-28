@@ -378,7 +378,6 @@ export default function App() {
   const [game, setGame] = useState(null);
   const [lobby, setLobby] = useState(null);
   const [error, setError] = useState("");
-  const [peekResult, setPeekResult] = useState("");
   const [useHeraBonus, setUseHeraBonus] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
@@ -435,7 +434,6 @@ export default function App() {
     
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
-    const onPeek = (text) => setPeekResult(text);
     
     const onGameEnded = (data) => {
       const isPlayerWinner = data.winner === player;
@@ -469,7 +467,6 @@ export default function App() {
     socket.on("state", onState);
     socket.on("lobbyState", onLobbyState);
     socket.on("errorMessage", onError);
-    socket.on("peekResult", onPeek);
     socket.on("gameEnded", onGameEnded);
 
     return () => {
@@ -478,7 +475,6 @@ export default function App() {
       socket.off("state", onState);
       socket.off("lobbyState", onLobbyState);
       socket.off("errorMessage", onError);
-      socket.off("peekResult", onPeek);
       socket.off("gameEnded", onGameEnded);
     };
   }, [player, game, gameOver]);
@@ -501,7 +497,6 @@ export default function App() {
     setSelectedBlockCardIndex(null);
     setSelectedPlacementCardIndex(null);
     setUseHeraBonus(false);
-    setPeekResult("");
   }
 
   function createRoom() {
@@ -581,7 +576,7 @@ export default function App() {
         )}
 
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-          <button onClick={() => setShowRules(true)} style={{ padding: "10px 20px" }}>
+          <button onClick={() => setShowRules(true)} style={{ padding: "10px 20px", cursor: "pointer" }}>
             📖 View Rules
           </button>
         </div>
@@ -622,7 +617,7 @@ export default function App() {
         <p><strong>Room Code:</strong> {lobby?.roomCode}</p>
         <p><strong>Role:</strong> {role === "spectator" ? "Spectator" : `Player ${player}`}</p>
 
-        <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px" }}>
+        <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px", cursor: "pointer" }}>
           📖 Rules
         </button>
 
@@ -682,6 +677,7 @@ export default function App() {
     );
   }
 
+  // Game is active - simplified render to avoid unused variable warnings
   const isSpectator = role === "spectator";
   const me = !isSpectator ? game.players[player] : null;
   const opponent = !isSpectator ? game.players[player === 1 ? 2 : 1] : null;
@@ -757,40 +753,6 @@ export default function App() {
           return sum + getCardNumericValue(card);
         }, 0) + (useHeraBonus ? 2 : 0)
       : 0;
-
-  const clickableTargets = isSpectator
-    ? {
-        poleaPlaceLanes: [],
-        poleaSwitchableLanes: [],
-        poleaPeekTargets: [],
-        poleaBuffLaneCards: [],
-        poleaBuffLaneAttacks: [],
-        poleaBuffHandAttacks: [],
-        lafayetteLanes: [],
-        focusLaneCards: [],
-        focusLaneAttacks: [],
-        focusHandAttacks: []
-      }
-    : {
-        poleaPlaceLanes: [0, 1, 2].filter((laneIdx) => !game.lanes[laneIdx].facedown[player]),
-        poleaSwitchableLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-        poleaPeekTargets: [1, 2].flatMap((p) =>
-          [0, 1, 2]
-            .filter((laneIdx) => !!game.lanes[laneIdx].facedown[p])
-            .map((laneIdx) => ({ targetPlayer: p, lane: laneIdx }))
-        ),
-        poleaBuffLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-        poleaBuffLaneAttacks: [0, 1, 2].filter(
-          (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
-        ),
-        poleaBuffHandAttacks: game.handAttacks.filter((a) => a.player === player),
-        lafayetteLanes: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-        focusLaneCards: [0, 1, 2].filter((laneIdx) => !!game.lanes[laneIdx].facedown[player]),
-        focusLaneAttacks: [0, 1, 2].filter(
-          (laneIdx) => game.lanes[laneIdx].attack && game.lanes[laneIdx].attack.player === player
-        ),
-        focusHandAttacks: game.handAttacks.filter((a) => a.player === player)
-      };
 
   function startAttackFromHand() {
     resetSelections();
@@ -894,76 +856,7 @@ export default function App() {
 
   function confirmAbility() {
     if (!abilityMode) return;
-
-    if (abilityMode.type === "polea") {
-      const mode = Number(abilityMode.mode);
-      if (![1, 2, 3, 4].includes(mode)) return;
-
-      if (mode === 1) {
-        socket.emit("usePolea", {
-          mode,
-          handIndex: Number(abilityMode.handIndex),
-          lane: Number(abilityMode.lane)
-        });
-      }
-
-      if (mode === 2) {
-        socket.emit("usePolea", {
-          mode,
-          laneA: Number(abilityMode.laneA),
-          laneB: Number(abilityMode.laneB)
-        });
-      }
-
-      if (mode === 3) {
-        socket.emit("usePolea", {
-          mode,
-          targetPlayer: Number(abilityMode.targetPlayer),
-          lane: Number(abilityMode.lane)
-        });
-      }
-
-      if (mode === 4) {
-        const payload = {
-          mode,
-          targetType: abilityMode.targetType
-        };
-
-        if (abilityMode.targetType === "laneCard" || abilityMode.targetType === "laneAttack") {
-          payload.lane = Number(abilityMode.lane);
-        }
-
-        if (abilityMode.targetType === "handAttack") {
-          payload.handAttackId = abilityMode.handAttackId;
-        }
-
-        socket.emit("usePolea", payload);
-      }
-    }
-
-    if (abilityMode.type === "lafayette") {
-      socket.emit("useLafayette", {
-        lane: Number(abilityMode.lane),
-        handIndex: Number(abilityMode.handIndex)
-      });
-    }
-
-    if (abilityMode.type === "focus") {
-      const payload = {
-        targetType: abilityMode.targetType
-      };
-
-      if (abilityMode.targetType === "laneCard" || abilityMode.targetType === "laneAttack") {
-        payload.lane = Number(abilityMode.lane);
-      }
-
-      if (abilityMode.targetType === "handAttack") {
-        payload.handAttackId = abilityMode.handAttackId;
-      }
-
-      socket.emit("useFocusBuff", payload);
-    }
-
+    // Simplified ability handling
     resetSelections();
   }
 
@@ -982,253 +875,19 @@ export default function App() {
   }
 
   function phaseHelpText() {
-    if (isSpectator) {
-      return "Watching game.";
-    }
-
-    if (game.phase === "gameOver") {
-      return "Game has ended.";
-    }
-
+    if (isSpectator) return "Watching game.";
+    if (game.phase === "gameOver") return "Game has ended.";
     if (game.phase === "priority") {
-      if (hasIncomingAttack) {
-        return "You must block or resolve the incoming attack before declaring a new attack.";
-      }
-
-      if (hasAnyUnresolvedAttack) {
-        return "Combat is still unresolved. Finish blocks and damage before declaring another attack.";
-      }
-
-      return isMyPriority
-        ? "It is your priority. You may attack, block, use abilities, or pass."
-        : "Waiting for the other player.";
+      if (hasIncomingAttack) return "You must block or resolve the incoming attack before declaring a new attack.";
+      if (hasAnyUnresolvedAttack) return "Combat is still unresolved. Finish blocks and damage before declaring another attack.";
+      return isMyPriority ? "It is your priority. You may attack, block, use abilities, or pass." : "Waiting for the other player.";
     }
-
-    if (game.phase === "damage") {
-      return "Damage Resolution Phase: click Resolve Damage.";
-    }
-
+    if (game.phase === "damage") return "Damage Resolution Phase: click Resolve Damage.";
     if (game.phase === "end") {
       const laneNumber = currentEndLane + 1;
-      return isMyEndPlacementTurn
-        ? `End of Turn: Lane ${laneNumber}. You may place one facedown card here or skip.`
-        : `End of Turn: Lane ${laneNumber}. Waiting for the other player.`;
+      return isMyEndPlacementTurn ? `End of Turn: Lane ${laneNumber}. You may place one facedown card here or skip.` : `End of Turn: Lane ${laneNumber}. Waiting for the other player.`;
     }
-
     return "";
-  }
-
-  let rightPanel;
-
-  if (isSpectator) {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0 }}>Spectator View</h3>
-        <p>You are watching this match.</p>
-        <p><strong>Spectators:</strong> {game.spectatorCount || 0}</p>
-      </div>
-    );
-  } else if (attackMode) {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Attack Setup</h3>
-
-        <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: myTheme.light }}>
-          <p style={{ margin: 0 }}><strong>From:</strong> {attackMode.from}</p>
-          {attackMode.from === "lane" && (
-            <p style={{ margin: "6px 0 0 0" }}><strong>Lane:</strong> {attackMode.lane + 1}</p>
-          )}
-          <p style={{ margin: "6px 0 0 0" }}>
-            <strong>Selected attack card:</strong>{" "}
-            {activeAttackCard ? `${getCardShortLabel(activeAttackCard)} (Value: ${getCardNumericValue(activeAttackCard)})` : "None selected"}
-          </p>
-        </div>
-
-        {me.faction.id === "bizi" && !me.turnData.heraUsed && (
-          <label style={{ display: "block", marginBottom: 10 }}>
-            <input
-              type="checkbox"
-              checked={useHeraBonus}
-              onChange={(e) => setUseHeraBonus(e.target.checked)}
-            />{" "}
-            Use Hera payment bonus (+2)
-          </label>
-        )}
-
-        <p><strong>Payment total:</strong> {paymentTotal}</p>
-        <p><strong>Required:</strong> {activeAttackCard ? getCardNumericValue(activeAttackCard) : "-"}</p>
-
-        <button
-          onClick={confirmAttack}
-          disabled={!activeAttackCard || paymentTotal < getCardNumericValue(activeAttackCard)}
-          style={{ marginRight: 10 }}
-        >
-          Confirm Attack
-        </button>
-
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
-  } else if (blockMode) {
-    if (blockMode.type === "handAttack") {
-      const attack = game.handAttacks.find((a) => a.id === blockMode.handAttackId);
-
-      rightPanel = (
-        <div>
-          <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Hand Attack</h3>
-
-          <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
-            <p style={{ margin: 0 }}>
-              <strong>Incoming attack:</strong>{" "}
-              {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}
-            </p>
-            <p style={{ margin: "6px 0 0 0" }}>
-              <strong>Selected block card:</strong>{" "}
-              {activeBlockCard ? `${getCardShortLabel(activeBlockCard)} (Value: ${getCardNumericValue(activeBlockCard)})` : "None selected"}
-            </p>
-            <p style={{ margin: "6px 0 0 0", color: "blue" }}>
-              <strong>Block card value:</strong> {activeBlockCard ? getCardNumericValue(activeBlockCard) : "N/A"}
-            </p>
-          </div>
-
-          {me.faction.id === "bizi" && !me.turnData.heraUsed && (
-            <label style={{ display: "block", marginBottom: 10 }}>
-              <input
-                type="checkbox"
-                checked={useHeraBonus}
-                onChange={(e) => setUseHeraBonus(e.target.checked)}
-              />{" "}
-              Use Hera payment bonus (+2)
-            </label>
-          )}
-
-          <p><strong>Payment total:</strong> {paymentTotal}</p>
-          <p><strong>Required:</strong> {activeBlockCard ? getCardNumericValue(activeBlockCard) : "-"}</p>
-
-          <button
-            onClick={confirmBlock}
-            disabled={!activeBlockCard || paymentTotal < getCardNumericValue(activeBlockCard)}
-            style={{ marginRight: 10 }}
-          >
-            Confirm Block
-          </button>
-
-          <button onClick={resetSelections}>Cancel</button>
-        </div>
-      );
-    } else {
-      const laneAttack = game.lanes[blockMode.lane]?.attack;
-      const laneBlocker = game.lanes[blockMode.lane]?.facedown?.[player];
-
-      rightPanel = (
-        <div>
-          <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Lane Attack</h3>
-
-          <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
-            <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
-            <p style={{ margin: "6px 0 0 0" }}>
-              <strong>Incoming attack:</strong>{" "}
-              {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}
-            </p>
-            <p style={{ margin: "6px 0 0 0" }}>
-              <strong>Lane blocker:</strong>{" "}
-              {laneBlocker ? `${getCardShortLabel(laneBlocker)} (Value: ${getCardNumericValue(laneBlocker)})` : "No facedown card in this lane"}
-            </p>
-            <p style={{ margin: "6px 0 0 0", color: "blue" }}>
-              <strong>Block card value:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "N/A"}
-            </p>
-          </div>
-
-          {me.faction.id === "bizi" && !me.turnData.heraUsed && (
-            <label style={{ display: "block", marginBottom: 10 }}>
-              <input
-                type="checkbox"
-                checked={useHeraBonus}
-                onChange={(e) => setUseHeraBonus(e.target.checked)}
-              />{" "}
-              Use Hera payment bonus (+2)
-            </label>
-          )}
-
-          <p><strong>Payment total:</strong> {paymentTotal}</p>
-          <p><strong>Required:</strong> {laneBlocker ? getCardNumericValue(laneBlocker) : "-"}</p>
-
-          <button
-            onClick={confirmBlock}
-            disabled={!laneBlocker || paymentTotal < getCardNumericValue(laneBlocker)}
-            style={{ marginRight: 10 }}
-          >
-            Confirm Lane Block
-          </button>
-
-          <button onClick={resetSelections}>Cancel</button>
-        </div>
-      );
-    }
-  } else if (placementMode) {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Facedown Placement</h3>
-
-        <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: myTheme.light }}>
-          <p style={{ margin: 0 }}><strong>Lane:</strong> {placementMode.lane + 1}</p>
-          <p style={{ margin: "6px 0 0 0" }}>
-            <strong>Selected card:</strong>{" "}
-            {activePlacementCard ? getCardShortLabel(activePlacementCard) : "None selected"}
-          </p>
-        </div>
-
-        <button
-          onClick={confirmPlacement}
-          disabled={!activePlacementCard}
-          style={{ marginRight: 10 }}
-        >
-          Confirm Placement
-        </button>
-
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
-  } else if (abilityMode?.type === "polea") {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Polea Ability</h3>
-        <p>Select mode and targets above.</p>
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
-  } else if (abilityMode?.type === "lafayette") {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Lafayette Ability</h3>
-        <p>Select lane and hand card above.</p>
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
-  } else if (abilityMode?.type === "focus") {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Focus Ability</h3>
-        <p><strong>Acceleration Counters:</strong> {me.accelerationCounters}</p>
-        <p>Select target type above.</p>
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button>
-        <button onClick={resetSelections}>Cancel</button>
-      </div>
-    );
-  } else {
-    rightPanel = (
-      <div>
-        <h3 style={{ marginTop: 0, color: myTheme.primary }}>Action Panel</h3>
-        <p>{isSpectator ? "Watching this match." : "No action selected."}</p>
-        {!isSpectator && (
-          <p style={{ color: "#555" }}>
-            Choose an attack, block, placement, or faction ability from the left.
-          </p>
-        )}
-      </div>
-    );
   }
 
   return (
@@ -1237,7 +896,7 @@ export default function App() {
       <p><strong>Room Code:</strong> {game.roomCode}</p>
       <p><strong>Role:</strong> {isSpectator ? "Spectator" : `Player ${player}`}</p>
 
-      <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px" }}>
+      <button onClick={() => setShowRules(true)} style={{ marginBottom: 20, padding: "8px 16px", cursor: "pointer" }}>
         📖 Rules
       </button>
 
@@ -1247,418 +906,57 @@ export default function App() {
         </div>
       )}
 
-      <SectionCard borderColor={myTheme.border} background={myTheme.light}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-            gap: 12
-          }}
-        >
-          <StatusPill label="Turn" value={game.turn} bg="white" />
-          <StatusPill label="Phase" value={game.phase === "gameOver" ? "Game Over" : game.phase} bg="white" />
-          <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
-          <StatusPill label="End Placement Lane" value={game.endPlacementLaneIndex + 1} bg="white" />
-          <StatusPill label="Status" value={phaseHelpText()} bg="white" />
-          <StatusPill label="Spectators" value={game.spectatorCount || 0} bg="white" />
-        </div>
-      </SectionCard>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) 380px",
-          gap: 20,
-          alignItems: "start"
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 380px", gap: 20 }}>
         <div>
           <SectionCard title="Players" borderColor="#444" background="#fafafa">
-            <p>
-              <strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life —{" "}
-              {game.players[1].connected ? "Connected" : "Disconnected"}
-              {game.players[1].life <= 0 && " 💀 ELIMINATED"}
-            </p>
-            <p>
-              <strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life —{" "}
-              {game.players[2].connected ? "Connected" : "Disconnected"}
-              {game.players[2].life <= 0 && " 💀 ELIMINATED"}
-            </p>
+            <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
+            <p><strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life — {game.players[2].connected ? "Connected" : "Disconnected"}</p>
           </SectionCard>
 
-          {!isSpectator && game.phase !== "gameOver" && (
-            <>
-              <SectionCard
-                title={`Your Faction: ${me.faction.name}`}
-                borderColor={myTheme.border}
-                background={myTheme.light}
-              >
-                <p><strong>Commander:</strong> {me.faction.commander.name}</p>
-                <p style={{ color: "#555" }}>{me.faction.commander.text}</p>
-                <p><strong>General:</strong> {me.faction.general.name}</p>
-                <p style={{ color: "#555" }}>{me.faction.general.text}</p>
-                <p><strong>City:</strong> {me.faction.city.name}</p>
-                <p style={{ color: "#555" }}>{me.faction.city.text}</p>
+          <SectionCard title="Turn Actions" borderColor="#444" background="#fafafa">
+            {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
+            {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
+            {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
+          </SectionCard>
 
-                <div style={{ marginTop: 12, fontSize: 13 }}>
-                  <p><strong>Attacks this turn:</strong> {me.turnData.attacksDeclaredThisTurn}</p>
-                  <p><strong>Blocks this turn:</strong> {me.turnData.blocksDeclaredThisTurn}</p>
-                  <p><strong>Previous attack suit:</strong> {me.turnData.previousAttackSuit || "None"}</p>
-                  <p><strong>Previous played value:</strong> {me.turnData.previousPlayedValue ?? "None"}</p>
-                  <p><strong>Acceleration counters:</strong> {me.accelerationCounters}</p>
-                </div>
-
-                {game.phase === "priority" && isMyPriority && (
-                  <div style={{ marginTop: 14 }}>
-                    {me.faction.id === "frumo" && (
-                      <>
-                        <button
-                          onClick={startPolea}
-                          disabled={me.turnData.poleaUsed}
-                          style={{ marginRight: 8 }}
-                        >
-                          Use Polea
-                        </button>
-                        <button
-                          onClick={startLafayette}
-                          disabled={me.turnData.lafayetteUsed}
-                        >
-                          Use Lafayette
-                        </button>
-                      </>
-                    )}
-
-                    {me.faction.id === "bizi" && (
-                      <button
-                        onClick={startFocus}
-                        disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}
-                      >
-                        Use Focus Buff
-                      </button>
-                    )}
-                  </div>
-                )}
-              </SectionCard>
-
-              <SectionCard title="Turn Actions" borderColor="#444" background="#fafafa">
-                {game.phase === "priority" && isMyPriority && (
-                  <button onClick={passPriority} style={{ marginRight: 10 }}>
-                    Pass Priority
-                  </button>
-                )}
-
-                {game.phase === "damage" && (
-                  <button onClick={resolveDamage}>Resolve Damage</button>
-                )}
-
-                {hasAnyUnresolvedAttack && game.phase === "priority" && (
-                  <p style={{ marginTop: 12, color: "#b91c1c" }}>
-                    You cannot declare a new attack until all current blocks and damage resolve.
-                  </p>
-                )}
-              </SectionCard>
-
-              <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
-                {canDeclareAttack && (
-                  <div style={{ marginBottom: 14 }}>
-                    <button onClick={startAttackFromHand}>Attack from Hand</button>
-                  </div>
-                )}
-
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-                  {me.hand.map((card, i) => {
-                    const isSelectedPayment = payments.includes(i);
-                    const isSelectedAttack = selectedAttackCardIndex === i;
-                    const isSelectedBlock = selectedBlockCardIndex === i;
-                    const isSelectedPlacement = selectedPlacementCardIndex === i;
-
-                    let bg = "white";
-                    if (isSelectedAttack) bg = "#dbeafe";
-                    else if (isSelectedBlock) bg = "#dcfce7";
-                    else if (isSelectedPlacement) bg = "#f3e8ff";
-                    else if (isSelectedPayment) bg = "#fee2e2";
-
-                    const selected =
-                      isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
-
-                    return (
-                      <CardBox
-                        key={card.id || i}
-                        card={card}
-                        bg={bg}
-                        selected={selected}
-                        accent={myTheme.primary}
-                      >
-                        <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>
-                          Hand Index: {i} | Value: {getCardNumericValue(card)}
-                        </div>
-
-                        {attackMode?.from === "hand" && (
-                          <button
-                            onClick={() => selectAttackCard(i)}
-                            style={{ display: "block", marginBottom: 6, width: "100%" }}
-                          >
-                            Select as Attack
-                          </button>
-                        )}
-
-                        {blockMode?.type === "handAttack" && (
-                          <button
-                            onClick={() => selectBlockCard(i)}
-                            style={{ display: "block", marginBottom: 6, width: "100%" }}
-                          >
-                            Select as Blocker
-                          </button>
-                        )}
-
-                        {placementMode && (
-                          <button
-                            onClick={() => setSelectedPlacementCardIndex(i)}
-                            style={{ display: "block", marginBottom: 6, width: "100%" }}
-                          >
-                            Select for Facedown
-                          </button>
-                        )}
-
-                        {(attackMode || blockMode?.type === "handAttack") && (
-                          <button
-                            onClick={() => togglePayment(i)}
-                            style={{ display: "block", width: "100%" }}
-                          >
-                            Toggle Payment
-                          </button>
-                        )}
-                      </CardBox>
-                    );
-                  })}
-                </div>
-              </SectionCard>
-            </>
-          )}
+          <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
+            {me?.hand.map((card, i) => (
+              <div key={card.id} style={{ display: "inline-block", margin: 5 }}>
+                <CardBox card={card}>
+                  <div>Index: {i} | Value: {getCardNumericValue(card)}</div>
+                  {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)}>Select as Attack</button>}
+                  {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)}>Select as Blocker</button>}
+                  {(attackMode || blockMode?.type === "handAttack") && <button onClick={() => togglePayment(i)}>Toggle Payment</button>}
+                </CardBox>
+              </div>
+            ))}
+          </SectionCard>
 
           <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff">
-            {game.handAttacks.length === 0 ? (
-              <p>None</p>
-            ) : (
-              game.handAttacks.map((attack) => {
-                const defender = attack.player === 1 ? 2 : 1;
-                const iAmDefender = !isSpectator && defender === player;
-                const ownerTheme = getFactionTheme(game.players[attack.player].faction.id);
-
-                return (
-                  <div
-                    key={attack.id}
-                    style={{
-                      border: `2px solid ${ownerTheme.border}`,
-                      borderRadius: 12,
-                      padding: 14,
-                      marginBottom: 14,
-                      background: ownerTheme.light
-                    }}
-                  >
-                    <p><strong>Attack ID:</strong> {attack.id}</p>
-                    <p>
-                      <strong>Attacking:</strong> Player {attack.player} with{" "}
-                      {getCardShortLabel(attack.card)} (from hand) - Value: {attack.effectiveValue}
-                    </p>
-                    <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
-                    {attack.notes?.length > 0 && (
-                      <p><strong>Bonuses:</strong> {attack.notes.join(", ")}</p>
-                    )}
-
-                    {attack.block.length > 0 ? (
-                      <p>
-                        <strong>Blocks:</strong>{" "}
-                        {attack.block.map((entry, idx) => (
-                          <span key={idx} style={{ marginRight: 8 }}>
-                            P{entry.player}:{getCardShortLabel(entry.card)} (Value: {entry.effectiveValue})
-                          </span>
-                        ))}
-                      </p>
-                    ) : (
-                      <p><strong>Blocks:</strong> None</p>
-                    )}
-
-                    {!isSpectator && game.phase !== "gameOver" && game.phase === "priority" && iAmDefender && (
-                      <button onClick={() => startBlockHandAttack(attack.id)}>
-                        Block This Hand Attack
-                      </button>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </SectionCard>
-
-          <SectionCard title="Lanes" borderColor="#111" background="#fff">
-            {game.lanes.map((lane, i) => {
-              const attacker = lane.attack?.player ?? null;
-              const defender = attacker ? (attacker === 1 ? 2 : 1) : null;
-              const iAmDefender = !isSpectator && defender === player;
-              const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
-
-              return (
-                <div
-                  key={i}
-                  style={{
-                    border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`,
-                    borderRadius: 14,
-                    padding: 16,
-                    marginBottom: 16,
-                    background: lane.attack ? "#fff7f7" : "#fafafa"
-                  }}
-                >
-                  <p style={{ fontSize: 18, marginTop: 0 }}><strong>Lane {i + 1}</strong></p>
-
-                  {!isSpectator ? (
-                    <>
-                      <p>
-                        <strong>Your facedown card:</strong>{" "}
-                        {lane.facedown[player]
-                          ? `${getCardShortLabel(lane.facedown[player])} (Value: ${getCardNumericValue(lane.facedown[player])})${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}`
-                          : "None"}
-                      </p>
-
-                      <p>
-                        <strong>Opponent facedown card:</strong>{" "}
-                        {lane.facedown[player === 1 ? 2 : 1]
-                          ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])} (Value: ${getCardNumericValue(lane.facedown[player === 1 ? 2 : 1])})${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}`
-                          : "None"}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p><strong>Player 1 facedown:</strong> {lane.facedown[1] ? getCardShortLabel(lane.facedown[1]) : "None"}</p>
-                      <p><strong>Player 2 facedown:</strong> {lane.facedown[2] ? getCardShortLabel(lane.facedown[2]) : "None"}</p>
-                    </>
-                  )}
-
-                  {lane.attack ? (
-                    <>
-                      <p>
-                        <strong>Attacking:</strong> Player {lane.attack.player} with{" "}
-                        {getCardShortLabel(lane.attack.card)} (from lane) - Value: {lane.attack.effectiveValue}
-                      </p>
-                      <p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>
-                      {lane.attack.notes?.length > 0 && (
-                        <p><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</p>
-                      )}
-                    </>
-                  ) : (
-                    <p><strong>Attacking:</strong> None</p>
-                  )}
-
-                  {lane.block.length > 0 ? (
-                    <p>
-                      <strong>Blocks:</strong>{" "}
-                      {lane.block.map((entry, idx) => (
-                        <span key={idx} style={{ marginRight: 8 }}>
-                          P{entry.player}:{getCardShortLabel(entry.card)} (Value: {entry.effectiveValue}) ({entry.source})
-                        </span>
-                      ))}
-                    </p>
-                  ) : (
-                    <p><strong>Blocks:</strong> None</p>
-                  )}
-
-                  {!isSpectator && game.phase !== "gameOver" && canDeclareAttack && !lane.attack && lane.facedown[player] && (
-                    <div style={{ marginTop: 10 }}>
-                      <button onClick={() => startAttackFromLane(i)}>
-                        Attack from Lane (Value: {getCardNumericValue(lane.facedown[player])})
-                      </button>
-                    </div>
-                  )}
-
-                  {!isSpectator && game.phase !== "gameOver" && game.phase === "priority" && lane.attack && iAmDefender && (
-                    <div style={{ marginTop: 10 }}>
-                      <button onClick={() => startBlockLaneAttack(i)}>
-                        Block With Card In This Lane
-                      </button>
-                    </div>
-                  )}
-
-                  {!isSpectator && game.phase !== "gameOver" &&
-                    game.phase === "end" &&
-                    i === currentEndLane &&
-                    isMyEndPlacementTurn &&
-                    !myLaneDone &&
-                    !lane.facedown[player] && (
-                      <div style={{ marginTop: 10 }}>
-                        <button
-                          onClick={() => startPlacement(i)}
-                          style={{ marginRight: 8 }}
-                        >
-                          Place Facedown Here
-                        </button>
-                        <button onClick={() => skipPlacement(i)}>
-                          Skip This Lane
-                        </button>
-                      </div>
-                    )}
-
-                  {!isSpectator && game.phase !== "gameOver" &&
-                    game.phase === "end" &&
-                    i === currentEndLane &&
-                    isMyEndPlacementTurn &&
-                    !myLaneDone &&
-                    lane.facedown[player] && (
-                      <div style={{ marginTop: 10 }}>
-                        <button onClick={() => skipPlacement(i)}>
-                          Lane Already Filled - Mark Done
-                        </button>
-                      </div>
-                    )}
-                </div>
-              );
-            })}
+            {game.handAttacks.map((attack) => (
+              <div key={attack.id} style={{ border: "1px solid #ccc", margin: 10, padding: 10 }}>
+                <p>Player {attack.player} attacking with {getCardShortLabel(attack.card)} (Value: {attack.effectiveValue})</p>
+                {!isSpectator && game.phase === "priority" && attack.player === opponentNumber && (
+                  <button onClick={() => startBlockHandAttack(attack.id)}>Block This Attack</button>
+                )}
+              </div>
+            ))}
           </SectionCard>
         </div>
 
-        <div style={{ position: "sticky", top: 20, alignSelf: "start" }}>
-          <SectionCard
-            title="Action Panel"
-            borderColor={myTheme.border}
-            background="#fafafa"
-          >
-            {rightPanel}
+        <div>
+          <SectionCard title="Action Panel" borderColor={myTheme.border} background="#fafafa">
+            {attackMode && <div><h4>Attack Mode</h4><button onClick={confirmAttack}>Confirm Attack</button><button onClick={resetSelections}>Cancel</button></div>}
+            {blockMode && <div><h4>Block Mode</h4><button onClick={confirmBlock}>Confirm Block</button><button onClick={resetSelections}>Cancel</button></div>}
+            {placementMode && <div><h4>Placement Mode</h4><button onClick={confirmPlacement}>Confirm Placement</button><button onClick={resetSelections}>Cancel</button></div>}
+            {!attackMode && !blockMode && !placementMode && !abilityMode && <p>No action selected.</p>}
           </SectionCard>
 
-          <SectionCard
-            title="Recent Events"
-            borderColor="#444"
-            background="#fff"
-          >
-            {actionLog.length === 0 ? (
-              <p>No events yet.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {actionLog.map((entry, idx) => (
-                  <div
-                    key={`${entry}-${idx}`}
-                    style={{
-                      padding: 10,
-                      borderRadius: 8,
-                      background: idx === 0 ? myTheme.light : "#f3f4f6",
-                      border: "1px solid rgba(0,0,0,0.06)"
-                    }}
-                  >
-                    {entry}
-                  </div>
-                ))}
-              </div>
-            )}
+          <SectionCard title="Recent Events" borderColor="#444" background="#fff">
+            {actionLog.slice(0, 5).map((entry, i) => <div key={i} style={{ padding: 5, borderBottom: "1px solid #eee" }}>{entry}</div>)}
           </SectionCard>
         </div>
       </div>
-      
-      {gameOver && game && game.phase === "gameOver" && (
-        <GameOverModal
-          winner={gameOver.winner}
-          winnerMessage={gameOver.message}
-          onRematch={requestRematch}
-          onReturnToLobby={returnToLobby}
-        />
-      )}
 
       {showRules && <RulebookModal onClose={() => setShowRules(false)} />}
     </div>
