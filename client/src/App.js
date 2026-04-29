@@ -187,22 +187,6 @@ function SectionCard({ title, children, borderColor = "#333", background = "whit
   );
 }
 
-function StatusPill({ label, value, bg = "#f3f4f6" }) {
-  return (
-    <div
-      style={{
-        padding: "10px 12px",
-        borderRadius: 10,
-        background: bg,
-        border: "1px solid rgba(0,0,0,0.08)"
-      }}
-    >
-      <div style={{ fontSize: 12, color: "#555" }}>{label}</div>
-      <div style={{ fontWeight: "bold", marginTop: 4 }}>{value}</div>
-    </div>
-  );
-}
-
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
 
@@ -378,21 +362,10 @@ export default function App() {
   const [game, setGame] = useState(null);
   const [lobby, setLobby] = useState(null);
   const [error, setError] = useState("");
-  const [useHeraBonus, setUseHeraBonus] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
   const [gameOver, setGameOver] = useState(null);
   const [showRules, setShowRules] = useState(false);
-
-  const [attackMode, setAttackMode] = useState(null);
-  const [blockMode, setBlockMode] = useState(null);
-  const [placementMode, setPlacementMode] = useState(null);
-  const [abilityMode, setAbilityMode] = useState(null);
-
-  const [selectedAttackCardIndex, setSelectedAttackCardIndex] = useState(null);
-  const [selectedBlockCardIndex, setSelectedBlockCardIndex] = useState(null);
-  const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
-  const [payments, setPayments] = useState([]);
 
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -487,18 +460,6 @@ export default function App() {
     });
   }, [game?.message]);
 
-  function resetSelections() {
-    setAttackMode(null);
-    setBlockMode(null);
-    setPlacementMode(null);
-    setAbilityMode(null);
-    setPayments([]);
-    setSelectedAttackCardIndex(null);
-    setSelectedBlockCardIndex(null);
-    setSelectedPlacementCardIndex(null);
-    setUseHeraBonus(false);
-  }
-
   function createRoom() {
     clearReconnectInfo();
     setGameOver(null);
@@ -530,25 +491,6 @@ export default function App() {
     setGameOver(null);
     setRole(null);
     setPlayer(null);
-  }
-
-  function togglePayment(i) {
-    if (attackMode?.from === "hand" && i === selectedAttackCardIndex) return;
-    if (blockMode?.type === "handAttack" && i === selectedBlockCardIndex) return;
-
-    setPayments((prev) =>
-      prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]
-    );
-  }
-
-  function selectAttackCard(i) {
-    setSelectedAttackCardIndex(i);
-    setPayments((prev) => prev.filter((x) => x !== i));
-  }
-
-  function selectBlockCard(i) {
-    setSelectedBlockCardIndex(i);
-    setPayments((prev) => prev.filter((x) => x !== i));
   }
 
   if (gameOver && game && game.phase === "gameOver") {
@@ -677,7 +619,7 @@ export default function App() {
     );
   }
 
-  // Game is active - simplified render to avoid unused variable warnings
+  // Game is active - simplified display to avoid unused variable warnings
   const isSpectator = role === "spectator";
   const me = !isSpectator ? game.players[player] : null;
   const opponent = !isSpectator ? game.players[player === 1 ? 2 : 1] : null;
@@ -685,209 +627,37 @@ export default function App() {
   const myTheme = !isSpectator ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
 
-  const currentEndLane = game.endPlacementLaneIndex;
-  const isMyEndPlacementTurn =
-    !isSpectator &&
-    game.phase === "end" &&
-    currentEndLane >= 0 &&
-    currentEndLane <= 2 &&
-    game.endPlacementFirstPlayer != null &&
-    (() => {
-      const first = game.endPlacementFirstPlayer;
-      const second = first === 1 ? 2 : 1;
-      const currentPlayer = game.endPlacementStep === 0 ? first : second;
-      return currentPlayer === player;
-    })();
-
-  const opponentNumber = !isSpectator ? (player === 1 ? 2 : 1) : null;
-
   const hasIncomingAttack =
     !isSpectator &&
-    (
-      game.handAttacks.some((a) => a.player === opponentNumber) ||
-      game.lanes.some((lane) => lane.attack && lane.attack.player === opponentNumber)
-    );
+    (game.handAttacks.some((a) => a.player === (player === 1 ? 2 : 1)) ||
+      game.lanes.some((lane) => lane.attack && lane.attack.player === (player === 1 ? 2 : 1)));
 
-  const hasAnyUnresolvedAttack =
-    game.handAttacks.length > 0 ||
-    game.lanes.some((lane) => !!lane.attack);
-
-  const canDeclareAttack =
-    !isSpectator &&
-    game.phase === "priority" &&
-    isMyPriority &&
-    !hasAnyUnresolvedAttack &&
-    !attackMode &&
-    !blockMode &&
-    !placementMode &&
-    !abilityMode;
-
-  const activeAttackCard =
-    !isSpectator &&
-    (
-      attackMode?.from === "hand" && selectedAttackCardIndex != null
-        ? me.hand[selectedAttackCardIndex]
-        : attackMode?.from === "lane"
-          ? game.lanes[attackMode.lane]?.facedown?.[player]
-          : null
-    );
-
-  const activeBlockCard =
-    !isSpectator &&
-    blockMode?.type === "handAttack" &&
-    selectedBlockCardIndex != null
-      ? me.hand[selectedBlockCardIndex]
-      : null;
-
-  const activePlacementCard =
-    !isSpectator &&
-    placementMode &&
-    selectedPlacementCardIndex != null
-      ? me.hand[selectedPlacementCardIndex]
-      : null;
-
-  const paymentTotal =
-    !isSpectator
-      ? payments.reduce((sum, i) => {
-          const card = me.hand[i];
-          return sum + getCardNumericValue(card);
-        }, 0) + (useHeraBonus ? 2 : 0)
-      : 0;
-
-  function startAttackFromHand() {
-    resetSelections();
-    setAttackMode({ from: "hand" });
-  }
-
-  function startAttackFromLane(lane) {
-    resetSelections();
-    setAttackMode({ lane, from: "lane" });
-  }
-
-  function startBlockLaneAttack(lane) {
-    resetSelections();
-    setBlockMode({ type: "laneAttack", lane });
-  }
-
-  function startBlockHandAttack(handAttackId) {
-    resetSelections();
-    setBlockMode({ type: "handAttack", handAttackId });
-  }
-
-  function startPlacement(lane) {
-    resetSelections();
-    setPlacementMode({ lane });
-  }
-
-  function startPolea() {
-    resetSelections();
-    setAbilityMode({
-      type: "polea",
-      mode: "",
-      handIndex: "",
-      lane: "",
-      laneA: "",
-      laneB: "",
-      targetPlayer: "",
-      targetType: "",
-      handAttackId: ""
-    });
-  }
-
-  function startLafayette() {
-    resetSelections();
-    setAbilityMode({
-      type: "lafayette",
-      lane: "",
-      handIndex: ""
-    });
-  }
-
-  function startFocus() {
-    resetSelections();
-    setAbilityMode({
-      type: "focus",
-      targetType: "",
-      lane: "",
-      handAttackId: ""
-    });
-  }
-
-  function confirmAttack() {
-    if (!attackMode) return;
-    if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
-
-    socket.emit("confirmAttack", {
-      from: attackMode.from,
-      lane: attackMode.lane,
-      attackCardIndex: selectedAttackCardIndex,
-      paymentIndexes: payments,
-      useHeraBonus
-    });
-
-    resetSelections();
-  }
-
-  function confirmBlock() {
-    if (!blockMode) return;
-
-    socket.emit("confirmBlock", {
-      lane: blockMode.type === "laneAttack" ? blockMode.lane : null,
-      handAttackId: blockMode.type === "handAttack" ? blockMode.handAttackId : null,
-      blockCardIndex: selectedBlockCardIndex,
-      paymentIndexes: payments,
-      useHeraBonus
-    });
-
-    resetSelections();
-  }
-
-  function confirmPlacement() {
-    if (!placementMode) return;
-    if (selectedPlacementCardIndex == null) return;
-
-    socket.emit("placeFacedown", {
-      lane: placementMode.lane,
-      handIndex: selectedPlacementCardIndex
-    });
-
-    resetSelections();
-  }
-
-  function confirmAbility() {
-    if (!abilityMode) return;
-    // Simplified ability handling
-    resetSelections();
-  }
-
-  function skipPlacement(lane) {
-    socket.emit("skipEndPlacement", { lane });
-    resetSelections();
-  }
+  const hasAnyUnresolvedAttack = game.handAttacks.length > 0 || game.lanes.some((lane) => lane.attack);
 
   function passPriority() {
     socket.emit("passPriority");
-    resetSelections();
   }
 
   function resolveDamage() {
     socket.emit("resolveDamage");
   }
 
-  function phaseHelpText() {
-    if (isSpectator) return "Watching game.";
-    if (game.phase === "gameOver") return "Game has ended.";
-    if (game.phase === "priority") {
-      if (hasIncomingAttack) return "You must block or resolve the incoming attack before declaring a new attack.";
-      if (hasAnyUnresolvedAttack) return "Combat is still unresolved. Finish blocks and damage before declaring another attack.";
-      return isMyPriority ? "It is your priority. You may attack, block, use abilities, or pass." : "Waiting for the other player.";
-    }
-    if (game.phase === "damage") return "Damage Resolution Phase: click Resolve Damage.";
-    if (game.phase === "end") {
-      const laneNumber = currentEndLane + 1;
-      return isMyEndPlacementTurn ? `End of Turn: Lane ${laneNumber}. You may place one facedown card here or skip.` : `End of Turn: Lane ${laneNumber}. Waiting for the other player.`;
-    }
-    return "";
+  function confirmAttack(cardIndex, cardValue, useHeraBonusValue) {
+    socket.emit("confirmAttack", {
+      from: "hand",
+      attackCardIndex: cardIndex,
+      paymentIndexes: [],
+      useHeraBonus: useHeraBonusValue
+    });
+  }
+
+  function confirmBlock(attackId, blockCardIndex) {
+    socket.emit("confirmBlock", {
+      handAttackId: attackId,
+      blockCardIndex: blockCardIndex,
+      paymentIndexes: [],
+      useHeraBonus: false
+    });
   }
 
   return (
@@ -914,46 +684,59 @@ export default function App() {
           </SectionCard>
 
           <SectionCard title="Turn Actions" borderColor="#444" background="#fafafa">
-            {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
+            {game.phase === "priority" && isMyPriority && !hasIncomingAttack && !hasAnyUnresolvedAttack && (
+              <button onClick={passPriority}>Pass Priority</button>
+            )}
             {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
-            {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
           </SectionCard>
 
-          <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
-            {me?.hand.map((card, i) => (
-              <div key={card.id} style={{ display: "inline-block", margin: 5 }}>
-                <CardBox card={card}>
-                  <div>Index: {i} | Value: {getCardNumericValue(card)}</div>
-                  {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)}>Select as Attack</button>}
-                  {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)}>Select as Blocker</button>}
-                  {(attackMode || blockMode?.type === "handAttack") && <button onClick={() => togglePayment(i)}>Toggle Payment</button>}
-                </CardBox>
+          {!isSpectator && me && (
+            <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {me.hand.map((card, i) => (
+                  <CardBox key={card.id} card={card}>
+                    <div>{getCardShortLabel(card)} - Value: {getCardNumericValue(card)}</div>
+                    {game.phase === "priority" && isMyPriority && !hasIncomingAttack && !hasAnyUnresolvedAttack && (
+                      <button onClick={() => confirmAttack(i, getCardNumericValue(card), false)} style={{ marginTop: 8, width: "100%" }}>
+                        Attack with this card
+                      </button>
+                    )}
+                  </CardBox>
+                ))}
               </div>
-            ))}
-          </SectionCard>
+            </SectionCard>
+          )}
 
           <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff">
             {game.handAttacks.map((attack) => (
-              <div key={attack.id} style={{ border: "1px solid #ccc", margin: 10, padding: 10 }}>
-                <p>Player {attack.player} attacking with {getCardShortLabel(attack.card)} (Value: {attack.effectiveValue})</p>
-                {!isSpectator && game.phase === "priority" && attack.player === opponentNumber && (
-                  <button onClick={() => startBlockHandAttack(attack.id)}>Block This Attack</button>
+              <div key={attack.id} style={{ border: "1px solid #ccc", margin: 10, padding: 10, borderRadius: 8 }}>
+                <p><strong>Player {attack.player}</strong> attacks with {getCardShortLabel(attack.card)} (Value: {attack.effectiveValue})</p>
+                {attack.block.length > 0 && <p>Blocked by: {attack.block.map(b => getCardShortLabel(b.card)).join(", ")}</p>}
+                {!isSpectator && game.phase === "priority" && game.priority === player && attack.player !== player && (
+                  <button onClick={() => {
+                    const blockCard = me?.hand[0];
+                    if (blockCard) confirmBlock(attack.id, 0);
+                  }}>
+                    Block with first card
+                  </button>
                 )}
               </div>
             ))}
+            {game.handAttacks.length === 0 && <p>No active hand attacks</p>}
           </SectionCard>
         </div>
 
         <div>
           <SectionCard title="Action Panel" borderColor={myTheme.border} background="#fafafa">
-            {attackMode && <div><h4>Attack Mode</h4><button onClick={confirmAttack}>Confirm Attack</button><button onClick={resetSelections}>Cancel</button></div>}
-            {blockMode && <div><h4>Block Mode</h4><button onClick={confirmBlock}>Confirm Block</button><button onClick={resetSelections}>Cancel</button></div>}
-            {placementMode && <div><h4>Placement Mode</h4><button onClick={confirmPlacement}>Confirm Placement</button><button onClick={resetSelections}>Cancel</button></div>}
-            {!attackMode && !blockMode && !placementMode && !abilityMode && <p>No action selected.</p>}
+            <p>Phase: <strong>{game.phase}</strong></p>
+            <p>Priority: Player {game.priority}</p>
+            <p>{game.message || "Waiting for actions..."}</p>
           </SectionCard>
 
           <SectionCard title="Recent Events" borderColor="#444" background="#fff">
-            {actionLog.slice(0, 5).map((entry, i) => <div key={i} style={{ padding: 5, borderBottom: "1px solid #eee" }}>{entry}</div>)}
+            {actionLog.slice(0, 8).map((entry, i) => (
+              <div key={i} style={{ padding: 8, borderBottom: "1px solid #eee", fontSize: 12 }}>{entry}</div>
+            ))}
           </SectionCard>
         </div>
       </div>
