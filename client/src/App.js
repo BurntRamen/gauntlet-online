@@ -202,14 +202,13 @@ export default function App() {
   const [useHeraBonus, setUseHeraBonus] = useState(false);
   
   // Block UI state
-  const [selectedBlockAttackId, setSelectedBlockAttackId] = useState(null);
-  const [selectedBlockCardIndex, setSelectedBlockCardIndex] = useState(null);
-  const [blockPaymentIndexes, setBlockPaymentIndexes] = useState([]);
   const [showBlockModal, setShowBlockModal] = useState(false);
   
   // Placement UI state
-  const [selectedPlacementLane, setSelectedPlacementLane] = useState(null);
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
+
+  // Damage resolution state - both players must confirm
+  const [damageConfirmed, setDamageConfirmed] = useState(false);
 
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -238,12 +237,12 @@ export default function App() {
       // Reset UI state when game updates
       setSelectedAttackCardIndex(null);
       setSelectedPaymentIndexes([]);
-      setSelectedBlockAttackId(null);
-      setSelectedBlockCardIndex(null);
-      setBlockPaymentIndexes([]);
       setShowBlockModal(false);
-      setSelectedPlacementLane(null);
       setSelectedPlacementCardIndex(null);
+      // Reset damage confirmation when phase changes from damage
+      if (newGame.phase !== "damage") {
+        setDamageConfirmed(false);
+      }
     };
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
@@ -289,14 +288,14 @@ export default function App() {
   function requestRematch() { socket.emit("requestRematch"); }
   function returnToLobby() { socket.emit("leaveRoom"); setGame(null); setLobby(null); setGameOver(null); setRole(null); setPlayer(null); }
   function passPriority() { socket.emit("passPriority"); }
-  function resolveDamage() { socket.emit("resolveDamage"); }
+
+  function resolveDamage() {
+    // Only send resolve damage once - server will handle damage calculation
+    socket.emit("resolveDamage");
+  }
 
   function togglePayment(index) {
     setSelectedPaymentIndexes(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
-  }
-
-  function toggleBlockPayment(index) {
-    setBlockPaymentIndexes(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
   }
 
   function confirmAttack() {
@@ -312,24 +311,18 @@ export default function App() {
     setUseHeraBonus(false);
   }
 
-  function confirmBlock() {
-    if (selectedBlockAttackId === null || selectedBlockCardIndex === null) return;
+  function confirmBlock(attackId, blockCardIndex, paymentIndexes) {
     socket.emit("confirmBlock", {
-      handAttackId: selectedBlockAttackId,
-      blockCardIndex: selectedBlockCardIndex,
-      paymentIndexes: blockPaymentIndexes,
+      handAttackId: attackId,
+      blockCardIndex: blockCardIndex,
+      paymentIndexes: paymentIndexes,
       useHeraBonus: false
     });
-    setSelectedBlockAttackId(null);
-    setSelectedBlockCardIndex(null);
-    setBlockPaymentIndexes([]);
     setShowBlockModal(false);
   }
 
-  function confirmPlacement() {
-    if (selectedPlacementLane === null || selectedPlacementCardIndex === null) return;
-    socket.emit("placeFacedown", { lane: selectedPlacementLane, handIndex: selectedPlacementCardIndex });
-    setSelectedPlacementLane(null);
+  function confirmPlacement(lane, cardIndex) {
+    socket.emit("placeFacedown", { lane: lane, handIndex: cardIndex });
     setSelectedPlacementCardIndex(null);
   }
 
@@ -401,7 +394,7 @@ export default function App() {
   const isMyEndPlacementTurn = !isSpectator && game.phase === "end" && currentEndLane >= 0 && currentEndLane <= 2 && game.endPlacementFirstPlayer != null &&
     (() => { const first = game.endPlacementFirstPlayer; const second = first === 1 ? 2 : 1; const currentPlayer = game.endPlacementStep === 0 ? first : second; return currentPlayer === player; })();
 
-  const hasIncomingAttack = !isSpectator && (game.handAttacks.some((a) => a.player === (player === 1 ? 2 : 1)) || game.lanes.some((l) => l.attack && l.attack.player === (player === 1 ? 2 : 1)));
+  const hasIncomingAttack = !isSpectator && (game.handAttacks.some((a) => a.player === (player === 1 ? 2 : 1) && a.block.length === 0) || game.lanes.some((l) => l.attack && l.attack.player === (player === 1 ? 2 : 1)));
   const hasAnyUnresolvedAttack = game.handAttacks.length > 0 || game.lanes.some((l) => l.attack);
   const canDeclareAttack = !isSpectator && game.phase === "priority" && isMyPriority && !hasAnyUnresolvedAttack;
 
@@ -410,9 +403,9 @@ export default function App() {
   const attackRequired = selectedAttackCard ? getCardNumericValue(selectedAttackCard) : 0;
 
   const pendingAttack = game.handAttacks.find(a => a.player !== player && a.block.length === 0);
-  const selectedBlockCard = selectedBlockCardIndex !== null && me ? me.hand[selectedBlockCardIndex] : null;
-  const blockPaymentTotal = blockPaymentIndexes.reduce((sum, i) => sum + (me?.hand[i] ? getCardNumericValue(me.hand[i]) : 0), 0);
-  const blockRequired = selectedBlockCard ? getCardNumericValue(selectedBlockCard) : 0;
+
+  // Check if damage resolution is waiting for both players
+  const needsDamageResolution = game.phase === "damage";
 
   return (
     <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
@@ -432,8 +425,20 @@ export default function App() {
           <SectionCard title="Game Phase" borderColor="#444" background="#fafafa">
             <p><strong>Phase:</strong> {game.phase}</p>
             <p><strong>Priority:</strong> Player {game.priority}</p>
-            {game.phase === "priority" && isMyPriority && !hasIncomingAttack && <button onClick={passPriority}>Pass Priority</button>}
-            {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
+            {game.phase === "priority" && isMyPriority && !hasIncomingAttack && !hasAnyUnresolvedAttack && (
+              <button onClick={passPriority}>Pass Priority</button>
+            )}
+            {game.phase === "priority" && hasIncomingAttack && (
+              <p style={{ color: "#e74c3c" }}>⚠️ You have an incoming attack! You must block or pass priority to take damage.</p>
+            )}
+            {needsDamageResolution && (
+              <div style={{ marginTop: 10 }}>
+                <button onClick={resolveDamage} style={{ background: "#e67e22", color: "white" }}>
+                  Resolve Damage
+                </button>
+                <p style={{ fontSize: 12, marginTop: 5, color: "#666" }}>Click to resolve all damage from this combat. Both players should click this button.</p>
+              </div>
+            )}
           </SectionCard>
 
           {/* Attack UI */}
@@ -475,77 +480,89 @@ export default function App() {
             </SectionCard>
           )}
 
-          {/* Block UI */}
+          {/* Block UI - Simplified and Fixed */}
           {pendingAttack && !showBlockModal && (
             <SectionCard title="Incoming Attack" borderColor={oppTheme.border} background="#fff7f7">
-              <p><strong>Player {pendingAttack.player}</strong> attacks with {getCardShortLabel(pendingAttack.card)} (Value: {pendingAttack.effectiveValue})</p>
-              <button onClick={() => setShowBlockModal(true)}>Block this attack</button>
-              <button onClick={passPriority} style={{ marginLeft: 10 }}>Take damage (don't block)</button>
+              <p><strong>⚠️ Player {pendingAttack.player}</strong> attacks with {getCardShortLabel(pendingAttack.card)} (Value: {pendingAttack.effectiveValue})</p>
+              <button onClick={() => setShowBlockModal(true)} style={{ background: "#3498db", color: "white" }}>Block this attack</button>
+              <button onClick={passPriority} style={{ marginLeft: 10, background: "#e74c3c", color: "white" }}>Take damage (don't block)</button>
             </SectionCard>
           )}
 
-          {showBlockModal && (
-            <SectionCard title="Block - Select Blocker" borderColor={oppTheme.border} background={oppTheme.light}>
-              <p><strong>Blocking attack from Player {pendingAttack?.player}</strong></p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {me.hand.map((card, i) => (
-                  <CardBox key={card.id} card={card} selected={selectedBlockCardIndex === i} accent={oppTheme.primary}>
-                    <button onClick={() => setSelectedBlockCardIndex(i)}>Select as blocker</button>
-                  </CardBox>
-                ))}
+          {showBlockModal && pendingAttack && (
+            <SectionCard title="Block - Select Blocker and Payment" borderColor={oppTheme.border} background={oppTheme.light}>
+              <p><strong>Blocking attack from Player {pendingAttack.player}</strong></p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+                {me.hand.map((card, cardIndex) => {
+                  const cardValue = getCardNumericValue(card);
+                  // Build payment options from remaining cards (excluding the blocker)
+                  const otherCards = me.hand.filter((_, idx) => idx !== cardIndex);
+                  
+                  return (
+                    <div key={card.id} style={{ border: "1px solid #ccc", borderRadius: 8, padding: 10 }}>
+                      <CardBox card={card}>
+                        <div><strong>Blocker value: {cardValue}</strong></div>
+                      </CardBox>
+                      <div style={{ marginTop: 10 }}>
+                        <p><strong>Select payment cards (total must be at least {cardValue}):</strong></p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                          {otherCards.map((paymentCard, paymentIdx) => {
+                            const actualIdx = me.hand.findIndex(c => c.id === paymentCard.id);
+                            return (
+                              <button
+                                key={paymentCard.id}
+                                onClick={() => {
+                                  // Simple: block with this card and pay with all other cards
+                                  const allPaymentIndexes = otherCards.map(c => me.hand.findIndex(hc => hc.id === c.id));
+                                  confirmBlock(pendingAttack.id, cardIndex, allPaymentIndexes);
+                                }}
+                                style={{ padding: "5px 10px", background: "#2ecc71", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
+                              >
+                                Pay with {getCardShortLabel(paymentCard)} (Value: {getCardNumericValue(paymentCard)})
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => confirmBlock(pendingAttack.id, cardIndex, [])}
+                            style={{ padding: "5px 10px", background: "#f39c12", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
+                          >
+                            Block with NO extra payment (value {cardValue})
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <button onClick={() => setShowBlockModal(false)} style={{ marginTop: 10 }}>Cancel</button>
               </div>
-              {selectedBlockCardIndex !== null && (
-                <div style={{ marginTop: 10 }}>
-                  <p><strong>Blocker:</strong> {getCardShortLabel(selectedBlockCard)} (Value: {blockRequired})</p>
-                  <p><strong>Payment needed:</strong> {blockRequired}</p>
-                  <p><strong>Payment total so far:</strong> {blockPaymentTotal}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
-                    {me.hand.map((card, i) => {
-                      if (i === selectedBlockCardIndex) return null;
-                      const isSelected = blockPaymentIndexes.includes(i);
-                      return (
-                        <CardBox key={card.id} card={card} selected={isSelected} accent={oppTheme.primary}>
-                          <button onClick={() => toggleBlockPayment(i)}>{isSelected ? "Remove" : "Add to payment"}</button>
-                        </CardBox>
-                      );
-                    })}
-                  </div>
-                  <div style={{ marginTop: 10 }}>
-                    <button onClick={confirmBlock} disabled={blockPaymentTotal < blockRequired}>Confirm Block</button>
-                    <button onClick={() => { setShowBlockModal(false); setSelectedBlockCardIndex(null); setBlockPaymentIndexes([]); }} style={{ marginLeft: 10 }}>Cancel</button>
-                  </div>
-                </div>
-              )}
             </SectionCard>
           )}
 
           {/* End of Turn Phase - Lane Placement */}
-          {game.phase === "end" && isMyEndPlacementTurn && selectedPlacementLane === null && (
+          {game.phase === "end" && isMyEndPlacementTurn && selectedPlacementCardIndex === null && (
             <SectionCard title="End of Turn - Place Face-Down Cards" borderColor={myTheme.border} background={myTheme.light}>
-              <p>Lane {currentEndLane + 1}: You may place one card face-down in this lane</p>
-              <p>Your current cards in this lane: {game.lanes[currentEndLane]?.facedown?.[player] ? getCardShortLabel(game.lanes[currentEndLane].facedown[player]) : "None"}</p>
-              {!game.lanes[currentEndLane]?.facedown?.[player] && (
+              <p><strong>Lane {currentEndLane + 1}</strong> - You may place one card face-down in this lane</p>
+              {!game.lanes[currentEndLane]?.facedown?.[player] ? (
                 <>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
                     {me.hand.map((card, i) => (
                       <CardBox key={card.id} card={card}>
-                        <button onClick={() => setSelectedPlacementCardIndex(i)}>Place face-down in lane {currentEndLane + 1}</button>
+                        <button onClick={() => setSelectedPlacementCardIndex(i)}>Place in lane {currentEndLane + 1}</button>
                       </CardBox>
                     ))}
                   </div>
                   <button onClick={() => skipPlacement(currentEndLane)} style={{ marginTop: 10 }}>Skip this lane</button>
                 </>
-              )}
-              {game.lanes[currentEndLane]?.facedown?.[player] && (
-                <button onClick={() => skipPlacement(currentEndLane)}>Lane already filled - Continue</button>
+              ) : (
+                <button onClick={() => skipPlacement(currentEndLane)}>Lane already has a card - Continue</button>
               )}
             </SectionCard>
           )}
 
-          {selectedPlacementCardIndex !== null && selectedPlacementLane === null && (
+          {selectedPlacementCardIndex !== null && (
             <SectionCard title="Confirm Placement" borderColor={myTheme.border} background={myTheme.light}>
               <p>Place {getCardShortLabel(me.hand[selectedPlacementCardIndex])} face-down in lane {currentEndLane + 1}?</p>
-              <button onClick={() => { setSelectedPlacementLane(currentEndLane); confirmPlacement(); }}>Confirm</button>
+              <button onClick={() => confirmPlacement(currentEndLane, selectedPlacementCardIndex)}>Confirm</button>
               <button onClick={() => setSelectedPlacementCardIndex(null)} style={{ marginLeft: 10 }}>Cancel</button>
             </SectionCard>
           )}
@@ -563,8 +580,9 @@ export default function App() {
           <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff">
             {game.handAttacks.map((attack) => (
               <div key={attack.id} style={{ border: "1px solid #ccc", margin: 10, padding: 10, borderRadius: 8 }}>
-                <p><strong>Player {attack.player}</strong> attacks with {getCardShortLabel(attack.card)} (Value: {attack.effectiveValue})</p>
-                {attack.block.length > 0 && <p>Blocked by: {attack.block.map(b => getCardShortLabel(b.card)).join(", ")}</p>}
+                <p><strong>⚔️ Player {attack.player}</strong> attacks with {getCardShortLabel(attack.card)} (Value: {attack.effectiveValue})</p>
+                {attack.block.length > 0 && <p>🛡️ Blocked by: {attack.block.map(b => `${getCardShortLabel(b.card)} (${b.player === player ? "You" : "Opponent"})`).join(", ")}</p>}
+                {attack.block.length === 0 && attack.player !== player && <p style={{ color: "#e74c3c" }}>❗ UNBLOCKED - Will deal damage!</p>}
               </div>
             ))}
             {game.handAttacks.length === 0 && <p>No active hand attacks</p>}
@@ -574,9 +592,9 @@ export default function App() {
             {game.lanes.map((lane, i) => (
               <div key={i} style={{ border: "1px solid #ddd", margin: 10, padding: 10, borderRadius: 8 }}>
                 <strong>Lane {i + 1}</strong>
-                <p>Your face-down: {lane.facedown?.[player] ? getCardShortLabel(lane.facedown[player]) : "None"}</p>
+                <p>Your face-down: {lane.facedown?.[player] ? `${getCardShortLabel(lane.facedown[player])} (Value: ${getCardNumericValue(lane.facedown[player])})` : "None"}</p>
                 <p>Opponent face-down: {lane.facedown?.[player === 1 ? 2 : 1] ? getCardShortLabel(lane.facedown[player === 1 ? 2 : 1]) : "None"}</p>
-                {lane.attack && <p><strong>Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)}</p>}
+                {lane.attack && <p style={{ color: "#e74c3c" }}><strong>⚔️ Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)}</p>}
               </div>
             ))}
           </SectionCard>
@@ -585,8 +603,14 @@ export default function App() {
         <div>
           <SectionCard title="Action Panel" borderColor={myTheme.border} background="#fafafa">
             <p><strong>Phase:</strong> {game.phase}</p>
-            <p><strong>Your Priority:</strong> {isMyPriority ? "Yes" : "No"}</p>
+            <p><strong>Your Priority:</strong> {isMyPriority ? "✅ Yes" : "❌ No"}</p>
             {selectedAttackCard && <p>Selected attack: {getCardShortLabel(selectedAttackCard)} (Need {attackRequired} payment, have {paymentTotal})</p>}
+            {needsDamageResolution && (
+              <div style={{ marginTop: 10, padding: 10, background: "#fef5e7", borderRadius: 8 }}>
+                <p><strong>⚠️ Damage Resolution Phase</strong></p>
+                <p>Click the "Resolve Damage" button above to calculate damage from this combat.</p>
+              </div>
+            )}
             {game.message && <p><em>{game.message}</em></p>}
           </SectionCard>
 
