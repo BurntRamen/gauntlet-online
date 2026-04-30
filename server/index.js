@@ -521,7 +521,7 @@ io.on("connection", (socket) => {
     game.priorityPassed[playerNum] = true;
     game.message = `Player ${playerNum} passed priority (${game.priorityPassed[1] ? "✓" : "○"} ${game.priorityPassed[2] ? "✓" : "○"})`;
     
-    // Switch priority to other player for next action
+    // Switch priority to other player
     game.priority = getOtherPlayer(playerNum);
     
     // Check if both players have passed
@@ -674,42 +674,64 @@ io.on("connection", (socket) => {
       return;
     }
     
-    if (attack.block.length > 0) {
-      socket.emit("errorMessage", "Attack already blocked");
+    // If no block card selected (just taking damage), pass priority instead
+    if (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) {
+      console.log(`[Socket] No block card - passing priority to take damage`);
+      game.priorityPassed[playerNum] = true;
+      game.priority = getOtherPlayer(playerNum);
+      game.message = `Player ${playerNum} chose not to block.`;
+      
+      if (game.priorityPassed[1] && game.priorityPassed[2]) {
+        if (hasPendingAttacks(game)) {
+          game.phase = "damage";
+          game.message = "Both players passed - damage phase. Click Resolve Damage.";
+          roomState.damageConfirmed = { 1: false, 2: false };
+        } else {
+          startEndPhase(game);
+        }
+      }
+      emitState(roomState);
       return;
     }
     
+    // Validate block card
     if (!player.hand[blockCardIndex]) {
       socket.emit("errorMessage", "Invalid block card");
       return;
     }
     
     const blockCard = player.hand[blockCardIndex];
-    const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
-    const required = getBaseCardValue(blockCard);
+    const blockCardValue = getBaseCardValue(blockCard);
     
-    if (payment.total < required) {
-      socket.emit("errorMessage", `Need ${required} payment to block, have ${payment.total}`);
+    // Calculate payment total
+    const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
+    
+    // Payment must be at least the BLOCK CARD's value
+    if (payment.total < blockCardValue) {
+      socket.emit("errorMessage", `Need ${blockCardValue} payment to block, have ${payment.total}`);
       return;
     }
     
-    // Process block
+    // Process block - remove payment cards AND blocker card
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     player.hand.splice(blockCardIndex, 1);
-    addAccelerationIfOverpaid(player, payment.total, required);
+    addAccelerationIfOverpaid(player, payment.total, blockCardValue);
+    
+    // Apply faction bonuses
+    const blockInfo = applyBlockBonuses(player, blockCard);
     
     attack.block.push({
       player: playerNum,
       card: blockCard,
       source: "hand",
-      effectiveValue: blockCard.value,
-      notes: []
+      effectiveValue: blockInfo.effectiveValue,
+      notes: blockInfo.notes
     });
     
     // Reset priority passed and give priority back to attacker
     resetPriorityPassed(game);
     game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCard.name}! Player ${attack.player} can continue.`;
+    game.message = `Player ${playerNum} blocked with ${blockCard.name} (value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player}'s turn.`;
     
     emitState(roomState);
   });
