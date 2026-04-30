@@ -224,7 +224,6 @@ function getBaseCardValue(card) {
 }
 
 function resolveDamage(game, roomState) {
-  // Process hand attacks
   for (const attack of game.handAttacks) {
     let totalBlock = 0;
     for (const block of attack.block) {
@@ -240,7 +239,6 @@ function resolveDamage(game, roomState) {
     }
   }
   
-  // Process lane attacks
   for (let i = 0; i < game.lanes.length; i++) {
     const lane = game.lanes[i];
     if (lane.attack) {
@@ -260,8 +258,6 @@ function resolveDamage(game, roomState) {
   }
   
   game.handAttacks = [];
-  
-  // Reset damage confirmation
   roomState.damageConfirmed = { 1: false, 2: false };
 }
 
@@ -283,7 +279,6 @@ function advanceEndPlacement(game) {
   }
   
   if (game.endPlacementLaneIndex >= 3) {
-    // Draw up to 8 cards
     for (const p of [1, 2]) {
       const player = game.players[p];
       while (player.hand.length < 8 && player.deck.length > 0) {
@@ -291,14 +286,12 @@ function advanceEndPlacement(game) {
       }
     }
     
-    // Start new turn
     game.phase = "priority";
     game.turn++;
     game.lastActivePlayer = getOtherPlayer(game.lastActivePlayer);
     game.priority = game.lastActivePlayer;
     resetPriorityPassed(game);
     
-    // Reset turn data
     for (const p of [1, 2]) {
       game.players[p].turnData = {
         attacksDeclaredThisTurn: 0,
@@ -501,6 +494,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
+  // FIXED: passPriority now only marks passed, doesn't switch priority
   socket.on("passPriority", () => {
     console.log(`[Socket] passPriority`);
     const roomState = getRoomForSocket(socket);
@@ -518,11 +512,9 @@ io.on("connection", (socket) => {
       return;
     }
     
+    // Mark this player as having passed
     game.priorityPassed[playerNum] = true;
-    game.message = `Player ${playerNum} passed priority (${game.priorityPassed[1] ? "✓" : "○"} ${game.priorityPassed[2] ? "✓" : "○"})`;
-    
-    // Switch priority to other player
-    game.priority = getOtherPlayer(playerNum);
+    game.message = `Player ${playerNum} passed priority (Player 1: ${game.priorityPassed[1] ? "✓" : "○"}, Player 2: ${game.priorityPassed[2] ? "✓" : "○"})`;
     
     // Check if both players have passed
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
@@ -533,6 +525,11 @@ io.on("connection", (socket) => {
       } else {
         startEndPhase(game);
       }
+      // Reset passed flags for next round
+      resetPriorityPassed(game);
+    } else {
+      // Switch priority to the other player without resetting passed flags
+      game.priority = getOtherPlayer(playerNum);
     }
     
     emitState(roomState);
@@ -559,7 +556,6 @@ io.on("connection", (socket) => {
       console.log("[resolveDamage] Both confirmed - resolving");
       resolveDamage(game, roomState);
       
-      // Check for game end
       if (game.players[1].life <= 0 && game.players[2].life <= 0) {
         game.phase = "gameOver";
         game.winner = null;
@@ -576,7 +572,6 @@ io.on("connection", (socket) => {
         game.message = "Player 1 wins!";
         io.to(roomState.roomCode).emit("gameEnded", { winner: 1, tie: false });
       } else {
-        // After damage, priority goes to the other player
         game.phase = "priority";
         game.priority = getOtherPlayer(game.lastActivePlayer);
         game.lastActivePlayer = game.priority;
@@ -624,7 +619,6 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // Process attack
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     player.hand.splice(attackCardIndex, 1);
     addAccelerationIfOverpaid(player, payment.total, required);
@@ -640,7 +634,7 @@ io.on("connection", (socket) => {
       notes: []
     });
     
-    // Reset priority passed and give priority to defender
+    // Reset passed flags and give priority to defender
     resetPriorityPassed(game);
     game.priority = getOtherPlayer(playerNum);
     game.message = `Player ${playerNum} attacked with ${attackCard.name}! Player ${game.priority} can block or pass.`;
@@ -674,11 +668,10 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // If no block card selected (just taking damage), pass priority instead
+    // If no block card (taking damage), just mark passed
     if (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) {
       console.log(`[Socket] No block card - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
-      game.priority = getOtherPlayer(playerNum);
       game.message = `Player ${playerNum} chose not to block.`;
       
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
@@ -689,12 +682,14 @@ io.on("connection", (socket) => {
         } else {
           startEndPhase(game);
         }
+        resetPriorityPassed(game);
+      } else {
+        game.priority = getOtherPlayer(playerNum);
       }
       emitState(roomState);
       return;
     }
     
-    // Validate block card
     if (!player.hand[blockCardIndex]) {
       socket.emit("errorMessage", "Invalid block card");
       return;
@@ -702,22 +697,17 @@ io.on("connection", (socket) => {
     
     const blockCard = player.hand[blockCardIndex];
     const blockCardValue = getBaseCardValue(blockCard);
-    
-    // Calculate payment total
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
     
-    // Payment must be at least the BLOCK CARD's value
     if (payment.total < blockCardValue) {
       socket.emit("errorMessage", `Need ${blockCardValue} payment to block, have ${payment.total}`);
       return;
     }
     
-    // Process block - remove payment cards AND blocker card
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     player.hand.splice(blockCardIndex, 1);
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     
-    // Apply faction bonuses
     const blockInfo = applyBlockBonuses(player, blockCard);
     
     attack.block.push({
@@ -728,7 +718,7 @@ io.on("connection", (socket) => {
       notes: blockInfo.notes
     });
     
-    // Reset priority passed and give priority back to attacker
+    // Reset passed flags and give priority back to attacker
     resetPriorityPassed(game);
     game.priority = attack.player;
     game.message = `Player ${playerNum} blocked with ${blockCard.name} (value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player}'s turn.`;
