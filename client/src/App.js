@@ -207,9 +207,6 @@ export default function App() {
   // Placement UI state
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
 
-  // Damage resolution state - both players must confirm
-  const [damageConfirmed, setDamageConfirmed] = useState(false);
-
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
     const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
@@ -239,10 +236,6 @@ export default function App() {
       setSelectedPaymentIndexes([]);
       setShowBlockModal(false);
       setSelectedPlacementCardIndex(null);
-      // Reset damage confirmation when phase changes from damage
-      if (newGame.phase !== "damage") {
-        setDamageConfirmed(false);
-      }
     };
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
@@ -290,7 +283,6 @@ export default function App() {
   function passPriority() { socket.emit("passPriority"); }
 
   function resolveDamage() {
-    // Only send resolve damage once - server will handle damage calculation
     socket.emit("resolveDamage");
   }
 
@@ -404,7 +396,6 @@ export default function App() {
 
   const pendingAttack = game.handAttacks.find(a => a.player !== player && a.block.length === 0);
 
-  // Check if damage resolution is waiting for both players
   const needsDamageResolution = game.phase === "damage";
 
   return (
@@ -480,7 +471,7 @@ export default function App() {
             </SectionCard>
           )}
 
-          {/* Block UI - Simplified and Fixed */}
+          {/* Block UI */}
           {pendingAttack && !showBlockModal && (
             <SectionCard title="Incoming Attack" borderColor={oppTheme.border} background="#fff7f7">
               <p><strong>⚠️ Player {pendingAttack.player}</strong> attacks with {getCardShortLabel(pendingAttack.card)} (Value: {pendingAttack.effectiveValue})</p>
@@ -495,7 +486,6 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                 {me.hand.map((card, cardIndex) => {
                   const cardValue = getCardNumericValue(card);
-                  // Build payment options from remaining cards (excluding the blocker)
                   const otherCards = me.hand.filter((_, idx) => idx !== cardIndex);
                   
                   return (
@@ -506,22 +496,18 @@ export default function App() {
                       <div style={{ marginTop: 10 }}>
                         <p><strong>Select payment cards (total must be at least {cardValue}):</strong></p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                          {otherCards.map((paymentCard, paymentIdx) => {
-                            const actualIdx = me.hand.findIndex(c => c.id === paymentCard.id);
-                            return (
-                              <button
-                                key={paymentCard.id}
-                                onClick={() => {
-                                  // Simple: block with this card and pay with all other cards
-                                  const allPaymentIndexes = otherCards.map(c => me.hand.findIndex(hc => hc.id === c.id));
-                                  confirmBlock(pendingAttack.id, cardIndex, allPaymentIndexes);
-                                }}
-                                style={{ padding: "5px 10px", background: "#2ecc71", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
-                              >
-                                Pay with {getCardShortLabel(paymentCard)} (Value: {getCardNumericValue(paymentCard)})
-                              </button>
-                            );
-                          })}
+                          {otherCards.map((paymentCard) => (
+                            <button
+                              key={paymentCard.id}
+                              onClick={() => {
+                                const allPaymentIndexes = otherCards.map(c => me.hand.findIndex(hc => hc.id === c.id));
+                                confirmBlock(pendingAttack.id, cardIndex, allPaymentIndexes);
+                              }}
+                              style={{ padding: "5px 10px", background: "#2ecc71", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
+                            >
+                              Pay with {getCardShortLabel(paymentCard)} (Value: {getCardNumericValue(paymentCard)})
+                            </button>
+                          ))}
                           <button
                             onClick={() => confirmBlock(pendingAttack.id, cardIndex, [])}
                             style={{ padding: "5px 10px", background: "#f39c12", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
