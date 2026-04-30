@@ -78,7 +78,6 @@ function createRoom() {
       spectators: []
     },
     game: null,
-    // Track who has confirmed damage resolution
     damageConfirmed: { 1: false, 2: false }
   };
   rooms.set(roomCode, roomState);
@@ -121,7 +120,6 @@ function emitState(roomState) {
   });
 }
 
-// ============ HELPER FUNCTIONS ============
 function getOtherPlayer(playerNum) {
   return playerNum === 1 ? 2 : 1;
 }
@@ -225,7 +223,6 @@ function getBaseCardValue(card) {
   return Number(value) || 0;
 }
 
-// FIXED: Damage resolution - requires both players to confirm
 function resolveDamage(game, roomState) {
   // Process hand attacks
   for (const attack of game.handAttacks) {
@@ -238,8 +235,11 @@ function resolveDamage(game, roomState) {
       const defender = getOtherPlayer(attack.player);
       game.players[defender].life -= damage;
       game.message = `Attack dealt ${damage} damage to Player ${defender}`;
+    } else {
+      game.message = `Attack was fully blocked!`;
     }
   }
+  
   // Process lane attacks
   for (let i = 0; i < game.lanes.length; i++) {
     const lane = game.lanes[i];
@@ -258,27 +258,13 @@ function resolveDamage(game, roomState) {
       lane.block = [];
     }
   }
+  
   game.handAttacks = [];
   
-  // Rumin: Tang - gain 2 life on second block
-  for (const p of [1, 2]) {
-    if (game.players[p].faction?.id === "rumin" && game.players[p].turnData.blocksDeclaredThisTurn >= 2) {
-      game.players[p].life += 2;
-      game.message = `Player ${p} gained 2 life from Tang`;
-    }
-  }
-  
-  // Reset damage confirmation for next time
+  // Reset damage confirmation
   roomState.damageConfirmed = { 1: false, 2: false };
-  
-  // Switch priority to the other player after damage
-  game.priority = getOtherPlayer(game.lastActivePlayer);
-  game.lastActivePlayer = game.priority;
-  game.phase = "priority";
-  resetPriorityPassed(game);
 }
 
-// FIXED: End phase with proper lane-by-lane placement
 function startEndPhase(game) {
   game.phase = "end";
   game.endPlacementLaneIndex = 0;
@@ -288,19 +274,16 @@ function startEndPhase(game) {
   game.message = "End of Turn Phase - Place facedown cards in lanes";
 }
 
-// FIXED: Advance to next lane or end turn properly
 function advanceEndPlacement(game) {
   game.endPlacementStep++;
   
-  // After both players have had a chance at current lane, move to next lane
   if (game.endPlacementStep >= 2) {
     game.endPlacementLaneIndex++;
     game.endPlacementStep = 0;
   }
   
-  // After all 3 lanes are done
   if (game.endPlacementLaneIndex >= 3) {
-    // Draw up to 8 cards for each player
+    // Draw up to 8 cards
     for (const p of [1, 2]) {
       const player = game.players[p];
       while (player.hand.length < 8 && player.deck.length > 0) {
@@ -308,7 +291,7 @@ function advanceEndPlacement(game) {
       }
     }
     
-    // Start new turn - priority goes to other player
+    // Start new turn
     game.phase = "priority";
     game.turn++;
     game.lastActivePlayer = getOtherPlayer(game.lastActivePlayer);
@@ -345,7 +328,7 @@ function createGameFromLobby(roomState) {
     for (const suit of suits) {
       for (const value of values) {
         deck.push({
-          id: `card-${Math.random().toString(36).slice(2)}`,
+          id: `card-${Math.random().toString(36).slice(2)}-${Date.now()}`,
           value: value,
           suit: suit,
           name: `${rankNames[value] || value} of ${suit}`,
@@ -423,7 +406,6 @@ function createGameFromLobby(roomState) {
     message: ""
   };
   
-  // Draw initial hands
   for (const p of [1, 2]) {
     for (let i = 0; i < 8; i++) {
       if (game.players[p].deck.length > 0) {
@@ -526,27 +508,36 @@ io.on("connection", (socket) => {
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const game = roomState.game;
-    if (game.phase !== "priority") return;
-    if (game.priority !== playerNum) return;
+    
+    if (game.phase !== "priority") {
+      socket.emit("errorMessage", "Not in priority phase");
+      return;
+    }
+    if (game.priority !== playerNum) {
+      socket.emit("errorMessage", "Not your priority to pass");
+      return;
+    }
     
     game.priorityPassed[playerNum] = true;
-    game.priority = getOtherPlayer(playerNum);
-    game.message = `Player ${playerNum} passed priority`;
+    game.message = `Player ${playerNum} passed priority (${game.priorityPassed[1] ? "✓" : "○"} ${game.priorityPassed[2] ? "✓" : "○"})`;
     
+    // Switch priority to other player for next action
+    game.priority = getOtherPlayer(playerNum);
+    
+    // Check if both players have passed
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
         game.phase = "damage";
-        game.message = "Both players passed - resolving damage. Click Resolve Damage.";
-        // Reset damage confirmation for new damage phase
+        game.message = "Both players passed - damage phase. Click Resolve Damage.";
         roomState.damageConfirmed = { 1: false, 2: false };
       } else {
         startEndPhase(game);
       }
     }
+    
     emitState(roomState);
   });
 
-  // FIXED: Resolve damage - requires both players to confirm
   socket.on("resolveDamage", () => {
     console.log(`[Socket] resolveDamage`);
     const roomState = getRoomForSocket(socket);
@@ -560,14 +551,12 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // Mark this player as having confirmed damage
     roomState.damageConfirmed[playerNum] = true;
-    game.message = `Player ${playerNum} confirmed damage resolution (${roomState.damageConfirmed[1] ? "✓" : "○"} ${roomState.damageConfirmed[2] ? "✓" : "○"})`;
+    game.message = `Player ${playerNum} confirmed damage (${roomState.damageConfirmed[1] ? "✓" : "○"} ${roomState.damageConfirmed[2] ? "✓" : "○"})`;
     emitState(roomState);
     
-    // Check if both players have confirmed
     if (roomState.damageConfirmed[1] && roomState.damageConfirmed[2]) {
-      console.log("[resolveDamage] Both players confirmed - resolving damage");
+      console.log("[resolveDamage] Both confirmed - resolving");
       resolveDamage(game, roomState);
       
       // Check for game end
@@ -586,6 +575,13 @@ io.on("connection", (socket) => {
         game.winner = 1;
         game.message = "Player 1 wins!";
         io.to(roomState.roomCode).emit("gameEnded", { winner: 1, tie: false });
+      } else {
+        // After damage, priority goes to the other player
+        game.phase = "priority";
+        game.priority = getOtherPlayer(game.lastActivePlayer);
+        game.lastActivePlayer = game.priority;
+        resetPriorityPassed(game);
+        game.message = `Damage resolved. Player ${game.priority} has priority.`;
       }
       
       emitState(roomState);
@@ -593,7 +589,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("confirmAttack", ({ from, attackCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmAttack: attackCardIndex=${attackCardIndex}, payments=${paymentIndexes}`);
+    console.log(`[Socket] confirmAttack: idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
@@ -601,12 +597,20 @@ io.on("connection", (socket) => {
     const game = roomState.game;
     const player = game.players[playerNum];
     
-    if (game.phase !== "priority" || game.priority !== playerNum) {
+    if (game.phase !== "priority") {
+      socket.emit("errorMessage", "Not in priority phase");
+      return;
+    }
+    if (game.priority !== playerNum) {
       socket.emit("errorMessage", "Not your priority to attack");
       return;
     }
+    if (hasPendingAttacks(game)) {
+      socket.emit("errorMessage", "Cannot attack while attacks are pending");
+      return;
+    }
     
-    if (attackCardIndex === undefined || !player.hand[attackCardIndex]) {
+    if (!player.hand[attackCardIndex]) {
       socket.emit("errorMessage", "Invalid attack card");
       return;
     }
@@ -616,21 +620,18 @@ io.on("connection", (socket) => {
     const required = getBaseCardValue(attackCard);
     
     if (payment.total < required) {
-      socket.emit("errorMessage", `Not enough payment. Need ${required}, have ${payment.total}`);
+      socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
       return;
     }
     
-    // Remove payment cards from hand
+    // Process attack
     removeIndexesFromHandToDiscard(player, paymentIndexes);
-    // Remove attack card from hand
     player.hand.splice(attackCardIndex, 1);
-    
-    // Add acceleration counters if overpaid
     addAccelerationIfOverpaid(player, payment.total, required);
     
-    // Create attack
+    const attackId = `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     game.handAttacks.push({
-      id: `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: attackId,
       player: playerNum,
       card: attackCard,
       source: "hand",
@@ -639,16 +640,16 @@ io.on("connection", (socket) => {
       notes: []
     });
     
-    // Switch priority to defender
-    game.priority = getOtherPlayer(playerNum);
+    // Reset priority passed and give priority to defender
     resetPriorityPassed(game);
-    game.message = `Player ${playerNum} attacked with ${attackCard.name}!`;
+    game.priority = getOtherPlayer(playerNum);
+    game.message = `Player ${playerNum} attacked with ${attackCard.name}! Player ${game.priority} can block or pass.`;
+    
     emitState(roomState);
   });
 
-  // FIXED: Confirm block - properly processes blocks
   socket.on("confirmBlock", ({ handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmBlock: attackId=${handAttackId}, blockCardIndex=${blockCardIndex}, payments=${paymentIndexes}`);
+    console.log(`[Socket] confirmBlock: attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
@@ -661,28 +662,24 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // Find the attack
     const attack = game.handAttacks.find(a => a.id === handAttackId);
     if (!attack) {
       socket.emit("errorMessage", "Attack not found");
       return;
     }
     
-    // Verify defender
     const defender = getOtherPlayer(attack.player);
     if (playerNum !== defender) {
-      socket.emit("errorMessage", "You are not the defender");
+      socket.emit("errorMessage", "Not the defender");
       return;
     }
     
-    // Check if already blocked
     if (attack.block.length > 0) {
-      socket.emit("errorMessage", "This attack has already been blocked");
+      socket.emit("errorMessage", "Attack already blocked");
       return;
     }
     
-    // Get block card
-    if (blockCardIndex === undefined || !player.hand[blockCardIndex]) {
+    if (!player.hand[blockCardIndex]) {
       socket.emit("errorMessage", "Invalid block card");
       return;
     }
@@ -692,19 +689,15 @@ io.on("connection", (socket) => {
     const required = getBaseCardValue(blockCard);
     
     if (payment.total < required) {
-      socket.emit("errorMessage", `Not enough payment to block. Need ${required}, have ${payment.total}`);
+      socket.emit("errorMessage", `Need ${required} payment to block, have ${payment.total}`);
       return;
     }
     
-    // Remove payment cards
+    // Process block
     removeIndexesFromHandToDiscard(player, paymentIndexes);
-    // Remove block card from hand
     player.hand.splice(blockCardIndex, 1);
-    
-    // Add acceleration counters
     addAccelerationIfOverpaid(player, payment.total, required);
     
-    // Add block to attack
     attack.block.push({
       player: playerNum,
       card: blockCard,
@@ -713,10 +706,11 @@ io.on("connection", (socket) => {
       notes: []
     });
     
-    // Switch priority back to attacker
-    game.priority = attack.player;
+    // Reset priority passed and give priority back to attacker
     resetPriorityPassed(game);
-    game.message = `Player ${playerNum} blocked with ${blockCard.name}!`;
+    game.priority = attack.player;
+    game.message = `Player ${playerNum} blocked with ${blockCard.name}! Player ${attack.player} can continue.`;
+    
     emitState(roomState);
   });
 
@@ -735,7 +729,7 @@ io.on("connection", (socket) => {
     }
     
     if (lane !== game.endPlacementLaneIndex) {
-      socket.emit("errorMessage", "Not your lane to place");
+      socket.emit("errorMessage", "Wrong lane");
       return;
     }
     
@@ -750,12 +744,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    if (game.lanes[lane].facedown[playerNum]) {
-      socket.emit("errorMessage", "Lane already has a face-down card");
-      return;
-    }
-    
-    if (handIndex < 0 || handIndex >= player.hand.length) {
+    if (!player.hand[handIndex]) {
       socket.emit("errorMessage", "Invalid card");
       return;
     }
@@ -763,7 +752,7 @@ io.on("connection", (socket) => {
     const card = player.hand.splice(handIndex, 1)[0];
     game.lanes[lane].facedown[playerNum] = card;
     game.endPlaced[playerNum][lane] = true;
-    game.message = `Player ${playerNum} placed a facedown card in lane ${lane + 1}`;
+    game.message = `Player ${playerNum} placed a card in lane ${lane + 1}`;
     
     advanceEndPlacement(game);
     emitState(roomState);
@@ -783,7 +772,7 @@ io.on("connection", (socket) => {
     }
     
     if (lane !== game.endPlacementLaneIndex) {
-      socket.emit("errorMessage", "Not your lane to skip");
+      socket.emit("errorMessage", "Wrong lane");
       return;
     }
     
@@ -794,7 +783,7 @@ io.on("connection", (socket) => {
     }
     
     if (game.endPlaced[playerNum][lane]) {
-      socket.emit("errorMessage", "Already processed this lane");
+      socket.emit("errorMessage", "Already processed");
       return;
     }
     
