@@ -494,7 +494,6 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  // FIXED: passPriority now only marks passed, doesn't switch priority
   socket.on("passPriority", () => {
     console.log(`[Socket] passPriority`);
     const roomState = getRoomForSocket(socket);
@@ -512,11 +511,9 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // Mark this player as having passed
     game.priorityPassed[playerNum] = true;
-    game.message = `Player ${playerNum} passed priority (Player 1: ${game.priorityPassed[1] ? "✓" : "○"}, Player 2: ${game.priorityPassed[2] ? "✓" : "○"})`;
+    game.message = `Player ${playerNum} passed priority (P1: ${game.priorityPassed[1] ? "✓" : "○"}, P2: ${game.priorityPassed[2] ? "✓" : "○"})`;
     
-    // Check if both players have passed
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
         game.phase = "damage";
@@ -525,10 +522,8 @@ io.on("connection", (socket) => {
       } else {
         startEndPhase(game);
       }
-      // Reset passed flags for next round
       resetPriorityPassed(game);
     } else {
-      // Switch priority to the other player without resetting passed flags
       game.priority = getOtherPlayer(playerNum);
     }
     
@@ -642,6 +637,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
+  // FIXED: confirmBlock now properly enforces payment and gives attacker priority back
   socket.on("confirmBlock", ({ handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
     console.log(`[Socket] confirmBlock: attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
@@ -668,7 +664,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // If no block card (taking damage), just mark passed
+    // If take damage (no block card)
     if (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) {
       console.log(`[Socket] No block card - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
@@ -690,6 +686,7 @@ io.on("connection", (socket) => {
       return;
     }
     
+    // Validate block card
     if (!player.hand[blockCardIndex]) {
       socket.emit("errorMessage", "Invalid block card");
       return;
@@ -697,18 +694,25 @@ io.on("connection", (socket) => {
     
     const blockCard = player.hand[blockCardIndex];
     const blockCardValue = getBaseCardValue(blockCard);
+    
+    // Calculate payment total - MUST be at least blockCardValue
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
+    
+    console.log(`[Socket] Block payment check: need ${blockCardValue}, have ${payment.total}`);
     
     if (payment.total < blockCardValue) {
       socket.emit("errorMessage", `Need ${blockCardValue} payment to block, have ${payment.total}`);
       return;
     }
     
+    // Process block - remove payment cards AND blocker card from hand
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     player.hand.splice(blockCardIndex, 1);
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     
+    // Apply faction bonuses to blocker
     const blockInfo = applyBlockBonuses(player, blockCard);
+    finalizeBlockDeclaration(player);
     
     attack.block.push({
       player: playerNum,
@@ -718,10 +722,10 @@ io.on("connection", (socket) => {
       notes: blockInfo.notes
     });
     
-    // Reset passed flags and give priority back to attacker
+    // IMPORTANT: Reset passed flags and give priority BACK to attacker
     resetPriorityPassed(game);
     game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCard.name} (value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player}'s turn.`;
+    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player}'s turn to continue or pass.`;
     
     emitState(roomState);
   });
