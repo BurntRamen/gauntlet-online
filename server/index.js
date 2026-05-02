@@ -595,10 +595,6 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Not your priority to attack");
       return;
     }
-    if (hasPendingAttacks(game)) {
-      socket.emit("errorMessage", "Cannot attack while attacks are pending");
-      return;
-    }
     
     if (!player.hand[attackCardIndex]) {
       socket.emit("errorMessage", "Invalid attack card");
@@ -637,7 +633,6 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  // FIXED: confirmBlock now properly enforces payment and gives attacker priority back
   socket.on("confirmBlock", ({ handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
     console.log(`[Socket] confirmBlock: attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
@@ -694,8 +689,6 @@ io.on("connection", (socket) => {
     
     const blockCard = player.hand[blockCardIndex];
     const blockCardValue = getBaseCardValue(blockCard);
-    
-    // Calculate payment total - MUST be at least blockCardValue
     const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
     
     console.log(`[Socket] Block payment check: need ${blockCardValue}, have ${payment.total}`);
@@ -705,12 +698,11 @@ io.on("connection", (socket) => {
       return;
     }
     
-    // Process block - remove payment cards AND blocker card from hand
+    // Process block
     removeIndexesFromHandToDiscard(player, paymentIndexes);
     player.hand.splice(blockCardIndex, 1);
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     
-    // Apply faction bonuses to blocker
     const blockInfo = applyBlockBonuses(player, blockCard);
     finalizeBlockDeclaration(player);
     
@@ -722,10 +714,12 @@ io.on("connection", (socket) => {
       notes: blockInfo.notes
     });
     
-    // IMPORTANT: Reset passed flags and give priority BACK to attacker
+    // IMPORTANT: This attack is now blocked. The attacker can declare NEW attacks,
+    // but this specific attack is resolved and will be processed in damage phase.
+    // Reset passed flags and give priority back to attacker so they can attack again or pass.
     resetPriorityPassed(game);
     game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player}'s turn to continue or pass.`;
+    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player} may attack again or pass.`;
     
     emitState(roomState);
   });
