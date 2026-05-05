@@ -412,9 +412,16 @@ export default function App() {
         : 0;
   const activePlacementCard = !isSpectator && placementMode && selectedPlacementCardIndex != null ? me.hand[selectedPlacementCardIndex] : null;
 
+  const heraBonusAvailable =
+    !isSpectator &&
+    me.faction.id === "bizi" &&
+    !me.turnData.heraUsed &&
+    (me.turnData.suitsPlayedThisTurn || []).length > 0 &&
+    payments.some((i) => me.hand[i] && me.turnData.suitsPlayedThisTurn.includes(me.hand[i].suit));
+
   const paymentTotal =
     !isSpectator
-      ? payments.reduce((sum, i) => sum + getCardNumericValue(me.hand[i]), 0) + (useHeraBonus ? 2 : 0)
+      ? payments.reduce((sum, i) => sum + getCardNumericValue(me.hand[i]), 0) + (useHeraBonus && heraBonusAvailable ? 2 : 0)
       : 0;
 
   const currentEndLane = game.endPlacementLaneIndex;
@@ -548,7 +555,7 @@ export default function App() {
           {attackMode.from === "lane" && <p style={{ margin: "6px 0 0 0" }}><strong>Lane:</strong> {attackMode.lane + 1}</p>}
           <p style={{ margin: "6px 0 0 0" }}><strong>Selected attack card:</strong> {activeAttackCard ? getCardShortLabel(activeAttackCard) : "None selected"}</p>
         </div>
-        {me.faction.id === "bizi" && !me.turnData.heraUsed && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
+        {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
         <p><strong>Payment total:</strong> {paymentTotal}</p>
         <p><strong>Required:</strong> {activeAttackCard ? getCardNumericValue(activeAttackCard) : "-"}</p>
         <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < getCardNumericValue(activeAttackCard)} style={{ marginRight: 10 }}>Confirm Attack</button>
@@ -567,7 +574,7 @@ export default function App() {
             <p style={{ margin: 0 }}><strong>Incoming attack:</strong> {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}</p>
             <p style={{ margin: "6px 0 0 0" }}><strong>Selected block cards:</strong> {activeBlockCards.length > 0 ? activeBlockCards.map(getCardShortLabel).join(", ") : "None selected"}</p>
           </div>
-          {me.faction.id === "bizi" && !me.turnData.heraUsed && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
+          {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
           <p><strong>Payment total:</strong> {paymentTotal}</p>
           <p><strong>Required:</strong> {activeBlockCards.length > 0 ? required : "-"}</p>
           <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>

@@ -24,30 +24,30 @@ const factionsData = {
   rumin: {
     id: "rumin",
     name: "Rumin",
-    commander: { name: "Emperor Nu", text: "Your blocking cards get +1 value. If this is your third or later block this turn, they get +2 instead." },
-    general: { name: "Tang", text: "When you block for the second time in a turn, gain 2 life." },
-    city: { name: "Rumie, City of the Empire", text: "Your first two attacks each turn that share a suit with your previous attack get +1 value." }
+    commander: { name: "Kaiser, the Jewel", text: "Your fourth attack each turn gets +3 value." },
+    general: { name: "Meerus", text: "Whenever you play your second attack each turn, you may play your third attack with cost 3 or less without paying its cost." },
+    city: { name: "Rumie, City of the Empire", text: "Each turn, the first two attacks you play after your first that share a suit with your previous attack get +1 value." }
   },
   sheen: {
     id: "sheen",
     name: "Sheen",
-    commander: { name: "Sheen Commander", text: "Your healing abilities are 50% more effective." },
-    general: { name: "Sheen General", text: "Once per turn, you may heal a servitor for 3." },
-    city: { name: "Sheen City", text: "Your servitors have +2 health." }
+    commander: { name: "Emperor Nu", text: "Your blocking cards get +1 value. If it's your third or later time blocking, they get +2 instead." },
+    general: { name: "Tang", text: "Each turn, when you block for the second time, gain 2 life." },
+    city: { name: "Beli, Living City", text: "After your second block each turn, your next attack with cost 10+ gains +2 value." }
   },
   frumo: {
     id: "frumo",
     name: "Frumo",
-    commander: { name: "Lord Commander Polea", text: "Once per turn, choose one: place a card from hand into empty lane, switch lanes of 2 cards, or look at 1 face-down card." },
+    commander: { name: "Lord Commander Polea", text: "Once per turn, choose 1: put a card from your hand into an empty lane you control; switch the lanes of up to 2 cards you control; look at 1 face-down card; or one card you control gets +1 value until end of turn." },
     general: { name: "Lafayette", text: "Once per turn, you may swap a lane card with a card from your hand." },
-    city: { name: "Constanti, Technology Hub", text: "Once per turn, if you've played a card of a suit this turn, you may use a card of the same suit to pay 1 less." }
+    city: { name: "Ristus, Sunken City", text: "Your first card played each turn with a consecutive value of the last card played gets +2." }
   },
   bizi: {
     id: "bizi",
     name: "Bizi",
-    commander: { name: "Overlord Tesla", text: "Cards you play remain on the battlefield instead of being discarded." },
-    general: { name: "Gridmaster Volt", text: "Cards adjacent to another card of the same suit get +1 value." },
-    city: { name: "Voltspire", text: "Whenever you play a card, you may place it adjacent to another card." }
+    commander: { name: "Focus, Conductor of Progress", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
+    general: { name: "Hera", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
+    city: { name: "Constanti, Technology Hub", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
   }
 };
 
@@ -138,6 +138,26 @@ function resetPriorityPassed(game) {
   game.priorityPassed = { 1: false, 2: false };
 }
 
+function createTurnData() {
+  return {
+    attacksDeclaredThisTurn: 0,
+    blocksDeclaredThisTurn: 0,
+    previousAttackSuit: null,
+    previousPlayedValue: null,
+    suitsPlayedThisTurn: [],
+    ruminSharedSuitBuffsUsed: 0,
+    biziDifferentSuitBuffsUsed: 0,
+    meerusFreeAttackAvailable: false,
+    beliHighCostAttackBuffAvailable: false,
+    tangLifeGainUsed: false,
+    ristusConsecutiveBuffUsed: false,
+    poleaUsed: false,
+    lafayetteUsed: false,
+    focusBuffUsed: false,
+    heraUsed: false
+  };
+}
+
 function removeIndexesFromHandToDiscard(player, indexes) {
   const sorted = [...indexes].sort((a, b) => b - a);
   for (const idx of sorted) {
@@ -193,25 +213,133 @@ function removeSelectedCardAndPayments(player, selectedIndex, paymentIndexes) {
 }
 
 function registerCardPlayed(player, card) {
-  player.turnData.previousPlayedValue = card?.value || 0;
-  return [];
+  const value = getBaseCardValue(card);
+  if (card?.suit && !player.turnData.suitsPlayedThisTurn.includes(card.suit)) {
+    player.turnData.suitsPlayedThisTurn.push(card.suit);
+  }
+  player.turnData.previousPlayedValue = value || null;
+}
+
+function applyPlayedCardBonuses(player, card) {
+  const notes = [];
+  const value = getBaseCardValue(card);
+
+  if (
+    player.faction?.id === "frumo" &&
+    !player.turnData.ristusConsecutiveBuffUsed &&
+    player.turnData.previousPlayedValue != null &&
+    Math.abs(value - player.turnData.previousPlayedValue) === 1
+  ) {
+    card.tempBuff = (card.tempBuff || 0) + 2;
+    player.turnData.ristusConsecutiveBuffUsed = true;
+    notes.push("Ristus +2 consecutive value");
+  }
+
+  registerCardPlayed(player, card);
+  return notes;
+}
+
+function getCardCurrentValue(card) {
+  return getBaseCardValue(card) + (card?.tempBuff || 0);
+}
+
+function clearCardBuff(card) {
+  if (card && card.tempBuff) delete card.tempBuff;
+}
+
+function clearEndTurnBuffs(game) {
+  for (const p of [1, 2]) {
+    const player = game.players[p];
+    player.hand.forEach(clearCardBuff);
+    player.deck.forEach(clearCardBuff);
+    player.discard.forEach(clearCardBuff);
+  }
+  game.lanes.forEach((lane) => {
+    clearCardBuff(lane.facedown[1]);
+    clearCardBuff(lane.facedown[2]);
+    clearCardBuff(lane.attack?.card);
+    lane.block.forEach((block) => clearCardBuff(block.card));
+  });
+  game.handAttacks.forEach((attack) => {
+    clearCardBuff(attack.card);
+    attack.block.forEach((block) => clearCardBuff(block.card));
+  });
 }
 
 function calculateAttackBonuses(player, card) {
-  return { value: 0, notes: [] };
+  const notes = [];
+  let value = 0;
+  const attackNumber = player.turnData.attacksDeclaredThisTurn + 1;
+  const cardBaseValue = getBaseCardValue(card);
+
+  if (player.faction?.id === "rumin") {
+    if (attackNumber === 4) {
+      value += 3;
+      notes.push("Kaiser fourth attack +3");
+    }
+    if (
+      attackNumber > 1 &&
+      player.turnData.ruminSharedSuitBuffsUsed < 2 &&
+      player.turnData.previousAttackSuit === card.suit
+    ) {
+      value += 1;
+      player.turnData.ruminSharedSuitBuffsUsed += 1;
+      notes.push("Rumie shared suit +1");
+    }
+  }
+
+  if (player.faction?.id === "sheen" && player.turnData.beliHighCostAttackBuffAvailable && cardBaseValue >= 10) {
+    value += 2;
+    player.turnData.beliHighCostAttackBuffAvailable = false;
+    notes.push("Beli high-cost attack +2");
+  }
+
+  if (
+    player.faction?.id === "bizi" &&
+    attackNumber > 1 &&
+    player.turnData.biziDifferentSuitBuffsUsed < 2 &&
+    player.turnData.previousAttackSuit &&
+    player.turnData.previousAttackSuit !== card.suit
+  ) {
+    value += 1;
+    player.turnData.biziDifferentSuitBuffsUsed += 1;
+    notes.push("Constanti different suit +1");
+  }
+
+  return { value, notes };
 }
 
 function getAttackPaymentRequirement(player, card) {
-  return { required: card?.value || 0, freeAttackUsed: false };
+  const attackNumber = player.turnData.attacksDeclaredThisTurn + 1;
+  const required = getBaseCardValue(card);
+
+  if (
+    player.faction?.id === "rumin" &&
+    attackNumber === 3 &&
+    player.turnData.meerusFreeAttackAvailable &&
+    required <= 3
+  ) {
+    return { required: 0, freeAttackUsed: true };
+  }
+
+  return { required, freeAttackUsed: false };
 }
 
 function getPaymentTotal(player, paymentIndexes, useHeraBonus) {
   let total = 0;
+  const paymentCards = paymentIndexes.map((idx) => player.hand[idx]).filter(Boolean);
   for (const idx of paymentIndexes) {
-    if (player.hand[idx]) total += player.hand[idx].value || 0;
+    if (player.hand[idx]) total += getBaseCardValue(player.hand[idx]);
   }
   let heraUsedNow = false;
-  if (useHeraBonus && player.faction?.id === "bizi" && !player.turnData.heraUsed) {
+  const hasHeraPaymentCard = paymentCards.some((card) => player.turnData.suitsPlayedThisTurn.includes(card.suit));
+  if (
+    useHeraBonus &&
+    player.faction?.id === "bizi" &&
+    !player.turnData.heraUsed &&
+    player.turnData.suitsPlayedThisTurn.length > 0 &&
+    hasHeraPaymentCard
+  ) {
     total += 2;
     heraUsedNow = true;
   }
@@ -219,19 +347,27 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus) {
 }
 
 function finalizeAttackDeclaration(player, card, attackBonus, freeUsed) {
-  let effectiveValue = (card?.value || 0) + (attackBonus.value || 0);
-  const notes = [...attackBonus.notes];
+  const playedNotes = applyPlayedCardBonuses(player, card);
+  let effectiveValue = getCardCurrentValue(card) + (attackBonus.value || 0);
+  const notes = [...playedNotes, ...attackBonus.notes];
   if (freeUsed) notes.push("Meerus free attack");
   player.turnData.attacksDeclaredThisTurn++;
   player.turnData.previousAttackSuit = card?.suit;
+  if (player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn === 2) {
+    player.turnData.meerusFreeAttackAvailable = true;
+  }
+  if (player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn >= 3) {
+    player.turnData.meerusFreeAttackAvailable = false;
+  }
   return { effectiveValue, notes };
 }
 
 function applyBlockBonuses(player, card) {
-  let effectiveValue = card?.value || 0;
-  const notes = [];
+  const playedNotes = applyPlayedCardBonuses(player, card);
+  let effectiveValue = getCardCurrentValue(card);
+  const notes = [...playedNotes];
   const faction = player.faction?.id;
-  if (faction === "rumin") {
+  if (faction === "sheen") {
     effectiveValue += 1;
     notes.push("Emperor Nu +1");
     if (player.turnData.blocksDeclaredThisTurn >= 2) {
@@ -244,17 +380,62 @@ function applyBlockBonuses(player, card) {
 
 function finalizeBlockDeclaration(player) {
   player.turnData.blocksDeclaredThisTurn++;
+  if (player.faction?.id === "sheen" && player.turnData.blocksDeclaredThisTurn === 2) {
+    if (!player.turnData.tangLifeGainUsed) {
+      player.life += 2;
+      player.turnData.tangLifeGainUsed = true;
+    }
+    player.turnData.beliHighCostAttackBuffAvailable = true;
+  }
 }
 
 function addAccelerationIfOverpaid(player, paid, required) {
-  if (player.faction?.id === "bizi" && paid > required) {
-    player.accelerationCounters = (player.accelerationCounters || 0) + (paid - required);
+  if (player.faction?.id === "bizi" && paid - required >= 2) {
+    player.accelerationCounters = (player.accelerationCounters || 0) + 1;
   }
 }
 
 function hasPendingAttacks(game) {
   return (game.handAttacks && game.handAttacks.length > 0) ||
     (game.lanes && game.lanes.some(l => l.attack));
+}
+
+function getControlledTargetCard(game, playerNum, targetType, lane, handAttackId) {
+  const laneIndex = Number(lane);
+
+  if (targetType === "laneCard") {
+    if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length) return null;
+    return game.lanes[laneIndex].facedown[playerNum] || null;
+  }
+
+  if (targetType === "laneAttack") {
+    if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length) return null;
+    const attack = game.lanes[laneIndex].attack;
+    return attack?.player === playerNum ? attack.card : null;
+  }
+
+  if (targetType === "handAttack") {
+    const attack = game.handAttacks.find((a) => a.id === handAttackId);
+    return attack?.player === playerNum ? attack.card : null;
+  }
+
+  return null;
+}
+
+function canUsePriorityAbility(socket, game, playerNum, expectedFaction) {
+  if (game.phase !== "priority") {
+    socket.emit("errorMessage", "Not in priority phase");
+    return false;
+  }
+  if (game.priority !== playerNum) {
+    socket.emit("errorMessage", "Not your priority");
+    return false;
+  }
+  if (game.players[playerNum].faction?.id !== expectedFaction) {
+    socket.emit("errorMessage", "Wrong faction for this ability");
+    return false;
+  }
+  return true;
 }
 
 function getBaseCardValue(card) {
@@ -377,17 +558,9 @@ function advanceEndPlacement(game) {
     game.mostRecentAttackDefender = null;
     resetPriorityPassed(game);
     
+    clearEndTurnBuffs(game);
     for (const p of [1, 2]) {
-      game.players[p].turnData = {
-        attacksDeclaredThisTurn: 0,
-        blocksDeclaredThisTurn: 0,
-        previousAttackSuit: null,
-        previousPlayedValue: null,
-        poleaUsed: false,
-        lafayetteUsed: false,
-        focusBuffUsed: false,
-        heraUsed: false
-      };
+      game.players[p].turnData = createTurnData();
     }
     game.message = `Turn ${game.turn} - Player ${game.priority} has priority`;
   }
@@ -440,16 +613,7 @@ function createGameFromLobby(roomState) {
         discard: [],
         lanes: [null, null, null],
         connected: true,
-        turnData: {
-          attacksDeclaredThisTurn: 0,
-          blocksDeclaredThisTurn: 0,
-          previousAttackSuit: null,
-          previousPlayedValue: null,
-          poleaUsed: false,
-          lafayetteUsed: false,
-          focusBuffUsed: false,
-          heraUsed: false
-        },
+        turnData: createTurnData(),
         accelerationCounters: 0
       },
       2: {
@@ -460,16 +624,7 @@ function createGameFromLobby(roomState) {
         discard: [],
         lanes: [null, null, null],
         connected: true,
-        turnData: {
-          attacksDeclaredThisTurn: 0,
-          blocksDeclaredThisTurn: 0,
-          previousAttackSuit: null,
-          previousPlayedValue: null,
-          poleaUsed: false,
-          lafayetteUsed: false,
-          focusBuffUsed: false,
-          heraUsed: false
-        },
+        turnData: createTurnData(),
         accelerationCounters: 0
       }
     },
@@ -714,8 +869,9 @@ io.on("connection", (socket) => {
       return;
     }
     
+    const attackPayment = getAttackPaymentRequirement(player, attackCard);
     const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
-    const required = getBaseCardValue(attackCard);
+    const required = attackPayment.required;
     
     if (payment.total < required) {
       socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
@@ -730,7 +886,7 @@ io.on("connection", (socket) => {
     }
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
     addAccelerationIfOverpaid(player, payment.total, required);
-    const attackInfo = finalizeAttackDeclaration(player, attackCard, calculateAttackBonuses(player, attackCard), false);
+    const attackInfo = finalizeAttackDeclaration(player, attackCard, calculateAttackBonuses(player, attackCard), attackPayment.freeAttackUsed);
     
     const attackId = `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const attack = {
@@ -906,6 +1062,168 @@ io.on("connection", (socket) => {
     game.priority = attack.player;
     game.message = `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")} (paid ${payment.total}, blocker value ${blockCardValue})! Player ${attack.player} has priority.`;
     
+    emitState(roomState);
+  });
+
+  socket.on("usePolea", ({ mode, handIndex, lane, laneA, laneB, targetPlayer, targetType, handAttackId }) => {
+    console.log(`[Socket] usePolea: mode=${mode}`);
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const game = roomState.game;
+    const player = game.players[playerNum];
+
+    if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
+    if (player.turnData.poleaUsed) {
+      socket.emit("errorMessage", "Polea already used this turn");
+      return;
+    }
+
+    const selectedMode = Number(mode);
+    if (selectedMode === 1) {
+      const selectedHandIndex = Number(handIndex);
+      const laneIndex = Number(lane);
+      if (!Number.isInteger(selectedHandIndex) || !player.hand[selectedHandIndex]) {
+        socket.emit("errorMessage", "Invalid hand card");
+        return;
+      }
+      if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length || game.lanes[laneIndex].facedown[playerNum]) {
+        socket.emit("errorMessage", "Invalid empty lane");
+        return;
+      }
+      const [card] = player.hand.splice(selectedHandIndex, 1);
+      game.lanes[laneIndex].facedown[playerNum] = card;
+      player.turnData.poleaUsed = true;
+      resetPriorityPassed(game);
+      game.message = `Player ${playerNum} used Polea to put a card into lane ${laneIndex + 1}.`;
+      emitState(roomState);
+      return;
+    }
+
+    if (selectedMode === 2) {
+      const firstLane = Number(laneA);
+      const secondLane = Number(laneB);
+      if (
+        !Number.isInteger(firstLane) ||
+        !Number.isInteger(secondLane) ||
+        firstLane < 0 ||
+        secondLane < 0 ||
+        firstLane >= game.lanes.length ||
+        secondLane >= game.lanes.length ||
+        firstLane === secondLane ||
+        !game.lanes[firstLane].facedown[playerNum] ||
+        !game.lanes[secondLane].facedown[playerNum]
+      ) {
+        socket.emit("errorMessage", "Choose two occupied lanes you control");
+        return;
+      }
+      [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
+      player.turnData.poleaUsed = true;
+      resetPriorityPassed(game);
+      game.message = `Player ${playerNum} used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}.`;
+      emitState(roomState);
+      return;
+    }
+
+    if (selectedMode === 3) {
+      const peekPlayer = Number(targetPlayer);
+      const laneIndex = Number(lane);
+      if (![1, 2].includes(peekPlayer) || !Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length || !game.lanes[laneIndex].facedown[peekPlayer]) {
+        socket.emit("errorMessage", "Invalid face-down target");
+        return;
+      }
+      const card = game.lanes[laneIndex].facedown[peekPlayer];
+      player.turnData.poleaUsed = true;
+      resetPriorityPassed(game);
+      socket.emit("peekResult", `Player ${peekPlayer} lane ${laneIndex + 1}: ${card.name}`);
+      game.message = `Player ${playerNum} used Polea to look at a face-down card.`;
+      emitState(roomState);
+      return;
+    }
+
+    if (selectedMode === 4) {
+      const target = getControlledTargetCard(game, playerNum, targetType, lane, handAttackId);
+      if (!target) {
+        socket.emit("errorMessage", "Invalid target");
+        return;
+      }
+      target.tempBuff = (target.tempBuff || 0) + 1;
+      player.turnData.poleaUsed = true;
+      resetPriorityPassed(game);
+      game.message = `Player ${playerNum} used Polea to give ${target.name} +1 value this turn.`;
+      emitState(roomState);
+      return;
+    }
+
+    socket.emit("errorMessage", "Invalid Polea mode");
+  });
+
+  socket.on("useLafayette", ({ lane, handIndex }) => {
+    console.log(`[Socket] useLafayette: lane=${lane}, handIndex=${handIndex}`);
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const game = roomState.game;
+    const player = game.players[playerNum];
+
+    if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
+    if (player.turnData.lafayetteUsed) {
+      socket.emit("errorMessage", "Lafayette already used this turn");
+      return;
+    }
+
+    const laneIndex = Number(lane);
+    const selectedHandIndex = Number(handIndex);
+    if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length || !game.lanes[laneIndex].facedown[playerNum]) {
+      socket.emit("errorMessage", "Invalid lane card");
+      return;
+    }
+    if (!Number.isInteger(selectedHandIndex) || !player.hand[selectedHandIndex]) {
+      socket.emit("errorMessage", "Invalid hand card");
+      return;
+    }
+
+    const handCard = player.hand[selectedHandIndex];
+    player.hand[selectedHandIndex] = game.lanes[laneIndex].facedown[playerNum];
+    game.lanes[laneIndex].facedown[playerNum] = handCard;
+    player.turnData.lafayetteUsed = true;
+    resetPriorityPassed(game);
+    game.message = `Player ${playerNum} used Lafayette to swap a lane card with a hand card.`;
+    emitState(roomState);
+  });
+
+  socket.on("useFocusBuff", ({ targetType, lane, handAttackId }) => {
+    console.log(`[Socket] useFocusBuff: targetType=${targetType}`);
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const game = roomState.game;
+    const player = game.players[playerNum];
+
+    if (!canUsePriorityAbility(socket, game, playerNum, "bizi")) return;
+    if (player.turnData.focusBuffUsed) {
+      socket.emit("errorMessage", "Focus already used this turn");
+      return;
+    }
+    if ((player.accelerationCounters || 0) <= 0) {
+      socket.emit("errorMessage", "No acceleration counters");
+      return;
+    }
+
+    const target = getControlledTargetCard(game, playerNum, targetType, lane, handAttackId);
+    if (!target) {
+      socket.emit("errorMessage", "Invalid target");
+      return;
+    }
+
+    player.accelerationCounters -= 1;
+    player.turnData.focusBuffUsed = true;
+    target.tempBuff = (target.tempBuff || 0) + 1;
+    resetPriorityPassed(game);
+    game.message = `Player ${playerNum} removed an acceleration counter to give ${target.name} +1 value this turn.`;
     emitState(roomState);
   });
 
