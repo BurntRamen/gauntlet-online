@@ -203,6 +203,7 @@ export default function App() {
 
   const [selectedAttackCardIndex, setSelectedAttackCardIndex] = useState(null);
   const [selectedBlockCardIndex, setSelectedBlockCardIndex] = useState(null);
+  const [selectedBlockCardIndexes, setSelectedBlockCardIndexes] = useState([]);
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
 
@@ -275,6 +276,7 @@ export default function App() {
     setPayments([]);
     setSelectedAttackCardIndex(null);
     setSelectedBlockCardIndex(null);
+    setSelectedBlockCardIndexes([]);
     setSelectedPlacementCardIndex(null);
     setUseHeraBonus(false);
     setPeekResult("");
@@ -300,7 +302,7 @@ export default function App() {
 
   function togglePayment(i) {
     if (attackMode?.from === "hand" && i === selectedAttackCardIndex) return;
-    if (blockMode && i === selectedBlockCardIndex) return;
+    if (blockMode?.type === "handAttack" && selectedBlockCardIndexes.includes(i)) return;
     setPayments((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
   }
 
@@ -311,6 +313,7 @@ export default function App() {
 
   function selectBlockCard(i) {
     setSelectedBlockCardIndex(i);
+    setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
@@ -393,7 +396,20 @@ export default function App() {
         ? game.lanes[attackMode.lane]?.facedown?.[player]
         : null);
 
-  const activeBlockCard = !isSpectator && selectedBlockCardIndex != null ? me.hand[selectedBlockCardIndex] : null;
+  const activeBlockCards =
+    !isSpectator && blockMode?.type === "handAttack"
+      ? selectedBlockCardIndexes.map((idx) => me.hand[idx]).filter(Boolean)
+      : [];
+  const activeBlockCard =
+    !isSpectator && blockMode?.type === "laneAttack"
+      ? game.lanes[blockMode.lane]?.facedown?.[player]
+      : activeBlockCards[0] || (selectedBlockCardIndex != null ? me.hand[selectedBlockCardIndex] : null);
+  const activeBlockRequired =
+    blockMode?.type === "handAttack"
+      ? activeBlockCards.reduce((sum, card) => sum + getCardNumericValue(card), 0)
+      : activeBlockCard
+        ? getCardNumericValue(activeBlockCard)
+        : 0;
   const activePlacementCard = !isSpectator && placementMode && selectedPlacementCardIndex != null ? me.hand[selectedPlacementCardIndex] : null;
 
   const paymentTotal =
@@ -452,8 +468,17 @@ export default function App() {
   }
 
   function confirmBlock() {
-    if (!blockMode || selectedBlockCardIndex == null) return;
-    socket.emit("confirmBlock", { lane: blockMode.type === "laneAttack" ? blockMode.lane : null, handAttackId: blockMode.type === "handAttack" ? blockMode.handAttackId : null, blockCardIndex: selectedBlockCardIndex, paymentIndexes: payments, useHeraBonus });
+    if (!blockMode) return;
+    if (blockMode.type === "handAttack" && selectedBlockCardIndexes.length === 0) return;
+    if (blockMode.type === "laneAttack" && !activeBlockCard) return;
+    socket.emit("confirmBlock", {
+      lane: blockMode.type === "laneAttack" ? blockMode.lane : null,
+      handAttackId: blockMode.type === "handAttack" ? blockMode.handAttackId : null,
+      blockCardIndex: selectedBlockCardIndexes[0] ?? null,
+      blockCardIndexes: selectedBlockCardIndexes,
+      paymentIndexes: payments,
+      useHeraBonus
+    });
     resetSelections();
   }
 
@@ -533,26 +558,27 @@ export default function App() {
   } else if (blockMode) {
     if (blockMode.type === "handAttack") {
       const attack = game.handAttacks.find((a) => a.id === blockMode.handAttackId);
-      const required = activeBlockCard ? getCardNumericValue(activeBlockCard) : 0;
+      const required = activeBlockRequired;
 
       rightPanel = (
         <div>
           <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Hand Attack</h3>
           <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
             <p style={{ margin: 0 }}><strong>Incoming attack:</strong> {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}</p>
-            <p style={{ margin: "6px 0 0 0" }}><strong>Selected block card:</strong> {activeBlockCard ? getCardShortLabel(activeBlockCard) : "None selected"}</p>
+            <p style={{ margin: "6px 0 0 0" }}><strong>Selected block cards:</strong> {activeBlockCards.length > 0 ? activeBlockCards.map(getCardShortLabel).join(", ") : "None selected"}</p>
           </div>
           {me.faction.id === "bizi" && !me.turnData.heraUsed && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
           <p><strong>Payment total:</strong> {paymentTotal}</p>
-          <p><strong>Required:</strong> {activeBlockCard ? required : "-"}</p>
-          <button onClick={confirmBlock} disabled={!activeBlockCard || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
+          <p><strong>Required:</strong> {activeBlockCards.length > 0 ? required : "-"}</p>
+          <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
           <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
     } else {
       const laneAttack = game.lanes[blockMode.lane]?.attack;
-      const required = activeBlockCard ? getCardNumericValue(activeBlockCard) : 0;
+      const laneBlocker = game.lanes[blockMode.lane]?.facedown?.[player];
+      const required = laneBlocker ? getCardNumericValue(laneBlocker) : 0;
 
       rightPanel = (
         <div>
@@ -560,11 +586,11 @@ export default function App() {
           <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
             <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
             <p style={{ margin: "6px 0 0 0" }}><strong>Incoming attack:</strong> {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}</p>
-            <p style={{ margin: "6px 0 0 0" }}><strong>Selected block card:</strong> {activeBlockCard ? getCardShortLabel(activeBlockCard) : "None selected"}</p>
+            <p style={{ margin: "6px 0 0 0" }}><strong>Lane blocker:</strong> {laneBlocker ? getCardShortLabel(laneBlocker) : "No card in this lane"}</p>
           </div>
           <p><strong>Payment total:</strong> {paymentTotal}</p>
-          <p><strong>Required:</strong> {activeBlockCard ? required : "-"}</p>
-          <button onClick={confirmBlock} disabled={!activeBlockCard || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
+          <p><strong>Required:</strong> {laneBlocker ? required : "-"}</p>
+          <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
           <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
@@ -675,7 +701,7 @@ export default function App() {
                   {me.hand.map((card, i) => {
                     const isSelectedPayment = payments.includes(i);
                     const isSelectedAttack = selectedAttackCardIndex === i;
-                    const isSelectedBlock = selectedBlockCardIndex === i;
+                    const isSelectedBlock = selectedBlockCardIndexes.includes(i);
                     const isSelectedPlacement = selectedPlacementCardIndex === i;
                     let bg = "white";
                     if (isSelectedAttack) bg = "#dbeafe";
@@ -687,7 +713,7 @@ export default function App() {
                       <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary}>
                         <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>Hand Index: {i}</div>
                         {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>Select as Attack</button>}
-                        {blockMode && <button onClick={() => selectBlockCard(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>Select as Blocker</button>}
+                        {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>{isSelectedBlock ? "Remove Blocker" : "Select as Blocker"}</button>}
                         {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>Select for Facedown</button>}
                         {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%" }}>Toggle Payment</button>}
                       </CardBox>
@@ -710,7 +736,7 @@ export default function App() {
                   <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
                   {attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {attack.notes.join(", ")}</p>}
                   {attack.block.length > 0 ? <p><strong>Blocks:</strong> {attack.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
-                  {!isSpectator && game.phase === "priority" && iAmDefender && <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>}
+                  {!isSpectator && game.phase === "priority" && iAmDefender && attack.block.length === 0 && <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>}
                 </div>
               );
             })}
@@ -729,7 +755,7 @@ export default function App() {
                   {lane.attack ? <><p><strong>Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)} (from lane)</p><p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>{lane.attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</p>}</> : <p><strong>Attacking:</strong> None</p>}
                   {lane.block.length > 0 ? <p><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)} ({entry.source})</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
                   {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
-                  {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
+                  {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && lane.block.length === 0 && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
                   {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && !lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startPlacement(i)} style={{ marginRight: 8 }}>Place Facedown Here</button><button onClick={() => skipPlacement(i)}>Skip This Lane</button></div>}
                   {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => skipPlacement(i)}>Lane Already Filled - Mark Done</button></div>}
                 </div>

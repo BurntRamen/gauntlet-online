@@ -148,17 +148,18 @@ function removeIndexesFromHandToDiscard(player, indexes) {
   }
 }
 
-function validateHandIndexes(player, indexes, excludedIndex) {
+function validateHandIndexes(player, indexes, excludedIndexes = []) {
   const rawIndexes = Array.isArray(indexes) ? indexes : [];
   const validIndexes = [];
   const seen = new Set();
+  const excluded = new Set(Array.isArray(excludedIndexes) ? excludedIndexes : [excludedIndexes]);
 
   for (const rawIndex of rawIndexes) {
     const index = Number(rawIndex);
     if (!Number.isInteger(index) || index < 0 || index >= player.hand.length) {
       return { error: "Invalid payment card" };
     }
-    if (index === excludedIndex) {
+    if (excluded.has(index)) {
       return { error: "Selected card cannot also be payment" };
     }
     if (seen.has(index)) {
@@ -171,20 +172,24 @@ function validateHandIndexes(player, indexes, excludedIndex) {
   return { indexes: validIndexes };
 }
 
-function removeSelectedCardAndPayments(player, selectedIndex, paymentIndexes) {
-  let selectedCard = null;
+function removeSelectedCardsAndPayments(player, selectedIndexes, paymentIndexes) {
+  const selectedCards = [];
   const removals = [
-    { index: selectedIndex, role: "selected" },
+    ...selectedIndexes.map((index) => ({ index, role: "selected" })),
     ...paymentIndexes.map((index) => ({ index, role: "payment" }))
   ].sort((a, b) => b.index - a.index);
 
   for (const removal of removals) {
     const [card] = player.hand.splice(removal.index, 1);
-    if (removal.role === "selected") selectedCard = card;
+    if (removal.role === "selected") selectedCards.unshift(card);
     else player.discard.push(card);
   }
 
-  return selectedCard;
+  return selectedCards;
+}
+
+function removeSelectedCardAndPayments(player, selectedIndex, paymentIndexes) {
+  return removeSelectedCardsAndPayments(player, [selectedIndex], paymentIndexes)[0] || null;
 }
 
 function registerCardPlayed(player, card) {
@@ -262,19 +267,49 @@ function getBaseCardValue(card) {
   return Number(value) || 0;
 }
 
+function applyGameOverState(game) {
+  const p1Life = game.players[1].life;
+  const p2Life = game.players[2].life;
+
+  if (p1Life > 0 && p2Life > 0) return false;
+
+  game.phase = "gameOver";
+  if (p1Life <= 0 && p2Life <= 0) {
+    if (p1Life === p2Life) {
+      game.winner = null;
+      game.message = "Game Over - Draw!";
+    } else {
+      game.winner = p1Life > p2Life ? 1 : 2;
+      game.message = `Player ${game.winner} wins!`;
+    }
+  } else {
+    game.winner = p1Life <= 0 ? 2 : 1;
+    game.message = `Player ${game.winner} wins!`;
+  }
+
+  return true;
+}
+
 function resolveDamage(game, roomState) {
+  const damageMessages = [];
+
   for (const attack of game.handAttacks) {
     let totalBlock = 0;
     for (const block of attack.block) {
       totalBlock += block.effectiveValue || 0;
     }
     const damage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
+    const defender = getOtherPlayer(attack.player);
     if (damage > 0) {
-      const defender = getOtherPlayer(attack.player);
       game.players[defender].life -= damage;
-      game.message = `Attack dealt ${damage} damage to Player ${defender}`;
+      damageMessages.push(`Hand attack dealt ${damage} damage to Player ${defender}`);
     } else {
-      game.message = `Attack was fully blocked!`;
+      damageMessages.push("Hand attack was fully blocked");
+    }
+
+    game.players[attack.player].discard.push(attack.card);
+    for (const block of attack.block) {
+      game.players[block.player].discard.push(block.card);
     }
   }
   
@@ -286,10 +321,16 @@ function resolveDamage(game, roomState) {
         totalBlock += block.effectiveValue || 0;
       }
       const damage = Math.max(0, (lane.attack.effectiveValue || 0) - totalBlock);
+      const defender = getOtherPlayer(lane.attack.player);
       if (damage > 0) {
-        const defender = getOtherPlayer(lane.attack.player);
         game.players[defender].life -= damage;
-        game.message = `Lane attack dealt ${damage} damage to Player ${defender}`;
+        damageMessages.push(`Lane ${i + 1} attack dealt ${damage} damage to Player ${defender}`);
+      } else {
+        damageMessages.push(`Lane ${i + 1} attack was fully blocked`);
+      }
+      game.players[lane.attack.player].discard.push(lane.attack.card);
+      for (const block of lane.block) {
+        game.players[block.player].discard.push(block.card);
       }
       lane.attack = null;
       lane.block = [];
@@ -298,12 +339,15 @@ function resolveDamage(game, roomState) {
   
   game.handAttacks = [];
   roomState.damageConfirmed = { 1: false, 2: false };
+  if (damageMessages.length > 0) {
+    game.message = damageMessages.join(" ");
+  }
 }
 
 function startEndPhase(game) {
   game.phase = "end";
   game.endPlacementLaneIndex = 0;
-  game.endPlacementFirstPlayer = game.lastActivePlayer === 1 ? 2 : 1;
+  game.endPlacementFirstPlayer = game.startingPriorityThisTurn;
   game.endPlacementStep = 0;
   game.endPlaced = { 1: [false, false, false], 2: [false, false, false] };
   game.message = "End of Turn Phase - Place facedown cards in lanes";
@@ -327,8 +371,10 @@ function advanceEndPlacement(game) {
     
     game.phase = "priority";
     game.turn++;
-    game.lastActivePlayer = getOtherPlayer(game.lastActivePlayer);
-    game.priority = game.lastActivePlayer;
+    game.priority = getOtherPlayer(game.startingPriorityThisTurn);
+    game.startingPriorityThisTurn = game.priority;
+    game.lastActivePlayer = game.priority;
+    game.mostRecentAttackDefender = null;
     resetPriorityPassed(game);
     
     for (const p of [1, 2]) {
@@ -350,6 +396,7 @@ function advanceEndPlacement(game) {
 function createGameFromLobby(roomState) {
   const faction1 = getFactionById(roomState.lobby.players[1].factionId);
   const faction2 = getFactionById(roomState.lobby.players[2].factionId);
+  const startingPriority = Math.random() < 0.5 ? 1 : 2;
   
   const suits = ["♠", "♥", "♦", "♣"];
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
@@ -379,8 +426,10 @@ function createGameFromLobby(roomState) {
     roomCode: roomState.roomCode,
     phase: "priority",
     turn: 1,
-    priority: 1,
-    lastActivePlayer: 1,
+    priority: startingPriority,
+    startingPriorityThisTurn: startingPriority,
+    lastActivePlayer: startingPriority,
+    mostRecentAttackDefender: null,
     priorityPassed: { 1: false, 2: false },
     players: {
       1: {
@@ -435,7 +484,7 @@ function createGameFromLobby(roomState) {
     endPlacementStep: 0,
     endPlaced: { 1: [false, false, false], 2: [false, false, false] },
     winner: null,
-    message: ""
+    message: `Turn 1 - Player ${startingPriority} starts with priority`
   };
   
   for (const p of [1, 2]) {
@@ -590,25 +639,13 @@ io.on("connection", (socket) => {
       console.log("[resolveDamage] Both confirmed - resolving");
       resolveDamage(game, roomState);
       
-      if (game.players[1].life <= 0 && game.players[2].life <= 0) {
-        game.phase = "gameOver";
-        game.winner = null;
-        game.message = "Game Over - Tie!";
-        io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true });
-      } else if (game.players[1].life <= 0) {
-        game.phase = "gameOver";
-        game.winner = 2;
-        game.message = "Player 2 wins!";
-        io.to(roomState.roomCode).emit("gameEnded", { winner: 2, tie: false });
-      } else if (game.players[2].life <= 0) {
-        game.phase = "gameOver";
-        game.winner = 1;
-        game.message = "Player 1 wins!";
-        io.to(roomState.roomCode).emit("gameEnded", { winner: 1, tie: false });
+      if (applyGameOverState(game)) {
+        io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
       } else {
         game.phase = "priority";
-        game.priority = getOtherPlayer(game.lastActivePlayer);
+        game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
         game.lastActivePlayer = game.priority;
+        game.mostRecentAttackDefender = null;
         resetPriorityPassed(game);
         game.message = `Damage resolved. Player ${game.priority} has priority.`;
       }
@@ -617,8 +654,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("confirmAttack", ({ from, attackCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmAttack: idx=${attackCardIndex}, payments=${paymentIndexes}`);
+  socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus }) => {
+    console.log(`[Socket] confirmAttack: from=${from}, lane=${lane}, idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
@@ -638,19 +675,40 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Resolve current attacks and damage before declaring another attack");
       return;
     }
-    if (from !== "hand") {
-      socket.emit("errorMessage", "Only hand attacks are currently supported");
+    if (from !== "hand" && from !== "lane") {
+      socket.emit("errorMessage", "Invalid attack source");
       return;
     }
-    
+
     const selectedAttackIndex = Number(attackCardIndex);
-    if (!Number.isInteger(selectedAttackIndex) || !player.hand[selectedAttackIndex]) {
-      socket.emit("errorMessage", "Invalid attack card");
-      return;
+    const laneIndex = Number(lane);
+    let attackCard;
+    let paymentValidation;
+
+    if (from === "hand") {
+      if (!Number.isInteger(selectedAttackIndex) || !player.hand[selectedAttackIndex]) {
+        socket.emit("errorMessage", "Invalid attack card");
+        return;
+      }
+      attackCard = player.hand[selectedAttackIndex];
+      paymentValidation = validateHandIndexes(player, paymentIndexes, [selectedAttackIndex]);
+    } else {
+      if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= game.lanes.length) {
+        socket.emit("errorMessage", "Invalid lane");
+        return;
+      }
+      if (game.lanes[laneIndex].attack) {
+        socket.emit("errorMessage", "Lane already has an attack");
+        return;
+      }
+      attackCard = game.lanes[laneIndex].facedown[playerNum];
+      if (!attackCard) {
+        socket.emit("errorMessage", "No face-down card in that lane");
+        return;
+      }
+      paymentValidation = validateHandIndexes(player, paymentIndexes, []);
     }
-    
-    const attackCard = player.hand[selectedAttackIndex];
-    const paymentValidation = validateHandIndexes(player, paymentIndexes, selectedAttackIndex);
+
     if (paymentValidation.error) {
       socket.emit("errorMessage", paymentValidation.error);
       return;
@@ -663,31 +721,42 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
       return;
     }
-    
-    removeSelectedCardAndPayments(player, selectedAttackIndex, paymentValidation.indexes);
+
+    if (from === "hand") {
+      removeSelectedCardAndPayments(player, selectedAttackIndex, paymentValidation.indexes);
+    } else {
+      removeIndexesFromHandToDiscard(player, paymentValidation.indexes);
+      game.lanes[laneIndex].facedown[playerNum] = null;
+    }
+    if (payment.heraUsedNow) player.turnData.heraUsed = true;
     addAccelerationIfOverpaid(player, payment.total, required);
+    const attackInfo = finalizeAttackDeclaration(player, attackCard, calculateAttackBonuses(player, attackCard), false);
     
     const attackId = `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    game.handAttacks.push({
+    const attack = {
       id: attackId,
       player: playerNum,
       card: attackCard,
-      source: "hand",
-      effectiveValue: getBaseCardValue(attackCard),
+      source: from,
+      effectiveValue: attackInfo.effectiveValue,
       block: [],
-      notes: []
-    });
+      notes: attackInfo.notes
+    };
+
+    if (from === "hand") game.handAttacks.push(attack);
+    else game.lanes[laneIndex].attack = attack;
     
     // Reset passed flags and give priority to defender
     resetPriorityPassed(game);
     game.priority = getOtherPlayer(playerNum);
-    game.message = `Player ${playerNum} attacked with ${attackCard.name}! Player ${game.priority} can block or pass.`;
+    game.mostRecentAttackDefender = game.priority;
+    game.message = `Player ${playerNum} attacked with ${attackCard.name}${from === "lane" ? ` from lane ${laneIndex + 1}` : ""}! Player ${game.priority} can block or pass.`;
     
     emitState(roomState);
   });
 
-  socket.on("confirmBlock", ({ handAttackId, blockCardIndex, paymentIndexes, useHeraBonus }) => {
-    console.log(`[Socket] confirmBlock: attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
+  socket.on("confirmBlock", ({ lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus }) => {
+    console.log(`[Socket] confirmBlock: lane=${lane}, attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
@@ -700,9 +769,18 @@ io.on("connection", (socket) => {
       return;
     }
     
-    const attack = game.handAttacks.find(a => a.id === handAttackId);
+    const laneIndex = lane === undefined || lane === null ? null : Number(lane);
+    const isLaneBlock = laneIndex !== null;
+    const laneState = isLaneBlock && Number.isInteger(laneIndex) && laneIndex >= 0 && laneIndex < game.lanes.length
+      ? game.lanes[laneIndex]
+      : null;
+    const attack = isLaneBlock ? laneState?.attack : game.handAttacks.find(a => a.id === handAttackId);
     if (!attack) {
       socket.emit("errorMessage", "Attack not found");
+      return;
+    }
+    if (attack.block && attack.block.length > 0) {
+      socket.emit("errorMessage", "Attack is already blocked");
       return;
     }
     
@@ -717,7 +795,7 @@ io.on("connection", (socket) => {
     }
     
     // If take damage (no block card)
-    if (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) {
+    if (!isLaneBlock && (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) && !Array.isArray(blockCardIndexes)) {
       console.log(`[Socket] No block card - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;
@@ -737,17 +815,54 @@ io.on("connection", (socket) => {
       emitState(roomState);
       return;
     }
-    
-    // Validate block card
-    const selectedBlockIndex = Number(blockCardIndex);
-    if (!Number.isInteger(selectedBlockIndex) || !player.hand[selectedBlockIndex]) {
-      socket.emit("errorMessage", "Invalid block card");
+    if (isLaneBlock && !laneState.facedown[playerNum]) {
+      console.log(`[Socket] No lane blocker - passing priority to take damage`);
+      game.priorityPassed[playerNum] = true;
+      game.message = `Player ${playerNum} chose not to block.`;
+
+      if (game.priorityPassed[1] && game.priorityPassed[2]) {
+        if (hasPendingAttacks(game)) {
+          game.phase = "damage";
+          game.message = "Both players passed - damage phase. Click Resolve Damage.";
+          roomState.damageConfirmed = { 1: false, 2: false };
+        } else {
+          startEndPhase(game);
+        }
+        resetPriorityPassed(game);
+      } else {
+        game.priority = getOtherPlayer(playerNum);
+      }
+      emitState(roomState);
       return;
     }
     
-    const blockCard = player.hand[selectedBlockIndex];
-    const blockCardValue = getBaseCardValue(blockCard);
-    const paymentValidation = validateHandIndexes(player, paymentIndexes, selectedBlockIndex);
+    const selectedBlockIndexes = isLaneBlock
+      ? []
+      : (Array.isArray(blockCardIndexes) ? blockCardIndexes : [blockCardIndex])
+          .map((index) => Number(index))
+          .filter((index) => Number.isInteger(index));
+
+    if (!isLaneBlock) {
+      if (selectedBlockIndexes.length === 0) {
+        socket.emit("errorMessage", "Select at least one block card");
+        return;
+      }
+      const uniqueBlockIndexes = new Set(selectedBlockIndexes);
+      if (uniqueBlockIndexes.size !== selectedBlockIndexes.length) {
+        socket.emit("errorMessage", "Duplicate block card");
+        return;
+      }
+      if (selectedBlockIndexes.some((index) => index < 0 || index >= player.hand.length || !player.hand[index])) {
+        socket.emit("errorMessage", "Invalid block card");
+        return;
+      }
+    }
+
+    const blockCards = isLaneBlock
+      ? [laneState.facedown[playerNum]]
+      : selectedBlockIndexes.map((index) => player.hand[index]);
+    const blockCardValue = blockCards.reduce((sum, card) => sum + getBaseCardValue(card), 0);
+    const paymentValidation = validateHandIndexes(player, paymentIndexes, selectedBlockIndexes);
     if (paymentValidation.error) {
       socket.emit("errorMessage", paymentValidation.error);
       return;
@@ -762,25 +877,34 @@ io.on("connection", (socket) => {
     }
     
     // Process block
-    removeSelectedCardAndPayments(player, selectedBlockIndex, paymentValidation.indexes);
+    if (isLaneBlock) {
+      removeIndexesFromHandToDiscard(player, paymentValidation.indexes);
+      laneState.facedown[playerNum] = null;
+    } else {
+      removeSelectedCardsAndPayments(player, selectedBlockIndexes, paymentValidation.indexes);
+    }
+    if (payment.heraUsedNow) player.turnData.heraUsed = true;
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
-    
-    const blockInfo = applyBlockBonuses(player, blockCard);
+
+    const blockEntries = blockCards.map((blockCard) => {
+      const blockInfo = applyBlockBonuses(player, blockCard);
+      return {
+        player: playerNum,
+        card: blockCard,
+        source: isLaneBlock ? "lane" : "hand",
+        effectiveValue: blockInfo.effectiveValue,
+        notes: blockInfo.notes
+      };
+    });
     finalizeBlockDeclaration(player);
     
-    attack.block.push({
-      player: playerNum,
-      card: blockCard,
-      source: "hand",
-      effectiveValue: blockInfo.effectiveValue,
-      notes: blockInfo.notes
-    });
+    attack.block.push(...blockEntries);
     
     // The attack remains pending until damage resolution. Priority returns to
     // the attacker, who can pass to move combat toward damage.
     resetPriorityPassed(game);
     game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player} has priority.`;
+    game.message = `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")} (paid ${payment.total}, blocker value ${blockCardValue})! Player ${attack.player} has priority.`;
     
     emitState(roomState);
   });
