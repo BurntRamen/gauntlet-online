@@ -211,6 +211,82 @@ function FactionChoiceCard({ faction, selected, onSelect }) {
   );
 }
 
+function RulebookPanel() {
+  const ruleSections = [
+    {
+      title: "Setup",
+      rules: [
+        "Each player starts at 42 life and draws 8 cards.",
+        "A random player starts with priority.",
+        "Aces count as value 14."
+      ]
+    },
+    {
+      title: "Priority",
+      rules: [
+        "The player with priority may attack, activate abilities, or pass.",
+        "After an attack, the defender gets priority to block or pass.",
+        "No new attack can be declared while an attack or damage is unresolved."
+      ]
+    },
+    {
+      title: "Attacking",
+      rules: [
+        "To attack from hand, discard payment cards with total value at least the attacker's value.",
+        "A face-down lane card may attack from its lane by paying its value from hand.",
+        "After both players pass with pending attacks, damage resolution begins."
+      ]
+    },
+    {
+      title: "Blocking",
+      rules: [
+        "Hand attacks may be blocked by one or more cards from hand, paid for by cards from hand.",
+        "Lane attacks may only be blocked by the defender's face-down card in that same lane.",
+        "Damage equals attack effective value minus total block effective value."
+      ]
+    },
+    {
+      title: "End Turn",
+      rules: [
+        "After damage resolves, priority returns to the defender of the most recent attack.",
+        "When both players pass with no pending attacks, players place face-down cards lane by lane.",
+        "After all lanes are handled, both players draw back up to 8 and priority changes players."
+      ]
+    }
+  ];
+
+  return (
+    <section
+      style={{
+        marginTop: 22,
+        padding: 18,
+        border: "2px solid #7c2d12",
+        borderRadius: 12,
+        background: "linear-gradient(180deg, #fff7ed 0%, #f8e7c9 100%)",
+        boxShadow: "0 10px 24px rgba(68, 32, 9, 0.16)",
+        color: "#281407",
+        fontFamily: "Georgia, 'Times New Roman', serif"
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, borderBottom: "1px solid rgba(124, 45, 18, 0.35)", paddingBottom: 10, marginBottom: 14 }}>
+        <h2 style={{ margin: 0, color: "#7c2d12", letterSpacing: 0, fontSize: 28 }}>Field Rulebook</h2>
+        <div style={{ fontSize: 13, color: "#854d0e", fontStyle: "italic" }}>Gauntlet Online</div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
+        {ruleSections.map((section) => (
+          <div key={section.title} style={{ borderLeft: "4px solid #b45309", paddingLeft: 12 }}>
+            <h3 style={{ margin: "0 0 8px 0", color: "#431407", fontSize: 18 }}>{section.title}</h3>
+            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.45, fontSize: 14 }}>
+              {section.rules.map((rule) => <li key={rule} style={{ marginBottom: 6 }}>{rule}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -345,15 +421,18 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div style={{ padding: 24, fontFamily: "Arial, sans-serif", maxWidth: 760 }}>
+      <div style={{ padding: 24, fontFamily: "Arial, sans-serif", maxWidth: 980 }}>
         <h1>Gauntlet Online</h1>
         {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <SectionCard title="Create Room"><button onClick={createRoom}>Create Room</button></SectionCard>
-        <SectionCard title="Join Room">
-          <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ marginRight: 10, padding: 8 }} />
-          <button onClick={() => joinRoom(false)} style={{ marginRight: 8 }}>Join as Player</button>
-          <button onClick={() => joinRoom(true)}>Join as Spectator</button>
-        </SectionCard>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          <SectionCard title="Create Room"><button onClick={createRoom}>Create Room</button></SectionCard>
+          <SectionCard title="Join Room">
+            <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ marginRight: 10, padding: 8 }} />
+            <button onClick={() => joinRoom(false)} style={{ marginRight: 8 }}>Join as Player</button>
+            <button onClick={() => joinRoom(true)}>Join as Spectator</button>
+          </SectionCard>
+        </div>
+        <RulebookPanel />
       </div>
     );
   }
