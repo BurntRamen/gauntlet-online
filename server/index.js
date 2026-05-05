@@ -148,6 +148,45 @@ function removeIndexesFromHandToDiscard(player, indexes) {
   }
 }
 
+function validateHandIndexes(player, indexes, excludedIndex) {
+  const rawIndexes = Array.isArray(indexes) ? indexes : [];
+  const validIndexes = [];
+  const seen = new Set();
+
+  for (const rawIndex of rawIndexes) {
+    const index = Number(rawIndex);
+    if (!Number.isInteger(index) || index < 0 || index >= player.hand.length) {
+      return { error: "Invalid payment card" };
+    }
+    if (index === excludedIndex) {
+      return { error: "Selected card cannot also be payment" };
+    }
+    if (seen.has(index)) {
+      return { error: "Duplicate payment card" };
+    }
+    seen.add(index);
+    validIndexes.push(index);
+  }
+
+  return { indexes: validIndexes };
+}
+
+function removeSelectedCardAndPayments(player, selectedIndex, paymentIndexes) {
+  let selectedCard = null;
+  const removals = [
+    { index: selectedIndex, role: "selected" },
+    ...paymentIndexes.map((index) => ({ index, role: "payment" }))
+  ].sort((a, b) => b.index - a.index);
+
+  for (const removal of removals) {
+    const [card] = player.hand.splice(removal.index, 1);
+    if (removal.role === "selected") selectedCard = card;
+    else player.discard.push(card);
+  }
+
+  return selectedCard;
+}
+
 function registerCardPlayed(player, card) {
   player.turnData.previousPlayedValue = card?.value || 0;
   return [];
@@ -595,14 +634,29 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Not your priority to attack");
       return;
     }
+    if (hasPendingAttacks(game)) {
+      socket.emit("errorMessage", "Resolve current attacks and damage before declaring another attack");
+      return;
+    }
+    if (from !== "hand") {
+      socket.emit("errorMessage", "Only hand attacks are currently supported");
+      return;
+    }
     
-    if (!player.hand[attackCardIndex]) {
+    const selectedAttackIndex = Number(attackCardIndex);
+    if (!Number.isInteger(selectedAttackIndex) || !player.hand[selectedAttackIndex]) {
       socket.emit("errorMessage", "Invalid attack card");
       return;
     }
     
-    const attackCard = player.hand[attackCardIndex];
-    const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
+    const attackCard = player.hand[selectedAttackIndex];
+    const paymentValidation = validateHandIndexes(player, paymentIndexes, selectedAttackIndex);
+    if (paymentValidation.error) {
+      socket.emit("errorMessage", paymentValidation.error);
+      return;
+    }
+    
+    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
     const required = getBaseCardValue(attackCard);
     
     if (payment.total < required) {
@@ -610,8 +664,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    removeIndexesFromHandToDiscard(player, paymentIndexes);
-    player.hand.splice(attackCardIndex, 1);
+    removeSelectedCardAndPayments(player, selectedAttackIndex, paymentValidation.indexes);
     addAccelerationIfOverpaid(player, payment.total, required);
     
     const attackId = `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -620,7 +673,7 @@ io.on("connection", (socket) => {
       player: playerNum,
       card: attackCard,
       source: "hand",
-      effectiveValue: attackCard.value,
+      effectiveValue: getBaseCardValue(attackCard),
       block: [],
       notes: []
     });
@@ -658,6 +711,10 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Not the defender");
       return;
     }
+    if (game.priority !== defender) {
+      socket.emit("errorMessage", "Defender does not have priority to block");
+      return;
+    }
     
     // If take damage (no block card)
     if (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) {
@@ -682,14 +739,20 @@ io.on("connection", (socket) => {
     }
     
     // Validate block card
-    if (!player.hand[blockCardIndex]) {
+    const selectedBlockIndex = Number(blockCardIndex);
+    if (!Number.isInteger(selectedBlockIndex) || !player.hand[selectedBlockIndex]) {
       socket.emit("errorMessage", "Invalid block card");
       return;
     }
     
-    const blockCard = player.hand[blockCardIndex];
+    const blockCard = player.hand[selectedBlockIndex];
     const blockCardValue = getBaseCardValue(blockCard);
-    const payment = getPaymentTotal(player, paymentIndexes, useHeraBonus);
+    const paymentValidation = validateHandIndexes(player, paymentIndexes, selectedBlockIndex);
+    if (paymentValidation.error) {
+      socket.emit("errorMessage", paymentValidation.error);
+      return;
+    }
+    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
     
     console.log(`[Socket] Block payment check: need ${blockCardValue}, have ${payment.total}`);
     
@@ -699,8 +762,7 @@ io.on("connection", (socket) => {
     }
     
     // Process block
-    removeIndexesFromHandToDiscard(player, paymentIndexes);
-    player.hand.splice(blockCardIndex, 1);
+    removeSelectedCardAndPayments(player, selectedBlockIndex, paymentValidation.indexes);
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     
     const blockInfo = applyBlockBonuses(player, blockCard);
@@ -714,12 +776,11 @@ io.on("connection", (socket) => {
       notes: blockInfo.notes
     });
     
-    // IMPORTANT: This attack is now blocked. The attacker can declare NEW attacks,
-    // but this specific attack is resolved and will be processed in damage phase.
-    // Reset passed flags and give priority back to attacker so they can attack again or pass.
+    // The attack remains pending until damage resolution. Priority returns to
+    // the attacker, who can pass to move combat toward damage.
     resetPriorityPassed(game);
     game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player} may attack again or pass.`;
+    game.message = `Player ${playerNum} blocked with ${blockCard.name} (paid ${payment.total}, blocker value ${blockCardValue} -> ${blockInfo.effectiveValue})! Player ${attack.player} has priority.`;
     
     emitState(roomState);
   });
