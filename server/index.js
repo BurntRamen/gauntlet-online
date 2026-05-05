@@ -24,30 +24,34 @@ const factionsData = {
   rumin: {
     id: "rumin",
     name: "Rumin",
-    commander: { name: "Kaiser, the Jewel", text: "Your fourth attack each turn gets +3 value." },
-    general: { name: "Meerus", text: "Whenever you play your second attack each turn, you may play your third attack with cost 3 or less without paying its cost." },
-    city: { name: "Rumie, City of the Empire", text: "Each turn, the first two attacks you play after your first that share a suit with your previous attack get +1 value." }
+    cardImage: "/assets/gauntlet/rumin-card.webp",
+    commander: { name: "Kaiser, the Jewel", image: "/assets/gauntlet/kaiser-gauntlet.webp", text: "Your fourth attack each turn gets +3 value." },
+    general: { name: "Meerus", image: "/assets/gauntlet/meerus-gauntlet-2.webp", text: "Whenever you play your second attack each turn, you may play your third attack with cost 3 or less without paying its cost." },
+    city: { name: "Rumie, City of the Empire", image: "/assets/gauntlet/rumie.webp", text: "Each turn, the first two attacks you play after your first that share a suit with your previous attack get +1 value." }
   },
   sheen: {
     id: "sheen",
     name: "Sheen",
-    commander: { name: "Emperor Nu", text: "Your blocking cards get +1 value. If it's your third or later time blocking, they get +2 instead." },
-    general: { name: "Tang", text: "Each turn, when you block for the second time, gain 2 life." },
-    city: { name: "Beli, Living City", text: "After your second block each turn, your next attack with cost 10+ gains +2 value." }
+    cardImage: "/assets/gauntlet/sheen-card.webp",
+    commander: { name: "Emperor Nu", image: "/assets/gauntlet/leafen-gao.png", text: "Your blocking cards get +1 value. If it's your third or later time blocking, they get +2 instead." },
+    general: { name: "Tang", image: "/assets/gauntlet/tang.webp", text: "Each turn, when you block for the second time, gain 2 life." },
+    city: { name: "Beli, Living City", image: "/assets/gauntlet/beli.webp", text: "After your second block each turn, your next attack with cost 10+ gains +2 value." }
   },
   frumo: {
     id: "frumo",
     name: "Frumo",
-    commander: { name: "Lord Commander Polea", text: "Once per turn, choose 1: put a card from your hand into an empty lane you control; switch the lanes of up to 2 cards you control; look at 1 face-down card; or one card you control gets +1 value until end of turn." },
-    general: { name: "Lafayette", text: "Once per turn, you may swap a lane card with a card from your hand." },
-    city: { name: "Ristus, Sunken City", text: "Your first card played each turn with a consecutive value of the last card played gets +2." }
+    cardImage: "/assets/gauntlet/frumo-card.webp",
+    commander: { name: "Lord Commander Polea", image: "/assets/gauntlet/polea.webp", text: "Once per turn, choose 1: put a card from your hand into an empty lane you control; switch the lanes of up to 2 cards you control; look at 1 face-down card; or one card you control gets +1 value until end of turn." },
+    general: { name: "Lafayette", image: "/assets/gauntlet/lafayette.webp", text: "Once per turn, you may swap a lane card with a card from your hand." },
+    city: { name: "Ristus, Sunken City", image: "/assets/gauntlet/ristus.webp", text: "Your first card played each turn with a consecutive value of the last card played gets +2." }
   },
   bizi: {
     id: "bizi",
     name: "Bizi",
-    commander: { name: "Focus, Conductor of Progress", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
-    general: { name: "Hera", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
-    city: { name: "Constanti, Technology Hub", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
+    cardImage: "/assets/gauntlet/bizi-card.webp",
+    commander: { name: "Focus, Conductor of Progress", image: "/assets/gauntlet/focus.jpg", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
+    general: { name: "Hera", image: "/assets/gauntlet/hera.webp", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
+    city: { name: "Constanti, Technology Hub", image: "/assets/gauntlet/constanti.webp", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
   }
 };
 
@@ -575,7 +579,7 @@ function createGameFromLobby(roomState) {
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
-  function createDeck() {
+  function createDeck(faction) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -584,7 +588,10 @@ function createGameFromLobby(roomState) {
           value: value,
           suit: suit,
           name: `${rankNames[value] || value} of ${suit}`,
-          rank: rankNames[value] || String(value)
+          rank: rankNames[value] || String(value),
+          faction: faction.name,
+          factionId: faction.id,
+          image: faction.cardImage
         });
       }
     }
@@ -609,7 +616,7 @@ function createGameFromLobby(roomState) {
         faction: faction1,
         life: 42,
         hand: [],
-        deck: createDeck(),
+        deck: createDeck(faction1),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -620,7 +627,7 @@ function createGameFromLobby(roomState) {
         faction: faction2,
         life: 42,
         hand: [],
-        deck: createDeck(),
+        deck: createDeck(faction2),
         discard: [],
         lanes: [null, null, null],
         connected: true,

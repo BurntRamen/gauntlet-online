@@ -88,6 +88,12 @@ function getCardShortLabel(card) {
   return `${getCardRank(card)}${getSuitSymbol(card.suit)}`;
 }
 
+function resolveAssetPath(path) {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${process.env.PUBLIC_URL || ""}${path}`;
+}
+
 function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb" }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
@@ -120,8 +126,15 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         </div>
       </div>
 
-      <div style={{ textAlign: "center", fontSize: 72, lineHeight: 1, color: suitColor, margin: "4px 0" }}>
-        {suit}
+      <div style={{ position: "relative", margin: "8px 0", height: 118, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
+        {card?.image ? (
+          <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ textAlign: "center", fontSize: 72, lineHeight: "118px", color: suitColor }}>{suit}</div>
+        )}
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 58, lineHeight: 1, color: suitColor, textShadow: "0 1px 3px white, 0 -1px 3px white" }}>
+          {suit}
+        </div>
       </div>
 
       <div style={{ marginBottom: 10 }}>
@@ -168,18 +181,31 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
   );
 }
 
+function FactionFeature({ title, feature, theme }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "78px minmax(0, 1fr)", gap: 10, alignItems: "start", marginBottom: 12 }}>
+      {feature?.image ? (
+        <img src={resolveAssetPath(feature.image)} alt="" style={{ width: 78, height: 78, objectFit: "cover", borderRadius: 10, border: `2px solid ${theme.border}` }} />
+      ) : (
+        <div style={{ width: 78, height: 78, borderRadius: 10, border: `2px solid ${theme.border}`, background: theme.light }} />
+      )}
+      <div>
+        <p style={{ margin: "0 0 4px 0" }}><strong>{title}:</strong> {feature.name}</p>
+        <p style={{ color: "#555", margin: 0 }}>{feature.text}</p>
+      </div>
+    </div>
+  );
+}
+
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
 
   return (
     <div style={{ border: selected ? `3px solid ${theme.primary}` : "1px solid black", borderRadius: 12, padding: 14, background: selected ? theme.light : "white" }}>
       <h3 style={{ marginTop: 0, color: theme.primary }}>{faction.name}</h3>
-      <p><strong>Commander:</strong> {faction.commander.name}</p>
-      <p style={{ color: "#555" }}>{faction.commander.text}</p>
-      <p><strong>General:</strong> {faction.general.name}</p>
-      <p style={{ color: "#555" }}>{faction.general.text}</p>
-      <p><strong>City:</strong> {faction.city.name}</p>
-      <p style={{ color: "#555" }}>{faction.city.text}</p>
+      <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
+      <FactionFeature title="City" feature={faction.city} theme={theme} />
+      <FactionFeature title="General" feature={faction.general} theme={theme} />
       <button onClick={() => onSelect(faction.id)}>{selected ? "Selected" : "Choose Faction"}</button>
     </div>
   );
@@ -678,9 +704,9 @@ export default function App() {
           {!isSpectator && (
             <>
               <SectionCard title={`Your Faction: ${me.faction.name}`} borderColor={myTheme.border} background={myTheme.light}>
-                <p><strong>Commander:</strong> {me.faction.commander.name}</p><p style={{ color: "#555" }}>{me.faction.commander.text}</p>
-                <p><strong>General:</strong> {me.faction.general.name}</p><p style={{ color: "#555" }}>{me.faction.general.text}</p>
-                <p><strong>City:</strong> {me.faction.city.name}</p><p style={{ color: "#555" }}>{me.faction.city.text}</p>
+                <FactionFeature title="Commander" feature={me.faction.commander} theme={myTheme} />
+                <FactionFeature title="City" feature={me.faction.city} theme={myTheme} />
+                <FactionFeature title="General" feature={me.faction.general} theme={myTheme} />
                 <div style={{ marginTop: 12, fontSize: 13 }}>
                   <p><strong>Attacks this turn:</strong> {me.turnData.attacksDeclaredThisTurn}</p>
                   <p><strong>Blocks this turn:</strong> {me.turnData.blocksDeclaredThisTurn}</p>
