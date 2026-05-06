@@ -192,9 +192,9 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   );
 }
 
-function SectionCard({ title, children, borderColor = "#333", background = "white" }) {
+function SectionCard({ title, children, borderColor = "#333", background = "white", style = {} }) {
   return (
-    <div style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background }}>
+    <div style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background, ...style }}>
       {title && <h3 style={{ marginTop: 0, marginBottom: 12 }}>{title}</h3>}
       {children}
     </div>
@@ -228,14 +228,14 @@ function FactionFeature({ title, feature, theme }) {
 
 function CharacterCard({ title, feature, theme }) {
   return (
-    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "#fdfdfb", overflow: "hidden", minHeight: 300, boxShadow: "0 2px 8px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}>
-      <div style={{ height: 172, background: "#111", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `2px solid ${theme.border}` }}>
+    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "#fdfdfb", overflow: "hidden", height: 250, boxShadow: "0 2px 8px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}>
+      <div style={{ height: 140, background: "#111", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `2px solid ${theme.border}`, flex: "0 0 auto" }}>
         {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "#111" }} />}
       </div>
       <div style={{ padding: 10, display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <div style={{ fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 0 }}>{title}</div>
         <div style={{ fontWeight: "bold", marginTop: 3, fontSize: 15, lineHeight: 1.1 }}>{feature.name}</div>
-        <div style={{ fontSize: 11, color: "#555", marginTop: 6, lineHeight: 1.25, overflow: "hidden" }}>{feature.text}</div>
+        <div style={{ fontSize: 11, color: "#555", marginTop: 6, lineHeight: 1.25, overflowY: "auto" }}>{feature.text}</div>
       </div>
     </div>
   );
@@ -869,7 +869,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 16, fontFamily: "Arial, sans-serif" }}>
+    <div style={{ padding: 12, fontFamily: "Arial, sans-serif", height: "100vh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
         <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
         <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
@@ -889,7 +889,7 @@ export default function App() {
         </div>
       )}
 
-      <SectionCard borderColor={myTheme.border} background={myTheme.light}>
+      <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 10, marginBottom: 10, flex: "0 0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: 8 }}>
           <StatusPill label="Turn" value={game.turn} bg="white" />
           <StatusPill label="Phase" value={game.phase} bg="white" />
@@ -898,10 +898,10 @@ export default function App() {
         </div>
       </SectionCard>
 
-      <CompactPlayerBar game={game} player={player} />
+      <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 16, alignItems: "start" }}>
-        <div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 12, alignItems: "stretch", minHeight: 0, flex: 1 }}>
+        <div style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
             <p><strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life — {game.players[2].connected ? "Connected" : "Disconnected"}</p>
@@ -909,24 +909,24 @@ export default function App() {
 
           {!isSpectator && (
             <>
-              <SectionCard title={`${me.faction.name} Command Cards`} borderColor={myTheme.border} background={myTheme.light}>
+              <SectionCard title={`${me.faction.name} Command Cards`} borderColor={myTheme.border} background={myTheme.light} style={{ padding: 12, marginBottom: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
                   <CharacterCard title="Commander" feature={me.faction.commander} theme={myTheme} />
                   <CharacterCard title="City" feature={me.faction.city} theme={myTheme} />
                   <CharacterCard title="General" feature={me.faction.general} theme={myTheme} />
                 </div>
-                <div style={{ marginTop: 12, fontSize: 13 }}>
-                  <p><strong>Attacks this turn:</strong> {me.turnData.attacksDeclaredThisTurn}</p>
-                  <p><strong>Blocks this turn:</strong> {me.turnData.blocksDeclaredThisTurn}</p>
-                  <p><strong>Previous attack suit:</strong> {me.turnData.previousAttackSuit || "None"}</p>
-                  <p><strong>Previous played value:</strong> {me.turnData.previousPlayedValue ?? "None"}</p>
-                  <p><strong>Acceleration counters:</strong> {me.accelerationCounters}</p>
+                <div style={{ marginTop: 10, fontSize: 12, display: "flex", flexWrap: "wrap", gap: "8px 14px" }}>
+                  <span><strong>Attacks:</strong> {me.turnData.attacksDeclaredThisTurn}</span>
+                  <span><strong>Blocks:</strong> {me.turnData.blocksDeclaredThisTurn}</span>
+                  <span><strong>Prev suit:</strong> {me.turnData.previousAttackSuit || "None"}</span>
+                  <span><strong>Prev value:</strong> {me.turnData.previousPlayedValue ?? "None"}</span>
+                  <span><strong>Acceleration:</strong> {me.accelerationCounters}</span>
                 </div>
               </SectionCard>
 
-              <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
+              <SectionCard title="Your Hand" borderColor={myTheme.border} background="white" style={{ padding: 12, marginBottom: 10 }}>
                 {canDeclareAttack && <div style={{ marginBottom: 14 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
                   {me.hand.map((card, i) => {
                     const isSelectedPayment = payments.includes(i);
                     const isSelectedAttack = selectedAttackCardIndex === i;
@@ -953,7 +953,7 @@ export default function App() {
             </>
           )}
 
-          <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff">
+              <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff" style={{ padding: 12, marginBottom: 10 }}>
             {game.handAttacks.length === 0 ? <p>None</p> : game.handAttacks.map((attack) => {
               const defender = attack.player === 1 ? 2 : 1;
               const iAmDefender = !isSpectator && defender === player;
@@ -971,7 +971,7 @@ export default function App() {
             })}
           </SectionCard>
 
-          <SectionCard title="Lanes" borderColor="#111" background="#fff">
+          <SectionCard title="Lanes" borderColor="#111" background="#fff" style={{ padding: 12, marginBottom: 10 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(170px, 1fr))", gap: 10 }}>
             {game.lanes.map((lane, i) => {
               const attacker = lane.attack?.player ?? null;
