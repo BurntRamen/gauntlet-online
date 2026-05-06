@@ -226,18 +226,32 @@ function FactionFeature({ title, feature, theme }) {
   );
 }
 
-function CharacterCard({ title, feature, theme }) {
+function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
   return (
-    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "#fdfdfb", overflow: "hidden", height: 250, boxShadow: "0 2px 8px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}>
-      <div style={{ height: 140, background: "#111", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `2px solid ${theme.border}`, flex: "0 0 auto" }}>
-        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "#111" }} />}
-      </div>
-      <div style={{ padding: 10, display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
-        <div style={{ fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 0 }}>{title}</div>
-        <div style={{ fontWeight: "bold", marginTop: 3, fontSize: 15, lineHeight: 1.1 }}>{feature.name}</div>
-        <div style={{ fontSize: 11, color: "#555", marginTop: 6, lineHeight: 1.25, overflowY: "auto" }}>{feature.text}</div>
-      </div>
-    </div>
+    <button
+      onClick={onToggle}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "46px minmax(0, 1fr)",
+        gap: 8,
+        alignItems: "center",
+        textAlign: "left",
+        padding: 8,
+        border: `2px solid ${expanded ? theme.primary : theme.border}`,
+        borderRadius: 9,
+        background: expanded ? theme.light : "#fff",
+        cursor: "pointer",
+        minWidth: 0
+      }}
+    >
+      <span style={{ width: 46, height: 46, borderRadius: 7, overflow: "hidden", background: "#111", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
+        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature.name}</span>
+      </span>
+    </button>
   );
 }
 
@@ -379,6 +393,7 @@ export default function App() {
   const [selectedBlockCardIndexes, setSelectedBlockCardIndexes] = useState([]);
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
+  const [expandedPower, setExpandedPower] = useState("commander");
 
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -761,6 +776,15 @@ export default function App() {
     </div>
   ) : null;
 
+  const powerCards = !isSpectator
+    ? [
+        { id: "commander", title: "Commander", feature: me.faction.commander },
+        { id: "city", title: "City", feature: me.faction.city },
+        { id: "general", title: "General", feature: me.faction.general }
+      ]
+    : [];
+  const selectedPower = powerCards.find((power) => power.id === expandedPower) || powerCards[0];
+
   let rightPanel;
 
   if (isSpectator) {
@@ -909,13 +933,26 @@ export default function App() {
 
           {!isSpectator && (
             <>
-              <SectionCard title={`${me.faction.name} Command Cards`} borderColor={myTheme.border} background={myTheme.light} style={{ padding: 12, marginBottom: 10 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
-                  <CharacterCard title="Commander" feature={me.faction.commander} theme={myTheme} />
-                  <CharacterCard title="City" feature={me.faction.city} theme={myTheme} />
-                  <CharacterCard title="General" feature={me.faction.general} theme={myTheme} />
+              <SectionCard title={`${me.faction.name} Powers`} borderColor={myTheme.border} background={myTheme.light} style={{ padding: 10, marginBottom: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                  {powerCards.map((power) => (
+                    <CompactPowerCard
+                      key={power.id}
+                      title={power.title}
+                      feature={power.feature}
+                      theme={myTheme}
+                      expanded={selectedPower?.id === power.id}
+                      onToggle={() => setExpandedPower(power.id)}
+                    />
+                  ))}
                 </div>
-                <div style={{ marginTop: 10, fontSize: 12, display: "flex", flexWrap: "wrap", gap: "8px 14px" }}>
+                {selectedPower && (
+                  <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "#fff", border: `1px solid ${myTheme.border}`, fontSize: 12 }}>
+                    <strong>{selectedPower.title}: {selectedPower.feature.name}</strong>
+                    <span style={{ color: "#555" }}> - {selectedPower.feature.text}</span>
+                  </div>
+                )}
+                <div style={{ marginTop: 8, fontSize: 12, display: "flex", flexWrap: "wrap", gap: "6px 12px" }}>
                   <span><strong>Attacks:</strong> {me.turnData.attacksDeclaredThisTurn}</span>
                   <span><strong>Blocks:</strong> {me.turnData.blocksDeclaredThisTurn}</span>
                   <span><strong>Prev suit:</strong> {me.turnData.previousAttackSuit || "None"}</span>
