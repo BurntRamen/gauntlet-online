@@ -228,13 +228,24 @@ function FactionFeature({ title, feature, theme }) {
 
 function CharacterCard({ title, feature, theme }) {
   return (
-    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "white", overflow: "hidden", minHeight: 220 }}>
-      {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />}
-      <div style={{ padding: 10 }}>
-        <div style={{ fontSize: 11, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</div>
-        <div style={{ fontWeight: "bold", marginTop: 3 }}>{feature.name}</div>
-        <div style={{ fontSize: 12, color: "#555", marginTop: 6, lineHeight: 1.35 }}>{feature.text}</div>
+    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "#fdfdfb", overflow: "hidden", minHeight: 300, boxShadow: "0 2px 8px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}>
+      <div style={{ height: 172, background: "#111", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `2px solid ${theme.border}` }}>
+        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "#111" }} />}
       </div>
+      <div style={{ padding: 10, display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+        <div style={{ fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 0 }}>{title}</div>
+        <div style={{ fontWeight: "bold", marginTop: 3, fontSize: 15, lineHeight: 1.1 }}>{feature.name}</div>
+        <div style={{ fontSize: 11, color: "#555", marginTop: 6, lineHeight: 1.25, overflow: "hidden" }}>{feature.text}</div>
+      </div>
+    </div>
+  );
+}
+
+function LaneCardLabel({ label, card, hidden = false }) {
+  return (
+    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 8, padding: 8, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 58 }}>
+      <div style={{ fontSize: 11, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
+      <div style={{ fontWeight: "bold", marginTop: 4 }}>{hidden ? "Face-down card" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
     </div>
   );
 }
@@ -968,9 +979,19 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} style={{ border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 10, padding: 10, minHeight: 310, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div key={i} style={{ border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 10, padding: 10, minHeight: 330, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}>
                   <p style={{ fontSize: 18, marginTop: 0 }}><strong>Lane {i + 1}</strong></p>
-                  {!isSpectator ? <><p><strong>Your facedown card:</strong> {lane.facedown[player] ? `${getCardShortLabel(lane.facedown[player])}${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}` : "None"}</p><p><strong>Opponent facedown card:</strong> {lane.facedown[player === 1 ? 2 : 1] ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])}${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}` : "None"}</p></> : <><p><strong>Player 1 facedown:</strong> {lane.facedown[1] ? getCardShortLabel(lane.facedown[1]) : "None"}</p><p><strong>Player 2 facedown:</strong> {lane.facedown[2] ? getCardShortLabel(lane.facedown[2]) : "None"}</p></>}
+                  {!isSpectator ? (
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <LaneCardLabel label="Your lane card" card={lane.facedown[player]} />
+                      <LaneCardLabel label="Opponent lane card" card={lane.facedown[player === 1 ? 2 : 1]} hidden={!!lane.facedown[player === 1 ? 2 : 1]} />
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <LaneCardLabel label="Player 1 lane card" card={lane.facedown[1]} hidden={!!lane.facedown[1]} />
+                      <LaneCardLabel label="Player 2 lane card" card={lane.facedown[2]} hidden={!!lane.facedown[2]} />
+                    </div>
+                  )}
                   {lane.attack ? <><p><strong>Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)} (from lane)</p><p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>{lane.attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</p>}</> : <p><strong>Attacking:</strong> None</p>}
                   {lane.block.length > 0 ? <p><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)} ({entry.source})</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
                   {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
