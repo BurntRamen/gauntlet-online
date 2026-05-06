@@ -22,8 +22,37 @@ const FACTION_COLORS = {
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
 
+const FACTION_VOICE_LINES = {
+  rumin: [
+    "We need more capital for that.",
+    "The empire cannot fund this attack.",
+    "Strength without discipline is waste."
+  ],
+  sheen: [
+    "The roots are not yet prepared.",
+    "Patience. Growth takes time.",
+    "Harmony rejects reckless action."
+  ],
+  bizi: [
+    "Insufficient power allocation.",
+    "Acceleration threshold unmet.",
+    "System error: invalid sequence."
+  ],
+  frumo: [
+    "A poor gamble, captain.",
+    "The tides do not favor this play.",
+    "You'll need more coin than that."
+  ]
+};
+
 function getFactionTheme(factionId) {
   return FACTION_COLORS[factionId] || FACTION_COLORS.default;
+}
+
+function getFactionVoiceLine(factionId, seedText = "") {
+  const lines = FACTION_VOICE_LINES[factionId] || ["That action is not ready."];
+  const seed = String(seedText).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return lines[seed % lines.length];
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
@@ -174,9 +203,9 @@ function SectionCard({ title, children, borderColor = "#333", background = "whit
 
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
-    <div style={{ padding: "10px 12px", borderRadius: 10, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
-      <div style={{ fontSize: 12, color: "#555" }}>{label}</div>
-      <div style={{ fontWeight: "bold", marginTop: 4 }}>{value}</div>
+    <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
+      <div style={{ fontSize: 11, color: "#555" }}>{label}</div>
+      <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 13 }}>{value}</div>
     </div>
   );
 }
@@ -193,6 +222,36 @@ function FactionFeature({ title, feature, theme }) {
         <p style={{ margin: "0 0 4px 0" }}><strong>{title}:</strong> {feature.name}</p>
         <p style={{ color: "#555", margin: 0 }}>{feature.text}</p>
       </div>
+    </div>
+  );
+}
+
+function CharacterCard({ title, feature, theme }) {
+  return (
+    <div style={{ border: `2px solid ${theme.border}`, borderRadius: 10, background: "white", overflow: "hidden", minHeight: 220 }}>
+      {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />}
+      <div style={{ padding: 10 }}>
+        <div style={{ fontSize: 11, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</div>
+        <div style={{ fontWeight: "bold", marginTop: 3 }}>{feature.name}</div>
+        <div style={{ fontSize: 12, color: "#555", marginTop: 6, lineHeight: 1.35 }}>{feature.text}</div>
+      </div>
+    </div>
+  );
+}
+
+function CompactPlayerBar({ game, player }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 12 }}>
+      {[1, 2].map((p) => {
+        const theme = getFactionTheme(game.players[p].faction.id);
+        return (
+          <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "8px 10px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+            <span style={{ fontWeight: "bold", color: theme.primary }}>P{p} {game.players[p].faction.name}</span>
+            <span>{game.players[p].life} life</span>
+            <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -297,6 +356,7 @@ export default function App() {
   const [useHeraBonus, setUseHeraBonus] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
+  const [factionVoice, setFactionVoice] = useState(null);
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -354,6 +414,25 @@ export default function App() {
     if (!game?.message) return;
     setActionLog((prev) => (prev[0] === game.message ? prev : [game.message, ...prev].slice(0, 12)));
   }, [game?.message]);
+
+  useEffect(() => {
+    if (!error || !game || role === "spectator" || !player) return;
+    const lower = String(error).toLowerCase();
+    const shouldVoice = ["need", "invalid", "insufficient", "duplicate", "resolve", "not your", "cannot"].some((word) => lower.includes(word));
+    if (!shouldVoice) return;
+
+    const factionId = game.players[player]?.faction?.id;
+    const quote = getFactionVoiceLine(factionId, error);
+    setFactionVoice({ quote, detail: error });
+
+    if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+      window.speechSynthesis.cancel();
+      const utterance = new window.SpeechSynthesisUtterance(quote);
+      utterance.rate = factionId === "bizi" ? 0.92 : factionId === "frumo" ? 1.05 : 0.96;
+      utterance.pitch = factionId === "sheen" ? 0.75 : factionId === "bizi" ? 1.15 : 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [error, game, role, player]);
 
   useEffect(() => {
     if (!game || role === "spectator" || !player) return;
@@ -528,6 +607,13 @@ export default function App() {
     !isSpectator
       ? payments.reduce((sum, i) => sum + getCardNumericValue(me.hand[i]), 0) + (useHeraBonus && heraBonusAvailable ? 2 : 0)
       : 0;
+  const activeAttackRequired = activeAttackCard ? getCardNumericValue(activeAttackCard) : 0;
+  const paymentWarning =
+    attackMode && activeAttackCard && paymentTotal < activeAttackRequired
+      ? `Need ${activeAttackRequired} payment; selected ${paymentTotal}.`
+      : blockMode && activeBlockRequired > 0 && paymentTotal < activeBlockRequired
+        ? `Need ${activeBlockRequired} payment; selected ${paymentTotal}.`
+        : "";
 
   const currentEndLane = game.endPlacementLaneIndex;
   const isMyEndPlacementTurn =
@@ -647,6 +733,23 @@ export default function App() {
     return "";
   }
 
+  function factionVoiceFor(message) {
+    if (!message || isSpectator || !me) return;
+    const quote = getFactionVoiceLine(me.faction.id, message);
+    setFactionVoice({ quote, detail: message });
+  }
+
+  const actionControls = !isSpectator && game.winner == null ? (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+      {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
+      {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
+      {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
+      {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
+      {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
+      {me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
+    </div>
+  ) : null;
+
   let rightPanel;
 
   if (isSpectator) {
@@ -663,7 +766,9 @@ export default function App() {
         {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
         <p><strong>Payment total:</strong> {paymentTotal}</p>
         <p><strong>Required:</strong> {activeAttackCard ? getCardNumericValue(activeAttackCard) : "-"}</p>
+        {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
         <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < getCardNumericValue(activeAttackCard)} style={{ marginRight: 10 }}>Confirm Attack</button>
+        {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -682,7 +787,9 @@ export default function App() {
           {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
           <p><strong>Payment total:</strong> {paymentTotal}</p>
           <p><strong>Required:</strong> {activeBlockCards.length > 0 ? required : "-"}</p>
+          {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
+          {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
           <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
@@ -702,7 +809,9 @@ export default function App() {
           </div>
           <p><strong>Payment total:</strong> {paymentTotal}</p>
           <p><strong>Required:</strong> {laneBlocker ? required : "-"}</p>
+          {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
+          {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
           <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
@@ -749,12 +858,19 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ marginTop: 0 }}>Gauntlet Online</h2>
-      <p><strong>Room Code:</strong> {game.roomCode}</p>
-      <p><strong>Role:</strong> {isSpectator ? "Spectator" : `Player ${player}`}</p>
+    <div style={{ padding: 16, fontFamily: "Arial, sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
+        <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
+        <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
+      </div>
 
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+      {factionVoice && (
+        <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
+          <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>{factionVoice.detail}</div>
+        </div>
+      )}
 
       {(game.winner != null || game.phase === "gameOver") && (
         <div style={{ marginBottom: 16, padding: 16, borderRadius: 12, border: "2px solid #111", background: game.winner == null ? "#f3f4f6" : "#dcfce7", fontSize: 20, fontWeight: "bold" }}>
@@ -763,29 +879,31 @@ export default function App() {
       )}
 
       <SectionCard borderColor={myTheme.border} background={myTheme.light}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: 8 }}>
           <StatusPill label="Turn" value={game.turn} bg="white" />
           <StatusPill label="Phase" value={game.phase} bg="white" />
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
-          <StatusPill label="End Placement Lane" value={(game.endPlacementLaneIndex ?? -1) + 1} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
-          <StatusPill label="Spectators" value={game.spectatorCount || 0} bg="white" />
         </div>
       </SectionCard>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 380px", gap: 20, alignItems: "start" }}>
+      <CompactPlayerBar game={game} player={player} />
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 16, alignItems: "start" }}>
         <div>
-          <SectionCard title="Players" borderColor="#444" background="#fafafa">
+          <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
             <p><strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life — {game.players[2].connected ? "Connected" : "Disconnected"}</p>
-          </SectionCard>
+          </div>
 
           {!isSpectator && (
             <>
-              <SectionCard title={`Your Faction: ${me.faction.name}`} borderColor={myTheme.border} background={myTheme.light}>
-                <FactionFeature title="Commander" feature={me.faction.commander} theme={myTheme} />
-                <FactionFeature title="City" feature={me.faction.city} theme={myTheme} />
-                <FactionFeature title="General" feature={me.faction.general} theme={myTheme} />
+              <SectionCard title={`${me.faction.name} Command Cards`} borderColor={myTheme.border} background={myTheme.light}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+                  <CharacterCard title="Commander" feature={me.faction.commander} theme={myTheme} />
+                  <CharacterCard title="City" feature={me.faction.city} theme={myTheme} />
+                  <CharacterCard title="General" feature={me.faction.general} theme={myTheme} />
+                </div>
                 <div style={{ marginTop: 12, fontSize: 13 }}>
                   <p><strong>Attacks this turn:</strong> {me.turnData.attacksDeclaredThisTurn}</p>
                   <p><strong>Blocks this turn:</strong> {me.turnData.blocksDeclaredThisTurn}</p>
@@ -793,18 +911,6 @@ export default function App() {
                   <p><strong>Previous played value:</strong> {me.turnData.previousPlayedValue ?? "None"}</p>
                   <p><strong>Acceleration counters:</strong> {me.accelerationCounters}</p>
                 </div>
-                {game.winner == null && game.phase === "priority" && isMyPriority && (
-                  <div style={{ marginTop: 14 }}>
-                    {me.faction.id === "frumo" && <><button onClick={startPolea} disabled={me.turnData.poleaUsed} style={{ marginRight: 8 }}>Use Polea</button><button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button></>}
-                    {me.faction.id === "bizi" && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
-                  </div>
-                )}
-              </SectionCard>
-
-              <SectionCard title="Turn Actions" borderColor="#444" background="#fafafa">
-                {game.winner == null && game.phase === "priority" && isMyPriority && <button onClick={passPriority} style={{ marginRight: 10 }}>Pass Priority</button>}
-                {game.winner == null && game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
-                {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 12, color: "#b91c1c" }}>You cannot declare a new attack until all current blocks and damage resolve.</p>}
               </SectionCard>
 
               <SectionCard title="Your Hand" borderColor={myTheme.border} background="white">
@@ -855,13 +961,14 @@ export default function App() {
           </SectionCard>
 
           <SectionCard title="Lanes" borderColor="#111" background="#fff">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(170px, 1fr))", gap: 10 }}>
             {game.lanes.map((lane, i) => {
               const attacker = lane.attack?.player ?? null;
               const defender = attacker ? (attacker === 1 ? 2 : 1) : null;
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} style={{ border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 14, padding: 16, marginBottom: 16, background: lane.attack ? "#fff7f7" : "#fafafa" }}>
+                <div key={i} style={{ border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 10, padding: 10, minHeight: 310, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <p style={{ fontSize: 18, marginTop: 0 }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? <><p><strong>Your facedown card:</strong> {lane.facedown[player] ? `${getCardShortLabel(lane.facedown[player])}${lane.facedown[player].tempBuff ? ` (+${lane.facedown[player].tempBuff})` : ""}` : "None"}</p><p><strong>Opponent facedown card:</strong> {lane.facedown[player === 1 ? 2 : 1] ? `${getCardShortLabel(lane.facedown[player === 1 ? 2 : 1])}${lane.facedown[player === 1 ? 2 : 1].tempBuff ? ` (+${lane.facedown[player === 1 ? 2 : 1].tempBuff})` : ""}` : "None"}</p></> : <><p><strong>Player 1 facedown:</strong> {lane.facedown[1] ? getCardShortLabel(lane.facedown[1]) : "None"}</p><p><strong>Player 2 facedown:</strong> {lane.facedown[2] ? getCardShortLabel(lane.facedown[2]) : "None"}</p></>}
                   {lane.attack ? <><p><strong>Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)} (from lane)</p><p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>{lane.attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</p>}</> : <p><strong>Attacking:</strong> None</p>}
@@ -873,11 +980,16 @@ export default function App() {
                 </div>
               );
             })}
+            </div>
           </SectionCard>
         </div>
 
-        <div style={{ position: "sticky", top: 20, alignSelf: "start" }}>
-          <SectionCard title="Action Panel" borderColor={myTheme.border} background="#fafafa">{rightPanel}</SectionCard>
+        <div style={{ position: "sticky", top: 10, alignSelf: "start", maxHeight: "calc(100vh - 20px)", overflowY: "auto" }}>
+          <SectionCard title="Actions" borderColor={myTheme.border} background="#fafafa">
+            {actionControls}
+            {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
+            {rightPanel}
+          </SectionCard>
           <SectionCard title="Recent Events" borderColor="#444" background="#fff">
             {actionLog.length === 0 ? <p>No events yet.</p> : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{actionLog.map((entry, idx) => <div key={`${entry}-${idx}`} style={{ padding: 10, borderRadius: 8, background: idx === 0 ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>{entry}</div>)}</div>}
           </SectionCard>
