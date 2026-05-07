@@ -1,8 +1,15 @@
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
+const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
+const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 
 const express = require("express");
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const cors = require("cors");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -15,8 +22,220 @@ const io = new Server(server, {
   }
 });
 
+app.use(cors({
+  origin: CLIENT_URL,
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+app.use(express.json({ limit: "20kb" }));
+
 app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
+});
+
+// ============ ACCOUNT AUTH ============
+function loadAccountStore() {
+  try {
+    if (!fs.existsSync(ACCOUNT_DATA_FILE)) return { accounts: [] };
+    const parsed = JSON.parse(fs.readFileSync(ACCOUNT_DATA_FILE, "utf8"));
+    return { accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [] };
+  } catch (error) {
+    console.error("[Accounts] Failed to load account store", error);
+    return { accounts: [] };
+  }
+}
+
+function saveAccountStore(store) {
+  fs.mkdirSync(path.dirname(ACCOUNT_DATA_FILE), { recursive: true });
+  fs.writeFileSync(ACCOUNT_DATA_FILE, JSON.stringify(store, null, 2));
+}
+
+function normalizeAccountName(name) {
+  return String(name || "").trim().replace(/\s+/g, " ");
+}
+
+function accountNameKey(name) {
+  return normalizeAccountName(name).toLowerCase();
+}
+
+function isValidAccountName(name) {
+  return /^[A-Za-z0-9 _-]{3,24}$/.test(name);
+}
+
+function normalizeGuestName(name) {
+  return normalizeAccountName(name || "Guest");
+}
+
+function isValidGuestName(name) {
+  return /^[A-Za-z0-9 _-]{2,24}$/.test(name);
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.pbkdf2Sync(String(password), salt, 150000, 32, "sha256").toString("hex");
+  return { salt, hash };
+}
+
+function verifyPassword(password, account) {
+  const candidate = hashPassword(password, account.passwordSalt);
+  return crypto.timingSafeEqual(Buffer.from(candidate.hash, "hex"), Buffer.from(account.passwordHash, "hex"));
+}
+
+function base64Url(input) {
+  return Buffer.from(input).toString("base64url");
+}
+
+function signAuthPayload(payload) {
+  const body = base64Url(JSON.stringify(payload));
+  const signature = crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update(body).digest("base64url");
+  return `${body}.${signature}`;
+}
+
+function verifyAuthToken(token) {
+  if (!token || typeof token !== "string" || !token.includes(".")) return null;
+  const [body, signature] = token.split(".");
+  const expected = crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update(body).digest("base64url");
+  const signatureBuffer = Buffer.from(signature || "");
+  const expectedBuffer = Buffer.from(expected);
+  if (signatureBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    if (!payload.id || !payload.name) return null;
+    return payload;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function publicAccount(account) {
+  return {
+    id: account.id,
+    name: account.name,
+    createdAt: account.createdAt,
+    lastLoginAt: account.lastLoginAt || null
+  };
+}
+
+function issueAccountSession(account) {
+  return {
+    token: signAuthPayload({ id: account.id, name: account.name }),
+    account: publicAccount(account)
+  };
+}
+
+function findAccountByName(store, name) {
+  const key = accountNameKey(name);
+  return store.accounts.find((account) => account.nameKey === key) || null;
+}
+
+function touchAccountStats(accountId, field) {
+  if (!accountId) return;
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === accountId);
+  if (!account) return;
+  account.stats = account.stats || {};
+  account.stats[field] = (account.stats[field] || 0) + 1;
+  account.lastSeenAt = new Date().toISOString();
+  saveAccountStore(store);
+}
+
+function getAccountFromToken(token) {
+  const payload = verifyAuthToken(token);
+  if (!payload) return null;
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === payload.id);
+  if (!account) return null;
+  return publicAccount(account);
+}
+
+app.post("/api/auth/register", (req, res) => {
+  const name = normalizeAccountName(req.body?.name);
+  const password = String(req.body?.password || "");
+
+  if (!isValidAccountName(name)) {
+    res.status(400).json({ error: "Account name must be 3-24 characters using letters, numbers, spaces, hyphens, or underscores." });
+    return;
+  }
+  if (password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters." });
+    return;
+  }
+
+  const store = loadAccountStore();
+  if (findAccountByName(store, name)) {
+    res.status(409).json({ error: "That account name is already taken." });
+    return;
+  }
+
+  const passwordResult = hashPassword(password);
+  const now = new Date().toISOString();
+  const account = {
+    id: crypto.randomUUID(),
+    name,
+    nameKey: accountNameKey(name),
+    passwordSalt: passwordResult.salt,
+    passwordHash: passwordResult.hash,
+    createdAt: now,
+    lastLoginAt: now,
+    lastSeenAt: now,
+    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0 }
+  };
+  store.accounts.push(account);
+  saveAccountStore(store);
+
+  res.json(issueAccountSession(account));
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const name = normalizeAccountName(req.body?.name);
+  const password = String(req.body?.password || "");
+  const store = loadAccountStore();
+  const account = findAccountByName(store, name);
+
+  if (!account || !verifyPassword(password, account)) {
+    res.status(401).json({ error: "Invalid account name or password." });
+    return;
+  }
+
+  account.lastLoginAt = new Date().toISOString();
+  account.lastSeenAt = account.lastLoginAt;
+  saveAccountStore(store);
+
+  res.json(issueAccountSession(account));
+});
+
+app.get("/api/auth/me", (req, res) => {
+  const authHeader = req.get("authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const account = getAccountFromToken(token);
+  if (!account) {
+    res.status(401).json({ error: "Not signed in." });
+    return;
+  }
+  res.json({ account });
+});
+
+app.get("/api/admin/account-stats", (req, res) => {
+  const authHeader = req.get("authorization") || "";
+  const providedToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
+  if (!OWNER_STATS_TOKEN || providedToken !== OWNER_STATS_TOKEN) {
+    res.status(403).json({ error: "Owner stats token required." });
+    return;
+  }
+
+  const store = loadAccountStore();
+  res.json({
+    totalAccounts: store.accounts.length,
+    accounts: store.accounts.map((account) => ({
+      name: account.name,
+      createdAt: account.createdAt,
+      lastLoginAt: account.lastLoginAt || null,
+      lastSeenAt: account.lastSeenAt || null,
+      gamesCreated: account.stats?.gamesCreated || 0,
+      gamesJoined: account.stats?.gamesJoined || 0,
+      gamesSpectated: account.stats?.gamesSpectated || 0
+    }))
+  });
 });
 
 // ============ FACTION DATA ============
@@ -107,10 +326,22 @@ function getRoomForSocket(socket) {
   return null;
 }
 
+function sanitizeLobbyPlayer(player) {
+  return {
+    connected: player.connected,
+    factionId: player.factionId,
+    accountName: player.accountName || null,
+    isGuest: !!player.isGuest
+  };
+}
+
 function emitLobbyState(roomState) {
   io.to(roomState.roomCode).emit("lobbyState", {
     roomCode: roomState.roomCode,
-    players: roomState.lobby.players,
+    players: {
+      1: sanitizeLobbyPlayer(roomState.lobby.players[1]),
+      2: sanitizeLobbyPlayer(roomState.lobby.players[2])
+    },
     factions: listFactions(),
     spectatorCount: roomState.lobby.spectators.length
   });
@@ -136,6 +367,23 @@ function getPlayerNumberBySocket(roomState, socketId) {
 
 function roomPlayersReady(roomState) {
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
+}
+
+function requirePlayerIdentity(socket, authToken, guestName) {
+  const account = getAccountFromToken(authToken || socket.data.authToken);
+  if (account) {
+    socket.data.authToken = authToken || socket.data.authToken;
+    socket.data.account = account;
+    return { type: "account", id: account.id, name: account.name };
+  }
+
+  const normalizedGuestName = normalizeGuestName(guestName);
+  if (isValidGuestName(normalizedGuestName)) {
+    return { type: "guest", id: null, name: normalizedGuestName };
+  }
+
+  socket.emit("errorMessage", "Sign in, create an account, or enter a 2-24 character guest name.");
+  return null;
 }
 
 function resetPriorityPassed(game) {
@@ -613,6 +861,7 @@ function createGameFromLobby(roomState) {
     priorityPassed: { 1: false, 2: false },
     players: {
       1: {
+        accountName: roomState.lobby.players[1].accountName || null,
         faction: faction1,
         life: 42,
         hand: [],
@@ -624,6 +873,7 @@ function createGameFromLobby(roomState) {
         accelerationCounters: 0
       },
       2: {
+        accountName: roomState.lobby.players[2].accountName || null,
         faction: faction2,
         life: 42,
         hand: [],
@@ -665,12 +915,18 @@ function createGameFromLobby(roomState) {
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
   
-  socket.on("createRoom", () => {
+  socket.on("createRoom", ({ authToken, guestName } = {}) => {
     console.log("[Socket] createRoom");
+    const identity = requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) return;
     const roomState = createRoom();
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
+    roomState.lobby.players[1].accountId = identity.id;
+    roomState.lobby.players[1].accountName = identity.name;
+    roomState.lobby.players[1].isGuest = identity.type === "guest";
+    touchAccountStats(identity.id, "gamesCreated");
     socket.join(roomState.roomCode);
     socket.data.roomCode = roomState.roomCode;
     socket.data.role = "player";
@@ -684,8 +940,12 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  socket.on("joinRoom", ({ roomCode, asSpectator = false }) => {
+  socket.on("joinRoom", ({ roomCode, asSpectator = false, authToken, guestName } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
+    if (!roomCode) {
+      socket.emit("errorMessage", "Enter a room code.");
+      return;
+    }
     const normalized = roomCode.toUpperCase();
     const roomState = getRoom(normalized);
     if (!roomState) {
@@ -698,14 +958,22 @@ io.on("connection", (socket) => {
       socket.data.roomCode = normalized;
       socket.data.role = "spectator";
       socket.emit("assignSpectator", { role: "spectator", roomCode: normalized });
+      const spectatorAccount = getAccountFromToken(authToken);
+      if (spectatorAccount) touchAccountStats(spectatorAccount.id, "gamesSpectated");
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
     }
+    const identity = requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) return;
     if (!roomState.lobby.players[2].socket) {
       roomState.lobby.players[2].socket = socket.id;
       roomState.lobby.players[2].connected = true;
       roomState.lobby.players[2].reconnectToken = makeReconnectToken();
+      roomState.lobby.players[2].accountId = identity.id;
+      roomState.lobby.players[2].accountName = identity.name;
+      roomState.lobby.players[2].isGuest = identity.type === "guest";
+      touchAccountStats(identity.id, "gamesJoined");
       socket.join(normalized);
       socket.data.roomCode = normalized;
       socket.data.role = "player";
@@ -1322,6 +1590,7 @@ io.on("connection", (socket) => {
         if (roomState.lobby.players[p].socket === socket.id) {
           roomState.lobby.players[p].connected = false;
           roomState.lobby.players[p].socket = null;
+          if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
         }
       }
       if (roomState.game) emitState(roomState);

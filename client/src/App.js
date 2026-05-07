@@ -11,7 +11,9 @@ const socket = io(SOCKET_URL, {
 const STORAGE_KEYS = {
   roomCode: "gauntlet_room_code",
   reconnectToken: "gauntlet_reconnect_token",
-  role: "gauntlet_role"
+  role: "gauntlet_role",
+  authToken: "gauntlet_auth_token",
+  guestName: "gauntlet_guest_name"
 };
 
 const FACTION_COLORS = {
@@ -201,6 +203,46 @@ function SectionCard({ title, children, borderColor = "#333", background = "whit
   );
 }
 
+function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
+  if (account) {
+    return (
+      <SectionCard title="Account">
+        <p style={{ marginTop: 0 }}>Signed in as <strong>{account.name}</strong></p>
+        <button onClick={onSignOut}>Sign Out</button>
+      </SectionCard>
+    );
+  }
+
+  return (
+    <SectionCard title={mode === "register" ? "Create Account" : "Sign In"}>
+      <div style={{ display: "grid", gap: 10 }}>
+        <input
+          value={form.name}
+          onChange={(e) => onFormChange({ ...form, name: e.target.value })}
+          placeholder="Account name"
+          autoComplete="username"
+          style={{ padding: 8 }}
+        />
+        <input
+          value={form.password}
+          onChange={(e) => onFormChange({ ...form, password: e.target.value })}
+          placeholder="Password"
+          type="password"
+          autoComplete={mode === "register" ? "new-password" : "current-password"}
+          style={{ padding: 8 }}
+        />
+        {error && <div style={{ color: "#b91c1c", fontSize: 13 }}>{error}</div>}
+        <div>
+          <button onClick={onSubmit} style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</button>
+          <button onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
+            {mode === "register" ? "Use Existing Account" : "Make Account"}
+          </button>
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
     <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
@@ -271,7 +313,7 @@ function CompactPlayerBar({ game, player }) {
         const theme = getFactionTheme(game.players[p].faction.id);
         return (
           <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "8px 10px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-            <span style={{ fontWeight: "bold", color: theme.primary }}>P{p} {game.players[p].faction.name}</span>
+            <span style={{ fontWeight: "bold", color: theme.primary }}>P{p} {game.players[p].accountName || game.players[p].faction.name}</span>
             <span>{game.players[p].life} life</span>
             <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
           </div>
@@ -382,6 +424,13 @@ export default function App() {
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
+  const [authMode, setAuthMode] = useState("login");
+  const [authForm, setAuthForm] = useState({ name: "", password: "" });
+  const [authError, setAuthError] = useState("");
+  const [playAsGuest, setPlayAsGuest] = useState(false);
+  const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -394,6 +443,23 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+
+  useEffect(() => {
+    if (!authToken) return;
+    fetch(`${SOCKET_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not restore sign-in.");
+        setAccount(data.account);
+      })
+      .catch(() => {
+        localStorage.removeItem(STORAGE_KEYS.authToken);
+        setAuthToken("");
+        setAccount(null);
+      });
+  }, [authToken]);
 
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -489,14 +555,46 @@ export default function App() {
     setPeekResult("");
   }
 
+  async function submitAuth() {
+    setAuthError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/auth/${authMode === "register" ? "register" : "login"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(authForm)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Authentication failed.");
+      localStorage.setItem(STORAGE_KEYS.authToken, data.token);
+      setAuthToken(data.token);
+      setAccount(data.account);
+      setAuthForm({ name: "", password: "" });
+    } catch (authSubmitError) {
+      setAuthError(authSubmitError.message);
+    }
+  }
+
+  function signOut() {
+    localStorage.removeItem(STORAGE_KEYS.authToken);
+    setAuthToken("");
+    setAccount(null);
+  }
+
+  function playerIdentityPayload() {
+    if (account && authToken) return { authToken };
+    const normalizedGuestName = guestName.trim() || "Guest";
+    localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
+    return { guestName: normalizedGuestName };
+  }
+
   function createRoom() {
     clearReconnectInfo();
-    socket.emit("createRoom");
+    socket.emit("createRoom", playerIdentityPayload());
   }
 
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
-    socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator });
+    socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
   }
 
   function chooseFaction(factionId) {
@@ -524,17 +622,53 @@ export default function App() {
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
+  const canPlayAsPlayer = !!account || playAsGuest;
+
   if (!role && !lobby) {
     return (
       <div style={{ padding: 24, fontFamily: "Arial, sans-serif", maxWidth: 980 }}>
         <h1>Gauntlet Online</h1>
         {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          <SectionCard title="Create Room"><button onClick={createRoom}>Create Room</button></SectionCard>
+          <AccountPanel
+            account={account}
+            mode={authMode}
+            form={authForm}
+            error={authError}
+            onModeChange={setAuthMode}
+            onFormChange={setAuthForm}
+            onSubmit={submitAuth}
+            onSignOut={signOut}
+          />
+          <SectionCard title="Create Room">
+            <button onClick={createRoom} disabled={!canPlayAsPlayer}>Create Room</button>
+            {!canPlayAsPlayer && <p style={{ color: "#555", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
+          </SectionCard>
           <SectionCard title="Join Room">
             <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ marginRight: 10, padding: 8 }} />
-            <button onClick={() => joinRoom(false)} style={{ marginRight: 8 }}>Join as Player</button>
+            <button onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</button>
             <button onClick={() => joinRoom(true)}>Join as Spectator</button>
+            {!canPlayAsPlayer && <p style={{ color: "#555", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
+          </SectionCard>
+          <SectionCard title="Guest Play">
+            <label style={{ display: "block", marginBottom: 10 }}>
+              <input
+                type="checkbox"
+                checked={playAsGuest}
+                onChange={(e) => setPlayAsGuest(e.target.checked)}
+                disabled={!!account}
+                style={{ marginRight: 8 }}
+              />
+              Play as guest
+            </label>
+            <input
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+              placeholder="Guest name"
+              disabled={!!account || !playAsGuest}
+              style={{ padding: 8, width: "100%", boxSizing: "border-box" }}
+            />
+            {account && <p style={{ color: "#555", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
           </SectionCard>
         </div>
         <RulebookPanel />
@@ -551,6 +685,7 @@ export default function App() {
         <h1>Gauntlet Online</h1>
         <p><strong>Room Code:</strong> {lobby?.roomCode}</p>
         <p><strong>Role:</strong> {role === "spectator" ? "Spectator" : `Player ${player}`}</p>
+        {account && <p><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <SectionCard title="Lobby">
           <p><strong>Player 1:</strong> {lobby?.players?.[1]?.factionId || "No faction"} — {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"}</p>
