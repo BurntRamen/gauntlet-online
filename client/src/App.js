@@ -209,10 +209,11 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
     <div
       style={{
         border: selected ? `3px solid ${accent}` : "1px solid black",
-        borderRadius: 12,
-        padding: 12,
-        minWidth: 170,
-        minHeight: 280,
+        borderRadius: 8,
+        padding: 7,
+        width: 112,
+        minWidth: 112,
+        minHeight: 172,
         background: bg,
         boxShadow: selected ? `0 0 0 3px ${accent}22` : "none",
         position: "relative",
@@ -223,36 +224,36 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
-          <div style={{ fontSize: 30 }}>{rank}</div>
-          <div style={{ fontSize: 28 }}>{suit}</div>
+          <div style={{ fontSize: 20 }}>{rank}</div>
+          <div style={{ fontSize: 18 }}>{suit}</div>
         </div>
-        <div style={{ fontSize: 11, color: "#666", textAlign: "right" }}>
+        <div style={{ fontSize: 9, color: "#666", textAlign: "right" }}>
           {card?.tempBuff ? <div>Buff: +{card.tempBuff}</div> : null}
           <div>Value: {getCardNumericValue(card)}</div>
         </div>
       </div>
 
-      <div style={{ position: "relative", margin: "8px 0", height: 118, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
+      <div style={{ position: "relative", margin: "5px 0", height: 58, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
-          <div style={{ textAlign: "center", fontSize: 72, lineHeight: "118px", color: suitColor }}>{suit}</div>
+          <div style={{ textAlign: "center", fontSize: 38, lineHeight: "58px", color: suitColor }}>{suit}</div>
         )}
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 58, lineHeight: 1, color: suitColor, textShadow: "0 1px 3px white, 0 -1px 3px white" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, lineHeight: 1, color: suitColor, textShadow: "0 1px 3px white, 0 -1px 3px white" }}>
           {suit}
         </div>
       </div>
 
-      <div style={{ marginBottom: 10 }}>
-        {card?.name && <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 4 }}>{card.name}</div>}
-        {card?.faction && <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>{card.faction}</div>}
+      <div style={{ marginBottom: 5 }}>
+        {card?.name && <div style={{ fontSize: 10, fontWeight: "bold", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</div>}
+        {card?.faction && <div style={{ fontSize: 9, color: "#555", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.faction}</div>}
       </div>
 
       <div
         style={{
           position: "absolute",
-          right: 12,
-          bottom: 92,
+          right: 7,
+          bottom: 56,
           transform: "rotate(180deg)",
           color: suitColor,
           fontWeight: "bold",
@@ -260,11 +261,11 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
           textAlign: "center"
         }}
       >
-        <div style={{ fontSize: 24 }}>{rank}</div>
-        <div style={{ fontSize: 22 }}>{suit}</div>
+        <div style={{ fontSize: 14 }}>{rank}</div>
+        <div style={{ fontSize: 13 }}>{suit}</div>
       </div>
 
-      <div>{children}</div>
+      <div style={{ display: "grid", gap: 4 }}>{children}</div>
     </div>
   );
 }
@@ -387,6 +388,15 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
   );
 }
 
+function CollapseHeader({ title, collapsed, onToggle, color = "#111827" }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: collapsed ? 0 : 8 }}>
+      <h3 style={{ margin: 0, color, fontSize: 15 }}>{title}</h3>
+      <button onClick={onToggle} style={{ padding: "3px 7px", fontSize: 12 }}>{collapsed ? "Show" : "Hide"}</button>
+    </div>
+  );
+}
+
 function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
   if (account) {
     return (
@@ -483,20 +493,20 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
 
 function LaneCardLabel({ label, card, hidden = false }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 8, padding: 8, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 58 }}>
-      <div style={{ fontSize: 11, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
-      <div style={{ fontWeight: "bold", marginTop: 4 }}>{hidden ? "Face-down card" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
+    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 6, padding: 5, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 38 }}>
+      <div style={{ fontSize: 9, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
+      <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 12 }}>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
     </div>
   );
 }
 
 function CompactPlayerBar({ game, player }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 12 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 6, marginBottom: 6 }}>
       {[1, 2].map((p) => {
         const theme = getFactionTheme(game.players[p].faction.id);
         return (
-          <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "8px 10px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+          <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "6px 8px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", fontSize: 13 }}>
             <span style={{ fontWeight: "bold", color: theme.primary }}>P{p} {game.players[p].accountName || game.players[p].faction.name}</span>
             <span>{game.players[p].life} life</span>
             <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
@@ -511,7 +521,7 @@ function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
 
   return (
-    <div style={{ border: selected ? `3px solid ${theme.primary}` : "1px solid black", borderRadius: 12, padding: 14, background: selected ? theme.light : "white" }}>
+    <div style={{ border: selected ? `3px solid ${theme.primary}` : "1px solid rgba(125, 211, 252, 0.38)", borderRadius: 8, padding: 14, background: selected ? theme.light : "rgba(255,255,255,0.94)", color: "#111827" }}>
       <h3 style={{ marginTop: 0, color: theme.primary }}>{faction.name}</h3>
       <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
       <FactionFeature title="City" feature={faction.city} theme={theme} />
@@ -617,6 +627,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.07);
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: true, attacks: true });
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -669,12 +680,6 @@ export default function App() {
   }, [activeMusicTrack, musicEnabled, musicVolume]);
 
   useEffect(() => {
-    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
-    const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
-    if (reconnectToken && roomCode) socket.emit("reconnectToRoom", { roomCode, reconnectToken });
-  }, []);
-
-  useEffect(() => {
     const onAssign = (payload) => {
       setRole(payload.role);
       setPlayer(payload.playerNum);
@@ -691,15 +696,27 @@ export default function App() {
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
     const onPeek = (text) => setPeekResult(text);
+    const attemptReconnect = () => {
+      const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
+      const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
+      const savedRole = localStorage.getItem(STORAGE_KEYS.role);
+      const savedAuthToken = localStorage.getItem(STORAGE_KEYS.authToken);
+      if (roomCode && (reconnectToken || savedRole === "spectator")) {
+        socket.emit("reconnectToRoom", { roomCode, reconnectToken, role: savedRole, authToken: savedAuthToken });
+      }
+    };
 
+    socket.on("connect", attemptReconnect);
     socket.on("assign", onAssign);
     socket.on("assignSpectator", onAssignSpectator);
     socket.on("state", onState);
     socket.on("lobbyState", onLobbyState);
     socket.on("errorMessage", onError);
     socket.on("peekResult", onPeek);
+    attemptReconnect();
 
     return () => {
+      socket.off("connect", attemptReconnect);
       socket.off("assign", onAssign);
       socket.off("assignSpectator", onAssignSpectator);
       socket.off("state", onState);
@@ -829,6 +846,10 @@ export default function App() {
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
+  function togglePanel(panel) {
+    setCollapsedPanels((prev) => ({ ...prev, [panel]: !prev[panel] }));
+  }
+
   const canPlayAsPlayer = !!account || playAsGuest;
 
   if (!role && !lobby) {
@@ -907,27 +928,33 @@ export default function App() {
     const bothReady = lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
 
     return (
-      <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
-        <h1>Gauntlet Online</h1>
-        <p><strong>Room Code:</strong> {lobby?.roomCode}</p>
-        <p><strong>Role:</strong> {role === "spectator" ? "Spectator" : `Player ${player}`}</p>
-        {account && <p><strong>Account:</strong> {account.name}</p>}
-        {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <SectionCard title="Lobby">
+      <div style={MENU_THEME.page}>
+        <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Faction Command</div>
+            <h1 style={{ margin: 0, fontSize: 40, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
+          </div>
+          <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right" }}>Room {lobby?.roomCode} | {role === "spectator" ? "Spectator" : `Player ${player}`}</div>
+        </div>
+        {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
+        {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+        <MenuCard title="Lobby">
           <p><strong>Player 1:</strong> {lobby?.players?.[1]?.factionId || "No faction"} — {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"}</p>
           <p><strong>Player 2:</strong> {lobby?.players?.[2]?.factionId || "No faction"} — {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"}</p>
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
-        </SectionCard>
+        </MenuCard>
         {role === "player" && (
           <>
-            <h2>Select Your Faction</h2>
+            <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
               {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
             </div>
-            <button onClick={startGame} disabled={!bothReady}>Start Game</button>
+            <MenuButton onClick={startGame} disabled={!bothReady}>Start Game</MenuButton>
           </>
         )}
-        {role === "spectator" && <SectionCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></SectionCard>}
+        {role === "spectator" && <MenuCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></MenuCard>}
+        </div>
       </div>
     );
   }
@@ -1255,17 +1282,30 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 12, fontFamily: "Arial, sans-serif", height: "100vh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
+    <div style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
+      <style>{`
+        @media (max-width: 760px) {
+          .game-grid { grid-template-columns: 1fr !important; gap: 6px !important; }
+          .game-side { max-height: 32dvh !important; display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; overflow-y: auto !important; }
+          .game-header { align-items: flex-start !important; }
+          .game-header h2 { font-size: 18px !important; }
+          .music-control { display: none !important; }
+          .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .lane-grid { grid-template-columns: repeat(3, minmax(105px, 1fr)) !important; overflow-x: auto !important; }
+        }
+      `}</style>
+      <div className="game-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 5, flex: "0 0 auto" }}>
+        <h2 style={{ margin: 0, fontSize: 22 }}>Gauntlet Online</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <MusicControl
-            trackKey={activeMusicTrack}
-            enabled={musicEnabled}
-            volume={musicVolume}
-            onToggle={() => setMusicEnabled((value) => !value)}
-            onVolumeChange={setMusicVolume}
-          />
+          <div className="music-control">
+            <MusicControl
+              trackKey={activeMusicTrack}
+              enabled={musicEnabled}
+              volume={musicVolume}
+              onToggle={() => setMusicEnabled((value) => !value)}
+              onVolumeChange={setMusicVolume}
+            />
+          </div>
           <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
         </div>
       </div>
@@ -1284,8 +1324,8 @@ export default function App() {
         </div>
       )}
 
-      <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 10, marginBottom: 10, flex: "0 0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: 8 }}>
+      <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 7, marginBottom: 6, flex: "0 0 auto" }}>
+        <div className="status-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))", gap: 6 }}>
           <StatusPill label="Turn" value={game.turn} bg="white" />
           <StatusPill label="Phase" value={game.phase} bg="white" />
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
@@ -1295,7 +1335,7 @@ export default function App() {
 
       <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 12, alignItems: "stretch", minHeight: 0, flex: 1 }}>
+      <div className="game-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 8, alignItems: "stretch", minHeight: 0, flex: 1 }}>
         <div style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
@@ -1304,8 +1344,9 @@ export default function App() {
 
           {!isSpectator && (
             <>
-              <SectionCard title={`${me.faction.name} Powers`} borderColor={myTheme.border} background={myTheme.light} style={{ padding: 10, marginBottom: 8 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+              <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
+                <CollapseHeader title={`${me.faction.name} Powers`} collapsed={collapsedPanels.powers} onToggle={() => togglePanel("powers")} color={myTheme.primary} />
+                {!collapsedPanels.powers && <><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                   {powerCards.map((power) => (
                     <CompactPowerCard
                       key={power.id}
@@ -1330,11 +1371,12 @@ export default function App() {
                   <span><strong>Prev value:</strong> {me.turnData.previousPlayedValue ?? "None"}</span>
                   <span><strong>Acceleration:</strong> {me.accelerationCounters}</span>
                 </div>
+                </>}
               </SectionCard>
 
-              <SectionCard title="Your Hand" borderColor={myTheme.border} background="white" style={{ padding: 12, marginBottom: 10 }}>
-                {canDeclareAttack && <div style={{ marginBottom: 14 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}
-                <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
+              <SectionCard title="Your Hand" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }}>
+                {canDeclareAttack && <div style={{ marginBottom: 6 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}
+                <div style={{ display: "flex", flexWrap: "nowrap", gap: 7, overflowX: "auto", paddingBottom: 5, WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}>
                   {me.hand.map((card, i) => {
                     const isSelectedPayment = payments.includes(i);
                     const isSelectedAttack = selectedAttackCardIndex === i;
@@ -1348,11 +1390,11 @@ export default function App() {
                     const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
                     return (
                       <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary}>
-                        <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>Hand Index: {i}</div>
-                        {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>Select as Attack</button>}
-                        {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>{isSelectedBlock ? "Remove Blocker" : "Select as Blocker"}</button>}
-                        {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", marginBottom: 6, width: "100%" }}>Select for Facedown</button>}
-                        {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%" }}>Toggle Payment</button>}
+                        <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
+                        {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
+                        {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
+                        {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
+                        {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
                       </CardBox>
                     );
                   })}
@@ -1361,13 +1403,14 @@ export default function App() {
             </>
           )}
 
-              <SectionCard title="Hand Attacks" borderColor={oppTheme.border} background="#fff" style={{ padding: 12, marginBottom: 10 }}>
-            {game.handAttacks.length === 0 ? <p>None</p> : game.handAttacks.map((attack) => {
+              <SectionCard borderColor={oppTheme.border} background="rgba(255,255,255,0.94)" style={{ padding: 8, marginBottom: 6 }}>
+            <CollapseHeader title="Hand Attacks" collapsed={collapsedPanels.attacks && game.handAttacks.length === 0} onToggle={() => togglePanel("attacks")} color={oppTheme.primary} />
+            {collapsedPanels.attacks && game.handAttacks.length === 0 ? null : game.handAttacks.length === 0 ? <p>None</p> : game.handAttacks.map((attack) => {
               const defender = attack.player === 1 ? 2 : 1;
               const iAmDefender = !isSpectator && defender === player;
               const ownerTheme = getFactionTheme(game.players[attack.player].faction.id);
               return (
-                <div key={attack.id} style={{ border: `2px solid ${ownerTheme.border}`, borderRadius: 12, padding: 14, marginBottom: 14, background: ownerTheme.light }}>
+                <div key={attack.id} style={{ border: `2px solid ${ownerTheme.border}`, borderRadius: 8, padding: 8, marginBottom: 8, background: ownerTheme.light, fontSize: 12 }}>
                   <p><strong>Attack ID:</strong> {attack.id}</p>
                   <p><strong>Attacking:</strong> Player {attack.player} with {getCardShortLabel(attack.card)} (from hand)</p>
                   <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
@@ -1379,23 +1422,23 @@ export default function App() {
             })}
           </SectionCard>
 
-          <SectionCard title="Lanes" borderColor="#111" background="#fff" style={{ padding: 12, marginBottom: 10 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(170px, 1fr))", gap: 10 }}>
+          <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8, marginBottom: 6 }}>
+            <div className="lane-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(130px, 1fr))", gap: 7 }}>
             {game.lanes.map((lane, i) => {
               const attacker = lane.attack?.player ?? null;
               const defender = attacker ? (attacker === 1 ? 2 : 1) : null;
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} style={{ border: `3px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 10, padding: 10, minHeight: 330, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}>
-                  <p style={{ fontSize: 18, marginTop: 0 }}><strong>Lane {i + 1}</strong></p>
+                <div key={i} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: 205, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                  <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div style={{ display: "grid", gap: 5 }}>
                       <LaneCardLabel label="Your lane card" card={lane.facedown[player]} />
                       <LaneCardLabel label="Opponent lane card" card={lane.facedown[player === 1 ? 2 : 1]} hidden={!!lane.facedown[player === 1 ? 2 : 1]} />
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div style={{ display: "grid", gap: 5 }}>
                       <LaneCardLabel label="Player 1 lane card" card={lane.facedown[1]} hidden={!!lane.facedown[1]} />
                       <LaneCardLabel label="Player 2 lane card" card={lane.facedown[2]} hidden={!!lane.facedown[2]} />
                     </div>
@@ -1413,14 +1456,16 @@ export default function App() {
           </SectionCard>
         </div>
 
-        <div style={{ position: "sticky", top: 10, alignSelf: "start", maxHeight: "calc(100vh - 20px)", overflowY: "auto" }}>
-          <SectionCard title="Actions" borderColor={myTheme.border} background="#fafafa">
-            {actionControls}
-            {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
-            {rightPanel}
+        <div className="game-side" style={{ position: "sticky", top: 6, alignSelf: "start", maxHeight: "calc(100dvh - 16px)", overflowY: "auto" }}>
+          <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
+            <CollapseHeader title="Actions" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
+            {!collapsedPanels.actions && <>{actionControls}
+              {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
+              {rightPanel}</>}
           </SectionCard>
-          <SectionCard title="Recent Events" borderColor="#444" background="#fff">
-            {actionLog.length === 0 ? <p>No events yet.</p> : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{actionLog.map((entry, idx) => <div key={`${entry}-${idx}`} style={{ padding: 10, borderRadius: 8, background: idx === 0 ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>{entry}</div>)}</div>}
+          <SectionCard borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
+            <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
+            {!collapsedPanels.events && (actionLog.length === 0 ? <p>No events yet.</p> : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{actionLog.map((entry, idx) => <div key={`${entry}-${idx}`} style={{ padding: 10, borderRadius: 8, background: idx === 0 ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>{entry}</div>)}</div>)}
           </SectionCard>
         </div>
       </div>
