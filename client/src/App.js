@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL =
@@ -22,6 +22,14 @@ const FACTION_COLORS = {
   frumo: { primary: "#2563eb", light: "#e8f0ff", border: "#1d4ed8" },
   bizi: { primary: "#7c3aed", light: "#f3e8ff", border: "#6d28d9" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
+};
+
+const MUSIC_TRACKS = {
+  menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
+  rumin: { label: "Rumin Imperial Theme", pad: [65.41, 98, 130.81], notes: [261.63, 329.63, 392, 349.23, 329.63, 261.63], tempo: 720, wave: "triangle" },
+  sheen: { label: "Sheen Living Theme", pad: [73.42, 110, 146.83], notes: [293.66, 329.63, 392, 440, 392, 329.63], tempo: 820, wave: "sine" },
+  frumo: { label: "Frumo Sunken Theme", pad: [61.74, 92.5, 123.47], notes: [246.94, 277.18, 369.99, 329.63, 277.18, 246.94], tempo: 760, wave: "triangle" },
+  bizi: { label: "Bizi Acceleration Theme", pad: [82.41, 123.47, 164.81], notes: [329.63, 415.3, 493.88, 554.37, 493.88, 415.3], tempo: 480, wave: "square" }
 };
 
 const MENU_THEME = {
@@ -285,6 +293,83 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
   );
 }
 
+function startProceduralTrack(trackKey, volume) {
+  if (typeof window === "undefined") return () => {};
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return () => {};
+
+  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  const context = new AudioContext();
+  const master = context.createGain();
+  master.gain.value = volume;
+  master.connect(context.destination);
+
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = trackKey === "bizi" ? 1200 : 900;
+  filter.connect(master);
+
+  const padNodes = track.pad.map((frequency, index) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = track.wave;
+    oscillator.frequency.value = frequency;
+    gain.gain.value = 0.035 / (index + 1);
+    oscillator.connect(gain);
+    gain.connect(filter);
+    oscillator.start();
+    return oscillator;
+  });
+
+  let step = 0;
+  const playNote = () => {
+    const now = context.currentTime;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = track.wave;
+    oscillator.frequency.value = track.notes[step % track.notes.length];
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.06, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.46);
+    oscillator.connect(gain);
+    gain.connect(filter);
+    oscillator.start(now);
+    oscillator.stop(now + 0.5);
+    step++;
+  };
+
+  playNote();
+  const intervalId = window.setInterval(playNote, track.tempo);
+
+  return () => {
+    window.clearInterval(intervalId);
+    padNodes.forEach((node) => {
+      try { node.stop(); } catch (_error) {}
+    });
+    context.close();
+  };
+}
+
+function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
+  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
+      <MenuButton variant="secondary" onClick={onToggle}>{enabled ? "Mute Music" : "Play Music"}</MenuButton>
+      <span>{track.label}</span>
+      <input
+        type="range"
+        min="0"
+        max="0.18"
+        step="0.01"
+        value={volume}
+        onChange={(e) => onVolumeChange(Number(e.target.value))}
+        aria-label="Music volume"
+        style={{ width: 110 }}
+      />
+    </div>
+  );
+}
+
 function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
   if (account) {
     return (
@@ -513,6 +598,9 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [playAsGuest, setPlayAsGuest] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.07);
+  const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -525,6 +613,10 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+
+  const activeMusicTrack = !game || role === "spectator" || !player
+    ? "menu"
+    : game.players[player]?.faction?.id || "menu";
 
   useEffect(() => {
     if (!authToken) return;
@@ -542,6 +634,22 @@ export default function App() {
         setAccount(null);
       });
   }, [authToken]);
+
+  useEffect(() => {
+    if (musicStopRef.current) {
+      musicStopRef.current();
+      musicStopRef.current = null;
+    }
+    if (musicEnabled) {
+      musicStopRef.current = startProceduralTrack(activeMusicTrack, musicVolume);
+    }
+    return () => {
+      if (musicStopRef.current) {
+        musicStopRef.current();
+        musicStopRef.current = null;
+      }
+    };
+  }, [activeMusicTrack, musicEnabled, musicVolume]);
 
   useEffect(() => {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -715,7 +823,16 @@ export default function App() {
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Battle Net Terminal</div>
             <h1 style={{ margin: 0, fontSize: 46, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
           </div>
-          <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
+            <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+            <MusicControl
+              trackKey={activeMusicTrack}
+              enabled={musicEnabled}
+              volume={musicVolume}
+              onToggle={() => setMusicEnabled((value) => !value)}
+              onVolumeChange={setMusicVolume}
+            />
+          </div>
         </div>
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
@@ -1123,7 +1240,16 @@ export default function App() {
     <div style={{ padding: 12, fontFamily: "Arial, sans-serif", height: "100vh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
         <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
-        <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <MusicControl
+            trackKey={activeMusicTrack}
+            enabled={musicEnabled}
+            volume={musicVolume}
+            onToggle={() => setMusicEnabled((value) => !value)}
+            onVolumeChange={setMusicVolume}
+          />
+          <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
+        </div>
       </div>
 
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
