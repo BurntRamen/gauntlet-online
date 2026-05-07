@@ -1,5 +1,15 @@
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URLS = (process.env.CLIENT_URLS || "")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
+const ALLOWED_ORIGINS = [
+  CLIENT_URL,
+  "http://localhost:3000",
+  "https://gauntlet-online.vercel.app",
+  ...CLIENT_URLS
+];
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
@@ -12,21 +22,29 @@ const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
 
+function isAllowedOrigin(origin) {
+  return !origin || ALLOWED_ORIGINS.includes(origin);
+}
+
+const corsOptions = {
+  origin(origin, callback) {
+    callback(isAllowedOrigin(origin) ? null : new Error("Not allowed by CORS"), isAllowedOrigin(origin));
+  },
+  methods: ["GET", "POST"],
+  credentials: true
+};
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-app.use(cors({
-  origin: CLIENT_URL,
-  methods: ["GET", "POST"],
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "20kb" }));
 
 app.get("/", (_req, res) => {

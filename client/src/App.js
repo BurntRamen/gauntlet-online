@@ -24,6 +24,56 @@ const FACTION_COLORS = {
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
 
+const MENU_THEME = {
+  page: {
+    minHeight: "100vh",
+    padding: 30,
+    boxSizing: "border-box",
+    fontFamily: "Arial, sans-serif",
+    color: "#e5eef8",
+    background:
+      "radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.22), transparent 28%), radial-gradient(circle at 82% 18%, rgba(180, 83, 9, 0.18), transparent 24%), linear-gradient(135deg, #07111f 0%, #111827 42%, #1f2933 100%)"
+  },
+  frame: {
+    maxWidth: 1180,
+    border: "1px solid rgba(125, 211, 252, 0.28)",
+    borderRadius: 8,
+    padding: 22,
+    background: "linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(17, 24, 39, 0.72))",
+    boxShadow: "0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+  },
+  cardStyle: {
+    color: "#dbeafe",
+    borderRadius: 8,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.26)"
+  },
+  input: {
+    padding: 10,
+    background: "#0b1220",
+    color: "#f8fafc",
+    border: "1px solid rgba(148, 163, 184, 0.7)",
+    borderRadius: 4
+  },
+  button: {
+    padding: "9px 12px",
+    background: "linear-gradient(180deg, #f59e0b, #92400e)",
+    color: "#fff7ed",
+    border: "1px solid rgba(251, 191, 36, 0.75)",
+    borderRadius: 4,
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  secondaryButton: {
+    padding: "9px 12px",
+    background: "linear-gradient(180deg, #1f2937, #0f172a)",
+    color: "#dbeafe",
+    border: "1px solid rgba(125, 211, 252, 0.5)",
+    borderRadius: 4,
+    fontWeight: "bold",
+    cursor: "pointer"
+  }
+};
+
 const FACTION_VOICE_LINES = {
   rumin: [
     "We need more capital for that.",
@@ -194,34 +244,66 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   );
 }
 
-function SectionCard({ title, children, borderColor = "#333", background = "white", style = {} }) {
+function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {} }) {
   return (
     <div style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background, ...style }}>
-      {title && <h3 style={{ marginTop: 0, marginBottom: 12 }}>{title}</h3>}
+      {title && <h3 style={{ marginTop: 0, marginBottom: 12, ...headingStyle }}>{title}</h3>}
       {children}
     </div>
+  );
+}
+
+function MenuCard({ title, children }) {
+  return (
+    <SectionCard
+      title={title}
+      borderColor="rgba(125, 211, 252, 0.42)"
+      background="linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.9))"
+      style={MENU_THEME.cardStyle}
+      headingStyle={{ color: "#facc15", letterSpacing: 0.4, textTransform: "uppercase", fontSize: 18 }}
+    >
+      {children}
+    </SectionCard>
+  );
+}
+
+function MenuButton({ children, variant = "primary", disabled = false, onClick, style = {} }) {
+  const base = variant === "secondary" ? MENU_THEME.secondaryButton : MENU_THEME.button;
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...base,
+        opacity: disabled ? 0.48 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+        ...style
+      }}
+    >
+      {children}
+    </button>
   );
 }
 
 function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
   if (account) {
     return (
-      <SectionCard title="Account">
+      <MenuCard title="Account">
         <p style={{ marginTop: 0 }}>Signed in as <strong>{account.name}</strong></p>
-        <button onClick={onSignOut}>Sign Out</button>
-      </SectionCard>
+        <MenuButton variant="secondary" onClick={onSignOut}>Sign Out</MenuButton>
+      </MenuCard>
     );
   }
 
   return (
-    <SectionCard title={mode === "register" ? "Create Account" : "Sign In"}>
+    <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
       <div style={{ display: "grid", gap: 10 }}>
         <input
           value={form.name}
           onChange={(e) => onFormChange({ ...form, name: e.target.value })}
           placeholder="Account name"
           autoComplete="username"
-          style={{ padding: 8 }}
+          style={MENU_THEME.input}
         />
         <input
           value={form.password}
@@ -229,17 +311,17 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
           placeholder="Password"
           type="password"
           autoComplete={mode === "register" ? "new-password" : "current-password"}
-          style={{ padding: 8 }}
+          style={MENU_THEME.input}
         />
-        {error && <div style={{ color: "#b91c1c", fontSize: 13 }}>{error}</div>}
+        {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
         <div>
-          <button onClick={onSubmit} style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</button>
-          <button onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
+          <MenuButton onClick={onSubmit} style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
+          <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
             {mode === "register" ? "Use Existing Account" : "Make Account"}
-          </button>
+          </MenuButton>
         </div>
       </div>
-    </SectionCard>
+    </MenuCard>
   );
 }
 
@@ -626,10 +708,17 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div style={{ padding: 24, fontFamily: "Arial, sans-serif", maxWidth: 980 }}>
-        <h1>Gauntlet Online</h1>
-        {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+      <div style={MENU_THEME.page}>
+        <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 18, marginBottom: 20 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Battle Net Terminal</div>
+            <h1 style={{ margin: 0, fontSize: 46, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
+          </div>
+          <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+        </div>
+        {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           <AccountPanel
             account={account}
             mode={authMode}
@@ -640,17 +729,19 @@ export default function App() {
             onSubmit={submitAuth}
             onSignOut={signOut}
           />
-          <SectionCard title="Create Room">
-            <button onClick={createRoom} disabled={!canPlayAsPlayer}>Create Room</button>
-            {!canPlayAsPlayer && <p style={{ color: "#555", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
-          </SectionCard>
-          <SectionCard title="Join Room">
-            <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ marginRight: 10, padding: 8 }} />
-            <button onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</button>
-            <button onClick={() => joinRoom(true)}>Join as Spectator</button>
-            {!canPlayAsPlayer && <p style={{ color: "#555", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
-          </SectionCard>
-          <SectionCard title="Guest Play">
+          <MenuCard title="Create Room">
+            <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer}>Create Room</MenuButton>
+            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
+          </MenuCard>
+          <MenuCard title="Join Room">
+            <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ ...MENU_THEME.input, marginRight: 10, marginBottom: 10 }} />
+            <div>
+              <MenuButton onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</MenuButton>
+              <MenuButton variant="secondary" onClick={() => joinRoom(true)}>Join as Spectator</MenuButton>
+            </div>
+            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
+          </MenuCard>
+          <MenuCard title="Guest Play">
             <label style={{ display: "block", marginBottom: 10 }}>
               <input
                 type="checkbox"
@@ -666,12 +757,13 @@ export default function App() {
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Guest name"
               disabled={!!account || !playAsGuest}
-              style={{ padding: 8, width: "100%", boxSizing: "border-box" }}
+              style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
             />
-            {account && <p style={{ color: "#555", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
-          </SectionCard>
+            {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
+          </MenuCard>
         </div>
         <RulebookPanel />
+        </div>
       </div>
     );
   }
