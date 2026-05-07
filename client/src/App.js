@@ -82,6 +82,19 @@ const MENU_THEME = {
   }
 };
 
+const BOARD_BACKGROUNDS = {
+  rumin:
+    "linear-gradient(90deg, rgba(253, 224, 71, 0.14) 0 2px, transparent 2px 17%), linear-gradient(0deg, rgba(14, 165, 233, 0.12) 0 1px, transparent 1px 28px), radial-gradient(circle at 18% 18%, rgba(239, 68, 68, 0.28), transparent 24%), radial-gradient(circle at 74% 22%, rgba(59, 130, 246, 0.24), transparent 28%), linear-gradient(135deg, rgba(244, 114, 182, 0.24), rgba(250, 204, 21, 0.16) 28%, rgba(20, 184, 166, 0.18) 58%, rgba(30, 41, 59, 0.86)), repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 12px, transparent 12px 46px)",
+  sheen:
+    "radial-gradient(ellipse at 18% 8%, rgba(22, 101, 52, 0.22), transparent 34%), repeating-linear-gradient(112deg, rgba(17, 24, 39, 0.22) 0 1px, transparent 1px 18px), repeating-linear-gradient(78deg, rgba(21, 128, 61, 0.18) 0 2px, transparent 2px 44px), linear-gradient(135deg, #f7f3e8 0%, #e8eadc 42%, #bfd2b1 100%)",
+  bizi:
+    "radial-gradient(circle at 78% 16%, rgba(253, 186, 116, 0.34), transparent 18%), repeating-linear-gradient(165deg, rgba(120, 53, 15, 0.16) 0 2px, transparent 2px 34px), linear-gradient(180deg, #dbc09a 0%, #b78b5f 46%, #6b4a2b 100%)",
+  frumo:
+    "radial-gradient(circle at 18% 28%, rgba(125, 211, 252, 0.42), transparent 18%), radial-gradient(circle at 78% 40%, rgba(45, 212, 191, 0.34), transparent 22%), radial-gradient(circle at 52% 72%, rgba(236, 72, 153, 0.22), transparent 26%), repeating-linear-gradient(100deg, rgba(255,255,255,0.13) 0 3px, transparent 3px 38px), linear-gradient(180deg, #0e7490 0%, #0369a1 42%, #172554 100%)",
+  default:
+    "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)"
+};
+
 const FACTION_VOICE_LINES = {
   rumin: [
     "We need more capital for that.",
@@ -107,6 +120,10 @@ const FACTION_VOICE_LINES = {
 
 function getFactionTheme(factionId) {
   return FACTION_COLORS[factionId] || FACTION_COLORS.default;
+}
+
+function getBoardBackground(factionId) {
+  return BOARD_BACKGROUNDS[factionId] || BOARD_BACKGROUNDS.default;
 }
 
 function getFactionVoiceLine(factionId, seedText = "") {
@@ -921,6 +938,7 @@ export default function App() {
   const isMyPriority = !isSpectator && game.priority === player;
   const myTheme = !isSpectator ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
+  const boardBackground = !isSpectator ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
 
   const opponentNumber = !isSpectator ? (player === 1 ? 2 : 1) : null;
   const hasIncomingAttack =
@@ -1237,7 +1255,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 12, fontFamily: "Arial, sans-serif", height: "100vh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: 12, fontFamily: "Arial, sans-serif", height: "100vh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
         <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", justifyContent: "flex-end" }}>
