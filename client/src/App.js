@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
+const DONATE_URL = process.env.REACT_APP_DONATE_URL || "";
 
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
@@ -388,6 +389,18 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
   );
 }
 
+function DonateButton({ onUnavailable }) {
+  function handleDonate() {
+    if (DONATE_URL) {
+      window.open(DONATE_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
+    onUnavailable();
+  }
+
+  return <MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton>;
+}
+
 function CollapseHeader({ title, collapsed, onToggle, color = "#111827" }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: collapsed ? 0 : 8 }}>
@@ -628,6 +641,7 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.07);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: true, attacks: true });
+  const [supportMessage, setSupportMessage] = useState("");
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -870,8 +884,10 @@ export default function App() {
               onToggle={() => setMusicEnabled((value) => !value)}
               onVolumeChange={setMusicVolume}
             />
+            <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
           </div>
         </div>
+        {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           <AccountPanel
