@@ -181,6 +181,23 @@ function getAccountFromToken(token) {
   return publicAccount(account);
 }
 
+function getAccountRecordFromToken(token) {
+  const payload = verifyAuthToken(token);
+  if (!payload) return null;
+  const store = loadAccountStore();
+  return store.accounts.find((entry) => entry.id === payload.id) || null;
+}
+
+function getAccountMatchProfile(account) {
+  const wins = account.stats?.gamesWon || 0;
+  const losses = account.stats?.gamesLost || 0;
+  const draws = account.stats?.gamesDrawn || 0;
+  const decidedGames = wins + losses;
+  const gamesPlayed = wins + losses + draws;
+  const winRatio = decidedGames > 0 ? wins / decidedGames : 0.5;
+  return { wins, losses, draws, gamesPlayed, winRatio };
+}
+
 app.post("/api/auth/register", (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
@@ -345,6 +362,7 @@ function getFactionById(id) {
 
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
+const matchmakingQueue = [];
 
 function makeReconnectToken() {
   return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -365,6 +383,65 @@ function createRoom() {
     damageConfirmed: { 1: false, 2: false }
   };
   rooms.set(roomCode, roomState);
+  return roomState;
+}
+
+function removeFromMatchmaking(socketId) {
+  const index = matchmakingQueue.findIndex((entry) => entry.socketId === socketId);
+  if (index >= 0) matchmakingQueue.splice(index, 1);
+}
+
+function getMatchTolerance(waitMs) {
+  return Math.min(0.45, 0.15 + Math.floor(waitMs / 30000) * 0.08);
+}
+
+function findMatchForEntry(entry) {
+  const now = Date.now();
+  let best = null;
+  let bestScore = Infinity;
+
+  for (const candidate of matchmakingQueue) {
+    if (candidate.socketId === entry.socketId || candidate.accountId === entry.accountId) continue;
+    const tolerance = Math.max(getMatchTolerance(now - entry.joinedAt), getMatchTolerance(now - candidate.joinedAt));
+    const ratioGap = Math.abs(entry.winRatio - candidate.winRatio);
+    if (ratioGap > tolerance) continue;
+    const gamesGap = Math.abs(entry.gamesPlayed - candidate.gamesPlayed);
+    const score = ratioGap + Math.min(gamesGap, 20) / 200;
+    if (score < bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+
+  return best;
+}
+
+function createMatchedRoom(entryA, entryB) {
+  const roomState = createRoom();
+  const firstEntry = Math.random() < 0.5 ? entryA : entryB;
+  const secondEntry = firstEntry === entryA ? entryB : entryA;
+  const assignments = [
+    { playerNum: 1, entry: firstEntry },
+    { playerNum: 2, entry: secondEntry }
+  ];
+
+  for (const assignment of assignments) {
+    const lobbyPlayer = roomState.lobby.players[assignment.playerNum];
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = assignment.entry.accountId;
+    lobbyPlayer.accountName = assignment.entry.accountName;
+    lobbyPlayer.isGuest = false;
+  }
+
+  for (const assignment of assignments) {
+    const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
+    if (playerSocket) {
+      attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
+      playerSocket.emit("matchmakingStatus", { inQueue: false, message: `Match found. Room ${roomState.roomCode}.` });
+    }
+  }
+
+  emitLobbyState(roomState);
   return roomState;
 }
 
@@ -1033,9 +1110,54 @@ function createGameFromLobby(roomState) {
 // ============ SOCKET HANDLERS ============
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
+
+  socket.on("joinMatchmaking", ({ authToken } = {}) => {
+    console.log("[Socket] joinMatchmaking");
+    const account = getAccountRecordFromToken(authToken || socket.data.authToken);
+    if (!account) {
+      socket.emit("matchmakingStatus", { inQueue: false, message: "Sign in to use matchmaking." });
+      return;
+    }
+    if (socket.data.roomCode) {
+      socket.emit("matchmakingStatus", { inQueue: false, message: "Leave your current room before entering matchmaking." });
+      return;
+    }
+
+    removeFromMatchmaking(socket.id);
+    const profile = getAccountMatchProfile(account);
+    const entry = {
+      socketId: socket.id,
+      accountId: account.id,
+      accountName: account.name,
+      winRatio: profile.winRatio,
+      gamesPlayed: profile.gamesPlayed,
+      joinedAt: Date.now()
+    };
+
+    const match = findMatchForEntry(entry);
+    if (match) {
+      removeFromMatchmaking(match.socketId);
+      createMatchedRoom(entry, match);
+      return;
+    }
+
+    matchmakingQueue.push(entry);
+    socket.data.authToken = authToken || socket.data.authToken;
+    socket.emit("matchmakingStatus", {
+      inQueue: true,
+      message: `Searching for a similar record... ${matchmakingQueue.length} player${matchmakingQueue.length === 1 ? "" : "s"} in queue.`,
+      queueSize: matchmakingQueue.length
+    });
+  });
+
+  socket.on("leaveMatchmaking", () => {
+    removeFromMatchmaking(socket.id);
+    socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
+  });
   
   socket.on("createRoom", ({ authToken, guestName } = {}) => {
     console.log("[Socket] createRoom");
+    removeFromMatchmaking(socket.id);
     const identity = requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
     const roomState = createRoom();
@@ -1052,6 +1174,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinRoom", ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
+    removeFromMatchmaking(socket.id);
     if (!roomCode) {
       socket.emit("errorMessage", "Enter a room code.");
       return;
@@ -1728,6 +1851,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`[Socket] Disconnected: ${socket.id}`);
+    removeFromMatchmaking(socket.id);
     const roomState = getRoomForSocket(socket);
     if (roomState) {
       for (const p of [1, 2]) {

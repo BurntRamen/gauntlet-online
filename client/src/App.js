@@ -483,6 +483,21 @@ function LeaderboardPanel({ leaderboard, error }) {
   );
 }
 
+function MatchmakingPanel({ account, status, onJoin, onLeave }) {
+  return (
+    <MenuCard title="Matchmaking">
+      <p style={{ marginTop: 0, color: "#bfdbfe" }}>Find an account opponent with a similar win/loss ratio.</p>
+      {status.message && <div style={{ color: status.inQueue ? "#fde68a" : "#bfdbfe", fontSize: 13, marginBottom: 10 }}>{status.message}</div>}
+      {status.inQueue ? (
+        <MenuButton variant="secondary" onClick={onLeave}>Cancel Search</MenuButton>
+      ) : (
+        <MenuButton onClick={onJoin} disabled={!account}>Find Match</MenuButton>
+      )}
+      {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to use ranked matchmaking.</p>}
+    </MenuCard>
+  );
+}
+
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
     <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
@@ -677,6 +692,7 @@ export default function App() {
   const [supportMessage, setSupportMessage] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -743,6 +759,7 @@ export default function App() {
     const onAssign = (payload) => {
       setRole(payload.role);
       setPlayer(payload.playerNum);
+      setMatchmakingStatus({ inQueue: false, message: "" });
       saveReconnectInfo({ roomCode: payload.roomCode, reconnectToken: payload.reconnectToken, role: payload.role });
     };
 
@@ -756,6 +773,7 @@ export default function App() {
     const onLobbyState = (newLobby) => setLobby(newLobby);
     const onError = (msg) => setError(msg);
     const onPeek = (text) => setPeekResult(text);
+    const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
       const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
@@ -773,6 +791,7 @@ export default function App() {
     socket.on("lobbyState", onLobbyState);
     socket.on("errorMessage", onError);
     socket.on("peekResult", onPeek);
+    socket.on("matchmakingStatus", onMatchmakingStatus);
     attemptReconnect();
 
     return () => {
@@ -783,6 +802,7 @@ export default function App() {
       socket.off("lobbyState", onLobbyState);
       socket.off("errorMessage", onError);
       socket.off("peekResult", onPeek);
+      socket.off("matchmakingStatus", onMatchmakingStatus);
     };
   }, []);
 
@@ -881,6 +901,18 @@ export default function App() {
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
   }
 
+  function joinMatchmaking() {
+    if (!authToken) {
+      setMatchmakingStatus({ inQueue: false, message: "Sign in to use matchmaking." });
+      return;
+    }
+    socket.emit("joinMatchmaking", { authToken });
+  }
+
+  function leaveMatchmaking() {
+    socket.emit("leaveMatchmaking");
+  }
+
   function chooseFaction(factionId) {
     socket.emit("selectFaction", { factionId });
   }
@@ -958,6 +990,7 @@ export default function App() {
             </div>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
           </MenuCard>
+          <MatchmakingPanel account={account} status={matchmakingStatus} onJoin={joinMatchmaking} onLeave={leaveMatchmaking} />
           <MenuCard title="Guest Play">
             <label style={{ display: "block", marginBottom: 10 }}>
               <input
