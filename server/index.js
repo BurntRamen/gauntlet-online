@@ -157,6 +157,21 @@ function touchAccountStats(accountId, field) {
   saveAccountStore(store);
 }
 
+function recordAccountGameResult(accountId, result) {
+  if (!accountId || !["win", "loss", "draw"].includes(result)) return;
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === accountId);
+  if (!account) return;
+
+  account.stats = account.stats || {};
+  account.stats.gamesPlayed = (account.stats.gamesPlayed || 0) + 1;
+  if (result === "win") account.stats.gamesWon = (account.stats.gamesWon || 0) + 1;
+  if (result === "loss") account.stats.gamesLost = (account.stats.gamesLost || 0) + 1;
+  if (result === "draw") account.stats.gamesDrawn = (account.stats.gamesDrawn || 0) + 1;
+  account.lastSeenAt = new Date().toISOString();
+  saveAccountStore(store);
+}
+
 function getAccountFromToken(token) {
   const payload = verifyAuthToken(token);
   if (!payload) return null;
@@ -251,9 +266,37 @@ app.get("/api/admin/account-stats", (req, res) => {
       lastSeenAt: account.lastSeenAt || null,
       gamesCreated: account.stats?.gamesCreated || 0,
       gamesJoined: account.stats?.gamesJoined || 0,
-      gamesSpectated: account.stats?.gamesSpectated || 0
+      gamesSpectated: account.stats?.gamesSpectated || 0,
+      gamesWon: account.stats?.gamesWon || 0,
+      gamesLost: account.stats?.gamesLost || 0,
+      gamesDrawn: account.stats?.gamesDrawn || 0
     }))
   });
+});
+
+app.get("/api/leaderboard", (_req, res) => {
+  const store = loadAccountStore();
+  const leaderboard = store.accounts
+    .map((account) => {
+      const wins = account.stats?.gamesWon || 0;
+      const losses = account.stats?.gamesLost || 0;
+      const draws = account.stats?.gamesDrawn || 0;
+      const gamesPlayed = wins + losses + draws;
+      const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 1000) / 10 : 0;
+      return {
+        name: account.name,
+        wins,
+        losses,
+        draws,
+        gamesPlayed,
+        winRate
+      };
+    })
+    .filter((entry) => entry.gamesPlayed > 0)
+    .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses || a.name.localeCompare(b.name))
+    .slice(0, 25);
+
+  res.json({ leaderboard });
 });
 
 // ============ FACTION DATA ============
@@ -782,6 +825,23 @@ function applyGameOverState(game) {
   return true;
 }
 
+function recordFinalGameStats(roomState) {
+  const game = roomState.game;
+  if (!game || game.statsRecorded) return;
+  if (game.phase !== "gameOver") return;
+
+  if (game.winner == null) {
+    recordAccountGameResult(roomState.lobby.players[1].accountId, "draw");
+    recordAccountGameResult(roomState.lobby.players[2].accountId, "draw");
+  } else {
+    const loser = getOtherPlayer(game.winner);
+    recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win");
+    recordAccountGameResult(roomState.lobby.players[loser].accountId, "loss");
+  }
+
+  game.statsRecorded = true;
+}
+
 function resolveDamage(game, roomState) {
   const damageMessages = [];
 
@@ -1153,6 +1213,7 @@ io.on("connection", (socket) => {
       resolveDamage(game, roomState);
       
       if (applyGameOverState(game)) {
+        recordFinalGameStats(roomState);
         io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
       } else {
         game.phase = "priority";

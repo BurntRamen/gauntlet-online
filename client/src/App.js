@@ -450,6 +450,39 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
   );
 }
 
+function LeaderboardPanel({ leaderboard, error }) {
+  return (
+    <MenuCard title="Leaderboard">
+      {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
+      {!error && leaderboard.length === 0 && <p style={{ margin: 0, color: "#bfdbfe" }}>No ranked games yet.</p>}
+      {leaderboard.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ color: "#facc15", textAlign: "left", borderBottom: "1px solid rgba(125, 211, 252, 0.28)" }}>
+                <th style={{ padding: "6px 4px" }}>Player</th>
+                <th style={{ padding: "6px 4px", textAlign: "right" }}>W</th>
+                <th style={{ padding: "6px 4px", textAlign: "right" }}>L</th>
+                <th style={{ padding: "6px 4px", textAlign: "right" }}>Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.slice(0, 8).map((entry, index) => (
+                <tr key={entry.name} style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.16)" }}>
+                  <td style={{ padding: "6px 4px" }}>{index + 1}. {entry.name}</td>
+                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.wins}</td>
+                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.losses}</td>
+                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.winRate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </MenuCard>
+  );
+}
+
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
     <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
@@ -642,6 +675,8 @@ export default function App() {
   const [musicVolume, setMusicVolume] = useState(0.07);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: true, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardError, setLeaderboardError] = useState("");
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -676,6 +711,17 @@ export default function App() {
         setAccount(null);
       });
   }, [authToken]);
+
+  useEffect(() => {
+    fetch(`${SOCKET_URL}/api/leaderboard`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load leaderboard.");
+        setLeaderboard(data.leaderboard || []);
+        setLeaderboardError("");
+      })
+      .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
+  }, []);
 
   useEffect(() => {
     if (musicStopRef.current) {
@@ -932,6 +978,7 @@ export default function App() {
             />
             {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
           </MenuCard>
+          <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} />
         </div>
         <RulebookPanel />
         </div>
