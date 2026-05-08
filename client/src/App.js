@@ -588,6 +588,7 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
 }
 
 function FactionFeature({ title, feature, theme }) {
+  if (!feature) return null;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "78px minmax(0, 1fr)", gap: 10, alignItems: "start", marginBottom: 12 }}>
       {feature?.image ? (
@@ -626,7 +627,7 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
       </span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
-        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature.name}</span>
+        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
       </span>
     </button>
   );
@@ -1032,6 +1033,10 @@ export default function App() {
     socket.emit("selectFaction", { factionId });
   }
 
+  function setGameMode(mode) {
+    socket.emit("setGameMode", { mode });
+  }
+
   function startGame() {
     socket.emit("startGame");
   }
@@ -1219,7 +1224,10 @@ export default function App() {
 
   if (!game) {
     const myFactionId = role === "player" ? lobby?.players?.[player]?.factionId || null : null;
-    const bothReady = lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
+    const isBasicMode = lobby?.gameMode === "basic";
+    const bothReady = isBasicMode
+      ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
+      : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
 
     return (
       <div style={MENU_THEME.page}>
@@ -1234,16 +1242,29 @@ export default function App() {
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
-          <p><strong>Player 1:</strong> {lobby?.players?.[1]?.factionId || "No faction"} — {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"}</p>
-          <p><strong>Player 2:</strong> {lobby?.players?.[2]?.factionId || "No faction"} — {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"}</p>
+          <p><strong>Mode:</strong> {isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
+          <p><strong>Player 1:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[1]?.factionId || "No faction"} — {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"}</p>
+          <p><strong>Player 2:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[2]?.factionId || "No faction"} — {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"}</p>
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
         </MenuCard>
         {role === "player" && (
           <>
-            <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
-              {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
-            </div>
+            <MenuCard title="Game Mode">
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
+                <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode}>Basic Mode</MenuButton>
+              </div>
+              <p style={{ marginBottom: 0, color: "#bfdbfe", fontSize: 13 }}>{player === 1 ? "Player 1 chooses the room mode before the game starts." : "Waiting for Player 1 to choose the room mode."}</p>
+            </MenuCard>
+            {!isBasicMode && (
+              <>
+                <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
+                  {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
+                </div>
+              </>
+            )}
+            {isBasicMode && <MenuCard title="Basic Mode"><p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p></MenuCard>}
             <MenuButton onClick={startGame} disabled={!bothReady}>Start Game</MenuButton>
           </>
         )}
@@ -1256,6 +1277,7 @@ export default function App() {
   const isSpectator = role === "spectator";
   const me = !isSpectator ? game.players[player] : null;
   const opponent = !isSpectator ? game.players[player === 1 ? 2 : 1] : null;
+  const isBasicGame = game.gameMode === "basic";
   const isMyPriority = !isSpectator && game.priority === player;
   const myTheme = !isSpectator ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
@@ -1502,15 +1524,15 @@ export default function App() {
       {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
       {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
       {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
-      {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
-      {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
-      {me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
+      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
+      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
+      {!isBasicGame && me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
       <button onClick={offerDraw} disabled={game.drawOfferBy === player}>{game.drawOfferBy && game.drawOfferBy !== player ? "Accept Draw" : game.drawOfferBy === player ? "Draw Offered" : "Offer Draw"}</button>
       <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
     </div>
   ) : null;
 
-  const powerCards = !isSpectator
+  const powerCards = !isSpectator && !isBasicGame
     ? [
         { id: "commander", title: "Commander", feature: me.faction.commander },
         { id: "city", title: "City", feature: me.faction.city },
@@ -1689,7 +1711,7 @@ export default function App() {
 
           {!isSpectator && (
             <>
-              <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
+              {!isBasicGame && <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
                 <CollapseHeader title={`${me.faction.name} Powers`} collapsed={collapsedPanels.powers} onToggle={() => togglePanel("powers")} color={myTheme.primary} />
                 {!collapsedPanels.powers && <><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                   {powerCards.map((power) => (
@@ -1717,7 +1739,10 @@ export default function App() {
                   <span><strong>Acceleration:</strong> {me.accelerationCounters}</span>
                 </div>
                 </>}
-              </SectionCard>
+              </SectionCard>}
+              {isBasicGame && <SectionCard borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
+                <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
+              </SectionCard>}
 
               <SectionCard title="Your Hand" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }}>
                 {canDeclareAttack && <div style={{ marginBottom: 6 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}

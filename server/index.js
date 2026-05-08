@@ -13,6 +13,8 @@ const ALLOWED_ORIGINS = [
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 const express = require("express");
 const http = require("http");
@@ -49,6 +51,13 @@ app.use(express.json({ limit: "20kb" }));
 
 app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
+});
+
+app.get("/api/storage-status", (_req, res) => {
+  res.json({
+    accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
+    supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
+  });
 });
 
 // ============ ACCOUNT AUTH ============
@@ -493,6 +502,19 @@ function getFactionById(id) {
   return factionsData[id] || null;
 }
 
+const basicGameProfile = {
+  id: "basic",
+  name: "Basic Gauntlet",
+  cardImage: null,
+  commander: null,
+  city: null,
+  general: null
+};
+
+function getLobbyGameMode(roomState) {
+  return roomState.lobby.gameMode === "basic" ? "basic" : "factions";
+}
+
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
 const matchmakingQueue = [];
@@ -506,6 +528,7 @@ function createRoom() {
   const roomState = {
     roomCode,
     lobby: {
+      gameMode: "factions",
       players: {
         1: { socket: null, connected: false, factionId: null, reconnectToken: null },
         2: { socket: null, connected: false, factionId: null, reconnectToken: null }
@@ -609,6 +632,7 @@ function sanitizeLobbyPlayer(player) {
 function emitLobbyState(roomState) {
   io.to(roomState.roomCode).emit("lobbyState", {
     roomCode: roomState.roomCode,
+    gameMode: getLobbyGameMode(roomState),
     players: {
       1: sanitizeLobbyPlayer(roomState.lobby.players[1]),
       2: sanitizeLobbyPlayer(roomState.lobby.players[2])
@@ -697,6 +721,9 @@ function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
 }
 
 function roomPlayersReady(roomState) {
+  if (getLobbyGameMode(roomState) === "basic") {
+    return roomState.lobby.players[1].socket && roomState.lobby.players[2].socket;
+  }
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
 }
 
@@ -1167,8 +1194,9 @@ function advanceEndPlacement(game) {
 }
 
 function createGameFromLobby(roomState) {
-  const faction1 = getFactionById(roomState.lobby.players[1].factionId);
-  const faction2 = getFactionById(roomState.lobby.players[2].factionId);
+  const gameMode = getLobbyGameMode(roomState);
+  const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId);
+  const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId);
   const startingPriority = Math.random() < 0.5 ? 1 : 2;
   
   const suits = ["♠", "♥", "♦", "♣"];
@@ -1200,6 +1228,7 @@ function createGameFromLobby(roomState) {
   
   const game = {
     roomCode: roomState.roomCode,
+    gameMode,
     phase: "priority",
     turn: 1,
     priority: startingPriority,
@@ -1415,7 +1444,33 @@ io.on("connection", (socket) => {
     if (!roomState || roomState.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
+    if (getLobbyGameMode(roomState) === "basic") {
+      socket.emit("errorMessage", "Basic Mode does not use factions.");
+      return;
+    }
+    if (!getFactionById(factionId)) {
+      socket.emit("errorMessage", "Choose a valid faction.");
+      return;
+    }
     roomState.lobby.players[playerNum].factionId = factionId;
+    emitLobbyState(roomState);
+  });
+
+  socket.on("setGameMode", ({ mode } = {}) => {
+    console.log(`[Socket] setGameMode: ${mode}`);
+    const roomState = getRoomForSocket(socket);
+    if (!roomState || roomState.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (playerNum !== 1) {
+      socket.emit("errorMessage", "Only Player 1 can set the room mode.");
+      return;
+    }
+    const nextMode = mode === "basic" ? "basic" : "factions";
+    roomState.lobby.gameMode = nextMode;
+    if (nextMode === "basic") {
+      roomState.lobby.players[1].factionId = null;
+      roomState.lobby.players[2].factionId = null;
+    }
     emitLobbyState(roomState);
   });
 
@@ -1424,7 +1479,7 @@ io.on("connection", (socket) => {
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
     if (!roomPlayersReady(roomState)) {
-      socket.emit("errorMessage", "Both players must select a faction first.");
+      socket.emit("errorMessage", getLobbyGameMode(roomState) === "basic" ? "Both player seats must be filled first." : "Both players must select a faction first.");
       return;
     }
     createGameFromLobby(roomState);
