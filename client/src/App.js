@@ -805,10 +805,11 @@ export default function App() {
   }
 
   function playerIdentityPayload() {
-    if (account && authToken) return { authToken };
+    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
+    if (account && authToken) return { authToken, reconnectToken };
     const normalizedGuestName = guestName.trim() || "Guest";
     localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
-    return { guestName: normalizedGuestName };
+    return { guestName: normalizedGuestName, reconnectToken };
   }
 
   function createRoom() {
@@ -817,7 +818,6 @@ export default function App() {
   }
 
   function joinRoom(asSpectator = false) {
-    clearReconnectInfo();
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
   }
 

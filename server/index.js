@@ -383,6 +383,47 @@ function getPlayerNumberBySocket(roomState, socketId) {
   return null;
 }
 
+function getReconnectPlayerNumber(roomState, reconnectToken, authToken) {
+  const account = getAccountFromToken(authToken);
+  for (const playerNum of [1, 2]) {
+    const lobbyPlayer = roomState.lobby.players[playerNum];
+    if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
+    if (account?.id && lobbyPlayer.accountId === account.id) return playerNum;
+  }
+  return null;
+}
+
+function getDisconnectedSeatForIdentity(roomState, identity, reconnectToken) {
+  for (const playerNum of [1, 2]) {
+    const lobbyPlayer = roomState.lobby.players[playerNum];
+    if (lobbyPlayer.socket) continue;
+    if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
+    if (identity.type === "account" && lobbyPlayer.accountId && lobbyPlayer.accountId === identity.id) return playerNum;
+    if (identity.type === "guest" && lobbyPlayer.isGuest && lobbyPlayer.accountName === identity.name) return playerNum;
+  }
+  return null;
+}
+
+function attachPlayerSocket(roomState, socket, playerNum) {
+  const lobbyPlayer = roomState.lobby.players[playerNum];
+  lobbyPlayer.socket = socket.id;
+  lobbyPlayer.connected = true;
+  if (!lobbyPlayer.reconnectToken) lobbyPlayer.reconnectToken = makeReconnectToken();
+  if (roomState.game?.players?.[playerNum]) roomState.game.players[playerNum].connected = true;
+
+  socket.join(roomState.roomCode);
+  socket.data.roomCode = roomState.roomCode;
+  socket.data.role = "player";
+  socket.data.playerNum = playerNum;
+
+  socket.emit("assign", {
+    role: "player",
+    playerNum,
+    roomCode: roomState.roomCode,
+    reconnectToken: lobbyPlayer.reconnectToken
+  });
+}
+
 function roomPlayersReady(roomState) {
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
 }
@@ -945,20 +986,11 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].accountName = identity.name;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     touchAccountStats(identity.id, "gamesCreated");
-    socket.join(roomState.roomCode);
-    socket.data.roomCode = roomState.roomCode;
-    socket.data.role = "player";
-    socket.data.playerNum = 1;
-    socket.emit("assign", { 
-      role: "player", 
-      playerNum: 1, 
-      roomCode: roomState.roomCode,
-      reconnectToken: roomState.lobby.players[1].reconnectToken
-    });
+    attachPlayerSocket(roomState, socket, 1);
     emitLobbyState(roomState);
   });
 
-  socket.on("joinRoom", ({ roomCode, asSpectator = false, authToken, guestName } = {}) => {
+  socket.on("joinRoom", ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
     if (!roomCode) {
       socket.emit("errorMessage", "Enter a room code.");
@@ -984,28 +1016,61 @@ io.on("connection", (socket) => {
     }
     const identity = requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
-    if (!roomState.lobby.players[2].socket) {
-      roomState.lobby.players[2].socket = socket.id;
-      roomState.lobby.players[2].connected = true;
+    const reconnectSeat = getDisconnectedSeatForIdentity(roomState, identity, reconnectToken);
+    if (reconnectSeat) {
+      attachPlayerSocket(roomState, socket, reconnectSeat);
+      if (roomState.game) emitState(roomState);
+      else emitLobbyState(roomState);
+      return;
+    }
+    if (!roomState.lobby.players[2].socket && !roomState.lobby.players[2].reconnectToken) {
       roomState.lobby.players[2].reconnectToken = makeReconnectToken();
       roomState.lobby.players[2].accountId = identity.id;
       roomState.lobby.players[2].accountName = identity.name;
       roomState.lobby.players[2].isGuest = identity.type === "guest";
       touchAccountStats(identity.id, "gamesJoined");
-      socket.join(normalized);
-      socket.data.roomCode = normalized;
-      socket.data.role = "player";
-      socket.data.playerNum = 2;
-      socket.emit("assign", { 
-        role: "player", 
-        playerNum: 2, 
-        roomCode: normalized,
-        reconnectToken: roomState.lobby.players[2].reconnectToken
-      });
+      attachPlayerSocket(roomState, socket, 2);
       emitLobbyState(roomState);
       return;
     }
     socket.emit("errorMessage", "Room is full. Join as spectator instead.");
+  });
+
+  socket.on("reconnectToRoom", ({ roomCode, reconnectToken, authToken, role } = {}) => {
+    console.log(`[Socket] reconnectToRoom: ${roomCode}`);
+    if (!roomCode) {
+      socket.emit("errorMessage", "No room to reconnect to.");
+      return;
+    }
+
+    const normalized = String(roomCode).toUpperCase();
+    const roomState = getRoom(normalized);
+    if (!roomState) {
+      socket.emit("errorMessage", "That room is no longer active.");
+      return;
+    }
+
+    const playerNum = getReconnectPlayerNumber(roomState, reconnectToken, authToken);
+    if (playerNum) {
+      attachPlayerSocket(roomState, socket, playerNum);
+      if (roomState.game) emitState(roomState);
+      else emitLobbyState(roomState);
+      return;
+    }
+
+    const requestedRole = role || socket.data.role;
+    if (requestedRole === "spectator") {
+      if (!roomState.lobby.spectators.includes(socket.id)) roomState.lobby.spectators.push(socket.id);
+      socket.join(normalized);
+      socket.data.roomCode = normalized;
+      socket.data.role = "spectator";
+      socket.emit("assignSpectator", { role: "spectator", roomCode: normalized });
+      if (roomState.game) emitState(roomState);
+      else emitLobbyState(roomState);
+      return;
+    }
+
+    socket.emit("errorMessage", "Could not reconnect to that player seat.");
   });
 
   socket.on("selectFaction", ({ factionId }) => {
@@ -1611,6 +1676,7 @@ io.on("connection", (socket) => {
           if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
         }
       }
+      roomState.lobby.spectators = roomState.lobby.spectators.filter((socketId) => socketId !== socket.id);
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
     }
