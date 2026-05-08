@@ -30,7 +30,7 @@ const corsOptions = {
   origin(origin, callback) {
     callback(isAllowedOrigin(origin) ? null : new Error("Not allowed by CORS"), isAllowedOrigin(origin));
   },
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "DELETE"],
   credentials: true
 };
 
@@ -134,6 +134,26 @@ function publicAccount(account) {
   };
 }
 
+function publicFriend(account) {
+  return {
+    id: account.id,
+    name: account.name,
+    lastSeenAt: account.lastSeenAt || null
+  };
+}
+
+function publicFriendMessage(message) {
+  return {
+    id: message.id,
+    fromId: message.fromId,
+    fromName: message.fromName,
+    toId: message.toId,
+    toName: message.toName,
+    text: message.text,
+    createdAt: message.createdAt
+  };
+}
+
 function issueAccountSession(account) {
   return {
     token: signAuthPayload({ id: account.id, name: account.name }),
@@ -144,6 +164,39 @@ function issueAccountSession(account) {
 function findAccountByName(store, name) {
   const key = accountNameKey(name);
   return store.accounts.find((account) => account.nameKey === key) || null;
+}
+
+function requireAccountRecord(req, res) {
+  const authHeader = req.get("authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const payload = verifyAuthToken(token);
+  if (!payload) {
+    res.status(401).json({ error: "Not signed in." });
+    return null;
+  }
+
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === payload.id);
+  if (!account) {
+    res.status(401).json({ error: "Not signed in." });
+    return null;
+  }
+
+  account.friends = Array.isArray(account.friends) ? account.friends : [];
+  account.messages = Array.isArray(account.messages) ? account.messages : [];
+  return { store, account };
+}
+
+function getFriendPayload(store, account) {
+  const friendIds = new Set(Array.isArray(account.friends) ? account.friends : []);
+  const friends = store.accounts
+    .filter((entry) => friendIds.has(entry.id))
+    .map(publicFriend)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const messages = (account.messages || [])
+    .map(publicFriendMessage)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  return { friends, messages };
 }
 
 function touchAccountStats(accountId, field) {
@@ -228,6 +281,8 @@ app.post("/api/auth/register", (req, res) => {
     createdAt: now,
     lastLoginAt: now,
     lastSeenAt: now,
+    friends: [],
+    messages: [],
     stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0 }
   };
   store.accounts.push(account);
@@ -263,6 +318,84 @@ app.get("/api/auth/me", (req, res) => {
     return;
   }
   res.json({ account });
+});
+
+app.get("/api/friends", (req, res) => {
+  const context = requireAccountRecord(req, res);
+  if (!context) return;
+  res.json(getFriendPayload(context.store, context.account));
+});
+
+app.post("/api/friends", (req, res) => {
+  const context = requireAccountRecord(req, res);
+  if (!context) return;
+
+  const friendName = normalizeAccountName(req.body?.name);
+  const friend = findAccountByName(context.store, friendName);
+  if (!friend) {
+    res.status(404).json({ error: "No account found with that name." });
+    return;
+  }
+  if (friend.id === context.account.id) {
+    res.status(400).json({ error: "You cannot add yourself as a friend." });
+    return;
+  }
+
+  friend.friends = Array.isArray(friend.friends) ? friend.friends : [];
+  if (!context.account.friends.includes(friend.id)) context.account.friends.push(friend.id);
+  if (!friend.friends.includes(context.account.id)) friend.friends.push(context.account.id);
+  context.account.lastSeenAt = new Date().toISOString();
+  saveAccountStore(context.store);
+  res.json(getFriendPayload(context.store, context.account));
+});
+
+app.delete("/api/friends/:friendId", (req, res) => {
+  const context = requireAccountRecord(req, res);
+  if (!context) return;
+
+  const friendId = req.params.friendId;
+  const friend = context.store.accounts.find((entry) => entry.id === friendId);
+  context.account.friends = context.account.friends.filter((id) => id !== friendId);
+  if (friend) {
+    friend.friends = Array.isArray(friend.friends) ? friend.friends.filter((id) => id !== context.account.id) : [];
+  }
+  context.account.lastSeenAt = new Date().toISOString();
+  saveAccountStore(context.store);
+  res.json(getFriendPayload(context.store, context.account));
+});
+
+app.post("/api/friends/:friendId/messages", (req, res) => {
+  const context = requireAccountRecord(req, res);
+  if (!context) return;
+
+  const friend = context.store.accounts.find((entry) => entry.id === req.params.friendId);
+  if (!friend || !context.account.friends.includes(friend.id)) {
+    res.status(404).json({ error: "Friend not found." });
+    return;
+  }
+
+  const text = String(req.body?.text || "").trim().slice(0, 500);
+  if (!text) {
+    res.status(400).json({ error: "Enter a message first." });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const message = {
+    id: crypto.randomUUID(),
+    fromId: context.account.id,
+    fromName: context.account.name,
+    toId: friend.id,
+    toName: friend.name,
+    text,
+    createdAt: now
+  };
+  friend.messages = Array.isArray(friend.messages) ? friend.messages : [];
+  context.account.messages.push(message);
+  friend.messages.push(message);
+  context.account.lastSeenAt = now;
+  saveAccountStore(context.store);
+  res.json(getFriendPayload(context.store, context.account));
 });
 
 app.get("/api/admin/account-stats", (req, res) => {

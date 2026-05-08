@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL =
@@ -498,6 +498,86 @@ function MatchmakingPanel({ account, status, onJoin, onLeave }) {
   );
 }
 
+function FriendsPanel({
+  account,
+  friendsData,
+  selectedFriendId,
+  friendName,
+  messageText,
+  error,
+  onSelectFriend,
+  onFriendNameChange,
+  onMessageTextChange,
+  onAddFriend,
+  onRemoveFriend,
+  onSendMessage,
+  onRefresh
+}) {
+  if (!account) {
+    return (
+      <MenuCard title="Friends">
+        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to add friends and send messages.</p>
+      </MenuCard>
+    );
+  }
+
+  const friends = friendsData.friends || [];
+  const messages = friendsData.messages || [];
+  const selectedFriend = friends.find((friend) => friend.id === selectedFriendId) || friends[0] || null;
+  const selectedMessages = selectedFriend
+    ? messages.filter((message) => message.fromId === selectedFriend.id || message.toId === selectedFriend.id)
+    : [];
+
+  return (
+    <MenuCard title="Friends">
+      {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
+        <MenuButton onClick={onAddFriend}>Add</MenuButton>
+        <MenuButton variant="secondary" onClick={onRefresh}>Refresh</MenuButton>
+      </div>
+      {friends.length === 0 ? (
+        <p style={{ color: "#bfdbfe", margin: 0 }}>No friends yet.</p>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(120px, 0.75fr) minmax(180px, 1.25fr)", gap: 12 }}>
+          <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
+            {friends.map((friend) => (
+              <button key={friend.id} onClick={() => onSelectFriend(friend.id)} style={{ textAlign: "left", padding: 8, borderRadius: 4, border: selectedFriend?.id === friend.id ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", background: selectedFriend?.id === friend.id ? "rgba(245,158,11,0.18)" : "rgba(15,23,42,0.64)", color: "#dbeafe", cursor: "pointer" }}>
+                <strong>{friend.name}</strong>
+              </button>
+            ))}
+          </div>
+          <div>
+            {selectedFriend && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                  <strong>{selectedFriend.name}</strong>
+                  <button onClick={() => onRemoveFriend(selectedFriend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
+                </div>
+                <div style={{ height: 150, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
+                  {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
+                  {selectedMessages.map((message) => (
+                    <div key={message.id} style={{ marginBottom: 8, textAlign: message.fromId === account.id ? "right" : "left" }}>
+                      <div style={{ display: "inline-block", maxWidth: "88%", padding: "6px 8px", borderRadius: 6, background: message.fromId === account.id ? "rgba(245,158,11,0.22)" : "rgba(59,130,246,0.18)", color: "#f8fafc" }}>
+                        <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 2 }}>{message.fromName}</div>
+                        <div>{message.text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input value={messageText} onChange={(e) => onMessageTextChange(e.target.value)} placeholder="Message" maxLength={500} style={{ ...MENU_THEME.input, flex: 1 }} />
+                  <MenuButton onClick={() => onSendMessage(selectedFriend.id)}>Send</MenuButton>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </MenuCard>
+  );
+}
+
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
     <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
@@ -693,6 +773,11 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
+  const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
+  const [selectedFriendId, setSelectedFriendId] = useState("");
+  const [friendNameInput, setFriendNameInput] = useState("");
+  const [friendMessageInput, setFriendMessageInput] = useState("");
+  const [friendsError, setFriendsError] = useState("");
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -738,6 +823,31 @@ export default function App() {
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
   }, []);
+
+  const loadFriends = useCallback(async () => {
+    if (!authToken) {
+      setFriendsData({ friends: [], messages: [] });
+      setSelectedFriendId("");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friends`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load friends.");
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setSelectedFriendId((current) => current || data.friends?.[0]?.id || "");
+      setFriendsError("");
+    } catch (friendLoadError) {
+      setFriendsError(friendLoadError.message);
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    loadFriends();
+  }, [loadFriends]);
 
   useEffect(() => {
     if (musicStopRef.current) {
@@ -882,6 +992,11 @@ export default function App() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
+    setFriendsData({ friends: [], messages: [] });
+    setSelectedFriendId("");
+    setFriendNameInput("");
+    setFriendMessageInput("");
+    setFriendsError("");
   }
 
   function playerIdentityPayload() {
@@ -919,6 +1034,59 @@ export default function App() {
 
   function startGame() {
     socket.emit("startGame");
+  }
+
+  async function submitFriendRequest() {
+    setFriendsError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friends`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ name: friendNameInput })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not add friend.");
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setSelectedFriendId(data.friends?.find((friend) => friend.name.toLowerCase() === friendNameInput.trim().toLowerCase())?.id || selectedFriendId || data.friends?.[0]?.id || "");
+      setFriendNameInput("");
+    } catch (friendAddError) {
+      setFriendsError(friendAddError.message);
+    }
+  }
+
+  async function removeFriend(friendId) {
+    setFriendsError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friends/${friendId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not remove friend.");
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setSelectedFriendId(data.friends?.[0]?.id || "");
+      setFriendMessageInput("");
+    } catch (friendRemoveError) {
+      setFriendsError(friendRemoveError.message);
+    }
+  }
+
+  async function sendFriendMessage(friendId) {
+    setFriendsError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friends/${friendId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ text: friendMessageInput })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not send message.");
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setSelectedFriendId(friendId);
+      setFriendMessageInput("");
+    } catch (friendMessageError) {
+      setFriendsError(friendMessageError.message);
+    }
   }
 
   function returnToMainMenu() {
@@ -1006,6 +1174,21 @@ export default function App() {
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
           </MenuCard>
           <MatchmakingPanel account={account} status={matchmakingStatus} onJoin={joinMatchmaking} onLeave={leaveMatchmaking} />
+          <FriendsPanel
+            account={account}
+            friendsData={friendsData}
+            selectedFriendId={selectedFriendId}
+            friendName={friendNameInput}
+            messageText={friendMessageInput}
+            error={friendsError}
+            onSelectFriend={setSelectedFriendId}
+            onFriendNameChange={setFriendNameInput}
+            onMessageTextChange={setFriendMessageInput}
+            onAddFriend={submitFriendRequest}
+            onRemoveFriend={removeFriend}
+            onSendMessage={sendFriendMessage}
+            onRefresh={loadFriends}
+          />
           <MenuCard title="Guest Play">
             <label style={{ display: "block", marginBottom: 10 }}>
               <input
