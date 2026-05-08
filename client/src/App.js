@@ -1230,6 +1230,22 @@ export default function App() {
   function skipPlacement(lane) { socket.emit("skipEndPlacement", { lane }); resetSelections(); }
   function passPriority() { socket.emit("passPriority"); resetSelections(); }
   function resolveDamage() { socket.emit("resolveDamage"); }
+  function concedeGame() {
+    if (window.confirm("Concede this game? This will immediately give your opponent the win.")) {
+      socket.emit("concedeGame");
+      resetSelections();
+    }
+  }
+  function offerDraw() {
+    const accepting = game.drawOfferBy && game.drawOfferBy !== player;
+    const prompt = accepting
+      ? "Accept the intentional draw offer? This will end the game as a draw."
+      : "Offer an intentional draw to your opponent?";
+    if (window.confirm(prompt)) {
+      socket.emit("offerDraw");
+      resetSelections();
+    }
+  }
 
   function phaseHelpText() {
     if (isSpectator) return "Watching game.";
@@ -1250,7 +1266,7 @@ export default function App() {
     setFactionVoice({ quote, detail: message });
   }
 
-  const actionControls = !isSpectator && game.winner == null ? (
+  const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
       {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
       {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
@@ -1258,6 +1274,8 @@ export default function App() {
       {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
       {me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
       {me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
+      <button onClick={offerDraw} disabled={game.drawOfferBy === player}>{game.drawOfferBy && game.drawOfferBy !== player ? "Accept Draw" : game.drawOfferBy === player ? "Draw Offered" : "Offer Draw"}</button>
+      <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
     </div>
   ) : null;
 
@@ -1556,6 +1574,11 @@ export default function App() {
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Actions" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>{actionControls}
+              {game.drawOfferBy && game.phase !== "gameOver" && (
+                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: myTheme.light, border: `1px solid ${myTheme.border}` }}>
+                  {game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}
+                </div>
+              )}
               {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
               {rightPanel}</>}
           </SectionCard>

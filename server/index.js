@@ -1092,6 +1092,7 @@ function createGameFromLobby(roomState) {
     endPlacementStep: 0,
     endPlaced: { 1: [false, false, false], 2: [false, false, false] },
     winner: null,
+    drawOfferBy: null,
     message: `Turn 1 - Player ${startingPriority} starts with priority`
   };
   
@@ -1349,6 +1350,63 @@ io.on("connection", (socket) => {
       
       emitState(roomState);
     }
+  });
+
+  socket.on("concedeGame", () => {
+    console.log("[Socket] concedeGame");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const game = roomState.game;
+
+    if (game.phase === "gameOver") {
+      socket.emit("errorMessage", "Game is already over");
+      return;
+    }
+
+    const winner = getOtherPlayer(playerNum);
+    game.phase = "gameOver";
+    game.winner = winner;
+    game.drawOfferBy = null;
+    game.message = `Player ${playerNum} conceded. Player ${winner} wins!`;
+    recordFinalGameStats(roomState);
+    io.to(roomState.roomCode).emit("gameEnded", { winner, tie: false, concededBy: playerNum });
+    emitState(roomState);
+  });
+
+  socket.on("offerDraw", () => {
+    console.log("[Socket] offerDraw");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const game = roomState.game;
+
+    if (game.phase === "gameOver") {
+      socket.emit("errorMessage", "Game is already over");
+      return;
+    }
+
+    if (game.drawOfferBy && game.drawOfferBy !== playerNum) {
+      game.phase = "gameOver";
+      game.winner = null;
+      game.drawOfferBy = null;
+      game.message = "Players agreed to an intentional draw.";
+      recordFinalGameStats(roomState);
+      io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true, intentionalDraw: true });
+      emitState(roomState);
+      return;
+    }
+
+    if (game.drawOfferBy === playerNum) {
+      socket.emit("errorMessage", "You already offered an intentional draw");
+      return;
+    }
+
+    game.drawOfferBy = playerNum;
+    game.message = `Player ${playerNum} offered an intentional draw. Player ${getOtherPlayer(playerNum)} may accept.`;
+    emitState(roomState);
   });
 
   socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus }) => {
