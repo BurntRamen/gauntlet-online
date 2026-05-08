@@ -544,6 +544,25 @@ function attachPlayerSocket(roomState, socket, playerNum) {
   });
 }
 
+function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
+  for (const p of [1, 2]) {
+    if (roomState.lobby.players[p].socket === socket.id) {
+      roomState.lobby.players[p].connected = false;
+      roomState.lobby.players[p].socket = null;
+      if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
+    }
+  }
+
+  roomState.lobby.spectators = roomState.lobby.spectators.filter((socketId) => socketId !== socket.id);
+  if (leaveSocket) socket.leave(roomState.roomCode);
+  socket.data.roomCode = null;
+  socket.data.role = null;
+  socket.data.playerNum = null;
+
+  if (roomState.game) emitState(roomState);
+  else emitLobbyState(roomState);
+}
+
 function roomPlayersReady(roomState) {
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
 }
@@ -1907,21 +1926,20 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
+  socket.on("leaveRoom", () => {
+    console.log("[Socket] leaveRoom");
+    removeFromMatchmaking(socket.id);
+    const roomState = getRoomForSocket(socket);
+    if (!roomState) return;
+    detachSocketFromRoom(roomState, socket);
+  });
+
   socket.on("disconnect", () => {
     console.log(`[Socket] Disconnected: ${socket.id}`);
     removeFromMatchmaking(socket.id);
     const roomState = getRoomForSocket(socket);
     if (roomState) {
-      for (const p of [1, 2]) {
-        if (roomState.lobby.players[p].socket === socket.id) {
-          roomState.lobby.players[p].connected = false;
-          roomState.lobby.players[p].socket = null;
-          if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
-        }
-      }
-      roomState.lobby.spectators = roomState.lobby.spectators.filter((socketId) => socketId !== socket.id);
-      if (roomState.game) emitState(roomState);
-      else emitLobbyState(roomState);
+      detachSocketFromRoom(roomState, socket, { leaveSocket: false });
     }
   });
 });

@@ -921,6 +921,21 @@ export default function App() {
     socket.emit("startGame");
   }
 
+  function returnToMainMenu() {
+    socket.emit("leaveRoom");
+    clearReconnectInfo();
+    resetSelections();
+    setGame(null);
+    setLobby(null);
+    setRole(null);
+    setPlayer(null);
+    setRoomCodeInput("");
+    setActionLog([]);
+    setError("");
+    setFactionVoice(null);
+    setMatchmakingStatus({ inQueue: false, message: "" });
+  }
+
   function togglePayment(i) {
     if (attackMode?.from === "hand" && i === selectedAttackCardIndex) return;
     if (blockMode?.type === "handAttack" && selectedBlockCardIndexes.includes(i)) return;
@@ -1062,6 +1077,39 @@ export default function App() {
   const myTheme = !isSpectator ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
   const boardBackground = !isSpectator ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
+  const gameIsOver = game.phase === "gameOver" || game.winner != null;
+
+  if (gameIsOver) {
+    const isDraw = game.winner == null;
+    const didWin = !isSpectator && game.winner === player;
+    const didLose = !isSpectator && game.winner != null && game.winner !== player;
+    const resultTitle = isDraw ? "Draw" : didWin ? "Victory" : didLose ? "Defeat" : `Player ${game.winner} Wins`;
+    const resultDetail = game.message || (isDraw ? "The game ended in a draw." : `Player ${game.winner} wins.`);
+    const resultColor = isDraw ? "#dbeafe" : didWin ? "#dcfce7" : didLose ? "#fee2e2" : "#f3f4f6";
+    const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
+
+    return (
+      <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: boardBackground, fontFamily: "Arial, sans-serif" }}>
+        <div style={{ width: "min(720px, 100%)", border: `3px solid ${resultBorder}`, borderRadius: 14, background: resultColor, boxShadow: "0 18px 50px rgba(0,0,0,0.28)", padding: 28, textAlign: "center" }}>
+          <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>Game Over</div>
+          <h1 style={{ margin: "0 0 10px 0", fontSize: 44 }}>{resultTitle}</h1>
+          <p style={{ margin: "0 auto 20px auto", maxWidth: 520, fontSize: 18 }}>{resultDetail}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
+            {[1, 2].map((p) => {
+              const theme = getFactionTheme(game.players[p].faction.id);
+              return (
+                <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: "rgba(255,255,255,0.72)", padding: 12 }}>
+                  <div style={{ fontWeight: "bold", color: theme.primary }}>Player {p} - {game.players[p].faction.name}</div>
+                  <div>{game.players[p].life} life</div>
+                </div>
+              );
+            })}
+          </div>
+          <MenuButton onClick={returnToMainMenu}>Main Menu</MenuButton>
+        </div>
+      </div>
+    );
+  }
 
   const opponentNumber = !isSpectator ? (player === 1 ? 2 : 1) : null;
   const hasIncomingAttack =
