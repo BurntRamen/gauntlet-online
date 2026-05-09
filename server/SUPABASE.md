@@ -28,5 +28,4 @@ The server currently reports whether Supabase credentials are configured at:
 GET /api/storage-status
 ```
 
-The app still falls back to local JSON account storage until the account adapter is migrated to the Supabase tables.
-
+When `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present, the backend stores accounts, friends, messages, leaderboard data, and account stats in Supabase. If either value is missing, it falls back to local JSON storage for development.

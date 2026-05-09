@@ -32,7 +32,7 @@ const corsOptions = {
   origin(origin, callback) {
     callback(isAllowedOrigin(origin) ? null : new Error("Not allowed by CORS"), isAllowedOrigin(origin));
   },
-  methods: ["GET", "POST", "DELETE"],
+  methods: ["GET", "POST", "DELETE", "PATCH"],
   credentials: true
 };
 
@@ -41,7 +41,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE", "PATCH"],
     credentials: true
   }
 });
@@ -175,13 +175,99 @@ function findAccountByName(store, name) {
   return store.accounts.find((account) => account.nameKey === key) || null;
 }
 
-function requireAccountRecord(req, res) {
+function useSupabaseStore() {
+  return !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+}
+
+async function supabaseRequest(pathname, options = {}) {
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${pathname}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    const message = data?.message || data?.error || `Supabase request failed (${response.status})`;
+    throw new Error(message);
+  }
+  return data;
+}
+
+function accountFromSupabaseRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    nameKey: row.name_key,
+    passwordSalt: row.password_salt,
+    passwordHash: row.password_hash,
+    createdAt: row.created_at,
+    lastLoginAt: row.last_login_at,
+    lastSeenAt: row.last_seen_at,
+    stats: row.stats || {}
+  };
+}
+
+async function findSupabaseAccountByName(name) {
+  const rows = await supabaseRequest(`gauntlet_accounts?name_key=eq.${encodeURIComponent(accountNameKey(name))}&select=*`);
+  return accountFromSupabaseRow(rows?.[0]);
+}
+
+async function findSupabaseAccountById(id) {
+  if (!id) return null;
+  const rows = await supabaseRequest(`gauntlet_accounts?id=eq.${encodeURIComponent(id)}&select=*`);
+  return accountFromSupabaseRow(rows?.[0]);
+}
+
+async function patchSupabaseAccount(id, patch) {
+  await supabaseRequest(`gauntlet_accounts?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(patch)
+  });
+}
+
+async function getAccountFromToken(token) {
+  const payload = verifyAuthToken(token);
+  if (!payload) return null;
+  if (useSupabaseStore()) return publicAccount(await findSupabaseAccountById(payload.id));
+
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === payload.id);
+  if (!account) return null;
+  return publicAccount(account);
+}
+
+async function getAccountRecordFromToken(token) {
+  const payload = verifyAuthToken(token);
+  if (!payload) return null;
+  if (useSupabaseStore()) return findSupabaseAccountById(payload.id);
+
+  const store = loadAccountStore();
+  return store.accounts.find((entry) => entry.id === payload.id) || null;
+}
+
+async function requireAccountRecord(req, res) {
   const authHeader = req.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const payload = verifyAuthToken(token);
   if (!payload) {
     res.status(401).json({ error: "Not signed in." });
     return null;
+  }
+
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(payload.id);
+    if (!account) {
+      res.status(401).json({ error: "Not signed in." });
+      return null;
+    }
+    return { source: "supabase", account };
   }
 
   const store = loadAccountStore();
@@ -193,10 +279,10 @@ function requireAccountRecord(req, res) {
 
   account.friends = Array.isArray(account.friends) ? account.friends : [];
   account.messages = Array.isArray(account.messages) ? account.messages : [];
-  return { store, account };
+  return { source: "local", store, account };
 }
 
-function getFriendPayload(store, account) {
+function getLocalFriendPayload(store, account) {
   const friendIds = new Set(Array.isArray(account.friends) ? account.friends : []);
   const friends = store.accounts
     .filter((entry) => friendIds.has(entry.id))
@@ -208,8 +294,51 @@ function getFriendPayload(store, account) {
   return { friends, messages };
 }
 
-function touchAccountStats(accountId, field) {
+async function getSupabaseFriendPayload(account) {
+  const friendRows = await supabaseRequest(`gauntlet_friends?account_id=eq.${encodeURIComponent(account.id)}&select=friend_id`);
+  const friendIds = friendRows.map((row) => row.friend_id);
+  const friends = friendIds.length > 0
+    ? (await supabaseRequest(`gauntlet_accounts?id=in.(${friendIds.join(",")})&select=id,name,last_seen_at`))
+        .map(accountFromSupabaseRow)
+        .map(publicFriend)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  const messageRows = await supabaseRequest(`gauntlet_friend_messages?or=(from_id.eq.${encodeURIComponent(account.id)},to_id.eq.${encodeURIComponent(account.id)})&select=*&order=created_at.asc`);
+  const participantIds = [...new Set(messageRows.flatMap((message) => [message.from_id, message.to_id]))];
+  const participantRows = participantIds.length > 0
+    ? await supabaseRequest(`gauntlet_accounts?id=in.(${participantIds.join(",")})&select=id,name`)
+    : [];
+  const namesById = new Map(participantRows.map((row) => [row.id, row.name]));
+  const messages = messageRows.map((message) => publicFriendMessage({
+    id: message.id,
+    fromId: message.from_id,
+    fromName: namesById.get(message.from_id) || "Unknown",
+    toId: message.to_id,
+    toName: namesById.get(message.to_id) || "Unknown",
+    text: message.text,
+    createdAt: message.created_at
+  }));
+
+  return { friends, messages };
+}
+
+async function getFriendPayload(context) {
+  if (context.source === "supabase") return getSupabaseFriendPayload(context.account);
+  return getLocalFriendPayload(context.store, context.account);
+}
+
+async function touchAccountStats(accountId, field) {
   if (!accountId) return;
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(accountId);
+    if (!account) return;
+    const stats = account.stats || {};
+    stats[field] = (stats[field] || 0) + 1;
+    await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
+    return;
+  }
+
   const store = loadAccountStore();
   const account = store.accounts.find((entry) => entry.id === accountId);
   if (!account) return;
@@ -219,8 +348,20 @@ function touchAccountStats(accountId, field) {
   saveAccountStore(store);
 }
 
-function recordAccountGameResult(accountId, result) {
+async function recordAccountGameResult(accountId, result) {
   if (!accountId || !["win", "loss", "draw"].includes(result)) return;
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(accountId);
+    if (!account) return;
+    const stats = account.stats || {};
+    stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
+    if (result === "win") stats.gamesWon = (stats.gamesWon || 0) + 1;
+    if (result === "loss") stats.gamesLost = (stats.gamesLost || 0) + 1;
+    if (result === "draw") stats.gamesDrawn = (stats.gamesDrawn || 0) + 1;
+    await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
+    return;
+  }
+
   const store = loadAccountStore();
   const account = store.accounts.find((entry) => entry.id === accountId);
   if (!account) return;
@@ -234,22 +375,6 @@ function recordAccountGameResult(accountId, result) {
   saveAccountStore(store);
 }
 
-function getAccountFromToken(token) {
-  const payload = verifyAuthToken(token);
-  if (!payload) return null;
-  const store = loadAccountStore();
-  const account = store.accounts.find((entry) => entry.id === payload.id);
-  if (!account) return null;
-  return publicAccount(account);
-}
-
-function getAccountRecordFromToken(token) {
-  const payload = verifyAuthToken(token);
-  if (!payload) return null;
-  const store = loadAccountStore();
-  return store.accounts.find((entry) => entry.id === payload.id) || null;
-}
-
 function getAccountMatchProfile(account) {
   const wins = account.stats?.gamesWon || 0;
   const losses = account.stats?.gamesLost || 0;
@@ -260,7 +385,7 @@ function getAccountMatchProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
-app.post("/api/auth/register", (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
 
@@ -270,12 +395,6 @@ app.post("/api/auth/register", (req, res) => {
   }
   if (password.length < 8) {
     res.status(400).json({ error: "Password must be at least 8 characters." });
-    return;
-  }
-
-  const store = loadAccountStore();
-  if (findAccountByName(store, name)) {
-    res.status(409).json({ error: "That account name is already taken." });
     return;
   }
 
@@ -294,34 +413,82 @@ app.post("/api/auth/register", (req, res) => {
     messages: [],
     stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0 }
   };
-  store.accounts.push(account);
-  saveAccountStore(store);
 
-  res.json(issueAccountSession(account));
+  try {
+    if (useSupabaseStore()) {
+      if (await findSupabaseAccountByName(name)) {
+        res.status(409).json({ error: "That account name is already taken." });
+        return;
+      }
+      await supabaseRequest("gauntlet_accounts", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          id: account.id,
+          name: account.name,
+          name_key: account.nameKey,
+          password_salt: account.passwordSalt,
+          password_hash: account.passwordHash,
+          created_at: account.createdAt,
+          last_login_at: account.lastLoginAt,
+          last_seen_at: account.lastSeenAt,
+          stats: account.stats
+        })
+      });
+    } else {
+      const store = loadAccountStore();
+      if (findAccountByName(store, name)) {
+        res.status(409).json({ error: "That account name is already taken." });
+        return;
+      }
+      store.accounts.push(account);
+      saveAccountStore(store);
+    }
+
+    res.json(issueAccountSession(account));
+  } catch (error) {
+    console.error("[Accounts] Register failed", error);
+    res.status(500).json({ error: "Could not create account." });
+  }
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
-  const store = loadAccountStore();
-  const account = findAccountByName(store, name);
 
-  if (!account || !verifyPassword(password, account)) {
-    res.status(401).json({ error: "Invalid account name or password." });
-    return;
+  try {
+    const account = useSupabaseStore()
+      ? await findSupabaseAccountByName(name)
+      : findAccountByName(loadAccountStore(), name);
+
+    if (!account || !verifyPassword(password, account)) {
+      res.status(401).json({ error: "Invalid account name or password." });
+      return;
+    }
+
+    account.lastLoginAt = new Date().toISOString();
+    account.lastSeenAt = account.lastLoginAt;
+    if (useSupabaseStore()) {
+      await patchSupabaseAccount(account.id, { last_login_at: account.lastLoginAt, last_seen_at: account.lastSeenAt });
+    } else {
+      const store = loadAccountStore();
+      const localAccount = store.accounts.find((entry) => entry.id === account.id);
+      localAccount.lastLoginAt = account.lastLoginAt;
+      localAccount.lastSeenAt = account.lastSeenAt;
+      saveAccountStore(store);
+    }
+
+    res.json(issueAccountSession(account));
+  } catch (error) {
+    console.error("[Accounts] Login failed", error);
+    res.status(500).json({ error: "Could not sign in." });
   }
-
-  account.lastLoginAt = new Date().toISOString();
-  account.lastSeenAt = account.lastLoginAt;
-  saveAccountStore(store);
-
-  res.json(issueAccountSession(account));
 });
 
-app.get("/api/auth/me", (req, res) => {
+app.get("/api/auth/me", async (req, res) => {
   const authHeader = req.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  const account = getAccountFromToken(token);
+  const account = await getAccountFromToken(token);
   if (!account) {
     res.status(401).json({ error: "Not signed in." });
     return;
@@ -329,18 +496,20 @@ app.get("/api/auth/me", (req, res) => {
   res.json({ account });
 });
 
-app.get("/api/friends", (req, res) => {
-  const context = requireAccountRecord(req, res);
+app.get("/api/friends", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
   if (!context) return;
-  res.json(getFriendPayload(context.store, context.account));
+  res.json(await getFriendPayload(context));
 });
 
-app.post("/api/friends", (req, res) => {
-  const context = requireAccountRecord(req, res);
+app.post("/api/friends", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
   if (!context) return;
 
   const friendName = normalizeAccountName(req.body?.name);
-  const friend = findAccountByName(context.store, friendName);
+  const friend = context.source === "supabase"
+    ? await findSupabaseAccountByName(friendName)
+    : findAccountByName(context.store, friendName);
   if (!friend) {
     res.status(404).json({ error: "No account found with that name." });
     return;
@@ -350,35 +519,59 @@ app.post("/api/friends", (req, res) => {
     return;
   }
 
-  friend.friends = Array.isArray(friend.friends) ? friend.friends : [];
-  if (!context.account.friends.includes(friend.id)) context.account.friends.push(friend.id);
-  if (!friend.friends.includes(context.account.id)) friend.friends.push(context.account.id);
-  context.account.lastSeenAt = new Date().toISOString();
-  saveAccountStore(context.store);
-  res.json(getFriendPayload(context.store, context.account));
+  if (context.source === "supabase") {
+    const rows = [
+      { account_id: context.account.id, friend_id: friend.id },
+      { account_id: friend.id, friend_id: context.account.id }
+    ];
+    await supabaseRequest("gauntlet_friends?on_conflict=account_id,friend_id", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(rows)
+    });
+    await patchSupabaseAccount(context.account.id, { last_seen_at: new Date().toISOString() });
+  } else {
+    friend.friends = Array.isArray(friend.friends) ? friend.friends : [];
+    if (!context.account.friends.includes(friend.id)) context.account.friends.push(friend.id);
+    if (!friend.friends.includes(context.account.id)) friend.friends.push(context.account.id);
+    context.account.lastSeenAt = new Date().toISOString();
+    saveAccountStore(context.store);
+  }
+  res.json(await getFriendPayload(context));
 });
 
-app.delete("/api/friends/:friendId", (req, res) => {
-  const context = requireAccountRecord(req, res);
+app.delete("/api/friends/:friendId", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
   if (!context) return;
 
   const friendId = req.params.friendId;
-  const friend = context.store.accounts.find((entry) => entry.id === friendId);
-  context.account.friends = context.account.friends.filter((id) => id !== friendId);
-  if (friend) {
-    friend.friends = Array.isArray(friend.friends) ? friend.friends.filter((id) => id !== context.account.id) : [];
+  if (context.source === "supabase") {
+    await supabaseRequest(`gauntlet_friends?account_id=eq.${encodeURIComponent(context.account.id)}&friend_id=eq.${encodeURIComponent(friendId)}`, { method: "DELETE" });
+    await supabaseRequest(`gauntlet_friends?account_id=eq.${encodeURIComponent(friendId)}&friend_id=eq.${encodeURIComponent(context.account.id)}`, { method: "DELETE" });
+    await patchSupabaseAccount(context.account.id, { last_seen_at: new Date().toISOString() });
+  } else {
+    const friend = context.store.accounts.find((entry) => entry.id === friendId);
+    context.account.friends = context.account.friends.filter((id) => id !== friendId);
+    if (friend) {
+      friend.friends = Array.isArray(friend.friends) ? friend.friends.filter((id) => id !== context.account.id) : [];
+    }
+    context.account.lastSeenAt = new Date().toISOString();
+    saveAccountStore(context.store);
   }
-  context.account.lastSeenAt = new Date().toISOString();
-  saveAccountStore(context.store);
-  res.json(getFriendPayload(context.store, context.account));
+  res.json(await getFriendPayload(context));
 });
 
-app.post("/api/friends/:friendId/messages", (req, res) => {
-  const context = requireAccountRecord(req, res);
+app.post("/api/friends/:friendId/messages", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
   if (!context) return;
 
-  const friend = context.store.accounts.find((entry) => entry.id === req.params.friendId);
-  if (!friend || !context.account.friends.includes(friend.id)) {
+  const friend = context.source === "supabase"
+    ? await findSupabaseAccountById(req.params.friendId)
+    : context.store.accounts.find((entry) => entry.id === req.params.friendId);
+  const isFriend = context.source === "supabase"
+    ? (await supabaseRequest(`gauntlet_friends?account_id=eq.${encodeURIComponent(context.account.id)}&friend_id=eq.${encodeURIComponent(req.params.friendId)}&select=friend_id`)).length > 0
+    : !!friend && context.account.friends.includes(friend.id);
+  if (!friend || !isFriend) {
     res.status(404).json({ error: "Friend not found." });
     return;
   }
@@ -399,15 +592,30 @@ app.post("/api/friends/:friendId/messages", (req, res) => {
     text,
     createdAt: now
   };
-  friend.messages = Array.isArray(friend.messages) ? friend.messages : [];
-  context.account.messages.push(message);
-  friend.messages.push(message);
-  context.account.lastSeenAt = now;
-  saveAccountStore(context.store);
-  res.json(getFriendPayload(context.store, context.account));
+  if (context.source === "supabase") {
+    await supabaseRequest("gauntlet_friend_messages", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        id: message.id,
+        from_id: message.fromId,
+        to_id: message.toId,
+        text: message.text,
+        created_at: message.createdAt
+      })
+    });
+    await patchSupabaseAccount(context.account.id, { last_seen_at: now });
+  } else {
+    friend.messages = Array.isArray(friend.messages) ? friend.messages : [];
+    context.account.messages.push(message);
+    friend.messages.push(message);
+    context.account.lastSeenAt = now;
+    saveAccountStore(context.store);
+  }
+  res.json(await getFriendPayload(context));
 });
 
-app.get("/api/admin/account-stats", (req, res) => {
+app.get("/api/admin/account-stats", async (req, res) => {
   const authHeader = req.get("authorization") || "";
   const providedToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
   if (!OWNER_STATS_TOKEN || providedToken !== OWNER_STATS_TOKEN) {
@@ -415,10 +623,13 @@ app.get("/api/admin/account-stats", (req, res) => {
     return;
   }
 
-  const store = loadAccountStore();
+  const accounts = useSupabaseStore()
+    ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
+    : loadAccountStore().accounts;
   res.json({
-    totalAccounts: store.accounts.length,
-    accounts: store.accounts.map((account) => ({
+    storage: useSupabaseStore() ? "supabase" : "local-json",
+    totalAccounts: accounts.length,
+    accounts: accounts.map((account) => ({
       name: account.name,
       createdAt: account.createdAt,
       lastLoginAt: account.lastLoginAt || null,
@@ -433,9 +644,11 @@ app.get("/api/admin/account-stats", (req, res) => {
   });
 });
 
-app.get("/api/leaderboard", (_req, res) => {
-  const store = loadAccountStore();
-  const leaderboard = store.accounts
+app.get("/api/leaderboard", async (_req, res) => {
+  const accounts = useSupabaseStore()
+    ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
+    : loadAccountStore().accounts;
+  const leaderboard = accounts
     .map((account) => {
       const wins = account.stats?.gamesWon || 0;
       const losses = account.stats?.gamesLost || 0;
@@ -660,8 +873,8 @@ function getPlayerNumberBySocket(roomState, socketId) {
   return null;
 }
 
-function getReconnectPlayerNumber(roomState, reconnectToken, authToken) {
-  const account = getAccountFromToken(authToken);
+async function getReconnectPlayerNumber(roomState, reconnectToken, authToken) {
+  const account = await getAccountFromToken(authToken);
   for (const playerNum of [1, 2]) {
     const lobbyPlayer = roomState.lobby.players[playerNum];
     if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
@@ -727,8 +940,8 @@ function roomPlayersReady(roomState) {
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
 }
 
-function requirePlayerIdentity(socket, authToken, guestName) {
-  const account = getAccountFromToken(authToken || socket.data.authToken);
+async function requirePlayerIdentity(socket, authToken, guestName) {
+  const account = await getAccountFromToken(authToken || socket.data.authToken);
   if (account) {
     socket.data.authToken = authToken || socket.data.authToken;
     socket.data.account = account;
@@ -1081,18 +1294,18 @@ function applyGameOverState(game) {
   return true;
 }
 
-function recordFinalGameStats(roomState) {
+async function recordFinalGameStats(roomState) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
 
   if (game.winner == null) {
-    recordAccountGameResult(roomState.lobby.players[1].accountId, "draw");
-    recordAccountGameResult(roomState.lobby.players[2].accountId, "draw");
+    await recordAccountGameResult(roomState.lobby.players[1].accountId, "draw");
+    await recordAccountGameResult(roomState.lobby.players[2].accountId, "draw");
   } else {
     const loser = getOtherPlayer(game.winner);
-    recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win");
-    recordAccountGameResult(roomState.lobby.players[loser].accountId, "loss");
+    await recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win");
+    await recordAccountGameResult(roomState.lobby.players[loser].accountId, "loss");
   }
 
   game.statsRecorded = true;
@@ -1293,9 +1506,9 @@ function createGameFromLobby(roomState) {
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
 
-  socket.on("joinMatchmaking", ({ authToken } = {}) => {
+  socket.on("joinMatchmaking", async ({ authToken } = {}) => {
     console.log("[Socket] joinMatchmaking");
-    const account = getAccountRecordFromToken(authToken || socket.data.authToken);
+    const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Sign in to use matchmaking." });
       return;
@@ -1337,10 +1550,10 @@ io.on("connection", (socket) => {
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
   });
   
-  socket.on("createRoom", ({ authToken, guestName } = {}) => {
+  socket.on("createRoom", async ({ authToken, guestName } = {}) => {
     console.log("[Socket] createRoom");
     removeFromMatchmaking(socket.id);
-    const identity = requirePlayerIdentity(socket, authToken, guestName);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
     const roomState = createRoom();
     roomState.lobby.players[1].socket = socket.id;
@@ -1349,12 +1562,12 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].accountId = identity.id;
     roomState.lobby.players[1].accountName = identity.name;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
-    touchAccountStats(identity.id, "gamesCreated");
+    await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
     emitLobbyState(roomState);
   });
 
-  socket.on("joinRoom", ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
+  socket.on("joinRoom", async ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
     removeFromMatchmaking(socket.id);
     if (!roomCode) {
@@ -1373,13 +1586,13 @@ io.on("connection", (socket) => {
       socket.data.roomCode = normalized;
       socket.data.role = "spectator";
       socket.emit("assignSpectator", { role: "spectator", roomCode: normalized });
-      const spectatorAccount = getAccountFromToken(authToken);
-      if (spectatorAccount) touchAccountStats(spectatorAccount.id, "gamesSpectated");
+      const spectatorAccount = await getAccountFromToken(authToken);
+      if (spectatorAccount) await touchAccountStats(spectatorAccount.id, "gamesSpectated");
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
     }
-    const identity = requirePlayerIdentity(socket, authToken, guestName);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
     const reconnectSeat = getDisconnectedSeatForIdentity(roomState, identity, reconnectToken);
     if (reconnectSeat) {
@@ -1393,7 +1606,7 @@ io.on("connection", (socket) => {
       roomState.lobby.players[2].accountId = identity.id;
       roomState.lobby.players[2].accountName = identity.name;
       roomState.lobby.players[2].isGuest = identity.type === "guest";
-      touchAccountStats(identity.id, "gamesJoined");
+      await touchAccountStats(identity.id, "gamesJoined");
       attachPlayerSocket(roomState, socket, 2);
       emitLobbyState(roomState);
       return;
@@ -1401,7 +1614,7 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Room is full. Join as spectator instead.");
   });
 
-  socket.on("reconnectToRoom", ({ roomCode, reconnectToken, authToken, role } = {}) => {
+  socket.on("reconnectToRoom", async ({ roomCode, reconnectToken, authToken, role } = {}) => {
     console.log(`[Socket] reconnectToRoom: ${roomCode}`);
     if (!roomCode) {
       socket.emit("errorMessage", "No room to reconnect to.");
@@ -1415,7 +1628,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const playerNum = getReconnectPlayerNumber(roomState, reconnectToken, authToken);
+    const playerNum = await getReconnectPlayerNumber(roomState, reconnectToken, authToken);
     if (playerNum) {
       attachPlayerSocket(roomState, socket, playerNum);
       if (roomState.game) emitState(roomState);
@@ -1522,7 +1735,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("resolveDamage", () => {
+  socket.on("resolveDamage", async () => {
     console.log(`[Socket] resolveDamage`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -1544,7 +1757,7 @@ io.on("connection", (socket) => {
       resolveDamage(game, roomState);
       
       if (applyGameOverState(game)) {
-        recordFinalGameStats(roomState);
+        await recordFinalGameStats(roomState);
         io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
       } else {
         game.phase = "priority";
@@ -1559,7 +1772,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("concedeGame", () => {
+  socket.on("concedeGame", async () => {
     console.log("[Socket] concedeGame");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -1577,12 +1790,12 @@ io.on("connection", (socket) => {
     game.winner = winner;
     game.drawOfferBy = null;
     game.message = `Player ${playerNum} conceded. Player ${winner} wins!`;
-    recordFinalGameStats(roomState);
+    await recordFinalGameStats(roomState);
     io.to(roomState.roomCode).emit("gameEnded", { winner, tie: false, concededBy: playerNum });
     emitState(roomState);
   });
 
-  socket.on("offerDraw", () => {
+  socket.on("offerDraw", async () => {
     console.log("[Socket] offerDraw");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -1600,7 +1813,7 @@ io.on("connection", (socket) => {
       game.winner = null;
       game.drawOfferBy = null;
       game.message = "Players agreed to an intentional draw.";
-      recordFinalGameStats(roomState);
+      await recordFinalGameStats(roomState);
       io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true, intentionalDraw: true });
       emitState(roomState);
       return;

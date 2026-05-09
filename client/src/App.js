@@ -120,6 +120,15 @@ const FACTION_VOICE_LINES = {
   ]
 };
 
+const FACTION_VOICE_PROFILES = {
+  rumin: { rate: 0.82, pitch: 0.55, volume: 1 },
+  sheen: { rate: 0.72, pitch: 0.72, volume: 0.9 },
+  frumo: { rate: 1.08, pitch: 0.95, volume: 1 },
+  bizi: { rate: 0.9, pitch: 1.18, volume: 0.95 },
+  basic: { rate: 0.95, pitch: 0.9, volume: 0.9 },
+  default: { rate: 0.96, pitch: 0.95, volume: 1 }
+};
+
 function getFactionTheme(factionId) {
   return FACTION_COLORS[factionId] || FACTION_COLORS.default;
 }
@@ -955,8 +964,10 @@ export default function App() {
     if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
       window.speechSynthesis.cancel();
       const utterance = new window.SpeechSynthesisUtterance(quote);
-      utterance.rate = factionId === "bizi" ? 0.92 : factionId === "frumo" ? 1.05 : 0.96;
-      utterance.pitch = factionId === "sheen" ? 0.75 : factionId === "bizi" ? 1.15 : 0.95;
+      const profile = FACTION_VOICE_PROFILES[factionId] || FACTION_VOICE_PROFILES.default;
+      utterance.rate = profile.rate;
+      utterance.pitch = profile.pitch;
+      utterance.volume = profile.volume;
       window.speechSynthesis.speak(utterance);
     }
   }, []);
