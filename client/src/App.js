@@ -27,6 +27,7 @@ const FACTION_COLORS = {
 
 const MUSIC_TRACKS = {
   menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
+  basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: { label: "Rumin Imperial Theme", pad: [65.41, 98, 130.81], notes: [261.63, 329.63, 392, 349.23, 329.63, 261.63], tempo: 720, wave: "triangle" },
   sheen: { label: "Sheen Living Theme", pad: [73.42, 110, 146.83], notes: [293.66, 329.63, 392, 440, 392, 329.63], tempo: 820, wave: "sine" },
   frumo: { label: "Frumo Sunken Theme", pad: [61.74, 92.5, 123.47], notes: [246.94, 277.18, 369.99, 329.63, 277.18, 246.94], tempo: 760, wave: "triangle" },
@@ -323,9 +324,18 @@ function startProceduralTrack(trackKey, volume) {
   master.gain.value = volume;
   master.connect(context.destination);
 
+  const resumeContext = () => {
+    if (context.state === "suspended") {
+      context.resume().catch(() => {});
+    }
+  };
+  resumeContext();
+  window.addEventListener("pointerdown", resumeContext);
+  window.addEventListener("keydown", resumeContext);
+
   const filter = context.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = trackKey === "bizi" ? 1200 : 900;
+  filter.frequency.value = trackKey === "bizi" ? 1200 : trackKey === "basic" ? 1000 : 900;
   filter.connect(master);
 
   const padNodes = track.pad.map((frequency, index) => {
@@ -361,6 +371,8 @@ function startProceduralTrack(trackKey, volume) {
   const intervalId = window.setInterval(playNote, track.tempo);
 
   return () => {
+    window.removeEventListener("pointerdown", resumeContext);
+    window.removeEventListener("keydown", resumeContext);
     window.clearInterval(intervalId);
     padNodes.forEach((node) => {
       try { node.stop(); } catch (_error) {}
@@ -767,7 +779,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [playAsGuest, setPlayAsGuest] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
-  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.07);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: true, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
@@ -795,7 +807,9 @@ export default function App() {
 
   const activeMusicTrack = !game || role === "spectator" || !player
     ? "menu"
-    : game.players[player]?.faction?.id || "menu";
+    : game.gameMode === "basic"
+      ? "basic"
+      : game.players[player]?.faction?.id || "menu";
 
   useEffect(() => {
     if (!authToken) return;
