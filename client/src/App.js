@@ -212,10 +212,10 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
       style={{
         border: selected ? `3px solid ${accent}` : "1px solid black",
         borderRadius: 8,
-        padding: 7,
-        width: 112,
-        minWidth: 112,
-        minHeight: 172,
+        padding: 6,
+        width: 100,
+        minWidth: 100,
+        minHeight: 154,
         background: bg,
         boxShadow: selected ? `0 0 0 3px ${accent}22` : "none",
         position: "relative",
@@ -226,8 +226,8 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
-          <div style={{ fontSize: 20 }}>{rank}</div>
-          <div style={{ fontSize: 18 }}>{suit}</div>
+          <div style={{ fontSize: 18 }}>{rank}</div>
+          <div style={{ fontSize: 16 }}>{suit}</div>
         </div>
         <div style={{ fontSize: 9, color: "#666", textAlign: "right" }}>
           {card?.tempBuff ? <div>Buff: +{card.tempBuff}</div> : null}
@@ -235,11 +235,11 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         </div>
       </div>
 
-      <div style={{ position: "relative", margin: "5px 0", height: 58, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
+      <div style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
-          <div style={{ textAlign: "center", fontSize: 38, lineHeight: "58px", color: suitColor }}>{suit}</div>
+          <div style={{ textAlign: "center", fontSize: 34, lineHeight: "50px", color: suitColor }}>{suit}</div>
         )}
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, lineHeight: 1, color: suitColor, textShadow: "0 1px 3px white, 0 -1px 3px white" }}>
           {suit}
@@ -254,8 +254,8 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
       <div
         style={{
           position: "absolute",
-          right: 7,
-          bottom: 56,
+          right: 6,
+          bottom: 50,
           transform: "rotate(180deg)",
           color: suitColor,
           fontWeight: "bold",
@@ -647,7 +647,7 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
 
 function LaneCardLabel({ label, card, hidden = false }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 6, padding: 5, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 38 }}>
+    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 6, padding: 5, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 32 }}>
       <div style={{ fontSize: 9, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
       <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 12 }}>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
     </div>
@@ -882,6 +882,7 @@ export default function App() {
 
   useEffect(() => {
     const onAssign = (payload) => {
+      setError("");
       setRole(payload.role);
       setPlayer(payload.playerNum);
       setMatchmakingStatus({ inQueue: false, message: "" });
@@ -889,14 +890,28 @@ export default function App() {
     };
 
     const onAssignSpectator = (payload) => {
+      setError("");
       setRole("spectator");
       setPlayer(null);
       saveReconnectInfo({ roomCode: payload.roomCode, role: "spectator" });
     };
 
-    const onState = (newGame) => setGame(newGame);
-    const onLobbyState = (newLobby) => setLobby(newLobby);
-    const onError = (msg) => setError(msg);
+    const onState = (newGame) => {
+      setError("");
+      setGame(newGame);
+    };
+    const onLobbyState = (newLobby) => {
+      setError("");
+      setLobby(newLobby);
+    };
+    const onError = (msg) => {
+      if (String(msg || "").toLowerCase().includes("room is no longer active")) {
+        clearReconnectInfo();
+        setError("");
+        return;
+      }
+      setError(msg);
+    };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
     const attemptReconnect = () => {
@@ -1028,6 +1043,8 @@ export default function App() {
   }
 
   function joinRoom(asSpectator = false) {
+    clearReconnectInfo();
+    setError("");
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
   }
 
@@ -1814,7 +1831,7 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: 205, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                <div key={i} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
                   <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
                     <div style={{ display: "grid", gap: 5 }}>
@@ -1827,8 +1844,13 @@ export default function App() {
                       <LaneCardLabel label="Player 2 lane card" card={lane.facedown[2]} hidden={!!lane.facedown[2]} />
                     </div>
                   )}
-                  {lane.attack ? <><p><strong>Attacking:</strong> Player {lane.attack.player} with {getCardShortLabel(lane.attack.card)} (from lane)</p><p><strong>Effective Value:</strong> {lane.attack.effectiveValue}</p>{lane.attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</p>}</> : <p><strong>Attacking:</strong> None</p>}
-                  {lane.block.length > 0 ? <p><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)} ({entry.source})</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
+                  {(lane.attack || lane.block.length > 0) && (
+                    <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
+                      {lane.attack && <div><strong>Attack:</strong> P{lane.attack.player} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
+                      {lane.attack?.notes?.length > 0 && <div><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</div>}
+                      {lane.block.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</div>}
+                    </div>
+                  )}
                   {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
                   {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && lane.block.length === 0 && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
                   {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && !lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startPlacement(i)} style={{ marginRight: 8 }}>Place Facedown Here</button><button onClick={() => skipPlacement(i)}>Skip This Lane</button></div>}
