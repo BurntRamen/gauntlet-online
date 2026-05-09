@@ -951,6 +951,16 @@ export default function App() {
     setActionLog((prev) => (prev[0] === game.message ? prev : [game.message, ...prev].slice(0, 12)));
   }, [game?.message]);
 
+  const speakFactionQuote = useCallback((factionId, quote) => {
+    if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+      window.speechSynthesis.cancel();
+      const utterance = new window.SpeechSynthesisUtterance(quote);
+      utterance.rate = factionId === "bizi" ? 0.92 : factionId === "frumo" ? 1.05 : 0.96;
+      utterance.pitch = factionId === "sheen" ? 0.75 : factionId === "bizi" ? 1.15 : 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
   useEffect(() => {
     if (!error || !game || role === "spectator" || !player) return;
     const lower = String(error).toLowerCase();
@@ -960,15 +970,8 @@ export default function App() {
     const factionId = game.players[player]?.faction?.id;
     const quote = getFactionVoiceLine(factionId, error);
     setFactionVoice({ quote, detail: error });
-
-    if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
-      window.speechSynthesis.cancel();
-      const utterance = new window.SpeechSynthesisUtterance(quote);
-      utterance.rate = factionId === "bizi" ? 0.92 : factionId === "frumo" ? 1.05 : 0.96;
-      utterance.pitch = factionId === "sheen" ? 0.75 : factionId === "bizi" ? 1.15 : 0.95;
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [error, game, role, player]);
+    speakFactionQuote(factionId, quote);
+  }, [error, game, role, player, speakFactionQuote]);
 
   useEffect(() => {
     if (!game || role === "spectator" || !player) return;
@@ -1548,6 +1551,16 @@ export default function App() {
     if (!message || isSpectator || !me) return;
     const quote = getFactionVoiceLine(me.faction.id, message);
     setFactionVoice({ quote, detail: message });
+    speakFactionQuote(me.faction.id, quote);
+  }
+
+  function handlePowerClick(power) {
+    setExpandedPower(power.id);
+    if (power.id !== "commander" || isSpectator || !me) return;
+
+    const quote = getFactionVoiceLine(me.faction.id, `${power.feature?.name || "commander"}-${Date.now()}`);
+    setFactionVoice({ quote, detail: `${power.feature?.name || me.faction.name} speaks` });
+    speakFactionQuote(me.faction.id, quote);
   }
 
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
@@ -1752,7 +1765,7 @@ export default function App() {
                       feature={power.feature}
                       theme={myTheme}
                       expanded={selectedPower?.id === power.id}
-                      onToggle={() => setExpandedPower(power.id)}
+                      onToggle={() => handlePowerClick(power)}
                     />
                   ))}
                 </div>
