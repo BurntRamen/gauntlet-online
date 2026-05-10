@@ -770,6 +770,63 @@ function RulebookPanel() {
   );
 }
 
+function TutorialScreen({ onBack }) {
+  const lessons = [
+    {
+      title: "1. Read Priority",
+      text: "Only the player with priority can start an attack, use an available faction ability, or pass. If combat is unresolved, finish blocking and damage before starting another attack."
+    },
+    {
+      title: "2. Attack From Hand",
+      text: "Choose Attack from Hand, pick an attacking card, then select payment cards from your hand. Your payment total must be at least the attacker's value."
+    },
+    {
+      title: "3. Defend or Take Damage",
+      text: "After an attack, the defender gets priority. Block by selecting blocker cards and enough payment, or pass to move toward damage."
+    },
+    {
+      title: "4. Resolve Damage",
+      text: "When both players pass with pending attacks, damage can resolve. Damage is the attack value minus block value. Fully blocked attacks deal no damage."
+    },
+    {
+      title: "5. Use Lanes",
+      text: "Face-down lane cards are hidden from the opponent. Lane attacks can only be blocked by the defender's face-down card in that same lane."
+    },
+    {
+      title: "6. End the Turn",
+      text: "When both players pass with no pending attacks, the game enters end phase. Players place face-down lane cards lane by lane, then draw back up to 8."
+    },
+    {
+      title: "7. Pick a Learning Mode",
+      text: "Basic Mode removes faction powers so you can learn the core Gauntlet loop. Faction Mode adds commander, city, and general effects."
+    }
+  ];
+
+  return (
+    <div style={MENU_THEME.page}>
+      <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Training Protocol</div>
+            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Learn Gauntlet</h1>
+          </div>
+          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+          {lessons.map((lesson) => (
+            <MenuCard key={lesson.title} title={lesson.title}>
+              <p style={{ margin: 0, color: "#dbeafe", lineHeight: 1.45 }}>{lesson.text}</p>
+            </MenuCard>
+          ))}
+        </div>
+        <div style={{ marginTop: 18, padding: 14, borderRadius: 8, background: "rgba(2,6,23,0.42)", border: "1px solid rgba(125,211,252,0.28)", color: "#bfdbfe" }}>
+          Best first game: create a room, choose <strong>Basic Mode</strong>, and practice the attack, block, pass, and damage flow before adding faction powers.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -800,6 +857,7 @@ export default function App() {
   const [friendNameInput, setFriendNameInput] = useState("");
   const [friendMessageInput, setFriendMessageInput] = useState("");
   const [friendsError, setFriendsError] = useState("");
+  const [showTutorial, setShowTutorial] = useState(false);
   const musicStopRef = useRef(null);
 
   const [attackMode, setAttackMode] = useState(null);
@@ -1177,6 +1235,10 @@ export default function App() {
 
   const canPlayAsPlayer = !!account || playAsGuest;
 
+  if (showTutorial) {
+    return <TutorialScreen onBack={() => setShowTutorial(false)} />;
+  }
+
   if (!role && !lobby) {
     return (
       <div style={MENU_THEME.page}>
@@ -1201,6 +1263,10 @@ export default function App() {
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+          <MenuCard title="Tutorial">
+            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>
+            <MenuButton onClick={() => setShowTutorial(true)}>Start Tutorial</MenuButton>
+          </MenuCard>
           <AccountPanel
             account={account}
             mode={authMode}
