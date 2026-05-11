@@ -770,7 +770,7 @@ function RulebookPanel() {
   );
 }
 
-function TutorialScreen({ onBack }) {
+function TutorialScreen({ onBack, onPlaySample, canPlayAsPlayer }) {
   const lessons = [
     {
       title: "1. Read Priority",
@@ -810,7 +810,10 @@ function TutorialScreen({ onBack }) {
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Training Protocol</div>
             <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Learn Gauntlet</h1>
           </div>
-          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <MenuButton onClick={onPlaySample} disabled={!canPlayAsPlayer}>Play Tutorial vs AI</MenuButton>
+            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {lessons.map((lesson) => (
@@ -820,7 +823,8 @@ function TutorialScreen({ onBack }) {
           ))}
         </div>
         <div style={{ marginTop: 18, padding: 14, borderRadius: 8, background: "rgba(2,6,23,0.42)", border: "1px solid rgba(125,211,252,0.28)", color: "#bfdbfe" }}>
-          Best first game: create a room, choose <strong>Basic Mode</strong>, and practice the attack, block, pass, and damage flow before adding faction powers.
+          Best first game: play the sample match against Training AI. It uses <strong>Basic Mode</strong>, so you can practice attack, block, pass, damage, and lanes before adding faction powers.
+          {!canPlayAsPlayer && <div style={{ marginTop: 8, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start the playable tutorial.</div>}
         </div>
       </div>
     </div>
@@ -1114,6 +1118,13 @@ export default function App() {
     socket.emit("createRoom", playerIdentityPayload());
   }
 
+  function startTutorialVsAi() {
+    clearReconnectInfo();
+    setShowTutorial(false);
+    setError("");
+    socket.emit("createAiTutorialRoom", playerIdentityPayload());
+  }
+
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
     setError("");
@@ -1236,7 +1247,7 @@ export default function App() {
   const canPlayAsPlayer = !!account || playAsGuest;
 
   if (showTutorial) {
-    return <TutorialScreen onBack={() => setShowTutorial(false)} />;
+    return <TutorialScreen onBack={() => setShowTutorial(false)} onPlaySample={startTutorialVsAi} canPlayAsPlayer={canPlayAsPlayer} />;
   }
 
   if (!role && !lobby) {
