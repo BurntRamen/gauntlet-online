@@ -843,6 +843,7 @@ export default function App() {
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
+  const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -864,6 +865,7 @@ export default function App() {
   const [friendsError, setFriendsError] = useState("");
   const [showTutorial, setShowTutorial] = useState(false);
   const musicStopRef = useRef(null);
+  const seenIncomingAttackIdsRef = useRef(new Set());
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -1022,6 +1024,47 @@ export default function App() {
     if (!game?.message) return;
     setActionLog((prev) => (prev[0] === game.message ? prev : [game.message, ...prev].slice(0, 12)));
   }, [game?.message]);
+
+  useEffect(() => {
+    if (!game || role !== "player" || !player) {
+      seenIncomingAttackIdsRef.current = new Set();
+      setIncomingAttackAlert(null);
+      return;
+    }
+
+    const opponentNumber = player === 1 ? 2 : 1;
+    const incomingAttacks = [
+      ...(game.handAttacks || [])
+        .filter((attack) => attack.player === opponentNumber)
+        .map((attack) => ({
+          id: attack.id,
+          label: `${getCardShortLabel(attack.card)} from hand`,
+          value: attack.effectiveValue
+        })),
+      ...(game.lanes || [])
+        .map((lane, laneIndex) => ({ lane, laneIndex }))
+        .filter(({ lane }) => lane.attack?.player === opponentNumber)
+        .map(({ lane, laneIndex }) => ({
+          id: lane.attack.id || `lane-${laneIndex}-${lane.attack.card?.id || lane.attack.card?.name || "attack"}`,
+          label: `${getCardShortLabel(lane.attack.card)} from lane ${laneIndex + 1}`,
+          value: lane.attack.effectiveValue
+        }))
+    ];
+
+    const currentIds = new Set(incomingAttacks.map((attack) => attack.id));
+    seenIncomingAttackIdsRef.current.forEach((id) => {
+      if (!currentIds.has(id)) seenIncomingAttackIdsRef.current.delete(id);
+    });
+
+    const newestAttack = incomingAttacks.find((attack) => !seenIncomingAttackIdsRef.current.has(attack.id));
+    if (!newestAttack) return;
+
+    seenIncomingAttackIdsRef.current.add(newestAttack.id);
+    setIncomingAttackAlert({
+      id: newestAttack.id,
+      text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
+    });
+  }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
     if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
@@ -1221,6 +1264,8 @@ export default function App() {
     setActionLog([]);
     setError("");
     setFactionVoice(null);
+    setIncomingAttackAlert(null);
+    seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
   }
 
@@ -1863,6 +1908,29 @@ export default function App() {
       </div>
 
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+      {incomingAttackAlert && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: 8,
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "2px solid #dc2626",
+            background: "#fee2e2",
+            color: "#7f1d1d",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 10,
+            alignItems: "center",
+            flex: "0 0 auto",
+            fontWeight: "bold",
+            boxShadow: "0 8px 24px rgba(127,29,29,0.16)"
+          }}
+        >
+          <span>{incomingAttackAlert.text}</span>
+          <button onClick={() => setIncomingAttackAlert(null)} style={{ flex: "0 0 auto" }}>Dismiss</button>
+        </div>
+      )}
       {factionVoice && (
         <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
