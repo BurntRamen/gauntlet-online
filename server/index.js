@@ -2180,8 +2180,13 @@ io.on("connection", (socket) => {
       return;
     }
     
+    const noHandBlockSelected =
+      !isLaneBlock &&
+      (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) &&
+      (!Array.isArray(blockCardIndexes) || blockCardIndexes.length === 0);
+
     // If take damage (no block card)
-    if (!isLaneBlock && (blockCardIndex === undefined || blockCardIndex === null || blockCardIndex === -1) && !Array.isArray(blockCardIndexes)) {
+    if (noHandBlockSelected) {
       console.log(`[Socket] No block card - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;

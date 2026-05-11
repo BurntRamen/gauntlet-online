@@ -1360,7 +1360,10 @@ export default function App() {
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Faction Command</div>
             <h1 style={{ margin: 0, fontSize: 40, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
           </div>
-          <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right" }}>Room {lobby?.roomCode} | {role === "spectator" ? "Spectator" : `Player ${player}`}</div>
+          <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right", display: "grid", gap: 8, justifyItems: "end" }}>
+            <div>Room {lobby?.roomCode} | {role === "spectator" ? "Spectator" : `Player ${player}`}</div>
+            <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>
+          </div>
         </div>
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
@@ -1647,7 +1650,7 @@ export default function App() {
     if (isSpectator) return "Watching game.";
     if (game.winner != null || game.phase === "gameOver") return "Game over.";
     if (game.phase === "priority") {
-      if (hasIncomingAttack) return "You must block or pass to damage before declaring a new attack.";
+      if (hasIncomingAttack) return "You may block or take damage before declaring a new attack.";
       if (hasAnyUnresolvedAttack) return "Combat is unresolved. Finish blocks and damage before another attack.";
       return isMyPriority ? "It is your priority. You may attack, use abilities, or pass." : "Waiting for the other player.";
     }
@@ -1677,6 +1680,7 @@ export default function App() {
       {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
       {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
       {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
+      <button onClick={returnToMainMenu}>Main Menu</button>
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
       {!isBasicGame && me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
