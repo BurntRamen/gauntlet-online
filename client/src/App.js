@@ -218,6 +218,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
 
   return (
     <div
+      className="card-box"
       style={{
         border: selected ? `3px solid ${accent}` : "1px solid black",
         borderRadius: 8,
@@ -281,9 +282,9 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   );
 }
 
-function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {} }) {
+function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {}, className }) {
   return (
-    <div style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background, ...style }}>
+    <div className={className} style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background, ...style }}>
       {title && <h3 style={{ marginTop: 0, marginBottom: 12, ...headingStyle }}>{title}</h3>}
       {children}
     </div>
@@ -1566,6 +1567,26 @@ export default function App() {
     resetSelections();
   }
 
+  function passHandAttack(handAttackId) {
+    resetSelections();
+    socket.emit("confirmBlock", {
+      lane: null,
+      handAttackId,
+      blockCardIndex: -1,
+      blockCardIndexes: [],
+      paymentIndexes: [],
+      useHeraBonus: false
+    });
+  }
+
+  function passCurrentBlock() {
+    if (blockMode?.type === "handAttack") {
+      passHandAttack(blockMode.handAttackId);
+      return;
+    }
+    passPriority();
+  }
+
   function confirmPlacement() {
     if (!placementMode || selectedPlacementCardIndex == null) return;
     socket.emit("placeFacedown", { lane: placementMode.lane, handIndex: selectedPlacementCardIndex });
@@ -1713,7 +1734,7 @@ export default function App() {
           {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
           {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
-          <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
+          <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
@@ -1735,7 +1756,7 @@ export default function App() {
           {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
           {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
-          <button onClick={passPriority} style={{ marginRight: 10 }}>Pass / Take Damage</button>
+          <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
@@ -1781,16 +1802,44 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
+    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
       <style>{`
         @media (max-width: 760px) {
+          .game-root {
+            height: auto !important;
+            min-height: 100dvh !important;
+            overflow: visible !important;
+            padding: 6px !important;
+          }
           .game-grid { grid-template-columns: 1fr !important; gap: 6px !important; }
-          .game-side { max-height: 32dvh !important; display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; overflow-y: auto !important; }
+          .game-main {
+            overflow: visible !important;
+            padding-right: 0 !important;
+          }
+          .game-side {
+            position: static !important;
+            max-height: none !important;
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 6px !important;
+            overflow: visible !important;
+          }
+          .hand-section {
+            position: static !important;
+            box-shadow: none !important;
+          }
+          .card-box {
+            width: 82px !important;
+            min-width: 82px !important;
+            min-height: 132px !important;
+            padding: 5px !important;
+          }
           .game-header { align-items: flex-start !important; }
           .game-header h2 { font-size: 18px !important; }
           .music-control { display: none !important; }
           .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
           .lane-grid { grid-template-columns: repeat(3, minmax(105px, 1fr)) !important; overflow-x: auto !important; }
+          .lane-card { min-height: 118px !important; padding: 6px !important; }
         }
       `}</style>
       <div className="game-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 5, flex: "0 0 auto" }}>
@@ -1835,7 +1884,7 @@ export default function App() {
       <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
 
       <div className="game-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 8, alignItems: "stretch", minHeight: 0, flex: 1 }}>
-        <div style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
+        <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
             <p><strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life — {game.players[2].connected ? "Connected" : "Disconnected"}</p>
@@ -1876,7 +1925,7 @@ export default function App() {
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
               </SectionCard>}
 
-              <SectionCard title="Your Hand" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }}>
+              <SectionCard title="Your Hand" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }} className="hand-section">
                 {canDeclareAttack && <div style={{ marginBottom: 6 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}
                 <div style={{ display: "flex", flexWrap: "nowrap", gap: 7, overflowX: "auto", paddingBottom: 5, WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}>
                   {me.hand.map((card, i) => {
@@ -1918,7 +1967,12 @@ export default function App() {
                   <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
                   {attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {attack.notes.join(", ")}</p>}
                   {attack.block.length > 0 ? <p><strong>Blocks:</strong> {attack.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
-                  {!isSpectator && game.phase === "priority" && iAmDefender && attack.block.length === 0 && <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>}
+                  {!isSpectator && game.phase === "priority" && iAmDefender && attack.block.length === 0 && (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>
+                      <button onClick={() => passHandAttack(attack.id)}>Take Damage / Pass</button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1932,7 +1986,7 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                <div key={i} className="lane-card" style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
                   <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
                     <div style={{ display: "grid", gap: 5 }}>

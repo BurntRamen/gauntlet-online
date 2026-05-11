@@ -1512,6 +1512,13 @@ function aiPassPriority(roomState) {
   }
 }
 
+function getPendingAttackList(game) {
+  return [
+    ...(game.handAttacks || []),
+    ...(game.lanes || []).map((lane) => lane.attack).filter(Boolean)
+  ];
+}
+
 function aiEndPlacement(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
@@ -1542,7 +1549,13 @@ async function runTrainingAi(roomState) {
   } else if (game.phase === "end") {
     acted = aiEndPlacement(roomState);
   } else if (game.phase === "priority" && game.priority === 2) {
-    if (hasPendingAttacks(game)) {
+    const pendingAttacks = getPendingAttackList(game);
+    const humanStillDefendingAiAttack = pendingAttacks.some((attack) => attack.player === 2 && !(game.priorityPassed?.[1]) && (!attack.block || attack.block.length === 0));
+    if (humanStillDefendingAiAttack) {
+      game.priority = 1;
+      game.message = "Player 1 can block or pass.";
+      acted = true;
+    } else if (pendingAttacks.length > 0) {
       aiPassPriority(roomState);
       acted = true;
     } else {
