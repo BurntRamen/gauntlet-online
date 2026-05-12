@@ -1284,17 +1284,12 @@ function applyGameOverState(game) {
   if (p1Life > 0 && p2Life > 0) return false;
 
   game.phase = "gameOver";
-  if (p1Life <= 0 && p2Life <= 0) {
-    if (p1Life === p2Life) {
-      game.winner = null;
-      game.message = "Game Over - Draw!";
-    } else {
-      game.winner = p1Life > p2Life ? 1 : 2;
-      game.message = `Player ${game.winner} wins!`;
-    }
+  if (p1Life === p2Life) {
+    game.winner = null;
+    game.message = `End of turn life check: both players are tied at ${p1Life}. Game Over - Draw!`;
   } else {
-    game.winner = p1Life <= 0 ? 2 : 1;
-    game.message = `Player ${game.winner} wins!`;
+    game.winner = p1Life > p2Life ? 1 : 2;
+    game.message = `End of turn life check: Player ${game.winner} has the higher life total and wins!`;
   }
 
   return true;
@@ -1380,7 +1375,8 @@ function startEndPhase(game) {
   game.message = "End of Turn Phase - Place facedown cards in lanes";
 }
 
-function advanceEndPlacement(game) {
+async function advanceEndPlacement(roomState) {
+  const game = roomState.game;
   game.endPlacementStep++;
   
   if (game.endPlacementStep >= 2) {
@@ -1394,6 +1390,12 @@ function advanceEndPlacement(game) {
       while (player.hand.length < 8 && player.deck.length > 0) {
         player.hand.push(player.deck.pop());
       }
+    }
+
+    if (applyGameOverState(game)) {
+      await recordFinalGameStats(roomState);
+      io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
+      return;
     }
     
     game.phase = "priority";
@@ -1485,17 +1487,12 @@ async function aiResolveDamageIfReady(roomState) {
   }
 
   resolveDamage(game, roomState);
-  if (applyGameOverState(game)) {
-    await recordFinalGameStats(roomState);
-    io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
-  } else {
-    game.phase = "priority";
-    game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
-    game.lastActivePlayer = game.priority;
-    game.mostRecentAttackDefender = null;
-    resetPriorityPassed(game);
-    game.message = `Damage resolved. Player ${game.priority} has priority.`;
-  }
+  game.phase = "priority";
+  game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
+  game.lastActivePlayer = game.priority;
+  game.mostRecentAttackDefender = null;
+  resetPriorityPassed(game);
+  game.message = `Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
   return true;
 }
 
@@ -1529,7 +1526,7 @@ function aiNeedsLaneSetup(game) {
   return ai.hand.length > 0 && game.lanes.some((lane) => !lane.facedown[2]);
 }
 
-function aiEndPlacement(roomState) {
+async function aiEndPlacement(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
   const lane = game.endPlacementLaneIndex;
@@ -1545,7 +1542,7 @@ function aiEndPlacement(roomState) {
     game.message = `Training AI skipped lane ${lane + 1}.`;
   }
 
-  advanceEndPlacement(game);
+  await advanceEndPlacement(roomState);
   return true;
 }
 
@@ -1557,7 +1554,7 @@ async function runTrainingAi(roomState) {
   if (game.phase === "damage") {
     acted = await aiResolveDamageIfReady(roomState);
   } else if (game.phase === "end") {
-    acted = aiEndPlacement(roomState);
+    acted = await aiEndPlacement(roomState);
   } else if (game.phase === "priority" && game.priority === 2) {
     const pendingAttacks = getPendingAttackList(game);
     const humanStillDefendingAiAttack = pendingAttacks.some((attack) => attack.player === 2 && !(game.priorityPassed?.[1]) && (!attack.block || attack.block.length === 0));
@@ -1970,18 +1967,12 @@ io.on("connection", (socket) => {
     if (roomState.damageConfirmed[1] && roomState.damageConfirmed[2]) {
       console.log("[resolveDamage] Both confirmed - resolving");
       resolveDamage(game, roomState);
-      
-      if (applyGameOverState(game)) {
-        await recordFinalGameStats(roomState);
-        io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
-      } else {
-        game.phase = "priority";
-        game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
-        game.lastActivePlayer = game.priority;
-        game.mostRecentAttackDefender = null;
-        resetPriorityPassed(game);
-        game.message = `Damage resolved. Player ${game.priority} has priority.`;
-      }
+      game.phase = "priority";
+      game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
+      game.lastActivePlayer = game.priority;
+      game.mostRecentAttackDefender = null;
+      resetPriorityPassed(game);
+      game.message = `Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
       
       emitState(roomState);
       scheduleTrainingAi(roomState);
@@ -2478,7 +2469,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("placeFacedown", ({ lane, handIndex }) => {
+  socket.on("placeFacedown", async ({ lane, handIndex }) => {
     console.log(`[Socket] placeFacedown: lane ${lane}, handIndex ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -2518,12 +2509,12 @@ io.on("connection", (socket) => {
     game.endPlaced[playerNum][lane] = true;
     game.message = `Player ${playerNum} placed a card in lane ${lane + 1}`;
     
-    advanceEndPlacement(game);
+    await advanceEndPlacement(roomState);
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("skipEndPlacement", ({ lane }) => {
+  socket.on("skipEndPlacement", async ({ lane }) => {
     console.log(`[Socket] skipEndPlacement: lane ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -2555,7 +2546,7 @@ io.on("connection", (socket) => {
     game.endPlaced[playerNum][lane] = true;
     game.message = `Player ${playerNum} skipped lane ${lane + 1}`;
     
-    advanceEndPlacement(game);
+    await advanceEndPlacement(roomState);
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });

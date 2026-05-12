@@ -734,7 +734,16 @@ function RulebookPanel() {
       rules: [
         "After damage resolves, priority returns to the defender of the most recent attack.",
         "When both players pass with no pending attacks, players place face-down cards lane by lane.",
-        "After all lanes are handled, both players draw back up to 8 and priority changes players."
+        "After all lanes are handled, both players draw back up to 8 and priority changes players.",
+        "Life totals are checked only at the end of the turn, after lane placement and draw-up are complete."
+      ]
+    },
+    {
+      title: "Victory",
+      rules: [
+        "Players are not eliminated immediately when their life reaches 0 or less during a turn.",
+        "At the end of the turn, if either player has 0 or less life, the player with the higher life total wins.",
+        "If both players are tied at the end-of-turn life check, the game is a draw."
       ]
     }
   ];
