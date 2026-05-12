@@ -1105,6 +1105,56 @@ export default function App() {
     }
   }, [game, role, player, blockMode, attackMode, placementMode, abilityMode]);
 
+  useEffect(() => {
+    function handleAdvanceHotkey(event) {
+      if (event.code !== "Space" || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+      const tagName = event.target?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tagName) || event.target?.isContentEditable) return;
+      if (!game || role !== "player" || !player || game.phase === "gameOver" || game.winner != null) return;
+
+      if (game.phase === "damage") {
+        event.preventDefault();
+        resolveDamage();
+        return;
+      }
+
+      if (blockMode) {
+        event.preventDefault();
+        passCurrentBlock();
+        return;
+      }
+
+      if (placementMode) {
+        event.preventDefault();
+        skipPlacement(placementMode.lane);
+        return;
+      }
+
+      if (game.phase === "end") {
+        const currentPlayer = game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : (game.endPlacementFirstPlayer === 1 ? 2 : 1);
+        if (currentPlayer === player && Number.isInteger(game.endPlacementLaneIndex)) {
+          event.preventDefault();
+          skipPlacement(game.endPlacementLaneIndex);
+        }
+        return;
+      }
+
+      if (game.phase === "priority" && game.priority === player) {
+        event.preventDefault();
+        const opponentNumber = player === 1 ? 2 : 1;
+        const incomingHandAttack = (game.handAttacks || []).find((attack) => attack.player === opponentNumber && (!attack.block || attack.block.length === 0));
+        if (incomingHandAttack && !game.priorityPassed?.[player]) {
+          passHandAttack(incomingHandAttack.id);
+        } else {
+          passPriority();
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleAdvanceHotkey);
+    return () => window.removeEventListener("keydown", handleAdvanceHotkey);
+  });
+
   function resetSelections() {
     setAttackMode(null);
     setBlockMode(null);
@@ -1492,6 +1542,7 @@ export default function App() {
     !isSpectator &&
     ((game.handAttacks || []).some((a) => a.player === opponentNumber) ||
       (game.lanes || []).some((lane) => lane.attack && lane.attack.player === opponentNumber));
+  const defenderMayBlock = !isSpectator && game.phase === "priority" && game.priority === player && !game.priorityPassed?.[player];
 
   const hasAnyUnresolvedAttack =
     (game.handAttacks || []).length > 0 || (game.lanes || []).some((lane) => !!lane.attack);
@@ -1695,6 +1746,7 @@ export default function App() {
     if (isSpectator) return "Watching game.";
     if (game.winner != null || game.phase === "gameOver") return "Game over.";
     if (game.phase === "priority") {
+      if (hasIncomingAttack && game.priorityPassed?.[player]) return "You passed on this attack. Waiting to move to damage.";
       if (hasIncomingAttack) return "You may block or take damage before declaring a new attack.";
       if (hasAnyUnresolvedAttack) return "Combat is unresolved. Finish blocks and damage before another attack.";
       return isMyPriority ? "It is your priority. You may attack, use abilities, or pass." : "Waiting for the other player.";
@@ -2039,7 +2091,7 @@ export default function App() {
                   <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
                   {attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {attack.notes.join(", ")}</p>}
                   {attack.block.length > 0 ? <p><strong>Blocks:</strong> {attack.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
-                  {!isSpectator && game.phase === "priority" && iAmDefender && attack.block.length === 0 && (
+                  {defenderMayBlock && iAmDefender && attack.block.length === 0 && (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>
                       <button onClick={() => passHandAttack(attack.id)}>Take Damage / Pass</button>
@@ -2079,7 +2131,7 @@ export default function App() {
                     </div>
                   )}
                   {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
-                  {!isSpectator && game.phase === "priority" && lane.attack && iAmDefender && lane.block.length === 0 && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
+                  {defenderMayBlock && lane.attack && iAmDefender && lane.block.length === 0 && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
                   {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && !lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startPlacement(i)} style={{ marginRight: 8 }}>Place Facedown Here</button><button onClick={() => skipPlacement(i)}>Skip This Lane</button></div>}
                   {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => skipPlacement(i)}>Lane Already Filled - Mark Done</button></div>}
                 </div>

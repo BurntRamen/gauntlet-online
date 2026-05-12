@@ -961,6 +961,12 @@ function resetPriorityPassed(game) {
   game.priorityPassed = { 1: false, 2: false };
 }
 
+function enterDamagePhase(game, message = "Damage phase. Click Resolve Damage.") {
+  game.phase = "damage";
+  game.message = message;
+  return { 1: false, 2: false };
+}
+
 function createTurnData() {
   return {
     attacksDeclaredThisTurn: 0,
@@ -1500,9 +1506,8 @@ function aiPassPriority(roomState) {
 
   if (game.priorityPassed[1] && game.priorityPassed[2]) {
     if (hasPendingAttacks(game)) {
-      game.phase = "damage";
-      game.message = "Both players passed - damage phase. Training AI is ready.";
-      roomState.damageConfirmed = { 1: false, 2: true };
+      roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Training AI is ready.");
+      roomState.damageConfirmed[2] = true;
     } else {
       startEndPhase(game);
     }
@@ -1517,6 +1522,11 @@ function getPendingAttackList(game) {
     ...(game.handAttacks || []),
     ...(game.lanes || []).map((lane) => lane.attack).filter(Boolean)
   ];
+}
+
+function aiNeedsLaneSetup(game) {
+  const ai = game.players[2];
+  return ai.hand.length > 0 && game.lanes.some((lane) => !lane.facedown[2]);
 }
 
 function aiEndPlacement(roomState) {
@@ -1555,7 +1565,7 @@ async function runTrainingAi(roomState) {
       game.priority = 1;
       game.message = "Player 1 can block or pass.";
       acted = true;
-    } else if (pendingAttacks.length > 0) {
+    } else if (pendingAttacks.length > 0 || aiNeedsLaneSetup(game)) {
       aiPassPriority(roomState);
       acted = true;
     } else {
@@ -1926,9 +1936,7 @@ io.on("connection", (socket) => {
     
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
-        game.phase = "damage";
-        game.message = "Both players passed - damage phase. Click Resolve Damage.";
-        roomState.damageConfirmed = { 1: false, 2: false };
+        roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
       } else {
         startEndPhase(game);
       }
@@ -1938,6 +1946,7 @@ io.on("connection", (socket) => {
     }
     
     emitState(roomState);
+    scheduleTrainingAi(roomState);
   });
 
   socket.on("resolveDamage", async () => {
@@ -2179,6 +2188,10 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Defender does not have priority to block");
       return;
     }
+    if (game.priorityPassed?.[defender]) {
+      socket.emit("errorMessage", "You already passed on this attack and cannot block it now");
+      return;
+    }
     
     const noHandBlockSelected =
       !isLaneBlock &&
@@ -2193,9 +2206,7 @@ io.on("connection", (socket) => {
       
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
-          game.phase = "damage";
-          game.message = "Both players passed - damage phase. Click Resolve Damage.";
-          roomState.damageConfirmed = { 1: false, 2: false };
+          roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
         } else {
           startEndPhase(game);
         }
@@ -2214,9 +2225,7 @@ io.on("connection", (socket) => {
 
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
-          game.phase = "damage";
-          game.message = "Both players passed - damage phase. Click Resolve Damage.";
-          roomState.damageConfirmed = { 1: false, 2: false };
+          roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
         } else {
           startEndPhase(game);
         }
@@ -2293,11 +2302,15 @@ io.on("connection", (socket) => {
     
     attack.block.push(...blockEntries);
     
-    // The attack remains pending until damage resolution. Priority returns to
-    // the attacker, who can pass to move combat toward damage.
-    resetPriorityPassed(game);
-    game.priority = attack.player;
-    game.message = `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")} (paid ${payment.total}, blocker value ${blockCardValue})! Player ${attack.player} has priority.`;
+    if (game.gameMode === "basic") {
+      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")}. Basic Mode moves directly to damage.`);
+    } else {
+      // The attack remains pending until damage resolution. Priority returns to
+      // the attacker, who can pass to move combat toward damage.
+      resetPriorityPassed(game);
+      game.priority = attack.player;
+      game.message = `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")} (paid ${payment.total}, blocker value ${blockCardValue})! Player ${attack.player} has priority.`;
+    }
     
     emitState(roomState);
     scheduleTrainingAi(roomState);
