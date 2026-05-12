@@ -853,7 +853,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.07);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: true, attacks: true });
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
@@ -1633,7 +1633,6 @@ export default function App() {
   function startAttackFromHand() { resetSelections(); setAttackMode({ from: "hand" }); }
   function startAttackFromLane(lane) { resetSelections(); setAttackMode({ lane, from: "lane" }); }
   function startBlockLaneAttack(lane) { resetSelections(); setBlockMode({ type: "laneAttack", lane }); }
-  function startBlockHandAttack(handAttackId) { resetSelections(); setBlockMode({ type: "handAttack", handAttackId }); }
   function startPlacement(lane) { resetSelections(); setPlacementMode({ lane }); }
 
   function startPolea() {
@@ -2077,30 +2076,6 @@ export default function App() {
               </SectionCard>
             </>
           )}
-
-              <SectionCard borderColor={oppTheme.border} background="rgba(255,255,255,0.94)" style={{ padding: 8, marginBottom: 6 }}>
-            <CollapseHeader title="Hand Attacks" collapsed={collapsedPanels.attacks && game.handAttacks.length === 0} onToggle={() => togglePanel("attacks")} color={oppTheme.primary} />
-            {collapsedPanels.attacks && game.handAttacks.length === 0 ? null : game.handAttacks.length === 0 ? <p>None</p> : game.handAttacks.map((attack) => {
-              const defender = attack.player === 1 ? 2 : 1;
-              const iAmDefender = !isSpectator && defender === player;
-              const ownerTheme = getFactionTheme(game.players[attack.player].faction.id);
-              return (
-                <div key={attack.id} style={{ border: `2px solid ${ownerTheme.border}`, borderRadius: 8, padding: 8, marginBottom: 8, background: ownerTheme.light, fontSize: 12 }}>
-                  <p><strong>Attack ID:</strong> {attack.id}</p>
-                  <p><strong>Attacking:</strong> Player {attack.player} with {getCardShortLabel(attack.card)} (from hand)</p>
-                  <p><strong>Effective Value:</strong> {attack.effectiveValue}</p>
-                  {attack.notes?.length > 0 && <p><strong>Bonuses:</strong> {attack.notes.join(", ")}</p>}
-                  {attack.block.length > 0 ? <p><strong>Blocks:</strong> {attack.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</p> : <p><strong>Blocks:</strong> None</p>}
-                  {defenderMayBlock && iAmDefender && attack.block.length === 0 && (
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button onClick={() => startBlockHandAttack(attack.id)}>Block This Hand Attack</button>
-                      <button onClick={() => passHandAttack(attack.id)}>Take Damage / Pass</button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </SectionCard>
 
           <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8, marginBottom: 6 }}>
             <div className="lane-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(130px, 1fr))", gap: 7 }}>
