@@ -545,7 +545,7 @@ function FriendsPanel({
 
   const friends = friendsData.friends || [];
   const messages = friendsData.messages || [];
-  const selectedFriend = friends.find((friend) => friend.id === selectedFriendId) || friends[0] || null;
+  const selectedFriend = friends.find((friend) => friend.id === selectedFriendId) || null;
   const selectedMessages = selectedFriend
     ? messages.filter((message) => message.fromId === selectedFriend.id || message.toId === selectedFriend.id)
     : [];
@@ -561,39 +561,41 @@ function FriendsPanel({
       {friends.length === 0 ? (
         <p style={{ color: "#bfdbfe", margin: 0 }}>No friends yet.</p>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(120px, 0.75fr) minmax(180px, 1.25fr)", gap: 12 }}>
-          <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
-            {friends.map((friend) => (
-              <button key={friend.id} onClick={() => onSelectFriend(friend.id)} style={{ textAlign: "left", padding: 8, borderRadius: 4, border: selectedFriend?.id === friend.id ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", background: selectedFriend?.id === friend.id ? "rgba(245,158,11,0.18)" : "rgba(15,23,42,0.64)", color: "#dbeafe", cursor: "pointer" }}>
-                <strong>{friend.name}</strong>
-              </button>
-            ))}
-          </div>
-          <div>
-            {selectedFriend && (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                  <strong>{selectedFriend.name}</strong>
-                  <button onClick={() => onRemoveFriend(selectedFriend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
-                </div>
-                <div style={{ height: 150, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
-                  {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
-                  {selectedMessages.map((message) => (
-                    <div key={message.id} style={{ marginBottom: 8, textAlign: message.fromId === account.id ? "right" : "left" }}>
-                      <div style={{ display: "inline-block", maxWidth: "88%", padding: "6px 8px", borderRadius: 6, background: message.fromId === account.id ? "rgba(245,158,11,0.22)" : "rgba(59,130,246,0.18)", color: "#f8fafc" }}>
-                        <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 2 }}>{message.fromName}</div>
-                        <div>{message.text}</div>
-                      </div>
+        <div style={{ display: "grid", gap: 8 }}>
+          {friends.map((friend) => {
+            const expanded = selectedFriend?.id === friend.id;
+            return (
+              <div key={friend.id} style={{ border: expanded ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", borderRadius: 6, background: expanded ? "rgba(245,158,11,0.14)" : "rgba(15,23,42,0.64)", overflow: "hidden" }}>
+                <button onClick={() => onSelectFriend(expanded ? "" : friend.id)} style={{ width: "100%", textAlign: "left", padding: 8, border: 0, background: "transparent", color: "#dbeafe", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <strong>{friend.name}</strong>
+                  <span>{expanded ? "Close" : "Open"}</span>
+                </button>
+                {expanded && (
+                  <div style={{ padding: 8, borderTop: "1px solid rgba(125,211,252,0.25)", background: "rgba(2,6,23,0.34)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                      <strong>{friend.name}</strong>
+                      <button onClick={() => onRemoveFriend(friend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
                     </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input value={messageText} onChange={(e) => onMessageTextChange(e.target.value)} placeholder="Message" maxLength={500} style={{ ...MENU_THEME.input, flex: 1 }} />
-                  <MenuButton onClick={() => onSendMessage(selectedFriend.id)}>Send</MenuButton>
-                </div>
-              </>
-            )}
-          </div>
+                    <div style={{ height: 130, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
+                      {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
+                      {selectedMessages.map((message) => (
+                        <div key={message.id} style={{ marginBottom: 8, textAlign: message.fromId === account.id ? "right" : "left" }}>
+                          <div style={{ display: "inline-block", maxWidth: "88%", padding: "6px 8px", borderRadius: 6, background: message.fromId === account.id ? "rgba(245,158,11,0.22)" : "rgba(59,130,246,0.18)", color: "#f8fafc" }}>
+                            <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 2 }}>{message.fromName}</div>
+                            <div>{message.text}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input value={messageText} onChange={(e) => onMessageTextChange(e.target.value)} placeholder="Message" maxLength={500} style={{ ...MENU_THEME.input, flex: 1 }} />
+                      <MenuButton onClick={() => onSendMessage(friend.id)}>Send</MenuButton>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </MenuCard>
@@ -671,7 +673,7 @@ function CompactPlayerBar({ game, player }) {
         const theme = getFactionTheme(game.players[p].faction.id);
         return (
           <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "6px 8px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", fontSize: 13 }}>
-            <span style={{ fontWeight: "bold", color: theme.primary }}>P{p} {game.players[p].accountName || game.players[p].faction.name}</span>
+            <span style={{ fontWeight: "bold", color: theme.primary }}>Player {p}</span>
             <span>{game.players[p].life} life</span>
             <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
           </div>
@@ -861,7 +863,7 @@ export default function App() {
   const [playAsGuest, setPlayAsGuest] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
-  const [musicVolume, setMusicVolume] = useState(0.07);
+  const [musicVolume, setMusicVolume] = useState(0.11);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -1113,6 +1115,21 @@ export default function App() {
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttacks[0].id });
     }
   }, [game, role, player, blockMode, attackMode, placementMode, abilityMode]);
+
+  useEffect(() => {
+    if (!blockMode || !game) return;
+    if (game.phase !== "priority") {
+      resetSelections();
+      return;
+    }
+    if (blockMode.type === "handAttack") {
+      const attack = (game.handAttacks || []).find((entry) => entry.id === blockMode.handAttackId);
+      if (!attack || attack.block?.length > 0 || game.priorityPassed?.[player]) resetSelections();
+      return;
+    }
+    const laneAttack = game.lanes?.[blockMode.lane]?.attack;
+    if (!laneAttack || game.lanes?.[blockMode.lane]?.block?.length > 0 || game.priorityPassed?.[player]) resetSelections();
+  }, [blockMode, game, player]);
 
   useEffect(() => {
     function handleAdvanceHotkey(event) {
@@ -1455,6 +1472,9 @@ export default function App() {
     const bothReady = isBasicMode
       ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
       : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
+    const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
+    const p1StartConfirmed = !!lobby?.players?.[1]?.readyToStart;
+    const p2StartConfirmed = !!lobby?.players?.[2]?.readyToStart;
 
     return (
       <div style={MENU_THEME.page}>
@@ -1473,8 +1493,8 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
           <p><strong>Mode:</strong> {isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
-          <p><strong>Player 1:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[1]?.factionId || "No faction"} — {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"}</p>
-          <p><strong>Player 2:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[2]?.factionId || "No faction"} — {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"}</p>
+          <p><strong>Player 1:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[1]?.factionId || "No faction"} - {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"} - {p1StartConfirmed ? "Ready" : "Not ready"}</p>
+          <p><strong>Player 2:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[2]?.factionId || "No faction"} - {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"} - {p2StartConfirmed ? "Ready" : "Not ready"}</p>
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
         </MenuCard>
         {role === "player" && (
@@ -1495,7 +1515,8 @@ export default function App() {
               </>
             )}
             {isBasicMode && <MenuCard title="Basic Mode"><p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p></MenuCard>}
-            <MenuButton onClick={startGame} disabled={!bothReady}>Start Game</MenuButton>
+            <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
+            <p style={{ color: "#bfdbfe", fontSize: 13 }}>Both players must confirm before the match begins.</p>
           </>
         )}
         {role === "spectator" && <MenuCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></MenuCard>}
@@ -1759,9 +1780,17 @@ export default function App() {
       if (hasAnyUnresolvedAttack) return "Combat is unresolved. Finish blocks and damage before another attack.";
       return isMyPriority ? "It is your priority. You may attack, use abilities, or pass." : "Waiting for the other player.";
     }
-    if (game.phase === "damage") return "Damage Resolution Phase: click Resolve Damage.";
+    if (game.phase === "damage") return "Apply the net damage from current combat.";
     if (game.phase === "end") return isMyEndPlacementTurn ? `End of Turn: Lane ${currentEndLane + 1}. Place one facedown card or skip.` : `End of Turn: Lane ${currentEndLane + 1}. Waiting for the other player.`;
     return "";
+  }
+
+  function phaseDisplayName() {
+    if (game.phase === "priority") return "Command";
+    if (game.phase === "damage") return "Apply Damage";
+    if (game.phase === "end") return "Set Lanes";
+    if (game.phase === "gameOver") return "Game Over";
+    return game.phase;
   }
 
   function factionVoiceFor(message) {
@@ -1783,7 +1812,7 @@ export default function App() {
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
       {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
-      {game.phase === "damage" && <button onClick={resolveDamage}>Resolve Damage</button>}
+      {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
       {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
       <button onClick={returnToMainMenu}>Main Menu</button>
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
@@ -2007,7 +2036,7 @@ export default function App() {
       <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 7, marginBottom: 6, flex: "0 0 auto" }}>
         <div className="status-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))", gap: 6 }}>
           <StatusPill label="Turn" value={game.turn} bg="white" />
-          <StatusPill label="Phase" value={game.phase} bg="white" />
+          <StatusPill label="Step" value={phaseDisplayName()} bg="white" />
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
         </div>

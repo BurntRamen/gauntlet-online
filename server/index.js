@@ -358,6 +358,10 @@ async function recordAccountGameResult(accountId, result) {
     if (result === "win") stats.gamesWon = (stats.gamesWon || 0) + 1;
     if (result === "loss") stats.gamesLost = (stats.gamesLost || 0) + 1;
     if (result === "draw") stats.gamesDrawn = (stats.gamesDrawn || 0) + 1;
+    stats.rankedGamesPlayed = (stats.rankedGamesPlayed || 0) + 1;
+    if (result === "win") stats.rankedGamesWon = (stats.rankedGamesWon || 0) + 1;
+    if (result === "loss") stats.rankedGamesLost = (stats.rankedGamesLost || 0) + 1;
+    if (result === "draw") stats.rankedGamesDrawn = (stats.rankedGamesDrawn || 0) + 1;
     await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
     return;
   }
@@ -371,14 +375,18 @@ async function recordAccountGameResult(accountId, result) {
   if (result === "win") account.stats.gamesWon = (account.stats.gamesWon || 0) + 1;
   if (result === "loss") account.stats.gamesLost = (account.stats.gamesLost || 0) + 1;
   if (result === "draw") account.stats.gamesDrawn = (account.stats.gamesDrawn || 0) + 1;
+  account.stats.rankedGamesPlayed = (account.stats.rankedGamesPlayed || 0) + 1;
+  if (result === "win") account.stats.rankedGamesWon = (account.stats.rankedGamesWon || 0) + 1;
+  if (result === "loss") account.stats.rankedGamesLost = (account.stats.rankedGamesLost || 0) + 1;
+  if (result === "draw") account.stats.rankedGamesDrawn = (account.stats.rankedGamesDrawn || 0) + 1;
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
 }
 
 function getAccountMatchProfile(account) {
-  const wins = account.stats?.gamesWon || 0;
-  const losses = account.stats?.gamesLost || 0;
-  const draws = account.stats?.gamesDrawn || 0;
+  const wins = account.stats?.rankedGamesWon || 0;
+  const losses = account.stats?.rankedGamesLost || 0;
+  const draws = account.stats?.rankedGamesDrawn || 0;
   const decidedGames = wins + losses;
   const gamesPlayed = wins + losses + draws;
   const winRatio = decidedGames > 0 ? wins / decidedGames : 0.5;
@@ -650,10 +658,10 @@ app.get("/api/leaderboard", async (_req, res) => {
     : loadAccountStore().accounts;
   const leaderboard = accounts
     .map((account) => {
-      const wins = account.stats?.gamesWon || 0;
-      const losses = account.stats?.gamesLost || 0;
-      const draws = account.stats?.gamesDrawn || 0;
-      const gamesPlayed = wins + losses + draws;
+      const wins = account.stats?.rankedGamesWon || 0;
+      const losses = account.stats?.rankedGamesLost || 0;
+      const draws = account.stats?.rankedGamesDrawn || 0;
+      const gamesPlayed = wins + losses;
       const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 1000) / 10 : 0;
       return {
         name: account.name,
@@ -749,7 +757,8 @@ function createRoom() {
       spectators: []
     },
     game: null,
-    damageConfirmed: { 1: false, 2: false }
+    damageConfirmed: { 1: false, 2: false },
+    ranked: false
   };
   rooms.set(roomCode, roomState);
   return roomState;
@@ -787,6 +796,7 @@ function findMatchForEntry(entry) {
 
 function createMatchedRoom(entryA, entryB) {
   const roomState = createRoom();
+  roomState.ranked = true;
   const firstEntry = Math.random() < 0.5 ? entryA : entryB;
   const secondEntry = firstEntry === entryA ? entryB : entryA;
   const assignments = [
@@ -838,7 +848,9 @@ function sanitizeLobbyPlayer(player) {
     connected: player.connected,
     factionId: player.factionId,
     accountName: player.accountName || null,
-    isGuest: !!player.isGuest
+    isGuest: !!player.isGuest,
+    readyToStart: !!player.readyToStart,
+    isAI: !!player.isAI
   };
 }
 
@@ -938,6 +950,16 @@ function roomPlayersReady(roomState) {
     return roomState.lobby.players[1].socket && (roomState.lobby.players[2].socket || roomState.lobby.players[2].isAI);
   }
   return roomState.lobby.players[1].factionId && roomState.lobby.players[2].factionId;
+}
+
+function resetStartConfirmations(roomState) {
+  for (const playerNum of [1, 2]) {
+    roomState.lobby.players[playerNum].readyToStart = false;
+  }
+}
+
+function playersConfirmedStart(roomState) {
+  return [1, 2].every((playerNum) => roomState.lobby.players[playerNum].readyToStart || roomState.lobby.players[playerNum].isAI);
 }
 
 async function requirePlayerIdentity(socket, authToken, guestName) {
@@ -1299,6 +1321,10 @@ async function recordFinalGameStats(roomState) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
+  if (roomState.ranked === false || isTrainingAiRoom(roomState)) {
+    game.statsRecorded = true;
+    return;
+  }
 
   if (game.winner == null) {
     await recordAccountGameResult(roomState.lobby.players[1].accountId, "draw");
@@ -1322,11 +1348,12 @@ function resolveDamage(game, roomState) {
     }
     const damage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
     const defender = getOtherPlayer(attack.player);
+    const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
     if (damage > 0) {
       game.players[defender].life -= damage;
-      damageMessages.push(`Hand attack dealt ${damage} damage to Player ${defender}`);
+      damageMessages.push(`Hand attack: ${attack.effectiveValue || 0} attack${blockedText} = ${damage} damage to Player ${defender}`);
     } else {
-      damageMessages.push("Hand attack was fully blocked");
+      damageMessages.push(`Hand attack: ${attack.effectiveValue || 0} attack was fully blocked by ${totalBlock}`);
     }
 
     game.players[attack.player].discard.push(attack.card);
@@ -1344,11 +1371,12 @@ function resolveDamage(game, roomState) {
       }
       const damage = Math.max(0, (lane.attack.effectiveValue || 0) - totalBlock);
       const defender = getOtherPlayer(lane.attack.player);
+      const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
       if (damage > 0) {
         game.players[defender].life -= damage;
-        damageMessages.push(`Lane ${i + 1} attack dealt ${damage} damage to Player ${defender}`);
+        damageMessages.push(`Lane ${i + 1}: ${lane.attack.effectiveValue || 0} attack${blockedText} = ${damage} damage to Player ${defender}`);
       } else {
-        damageMessages.push(`Lane ${i + 1} attack was fully blocked`);
+        damageMessages.push(`Lane ${i + 1}: ${lane.attack.effectiveValue || 0} attack was fully blocked by ${totalBlock}`);
       }
       game.players[lane.attack.player].discard.push(lane.attack.card);
       for (const block of lane.block) {
@@ -1877,6 +1905,7 @@ io.on("connection", (socket) => {
       return;
     }
     roomState.lobby.players[playerNum].factionId = factionId;
+    resetStartConfirmations(roomState);
     emitLobbyState(roomState);
   });
 
@@ -1891,6 +1920,7 @@ io.on("connection", (socket) => {
     }
     const nextMode = mode === "basic" ? "basic" : "factions";
     roomState.lobby.gameMode = nextMode;
+    resetStartConfirmations(roomState);
     if (nextMode === "basic") {
       roomState.lobby.players[1].factionId = null;
       roomState.lobby.players[2].factionId = null;
@@ -1902,8 +1932,16 @@ io.on("connection", (socket) => {
     console.log(`[Socket] startGame`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
     if (!roomPlayersReady(roomState)) {
       socket.emit("errorMessage", getLobbyGameMode(roomState) === "basic" ? "Both player seats must be filled first." : "Both players must select a faction first.");
+      return;
+    }
+    roomState.lobby.players[playerNum].readyToStart = true;
+    if (!playersConfirmedStart(roomState)) {
+      emitLobbyState(roomState);
+      socket.emit("errorMessage", `Player ${getOtherPlayer(playerNum)} must also confirm start.`);
       return;
     }
     createGameFromLobby(roomState);
@@ -1929,6 +1967,16 @@ io.on("connection", (socket) => {
     }
     
     game.priorityPassed[playerNum] = true;
+    const passingAsBasicDefender =
+      game.gameMode === "basic" &&
+      getPendingAttackList(game).some((attack) => attack.player === getOtherPlayer(playerNum) && (!attack.block || attack.block.length === 0));
+    if (passingAsBasicDefender) {
+      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+      emitState(roomState);
+      scheduleTrainingAi(roomState);
+      return;
+    }
+
     game.message = `Player ${playerNum} passed priority (P1: ${game.priorityPassed[1] ? "✓" : "○"}, P2: ${game.priorityPassed[2] ? "✓" : "○"})`;
     
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
@@ -2194,6 +2242,13 @@ io.on("connection", (socket) => {
       console.log(`[Socket] No block card - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;
+
+      if (game.gameMode === "basic") {
+        roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
+      }
       
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
@@ -2213,6 +2268,13 @@ io.on("connection", (socket) => {
       console.log(`[Socket] No lane blocker - passing priority to take damage`);
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;
+
+      if (game.gameMode === "basic") {
+        roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
+      }
 
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
