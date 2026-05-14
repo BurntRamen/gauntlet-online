@@ -673,7 +673,7 @@ function CompactPlayerBar({ game, player }) {
         const theme = getFactionTheme(game.players[p].faction.id);
         return (
           <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "6px 8px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", fontSize: 13 }}>
-            <span style={{ fontWeight: "bold", color: theme.primary }}>Player {p}</span>
+            <span style={{ fontWeight: "bold", color: theme.primary }}>{getGamePlayerName(game, p)} <span style={{ color: "#555", fontWeight: "normal" }}>(P{p})</span></span>
             <span>{game.players[p].life} life</span>
             <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
           </div>
@@ -681,6 +681,16 @@ function CompactPlayerBar({ game, player }) {
       })}
     </div>
   );
+}
+
+function getLobbyPlayerName(lobby, playerNum) {
+  const name = lobby?.players?.[playerNum]?.accountName;
+  return name || `Player ${playerNum}`;
+}
+
+function getGamePlayerName(game, playerNum) {
+  const name = game?.players?.[playerNum]?.accountName;
+  return name || `Player ${playerNum}`;
 }
 
 function FactionChoiceCard({ faction, selected, onSelect }) {
@@ -938,7 +948,7 @@ export default function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load friends.");
       setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
-      setSelectedFriendId((current) => current || data.friends?.[0]?.id || "");
+      setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
       setFriendsError(friendLoadError.message);
@@ -948,6 +958,12 @@ export default function App() {
   useEffect(() => {
     loadFriends();
   }, [loadFriends]);
+
+  useEffect(() => {
+    if (!authToken) return undefined;
+    const intervalId = window.setInterval(loadFriends, 5000);
+    return () => window.clearInterval(intervalId);
+  }, [authToken, loadFriends]);
 
   useEffect(() => {
     if (musicStopRef.current) {
@@ -1473,8 +1489,12 @@ export default function App() {
       ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
       : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
-    const p1StartConfirmed = !!lobby?.players?.[1]?.readyToStart;
-    const p2StartConfirmed = !!lobby?.players?.[2]?.readyToStart;
+    const lobbyPlayerLabel = (playerNum) => {
+      const selection = isBasicMode ? "Basic Gauntlet" : lobby?.players?.[playerNum]?.factionId || "No faction";
+      const connection = lobby?.players?.[playerNum]?.connected ? "Connected" : "Disconnected";
+      const ready = lobby?.players?.[playerNum]?.readyToStart ? "Ready" : "Not ready";
+      return `${selection} - ${connection} - ${ready}`;
+    };
 
     return (
       <div style={MENU_THEME.page}>
@@ -1493,8 +1513,8 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
           <p><strong>Mode:</strong> {isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
-          <p><strong>Player 1:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[1]?.factionId || "No faction"} - {lobby?.players?.[1]?.connected ? "Connected" : "Disconnected"} - {p1StartConfirmed ? "Ready" : "Not ready"}</p>
-          <p><strong>Player 2:</strong> {isBasicMode ? "Basic Gauntlet" : lobby?.players?.[2]?.factionId || "No faction"} - {lobby?.players?.[2]?.connected ? "Connected" : "Disconnected"} - {p2StartConfirmed ? "Ready" : "Not ready"}</p>
+          <p><strong>{getLobbyPlayerName(lobby, 1)}</strong> <span style={{ color: "#93c5fd" }}>(Player 1)</span>: {lobbyPlayerLabel(1)}</p>
+          <p><strong>{getLobbyPlayerName(lobby, 2)}</strong> <span style={{ color: "#93c5fd" }}>(Player 2)</span>: {lobbyPlayerLabel(2)}</p>
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
         </MenuCard>
         {role === "player" && (
@@ -1555,7 +1575,7 @@ export default function App() {
               const theme = getFactionTheme(game.players[p].faction.id);
               return (
                 <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: "rgba(255,255,255,0.72)", padding: 12 }}>
-                  <div style={{ fontWeight: "bold", color: theme.primary }}>Player {p} - {game.players[p].faction.name}</div>
+                  <div style={{ fontWeight: "bold", color: theme.primary }}>{getGamePlayerName(game, p)} <span style={{ color: "#555", fontWeight: "normal" }}>(Player {p})</span> - {game.players[p].faction.name}</div>
                   <div>{game.players[p].life} life</div>
                 </div>
               );

@@ -384,9 +384,14 @@ async function recordAccountGameResult(accountId, result) {
 }
 
 function getAccountMatchProfile(account) {
-  const wins = account.stats?.rankedGamesWon || 0;
-  const losses = account.stats?.rankedGamesLost || 0;
-  const draws = account.stats?.rankedGamesDrawn || 0;
+  const hasRankedStats =
+    (account.stats?.rankedGamesPlayed || 0) > 0 ||
+    (account.stats?.rankedGamesWon || 0) > 0 ||
+    (account.stats?.rankedGamesLost || 0) > 0 ||
+    (account.stats?.rankedGamesDrawn || 0) > 0;
+  const wins = hasRankedStats ? account.stats?.rankedGamesWon || 0 : account.stats?.gamesWon || 0;
+  const losses = hasRankedStats ? account.stats?.rankedGamesLost || 0 : account.stats?.gamesLost || 0;
+  const draws = hasRankedStats ? account.stats?.rankedGamesDrawn || 0 : account.stats?.gamesDrawn || 0;
   const decidedGames = wins + losses;
   const gamesPlayed = wins + losses + draws;
   const winRatio = decidedGames > 0 ? wins / decidedGames : 0.5;
@@ -658,9 +663,14 @@ app.get("/api/leaderboard", async (_req, res) => {
     : loadAccountStore().accounts;
   const leaderboard = accounts
     .map((account) => {
-      const wins = account.stats?.rankedGamesWon || 0;
-      const losses = account.stats?.rankedGamesLost || 0;
-      const draws = account.stats?.rankedGamesDrawn || 0;
+      const hasRankedStats =
+        (account.stats?.rankedGamesPlayed || 0) > 0 ||
+        (account.stats?.rankedGamesWon || 0) > 0 ||
+        (account.stats?.rankedGamesLost || 0) > 0 ||
+        (account.stats?.rankedGamesDrawn || 0) > 0;
+      const wins = hasRankedStats ? account.stats?.rankedGamesWon || 0 : account.stats?.gamesWon || 0;
+      const losses = hasRankedStats ? account.stats?.rankedGamesLost || 0 : account.stats?.gamesLost || 0;
+      const draws = hasRankedStats ? account.stats?.rankedGamesDrawn || 0 : account.stats?.gamesDrawn || 0;
       const gamesPlayed = wins + losses;
       const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 1000) / 10 : 0;
       return {
