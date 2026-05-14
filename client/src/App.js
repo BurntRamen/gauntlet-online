@@ -1048,9 +1048,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (Array.isArray(game?.eventLog)) {
+      setActionLog(game.eventLog);
+      return;
+    }
     if (!game?.message) return;
-    setActionLog((prev) => (prev[0] === game.message ? prev : [game.message, ...prev].slice(0, 12)));
-  }, [game?.message]);
+    setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
+  }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
   useEffect(() => {
     if (!game || role !== "player" || !player) {
@@ -1851,6 +1855,27 @@ export default function App() {
       ]
     : [];
   const selectedPower = powerCards.find((power) => power.id === expandedPower) || powerCards[0];
+  const normalizedEvents = (actionLog || [])
+    .map((entry, index) => (typeof entry === "string" ? { id: `legacy-${index}`, text: entry, turn: game.turn || 1, phase: game.phase || "game" } : entry))
+    .filter((entry) => entry?.text)
+    .slice()
+    .sort((a, b) => {
+      const aTime = a.createdAt ? Date.parse(a.createdAt) : 0;
+      const bTime = b.createdAt ? Date.parse(b.createdAt) : 0;
+      return bTime - aTime;
+    });
+  const recentTurnFloor = Math.max(1, (game.turn || 1) - 1);
+  const currentTurnEvents = normalizedEvents.filter((entry) => (entry.turn || 1) >= recentTurnFloor);
+  const olderEvents = normalizedEvents.filter((entry) => (entry.turn || 1) < recentTurnFloor);
+
+  function renderEventEntry(entry, idx, compact = false) {
+    return (
+      <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
+        <div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>Turn {entry.turn || 1} - {entry.phase || "game"}</div>
+        <div>{entry.text}</div>
+      </div>
+    );
+  }
 
   let rightPanel;
 
@@ -2188,7 +2213,25 @@ export default function App() {
           </SectionCard>
           <SectionCard borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
             <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
-            {!collapsedPanels.events && (actionLog.length === 0 ? <p>No events yet.</p> : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{actionLog.map((entry, idx) => <div key={`${entry}-${idx}`} style={{ padding: 10, borderRadius: 8, background: idx === 0 ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>{entry}</div>)}</div>)}
+            {!collapsedPanels.events && (
+              normalizedEvents.length === 0 ? (
+                <p>No events yet.</p>
+              ) : (
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
+                  </div>
+                  {olderEvents.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: "bold", color: "#555", marginBottom: 6 }}>Older Turns</div>
+                      <div style={{ maxHeight: 180, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6, paddingRight: 4 }}>
+                        {olderEvents.map((entry, idx) => renderEventEntry(entry, idx, true))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            )}
           </SectionCard>
         </div>
       </div>

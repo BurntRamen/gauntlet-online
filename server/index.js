@@ -879,6 +879,7 @@ function emitLobbyState(roomState) {
 
 function emitState(roomState) {
   if (!roomState.game) return;
+  captureGameEvent(roomState.game);
   io.to(roomState.roomCode).emit("state", {
     ...roomState.game,
     spectatorCount: roomState.lobby.spectators.length
@@ -997,6 +998,29 @@ function enterDamagePhase(game, message = "Damage phase. Click Resolve Damage.")
   game.phase = "damage";
   game.message = message;
   return { 1: false, 2: false };
+}
+
+function captureGameEvent(game) {
+  if (!game?.message) return;
+  game.eventLog = Array.isArray(game.eventLog) ? game.eventLog : [];
+  const last = game.eventLog[game.eventLog.length - 1];
+  if (last && last.text === game.message && last.turn === game.turn && last.phase === game.phase) return;
+  game.eventLog.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    turn: game.turn || 1,
+    phase: game.phase || "setup",
+    text: game.message,
+    createdAt: new Date().toISOString()
+  });
+  if (game.eventLog.length > 300) game.eventLog = game.eventLog.slice(-300);
+}
+
+function describeCardValue(card, effectiveValue, notes = []) {
+  const base = getBaseCardValue(card);
+  const total = Number.isFinite(effectiveValue) ? effectiveValue : getCardCurrentValue(card);
+  const valueText = total !== base ? `value ${base} -> ${total}` : `value ${total}`;
+  const noteText = Array.isArray(notes) && notes.length > 0 ? `; ${notes.join(", ")}` : "";
+  return `${card?.name || "card"} (${valueText}${noteText})`;
 }
 
 function createTurnData() {
@@ -1361,9 +1385,9 @@ function resolveDamage(game, roomState) {
     const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
     if (damage > 0) {
       game.players[defender].life -= damage;
-      damageMessages.push(`Hand attack: ${attack.effectiveValue || 0} attack${blockedText} = ${damage} damage to Player ${defender}`);
+      damageMessages.push(`Hand attack ${describeCardValue(attack.card, attack.effectiveValue, attack.notes)}${blockedText} = ${damage} damage to Player ${defender}`);
     } else {
-      damageMessages.push(`Hand attack: ${attack.effectiveValue || 0} attack was fully blocked by ${totalBlock}`);
+      damageMessages.push(`Hand attack ${describeCardValue(attack.card, attack.effectiveValue, attack.notes)} was fully blocked by ${totalBlock}`);
     }
 
     game.players[attack.player].discard.push(attack.card);
@@ -1384,9 +1408,9 @@ function resolveDamage(game, roomState) {
       const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
       if (damage > 0) {
         game.players[defender].life -= damage;
-        damageMessages.push(`Lane ${i + 1}: ${lane.attack.effectiveValue || 0} attack${blockedText} = ${damage} damage to Player ${defender}`);
+        damageMessages.push(`Lane ${i + 1} attack ${describeCardValue(lane.attack.card, lane.attack.effectiveValue, lane.attack.notes)}${blockedText} = ${damage} damage to Player ${defender}`);
       } else {
-        damageMessages.push(`Lane ${i + 1}: ${lane.attack.effectiveValue || 0} attack was fully blocked by ${totalBlock}`);
+        damageMessages.push(`Lane ${i + 1} attack ${describeCardValue(lane.attack.card, lane.attack.effectiveValue, lane.attack.notes)} was fully blocked by ${totalBlock}`);
       }
       game.players[lane.attack.player].discard.push(lane.attack.card);
       for (const block of lane.block) {
@@ -1401,6 +1425,7 @@ function resolveDamage(game, roomState) {
   roomState.damageConfirmed = { 1: false, 2: false };
   if (damageMessages.length > 0) {
     game.message = damageMessages.join(" ");
+    captureGameEvent(game);
   }
 }
 
@@ -1506,7 +1531,7 @@ function declareAiHandAttack(roomState) {
     resetPriorityPassed(game);
     game.priority = 1;
     game.mostRecentAttackDefender = 1;
-    game.message = `Training AI attacked with ${attackCard.name}. Player 1 can block or pass.`;
+    game.message = `Training AI attacked with ${describeCardValue(attackCard, attackInfo.effectiveValue, attackInfo.notes)} from hand. Player 1 can block or pass.`;
     return true;
   }
 
@@ -1707,7 +1732,8 @@ function createGameFromLobby(roomState) {
     endPlaced: { 1: [false, false, false], 2: [false, false, false] },
     winner: null,
     drawOfferBy: null,
-    message: `Turn 1 - Player ${startingPriority} starts with priority`
+    message: `Turn 1 - Player ${startingPriority} starts with priority`,
+    eventLog: []
   };
   
   for (const p of [1, 2]) {
@@ -2193,7 +2219,7 @@ io.on("connection", (socket) => {
     resetPriorityPassed(game);
     game.priority = getOtherPlayer(playerNum);
     game.mostRecentAttackDefender = game.priority;
-    game.message = `Player ${playerNum} attacked with ${attackCard.name}${from === "lane" ? ` from lane ${laneIndex + 1}` : ""}! Player ${game.priority} can block or pass.`;
+    game.message = `Player ${playerNum} attacked with ${describeCardValue(attackCard, attackInfo.effectiveValue, attackInfo.notes)}${from === "lane" ? ` from lane ${laneIndex + 1}` : " from hand"}. Player ${game.priority} can block or pass.`;
     
     emitState(roomState);
     scheduleTrainingAi(roomState);
@@ -2366,13 +2392,13 @@ io.on("connection", (socket) => {
     attack.block.push(...blockEntries);
     
     if (game.gameMode === "basic") {
-      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")}. Basic Mode moves directly to damage.`);
+      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} blocked with ${blockEntries.map((entry) => describeCardValue(entry.card, entry.effectiveValue, entry.notes)).join(", ")}. Basic Mode moves directly to damage.`);
     } else {
       // The attack remains pending until damage resolution. Priority returns to
       // the attacker, who can pass to move combat toward damage.
       resetPriorityPassed(game);
       game.priority = attack.player;
-      game.message = `Player ${playerNum} blocked with ${blockCards.map((card) => card.name).join(", ")} (paid ${payment.total}, blocker value ${blockCardValue})! Player ${attack.player} has priority.`;
+      game.message = `Player ${playerNum} blocked with ${blockEntries.map((entry) => describeCardValue(entry.card, entry.effectiveValue, entry.notes)).join(", ")} (paid ${payment.total}, blocker cost ${blockCardValue}). Player ${attack.player} has priority.`;
     }
     
     emitState(roomState);
@@ -2465,7 +2491,7 @@ io.on("connection", (socket) => {
       target.tempBuff = (target.tempBuff || 0) + 1;
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
-      game.message = `Player ${playerNum} used Polea to give ${target.name} +1 value this turn.`;
+      game.message = `Player ${playerNum} used Polea to give ${describeCardValue(target, getCardCurrentValue(target), ["Polea +1"])} this turn.`;
       emitState(roomState);
       return;
     }
@@ -2537,7 +2563,7 @@ io.on("connection", (socket) => {
     player.turnData.focusBuffUsed = true;
     target.tempBuff = (target.tempBuff || 0) + 1;
     resetPriorityPassed(game);
-    game.message = `Player ${playerNum} removed an acceleration counter to give ${target.name} +1 value this turn.`;
+    game.message = `Player ${playerNum} removed an acceleration counter to give ${describeCardValue(target, getCardCurrentValue(target), ["Focus +1"])} this turn.`;
     emitState(roomState);
   });
 
