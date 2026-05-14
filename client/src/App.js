@@ -874,7 +874,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.11);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: false, attacks: true });
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
@@ -1597,6 +1597,14 @@ export default function App() {
     ((game.handAttacks || []).some((a) => a.player === opponentNumber) ||
       (game.lanes || []).some((lane) => lane.attack && lane.attack.player === opponentNumber));
   const defenderMayBlock = !isSpectator && game.phase === "priority" && game.priority === player && !game.priorityPassed?.[player];
+  const incomingHandAttack = !isSpectator
+    ? (game.handAttacks || []).find((a) => a.player === opponentNumber && (!a.block || a.block.length === 0))
+    : null;
+  const incomingLaneAttack = !isSpectator
+    ? (game.lanes || [])
+        .map((lane, laneIndex) => ({ lane, laneIndex }))
+        .find(({ lane }) => lane.attack?.player === opponentNumber && (!lane.block || lane.block.length === 0))
+    : null;
 
   const hasAnyUnresolvedAttack =
     (game.handAttacks || []).length > 0 || (game.lanes || []).some((lane) => !!lane.attack);
@@ -1731,9 +1739,25 @@ export default function App() {
     });
   }
 
+  function passLaneAttack(lane) {
+    resetSelections();
+    socket.emit("confirmBlock", {
+      lane,
+      handAttackId: null,
+      blockCardIndex: -1,
+      blockCardIndexes: [],
+      paymentIndexes: [],
+      useHeraBonus: false
+    });
+  }
+
   function passCurrentBlock() {
     if (blockMode?.type === "handAttack") {
       passHandAttack(blockMode.handAttackId);
+      return;
+    }
+    if (blockMode?.type === "laneAttack") {
+      passLaneAttack(blockMode.lane);
       return;
     }
     passPriority();
@@ -1987,6 +2011,14 @@ export default function App() {
   return (
     <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
       <style>{`
+        .game-main {
+          display: flex;
+          flex-direction: column;
+        }
+        .board-lanes { order: 1; }
+        .response-strip { order: 2; }
+        .power-section { order: 3; }
+        .hand-section { order: 4; }
         @media (max-width: 760px) {
           .game-root {
             height: auto !important;
@@ -2098,7 +2130,7 @@ export default function App() {
 
           {!isSpectator && (
             <>
-              {!isBasicGame && <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
+              {!isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
                 <CollapseHeader title={`${me.faction.name} Powers`} collapsed={collapsedPanels.powers} onToggle={() => togglePanel("powers")} color={myTheme.primary} />
                 {!collapsedPanels.powers && <><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                   {powerCards.map((power) => (
@@ -2127,7 +2159,7 @@ export default function App() {
                 </div>
                 </>}
               </SectionCard>}
-              {isBasicGame && <SectionCard borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
+              {isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
               </SectionCard>}
 
@@ -2160,7 +2192,7 @@ export default function App() {
             </>
           )}
 
-          <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8, marginBottom: 6 }}>
+          <SectionCard className="board-lanes" title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8, marginBottom: 6 }}>
             <div className="lane-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(130px, 1fr))", gap: 7 }}>
             {game.lanes.map((lane, i) => {
               const attacker = lane.attack?.player ?? null;
@@ -2197,6 +2229,30 @@ export default function App() {
             })}
             </div>
           </SectionCard>
+
+          {!isSpectator && hasIncomingAttack && (
+            <SectionCard className="response-strip" borderColor="#991b1b" background="#fff1f2" style={{ padding: 10, marginBottom: 6 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: "bold", color: "#7f1d1d", fontSize: 16 }}>
+                    Incoming Attack: {incomingHandAttack
+                      ? `${getCardShortLabel(incomingHandAttack.card)} from hand (effective ${incomingHandAttack.effectiveValue})`
+                      : incomingLaneAttack
+                        ? `${getCardShortLabel(incomingLaneAttack.lane.attack.card)} from lane ${incomingLaneAttack.laneIndex + 1} (effective ${incomingLaneAttack.lane.attack.effectiveValue})`
+                        : "Resolve combat"}
+                  </div>
+                  <div style={{ color: "#7f1d1d", fontSize: 12, marginTop: 2 }}>Respond here before taking another action.</div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  {incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
+                  {incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
+                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
+                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
+                  {!defenderMayBlock && <button onClick={passPriority} disabled={!isMyPriority}>Pass / Continue</button>}
+                </div>
+              </div>
+            </SectionCard>
+          )}
         </div>
 
         <div className="game-side" style={{ position: "sticky", top: 6, alignSelf: "start", maxHeight: "calc(100dvh - 16px)", overflowY: "auto" }}>

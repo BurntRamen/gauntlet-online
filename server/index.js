@@ -780,7 +780,7 @@ function removeFromMatchmaking(socketId) {
 }
 
 function getMatchTolerance(waitMs) {
-  return Math.min(0.45, 0.15 + Math.floor(waitMs / 30000) * 0.08);
+  return Math.min(1, 0.35 + Math.floor(waitMs / 20000) * 0.15);
 }
 
 function findMatchForEntry(entry) {
