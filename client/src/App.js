@@ -1859,9 +1859,7 @@ export default function App() {
 
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-      {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass Priority</button>}
       {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
-      {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
       <button onClick={returnToMainMenu}>Main Menu</button>
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
@@ -1888,40 +1886,40 @@ export default function App() {
       <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
       {attackMode && (
         <>
-          <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired}>Confirm Attack</button>
-          <button onClick={resetSelections}>Cancel</button>
+          <button className="quick-action-button quick-action-primary" onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
         </>
       )}
       {blockMode && (
         <>
-          <button onClick={confirmBlock} disabled={blockMode.type === "handAttack" ? activeBlockCards.length === 0 || paymentTotal < activeBlockRequired : !activeBlockCard || paymentTotal < activeBlockRequired}>Confirm Block</button>
-          <button onClick={passCurrentBlock}>Take Damage</button>
-          <button onClick={resetSelections}>Cancel</button>
+          <button className="quick-action-button quick-action-primary" onClick={confirmBlock} disabled={blockMode.type === "handAttack" ? activeBlockCards.length === 0 || paymentTotal < activeBlockRequired : !activeBlockCard || paymentTotal < activeBlockRequired}>Confirm Block</button>
+          <button className="quick-action-button quick-action-danger" onClick={passCurrentBlock}>Take Damage</button>
+          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
         </>
       )}
       {placementMode && (
         <>
-          <button onClick={confirmPlacement} disabled={!activePlacementCard}>Place Facedown</button>
-          <button onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</button>
-          <button onClick={resetSelections}>Cancel</button>
+          <button className="quick-action-button quick-action-primary" onClick={confirmPlacement} disabled={!activePlacementCard}>Place Facedown</button>
+          <button className="quick-action-button quick-action-secondary" onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</button>
+          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
         </>
       )}
       {abilityMode && (
         <>
-          <button onClick={confirmAbility}>Confirm Ability</button>
-          <button onClick={resetSelections}>Cancel</button>
+          <button className="quick-action-button quick-action-primary" onClick={confirmAbility}>Confirm Ability</button>
+          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
         </>
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</button>}
-          {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
-          {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass / Continue</button>}
-          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+          {game.phase === "damage" && <button className="quick-action-button quick-action-primary" onClick={resolveDamage}>Apply Damage</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</button>}
+          {canDeclareAttack && <button className="quick-action-button quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</button>}
+          {game.phase === "priority" && isMyPriority && <button className="quick-action-button quick-action-primary" onClick={passPriority}>Pass / Continue</button>}
+          {game.phase === "end" && isMyEndPlacementTurn && <button className="quick-action-button quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
         </>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
@@ -2082,6 +2080,34 @@ export default function App() {
           grid-template-columns: minmax(0, 1fr) 220px;
           gap: 12px;
           align-items: stretch;
+        }
+        .quick-action-button {
+          width: 100%;
+          min-height: 44px;
+          border: 0;
+          border-radius: 10px;
+          padding: 10px 12px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 0;
+          box-shadow: 0 3px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.22);
+          cursor: pointer;
+        }
+        .quick-action-button:disabled {
+          cursor: not-allowed;
+          filter: grayscale(0.65);
+          opacity: 0.55;
+          box-shadow: none;
+        }
+        .quick-action-primary {
+          background: linear-gradient(180deg, ${myTheme.primary}, ${myTheme.border});
+        }
+        .quick-action-secondary {
+          background: linear-gradient(180deg, #475569, #1f2937);
+        }
+        .quick-action-danger {
+          background: linear-gradient(180deg, #dc2626, #7f1d1d);
         }
         @media (max-width: 760px) {
           .game-root {
