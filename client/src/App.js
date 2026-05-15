@@ -1871,6 +1871,64 @@ export default function App() {
     </div>
   ) : null;
 
+  const nearHandActionPad = !isSpectator && game.phase !== "gameOver" ? (
+    <div
+      className="near-hand-actions"
+      style={{
+        border: `2px solid ${myTheme.border}`,
+        borderRadius: 10,
+        background: myTheme.light,
+        padding: 10,
+        display: "grid",
+        alignContent: "start",
+        gap: 8,
+        minWidth: 190
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
+      {attackMode && (
+        <>
+          <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+          <button onClick={resetSelections}>Cancel</button>
+        </>
+      )}
+      {blockMode && (
+        <>
+          <button onClick={confirmBlock} disabled={blockMode.type === "handAttack" ? activeBlockCards.length === 0 || paymentTotal < activeBlockRequired : !activeBlockCard || paymentTotal < activeBlockRequired}>Confirm Block</button>
+          <button onClick={passCurrentBlock}>Take Damage</button>
+          <button onClick={resetSelections}>Cancel</button>
+        </>
+      )}
+      {placementMode && (
+        <>
+          <button onClick={confirmPlacement} disabled={!activePlacementCard}>Place Facedown</button>
+          <button onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</button>
+          <button onClick={resetSelections}>Cancel</button>
+        </>
+      )}
+      {abilityMode && (
+        <>
+          <button onClick={confirmAbility}>Confirm Ability</button>
+          <button onClick={resetSelections}>Cancel</button>
+        </>
+      )}
+      {!attackMode && !blockMode && !placementMode && !abilityMode && (
+        <>
+          {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</button>}
+          {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
+          {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass / Continue</button>}
+          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+        </>
+      )}
+      {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
+      <div style={{ color: "#555", fontSize: 12 }}>{phaseHelpText()}</div>
+    </div>
+  ) : null;
+
   const powerCards = !isSpectator && !isBasicGame
     ? [
         { id: "commander", title: "Commander", feature: me.faction.commander },
@@ -2019,6 +2077,12 @@ export default function App() {
         .response-strip { order: 2; }
         .power-section { order: 3; }
         .hand-section { order: 4; }
+        .hand-content {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 220px;
+          gap: 12px;
+          align-items: stretch;
+        }
         @media (max-width: 760px) {
           .game-root {
             height: auto !important;
@@ -2042,6 +2106,12 @@ export default function App() {
           .hand-section {
             position: static !important;
             box-shadow: none !important;
+          }
+          .hand-content {
+            grid-template-columns: 1fr !important;
+          }
+          .near-hand-actions {
+            min-width: 0 !important;
           }
           .card-box {
             width: 82px !important;
@@ -2163,30 +2233,32 @@ export default function App() {
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
               </SectionCard>}
 
-              <SectionCard title="Your Hand" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }} className="hand-section">
-                {canDeclareAttack && <div style={{ marginBottom: 6 }}><button onClick={startAttackFromHand}>Attack from Hand</button></div>}
-                <div style={{ display: "flex", flexWrap: "nowrap", gap: 7, overflowX: "auto", paddingBottom: 5, WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}>
-                  {me.hand.map((card, i) => {
-                    const isSelectedPayment = payments.includes(i);
-                    const isSelectedAttack = selectedAttackCardIndex === i;
-                    const isSelectedBlock = selectedBlockCardIndexes.includes(i);
-                    const isSelectedPlacement = selectedPlacementCardIndex === i;
-                    let bg = "white";
-                    if (isSelectedAttack) bg = "#dbeafe";
-                    else if (isSelectedBlock) bg = "#dcfce7";
-                    else if (isSelectedPlacement) bg = "#f3e8ff";
-                    else if (isSelectedPayment) bg = "#fee2e2";
-                    const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
-                    return (
-                      <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary}>
-                        <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
-                        {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
-                        {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
-                        {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
-                        {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
-                      </CardBox>
-                    );
-                  })}
+              <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }} className="hand-section">
+                <div className="hand-content">
+                  <div style={{ display: "flex", flexWrap: "nowrap", gap: 7, overflowX: "auto", paddingBottom: 5, WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}>
+                    {me.hand.map((card, i) => {
+                      const isSelectedPayment = payments.includes(i);
+                      const isSelectedAttack = selectedAttackCardIndex === i;
+                      const isSelectedBlock = selectedBlockCardIndexes.includes(i);
+                      const isSelectedPlacement = selectedPlacementCardIndex === i;
+                      let bg = "white";
+                      if (isSelectedAttack) bg = "#dbeafe";
+                      else if (isSelectedBlock) bg = "#dcfce7";
+                      else if (isSelectedPlacement) bg = "#f3e8ff";
+                      else if (isSelectedPayment) bg = "#fee2e2";
+                      const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
+                      return (
+                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary}>
+                          <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
+                          {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
+                          {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
+                          {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
+                          {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
+                        </CardBox>
+                      );
+                    })}
+                  </div>
+                  {nearHandActionPad}
                 </div>
               </SectionCard>
             </>
