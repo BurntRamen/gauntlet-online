@@ -14,7 +14,8 @@ const STORAGE_KEYS = {
   reconnectToken: "gauntlet_reconnect_token",
   role: "gauntlet_role",
   authToken: "gauntlet_auth_token",
-  guestName: "gauntlet_guest_name"
+  guestName: "gauntlet_guest_name",
+  friendReadAt: "gauntlet_friend_read_at"
 };
 
 const FACTION_COLORS = {
@@ -476,7 +477,7 @@ function LeaderboardPanel({ leaderboard, error }) {
   return (
     <MenuCard title="Leaderboard">
       {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
-      {!error && leaderboard.length === 0 && <p style={{ margin: 0, color: "#bfdbfe" }}>No ranked games yet.</p>}
+      {!error && leaderboard.length === 0 && <p style={{ margin: 0, color: "#bfdbfe" }}>No completed account games yet.</p>}
       {leaderboard.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -533,7 +534,9 @@ function FriendsPanel({
   onAddFriend,
   onRemoveFriend,
   onSendMessage,
-  onRefresh
+  onRefresh,
+  unreadCounts = {},
+  unreadTotal = 0
 }) {
   if (!account) {
     return (
@@ -551,7 +554,7 @@ function FriendsPanel({
     : [];
 
   return (
-    <MenuCard title="Friends">
+    <MenuCard title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
       {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
@@ -564,11 +567,15 @@ function FriendsPanel({
         <div style={{ display: "grid", gap: 8 }}>
           {friends.map((friend) => {
             const expanded = selectedFriend?.id === friend.id;
+            const unreadCount = unreadCounts[friend.id] || 0;
             return (
               <div key={friend.id} style={{ border: expanded ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", borderRadius: 6, background: expanded ? "rgba(245,158,11,0.14)" : "rgba(15,23,42,0.64)", overflow: "hidden" }}>
                 <button onClick={() => onSelectFriend(expanded ? "" : friend.id)} style={{ width: "100%", textAlign: "left", padding: 8, border: 0, background: "transparent", color: "#dbeafe", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: 8 }}>
                   <strong>{friend.name}</strong>
-                  <span>{expanded ? "Close" : "Open"}</span>
+                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                    {unreadCount > 0 && <span style={{ color: "#0f172a", background: "#facc15", borderRadius: 999, padding: "2px 7px", fontWeight: "bold", fontSize: 12 }}>{unreadCount}</span>}
+                    <span>{expanded ? "Close" : "Open"}</span>
+                  </span>
                 </button>
                 {expanded && (
                   <div style={{ padding: 8, borderTop: "1px solid rgba(125,211,252,0.25)", background: "rgba(2,6,23,0.34)" }}>
@@ -884,6 +891,13 @@ export default function App() {
   const [friendNameInput, setFriendNameInput] = useState("");
   const [friendMessageInput, setFriendMessageInput] = useState("");
   const [friendsError, setFriendsError] = useState("");
+  const [friendReadAt, setFriendReadAt] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.friendReadAt) || "{}");
+    } catch {
+      return {};
+    }
+  });
   const [showTutorial, setShowTutorial] = useState(false);
   const musicStopRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
@@ -923,7 +937,7 @@ export default function App() {
       });
   }, [authToken]);
 
-  useEffect(() => {
+  const loadLeaderboard = useCallback(() => {
     fetch(`${SOCKET_URL}/api/leaderboard`)
       .then(async (response) => {
         const data = await response.json();
@@ -933,6 +947,12 @@ export default function App() {
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
   }, []);
+
+  useEffect(() => {
+    loadLeaderboard();
+    const intervalId = window.setInterval(loadLeaderboard, 10000);
+    return () => window.clearInterval(intervalId);
+  }, [loadLeaderboard]);
 
   const loadFriends = useCallback(async () => {
     if (!authToken) {
@@ -964,6 +984,10 @@ export default function App() {
     const intervalId = window.setInterval(loadFriends, 5000);
     return () => window.clearInterval(intervalId);
   }, [authToken, loadFriends]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
+  }, [friendReadAt]);
 
   useEffect(() => {
     if (musicStopRef.current) {
@@ -1015,6 +1039,7 @@ export default function App() {
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
+    const onGameEnded = () => loadLeaderboard();
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
       const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
@@ -1033,6 +1058,7 @@ export default function App() {
     socket.on("errorMessage", onError);
     socket.on("peekResult", onPeek);
     socket.on("matchmakingStatus", onMatchmakingStatus);
+    socket.on("gameEnded", onGameEnded);
     attemptReconnect();
 
     return () => {
@@ -1044,8 +1070,9 @@ export default function App() {
       socket.off("errorMessage", onError);
       socket.off("peekResult", onPeek);
       socket.off("matchmakingStatus", onMatchmakingStatus);
+      socket.off("gameEnded", onGameEnded);
     };
-  }, []);
+  }, [loadLeaderboard]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -1386,6 +1413,29 @@ export default function App() {
     setCollapsedPanels((prev) => ({ ...prev, [panel]: !prev[panel] }));
   }
 
+  const friendUnreadCounts = (friendsData.friends || []).reduce((counts, friend) => {
+    const lastRead = Date.parse(friendReadAt?.[account?.id]?.[friend.id] || 0);
+    counts[friend.id] = (friendsData.messages || []).filter((message) => (
+      message.fromId === friend.id &&
+      message.toId === account?.id &&
+      Date.parse(message.createdAt || 0) > lastRead
+    )).length;
+    return counts;
+  }, {});
+  const friendUnreadTotal = Object.values(friendUnreadCounts).reduce((sum, count) => sum + count, 0);
+
+  function selectFriendWithReadReceipt(friendId) {
+    setSelectedFriendId(friendId);
+    if (!friendId || !account?.id) return;
+    setFriendReadAt((prev) => ({
+      ...prev,
+      [account.id]: {
+        ...(prev?.[account.id] || {}),
+        [friendId]: new Date().toISOString()
+      }
+    }));
+  }
+
   const canPlayAsPlayer = !!account || playAsGuest;
 
   if (showTutorial) {
@@ -1450,13 +1500,15 @@ export default function App() {
             friendName={friendNameInput}
             messageText={friendMessageInput}
             error={friendsError}
-            onSelectFriend={setSelectedFriendId}
+            onSelectFriend={selectFriendWithReadReceipt}
             onFriendNameChange={setFriendNameInput}
             onMessageTextChange={setFriendMessageInput}
             onAddFriend={submitFriendRequest}
             onRemoveFriend={removeFriend}
             onSendMessage={sendFriendMessage}
             onRefresh={loadFriends}
+            unreadCounts={friendUnreadCounts}
+            unreadTotal={friendUnreadTotal}
           />
           <MenuCard title="Guest Play">
             <label style={{ display: "block", marginBottom: 10 }}>
@@ -1655,7 +1707,13 @@ export default function App() {
     !isSpectator
       ? payments.reduce((sum, i) => sum + getCardNumericValue(me.hand[i]), 0) + (useHeraBonus && heraBonusAvailable ? 2 : 0)
       : 0;
-  const activeAttackRequired = activeAttackCard ? getCardNumericValue(activeAttackCard) : 0;
+  const meerusFreeAttackApplies =
+    activeAttackCard &&
+    me?.faction?.id === "rumin" &&
+    (me?.turnData?.attacksDeclaredThisTurn || 0) === 2 &&
+    me?.turnData?.meerusFreeAttackAvailable &&
+    getCardNumericValue(activeAttackCard) <= 3;
+  const activeAttackRequired = activeAttackCard ? (meerusFreeAttackApplies ? 0 : getCardNumericValue(activeAttackCard)) : 0;
   const paymentWarning =
     attackMode && activeAttackCard && paymentTotal < activeAttackRequired
       ? `Need ${activeAttackRequired} payment; selected ${paymentTotal}.`
@@ -1972,9 +2030,10 @@ export default function App() {
         </div>
         {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
         <p><strong>Payment total:</strong> {paymentTotal}</p>
-        <p><strong>Required:</strong> {activeAttackCard ? getCardNumericValue(activeAttackCard) : "-"}</p>
+        <p><strong>Required:</strong> {activeAttackCard ? activeAttackRequired : "-"}</p>
+        {meerusFreeAttackApplies && <p style={{ color: myTheme.primary, fontWeight: "bold" }}>Meerus: this third attack costs 0.</p>}
         {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
-        <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < getCardNumericValue(activeAttackCard)} style={{ marginRight: 10 }}>Confirm Attack</button>
+        <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired} style={{ marginRight: 10 }}>Confirm Attack</button>
         {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
         <button onClick={resetSelections}>Cancel</button>
       </div>

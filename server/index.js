@@ -1351,11 +1351,20 @@ function applyGameOverState(game) {
   return true;
 }
 
+async function finishGameIfLifeCheckFails(roomState) {
+  const game = roomState.game;
+  if (!game || !applyGameOverState(game)) return false;
+  captureGameEvent(game);
+  await recordFinalGameStats(roomState);
+  io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
+  return true;
+}
+
 async function recordFinalGameStats(roomState) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
-  if (roomState.ranked === false || isTrainingAiRoom(roomState)) {
+  if (isTrainingAiRoom(roomState)) {
     game.statsRecorded = true;
     return;
   }
@@ -1455,12 +1464,6 @@ async function advanceEndPlacement(roomState) {
       }
     }
 
-    if (applyGameOverState(game)) {
-      await recordFinalGameStats(roomState);
-      io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
-      return;
-    }
-    
     game.phase = "priority";
     game.turn++;
     game.priority = getOtherPlayer(game.startingPriorityThisTurn);
@@ -1559,18 +1562,20 @@ async function aiResolveDamageIfReady(roomState) {
   return true;
 }
 
-function aiPassPriority(roomState) {
+async function aiPassPriority(roomState) {
   const game = roomState.game;
   game.priorityPassed[2] = true;
   game.message = "Training AI passed priority.";
 
-  if (game.priorityPassed[1] && game.priorityPassed[2]) {
-    if (hasPendingAttacks(game)) {
-      roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Training AI is ready.");
-      roomState.damageConfirmed[2] = true;
-    } else {
-      startEndPhase(game);
-    }
+    if (game.priorityPassed[1] && game.priorityPassed[2]) {
+      if (hasPendingAttacks(game)) {
+        roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Training AI is ready.");
+        roomState.damageConfirmed[2] = true;
+      } else if (await finishGameIfLifeCheckFails(roomState)) {
+        return true;
+      } else {
+        startEndPhase(game);
+      }
     resetPriorityPassed(game);
   } else {
     game.priority = 1;
@@ -1626,12 +1631,12 @@ async function runTrainingAi(roomState) {
       game.message = "Player 1 can block or pass.";
       acted = true;
     } else if (pendingAttacks.length > 0 || aiNeedsLaneSetup(game)) {
-      aiPassPriority(roomState);
+      await aiPassPriority(roomState);
       acted = true;
     } else {
       acted = declareAiHandAttack(roomState);
       if (!acted) {
-        aiPassPriority(roomState);
+        await aiPassPriority(roomState);
         acted = true;
       }
     }
@@ -1985,7 +1990,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("passPriority", () => {
+  socket.on("passPriority", async () => {
     console.log(`[Socket] passPriority`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -2018,6 +2023,10 @@ io.on("connection", (socket) => {
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
         roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+      } else if (await finishGameIfLifeCheckFails(roomState)) {
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
       } else {
         startEndPhase(game);
       }
@@ -2044,7 +2053,10 @@ io.on("connection", (socket) => {
     }
     
     roomState.damageConfirmed[playerNum] = true;
-    game.message = `Player ${playerNum} confirmed damage (${roomState.damageConfirmed[1] ? "✓" : "○"} ${roomState.damageConfirmed[2] ? "✓" : "○"})`;
+    const waitingPlayer = getOtherPlayer(playerNum);
+    game.message = roomState.damageConfirmed[waitingPlayer]
+      ? `Player ${playerNum} confirmed damage. Resolving damage now.`
+      : `Player ${playerNum} confirmed damage. Waiting on Player ${waitingPlayer} to confirm resolve damage.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
     
@@ -2225,7 +2237,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("confirmBlock", ({ lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus }) => {
+  socket.on("confirmBlock", async ({ lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus }) => {
     console.log(`[Socket] confirmBlock: lane=${lane}, attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -2289,6 +2301,10 @@ io.on("connection", (socket) => {
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
           roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+        } else if (await finishGameIfLifeCheckFails(roomState)) {
+          emitState(roomState);
+          scheduleTrainingAi(roomState);
+          return;
         } else {
           startEndPhase(game);
         }
@@ -2315,6 +2331,10 @@ io.on("connection", (socket) => {
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
           roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+        } else if (await finishGameIfLifeCheckFails(roomState)) {
+          emitState(roomState);
+          scheduleTrainingAi(roomState);
+          return;
         } else {
           startEndPhase(game);
         }
