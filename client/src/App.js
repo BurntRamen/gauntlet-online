@@ -2081,6 +2081,32 @@ export default function App() {
           gap: 12px;
           align-items: stretch;
         }
+        .hand-card-row {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 7px;
+          overflow-x: auto;
+          padding-bottom: 5px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x;
+        }
+        .recent-events-section {
+          flex: 1 1 220px;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        .recent-events-list {
+          flex: 1 1 auto;
+          min-height: 0;
+          max-height: min(46dvh, 560px);
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding-right: 4px;
+        }
         .quick-action-button {
           width: 100%;
           min-height: 44px;
@@ -2139,11 +2165,27 @@ export default function App() {
           .near-hand-actions {
             min-width: 0 !important;
           }
+          .hand-card-row {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 5px !important;
+            overflow-x: visible !important;
+            padding-bottom: 0 !important;
+            touch-action: auto !important;
+          }
           .card-box {
-            width: 82px !important;
-            min-width: 82px !important;
-            min-height: 132px !important;
-            padding: 5px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 118px !important;
+            padding: 4px !important;
+            font-size: 11px !important;
+          }
+          .recent-events-section {
+            flex: 0 0 auto !important;
+            overflow: visible !important;
+          }
+          .recent-events-list {
+            max-height: 240px !important;
           }
           .game-header { align-items: flex-start !important; }
           .game-header h2 { font-size: 18px !important; }
@@ -2261,7 +2303,7 @@ export default function App() {
 
               <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }} className="hand-section">
                 <div className="hand-content">
-                  <div style={{ display: "flex", flexWrap: "nowrap", gap: 7, overflowX: "auto", paddingBottom: 5, WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}>
+                  <div className="hand-card-row">
                     {me.hand.map((card, i) => {
                       const isSelectedPayment = payments.includes(i);
                       const isSelectedAttack = selectedAttackCardIndex === i;
@@ -2353,7 +2395,7 @@ export default function App() {
           )}
         </div>
 
-        <div className="game-side" style={{ position: "sticky", top: 6, alignSelf: "start", maxHeight: "calc(100dvh - 16px)", overflowY: "auto" }}>
+        <div className="game-side" style={{ position: "sticky", top: 6, alignSelf: "start", maxHeight: "calc(100dvh - 16px)", overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Actions" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>{actionControls}
@@ -2365,22 +2407,18 @@ export default function App() {
               {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
               {rightPanel}</>}
           </SectionCard>
-          <SectionCard borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
+          <SectionCard className="recent-events-section" borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
             <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
             {!collapsedPanels.events && (
               normalizedEvents.length === 0 ? (
                 <p>No events yet.</p>
               ) : (
-                <div style={{ display: "grid", gap: 10 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
-                  </div>
+                <div className="recent-events-list">
+                  {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
                   {olderEvents.length > 0 && (
-                    <div>
+                    <div style={{ display: "grid", gap: 6 }}>
                       <div style={{ fontSize: 12, fontWeight: "bold", color: "#555", marginBottom: 6 }}>Older Turns</div>
-                      <div style={{ maxHeight: 180, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6, paddingRight: 4 }}>
-                        {olderEvents.map((entry, idx) => renderEventEntry(entry, idx, true))}
-                      </div>
+                      {olderEvents.map((entry, idx) => renderEventEntry(entry, idx, true))}
                     </div>
                   )}
                 </div>
