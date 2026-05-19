@@ -618,6 +618,50 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
   );
 }
 
+function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
+  if (!code) return null;
+
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "flex-end", color }}>
+      <span>Room</span>
+      <input
+        readOnly
+        value={code}
+        aria-label="Room code"
+        onFocus={(event) => event.target.select()}
+        style={{
+          width: 78,
+          padding: "3px 6px",
+          border: "1px solid currentColor",
+          borderRadius: 6,
+          background: "rgba(255,255,255,0.7)",
+          color: "inherit",
+          fontWeight: "bold",
+          fontSize: 13,
+          textAlign: "center"
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => onCopy(code)}
+        style={{
+          border: "1px solid currentColor",
+          borderRadius: 6,
+          background: "transparent",
+          color: "inherit",
+          padding: "3px 8px",
+          fontSize: 12,
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}
+      >
+        Copy
+      </button>
+      <span>| {roleLabel}</span>
+    </div>
+  );
+}
+
 function FactionFeature({ title, feature, theme }) {
   if (!feature) return null;
   return (
@@ -883,6 +927,7 @@ export default function App() {
   const [musicVolume, setMusicVolume] = useState(0.11);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
+  const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
@@ -1561,10 +1606,16 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 40, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
           </div>
           <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right", display: "grid", gap: 8, justifyItems: "end" }}>
-            <div>Room {lobby?.roomCode} | {role === "spectator" ? "Spectator" : `Player ${player}`}</div>
+            <RoomCodeDisplay
+              code={lobby?.roomCode}
+              roleLabel={role === "spectator" ? "Spectator" : `Player ${player}`}
+              onCopy={copyRoomCode}
+              color="#bfdbfe"
+            />
             <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
         </div>
+        {copyNotice && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{copyNotice}</div>}
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
@@ -1877,6 +1928,25 @@ export default function App() {
     }
   }
 
+  async function copyRoomCode(code) {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyNotice(`Copied room ${code}.`);
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = code;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopyNotice(copied ? `Copied room ${code}.` : `Select room ${code} and press Ctrl+C to copy it.`);
+    }
+  }
+
   function phaseHelpText() {
     if (isSpectator) return "Watching game.";
     if (game.winner != null || game.phase === "gameOver") return "Game over.";
@@ -1889,6 +1959,11 @@ export default function App() {
     if (game.phase === "damage") return "Apply the net damage from current combat.";
     if (game.phase === "end") return isMyEndPlacementTurn ? `End of Turn: Lane ${currentEndLane + 1}. Place one facedown card or skip.` : `End of Turn: Lane ${currentEndLane + 1}. Waiting for the other player.`;
     return "";
+  }
+
+  function quickActionHelpText() {
+    if (game.phase === "damage" && game.message && /waiting/i.test(game.message)) return game.message;
+    return phaseHelpText();
   }
 
   function phaseDisplayName() {
@@ -1981,7 +2056,9 @@ export default function App() {
         </>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
-      <div style={{ color: "#555", fontSize: 12 }}>{phaseHelpText()}</div>
+      <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? myTheme.primary : "#555", fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
+        {quickActionHelpText()}
+      </div>
     </div>
   ) : null;
 
@@ -2266,10 +2343,17 @@ export default function App() {
               onVolumeChange={setMusicVolume}
             />
           </div>
-          <div style={{ fontSize: 13, color: "#555" }}>Room {game.roomCode} | {isSpectator ? "Spectator" : `Player ${player}`}</div>
+          <div style={{ fontSize: 13 }}>
+            <RoomCodeDisplay
+              code={game.roomCode}
+              roleLabel={isSpectator ? "Spectator" : `Player ${player}`}
+              onCopy={copyRoomCode}
+            />
+          </div>
         </div>
       </div>
 
+      {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
       {incomingAttackAlert && (
         <div
