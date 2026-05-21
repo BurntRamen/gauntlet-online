@@ -424,6 +424,40 @@ function DonateButton({ onUnavailable }) {
   return <MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton>;
 }
 
+function HotkeyWindow({ visible, onClose }) {
+  if (!visible) return null;
+  const shortcuts = [
+    ["A", "Attack from hand"],
+    ["L", "Attack from first available lane"],
+    ["B", "Block incoming attack"],
+    ["T", "Take damage / pass on block"],
+    ["P", "Pass priority"],
+    ["D", "Resolve damage"],
+    ["E", "Place card in current end-phase lane"],
+    ["S", "Skip current end-phase lane"],
+    ["C", "Confirm selected action"],
+    ["X / Esc", "Cancel current selection"],
+    ["H / ?", "Toggle this shortcuts window"]
+  ];
+
+  return (
+    <div style={{ position: "fixed", right: 14, top: 58, zIndex: 40, width: "min(340px, calc(100vw - 28px))", border: "2px solid rgba(125, 211, 252, 0.65)", borderRadius: 8, background: "rgba(15, 23, 42, 0.96)", color: "#e5eef8", boxShadow: "0 18px 50px rgba(0,0,0,0.4)", padding: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8 }}>
+        <h3 style={{ margin: 0, color: "#facc15", fontSize: 16 }}>Gameplay Shortcuts</h3>
+        <button onClick={onClose} style={{ padding: "3px 8px" }}>Close</button>
+      </div>
+      <div style={{ display: "grid", gap: 6, fontSize: 13 }}>
+        {shortcuts.map(([key, label]) => (
+          <div key={key} style={{ display: "grid", gridTemplateColumns: "70px minmax(0, 1fr)", gap: 8, alignItems: "center" }}>
+            <kbd style={{ border: "1px solid rgba(191, 219, 254, 0.45)", borderRadius: 5, padding: "3px 6px", textAlign: "center", background: "rgba(30, 41, 59, 0.92)", color: "#f8fafc" }}>{key}</kbd>
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CollapseHeader({ title, collapsed, onToggle, color = "#111827" }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: collapsed ? 0 : 8 }}>
@@ -944,8 +978,10 @@ export default function App() {
     }
   });
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showHotkeys, setShowHotkeys] = useState(false);
   const musicStopRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
+  const hotkeyActionsRef = useRef({});
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -958,6 +994,30 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+
+  useEffect(() => {
+    function handleGameplayHotkey(event) {
+      const tagName = event.target?.tagName?.toLowerCase();
+      if (tagName === "input" || tagName === "textarea" || tagName === "select" || event.target?.isContentEditable) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const key = event.key === "?" ? "?" : event.key.toLowerCase();
+      if (key === "h" || key === "?") {
+        event.preventDefault();
+        setShowHotkeys((value) => !value);
+        return;
+      }
+
+      const action = hotkeyActionsRef.current[key];
+      if (action) {
+        event.preventDefault();
+        action();
+      }
+    }
+
+    window.addEventListener("keydown", handleGameplayHotkey);
+    return () => window.removeEventListener("keydown", handleGameplayHotkey);
+  }, []);
 
   const activeMusicTrack = !game || role === "spectator" || !player
     ? "menu"
@@ -1458,6 +1518,8 @@ export default function App() {
     setCollapsedPanels((prev) => ({ ...prev, [panel]: !prev[panel] }));
   }
 
+  hotkeyActionsRef.current = {};
+
   const friendUnreadCounts = (friendsData.friends || []).reduce((counts, friend) => {
     const lastRead = Date.parse(friendReadAt?.[account?.id]?.[friend.id] || 0);
     counts[friend.id] = (friendsData.messages || []).filter((message) => (
@@ -1928,6 +1990,43 @@ export default function App() {
     }
   }
 
+  function confirmCurrentAction() {
+    if (attackMode) {
+      confirmAttack();
+      return;
+    }
+    if (blockMode) {
+      confirmBlock();
+      return;
+    }
+    if (placementMode) {
+      confirmPlacement();
+      return;
+    }
+    if (abilityMode) {
+      confirmAbility();
+    }
+  }
+
+  function startIncomingBlock() {
+    if (!defenderMayBlock) return;
+    if (incomingHandAttack) {
+      resetSelections();
+      setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id });
+      return;
+    }
+    if (incomingLaneAttack) {
+      resetSelections();
+      setBlockMode({ type: "laneAttack", lane: incomingLaneAttack.laneIndex });
+    }
+  }
+
+  function startFirstLaneAttack() {
+    if (!canDeclareAttack) return;
+    const laneIndex = game.lanes.findIndex((lane) => lane.facedown?.[player] && !lane.attack);
+    if (laneIndex >= 0) startAttackFromLane(laneIndex);
+  }
+
   async function copyRoomCode(code) {
     if (!code) return;
     try {
@@ -1946,6 +2045,20 @@ export default function App() {
       setCopyNotice(copied ? `Copied room ${code}.` : `Select room ${code} and press Ctrl+C to copy it.`);
     }
   }
+
+  hotkeyActionsRef.current = {
+    a: () => { if (canDeclareAttack) startAttackFromHand(); },
+    l: startFirstLaneAttack,
+    b: startIncomingBlock,
+    t: () => { if (blockMode || hasIncomingAttack) passCurrentBlock(); },
+    p: () => { if (!isSpectator && game.phase === "priority" && game.priority === player) passPriority(); },
+    d: () => { if (!isSpectator && game.phase === "damage") resolveDamage(); },
+    e: () => { if (isMyEndPlacementTurn) startPlacement(currentEndLane); },
+    s: () => { if (isMyEndPlacementTurn) skipPlacement(currentEndLane); },
+    c: confirmCurrentAction,
+    x: resetSelections,
+    escape: resetSelections
+  };
 
   function phaseHelpText() {
     if (isSpectator) return "Watching game.";
@@ -2343,6 +2456,9 @@ export default function App() {
               onVolumeChange={setMusicVolume}
             />
           </div>
+          <button onClick={() => setShowHotkeys((value) => !value)} style={{ padding: "5px 9px", fontSize: 12 }}>
+            Shortcuts
+          </button>
           <div style={{ fontSize: 13 }}>
             <RoomCodeDisplay
               code={game.roomCode}
@@ -2352,6 +2468,7 @@ export default function App() {
           </div>
         </div>
       </div>
+      <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
