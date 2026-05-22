@@ -1195,10 +1195,10 @@ export default function App() {
       return;
     }
 
-    const opponentNumber = player === 1 ? 2 : 1;
+    const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
     const incomingAttacks = [
       ...(game.handAttacks || [])
-        .filter((attack) => attack.player === opponentNumber)
+        .filter((attack) => game.gameMode === "freeForAll" ? attack.targetPlayer === player : attack.player === opponentNumber)
         .map((attack) => ({
           id: attack.id,
           label: `${getCardShortLabel(attack.card)} from hand`,
@@ -1206,7 +1206,7 @@ export default function App() {
         })),
       ...(game.lanes || [])
         .map((lane, laneIndex) => ({ lane, laneIndex }))
-        .filter(({ lane }) => lane.attack?.player === opponentNumber)
+        .filter(({ lane }) => game.gameMode === "freeForAll" ? lane.attack?.targetPlayer === player : lane.attack?.player === opponentNumber)
         .map(({ lane, laneIndex }) => ({
           id: lane.attack.id || `lane-${laneIndex}-${lane.attack.card?.id || lane.attack.card?.name || "attack"}`,
           label: `${getCardShortLabel(lane.attack.card)} from lane ${laneIndex + 1}`,
@@ -1258,9 +1258,9 @@ export default function App() {
     if (game.phase !== "priority") return;
     if (blockMode || attackMode || placementMode || abilityMode) return;
 
-    const opponentNumber = player === 1 ? 2 : 1;
+    const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
     const incomingHandAttacks = (game.handAttacks || []).filter(
-      (a) => a.player === opponentNumber && (!a.block || a.block.length === 0)
+      (a) => (game.gameMode === "freeForAll" ? a.targetPlayer === player : a.player === opponentNumber) && (!a.block || a.block.length === 0)
     );
 
     if (incomingHandAttacks.length === 1 && game.priority === player) {
@@ -1309,7 +1309,12 @@ export default function App() {
       }
 
       if (game.phase === "end") {
-        const currentPlayer = game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : (game.endPlacementFirstPlayer === 1 ? 2 : 1);
+        const activeOrder = (game.playerOrder || Object.keys(game.players || {}).map(Number))
+          .filter((p) => !game.players?.[p]?.eliminated);
+        const firstIndex = Math.max(0, activeOrder.indexOf(game.endPlacementFirstPlayer));
+        const currentPlayer = game.gameMode === "freeForAll"
+          ? activeOrder[(firstIndex + (game.endPlacementStep || 0)) % Math.max(1, activeOrder.length)]
+          : game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : (game.endPlacementFirstPlayer === 1 ? 2 : 1);
         if (currentPlayer === player && Number.isInteger(game.endPlacementLaneIndex)) {
           event.preventDefault();
           skipPlacement(game.endPlacementLaneIndex);
@@ -1319,8 +1324,8 @@ export default function App() {
 
       if (game.phase === "priority" && game.priority === player) {
         event.preventDefault();
-        const opponentNumber = player === 1 ? 2 : 1;
-        const incomingHandAttack = (game.handAttacks || []).find((attack) => attack.player === opponentNumber && (!attack.block || attack.block.length === 0));
+        const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
+        const incomingHandAttack = (game.handAttacks || []).find((attack) => (game.gameMode === "freeForAll" ? attack.targetPlayer === player : attack.player === opponentNumber) && (!attack.block || attack.block.length === 0));
         if (incomingHandAttack && !game.priorityPassed?.[player]) {
           passHandAttack(incomingHandAttack.id);
         } else {
@@ -1388,6 +1393,11 @@ export default function App() {
   function createRoom() {
     clearReconnectInfo();
     socket.emit("createRoom", playerIdentityPayload());
+  }
+
+  function createFreeForAllRoom() {
+    clearReconnectInfo();
+    socket.emit("createFreeForAllRoom", playerIdentityPayload());
   }
 
   function startTutorialVsAi() {
@@ -1588,7 +1598,9 @@ export default function App() {
             onSignOut={signOut}
           />
           <MenuCard title="Create Room">
-            <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer}>Create Room</MenuButton>
+            <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
+            <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
+            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players.</p>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
           </MenuCard>
           <MenuCard title="Join Room">
@@ -1648,9 +1660,14 @@ export default function App() {
   if (!game) {
     const myFactionId = role === "player" ? lobby?.players?.[player]?.factionId || null : null;
     const isBasicMode = lobby?.gameMode === "basic";
-    const bothReady = isBasicMode
-      ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
-      : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
+    const isFreeForAllMode = lobby?.gameMode === "freeForAll";
+    const lobbyPlayerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
+    const connectedLobbyPlayers = lobbyPlayerNumbers.filter((p) => lobby?.players?.[p]?.connected);
+    const bothReady = isFreeForAllMode
+      ? connectedLobbyPlayers.length >= 2 && connectedLobbyPlayers.every((p) => !!lobby?.players?.[p]?.factionId)
+      : isBasicMode
+        ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
+        : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
     const lobbyPlayerLabel = (playerNum) => {
       const selection = isBasicMode ? "Basic Gauntlet" : lobby?.players?.[playerNum]?.factionId || "No faction";
@@ -1681,20 +1698,21 @@ export default function App() {
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
-          <p><strong>Mode:</strong> {isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
-          <p><strong>{getLobbyPlayerName(lobby, 1)}</strong> <span style={{ color: "#93c5fd" }}>(Player 1)</span>: {lobbyPlayerLabel(1)}</p>
-          <p><strong>{getLobbyPlayerName(lobby, 2)}</strong> <span style={{ color: "#93c5fd" }}>(Player 2)</span>: {lobbyPlayerLabel(2)}</p>
+          <p><strong>Mode:</strong> {isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
+          {lobbyPlayerNumbers.map((playerNum) => (
+            <p key={playerNum}><strong>{getLobbyPlayerName(lobby, playerNum)}</strong> <span style={{ color: "#93c5fd" }}>(Player {playerNum})</span>: {lobbyPlayerLabel(playerNum)}</p>
+          ))}
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
         </MenuCard>
         {role === "player" && (
           <>
-            <MenuCard title="Game Mode">
+            {!isFreeForAllMode && <MenuCard title="Game Mode">
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
                 <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode}>Basic Mode</MenuButton>
               </div>
               <p style={{ marginBottom: 0, color: "#bfdbfe", fontSize: 13 }}>{player === 1 ? "Player 1 chooses the room mode before the game starts." : "Waiting for Player 1 to choose the room mode."}</p>
-            </MenuCard>
+            </MenuCard>}
             {!isBasicMode && (
               <>
                 <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
@@ -1705,7 +1723,7 @@ export default function App() {
             )}
             {isBasicMode && <MenuCard title="Basic Mode"><p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p></MenuCard>}
             <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13 }}>Both players must confirm before the match begins.</p>
+            <p style={{ color: "#bfdbfe", fontSize: 13 }}>{isFreeForAllMode ? "All connected seated players must pick a faction and confirm. You can start with 2-4 players." : "Both players must confirm before the match begins."}</p>
           </>
         )}
         {role === "spectator" && <MenuCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></MenuCard>}
@@ -1716,12 +1734,13 @@ export default function App() {
 
   const isSpectator = role === "spectator";
   const me = !isSpectator ? game.players[player] : null;
-  const opponent = !isSpectator ? game.players[player === 1 ? 2 : 1] : null;
+  const isFreeForAllGame = game.gameMode === "freeForAll";
+  const opponent = !isSpectator && !isFreeForAllGame ? game.players[player === 1 ? 2 : 1] : null;
   const isBasicGame = game.gameMode === "basic";
   const isMyPriority = !isSpectator && game.priority === player;
-  const myTheme = !isSpectator ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
-  const oppTheme = !isSpectator ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
-  const boardBackground = !isSpectator ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
+  const myTheme = !isSpectator && me ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
+  const oppTheme = !isSpectator && opponent ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
+  const boardBackground = !isSpectator && me ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
   const gameIsOver = game.phase === "gameOver" || game.winner != null;
 
   if (gameIsOver) {
@@ -1740,7 +1759,7 @@ export default function App() {
           <h1 style={{ margin: "0 0 10px 0", fontSize: 44 }}>{resultTitle}</h1>
           <p style={{ margin: "0 auto 20px auto", maxWidth: 520, fontSize: 18 }}>{resultDetail}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
-            {[1, 2].map((p) => {
+            {Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => {
               const theme = getFactionTheme(game.players[p].faction.id);
               return (
                 <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: "rgba(255,255,255,0.72)", padding: 12 }}>
@@ -1751,6 +1770,206 @@ export default function App() {
             })}
           </div>
           <MenuButton onClick={returnToMainMenu}>Main Menu</MenuButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (isFreeForAllGame) {
+    const playerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
+    const activePlayers = playerNumbers.filter((p) => !game.players[p]?.eliminated);
+    const targetOptions = activePlayers.filter((p) => p !== player);
+    const currentTarget = Number(attackMode?.targetPlayer) || targetOptions[0] || "";
+    const hasAnyUnresolvedAttack = (game.handAttacks || []).length > 0 || (game.lanes || []).some((lane) => !!lane.attack);
+    const incomingHandAttack = !isSpectator
+      ? (game.handAttacks || []).find((a) => a.targetPlayer === player && (!a.block || a.block.length === 0))
+      : null;
+    const incomingLaneAttack = !isSpectator
+      ? (game.lanes || [])
+          .map((lane, laneIndex) => ({ lane, laneIndex }))
+          .find(({ lane }) => lane.attack?.targetPlayer === player && (!lane.block || lane.block.length === 0))
+      : null;
+    const defenderMayBlock = !isSpectator && game.phase === "priority" && game.priority === player && !game.priorityPassed?.[player];
+    const canDeclareAttack = !isSpectator && game.phase === "priority" && isMyPriority && !hasAnyUnresolvedAttack && !attackMode && !blockMode && !placementMode && !me?.eliminated;
+    const activeAttackCard =
+      !isSpectator &&
+      (attackMode?.from === "hand" && selectedAttackCardIndex != null
+        ? me.hand[selectedAttackCardIndex]
+        : attackMode?.from === "lane"
+          ? game.lanes[attackMode.lane]?.facedown?.[player]
+          : null);
+    const activeBlockCards = !isSpectator && blockMode?.type === "handAttack" ? selectedBlockCardIndexes.map((idx) => me.hand[idx]).filter(Boolean) : [];
+    const activeBlockCard = !isSpectator && blockMode?.type === "laneAttack" ? game.lanes[blockMode.lane]?.facedown?.[player] : activeBlockCards[0] || null;
+    const paymentTotal = !isSpectator ? payments.reduce((sum, i) => sum + getCardNumericValue(me.hand[i]), 0) : 0;
+    const activeAttackRequired = activeAttackCard ? getCardNumericValue(activeAttackCard) : 0;
+    const activeBlockRequired = blockMode?.type === "handAttack"
+      ? activeBlockCards.reduce((sum, card) => sum + getCardNumericValue(card), 0)
+      : activeBlockCard ? getCardNumericValue(activeBlockCard) : 0;
+    const currentEndLane = game.endPlacementLaneIndex;
+    const firstIndex = Math.max(0, activePlayers.indexOf(game.endPlacementFirstPlayer));
+    const currentEndPlayer = activePlayers.length > 0 ? activePlayers[(firstIndex + (game.endPlacementStep || 0)) % activePlayers.length] : null;
+    const isMyEndPlacementTurn = !isSpectator && game.phase === "end" && currentEndPlayer === player;
+
+    const startFfaHandAttack = () => {
+      resetSelections();
+      setAttackMode({ from: "hand", targetPlayer: targetOptions[0] || "" });
+    };
+    const startFfaLaneAttack = (lane) => {
+      resetSelections();
+      setAttackMode({ from: "lane", lane, targetPlayer: targetOptions[0] || "" });
+    };
+    const confirmFfaAttack = () => {
+      if (!attackMode || !currentTarget) return;
+      if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
+      socket.emit("confirmAttack", {
+        from: attackMode.from,
+        lane: attackMode.lane,
+        attackCardIndex: selectedAttackCardIndex,
+        paymentIndexes: payments,
+        useHeraBonus,
+        targetPlayer: currentTarget
+      });
+      resetSelections();
+    };
+    const confirmFfaBlock = () => {
+      if (!blockMode) return;
+      if (blockMode.type === "handAttack" && selectedBlockCardIndexes.length === 0) return;
+      socket.emit("confirmBlock", {
+        lane: blockMode.type === "laneAttack" ? blockMode.lane : null,
+        handAttackId: blockMode.type === "handAttack" ? blockMode.handAttackId : null,
+        blockCardIndex: selectedBlockCardIndexes[0] ?? null,
+        blockCardIndexes: selectedBlockCardIndexes,
+        paymentIndexes: payments,
+        useHeraBonus
+      });
+      resetSelections();
+    };
+    const passFfaBlock = () => {
+      socket.emit("confirmBlock", {
+        lane: blockMode?.type === "laneAttack" ? blockMode.lane : incomingLaneAttack?.laneIndex ?? null,
+        handAttackId: blockMode?.type === "handAttack" ? blockMode.handAttackId : incomingHandAttack?.id ?? null,
+        blockCardIndex: -1,
+        blockCardIndexes: [],
+        paymentIndexes: [],
+        useHeraBonus: false
+      });
+      resetSelections();
+    };
+    const confirmFfaPlacement = () => {
+      if (!placementMode || selectedPlacementCardIndex == null) return;
+      socket.emit("placeFacedown", { lane: placementMode.lane, handIndex: selectedPlacementCardIndex });
+      resetSelections();
+    };
+
+    return (
+      <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
+        <style>{`
+          .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; }
+          .ffa-card { min-height: 104px !important; font-size: 11px !important; padding: 5px !important; }
+          @media (max-width: 760px) {
+            .ffa-root { padding: 6px !important; }
+            .ffa-grid { grid-template-columns: 1fr !important; }
+            .ffa-hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .ffa-card { min-height: 96px !important; }
+          }
+        `}</style>
+        <div className="ffa-root" style={{ display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr) auto", gap: 8, maxWidth: 1500, margin: "0 auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <div>
+              <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
+              <div style={{ fontSize: 13, fontWeight: "bold" }}>Free-for-all - Turn {game.turn} - {game.phase} - Priority Player {game.priority}</div>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={copyRoomCode} />
+              <button onClick={() => setShowHotkeys((value) => !value)}>Shortcuts</button>
+              <button onClick={returnToMainMenu}>Main Menu</button>
+            </div>
+          </div>
+          <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
+          {copyNotice && <div style={{ color: "#fde68a", fontWeight: "bold" }}>{copyNotice}</div>}
+          {error && <div style={{ color: "#b91c1c", fontWeight: "bold" }}>{error}</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
+            {playerNumbers.map((p) => {
+              const pTheme = getFactionTheme(game.players[p].faction.id);
+              return (
+                <div key={p} style={{ border: `2px solid ${game.priority === p ? "#f59e0b" : pTheme.border}`, borderRadius: 8, background: game.players[p].eliminated ? "rgba(31,41,55,0.18)" : "rgba(255,255,255,0.9)", padding: 8 }}>
+                  <strong style={{ color: pTheme.primary }}>{getGamePlayerName(game, p)} {p === player ? "(You)" : ""}</strong>
+                  <div>Player {p} - {game.players[p].faction.name}</div>
+                  <div>{game.players[p].life} life - {game.players[p].connected ? "Connected" : "Disconnected"}</div>
+                  {game.players[p].eliminated && <div style={{ color: "#991b1b", fontWeight: "bold" }}>Eliminated</div>}
+                </div>
+              );
+            })}
+          </div>
+          <div className="ffa-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 8, minHeight: 0 }}>
+            <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+              <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(120px, 1fr))", gap: 7, overflowX: "auto" }}>
+                  {game.lanes.map((lane, i) => (
+                    <div key={i} style={{ border: `2px solid ${lane.attack ? "#991b1b" : "#111"}`, borderRadius: 8, padding: 7, background: lane.attack ? "#fff1f2" : "#f8fafc", fontSize: 12 }}>
+                      <strong>Lane {i + 1}</strong>
+                      <div style={{ display: "grid", gap: 4, marginTop: 6 }}>
+                        {playerNumbers.map((p) => (
+                          <LaneCardLabel key={p} label={`P${p}`} card={lane.facedown?.[p]} hidden={p !== player && !!lane.facedown?.[p]} />
+                        ))}
+                      </div>
+                      {lane.attack && <div style={{ marginTop: 6 }}><strong>Attack:</strong> P{lane.attack.player} to P{lane.attack.targetPlayer} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
+                      {lane.block?.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx}> P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</div>}
+                      {!isSpectator && canDeclareAttack && lane.facedown?.[player] && !lane.attack && <button onClick={() => startFfaLaneAttack(i)} style={{ marginTop: 6 }}>Attack</button>}
+                      {!isSpectator && defenderMayBlock && lane.attack?.targetPlayer === player && lane.block.length === 0 && <button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: i }); }} style={{ marginTop: 6 }}>Block Lane</button>}
+                      {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div style={{ marginTop: 6 }}><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => { socket.emit("skipEndPlacement", { lane: i }); resetSelections(); }} style={{ marginLeft: 6 }}>Skip</button></div>}
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+              {!isSpectator && <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
+                <div className="ffa-hand">
+                  {me.hand.map((card, i) => {
+                    const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
+                    return (
+                      <div key={card.id || i} className="ffa-card">
+                        <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"}>
+                          <div style={{ fontSize: 9 }}>#{i}</div>
+                          {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
+                          {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
+                          {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
+                          {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
+                        </CardBox>
+                      </div>
+                    );
+                  })}
+                </div>
+              </SectionCard>}
+            </div>
+            {!isSpectator && <SectionCard title="Actions" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 10, alignSelf: "start" }}>
+              <p style={{ marginTop: 0 }}>{game.message || "Choose an action."}</p>
+              {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
+              {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
+              {canDeclareAttack && <button onClick={startFfaHandAttack} style={{ marginLeft: 6 }}>Attack from Hand</button>}
+              {incomingHandAttack && defenderMayBlock && !blockMode && <div style={{ marginTop: 8 }}><button onClick={() => { resetSelections(); setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id }); }}>Block Incoming Hand Attack</button><button onClick={passFfaBlock} style={{ marginLeft: 6, color: "#991b1b" }}>Take Damage</button></div>}
+              {incomingLaneAttack && defenderMayBlock && !blockMode && <div style={{ marginTop: 8 }}><button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: incomingLaneAttack.laneIndex }); }}>Block Incoming Lane Attack</button><button onClick={passFfaBlock} style={{ marginLeft: 6, color: "#991b1b" }}>Take Damage</button></div>}
+              {attackMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                <label>Target <select value={currentTarget} onChange={(e) => setAttackMode((prev) => ({ ...prev, targetPlayer: Number(e.target.value) }))}>{targetOptions.map((p) => <option key={p} value={p}>Player {p}</option>)}</select></label>
+                <div>Selected: {activeAttackCard ? getCardShortLabel(activeAttackCard) : "none"} - Pay {paymentTotal}/{activeAttackRequired}</div>
+                <button onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+                <button onClick={resetSelections}>Cancel</button>
+              </div>}
+              {blockMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                <div>Block payment: {paymentTotal}/{activeBlockRequired || "-"}</div>
+                <button onClick={confirmFfaBlock} disabled={activeBlockRequired <= 0 || paymentTotal < activeBlockRequired}>Confirm Block</button>
+                <button onClick={passFfaBlock} style={{ color: "#991b1b" }}>Take Damage</button>
+                <button onClick={resetSelections}>Cancel</button>
+              </div>}
+              {placementMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                <div>Place in lane {placementMode.lane + 1}: {selectedPlacementCardIndex != null ? getCardShortLabel(me.hand[selectedPlacementCardIndex]) : "choose a card"}</div>
+                <button onClick={confirmFfaPlacement} disabled={selectedPlacementCardIndex == null}>Confirm Placement</button>
+                <button onClick={resetSelections}>Cancel</button>
+              </div>}
+              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
+              </div>
+            </SectionCard>}
+          </div>
         </div>
       </div>
     );
@@ -1879,7 +2098,7 @@ export default function App() {
   function confirmAttack() {
     if (!attackMode) return;
     if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
-    socket.emit("confirmAttack", { from: attackMode.from, lane: attackMode.lane, attackCardIndex: selectedAttackCardIndex, paymentIndexes: payments, useHeraBonus });
+    socket.emit("confirmAttack", { from: attackMode.from, lane: attackMode.lane, attackCardIndex: selectedAttackCardIndex, paymentIndexes: payments, useHeraBonus, targetPlayer: attackMode.targetPlayer });
     resetSelections();
   }
 
