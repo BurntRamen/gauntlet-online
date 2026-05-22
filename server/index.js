@@ -743,6 +743,7 @@ const basicGameProfile = {
 };
 
 function getLobbyGameMode(roomState) {
+  if (roomState.lobby.gameMode === "freeForAll") return "freeForAll";
   return roomState.lobby.gameMode === "basic" ? "basic" : "factions";
 }
 
@@ -772,6 +773,35 @@ function createRoom() {
   };
   rooms.set(roomCode, roomState);
   return roomState;
+}
+
+function createFreeForAllRoom() {
+  const roomState = createRoom();
+  roomState.lobby.gameMode = "freeForAll";
+  roomState.lobby.players = {
+    1: { socket: null, connected: false, factionId: null, reconnectToken: null },
+    2: { socket: null, connected: false, factionId: null, reconnectToken: null },
+    3: { socket: null, connected: false, factionId: null, reconnectToken: null },
+    4: { socket: null, connected: false, factionId: null, reconnectToken: null }
+  };
+  roomState.damageConfirmed = { 1: false, 2: false, 3: false, 4: false };
+  return roomState;
+}
+
+function getLobbyPlayerNumbers(roomState) {
+  return Object.keys(roomState.lobby.players).map(Number).sort((a, b) => a - b);
+}
+
+function getConnectedLobbyPlayerNumbers(roomState) {
+  return getLobbyPlayerNumbers(roomState).filter((playerNum) => (
+    roomState.lobby.players[playerNum].socket ||
+    roomState.lobby.players[playerNum].connected ||
+    roomState.lobby.players[playerNum].isAI
+  ));
+}
+
+function isFreeForAllRoom(roomState) {
+  return roomState?.lobby?.gameMode === "freeForAll" || roomState?.game?.gameMode === "freeForAll";
 }
 
 function removeFromMatchmaking(socketId) {
@@ -844,8 +874,7 @@ function deleteRoom(roomCode) {
 
 function getRoomForSocket(socket) {
   for (const [code, room] of rooms) {
-    if (room.lobby.players[1].socket === socket.id ||
-        room.lobby.players[2].socket === socket.id ||
+    if (getLobbyPlayerNumbers(room).some((playerNum) => room.lobby.players[playerNum].socket === socket.id) ||
         room.lobby.spectators.includes(socket.id)) {
       return room;
     }
@@ -865,13 +894,14 @@ function sanitizeLobbyPlayer(player) {
 }
 
 function emitLobbyState(roomState) {
+  const players = {};
+  getLobbyPlayerNumbers(roomState).forEach((playerNum) => {
+    players[playerNum] = sanitizeLobbyPlayer(roomState.lobby.players[playerNum]);
+  });
   io.to(roomState.roomCode).emit("lobbyState", {
     roomCode: roomState.roomCode,
     gameMode: getLobbyGameMode(roomState),
-    players: {
-      1: sanitizeLobbyPlayer(roomState.lobby.players[1]),
-      2: sanitizeLobbyPlayer(roomState.lobby.players[2])
-    },
+    players,
     factions: listFactions(),
     spectatorCount: roomState.lobby.spectators.length
   });
@@ -890,15 +920,30 @@ function getOtherPlayer(playerNum) {
   return playerNum === 1 ? 2 : 1;
 }
 
+function getActivePlayerNumbers(game) {
+  return Object.keys(game.players || {})
+    .map(Number)
+    .filter((playerNum) => !game.players[playerNum].eliminated)
+    .sort((a, b) => a - b);
+}
+
+function getNextActivePlayer(game, playerNum) {
+  const active = getActivePlayerNumbers(game);
+  if (active.length === 0) return playerNum;
+  const currentIndex = active.indexOf(playerNum);
+  return active[(currentIndex + 1 + active.length) % active.length] || active[0];
+}
+
 function getPlayerNumberBySocket(roomState, socketId) {
-  if (roomState.lobby.players[1].socket === socketId) return 1;
-  if (roomState.lobby.players[2].socket === socketId) return 2;
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
+    if (roomState.lobby.players[playerNum].socket === socketId) return playerNum;
+  }
   return null;
 }
 
 async function getReconnectPlayerNumber(roomState, reconnectToken, authToken) {
   const account = await getAccountFromToken(authToken);
-  for (const playerNum of [1, 2]) {
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
     const lobbyPlayer = roomState.lobby.players[playerNum];
     if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
     if (account?.id && lobbyPlayer.accountId === account.id) return playerNum;
@@ -907,7 +952,7 @@ async function getReconnectPlayerNumber(roomState, reconnectToken, authToken) {
 }
 
 function getDisconnectedSeatForIdentity(roomState, identity, reconnectToken) {
-  for (const playerNum of [1, 2]) {
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
     const lobbyPlayer = roomState.lobby.players[playerNum];
     if (lobbyPlayer.socket) continue;
     if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
@@ -938,7 +983,7 @@ function attachPlayerSocket(roomState, socket, playerNum) {
 }
 
 function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
-  for (const p of [1, 2]) {
+  for (const p of getLobbyPlayerNumbers(roomState)) {
     if (roomState.lobby.players[p].socket === socket.id) {
       roomState.lobby.players[p].connected = false;
       roomState.lobby.players[p].socket = null;
@@ -957,6 +1002,10 @@ function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
 }
 
 function roomPlayersReady(roomState) {
+  if (isFreeForAllRoom(roomState)) {
+    const seated = getConnectedLobbyPlayerNumbers(roomState);
+    return seated.length >= 2 && seated.every((playerNum) => roomState.lobby.players[playerNum].factionId);
+  }
   if (getLobbyGameMode(roomState) === "basic") {
     return roomState.lobby.players[1].socket && (roomState.lobby.players[2].socket || roomState.lobby.players[2].isAI);
   }
@@ -964,13 +1013,14 @@ function roomPlayersReady(roomState) {
 }
 
 function resetStartConfirmations(roomState) {
-  for (const playerNum of [1, 2]) {
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
     roomState.lobby.players[playerNum].readyToStart = false;
   }
 }
 
 function playersConfirmedStart(roomState) {
-  return [1, 2].every((playerNum) => roomState.lobby.players[playerNum].readyToStart || roomState.lobby.players[playerNum].isAI);
+  const seated = getConnectedLobbyPlayerNumbers(roomState);
+  return seated.length >= 2 && seated.every((playerNum) => roomState.lobby.players[playerNum].readyToStart || roomState.lobby.players[playerNum].isAI);
 }
 
 async function requirePlayerIdentity(socket, authToken, guestName) {
@@ -991,12 +1041,25 @@ async function requirePlayerIdentity(socket, authToken, guestName) {
 }
 
 function resetPriorityPassed(game) {
+  if (game.gameMode === "freeForAll") {
+    game.priorityPassed = {};
+    getActivePlayerNumbers(game).forEach((playerNum) => {
+      game.priorityPassed[playerNum] = false;
+    });
+    return;
+  }
   game.priorityPassed = { 1: false, 2: false };
 }
 
 function enterDamagePhase(game, message = "Damage phase. Click Resolve Damage.") {
   game.phase = "damage";
   game.message = message;
+  if (game.gameMode === "freeForAll") {
+    return getActivePlayerNumbers(game).reduce((confirmed, playerNum) => {
+      confirmed[playerNum] = false;
+      return confirmed;
+    }, {});
+  }
   return { 1: false, 2: false };
 }
 
@@ -1285,6 +1348,74 @@ function hasPendingAttacks(game) {
     (game.lanes && game.lanes.some(l => l.attack));
 }
 
+function getAttackDefender(game, attack) {
+  if (!attack) return null;
+  if (game.gameMode === "freeForAll") return attack.targetPlayer || null;
+  return getOtherPlayer(attack.player);
+}
+
+function getPendingAttackParticipants(game) {
+  const attack = getPendingAttackList(game)[0] || null;
+  if (!attack) return null;
+  return { attack, attacker: attack.player, defender: getAttackDefender(game, attack) };
+}
+
+function getPriorityPlayerList(game) {
+  return game.gameMode === "freeForAll" ? getActivePlayerNumbers(game) : [1, 2];
+}
+
+function allPriorityPlayersPassed(game) {
+  return getPriorityPlayerList(game).every((playerNum) => !!game.priorityPassed?.[playerNum]);
+}
+
+function allDamagePlayersConfirmed(roomState) {
+  const game = roomState.game;
+  const confirmPlayers = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game) : [1, 2];
+  return confirmPlayers.every((playerNum) => !!roomState.damageConfirmed?.[playerNum]);
+}
+
+function getWaitingDamagePlayers(roomState) {
+  const game = roomState.game;
+  const confirmPlayers = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game) : [1, 2];
+  return confirmPlayers.filter((playerNum) => !roomState.damageConfirmed?.[playerNum]);
+}
+
+async function handleFreeForAllPriorityPass(roomState, playerNum) {
+  const game = roomState.game;
+  game.priorityPassed[playerNum] = true;
+
+  if (hasPendingAttacks(game)) {
+    const participants = getPendingAttackParticipants(game);
+    if (!participants?.defender) {
+      roomState.damageConfirmed = enterDamagePhase(game, "Combat is unresolved. Resolve damage.");
+      return false;
+    }
+    if (playerNum === participants.defender) {
+      game.priority = participants.attacker;
+      game.message = `Player ${playerNum} chose not to block. Player ${participants.attacker} can pass to damage.`;
+      return false;
+    }
+    if (playerNum === participants.attacker && game.priorityPassed[participants.defender]) {
+      roomState.damageConfirmed = enterDamagePhase(game, `Player ${participants.attacker} and Player ${participants.defender} passed - damage phase.`);
+      resetPriorityPassed(game);
+      return false;
+    }
+    game.priority = participants.defender;
+    game.message = `Player ${playerNum} passed priority. Player ${participants.defender} can respond.`;
+    return false;
+  }
+
+  game.message = `Player ${playerNum} passed priority.`;
+  if (allPriorityPlayersPassed(game)) {
+    if (await finishGameIfLifeCheckFails(roomState)) return true;
+    startEndPhase(game);
+    resetPriorityPassed(game);
+  } else {
+    game.priority = getNextActivePlayer(game, playerNum);
+  }
+  return false;
+}
+
 function getControlledTargetCard(game, playerNum, targetType, lane, handAttackId) {
   const laneIndex = Number(lane);
 
@@ -1334,6 +1465,18 @@ function getBaseCardValue(card) {
 }
 
 function applyGameOverState(game) {
+  if (game.gameMode === "freeForAll") {
+    const activePlayers = getActivePlayerNumbers(game);
+    if (activePlayers.length > 1 && activePlayers.every((playerNum) => game.players[playerNum].life > 0)) return false;
+    const bestLife = Math.max(...activePlayers.map((playerNum) => game.players[playerNum].life));
+    const winners = activePlayers.filter((playerNum) => game.players[playerNum].life === bestLife);
+    game.phase = "gameOver";
+    game.winner = winners.length === 1 ? winners[0] : null;
+    game.message = game.winner == null
+      ? `Free-for-all ended in a draw at ${bestLife} life.`
+      : `Free-for-all complete. Player ${game.winner} wins with ${bestLife} life!`;
+    return true;
+  }
   const p1Life = game.players[1].life;
   const p2Life = game.players[2].life;
 
@@ -1370,18 +1513,24 @@ async function recordFinalGameStats(roomState) {
   }
 
   if (game.winner == null) {
-    await recordAccountGameResult(roomState.lobby.players[1].accountId, "draw");
-    await recordAccountGameResult(roomState.lobby.players[2].accountId, "draw");
+    for (const playerNum of getLobbyPlayerNumbers(roomState)) {
+      await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "draw");
+    }
   } else {
-    const loser = getOtherPlayer(game.winner);
     await recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win");
-    await recordAccountGameResult(roomState.lobby.players[loser].accountId, "loss");
+    for (const playerNum of getLobbyPlayerNumbers(roomState)) {
+      if (playerNum !== game.winner) await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "loss");
+    }
   }
 
   game.statsRecorded = true;
 }
 
 function resolveDamage(game, roomState) {
+  if (game.gameMode === "freeForAll") {
+    resolveFreeForAllDamage(game, roomState);
+    return;
+  }
   const damageMessages = [];
 
   for (const attack of game.handAttacks) {
@@ -1438,12 +1587,58 @@ function resolveDamage(game, roomState) {
   }
 }
 
+function resolveFreeForAllDamage(game, roomState) {
+  const damageMessages = [];
+  const attacks = [
+    ...(game.handAttacks || []),
+    ...(game.lanes || []).map((lane, laneIndex) => lane.attack ? { ...lane.attack, laneIndex } : null).filter(Boolean)
+  ];
+
+  for (const attack of attacks) {
+    const totalBlock = (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0);
+    const damage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
+    const defender = attack.targetPlayer;
+    if (damage > 0) {
+      game.players[defender].life -= damage;
+      damageMessages.push(`Player ${attack.player} hit Player ${defender} for ${damage}.`);
+    } else {
+      damageMessages.push(`Player ${defender} fully blocked Player ${attack.player}'s attack.`);
+    }
+    game.players[attack.player].discard.push(attack.card);
+    (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
+  }
+
+  game.lanes.forEach((lane) => {
+    lane.attack = null;
+    lane.block = [];
+  });
+  game.handAttacks = [];
+  getActivePlayerNumbers(game).forEach((playerNum) => {
+    if (game.players[playerNum].life <= 0) game.players[playerNum].eliminated = true;
+  });
+  roomState.damageConfirmed = {};
+  getActivePlayerNumbers(game).forEach((playerNum) => {
+    roomState.damageConfirmed[playerNum] = false;
+  });
+  if (damageMessages.length > 0) {
+    game.message = damageMessages.join(" ");
+    captureGameEvent(game);
+  }
+}
+
 function startEndPhase(game) {
   game.phase = "end";
   game.endPlacementLaneIndex = 0;
   game.endPlacementFirstPlayer = game.startingPriorityThisTurn;
   game.endPlacementStep = 0;
-  game.endPlaced = { 1: [false, false, false], 2: [false, false, false] };
+  if (game.gameMode === "freeForAll") {
+    game.endPlaced = {};
+    getActivePlayerNumbers(game).forEach((playerNum) => {
+      game.endPlaced[playerNum] = [false, false, false];
+    });
+  } else {
+    game.endPlaced = { 1: [false, false, false], 2: [false, false, false] };
+  }
   game.message = "End of Turn Phase - Place facedown cards in lanes";
 }
 
@@ -1451,13 +1646,15 @@ async function advanceEndPlacement(roomState) {
   const game = roomState.game;
   game.endPlacementStep++;
   
-  if (game.endPlacementStep >= 2) {
+  const activeCount = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game).length : 2;
+  if (game.endPlacementStep >= activeCount) {
     game.endPlacementLaneIndex++;
     game.endPlacementStep = 0;
   }
   
   if (game.endPlacementLaneIndex >= 3) {
-    for (const p of [1, 2]) {
+    const playerNumbers = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game) : [1, 2];
+    for (const p of playerNumbers) {
       const player = game.players[p];
       while (player.hand.length < 8 && player.deck.length > 0) {
         player.hand.push(player.deck.pop());
@@ -1466,14 +1663,14 @@ async function advanceEndPlacement(roomState) {
 
     game.phase = "priority";
     game.turn++;
-    game.priority = getOtherPlayer(game.startingPriorityThisTurn);
+    game.priority = game.gameMode === "freeForAll" ? getNextActivePlayer(game, game.startingPriorityThisTurn) : getOtherPlayer(game.startingPriorityThisTurn);
     game.startingPriorityThisTurn = game.priority;
     game.lastActivePlayer = game.priority;
     game.mostRecentAttackDefender = null;
     resetPriorityPassed(game);
     
     clearEndTurnBuffs(game);
-    for (const p of [1, 2]) {
+    for (const p of playerNumbers) {
       game.players[p].turnData = createTurnData();
     }
     game.message = `Turn ${game.turn} - Player ${game.priority} has priority`;
@@ -1485,6 +1682,11 @@ function isTrainingAiRoom(roomState) {
 }
 
 function getCurrentEndPlacementPlayer(game) {
+  if (game.gameMode === "freeForAll") {
+    const active = getActivePlayerNumbers(game);
+    const startIndex = active.indexOf(game.endPlacementFirstPlayer);
+    return active[(startIndex + game.endPlacementStep) % active.length] || active[0];
+  }
   return game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : getOtherPlayer(game.endPlacementFirstPlayer);
 }
 
@@ -1657,6 +1859,10 @@ function scheduleTrainingAi(roomState) {
 }
 
 function createGameFromLobby(roomState) {
+  if (isFreeForAllRoom(roomState)) {
+    createFreeForAllGameFromLobby(roomState);
+    return;
+  }
   const gameMode = getLobbyGameMode(roomState);
   const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId);
   const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId);
@@ -1753,6 +1959,101 @@ function createGameFromLobby(roomState) {
   roomState.damageConfirmed = { 1: false, 2: false };
 }
 
+function createFreeForAllGameFromLobby(roomState) {
+  const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
+  const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
+  const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
+  const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+  const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
+
+  function createDeck(faction) {
+    const deck = [];
+    for (const suit of suits) {
+      for (const value of values) {
+        deck.push({
+          id: `card-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+          value,
+          suit,
+          name: `${rankNames[value] || value} of ${suit}`,
+          rank: rankNames[value] || String(value),
+          faction: faction.name,
+          factionId: faction.id,
+          image: faction.cardImage
+        });
+      }
+    }
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  const players = {};
+  const facedownTemplate = {};
+  const endPlaced = {};
+  const priorityPassed = {};
+  const damageConfirmed = {};
+
+  seatedPlayers.forEach((playerNum) => {
+    const faction = getFactionById(roomState.lobby.players[playerNum].factionId);
+    players[playerNum] = {
+      accountName: roomState.lobby.players[playerNum].accountName || null,
+      faction,
+      life: 42,
+      hand: [],
+      deck: createDeck(faction),
+      discard: [],
+      lanes: [null, null, null],
+      connected: true,
+      turnData: createTurnData(),
+      accelerationCounters: 0,
+      eliminated: false
+    };
+    facedownTemplate[playerNum] = null;
+    endPlaced[playerNum] = [false, false, false];
+    priorityPassed[playerNum] = false;
+    damageConfirmed[playerNum] = false;
+  });
+
+  const game = {
+    roomCode: roomState.roomCode,
+    gameMode: "freeForAll",
+    playerOrder: seatedPlayers,
+    phase: "priority",
+    turn: 1,
+    priority: startingPriority,
+    startingPriorityThisTurn: startingPriority,
+    lastActivePlayer: startingPriority,
+    mostRecentAttackDefender: null,
+    priorityPassed,
+    players,
+    lanes: [
+      { facedown: { ...facedownTemplate }, attack: null, block: [] },
+      { facedown: { ...facedownTemplate }, attack: null, block: [] },
+      { facedown: { ...facedownTemplate }, attack: null, block: [] }
+    ],
+    handAttacks: [],
+    endPlacementLaneIndex: 0,
+    endPlacementFirstPlayer: null,
+    endPlacementStep: 0,
+    endPlaced,
+    winner: null,
+    drawOfferBy: null,
+    message: `Free-for-all started. Player ${startingPriority} starts with priority.`,
+    eventLog: []
+  };
+
+  seatedPlayers.forEach((playerNum) => {
+    for (let i = 0; i < 8; i++) {
+      if (players[playerNum].deck.length > 0) players[playerNum].hand.push(players[playerNum].deck.pop());
+    }
+  });
+
+  roomState.game = game;
+  roomState.damageConfirmed = damageConfirmed;
+}
+
 // ============ SOCKET HANDLERS ============
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
@@ -1818,6 +2119,28 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
+  socket.on("createFreeForAllRoom", async ({ authToken, guestName } = {}, ack) => {
+    console.log("[Socket] createFreeForAllRoom");
+    removeFromMatchmaking(socket.id);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) {
+      if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
+      return;
+    }
+    const roomState = createFreeForAllRoom();
+    const lobbyPlayer = roomState.lobby.players[1];
+    lobbyPlayer.socket = socket.id;
+    lobbyPlayer.connected = true;
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = identity.id;
+    lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.isGuest = identity.type === "guest";
+    await touchAccountStats(identity.id, "gamesCreated");
+    attachPlayerSocket(roomState, socket, 1);
+    emitLobbyState(roomState);
+    if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "freeForAll" });
+  });
+
   socket.on("createAiTutorialRoom", async ({ authToken, guestName } = {}) => {
     console.log("[Socket] createAiTutorialRoom");
     removeFromMatchmaking(socket.id);
@@ -1881,13 +2204,14 @@ io.on("connection", (socket) => {
       else emitLobbyState(roomState);
       return;
     }
-    if (!roomState.lobby.players[2].socket && !roomState.lobby.players[2].reconnectToken) {
-      roomState.lobby.players[2].reconnectToken = makeReconnectToken();
-      roomState.lobby.players[2].accountId = identity.id;
-      roomState.lobby.players[2].accountName = identity.name;
-      roomState.lobby.players[2].isGuest = identity.type === "guest";
+    const openSeat = getLobbyPlayerNumbers(roomState).find((seat) => !roomState.lobby.players[seat].socket && !roomState.lobby.players[seat].reconnectToken);
+    if (openSeat) {
+      roomState.lobby.players[openSeat].reconnectToken = makeReconnectToken();
+      roomState.lobby.players[openSeat].accountId = identity.id;
+      roomState.lobby.players[openSeat].accountName = identity.name;
+      roomState.lobby.players[openSeat].isGuest = identity.type === "guest";
       await touchAccountStats(identity.id, "gamesJoined");
-      attachPlayerSocket(roomState, socket, 2);
+      attachPlayerSocket(roomState, socket, openSeat);
       emitLobbyState(roomState);
       return;
     }
@@ -1954,6 +2278,10 @@ io.on("connection", (socket) => {
     console.log(`[Socket] setGameMode: ${mode}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
+    if (isFreeForAllRoom(roomState)) {
+      socket.emit("errorMessage", "Free-for-all rooms use faction mode.");
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (playerNum !== 1) {
       socket.emit("errorMessage", "Only Player 1 can set the room mode.");
@@ -1976,13 +2304,14 @@ io.on("connection", (socket) => {
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (!roomPlayersReady(roomState)) {
-      socket.emit("errorMessage", getLobbyGameMode(roomState) === "basic" ? "Both player seats must be filled first." : "Both players must select a faction first.");
+      const mode = getLobbyGameMode(roomState);
+      socket.emit("errorMessage", mode === "basic" ? "Both player seats must be filled first." : mode === "freeForAll" ? "At least two connected players must select a faction first." : "Both players must select a faction first.");
       return;
     }
     roomState.lobby.players[playerNum].readyToStart = true;
     if (!playersConfirmedStart(roomState)) {
       emitLobbyState(roomState);
-      socket.emit("errorMessage", `Player ${getOtherPlayer(playerNum)} must also confirm start.`);
+      socket.emit("errorMessage", isFreeForAllRoom(roomState) ? "Waiting for the other seated players to confirm start." : `Player ${getOtherPlayer(playerNum)} must also confirm start.`);
       return;
     }
     createGameFromLobby(roomState);
@@ -2004,6 +2333,13 @@ io.on("connection", (socket) => {
     }
     if (game.priority !== playerNum) {
       socket.emit("errorMessage", "Not your priority to pass");
+      return;
+    }
+
+    if (game.gameMode === "freeForAll") {
+      const ended = await handleFreeForAllPriorityPass(roomState, playerNum);
+      emitState(roomState);
+      if (!ended) scheduleTrainingAi(roomState);
       return;
     }
     
@@ -2053,18 +2389,25 @@ io.on("connection", (socket) => {
     }
     
     roomState.damageConfirmed[playerNum] = true;
-    const waitingPlayer = getOtherPlayer(playerNum);
-    game.message = roomState.damageConfirmed[waitingPlayer]
+    const waitingPlayers = getWaitingDamagePlayers(roomState);
+    game.message = waitingPlayers.length === 0
       ? `Player ${playerNum} confirmed damage. Resolving damage now.`
-      : `Player ${playerNum} confirmed damage. Waiting on Player ${waitingPlayer} to confirm resolve damage.`;
+      : `Player ${playerNum} confirmed damage. Waiting on ${waitingPlayers.map((p) => `Player ${p}`).join(", ")} to confirm resolve damage.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
     
-    if (roomState.damageConfirmed[1] && roomState.damageConfirmed[2]) {
-      console.log("[resolveDamage] Both confirmed - resolving");
+    if (allDamagePlayersConfirmed(roomState)) {
+      console.log("[resolveDamage] All confirmed - resolving");
       resolveDamage(game, roomState);
+      if (game.gameMode === "freeForAll" && await finishGameIfLifeCheckFails(roomState)) {
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
+      }
       game.phase = "priority";
-      game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
+      game.priority = game.gameMode === "freeForAll"
+        ? (game.mostRecentAttackDefender && !game.players[game.mostRecentAttackDefender]?.eliminated ? game.mostRecentAttackDefender : getActivePlayerNumbers(game)[0])
+        : game.mostRecentAttackDefender || getOtherPlayer(game.priority);
       game.lastActivePlayer = game.priority;
       game.mostRecentAttackDefender = null;
       resetPriorityPassed(game);
@@ -2085,6 +2428,27 @@ io.on("connection", (socket) => {
 
     if (game.phase === "gameOver") {
       socket.emit("errorMessage", "Game is already over");
+      return;
+    }
+
+    if (game.gameMode === "freeForAll") {
+      game.players[playerNum].eliminated = true;
+      game.players[playerNum].life = Math.min(game.players[playerNum].life, 0);
+      const activePlayers = getActivePlayerNumbers(game);
+      game.drawOfferBy = null;
+      if (activePlayers.length <= 1) {
+        const winner = activePlayers[0] || null;
+        game.phase = "gameOver";
+        game.winner = winner;
+        game.message = winner == null ? `Player ${playerNum} conceded. Free-for-all ends in a draw.` : `Player ${playerNum} conceded. Player ${winner} wins the free-for-all!`;
+        await recordFinalGameStats(roomState);
+        io.to(roomState.roomCode).emit("gameEnded", { winner, tie: winner == null, concededBy: playerNum });
+      } else {
+        if (game.priority === playerNum) game.priority = activePlayers[0];
+        game.message = `Player ${playerNum} conceded and is eliminated. ${activePlayers.length} players remain.`;
+      }
+      emitState(roomState);
+      scheduleTrainingAi(roomState);
       return;
     }
 
@@ -2112,6 +2476,11 @@ io.on("connection", (socket) => {
       return;
     }
 
+    if (game.gameMode === "freeForAll") {
+      socket.emit("errorMessage", "Intentional draws are only available in two-player games.");
+      return;
+    }
+
     if (game.drawOfferBy && game.drawOfferBy !== playerNum) {
       game.phase = "gameOver";
       game.winner = null;
@@ -2134,7 +2503,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus }) => {
+  socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus, targetPlayer }) => {
     console.log(`[Socket] confirmAttack: from=${from}, lane=${lane}, idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -2157,6 +2526,12 @@ io.on("connection", (socket) => {
     }
     if (from !== "hand" && from !== "lane") {
       socket.emit("errorMessage", "Invalid attack source");
+      return;
+    }
+
+    const defender = game.gameMode === "freeForAll" ? Number(targetPlayer) : getOtherPlayer(playerNum);
+    if (!Number.isInteger(defender) || !game.players[defender] || defender === playerNum || game.players[defender].eliminated) {
+      socket.emit("errorMessage", "Choose an active opponent to attack");
       return;
     }
 
@@ -2221,6 +2596,7 @@ io.on("connection", (socket) => {
       source: from,
       effectiveValue: attackInfo.effectiveValue,
       block: [],
+      targetPlayer: defender,
       notes: attackInfo.notes
     };
 
@@ -2229,7 +2605,7 @@ io.on("connection", (socket) => {
     
     // Reset passed flags and give priority to defender
     resetPriorityPassed(game);
-    game.priority = getOtherPlayer(playerNum);
+    game.priority = defender;
     game.mostRecentAttackDefender = game.priority;
     game.message = `Player ${playerNum} attacked with ${describeCardValue(attackCard, attackInfo.effectiveValue, attackInfo.notes)}${from === "lane" ? ` from lane ${laneIndex + 1}` : " from hand"}. Player ${game.priority} can block or pass.`;
     
@@ -2266,7 +2642,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    const defender = getOtherPlayer(attack.player);
+    const defender = getAttackDefender(game, attack);
     if (playerNum !== defender) {
       socket.emit("errorMessage", "Not the defender");
       return;
@@ -2297,6 +2673,13 @@ io.on("connection", (socket) => {
         scheduleTrainingAi(roomState);
         return;
       }
+      if (game.gameMode === "freeForAll") {
+        game.priority = attack.player;
+        game.message = `Player ${playerNum} chose not to block. Player ${attack.player} can pass to damage.`;
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
+      }
       
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
@@ -2323,6 +2706,13 @@ io.on("connection", (socket) => {
 
       if (game.gameMode === "basic") {
         roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+        return;
+      }
+      if (game.gameMode === "freeForAll") {
+        game.priority = attack.player;
+        game.message = `Player ${playerNum} chose not to block. Player ${attack.player} can pass to damage.`;
         emitState(roomState);
         scheduleTrainingAi(roomState);
         return;
@@ -2606,7 +2996,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    const currentPlayer = game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : getOtherPlayer(game.endPlacementFirstPlayer);
+    const currentPlayer = getCurrentEndPlacementPlayer(game);
     if (playerNum !== currentPlayer) {
       socket.emit("errorMessage", "Not your turn to place");
       return;
@@ -2650,7 +3040,7 @@ io.on("connection", (socket) => {
       return;
     }
     
-    const currentPlayer = game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : getOtherPlayer(game.endPlacementFirstPlayer);
+    const currentPlayer = getCurrentEndPlacementPlayer(game);
     if (playerNum !== currentPlayer) {
       socket.emit("errorMessage", "Not your turn to skip");
       return;

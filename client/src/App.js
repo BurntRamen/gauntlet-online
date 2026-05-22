@@ -1397,7 +1397,17 @@ export default function App() {
 
   function createFreeForAllRoom() {
     clearReconnectInfo();
-    socket.emit("createFreeForAllRoom", playerIdentityPayload());
+    setError("");
+    let answered = false;
+    const timeoutId = window.setTimeout(() => {
+      if (answered) return;
+      setError("Free-for-all room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
+    }, 3500);
+    socket.emit("createFreeForAllRoom", playerIdentityPayload(), (response) => {
+      answered = true;
+      window.clearTimeout(timeoutId);
+      if (response?.error) setError(response.error);
+    });
   }
 
   function startTutorialVsAi() {
