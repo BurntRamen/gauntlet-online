@@ -212,7 +212,7 @@ function resolveAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb" }) {
+function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
@@ -246,7 +246,13 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         </div>
       </div>
 
-      <div style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc" }}>
+      <button
+        type="button"
+        onClick={onInspect ? (event) => { event.stopPropagation(); onInspect(card); } : undefined}
+        disabled={!onInspect || !card}
+        title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
+      >
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
@@ -255,7 +261,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, lineHeight: 1, color: suitColor, textShadow: "0 1px 3px white, 0 -1px 3px white" }}>
           {suit}
         </div>
-      </div>
+      </button>
 
       <div style={{ marginBottom: 5 }}>
         {card?.name && <div style={{ fontSize: 10, fontWeight: "bold", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</div>}
@@ -279,6 +285,40 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
       </div>
 
       <div style={{ display: "grid", gap: 4 }}>{children}</div>
+    </div>
+  );
+}
+
+function CardInspectModal({ card, onClose }) {
+  if (!card) return null;
+  const suit = getSuitSymbol(card.suit);
+  const suitColor = isRedSuit(card.suit) ? "#b91c1c" : "#111827";
+
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
+      <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 94vw)", border: "2px solid rgba(250, 204, 21, 0.75)", borderRadius: 10, background: "linear-gradient(180deg, #f8fafc, #e5e7eb)", boxShadow: "0 24px 80px rgba(0,0,0,0.55)", overflow: "hidden" }}>
+        <div style={{ position: "relative", height: 210, background: "#0f172a" }}>
+          {card.image ? <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
+          <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: 0, borderRadius: 6, background: "rgba(15,23,42,0.86)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+        </div>
+        <div style={{ padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
+            <div>
+              <h2 style={{ margin: 0, color: "#111827" }}>{card.name || getCardShortLabel(card)}</h2>
+              <div style={{ color: "#475569", marginTop: 4 }}>{card.faction || "Standard card"}</div>
+            </div>
+            <div style={{ color: suitColor, fontWeight: "bold", textAlign: "center", fontSize: 28, lineHeight: 1 }}>
+              <div>{getCardRank(card)}</div>
+              <div>{suit}</div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 14 }}>
+            <StatusPill label="Value" value={getCardNumericValue(card)} bg="#fff" />
+            <StatusPill label="Suit" value={suit} bg="#fff" />
+            <StatusPill label="Buff" value={card.tempBuff ? `+${card.tempBuff}` : "None"} bg="#fff" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -652,6 +692,113 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
   );
 }
 
+function HelperText({ enabled, children }) {
+  if (!enabled || !children) return null;
+  return <div style={{ marginTop: 5, color: "#475569", fontSize: 12, lineHeight: 1.3 }}>{children}</div>;
+}
+
+function HelperToggle({ enabled, onToggle, light = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      title="Toggle helper labels"
+      style={{
+        border: `1px solid ${enabled ? "#facc15" : light ? "rgba(255,255,255,0.3)" : "#94a3b8"}`,
+        borderRadius: 7,
+        background: enabled ? "#facc15" : light ? "rgba(15,23,42,0.72)" : "#fff",
+        color: enabled ? "#111827" : light ? "#e5e7eb" : "#334155",
+        padding: "6px 9px",
+        fontSize: 12,
+        fontWeight: 800,
+        cursor: "pointer"
+      }}
+    >
+      Hints {enabled ? "On" : "Off"}
+    </button>
+  );
+}
+
+function LobbySeatGrid({ lobby }) {
+  const playerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+      {playerNumbers.map((playerNum) => {
+        const seat = lobby.players[playerNum];
+        const faction = (lobby.factions || []).find((entry) => entry.id === seat.factionId);
+        const theme = getFactionTheme(seat.factionId);
+        const occupied = !!seat.connected || !!seat.accountName;
+        return (
+          <div key={playerNum} style={{ border: `2px solid ${occupied ? theme.border : "rgba(148,163,184,0.45)"}`, borderRadius: 8, padding: 10, background: occupied ? "rgba(255,255,255,0.94)" : "rgba(15,23,42,0.28)", color: occupied ? "#111827" : "#bfdbfe", minHeight: 96 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+              <strong style={{ color: occupied ? theme.primary : "#e5e7eb" }}>Seat {playerNum}</strong>
+              <span style={{ fontSize: 11, fontWeight: "bold", color: seat.connected ? "#166534" : "#991b1b" }}>{seat.connected ? "Connected" : "Open"}</span>
+            </div>
+            <div style={{ marginTop: 8, fontWeight: "bold" }}>{seat.accountName || "Waiting for player"}</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>{faction?.name || (lobby.gameMode === "basic" ? "Basic Gauntlet" : "No faction selected")}</div>
+            <div style={{ fontSize: 12, marginTop: 4, color: seat.readyToStart ? "#166534" : occupied ? "#92400e" : "#94a3b8" }}>{seat.readyToStart ? "Ready" : occupied ? "Not ready" : "Empty"}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function getCombatSummaries(game) {
+  const hand = (game.handAttacks || []).map((attack) => ({
+    id: attack.id,
+    laneLabel: "Hand",
+    attacker: attack.player,
+    defender: attack.targetPlayer || (attack.player === 1 ? 2 : 1),
+    card: attack.card,
+    attackValue: attack.effectiveValue || 0,
+    blockValue: (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0)
+  }));
+  const lanes = (game.lanes || [])
+    .map((lane, laneIndex) => lane.attack ? ({
+      id: lane.attack.id || `lane-${laneIndex}`,
+      laneLabel: `Lane ${laneIndex + 1}`,
+      attacker: lane.attack.player,
+      defender: lane.attack.targetPlayer || (lane.attack.player === 1 ? 2 : 1),
+      card: lane.attack.card,
+      attackValue: lane.attack.effectiveValue || 0,
+      blockValue: (lane.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0)
+    }) : null)
+    .filter(Boolean);
+  return [...hand, ...lanes].map((summary) => ({ ...summary, projectedDamage: Math.max(0, summary.attackValue - summary.blockValue) }));
+}
+
+function CombatStrip({ game }) {
+  const summaries = getCombatSummaries(game);
+  if (summaries.length === 0) return null;
+
+  return (
+    <div style={{ border: "2px solid #f59e0b", borderRadius: 8, background: "rgba(15,23,42,0.92)", color: "#f8fafc", padding: 8, display: "grid", gap: 6 }}>
+      {summaries.map((summary) => (
+        <div key={summary.id} style={{ display: "grid", gridTemplateColumns: "minmax(80px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center", fontSize: 13 }}>
+          <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
+          <span>P{summary.attacker} -> P{summary.defender}: {getCardShortLabel(summary.card)}</span>
+          <span>ATK {summary.attackValue}</span>
+          <span>BLK {summary.blockValue}</span>
+          <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ActionDock({ title = "Actions", help, children, theme = FACTION_COLORS.default }) {
+  return (
+    <div style={{ position: "sticky", bottom: 0, zIndex: 30, border: `2px solid ${theme.border || "#334155"}`, borderRadius: "9px 9px 0 0", background: "rgba(248,250,252,0.97)", boxShadow: "0 -12px 28px rgba(0,0,0,0.22)", padding: 9 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 7 }}>
+        <strong style={{ color: theme.primary || "#111827", textTransform: "uppercase", fontSize: 12, letterSpacing: 1 }}>{title}</strong>
+        {help && <span style={{ color: "#475569", fontSize: 12, textAlign: "right" }}>{help}</span>}
+      </div>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>{children}</div>
+    </div>
+  );
+}
+
 function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
   if (!code) return null;
 
@@ -766,11 +913,6 @@ function CompactPlayerBar({ game, player }) {
       })}
     </div>
   );
-}
-
-function getLobbyPlayerName(lobby, playerNum) {
-  const name = lobby?.players?.[playerNum]?.accountName;
-  return name || `Player ${playerNum}`;
 }
 
 function getGamePlayerName(game, playerNum) {
@@ -979,6 +1121,8 @@ export default function App() {
   });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
+  const [showHelperLabels, setShowHelperLabels] = useState(false);
+  const [inspectedCard, setInspectedCard] = useState(null);
   const musicStopRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
@@ -1580,6 +1724,7 @@ export default function App() {
           </div>
           <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
             <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+            <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <MusicControl
               trackKey={activeMusicTrack}
               enabled={musicEnabled}
@@ -1611,6 +1756,7 @@ export default function App() {
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
             <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players.</p>
+            <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, or Free-for-All for 2-4 seated players with target selection.</HelperText>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
           </MenuCard>
           <MenuCard title="Join Room">
@@ -1679,12 +1825,6 @@ export default function App() {
         ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
         : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
-    const lobbyPlayerLabel = (playerNum) => {
-      const selection = isBasicMode ? "Basic Gauntlet" : lobby?.players?.[playerNum]?.factionId || "No faction";
-      const connection = lobby?.players?.[playerNum]?.connected ? "Connected" : "Disconnected";
-      const ready = lobby?.players?.[playerNum]?.readyToStart ? "Ready" : "Not ready";
-      return `${selection} - ${connection} - ${ready}`;
-    };
 
     return (
       <div style={MENU_THEME.page}>
@@ -1695,6 +1835,7 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 40, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
           </div>
           <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right", display: "grid", gap: 8, justifyItems: "end" }}>
+            <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <RoomCodeDisplay
               code={lobby?.roomCode}
               roleLabel={role === "spectator" ? "Spectator" : `Player ${player}`}
@@ -1709,9 +1850,8 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <MenuCard title="Lobby">
           <p><strong>Mode:</strong> {isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
-          {lobbyPlayerNumbers.map((playerNum) => (
-            <p key={playerNum}><strong>{getLobbyPlayerName(lobby, playerNum)}</strong> <span style={{ color: "#93c5fd" }}>(Player {playerNum})</span>: {lobbyPlayerLabel(playerNum)}</p>
-          ))}
+          <LobbySeatGrid lobby={lobby} />
+          <HelperText enabled={showHelperLabels}>{isFreeForAllMode ? "Each connected seat must choose a faction and confirm. Empty seats can stay open." : "Both player seats need to be ready before the match begins."}</HelperText>
           <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
         </MenuCard>
         {role === "player" && (
@@ -1873,6 +2013,7 @@ export default function App() {
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
+        <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
         <style>{`
           .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; }
           .ffa-card { min-height: 104px !important; font-size: 11px !important; padding: 5px !important; }
@@ -1892,6 +2033,7 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={copyRoomCode} />
               <button onClick={() => setShowHotkeys((value) => !value)}>Shortcuts</button>
+              <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} />
               <button onClick={returnToMainMenu}>Main Menu</button>
             </div>
           </div>
@@ -1911,6 +2053,7 @@ export default function App() {
               );
             })}
           </div>
+          <CombatStrip game={game} />
           <div className="ffa-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 8, minHeight: 0 }}>
             <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
               <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8 }}>
@@ -1938,7 +2081,7 @@ export default function App() {
                     const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
                     return (
                       <div key={card.id || i} className="ffa-card">
-                        <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"}>
+                        <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard}>
                           <div style={{ fontSize: 9 }}>#{i}</div>
                           {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
                           {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
@@ -1953,6 +2096,7 @@ export default function App() {
             </div>
             {!isSpectator && <SectionCard title="Actions" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 10, alignSelf: "start" }}>
               <p style={{ marginTop: 0 }}>{game.message || "Choose an action."}</p>
+              <HelperText enabled={showHelperLabels}>This panel shows the detailed setup for the action you are currently building.</HelperText>
               {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
               {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
               {canDeclareAttack && <button onClick={startFfaHandAttack} style={{ marginLeft: 6 }}>Attack from Hand</button>}
@@ -1980,6 +2124,17 @@ export default function App() {
               </div>
             </SectionCard>}
           </div>
+          {!isSpectator && (
+            <ActionDock title="Next Legal Actions" theme={myTheme} help={game.message || (isMyPriority ? "You have priority." : `Waiting on Player ${game.priority}.`)}>
+              {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
+              {canDeclareAttack && <button onClick={startFfaHandAttack}>Attack from Hand</button>}
+              {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
+              {incomingHandAttack && defenderMayBlock && <button onClick={() => { resetSelections(); setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id }); }}>Block Hand Attack</button>}
+              {(incomingHandAttack || incomingLaneAttack) && defenderMayBlock && <button onClick={passFfaBlock} style={{ color: "#991b1b" }}>Take Damage</button>}
+              {isMyEndPlacementTurn && <button onClick={() => { resetSelections(); setPlacementMode({ lane: currentEndLane }); }}>Place Lane {currentEndLane + 1}</button>}
+              {isMyEndPlacementTurn && <button onClick={() => { socket.emit("skipEndPlacement", { lane: currentEndLane }); resetSelections(); }}>Skip Lane {currentEndLane + 1}</button>}
+            </ActionDock>
+          )}
         </div>
       </div>
     );
@@ -2544,6 +2699,7 @@ export default function App() {
 
   return (
     <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
+      <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
       <style>{`
         .game-main {
           display: flex;
@@ -2688,6 +2844,7 @@ export default function App() {
           <button onClick={() => setShowHotkeys((value) => !value)} style={{ padding: "5px 9px", fontSize: 12 }}>
             Shortcuts
           </button>
+          <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} />
           <div style={{ fontSize: 13 }}>
             <RoomCodeDisplay
               code={game.roomCode}
@@ -2744,7 +2901,9 @@ export default function App() {
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
         </div>
+        <HelperText enabled={showHelperLabels}>Priority controls who can act. Combat must be fully blocked, passed, and resolved before a new attack.</HelperText>
       </SectionCard>
+      <div style={{ flex: "0 0 auto", marginBottom: 6 }}><CombatStrip game={game} /></div>
 
       <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
 
@@ -2805,12 +2964,13 @@ export default function App() {
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
                       return (
-                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary}>
+                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard}>
                           <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
                           {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
                           {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
                           {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
                           {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
+                          <HelperText enabled={showHelperLabels}>{attackMode || blockMode ? "Pay cards cover the cost; the attacking/blocking card cannot also pay." : "Tap the art to inspect."}</HelperText>
                         </CardBox>
                       );
                     })}
@@ -2916,6 +3076,19 @@ export default function App() {
           </SectionCard>
         </div>
       </div>
+      {!isSpectator && (
+        <ActionDock title="Next Legal Actions" theme={myTheme} help={quickActionHelpText()}>
+          {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
+          {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
+          {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
+          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</button>}
+          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+        </ActionDock>
+      )}
     </div>
   );
 }
