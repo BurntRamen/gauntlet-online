@@ -2190,14 +2190,16 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "freeForAll" });
   });
 
-  socket.on("createAiTutorialRoom", async ({ authToken, guestName } = {}) => {
+  socket.on("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
     console.log("[Socket] createAiTutorialRoom");
     removeFromMatchmaking(socket.id);
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
 
+    const aiMode = mode === "factions" ? "factions" : "basic";
+    const aiFaction = listFactions()[Math.floor(Math.random() * listFactions().length)];
     const roomState = createRoom();
-    roomState.lobby.gameMode = "basic";
+    roomState.lobby.gameMode = aiMode;
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
@@ -2207,10 +2209,17 @@ io.on("connection", (socket) => {
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
     roomState.lobby.players[2].accountName = "Training AI";
+    roomState.lobby.players[2].factionId = aiMode === "factions" ? aiFaction.id : null;
     roomState.lobby.players[2].isGuest = false;
     roomState.lobby.players[2].isAI = true;
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
+
+    if (aiMode === "factions") {
+      emitLobbyState(roomState);
+      return;
+    }
+
     createGameFromLobby(roomState);
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = "Training AI";
