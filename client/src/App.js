@@ -100,24 +100,24 @@ const BOARD_BACKGROUNDS = {
 
 const FACTION_VOICE_LINES = {
   rumin: [
-    "We need more capital for that.",
-    "The empire cannot fund this attack.",
-    "Strength without discipline is waste."
+    "The treasury will not underwrite this assault.",
+    "The empire requires proper payment.",
+    "Discipline first. Then conquest."
   ],
   sheen: [
-    "The roots are not yet prepared.",
-    "Patience. Growth takes time.",
-    "Harmony rejects reckless action."
+    "The roots have not gathered enough strength.",
+    "Patience. Growth must be nourished.",
+    "Harmony rejects an unfed strike."
   ],
   bizi: [
     "Insufficient power allocation.",
-    "Acceleration threshold unmet.",
-    "System error: invalid sequence."
+    "Payment circuit below threshold.",
+    "System error: attack budget invalid."
   ],
   frumo: [
-    "A poor gamble, captain.",
-    "The tides do not favor this play.",
-    "You'll need more coin than that."
+    "A poor wager, captain.",
+    "The tide demands more coin.",
+    "No sail catches wind without proper pay."
   ]
 };
 
@@ -1442,18 +1442,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!error || !game || role === "spectator" || !player) return;
-    const lower = String(error).toLowerCase();
-    const shouldVoice = ["need", "invalid", "insufficient", "duplicate", "resolve", "not your", "cannot"].some((word) => lower.includes(word));
-    if (!shouldVoice) return;
-
-    const factionId = game.players[player]?.faction?.id;
-    const quote = getFactionVoiceLine(factionId, error);
-    setFactionVoice({ quote, detail: error });
-    speakFactionQuote(factionId, quote);
-  }, [error, game, role, player, speakFactionQuote]);
-
-  useEffect(() => {
     if (!game || role === "spectator" || !player) return;
     if (game.phase !== "priority") return;
     if (blockMode || attackMode || placementMode || abilityMode) return;
@@ -2022,6 +2010,8 @@ export default function App() {
     const firstIndex = Math.max(0, activePlayers.indexOf(game.endPlacementFirstPlayer));
     const currentEndPlayer = activePlayers.length > 0 ? activePlayers[(firstIndex + (game.endPlacementStep || 0)) % activePlayers.length] : null;
     const isMyEndPlacementTurn = !isSpectator && game.phase === "end" && currentEndPlayer === player;
+    const ffaUndoRequest = game.undoRequest;
+    const ffaUndoNeedsMe = !isSpectator && ffaUndoRequest?.approvalsNeeded?.includes(player) && !ffaUndoRequest?.approvals?.[player];
 
     const startFfaHandAttack = () => {
       resetSelections();
@@ -2034,6 +2024,10 @@ export default function App() {
     const confirmFfaAttack = () => {
       if (!attackMode || !currentTarget) return;
       if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
+      if (activeAttackCard && paymentTotal < activeAttackRequired) {
+        factionVoiceFor(`Need ${activeAttackRequired} payment; selected ${paymentTotal}.`);
+        return;
+      }
       socket.emit("confirmAttack", {
         from: attackMode.from,
         lane: attackMode.lane,
@@ -2171,6 +2165,12 @@ export default function App() {
             </div>
             {!isSpectator && <SectionCard title="Actions" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 10, alignSelf: "start" }}>
               <p style={{ marginTop: 0 }}>{game.message || "Choose an action."}</p>
+              {ffaUndoRequest && (
+                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
+                  <strong>Undo requested:</strong> Player {ffaUndoRequest.requester} wants to undo {ffaUndoRequest.label}.
+                  {ffaUndoNeedsMe && <div style={{ display: "flex", gap: 8, marginTop: 8 }}><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
+                </div>
+              )}
               <HelperText enabled={showHelperLabels}>This panel shows the detailed setup for the action you are currently building.</HelperText>
               {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
               {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
@@ -2180,7 +2180,7 @@ export default function App() {
               {attackMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
                 <label>Target <select value={currentTarget} onChange={(e) => setAttackMode((prev) => ({ ...prev, targetPlayer: Number(e.target.value) }))}>{targetOptions.map((p) => <option key={p} value={p}>Player {p}</option>)}</select></label>
                 <div>Selected: {activeAttackCard ? getCardShortLabel(activeAttackCard) : "none"} - Pay {paymentTotal}/{activeAttackRequired}</div>
-                <button onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+                <button onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget}>Confirm Attack</button>
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
               {blockMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
@@ -2195,6 +2195,7 @@ export default function App() {
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
               <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <button onClick={requestUndo}>Request Undo</button>
                 <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
               </div>
               <PaymentLogPanel game={game} />
@@ -2328,6 +2329,10 @@ export default function App() {
   function confirmAttack() {
     if (!attackMode) return;
     if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
+    if (activeAttackCard && paymentTotal < activeAttackRequired) {
+      factionVoiceFor(`Need ${activeAttackRequired} payment; selected ${paymentTotal}.`);
+      return;
+    }
     socket.emit("confirmAttack", { from: attackMode.from, lane: attackMode.lane, attackCardIndex: selectedAttackCardIndex, paymentIndexes: payments, useHeraBonus, targetPlayer: attackMode.targetPlayer });
     resetSelections();
   }
@@ -2422,6 +2427,8 @@ export default function App() {
   function skipPlacement(lane) { socket.emit("skipEndPlacement", { lane }); resetSelections(); }
   function passPriority() { socket.emit("passPriority"); resetSelections(); }
   function resolveDamage() { socket.emit("resolveDamage"); }
+  function requestUndo() { socket.emit("requestUndo"); }
+  function respondUndo(approve) { socket.emit("respondUndo", { approve }); }
   function concedeGame() {
     if (window.confirm("Concede this game? This will immediately give your opponent the win.")) {
       socket.emit("concedeGame");
@@ -2552,9 +2559,12 @@ export default function App() {
     speakFactionQuote(me.faction.id, quote);
   }
 
+  const undoRequest = game.undoRequest;
+  const undoNeedsMyApproval = !isSpectator && undoRequest?.approvalsNeeded?.includes(player) && !undoRequest?.approvals?.[player];
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
       {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
+      <button onClick={requestUndo}>Request Undo</button>
       <button onClick={returnToMainMenu}>Main Menu</button>
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
@@ -2581,7 +2591,7 @@ export default function App() {
       <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
       {attackMode && (
         <>
-          <button className="quick-action-button quick-action-primary" onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+          <button className="quick-action-button quick-action-primary" onClick={confirmAttack} disabled={!activeAttackCard}>Confirm Attack</button>
           <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
         </>
       )}
@@ -2672,8 +2682,7 @@ export default function App() {
         <p><strong>Required:</strong> {activeAttackCard ? activeAttackRequired : "-"}</p>
         {meerusFreeAttackApplies && <p style={{ color: myTheme.primary, fontWeight: "bold" }}>Meerus: this third attack costs 0.</p>}
         {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
-        <button onClick={confirmAttack} disabled={!activeAttackCard || paymentTotal < activeAttackRequired} style={{ marginRight: 10 }}>Confirm Attack</button>
-        {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
+        <button onClick={confirmAttack} disabled={!activeAttackCard} style={{ marginRight: 10 }}>Confirm Attack</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -2694,7 +2703,6 @@ export default function App() {
           <p><strong>Required:</strong> {activeBlockCards.length > 0 ? required : "-"}</p>
           {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
-          {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
           <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
@@ -2716,7 +2724,6 @@ export default function App() {
           <p><strong>Required:</strong> {laneBlocker ? required : "-"}</p>
           {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
           <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
-          {paymentWarning && <button onClick={() => factionVoiceFor(paymentWarning)} style={{ marginRight: 10 }}>Faction Voice</button>}
           <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
@@ -3121,6 +3128,12 @@ export default function App() {
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Actions" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>{actionControls}
+              {undoRequest && (
+                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
+                  <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
+                  {undoNeedsMyApproval && <div style={{ display: "flex", gap: 8, marginTop: 8 }}><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
+                </div>
+              )}
               {game.drawOfferBy && game.phase !== "gameOver" && (
                 <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: myTheme.light, border: `1px solid ${myTheme.border}` }}>
                   {game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}

@@ -1129,6 +1129,49 @@ function recordPaymentLog(game, entry) {
   if (game.paymentLog.length > 80) game.paymentLog = game.paymentLog.slice(-80);
 }
 
+function clonePlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function cloneGameForUndo(game) {
+  const snapshot = clonePlain(game);
+  delete snapshot.undoRequest;
+  return snapshot;
+}
+
+function clearUndoRequest(game) {
+  if (game) game.undoRequest = null;
+}
+
+function saveUndoSnapshot(roomState, playerNum, label) {
+  if (!roomState?.game || roomState.game.phase === "gameOver") return;
+  roomState.undoSnapshot = {
+    requester: playerNum,
+    label,
+    game: cloneGameForUndo(roomState.game),
+    damageConfirmed: clonePlain(roomState.damageConfirmed || {})
+  };
+  clearUndoRequest(roomState.game);
+}
+
+function getUndoApprovalPlayers(roomState, requester) {
+  return getLobbyPlayerNumbers(roomState)
+    .filter((playerNum) => playerNum !== requester)
+    .filter((playerNum) => roomState.game?.players?.[playerNum] && !roomState.game.players[playerNum].eliminated)
+    .filter((playerNum) => !roomState.lobby.players[playerNum]?.isAI);
+}
+
+function restoreUndoSnapshot(roomState) {
+  const snapshot = roomState.undoSnapshot;
+  if (!snapshot) return false;
+  roomState.game = clonePlain(snapshot.game);
+  roomState.damageConfirmed = clonePlain(snapshot.damageConfirmed || {});
+  roomState.game.message = `Undo approved. Reverted Player ${snapshot.requester}'s most recent move: ${snapshot.label}.`;
+  roomState.game.undoRequest = null;
+  roomState.undoSnapshot = null;
+  return true;
+}
+
 function createTurnData() {
   return {
     attacksDeclaredThisTurn: 0,
@@ -2395,12 +2438,14 @@ io.on("connection", (socket) => {
     }
 
     if (game.gameMode === "freeForAll") {
+      saveUndoSnapshot(roomState, playerNum, "passed priority");
       const ended = await handleFreeForAllPriorityPass(roomState, playerNum);
       emitState(roomState);
       if (!ended) scheduleTrainingAi(roomState);
       return;
     }
     
+    saveUndoSnapshot(roomState, playerNum, "passed priority");
     game.priorityPassed[playerNum] = true;
     const passingAsBasicDefender =
       game.gameMode === "basic" &&
@@ -2446,6 +2491,7 @@ io.on("connection", (socket) => {
       return;
     }
     
+    saveUndoSnapshot(roomState, playerNum, "confirmed damage");
     roomState.damageConfirmed[playerNum] = true;
     const waitingPlayers = getWaitingDamagePlayers(roomState);
     game.message = waitingPlayers.length === 0
@@ -2561,6 +2607,66 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
+  socket.on("requestUndo", () => {
+    console.log("[Socket] requestUndo");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const snapshot = roomState.undoSnapshot;
+    if (!snapshot || snapshot.requester !== playerNum) {
+      socket.emit("errorMessage", "No recent move available to undo.");
+      return;
+    }
+
+    const approvalPlayers = getUndoApprovalPlayers(roomState, playerNum);
+    if (approvalPlayers.length === 0) {
+      if (restoreUndoSnapshot(roomState)) emitState(roomState);
+      scheduleTrainingAi(roomState);
+      return;
+    }
+
+    roomState.game.undoRequest = {
+      requester: playerNum,
+      label: snapshot.label,
+      approvalsNeeded: approvalPlayers,
+      approvals: {},
+      createdAt: new Date().toISOString()
+    };
+    roomState.game.message = `Player ${playerNum} requested undo: ${snapshot.label}. Waiting for ${approvalPlayers.map((p) => `Player ${p}`).join(", ")} to approve.`;
+    emitState(roomState);
+  });
+
+  socket.on("respondUndo", ({ approve } = {}) => {
+    console.log("[Socket] respondUndo");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game?.undoRequest) return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const request = roomState.game.undoRequest;
+    if (!request.approvalsNeeded?.includes(playerNum)) {
+      socket.emit("errorMessage", "You are not the player who can approve this undo.");
+      return;
+    }
+
+    if (!approve) {
+      roomState.game.message = `Player ${playerNum} declined Player ${request.requester}'s undo request.`;
+      roomState.game.undoRequest = null;
+      emitState(roomState);
+      return;
+    }
+
+    request.approvals[playerNum] = true;
+    const allApproved = request.approvalsNeeded.every((approver) => request.approvals[approver]);
+    if (allApproved) {
+      restoreUndoSnapshot(roomState);
+    } else {
+      roomState.game.message = `Player ${playerNum} approved undo. Waiting for the remaining approvals.`;
+    }
+    emitState(roomState);
+    scheduleTrainingAi(roomState);
+  });
+
   socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus, targetPlayer }) => {
     console.log(`[Socket] confirmAttack: from=${from}, lane=${lane}, idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
@@ -2636,6 +2742,8 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
       return;
     }
+
+    saveUndoSnapshot(roomState, playerNum, from === "lane" ? `attacked from lane ${laneIndex + 1}` : "attacked from hand");
 
     if (from === "hand") {
       removeSelectedCardAndPayments(player, selectedAttackIndex, paymentValidation.indexes);
@@ -2738,6 +2846,7 @@ io.on("connection", (socket) => {
     // If take damage (no block card)
     if (noHandBlockSelected) {
       console.log(`[Socket] No block card - passing priority to take damage`);
+      saveUndoSnapshot(roomState, playerNum, "declined to block");
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;
 
@@ -2775,6 +2884,7 @@ io.on("connection", (socket) => {
     }
     if (isLaneBlock && !laneState.facedown[playerNum]) {
       console.log(`[Socket] No lane blocker - passing priority to take damage`);
+      saveUndoSnapshot(roomState, playerNum, "declined to block");
       game.priorityPassed[playerNum] = true;
       game.message = `Player ${playerNum} chose not to block.`;
 
@@ -2852,6 +2962,8 @@ io.on("connection", (socket) => {
       return;
     }
     
+    saveUndoSnapshot(roomState, playerNum, isLaneBlock ? `blocked lane ${laneIndex + 1}` : "blocked from hand");
+
     // Process block
     if (isLaneBlock) {
       removeIndexesFromHandToDiscard(player, paymentValidation.indexes);
@@ -2932,6 +3044,7 @@ io.on("connection", (socket) => {
         socket.emit("errorMessage", "Invalid empty lane");
         return;
       }
+      saveUndoSnapshot(roomState, playerNum, `used Polea to place a card in lane ${laneIndex + 1}`);
       const [card] = player.hand.splice(selectedHandIndex, 1);
       game.lanes[laneIndex].facedown[playerNum] = card;
       player.turnData.poleaUsed = true;
@@ -2966,6 +3079,7 @@ io.on("connection", (socket) => {
         socket.emit("errorMessage", "Choose two occupied lanes you control");
         return;
       }
+      saveUndoSnapshot(roomState, playerNum, `used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}`);
       [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
@@ -2990,6 +3104,7 @@ io.on("connection", (socket) => {
         return;
       }
       const card = game.lanes[laneIndex].facedown[peekPlayer];
+      saveUndoSnapshot(roomState, playerNum, "used Polea to peek");
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       socket.emit("peekResult", `Player ${peekPlayer} lane ${laneIndex + 1}: ${card.name}`);
@@ -3012,6 +3127,7 @@ io.on("connection", (socket) => {
         socket.emit("errorMessage", "Invalid target");
         return;
       }
+      saveUndoSnapshot(roomState, playerNum, "used Polea to buff a card");
       target.tempBuff = (target.tempBuff || 0) + 1;
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
@@ -3058,6 +3174,7 @@ io.on("connection", (socket) => {
     }
 
     const handCard = player.hand[selectedHandIndex];
+    saveUndoSnapshot(roomState, playerNum, `used Lafayette on lane ${laneIndex + 1}`);
     player.hand[selectedHandIndex] = game.lanes[laneIndex].facedown[playerNum];
     game.lanes[laneIndex].facedown[playerNum] = handCard;
     player.turnData.lafayetteUsed = true;
@@ -3099,6 +3216,7 @@ io.on("connection", (socket) => {
       return;
     }
 
+    saveUndoSnapshot(roomState, playerNum, "used Focus Buff");
     player.accelerationCounters -= 1;
     player.turnData.focusBuffUsed = true;
     target.tempBuff = (target.tempBuff || 0) + 1;
@@ -3150,8 +3268,10 @@ io.on("connection", (socket) => {
       return;
     }
     
+    saveUndoSnapshot(roomState, playerNum, `placed a face-down card in lane ${lane + 1}`);
     const card = player.hand.splice(handIndex, 1)[0];
     game.lanes[lane].facedown[playerNum] = card;
+    saveUndoSnapshot(roomState, playerNum, `skipped lane ${lane + 1}`);
     game.endPlaced[playerNum][lane] = true;
     game.message = `Player ${playerNum} placed a card in lane ${lane + 1}`;
     
