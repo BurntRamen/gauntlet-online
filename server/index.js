@@ -1086,6 +1086,30 @@ function describeCardValue(card, effectiveValue, notes = []) {
   return `${card?.name || "card"} (${valueText}${noteText})`;
 }
 
+function describeCardList(cards) {
+  if (!Array.isArray(cards) || cards.length === 0) return "none";
+  return cards.map((card) => card?.name || "card").join(", ");
+}
+
+function getHandCardsByIndexes(player, indexes) {
+  return (Array.isArray(indexes) ? indexes : [])
+    .map((index) => player.hand[Number(index)])
+    .filter(Boolean);
+}
+
+function recordPaymentLog(game, entry) {
+  if (!game) return;
+  if (!Array.isArray(game.paymentLog)) game.paymentLog = [];
+  game.paymentLog.push({
+    id: `pay-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    turn: game.turn || 1,
+    phase: game.phase,
+    createdAt: new Date().toISOString(),
+    ...entry
+  });
+  if (game.paymentLog.length > 80) game.paymentLog = game.paymentLog.slice(-80);
+}
+
 function createTurnData() {
   return {
     attacksDeclaredThisTurn: 0,
@@ -1582,7 +1606,8 @@ function resolveDamage(game, roomState) {
   game.handAttacks = [];
   roomState.damageConfirmed = { 1: false, 2: false };
   if (damageMessages.length > 0) {
-    game.message = damageMessages.join(" ");
+    game.lastDamageSummary = damageMessages.join(" ");
+    game.message = game.lastDamageSummary;
     captureGameEvent(game);
   }
 }
@@ -1621,7 +1646,8 @@ function resolveFreeForAllDamage(game, roomState) {
     roomState.damageConfirmed[playerNum] = false;
   });
   if (damageMessages.length > 0) {
-    game.message = damageMessages.join(" ");
+    game.lastDamageSummary = damageMessages.join(" ");
+    game.message = game.lastDamageSummary;
     captureGameEvent(game);
   }
 }
@@ -1760,7 +1786,7 @@ async function aiResolveDamageIfReady(roomState) {
   game.lastActivePlayer = game.priority;
   game.mostRecentAttackDefender = null;
   resetPriorityPassed(game);
-  game.message = `Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
+  game.message = `${game.lastDamageSummary ? `${game.lastDamageSummary} ` : ""}Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
   return true;
 }
 
@@ -1937,6 +1963,8 @@ function createGameFromLobby(roomState) {
       { facedown: { 1: null, 2: null }, attack: null, block: [] }
     ],
     handAttacks: [],
+    paymentLog: [],
+    lastDamageSummary: "",
     endPlacementLaneIndex: 0,
     endPlacementFirstPlayer: null,
     endPlacementStep: 0,
@@ -2034,6 +2062,8 @@ function createFreeForAllGameFromLobby(roomState) {
       { facedown: { ...facedownTemplate }, attack: null, block: [] }
     ],
     handAttacks: [],
+    paymentLog: [],
+    lastDamageSummary: "",
     endPlacementLaneIndex: 0,
     endPlacementFirstPlayer: null,
     endPlacementStep: 0,
@@ -2411,7 +2441,7 @@ io.on("connection", (socket) => {
       game.lastActivePlayer = game.priority;
       game.mostRecentAttackDefender = null;
       resetPriorityPassed(game);
-      game.message = `Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
+      game.message = `${game.lastDamageSummary ? `${game.lastDamageSummary} ` : ""}Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
       
       emitState(roomState);
       scheduleTrainingAi(roomState);
@@ -2572,6 +2602,7 @@ io.on("connection", (socket) => {
     const attackPayment = getAttackPaymentRequirement(player, attackCard);
     const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
     const required = attackPayment.required;
+    const paymentCards = getHandCardsByIndexes(player, paymentValidation.indexes);
     
     if (payment.total < required) {
       socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
@@ -2599,6 +2630,21 @@ io.on("connection", (socket) => {
       targetPlayer: defender,
       notes: attackInfo.notes
     };
+    attack.payment = {
+      player: playerNum,
+      cards: paymentCards,
+      total: payment.total,
+      required,
+      heraUsed: payment.heraUsedNow
+    };
+    recordPaymentLog(game, {
+      type: "attack",
+      player: playerNum,
+      cards: paymentCards,
+      total: payment.total,
+      required,
+      label: `Player ${playerNum} paid ${payment.total}/${required} with ${describeCardList(paymentCards)} to attack with ${attackCard.name || "a card"}${from === "lane" ? ` from lane ${laneIndex + 1}` : " from hand"}.`
+    });
 
     if (from === "hand") game.handAttacks.push(attack);
     else game.lanes[laneIndex].attack = attack;
@@ -2769,6 +2815,7 @@ io.on("connection", (socket) => {
       return;
     }
     const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
+    const paymentCards = getHandCardsByIndexes(player, paymentValidation.indexes);
     
     console.log(`[Socket] Block payment check: need ${blockCardValue}, have ${payment.total}`);
     
@@ -2794,12 +2841,27 @@ io.on("connection", (socket) => {
         card: blockCard,
         source: isLaneBlock ? "lane" : "hand",
         effectiveValue: blockInfo.effectiveValue,
-        notes: blockInfo.notes
+        notes: blockInfo.notes,
+        payment: {
+          player: playerNum,
+          cards: paymentCards,
+          total: payment.total,
+          required: blockCardValue,
+          heraUsed: payment.heraUsedNow
+        }
       };
     });
     finalizeBlockDeclaration(player);
     
     attack.block.push(...blockEntries);
+    recordPaymentLog(game, {
+      type: "block",
+      player: playerNum,
+      cards: paymentCards,
+      total: payment.total,
+      required: blockCardValue,
+      label: `Player ${playerNum} paid ${payment.total}/${blockCardValue} with ${describeCardList(paymentCards)} to block with ${blockEntries.map((entry) => entry.card?.name || "card").join(", ")}.`
+    });
     
     if (game.gameMode === "basic") {
       roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} blocked with ${blockEntries.map((entry) => describeCardValue(entry.card, entry.effectiveValue, entry.notes)).join(", ")}. Basic Mode moves directly to damage.`);
@@ -2846,6 +2908,14 @@ io.on("connection", (socket) => {
       game.lanes[laneIndex].facedown[playerNum] = card;
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
+      recordPaymentLog(game, {
+        type: "ability",
+        player: playerNum,
+        cards: [card],
+        total: 0,
+        required: 0,
+        label: `Player ${playerNum} used Polea to put ${card.name || "a hand card"} into lane ${laneIndex + 1}.`
+      });
       game.message = `Player ${playerNum} used Polea to put a card into lane ${laneIndex + 1}.`;
       emitState(roomState);
       return;
@@ -2871,6 +2941,14 @@ io.on("connection", (socket) => {
       [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
+      recordPaymentLog(game, {
+        type: "ability",
+        player: playerNum,
+        cards: [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]].filter(Boolean),
+        total: 0,
+        required: 0,
+        label: `Player ${playerNum} used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}.`
+      });
       game.message = `Player ${playerNum} used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}.`;
       emitState(roomState);
       return;
@@ -2887,6 +2965,14 @@ io.on("connection", (socket) => {
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       socket.emit("peekResult", `Player ${peekPlayer} lane ${laneIndex + 1}: ${card.name}`);
+      recordPaymentLog(game, {
+        type: "ability",
+        player: playerNum,
+        cards: [],
+        total: 0,
+        required: 0,
+        label: `Player ${playerNum} used Polea to look at Player ${peekPlayer}'s lane ${laneIndex + 1}.`
+      });
       game.message = `Player ${playerNum} used Polea to look at a face-down card.`;
       emitState(roomState);
       return;
@@ -2901,6 +2987,14 @@ io.on("connection", (socket) => {
       target.tempBuff = (target.tempBuff || 0) + 1;
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
+      recordPaymentLog(game, {
+        type: "ability",
+        player: playerNum,
+        cards: [target],
+        total: 0,
+        required: 0,
+        label: `Player ${playerNum} used Polea to give ${target.name || "a card"} +1.`
+      });
       game.message = `Player ${playerNum} used Polea to give ${describeCardValue(target, getCardCurrentValue(target), ["Polea +1"])} this turn.`;
       emitState(roomState);
       return;
@@ -2940,6 +3034,14 @@ io.on("connection", (socket) => {
     game.lanes[laneIndex].facedown[playerNum] = handCard;
     player.turnData.lafayetteUsed = true;
     resetPriorityPassed(game);
+    recordPaymentLog(game, {
+      type: "ability",
+      player: playerNum,
+      cards: [handCard],
+      total: 0,
+      required: 0,
+      label: `Player ${playerNum} used Lafayette to swap ${handCard.name || "a hand card"} into lane ${laneIndex + 1}.`
+    });
     game.message = `Player ${playerNum} used Lafayette to swap a lane card with a hand card.`;
     emitState(roomState);
   });
@@ -2973,6 +3075,14 @@ io.on("connection", (socket) => {
     player.turnData.focusBuffUsed = true;
     target.tempBuff = (target.tempBuff || 0) + 1;
     resetPriorityPassed(game);
+    recordPaymentLog(game, {
+      type: "ability",
+      player: playerNum,
+      cards: [target],
+      total: 1,
+      required: 1,
+      label: `Player ${playerNum} spent 1 acceleration counter with Focus to give ${target.name || "a card"} +1.`
+    });
     game.message = `Player ${playerNum} removed an acceleration counter to give ${describeCardValue(target, getCardCurrentValue(target), ["Focus +1"])} this turn.`;
     emitState(roomState);
   });

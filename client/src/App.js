@@ -441,7 +441,7 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
       <input
         type="range"
         min="0"
-        max="0.18"
+        max="0.3"
         step="0.01"
         value={volume}
         onChange={(e) => onVolumeChange(Number(e.target.value))}
@@ -787,18 +787,6 @@ function CombatStrip({ game }) {
   );
 }
 
-function ActionDock({ title = "Actions", help, children, theme = FACTION_COLORS.default }) {
-  return (
-    <div style={{ position: "sticky", bottom: 0, zIndex: 30, border: `2px solid ${theme.border || "#334155"}`, borderRadius: "9px 9px 0 0", background: "rgba(248,250,252,0.97)", boxShadow: "0 -12px 28px rgba(0,0,0,0.22)", padding: 9 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 7 }}>
-        <strong style={{ color: theme.primary || "#111827", textTransform: "uppercase", fontSize: 12, letterSpacing: 1 }}>{title}</strong>
-        {help && <span style={{ color: "#475569", fontSize: 12, textAlign: "right" }}>{help}</span>}
-      </div>
-      <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>{children}</div>
-    </div>
-  );
-}
-
 function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
   if (!code) return null;
 
@@ -894,6 +882,75 @@ function LaneCardLabel({ label, card, hidden = false }) {
     <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 6, padding: 5, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 32 }}>
       <div style={{ fontSize: 9, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
       <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 12 }}>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
+    </div>
+  );
+}
+
+function SmallCardToken({ card }) {
+  const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
+  return (
+    <div title={card?.name || getCardShortLabel(card)} style={{ width: 42, minHeight: 56, border: "1px solid rgba(0,0,0,0.28)", borderRadius: 6, background: "#fff", padding: 4, display: "grid", alignContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}>
+      <strong style={{ color: suitColor, fontSize: 14 }}>{getCardRank(card)}</strong>
+      <span style={{ color: suitColor, fontSize: 18, lineHeight: 1, textAlign: "center" }}>{getSuitSymbol(card?.suit)}</span>
+      <span style={{ fontSize: 8, color: "#475569", textAlign: "right" }}>{getCardNumericValue(card)}</span>
+    </div>
+  );
+}
+
+function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) {
+  const opponentNumbers = Object.keys(game.players || {}).map(Number).filter((p) => p !== player).sort((a, b) => a - b);
+  if (opponentNumbers.length === 0) return null;
+  return (
+    <SectionCard className="opponent-intel" borderColor="#334155" background="rgba(255,255,255,0.94)" style={{ padding: 8, marginBottom: 6 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
+        <h3 style={{ margin: 0, fontSize: 15 }}>Opponent Intel</h3>
+        <button onClick={onToggleAbilities} style={{ padding: "4px 8px", fontSize: 12 }}>{showAbilities ? "Hide Abilities" : "Show Abilities"}</button>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {opponentNumbers.map((p) => {
+          const opponent = game.players[p];
+          const theme = getFactionTheme(opponent.faction.id);
+          return (
+            <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                <strong style={{ color: theme.primary }}>{getGamePlayerName(game, p)} (P{p})</strong>
+                <span style={{ fontSize: 12 }}>{opponent.hand?.length || 0} cards</span>
+              </div>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: showAbilities ? 8 : 0 }}>
+                {(opponent.hand || []).map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}
+              </div>
+              {showAbilities && (
+                <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
+                  {["commander", "city", "general"].map((key) => opponent.faction?.[key] && (
+                    <div key={key} style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 6 }}>
+                      <strong style={{ color: theme.primary, textTransform: "capitalize" }}>{key}: {opponent.faction[key].name}</strong>
+                      <div style={{ color: "#475569" }}>{opponent.faction[key].text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </SectionCard>
+  );
+}
+
+function PaymentLogPanel({ game }) {
+  const entries = (game.paymentLog || []).slice(-8).reverse();
+  if (entries.length === 0) return null;
+  return (
+    <div style={{ marginTop: 10, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, background: "#f8fafc", padding: 8 }}>
+      <h3 style={{ margin: "0 0 6px 0", fontSize: 14 }}>Payments & Reveals</h3>
+      <div style={{ display: "grid", gap: 6 }}>
+        {entries.map((entry) => (
+          <div key={entry.id} style={{ borderTop: "1px solid #e5e7eb", paddingTop: 6, fontSize: 12 }}>
+            <strong>P{entry.player}</strong> {entry.label}
+            {entry.cards?.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>{entry.cards.map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}</div>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1100,7 +1157,7 @@ export default function App() {
   const [playAsGuest, setPlayAsGuest] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
-  const [musicVolume, setMusicVolume] = useState(0.11);
+  const [musicVolume, setMusicVolume] = useState(0.18);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
@@ -1122,6 +1179,7 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
+  const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const musicStopRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
@@ -2033,6 +2091,7 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={copyRoomCode} />
               <button onClick={() => setShowHotkeys((value) => !value)}>Shortcuts</button>
+              {!isSpectator && <button onClick={() => setShowOpponentAbilities((value) => !value)}>{showOpponentAbilities ? "Hide Abilities" : "Show Abilities"}</button>}
               <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} />
               <button onClick={returnToMainMenu}>Main Menu</button>
             </div>
@@ -2049,6 +2108,21 @@ export default function App() {
                   <div>Player {p} - {game.players[p].faction.name}</div>
                   <div>{game.players[p].life} life - {game.players[p].connected ? "Connected" : "Disconnected"}</div>
                   {game.players[p].eliminated && <div style={{ color: "#991b1b", fontWeight: "bold" }}>Eliminated</div>}
+                  {p !== player && (
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
+                      {(game.players[p].hand || []).map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}
+                    </div>
+                  )}
+                  {p !== player && showOpponentAbilities && (
+                    <div style={{ borderTop: `1px solid ${pTheme.border}`, marginTop: 6, paddingTop: 6, fontSize: 12 }}>
+                      <strong>{game.players[p].faction.commander?.name}</strong>
+                      <div>{game.players[p].faction.commander?.text}</div>
+                      <strong>{game.players[p].faction.city?.name}</strong>
+                      <div>{game.players[p].faction.city?.text}</div>
+                      <strong>{game.players[p].faction.general?.name}</strong>
+                      <div>{game.players[p].faction.general?.text}</div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2122,19 +2196,9 @@ export default function App() {
               <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                 <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
               </div>
+              <PaymentLogPanel game={game} />
             </SectionCard>}
           </div>
-          {!isSpectator && (
-            <ActionDock title="Next Legal Actions" theme={myTheme} help={game.message || (isMyPriority ? "You have priority." : `Waiting on Player ${game.priority}.`)}>
-              {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
-              {canDeclareAttack && <button onClick={startFfaHandAttack}>Attack from Hand</button>}
-              {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
-              {incomingHandAttack && defenderMayBlock && <button onClick={() => { resetSelections(); setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id }); }}>Block Hand Attack</button>}
-              {(incomingHandAttack || incomingLaneAttack) && defenderMayBlock && <button onClick={passFfaBlock} style={{ color: "#991b1b" }}>Take Damage</button>}
-              {isMyEndPlacementTurn && <button onClick={() => { resetSelections(); setPlacementMode({ lane: currentEndLane }); }}>Place Lane {currentEndLane + 1}</button>}
-              {isMyEndPlacementTurn && <button onClick={() => { socket.emit("skipEndPlacement", { lane: currentEndLane }); resetSelections(); }}>Skip Lane {currentEndLane + 1}</button>}
-            </ActionDock>
-          )}
         </div>
       </div>
     );
@@ -2906,6 +2970,14 @@ export default function App() {
       <div style={{ flex: "0 0 auto", marginBottom: 6 }}><CombatStrip game={game} /></div>
 
       <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
+      {!isSpectator && (
+        <OpponentIntelPanel
+          game={game}
+          player={player}
+          showAbilities={showOpponentAbilities}
+          onToggleAbilities={() => setShowOpponentAbilities((value) => !value)}
+        />
+      )}
 
       <div className="game-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 8, alignItems: "stretch", minHeight: 0, flex: 1 }}>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
@@ -3054,7 +3126,8 @@ export default function App() {
                 </div>
               )}
               {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
-              {rightPanel}</>}
+              {rightPanel}
+              <PaymentLogPanel game={game} /></>}
           </SectionCard>
           <SectionCard className="recent-events-section" borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
             <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
@@ -3076,19 +3149,6 @@ export default function App() {
           </SectionCard>
         </div>
       </div>
-      {!isSpectator && (
-        <ActionDock title="Next Legal Actions" theme={myTheme} help={quickActionHelpText()}>
-          {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
-          {canDeclareAttack && <button onClick={startAttackFromHand}>Attack from Hand</button>}
-          {game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
-          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</button>}
-          {game.phase === "end" && isMyEndPlacementTurn && <button onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
-        </ActionDock>
-      )}
     </div>
   );
 }
