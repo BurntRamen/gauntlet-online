@@ -1143,9 +1143,19 @@ function clearUndoRequest(game) {
   if (game) game.undoRequest = null;
 }
 
+function getUndoSnapshots(roomState) {
+  if (!roomState.undoSnapshots) roomState.undoSnapshots = {};
+  if (roomState.undoSnapshot) {
+    roomState.undoSnapshots[roomState.undoSnapshot.requester] = roomState.undoSnapshot;
+    roomState.undoSnapshot = null;
+  }
+  return roomState.undoSnapshots;
+}
+
 function saveUndoSnapshot(roomState, playerNum, label) {
   if (!roomState?.game || roomState.game.phase === "gameOver") return;
-  roomState.undoSnapshot = {
+  const snapshots = getUndoSnapshots(roomState);
+  snapshots[playerNum] = {
     requester: playerNum,
     label,
     game: cloneGameForUndo(roomState.game),
@@ -1161,13 +1171,15 @@ function getUndoApprovalPlayers(roomState, requester) {
     .filter((playerNum) => !roomState.lobby.players[playerNum]?.isAI);
 }
 
-function restoreUndoSnapshot(roomState) {
-  const snapshot = roomState.undoSnapshot;
+function restoreUndoSnapshot(roomState, requester) {
+  const snapshots = getUndoSnapshots(roomState);
+  const snapshot = snapshots[requester];
   if (!snapshot) return false;
   roomState.game = clonePlain(snapshot.game);
   roomState.damageConfirmed = clonePlain(snapshot.damageConfirmed || {});
   roomState.game.message = `Undo approved. Reverted Player ${snapshot.requester}'s most recent move: ${snapshot.label}.`;
   roomState.game.undoRequest = null;
+  roomState.undoSnapshots = {};
   roomState.undoSnapshot = null;
   return true;
 }
@@ -2613,7 +2625,7 @@ io.on("connection", (socket) => {
     if (!roomState?.game) return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
-    const snapshot = roomState.undoSnapshot;
+    const snapshot = getUndoSnapshots(roomState)[playerNum];
     if (!snapshot || snapshot.requester !== playerNum) {
       socket.emit("errorMessage", "No recent move available to undo.");
       return;
@@ -2621,7 +2633,7 @@ io.on("connection", (socket) => {
 
     const approvalPlayers = getUndoApprovalPlayers(roomState, playerNum);
     if (approvalPlayers.length === 0) {
-      if (restoreUndoSnapshot(roomState)) emitState(roomState);
+      if (restoreUndoSnapshot(roomState, playerNum)) emitState(roomState);
       scheduleTrainingAi(roomState);
       return;
     }
@@ -2659,7 +2671,7 @@ io.on("connection", (socket) => {
     request.approvals[playerNum] = true;
     const allApproved = request.approvalsNeeded.every((approver) => request.approvals[approver]);
     if (allApproved) {
-      restoreUndoSnapshot(roomState);
+      restoreUndoSnapshot(roomState, request.requester);
     } else {
       roomState.game.message = `Player ${playerNum} approved undo. Waiting for the remaining approvals.`;
     }

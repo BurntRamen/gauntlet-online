@@ -1219,6 +1219,12 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleGameplayHotkey);
   }, []);
 
+  useEffect(() => {
+    if (!factionVoice) return undefined;
+    const timer = window.setTimeout(() => setFactionVoice(null), 4500);
+    return () => window.clearTimeout(timer);
+  }, [factionVoice]);
+
   const activeMusicTrack = !game || role === "spectator" || !player
     ? "menu"
     : game.gameMode === "basic"
