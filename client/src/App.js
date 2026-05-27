@@ -914,10 +914,7 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
             <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
                 <strong style={{ color: theme.primary }}>{getGamePlayerName(game, p)} (P{p})</strong>
-                <span style={{ fontSize: 12 }}>{opponent.hand?.length || 0} cards</span>
-              </div>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: showAbilities ? 8 : 0 }}>
-                {(opponent.hand || []).map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}
+                <span style={{ fontSize: 12 }}>{opponent.handCount ?? opponent.hand?.length ?? 0} cards</span>
               </div>
               {showAbilities && (
                 <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
@@ -2107,12 +2104,8 @@ export default function App() {
                   <strong style={{ color: pTheme.primary }}>{getGamePlayerName(game, p)} {p === player ? "(You)" : ""}</strong>
                   <div>Player {p} - {game.players[p].faction.name}</div>
                   <div>{game.players[p].life} life - {game.players[p].connected ? "Connected" : "Disconnected"}</div>
+                  {p !== player && <div>{game.players[p].handCount ?? game.players[p].hand?.length ?? 0} cards in hand</div>}
                   {game.players[p].eliminated && <div style={{ color: "#991b1b", fontWeight: "bold" }}>Eliminated</div>}
-                  {p !== player && (
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
-                      {(game.players[p].hand || []).map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}
-                    </div>
-                  )}
                   {p !== player && showOpponentAbilities && (
                     <div style={{ borderTop: `1px solid ${pTheme.border}`, marginTop: 6, paddingTop: 6, fontSize: 12 }}>
                       <strong>{game.players[p].faction.commander?.name}</strong>

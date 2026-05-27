@@ -907,13 +907,32 @@ function emitLobbyState(roomState) {
   });
 }
 
+function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
+  const visibleGame = JSON.parse(JSON.stringify(game));
+  for (const [rawPlayerNum, playerState] of Object.entries(visibleGame.players || {})) {
+    const playerNum = Number(rawPlayerNum);
+    const realPlayer = game.players?.[playerNum];
+    playerState.handCount = realPlayer?.hand?.length || 0;
+    if (viewerPlayerNum !== playerNum) playerState.hand = [];
+  }
+  visibleGame.spectatorCount = spectatorCount;
+  return visibleGame;
+}
+
 function emitState(roomState) {
   if (!roomState.game) return;
   captureGameEvent(roomState.game);
-  io.to(roomState.roomCode).emit("state", {
-    ...roomState.game,
-    spectatorCount: roomState.lobby.spectators.length
-  });
+  const spectatorCount = roomState.lobby.spectators.length;
+
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
+    const socketId = roomState.lobby.players[playerNum].socket;
+    if (!socketId) continue;
+    io.to(socketId).emit("state", sanitizeGameForViewer(roomState.game, playerNum, spectatorCount));
+  }
+
+  for (const socketId of roomState.lobby.spectators) {
+    io.to(socketId).emit("state", sanitizeGameForViewer(roomState.game, null, spectatorCount));
+  }
 }
 
 function getOtherPlayer(playerNum) {
