@@ -121,6 +121,34 @@ const FACTION_VOICE_LINES = {
   ]
 };
 
+const FACTION_VOICE_AUDIO = {
+  rumin: [
+    "/assets/gauntlet/voices/kaiser-1.mp3",
+    "/assets/gauntlet/voices/kaiser-2.mp3",
+    "/assets/gauntlet/voices/kaiser-3.mp3"
+  ],
+  sheen: [
+    "/assets/gauntlet/voices/leafen-gao-1.mp3",
+    "/assets/gauntlet/voices/leafen-gao-2.mp3",
+    "/assets/gauntlet/voices/leafen-gao-3.mp3"
+  ],
+  bizi: [
+    "/assets/gauntlet/voices/focus-1.mp3",
+    "/assets/gauntlet/voices/focus-2.mp3",
+    "/assets/gauntlet/voices/focus-3.mp3"
+  ],
+  frumo: [
+    "/assets/gauntlet/voices/polea-1.mp3",
+    "/assets/gauntlet/voices/polea-2.mp3",
+    "/assets/gauntlet/voices/polea-3.mp3"
+  ],
+  zalara: [
+    "/assets/gauntlet/voices/zalara-1.mp3",
+    "/assets/gauntlet/voices/zalara-2.mp3",
+    "/assets/gauntlet/voices/zalara-3.mp3"
+  ]
+};
+
 const FACTION_VOICE_PROFILES = {
   rumin: { rate: 0.82, pitch: 0.55, volume: 1 },
   sheen: { rate: 0.72, pitch: 0.72, volume: 0.9 },
@@ -142,6 +170,13 @@ function getFactionVoiceLine(factionId, seedText = "") {
   const lines = FACTION_VOICE_LINES[factionId] || ["That action is not ready."];
   const seed = String(seedText).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return lines[seed % lines.length];
+}
+
+function getFactionVoiceAudio(factionId, quote) {
+  const lines = FACTION_VOICE_LINES[factionId] || [];
+  const clips = FACTION_VOICE_AUDIO[factionId] || [];
+  const quoteIndex = lines.indexOf(quote);
+  return quoteIndex >= 0 ? clips[quoteIndex] : null;
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
@@ -1180,6 +1215,7 @@ export default function App() {
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const musicStopRef = useRef(null);
+  const voiceAudioRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
 
@@ -1442,7 +1478,13 @@ export default function App() {
   }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
-    if (typeof window !== "undefined" && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+
+    const speakWithBrowserVoice = () => {
+      if (typeof window === "undefined" || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
       window.speechSynthesis.cancel();
       const utterance = new window.SpeechSynthesisUtterance(quote);
       const profile = FACTION_VOICE_PROFILES[factionId] || FACTION_VOICE_PROFILES.default;
@@ -1450,7 +1492,19 @@ export default function App() {
       utterance.pitch = profile.pitch;
       utterance.volume = profile.volume;
       window.speechSynthesis.speak(utterance);
+    };
+
+    const voiceClip = getFactionVoiceAudio(factionId, quote);
+    if (voiceClip && typeof window !== "undefined" && window.Audio) {
+      window.speechSynthesis?.cancel();
+      const audio = new window.Audio(resolveAssetPath(voiceClip));
+      audio.volume = 1;
+      voiceAudioRef.current = audio;
+      audio.play().catch(speakWithBrowserVoice);
+      return;
     }
+
+    speakWithBrowserVoice();
   }, []);
 
   useEffect(() => {
