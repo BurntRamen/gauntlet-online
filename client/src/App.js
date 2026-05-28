@@ -224,9 +224,9 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         border: selected ? `3px solid ${accent}` : "1px solid black",
         borderRadius: 8,
         padding: 6,
-        width: 100,
-        minWidth: 100,
-        minHeight: 154,
+        width: 108,
+        minWidth: 108,
+        minHeight: 164,
         background: bg,
         boxShadow: selected ? `0 0 0 3px ${accent}22` : "none",
         position: "relative",
@@ -1225,6 +1225,12 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [factionVoice]);
 
+  useEffect(() => {
+    if (!incomingAttackAlert) return undefined;
+    const timer = window.setTimeout(() => setIncomingAttackAlert(null), 6500);
+    return () => window.clearTimeout(timer);
+  }, [incomingAttackAlert]);
+
   const activeMusicTrack = !game || role === "spectator" || !player
     ? "menu"
     : game.gameMode === "basic"
@@ -2078,13 +2084,13 @@ export default function App() {
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
         <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
         <style>{`
-          .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; }
-          .ffa-card { min-height: 104px !important; font-size: 11px !important; padding: 5px !important; }
+          .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 6px; }
+          .ffa-card { min-height: 112px !important; font-size: 11px !important; padding: 5px !important; }
           @media (max-width: 760px) {
             .ffa-root { padding: 6px !important; }
             .ffa-grid { grid-template-columns: 1fr !important; }
             .ffa-hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-            .ffa-card { min-height: 96px !important; }
+            .ffa-card { min-height: 104px !important; }
           }
         `}</style>
         <div className="ffa-root" style={{ display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr) auto", gap: 8, maxWidth: 1500, margin: "0 auto" }}>
@@ -2888,7 +2894,7 @@ export default function App() {
           .card-box {
             width: 100% !important;
             min-width: 0 !important;
-            min-height: 118px !important;
+            min-height: 126px !important;
             padding: 4px !important;
             font-size: 11px !important;
           }
