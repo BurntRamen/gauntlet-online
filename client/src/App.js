@@ -29,10 +29,22 @@ const FACTION_COLORS = {
 const MUSIC_TRACKS = {
   menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
-  rumin: { label: "Rumin Imperial Theme", pad: [65.41, 98, 130.81], notes: [261.63, 329.63, 392, 349.23, 329.63, 261.63], tempo: 720, wave: "triangle" },
-  sheen: { label: "Sheen Living Theme", pad: [73.42, 110, 146.83], notes: [293.66, 329.63, 392, 440, 392, 329.63], tempo: 820, wave: "sine" },
-  frumo: { label: "Frumo Sunken Theme", pad: [61.74, 92.5, 123.47], notes: [246.94, 277.18, 369.99, 329.63, 277.18, 246.94], tempo: 760, wave: "triangle" },
-  bizi: { label: "Bizi Acceleration Theme", pad: [82.41, 123.47, 164.81], notes: [329.63, 415.3, 493.88, 554.37, 493.88, 415.3], tempo: 480, wave: "square" }
+  rumin: {
+    label: "March of the Rumin",
+    sources: ["/assets/gauntlet/music/rumin-1.mp3", "/assets/gauntlet/music/rumin-2.mp3"]
+  },
+  sheen: {
+    label: "Song of the Sheen",
+    sources: ["/assets/gauntlet/music/sheen-1.mp3", "/assets/gauntlet/music/sheen-2.mp3"]
+  },
+  frumo: {
+    label: "The Frumos Anthem",
+    sources: ["/assets/gauntlet/music/frumo-1.mp3", "/assets/gauntlet/music/frumo-2.mp3"]
+  },
+  bizi: {
+    label: "Hymn of the Gilded Dust",
+    sources: ["/assets/gauntlet/music/bizi-1.mp3"]
+  }
 };
 
 const MENU_THEME = {
@@ -465,6 +477,52 @@ function startProceduralTrack(trackKey, volume) {
     });
     context.close();
   };
+}
+
+function startAudioPlaylist(track, volume) {
+  if (typeof window === "undefined" || !track?.sources?.length) return () => {};
+
+  let stopped = false;
+  let trackIndex = 0;
+  const audio = new Audio(resolveAssetPath(track.sources[trackIndex]));
+  audio.preload = "auto";
+  audio.volume = volume;
+  audio.loop = track.sources.length === 1;
+
+  const play = () => {
+    if (stopped) return;
+    audio.play().catch(() => {});
+  };
+
+  const playNext = () => {
+    if (stopped || track.sources.length <= 1) return;
+    trackIndex = (trackIndex + 1) % track.sources.length;
+    audio.src = resolveAssetPath(track.sources[trackIndex]);
+    audio.load();
+    play();
+  };
+
+  const resumeAudio = () => play();
+  audio.addEventListener("ended", playNext);
+  window.addEventListener("pointerdown", resumeAudio);
+  window.addEventListener("keydown", resumeAudio);
+  play();
+
+  return () => {
+    stopped = true;
+    window.removeEventListener("pointerdown", resumeAudio);
+    window.removeEventListener("keydown", resumeAudio);
+    audio.removeEventListener("ended", playNext);
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+  };
+}
+
+function startMusicTrack(trackKey, volume) {
+  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  if (track.sources?.length) return startAudioPlaylist(track, volume);
+  return startProceduralTrack(trackKey, volume);
 }
 
 function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
@@ -1348,7 +1406,7 @@ export default function App() {
       musicStopRef.current = null;
     }
     if (musicEnabled) {
-      musicStopRef.current = startProceduralTrack(activeMusicTrack, musicVolume);
+      musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolume);
     }
     return () => {
       if (musicStopRef.current) {
