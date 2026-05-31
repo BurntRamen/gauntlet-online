@@ -98,14 +98,45 @@ const MENU_THEME = {
 };
 
 const BOARD_BACKGROUNDS = {
-  rumin:
-    "linear-gradient(90deg, rgba(253, 224, 71, 0.14) 0 2px, transparent 2px 17%), linear-gradient(0deg, rgba(14, 165, 233, 0.12) 0 1px, transparent 1px 28px), radial-gradient(circle at 18% 18%, rgba(239, 68, 68, 0.28), transparent 24%), radial-gradient(circle at 74% 22%, rgba(59, 130, 246, 0.24), transparent 28%), linear-gradient(135deg, rgba(244, 114, 182, 0.24), rgba(250, 204, 21, 0.16) 28%, rgba(20, 184, 166, 0.18) 58%, rgba(30, 41, 59, 0.86)), repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 12px, transparent 12px 46px)",
-  sheen:
-    "radial-gradient(ellipse at 18% 8%, rgba(22, 101, 52, 0.22), transparent 34%), repeating-linear-gradient(112deg, rgba(17, 24, 39, 0.22) 0 1px, transparent 1px 18px), repeating-linear-gradient(78deg, rgba(21, 128, 61, 0.18) 0 2px, transparent 2px 44px), linear-gradient(135deg, #f7f3e8 0%, #e8eadc 42%, #bfd2b1 100%)",
-  bizi:
-    "radial-gradient(circle at 78% 16%, rgba(253, 186, 116, 0.34), transparent 18%), repeating-linear-gradient(165deg, rgba(120, 53, 15, 0.16) 0 2px, transparent 2px 34px), linear-gradient(180deg, #dbc09a 0%, #b78b5f 46%, #6b4a2b 100%)",
-  frumo:
-    "radial-gradient(circle at 18% 28%, rgba(125, 211, 252, 0.42), transparent 18%), radial-gradient(circle at 78% 40%, rgba(45, 212, 191, 0.34), transparent 22%), radial-gradient(circle at 52% 72%, rgba(236, 72, 153, 0.22), transparent 26%), repeating-linear-gradient(100deg, rgba(255,255,255,0.13) 0 3px, transparent 3px 38px), linear-gradient(180deg, #0e7490 0%, #0369a1 42%, #172554 100%)",
+  rumin: `
+    linear-gradient(180deg, rgba(3, 7, 18, 0.06), rgba(3, 7, 18, 0.34)),
+    radial-gradient(circle at 14% 18%, rgba(239, 68, 68, 0.44), transparent 18%),
+    radial-gradient(circle at 72% 14%, rgba(56, 189, 248, 0.36), transparent 20%),
+    radial-gradient(circle at 48% 30%, rgba(250, 204, 21, 0.34), transparent 24%),
+    linear-gradient(90deg, transparent 0 6%, rgba(248, 250, 252, 0.22) 6% 7%, transparent 7% 12%, rgba(248, 250, 252, 0.18) 12% 13%, transparent 13% 20%, rgba(251, 146, 60, 0.22) 20% 21%, transparent 21%),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.58) 0 18%, transparent 18%),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.68) 0 18px, rgba(30, 41, 59, 0.68) 18px 20px, transparent 20px 64px),
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(248, 250, 252, 0.12) 22px 23px),
+    linear-gradient(135deg, #e879f9 0%, #fb7185 18%, #f59e0b 34%, #22c55e 54%, #0ea5e9 72%, #1e293b 100%)
+  `,
+  sheen: `
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.7), transparent 34%),
+    radial-gradient(ellipse at 16% 24%, rgba(22, 101, 52, 0.28), transparent 30%),
+    radial-gradient(ellipse at 78% 20%, rgba(5, 46, 22, 0.22), transparent 28%),
+    repeating-linear-gradient(102deg, rgba(17, 24, 39, 0.28) 0 1px, transparent 1px 22px),
+    linear-gradient(112deg, transparent 0 10%, rgba(17, 24, 39, 0.18) 10% 11%, transparent 11% 20%, rgba(22, 101, 52, 0.22) 20% 21%, transparent 21%),
+    radial-gradient(ellipse at 50% 100%, rgba(21, 128, 61, 0.28), transparent 42%),
+    linear-gradient(180deg, #f8f3e7 0%, #e7ead9 42%, #bad0ad 72%, #6b8f68 100%)
+  `,
+  bizi: `
+    radial-gradient(circle at 76% 14%, rgba(253, 224, 71, 0.34), transparent 16%),
+    radial-gradient(ellipse at 28% 62%, rgba(120, 53, 15, 0.18), transparent 34%),
+    repeating-linear-gradient(166deg, rgba(92, 45, 16, 0.24) 0 2px, transparent 2px 38px),
+    repeating-linear-gradient(12deg, rgba(255, 247, 237, 0.12) 0 1px, transparent 1px 34px),
+    linear-gradient(90deg, transparent 0 18%, rgba(76, 29, 149, 0.18) 18% 19%, transparent 19% 38%, rgba(76, 29, 149, 0.14) 38% 39%, transparent 39%),
+    radial-gradient(ellipse at 50% 84%, rgba(69, 26, 3, 0.46), transparent 38%),
+    linear-gradient(180deg, #e9d1a8 0%, #c49a6a 38%, #9b6a3d 64%, #4a321f 100%)
+  `,
+  frumo: `
+    radial-gradient(circle at 18% 22%, rgba(125, 211, 252, 0.54), transparent 18%),
+    radial-gradient(circle at 82% 28%, rgba(45, 212, 191, 0.46), transparent 22%),
+    radial-gradient(circle at 50% 66%, rgba(236, 72, 153, 0.34), transparent 22%),
+    radial-gradient(circle at 24% 76%, rgba(168, 85, 247, 0.28), transparent 18%),
+    repeating-linear-gradient(100deg, rgba(255,255,255,0.15) 0 3px, transparent 3px 42px),
+    repeating-radial-gradient(circle at 74% 70%, rgba(255,255,255,0.16) 0 2px, transparent 2px 18px),
+    linear-gradient(160deg, rgba(20, 184, 166, 0.38), transparent 36%),
+    linear-gradient(180deg, #67e8f9 0%, #0891b2 32%, #0369a1 62%, #172554 100%)
+  `,
   default:
     "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)"
 };
