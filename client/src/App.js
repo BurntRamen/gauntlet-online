@@ -15,7 +15,8 @@ const STORAGE_KEYS = {
   role: "gauntlet_role",
   authToken: "gauntlet_auth_token",
   guestName: "gauntlet_guest_name",
-  friendReadAt: "gauntlet_friend_read_at"
+  friendReadAt: "gauntlet_friend_read_at",
+  accountSoundMuted: "gauntlet_account_sound_muted"
 };
 
 const FACTION_COLORS = {
@@ -556,11 +557,12 @@ function startMusicTrack(trackKey, volume) {
   return startProceduralTrack(trackKey, volume);
 }
 
-function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
+function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
-      <MenuButton variant="secondary" onClick={onToggle}>{enabled ? "Mute Music" : "Play Music"}</MenuButton>
+      {account && <MenuButton variant="secondary" onClick={() => onSoundMutedChange(!soundMuted)}>{soundMuted ? "Unmute All" : "Mute All"}</MenuButton>}
+      <MenuButton variant="secondary" onClick={onToggle} disabled={soundMuted}>{enabled ? "Pause Music" : "Play Music"}</MenuButton>
       <span>{track.label}</span>
       <input
         type="range"
@@ -570,8 +572,10 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange }) {
         value={volume}
         onChange={(e) => onVolumeChange(Number(e.target.value))}
         aria-label="Music volume"
-        style={{ width: 110 }}
+        disabled={soundMuted}
+        style={{ width: 110, opacity: soundMuted ? 0.48 : 1 }}
       />
+      {account && soundMuted && <span style={{ color: "#fca5a5", fontWeight: "bold" }}>All sounds muted</span>}
     </div>
   );
 }
@@ -1280,6 +1284,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
+  const [accountSoundMuted, setAccountSoundMuted] = useState(false);
   const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
@@ -1363,6 +1368,31 @@ export default function App() {
       : game.players[player]?.faction?.id || "menu";
 
   useEffect(() => {
+    if (!account?.id) {
+      setAccountSoundMuted(false);
+      return;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
+      setAccountSoundMuted(!!saved[account.id]);
+    } catch {
+      setAccountSoundMuted(false);
+    }
+  }, [account?.id]);
+
+  function setSignedInSoundMuted(nextMuted) {
+    if (!account?.id) return;
+    setAccountSoundMuted(nextMuted);
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
+      saved[account.id] = nextMuted;
+      localStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify(saved));
+    } catch {
+      localStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify({ [account.id]: nextMuted }));
+    }
+  }
+
+  useEffect(() => {
     if (!authToken) return;
     fetch(`${SOCKET_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${authToken}` }
@@ -1436,7 +1466,7 @@ export default function App() {
       musicStopRef.current();
       musicStopRef.current = null;
     }
-    if (musicEnabled) {
+    if (musicEnabled && !accountSoundMuted) {
       musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolume);
     }
     return () => {
@@ -1445,7 +1475,17 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, musicVolume]);
+  }, [activeMusicTrack, musicEnabled, musicVolume, accountSoundMuted]);
+
+  useEffect(() => {
+    if (!accountSoundMuted) return;
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+    window.speechSynthesis?.cancel();
+    setFactionVoice(null);
+  }, [accountSoundMuted]);
 
   useEffect(() => {
     const onAssign = (payload) => {
@@ -1571,6 +1611,10 @@ export default function App() {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
     }
+    if (accountSoundMuted) {
+      window.speechSynthesis?.cancel();
+      return;
+    }
 
     const speakWithBrowserVoice = () => {
       if (typeof window === "undefined" || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
@@ -1594,7 +1638,7 @@ export default function App() {
     }
 
     speakWithBrowserVoice();
-  }, []);
+  }, [accountSoundMuted]);
 
   useEffect(() => {
     if (!game || role === "spectator" || !player) return;
@@ -1937,6 +1981,9 @@ export default function App() {
               volume={musicVolume}
               onToggle={() => setMusicEnabled((value) => !value)}
               onVolumeChange={setMusicVolume}
+              account={account}
+              soundMuted={accountSoundMuted}
+              onSoundMutedChange={setSignedInSoundMuted}
             />
             <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
           </div>
@@ -3066,6 +3113,9 @@ export default function App() {
               volume={musicVolume}
               onToggle={() => setMusicEnabled((value) => !value)}
               onVolumeChange={setMusicVolume}
+              account={account}
+              soundMuted={accountSoundMuted}
+              onSoundMutedChange={setSignedInSoundMuted}
             />
           </div>
           <button onClick={() => setShowHotkeys((value) => !value)} style={{ padding: "5px 9px", fontSize: 12 }}>
