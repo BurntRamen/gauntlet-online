@@ -1063,12 +1063,12 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
 }
 
 function PaymentLogPanel({ game }) {
-  const entries = (game.paymentLog || []).slice(-8).reverse();
+  const entries = (game.paymentLog || []).slice().reverse();
   if (entries.length === 0) return null;
   return (
-    <div style={{ marginTop: 10, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, background: "#f8fafc", padding: 8 }}>
+    <div style={{ marginTop: 10, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, background: "#f8fafc", padding: 8, minHeight: 0 }}>
       <h3 style={{ margin: "0 0 6px 0", fontSize: 14 }}>Payments & Reveals</h3>
-      <div style={{ display: "grid", gap: 6 }}>
+      <div className="payment-log-list" style={{ display: "grid", gap: 6, maxHeight: "min(22dvh, 220px)", overflowY: "auto", paddingRight: 4 }}>
         {entries.map((entry) => (
           <div key={entry.id} style={{ borderTop: "1px solid #e5e7eb", paddingTop: 6, fontSize: 12 }}>
             <strong>P{entry.player}</strong> {entry.label}
@@ -1139,7 +1139,7 @@ function RulebookPanel() {
       rules: [
         "To attack from hand, discard payment cards with total value at least the attacker's value.",
         "A face-down lane card may attack from its lane by paying its value from hand.",
-        "After both players pass with pending attacks, damage resolution begins."
+        "After both players pass with pending attacks, damage resolves automatically."
       ]
     },
     {
@@ -1217,7 +1217,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
     },
     {
       title: "4. Resolve Damage",
-      text: "When both players pass with pending attacks, damage can resolve. Damage is the attack value minus block value. Fully blocked attacks deal no damage."
+      text: "When both players pass with pending attacks, damage resolves automatically. Damage is the attack value minus block value. Fully blocked attacks deal no damage."
     },
     {
       title: "5. Use Lanes",
@@ -1676,12 +1676,6 @@ export default function App() {
       const tagName = event.target?.tagName;
       if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tagName) || event.target?.isContentEditable) return;
       if (!game || role !== "player" || !player || game.phase === "gameOver" || game.winner != null) return;
-
-      if (game.phase === "damage") {
-        event.preventDefault();
-        resolveDamage();
-        return;
-      }
 
       if (blockMode) {
         event.preventDefault();
@@ -2374,7 +2368,6 @@ export default function App() {
                 </div>
               )}
               <HelperText enabled={showHelperLabels}>This panel shows the detailed setup for the action you are currently building.</HelperText>
-              {game.phase === "damage" && <button onClick={resolveDamage}>Confirm Damage</button>}
               {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
               {canDeclareAttack && <button onClick={startFfaHandAttack} style={{ marginLeft: 6 }}>Attack from Hand</button>}
               {incomingHandAttack && defenderMayBlock && !blockMode && <div style={{ marginTop: 8 }}><button onClick={() => { resetSelections(); setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id }); }}>Block Incoming Hand Attack</button><button onClick={passFfaBlock} style={{ marginLeft: 6, color: "#991b1b" }}>Take Damage</button></div>}
@@ -2628,7 +2621,6 @@ export default function App() {
 
   function skipPlacement(lane) { socket.emit("skipEndPlacement", { lane }); resetSelections(); }
   function passPriority() { socket.emit("passPriority"); resetSelections(); }
-  function resolveDamage() { socket.emit("resolveDamage"); }
   function requestUndo() { socket.emit("requestUndo"); }
   function respondUndo(approve) { socket.emit("respondUndo", { approve }); }
   function concedeGame() {
@@ -2710,7 +2702,6 @@ export default function App() {
     b: startIncomingBlock,
     t: () => { if (blockMode || hasIncomingAttack) passCurrentBlock(); },
     p: () => { if (!isSpectator && game.phase === "priority" && game.priority === player) passPriority(); },
-    d: () => { if (!isSpectator && game.phase === "damage") resolveDamage(); },
     e: () => { if (isMyEndPlacementTurn) startPlacement(currentEndLane); },
     s: () => { if (isMyEndPlacementTurn) skipPlacement(currentEndLane); },
     c: confirmCurrentAction,
@@ -2727,7 +2718,7 @@ export default function App() {
       if (hasAnyUnresolvedAttack) return "Combat is unresolved. Finish blocks and damage before another attack.";
       return isMyPriority ? "It is your priority. You may attack, use abilities, or pass." : "Waiting for the other player.";
     }
-    if (game.phase === "damage") return "Apply the net damage from current combat.";
+    if (game.phase === "damage") return "Damage is resolving automatically.";
     if (game.phase === "end") return isMyEndPlacementTurn ? `End of Turn: Lane ${currentEndLane + 1}. Place one facedown card or skip.` : `End of Turn: Lane ${currentEndLane + 1}. Waiting for the other player.`;
     return "";
   }
@@ -2739,7 +2730,7 @@ export default function App() {
 
   function phaseDisplayName() {
     if (game.phase === "priority") return "Command";
-    if (game.phase === "damage") return "Apply Damage";
+    if (game.phase === "damage") return "Resolving";
     if (game.phase === "end") return "Set Lanes";
     if (game.phase === "gameOver") return "Game Over";
     return game.phase;
@@ -2765,7 +2756,6 @@ export default function App() {
   const undoNeedsMyApproval = !isSpectator && undoRequest?.approvalsNeeded?.includes(player) && !undoRequest?.approvals?.[player];
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-      {game.phase === "damage" && <button onClick={resolveDamage}>Apply Damage</button>}
       <button onClick={requestUndo}>Request Undo</button>
       <button onClick={returnToMainMenu}>Main Menu</button>
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
@@ -2819,7 +2809,6 @@ export default function App() {
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {game.phase === "damage" && <button className="quick-action-button quick-action-primary" onClick={resolveDamage}>Apply Damage</button>}
           {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
           {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</button>}
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
@@ -3178,7 +3167,7 @@ export default function App() {
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
         </div>
-        <HelperText enabled={showHelperLabels}>Priority controls who can act. Combat must be fully blocked, passed, and resolved before a new attack.</HelperText>
+        <HelperText enabled={showHelperLabels}>Priority controls who can act. Combat must be blocked or passed through before a new attack.</HelperText>
       </SectionCard>
       <div style={{ flex: "0 0 auto", marginBottom: 6 }}><CombatStrip game={game} /></div>
 

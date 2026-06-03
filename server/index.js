@@ -1680,6 +1680,29 @@ function getWaitingDamagePlayers(roomState) {
   return confirmPlayers.filter((playerNum) => !roomState.damageConfirmed?.[playerNum]);
 }
 
+async function resolveCombatAndResumePriority(roomState) {
+  const game = roomState.game;
+  resolveDamage(game, roomState);
+  if (game.gameMode === "freeForAll" && await finishGameIfLifeCheckFails(roomState)) {
+    return true;
+  }
+  game.phase = "priority";
+  game.priority = game.gameMode === "freeForAll"
+    ? (game.mostRecentAttackDefender && !game.players[game.mostRecentAttackDefender]?.eliminated ? game.mostRecentAttackDefender : getActivePlayerNumbers(game)[0])
+    : game.mostRecentAttackDefender || getOtherPlayer(game.priority);
+  game.lastActivePlayer = game.priority;
+  game.mostRecentAttackDefender = null;
+  roomState.damageConfirmed = game.gameMode === "freeForAll"
+    ? getActivePlayerNumbers(game).reduce((confirmed, playerNum) => {
+        confirmed[playerNum] = false;
+        return confirmed;
+      }, {})
+    : { 1: false, 2: false };
+  resetPriorityPassed(game);
+  game.message = `${game.lastDamageSummary ? `${game.lastDamageSummary} ` : ""}Damage resolved automatically. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
+  return false;
+}
+
 async function handleFreeForAllPriorityPass(roomState, playerNum) {
   const game = roomState.game;
   game.priorityPassed[playerNum] = true;
@@ -1687,8 +1710,7 @@ async function handleFreeForAllPriorityPass(roomState, playerNum) {
   if (hasPendingAttacks(game)) {
     const participants = getPendingAttackParticipants(game);
     if (!participants?.defender) {
-      roomState.damageConfirmed = enterDamagePhase(game, "Combat is unresolved. Resolve damage.");
-      return false;
+      return resolveCombatAndResumePriority(roomState);
     }
     if (playerNum === participants.defender) {
       game.priority = participants.attacker;
@@ -1696,9 +1718,7 @@ async function handleFreeForAllPriorityPass(roomState, playerNum) {
       return false;
     }
     if (playerNum === participants.attacker && game.priorityPassed[participants.defender]) {
-      roomState.damageConfirmed = enterDamagePhase(game, `Player ${participants.attacker} and Player ${participants.defender} passed - damage phase.`);
-      resetPriorityPassed(game);
-      return false;
+      return resolveCombatAndResumePriority(roomState);
     }
     game.priority = participants.defender;
     game.message = `Player ${playerNum} passed priority. Player ${participants.defender} can respond.`;
@@ -2050,21 +2070,7 @@ function declareAiHandAttack(roomState) {
 async function aiResolveDamageIfReady(roomState) {
   const game = roomState.game;
   if (game.phase !== "damage") return false;
-  roomState.damageConfirmed = roomState.damageConfirmed || { 1: false, 2: false };
-  if (roomState.damageConfirmed[2] && !roomState.damageConfirmed[1]) return false;
-  roomState.damageConfirmed[2] = true;
-  if (!roomState.damageConfirmed[1]) {
-    game.message = "Training AI confirmed damage. Player 1 can resolve damage.";
-    return true;
-  }
-
-  resolveDamage(game, roomState);
-  game.phase = "priority";
-  game.priority = game.mostRecentAttackDefender || getOtherPlayer(game.priority);
-  game.lastActivePlayer = game.priority;
-  game.mostRecentAttackDefender = null;
-  resetPriorityPassed(game);
-  game.message = `${game.lastDamageSummary ? `${game.lastDamageSummary} ` : ""}Damage resolved. Player ${game.priority} has priority. Life totals will be checked at end of turn.`;
+  await resolveCombatAndResumePriority(roomState);
   return true;
 }
 
@@ -2075,8 +2081,7 @@ async function aiPassPriority(roomState) {
 
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
-        roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Training AI is ready.");
-        roomState.damageConfirmed[2] = true;
+        await resolveCombatAndResumePriority(roomState);
       } else if (await finishGameIfLifeCheckFails(roomState)) {
         return true;
       } else {
@@ -2667,7 +2672,7 @@ io.on("connection", (socket) => {
       game.gameMode === "basic" &&
       getPendingAttackList(game).some((attack) => attack.player === getOtherPlayer(playerNum) && (!attack.block || attack.block.length === 0));
     if (passingAsBasicDefender) {
-      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+      await resolveCombatAndResumePriority(roomState);
       emitState(roomState);
       scheduleTrainingAi(roomState);
       return;
@@ -2677,7 +2682,7 @@ io.on("connection", (socket) => {
     
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
-        roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+        await resolveCombatAndResumePriority(roomState);
       } else if (await finishGameIfLifeCheckFails(roomState)) {
         emitState(roomState);
         scheduleTrainingAi(roomState);
@@ -3067,7 +3072,7 @@ io.on("connection", (socket) => {
       game.message = `Player ${playerNum} chose not to block.`;
 
       if (game.gameMode === "basic") {
-        roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+        await resolveCombatAndResumePriority(roomState);
         emitState(roomState);
         scheduleTrainingAi(roomState);
         return;
@@ -3082,7 +3087,7 @@ io.on("connection", (socket) => {
       
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
-          roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+          await resolveCombatAndResumePriority(roomState);
         } else if (await finishGameIfLifeCheckFails(roomState)) {
           emitState(roomState);
           scheduleTrainingAi(roomState);
@@ -3105,7 +3110,7 @@ io.on("connection", (socket) => {
       game.message = `Player ${playerNum} chose not to block.`;
 
       if (game.gameMode === "basic") {
-        roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} chose not to block. Resolve damage.`);
+        await resolveCombatAndResumePriority(roomState);
         emitState(roomState);
         scheduleTrainingAi(roomState);
         return;
@@ -3120,7 +3125,7 @@ io.on("connection", (socket) => {
 
       if (game.priorityPassed[1] && game.priorityPassed[2]) {
         if (hasPendingAttacks(game)) {
-          roomState.damageConfirmed = enterDamagePhase(game, "Both players passed - damage phase. Click Resolve Damage.");
+          await resolveCombatAndResumePriority(roomState);
         } else if (await finishGameIfLifeCheckFails(roomState)) {
           emitState(roomState);
           scheduleTrainingAi(roomState);
@@ -3180,16 +3185,6 @@ io.on("connection", (socket) => {
     
     saveUndoSnapshot(roomState, playerNum, isLaneBlock ? `blocked lane ${laneIndex + 1}` : "blocked from hand");
 
-    // Process block
-    if (isLaneBlock) {
-      removeIndexesFromHandToDiscard(player, paymentValidation.indexes);
-      laneState.facedown[playerNum] = null;
-    } else {
-      removeSelectedCardsAndPayments(player, selectedBlockIndexes, paymentValidation.indexes);
-    }
-    if (payment.heraUsedNow) player.turnData.heraUsed = true;
-    addAccelerationIfOverpaid(player, payment.total, blockCardValue);
-
     const blockEntries = blockCards.map((blockCard) => {
       const blockInfo = applyBlockBonuses(player, blockCard);
       return {
@@ -3207,6 +3202,16 @@ io.on("connection", (socket) => {
         }
       };
     });
+
+    // Process block only after the blocker values have been captured.
+    if (isLaneBlock) {
+      removeIndexesFromHandToDiscard(player, paymentValidation.indexes);
+      laneState.facedown[playerNum] = null;
+    } else {
+      removeSelectedCardsAndPayments(player, selectedBlockIndexes, paymentValidation.indexes);
+    }
+    if (payment.heraUsedNow) player.turnData.heraUsed = true;
+    addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     finalizeBlockDeclaration(player);
     
     attack.block.push(...blockEntries);
@@ -3220,11 +3225,12 @@ io.on("connection", (socket) => {
     });
     
     if (game.gameMode === "basic") {
-      roomState.damageConfirmed = enterDamagePhase(game, `Player ${playerNum} blocked with ${blockEntries.map((entry) => describeCardValue(entry.card, entry.effectiveValue, entry.notes)).join(", ")}. Basic Mode moves directly to damage.`);
+      await resolveCombatAndResumePriority(roomState);
     } else {
       // The attack remains pending until damage resolution. Priority returns to
       // the attacker, who can pass to move combat toward damage.
       resetPriorityPassed(game);
+      game.priorityPassed[playerNum] = true;
       game.priority = attack.player;
       game.message = `Player ${playerNum} blocked with ${blockEntries.map((entry) => describeCardValue(entry.card, entry.effectiveValue, entry.notes)).join(", ")} (paid ${payment.total}, blocker cost ${blockCardValue}). Player ${attack.player} has priority.`;
     }
