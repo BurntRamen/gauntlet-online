@@ -11,6 +11,7 @@ const ALLOWED_ORIGINS = [
   ...CLIENT_URLS
 ];
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
+const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
 const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
@@ -75,6 +76,36 @@ function loadAccountStore() {
 function saveAccountStore(store) {
   fs.mkdirSync(path.dirname(ACCOUNT_DATA_FILE), { recursive: true });
   fs.writeFileSync(ACCOUNT_DATA_FILE, JSON.stringify(store, null, 2));
+}
+
+function emptyFactionStatsStore() {
+  return {
+    factions: {},
+    matchups: {},
+    totalGames: 0,
+    updatedAt: null
+  };
+}
+
+function loadLocalFactionStatsStore() {
+  try {
+    if (!fs.existsSync(FACTION_STATS_DATA_FILE)) return emptyFactionStatsStore();
+    const parsed = JSON.parse(fs.readFileSync(FACTION_STATS_DATA_FILE, "utf8"));
+    return {
+      ...emptyFactionStatsStore(),
+      ...parsed,
+      factions: parsed.factions || {},
+      matchups: parsed.matchups || {}
+    };
+  } catch (error) {
+    console.error("[FactionStats] Failed to load local faction stats", error);
+    return emptyFactionStatsStore();
+  }
+}
+
+function saveLocalFactionStatsStore(store) {
+  fs.mkdirSync(path.dirname(FACTION_STATS_DATA_FILE), { recursive: true });
+  fs.writeFileSync(FACTION_STATS_DATA_FILE, JSON.stringify(store, null, 2));
 }
 
 function normalizeAccountName(name) {
@@ -196,6 +227,35 @@ async function supabaseRequest(pathname, options = {}) {
     throw new Error(message);
   }
   return data;
+}
+
+async function loadFactionStatsStore() {
+  if (!useSupabaseStore()) return loadLocalFactionStatsStore();
+  const rows = await supabaseRequest("gauntlet_faction_stats?id=eq.global&select=data");
+  return {
+    ...emptyFactionStatsStore(),
+    ...(rows?.[0]?.data || {})
+  };
+}
+
+async function saveFactionStatsStore(store) {
+  const nextStore = {
+    ...emptyFactionStatsStore(),
+    ...store,
+    factions: store.factions || {},
+    matchups: store.matchups || {},
+    updatedAt: new Date().toISOString()
+  };
+  if (useSupabaseStore()) {
+    await supabaseRequest("gauntlet_faction_stats?on_conflict=id", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify([{ id: "global", data: nextStore, updated_at: nextStore.updatedAt }])
+    });
+    return nextStore;
+  }
+  saveLocalFactionStatsStore(nextStore);
+  return nextStore;
 }
 
 function accountFromSupabaseRow(row) {
@@ -381,6 +441,131 @@ async function recordAccountGameResult(accountId, result) {
   if (result === "draw") account.stats.rankedGamesDrawn = (account.stats.rankedGamesDrawn || 0) + 1;
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
+}
+
+function getFactionStatsPlayerEntries(game) {
+  return Object.keys(game.players || {})
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map((playerNum) => ({
+      playerNum,
+      factionId: game.players[playerNum]?.faction?.id,
+      factionName: game.players[playerNum]?.faction?.name
+    }))
+    .filter((entry) => entry.factionId && entry.factionId !== "basic");
+}
+
+function ensureFactionStatsEntry(store, factionId, factionName) {
+  if (!store.factions[factionId]) {
+    store.factions[factionId] = {
+      factionId,
+      factionName: factionName || factionId,
+      games: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0
+    };
+  }
+  if (factionName) store.factions[factionId].factionName = factionName;
+  return store.factions[factionId];
+}
+
+function ensureMatchupStatsEntry(store, factionA, factionB) {
+  const sortedIds = [factionA.factionId, factionB.factionId].sort();
+  const key = sortedIds.join("__");
+  if (!store.matchups[key]) {
+    store.matchups[key] = {
+      key,
+      factions: sortedIds,
+      factionNames: {
+        [factionA.factionId]: factionA.factionName || factionA.factionId,
+        [factionB.factionId]: factionB.factionName || factionB.factionId
+      },
+      games: 0,
+      wins: {},
+      draws: 0
+    };
+  }
+  store.matchups[key].factionNames[factionA.factionId] = factionA.factionName || factionA.factionId;
+  store.matchups[key].factionNames[factionB.factionId] = factionB.factionName || factionB.factionId;
+  return store.matchups[key];
+}
+
+function applyFactionGameResult(store, game) {
+  const entries = getFactionStatsPlayerEntries(game);
+  if (entries.length < 2) return false;
+
+  store.totalGames = (store.totalGames || 0) + 1;
+  const winningPlayerNum = game.winner == null ? null : game.winner;
+  for (const entry of entries) {
+    const stats = ensureFactionStatsEntry(store, entry.factionId, entry.factionName);
+    stats.games += 1;
+    if (!winningPlayerNum) stats.draws += 1;
+    else if (entry.playerNum === winningPlayerNum) stats.wins += 1;
+    else stats.losses += 1;
+  }
+
+  for (let i = 0; i < entries.length; i += 1) {
+    for (let j = i + 1; j < entries.length; j += 1) {
+      if (entries[i].factionId === entries[j].factionId) continue;
+      const matchup = ensureMatchupStatsEntry(store, entries[i], entries[j]);
+      matchup.games += 1;
+      if (!winningPlayerNum) {
+        matchup.draws += 1;
+      } else if (entries[i].playerNum === winningPlayerNum || entries[j].playerNum === winningPlayerNum) {
+        const winningFactionId = game.players[winningPlayerNum]?.faction?.id;
+        matchup.wins[winningFactionId] = (matchup.wins[winningFactionId] || 0) + 1;
+      }
+    }
+  }
+
+  return true;
+}
+
+async function recordFactionGameStats(game) {
+  if (!game || game.gameMode === "basic") return;
+  try {
+    const store = await loadFactionStatsStore();
+    if (applyFactionGameResult(store, game)) await saveFactionStatsStore(store);
+  } catch (error) {
+    console.error("[FactionStats] Failed to record faction stats", error);
+  }
+}
+
+function getFactionStatsSummary(store) {
+  const factionRows = Object.values(store.factions || {})
+    .map((entry) => ({
+      ...entry,
+      winRate: entry.games > 0 ? Number(((entry.wins / entry.games) * 100).toFixed(2)) : 0
+    }))
+    .sort((a, b) => b.winRate - a.winRate || b.games - a.games || a.factionName.localeCompare(b.factionName));
+
+  const matchupRows = Object.values(store.matchups || {})
+    .map((entry) => {
+      const [firstFactionId, secondFactionId] = entry.factions;
+      const firstWins = entry.wins?.[firstFactionId] || 0;
+      const secondWins = entry.wins?.[secondFactionId] || 0;
+      return {
+        key: entry.key,
+        factions: entry.factions,
+        factionNames: entry.factionNames || {},
+        games: entry.games || 0,
+        draws: entry.draws || 0,
+        wins: entry.wins || {},
+        firstFactionId,
+        secondFactionId,
+        firstWinRate: entry.games > 0 ? Number(((firstWins / entry.games) * 100).toFixed(2)) : 0,
+        secondWinRate: entry.games > 0 ? Number(((secondWins / entry.games) * 100).toFixed(2)) : 0
+      };
+    })
+    .sort((a, b) => b.games - a.games || a.key.localeCompare(b.key));
+
+  return {
+    totalGames: store.totalGames || 0,
+    updatedAt: store.updatedAt || null,
+    factions: factionRows,
+    matchups: matchupRows
+  };
 }
 
 function getAccountMatchProfile(account) {
@@ -655,6 +840,23 @@ app.get("/api/admin/account-stats", async (req, res) => {
       gamesDrawn: account.stats?.gamesDrawn || 0
     }))
   });
+});
+
+app.get("/api/admin/faction-stats", async (req, res) => {
+  const authHeader = req.get("authorization") || "";
+  const providedToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
+  if (!OWNER_STATS_TOKEN || providedToken !== OWNER_STATS_TOKEN) {
+    res.status(403).json({ error: "Owner stats token required." });
+    return;
+  }
+
+  try {
+    const store = await loadFactionStatsStore();
+    res.json(getFactionStatsSummary(store));
+  } catch (error) {
+    console.error("[FactionStats] Failed to load faction stats", error);
+    res.status(500).json({ error: "Could not load faction stats." });
+  }
 });
 
 app.get("/api/leaderboard", async (_req, res) => {
@@ -1609,6 +1811,8 @@ async function recordFinalGameStats(roomState) {
     game.statsRecorded = true;
     return;
   }
+
+  await recordFactionGameStats(game);
 
   if (game.winner == null) {
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {

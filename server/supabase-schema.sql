@@ -32,3 +32,8 @@ create table if not exists gauntlet_friend_messages (
 create index if not exists gauntlet_friend_messages_pair_idx
   on gauntlet_friend_messages (from_id, to_id, created_at);
 
+create table if not exists gauntlet_faction_stats (
+  id text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
