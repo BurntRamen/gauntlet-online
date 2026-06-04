@@ -4,6 +4,11 @@ import { io } from "socket.io-client";
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
 const DONATE_URL = process.env.REACT_APP_DONATE_URL || "";
+const PUBLIC_GAME_URL =
+  process.env.REACT_APP_PUBLIC_GAME_URL ||
+  (typeof window !== "undefined" && window.location.origin
+    ? window.location.origin
+    : "https://gauntlet-online.vercel.app");
 
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
@@ -956,6 +961,49 @@ function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
       </button>
       <span>| {roleLabel}</span>
     </div>
+  );
+}
+
+function ShareGameQrCard() {
+  const [copied, setCopied] = useState(false);
+  const gameUrl = PUBLIC_GAME_URL.replace(/\/$/, "");
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(gameUrl)}`;
+
+  async function copyGameUrl() {
+    try {
+      await navigator.clipboard.writeText(gameUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <MenuCard title="Share Game">
+      <div style={{ display: "grid", gridTemplateColumns: "96px minmax(0, 1fr)", gap: 12, alignItems: "center" }}>
+        <a href={gameUrl} target="_blank" rel="noreferrer" aria-label="Open Gauntlet Online">
+          <img
+            src={qrUrl}
+            alt="QR code for Gauntlet Online"
+            width="96"
+            height="96"
+            style={{ display: "block", width: 96, height: 96, borderRadius: 8, border: "2px solid rgba(125,211,252,0.5)", background: "#fff", padding: 4 }}
+          />
+        </a>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: "0 0 8px", color: "#bfdbfe", fontSize: 13 }}>Scan to open Gauntlet Online on another device.</p>
+          <input
+            readOnly
+            value={gameUrl}
+            aria-label="Gauntlet Online site link"
+            onFocus={(event) => event.target.select()}
+            style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", marginBottom: 8, fontSize: 12 }}
+          />
+          <MenuButton variant="secondary" onClick={copyGameUrl}>{copied ? "Copied" : "Copy Link"}</MenuButton>
+        </div>
+      </div>
+    </MenuCard>
   );
 }
 
@@ -2014,6 +2062,7 @@ export default function App() {
             </div>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
           </MenuCard>
+          <ShareGameQrCard />
           <MatchmakingPanel account={account} status={matchmakingStatus} onJoin={joinMatchmaking} onLeave={leaveMatchmaking} />
           <FriendsPanel
             account={account}
@@ -2263,16 +2312,91 @@ export default function App() {
       socket.emit("placeFacedown", { lane: placementMode.lane, handIndex: selectedPlacementCardIndex });
       resetSelections();
     };
+    const skipFfaPlacement = (lane) => {
+      socket.emit("skipEndPlacement", { lane });
+      resetSelections();
+    };
+    const startFfaHandBlock = () => {
+      if (!incomingHandAttack) return;
+      resetSelections();
+      setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id });
+    };
+    const startFfaLaneBlock = () => {
+      if (!incomingLaneAttack) return;
+      resetSelections();
+      setBlockMode({ type: "laneAttack", lane: incomingLaneAttack.laneIndex });
+    };
+    const ffaQuickActionPad = !isSpectator && game.phase !== "gameOver" ? (
+      <div
+        className="near-hand-actions ffa-quick-actions"
+        style={{
+          border: `2px solid ${myTheme.border}`,
+          borderRadius: 10,
+          background: myTheme.light,
+          padding: 10,
+          display: "grid",
+          alignContent: "start",
+          gap: 8,
+          minWidth: 190
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
+        {attackMode && (
+          <>
+            <div style={{ color: "#555", fontSize: 12 }}>
+              {attackMode.from === "hand" ? "Choose an attack card, target, and payment." : "Choose a target and payment."}
+            </div>
+            <button className="quick-action-button quick-action-primary" onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget || paymentTotal < activeAttackRequired}>Confirm Attack</button>
+            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          </>
+        )}
+        {blockMode && (
+          <>
+            <div style={{ color: "#555", fontSize: 12 }}>Choose block cards if needed, then pay at least the block value.</div>
+            <button className="quick-action-button quick-action-primary" onClick={confirmFfaBlock} disabled={activeBlockRequired <= 0 || paymentTotal < activeBlockRequired}>Confirm Block</button>
+            <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take Damage</button>
+            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          </>
+        )}
+        {placementMode && (
+          <>
+            <div style={{ color: "#555", fontSize: 12 }}>Choose one hand card to place face-down in lane {placementMode.lane + 1}.</div>
+            <button className="quick-action-button quick-action-primary" onClick={confirmFfaPlacement} disabled={selectedPlacementCardIndex == null}>Place Facedown</button>
+            <button className="quick-action-button quick-action-secondary" onClick={() => skipFfaPlacement(placementMode.lane)}>Skip Lane</button>
+            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          </>
+        )}
+        {!attackMode && !blockMode && !placementMode && (
+          <>
+            {incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={startFfaHandBlock}>Block with Cards</button>}
+            {incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take {incomingHandAttack.effectiveValue} Damage</button>}
+            {incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={startFfaLaneBlock}>Block Lane</button>}
+            {incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take Damage</button>}
+            {canDeclareAttack && <button className="quick-action-button quick-action-primary" onClick={startFfaHandAttack}>Attack from Hand</button>}
+            {game.phase === "priority" && isMyPriority && <button className="quick-action-button quick-action-primary" onClick={passPriority}>Pass / Continue</button>}
+            {game.phase === "end" && isMyEndPlacementTurn && <button className="quick-action-button quick-action-secondary" onClick={() => skipFfaPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+          </>
+        )}
+        <div style={{ color: "#555", fontSize: 12 }}>{game.message || "Choose an action."}</div>
+      </div>
+    ) : null;
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
         <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
         <style>{`
           .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 6px; }
+          .ffa-hand-content { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 8px; align-items: start; }
           .ffa-card { min-height: 112px !important; font-size: 11px !important; padding: 5px !important; }
+          .quick-action-button { border: 1px solid rgba(17, 24, 39, 0.24); border-radius: 8px; padding: 9px 10px; font-weight: 800; cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset; }
+          .quick-action-button:disabled { opacity: 0.45; cursor: not-allowed; }
+          .quick-action-primary { background: #1f2937; color: white; }
+          .quick-action-secondary { background: rgba(255,255,255,0.78); color: #111827; }
+          .quick-action-danger { background: #b91c1c; color: white; }
           @media (max-width: 760px) {
             .ffa-root { padding: 6px !important; }
             .ffa-grid { grid-template-columns: 1fr !important; }
+            .ffa-hand-content { grid-template-columns: 1fr !important; }
             .ffa-hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .ffa-card { min-height: 104px !important; }
           }
@@ -2335,27 +2459,30 @@ export default function App() {
                       {lane.block?.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx}> P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</div>}
                       {!isSpectator && canDeclareAttack && lane.facedown?.[player] && !lane.attack && <button onClick={() => startFfaLaneAttack(i)} style={{ marginTop: 6 }}>Attack</button>}
                       {!isSpectator && defenderMayBlock && lane.attack?.targetPlayer === player && lane.block.length === 0 && <button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: i }); }} style={{ marginTop: 6 }}>Block Lane</button>}
-                      {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div style={{ marginTop: 6 }}><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => { socket.emit("skipEndPlacement", { lane: i }); resetSelections(); }} style={{ marginLeft: 6 }}>Skip</button></div>}
+                      {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div style={{ marginTop: 6 }}><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => skipFfaPlacement(i)} style={{ marginLeft: 6 }}>Skip</button></div>}
                     </div>
                   ))}
                 </div>
               </SectionCard>
               {!isSpectator && <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
-                <div className="ffa-hand">
-                  {me.hand.map((card, i) => {
-                    const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
-                    return (
-                      <div key={card.id || i} className="ffa-card">
-                        <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard}>
-                          <div style={{ fontSize: 9 }}>#{i}</div>
-                          {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
-                          {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
-                          {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
-                          {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
-                        </CardBox>
-                      </div>
-                    );
-                  })}
+                <div className="ffa-hand-content">
+                  <div className="ffa-hand">
+                    {me.hand.map((card, i) => {
+                      const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
+                      return (
+                        <div key={card.id || i} className="ffa-card">
+                          <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard}>
+                            <div style={{ fontSize: 9, color: "#4b5563" }}>Index {i}</div>
+                            {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
+                            {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
+                            {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
+                            {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
+                          </CardBox>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {ffaQuickActionPad}
                 </div>
               </SectionCard>}
             </div>
@@ -2368,10 +2495,7 @@ export default function App() {
                 </div>
               )}
               <HelperText enabled={showHelperLabels}>This panel shows the detailed setup for the action you are currently building.</HelperText>
-              {!attackMode && !blockMode && !placementMode && game.phase === "priority" && isMyPriority && <button onClick={passPriority}>Pass</button>}
-              {canDeclareAttack && <button onClick={startFfaHandAttack} style={{ marginLeft: 6 }}>Attack from Hand</button>}
-              {incomingHandAttack && defenderMayBlock && !blockMode && <div style={{ marginTop: 8 }}><button onClick={() => { resetSelections(); setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id }); }}>Block Incoming Hand Attack</button><button onClick={passFfaBlock} style={{ marginLeft: 6, color: "#991b1b" }}>Take Damage</button></div>}
-              {incomingLaneAttack && defenderMayBlock && !blockMode && <div style={{ marginTop: 8 }}><button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: incomingLaneAttack.laneIndex }); }}>Block Incoming Lane Attack</button><button onClick={passFfaBlock} style={{ marginLeft: 6, color: "#991b1b" }}>Take Damage</button></div>}
+              {!attackMode && !blockMode && !placementMode && <p style={{ color: "#555" }}>Use Quick Actions beside your hand for the main turn commands.</p>}
               {attackMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
                 <label>Target <select value={currentTarget} onChange={(e) => setAttackMode((prev) => ({ ...prev, targetPlayer: Number(e.target.value) }))}>{targetOptions.map((p) => <option key={p} value={p}>Player {p}</option>)}</select></label>
                 <div>Selected: {activeAttackCard ? getCardShortLabel(activeAttackCard) : "none"} - Pay {paymentTotal}/{activeAttackRequired}</div>
