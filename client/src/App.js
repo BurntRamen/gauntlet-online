@@ -910,7 +910,7 @@ function CombatStrip({ game }) {
       {summaries.map((summary) => (
         <div key={summary.id} style={{ display: "grid", gridTemplateColumns: "minmax(80px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center", fontSize: 13 }}>
           <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
-          <span>P{summary.attacker} -> P{summary.defender}: {getCardShortLabel(summary.card)}</span>
+          <span>P{summary.attacker}{" -> "}P{summary.defender}: {getCardShortLabel(summary.card)}</span>
           <span>ATK {summary.attackValue}</span>
           <span>BLK {summary.blockValue}</span>
           <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
