@@ -3040,7 +3040,9 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Attack not found");
       return;
     }
-    if (attack.block && attack.block.length > 0) {
+    if (isLaneBlock && !Array.isArray(laneState.block)) laneState.block = [];
+    const existingBlocks = isLaneBlock ? laneState.block : attack.block;
+    if (existingBlocks && existingBlocks.length > 0) {
       socket.emit("errorMessage", "Attack is already blocked");
       return;
     }
@@ -3214,7 +3216,8 @@ io.on("connection", (socket) => {
     addAccelerationIfOverpaid(player, payment.total, blockCardValue);
     finalizeBlockDeclaration(player);
     
-    attack.block.push(...blockEntries);
+    if (isLaneBlock) laneState.block.push(...blockEntries);
+    else attack.block.push(...blockEntries);
     recordPaymentLog(game, {
       type: "block",
       player: playerNum,

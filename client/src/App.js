@@ -2456,7 +2456,7 @@ export default function App() {
                         ))}
                       </div>
                       {lane.attack && <div style={{ marginTop: 6 }}><strong>Attack:</strong> P{lane.attack.player} to P{lane.attack.targetPlayer} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
-                      {lane.block?.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx}> P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</div>}
+                      {lane.block?.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx}> P{entry.player}:{getCardShortLabel(entry.card)} ({entry.effectiveValue || 0})</span>)}</div>}
                       {!isSpectator && canDeclareAttack && lane.facedown?.[player] && !lane.attack && <button onClick={() => startFfaLaneAttack(i)} style={{ marginTop: 6 }}>Attack</button>}
                       {!isSpectator && defenderMayBlock && lane.attack?.targetPlayer === player && lane.block.length === 0 && <button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: i }); }} style={{ marginTop: 6 }}>Block Lane</button>}
                       {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div style={{ marginTop: 6 }}><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => skipFfaPlacement(i)} style={{ marginLeft: 6 }}>Skip</button></div>}
@@ -3404,7 +3404,7 @@ export default function App() {
                     <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
                       {lane.attack && <div><strong>Attack:</strong> P{lane.attack.player} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
                       {lane.attack?.notes?.length > 0 && <div><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</div>}
-                      {lane.block.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)}</span>)}</div>}
+                      {lane.block.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)} ({entry.effectiveValue || 0})</span>)}</div>}
                     </div>
                   )}
                   {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
