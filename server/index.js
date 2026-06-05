@@ -935,6 +935,33 @@ function getFactionById(id) {
   return factionsData[id] || null;
 }
 
+const campaignChapters = {
+  rumin: [
+    { id: "meerus-audit", opponentName: "General Meerus", title: "The Imperial Audit", story: "Kaiser returns to Rumie to prove the empire's jewel-backed war chest can still command obedience." },
+    { id: "rumie-ledger", opponentName: "Praetor Valens of Rumie", title: "The Ledger Revolt", story: "A city magistrate challenges Kaiser's right to spend the empire's future on one decisive campaign." },
+    { id: "jewel-mirror", opponentName: "The Jewel Regent", title: "The Crown's Reflection", story: "The old court raises a mirror claimant, forcing Kaiser to conquer the myth of his own rule." }
+  ],
+  sheen: [
+    { id: "tang-grove", opponentName: "General Tang", title: "Roots Under Beli", story: "Emperor Nu enters the living groves to learn whether patience can survive a wounded city." },
+    { id: "beli-heart", opponentName: "Beli's Verdant Council", title: "The Living City's Trial", story: "The council tests Nu's harmony against the ancient instincts of the forest itself." },
+    { id: "old-canopy", opponentName: "The Old Canopy", title: "Ink Before Spring", story: "An elder order refuses imperial pruning, and Nu must show that growth can still be command." }
+  ],
+  frumo: [
+    { id: "lafayette-tide", opponentName: "General Lafayette", title: "The Admiral's Wager", story: "Polea dives beneath Ristus to settle whether courage or calculation should steer the fleet." },
+    { id: "ristus-depths", opponentName: "The Ristus Tide Court", title: "Court Beneath the Sun", story: "The sunken city's nobles demand proof that Polea can command where maps become water." },
+    { id: "pearl-corsair", opponentName: "The Pearl Corsair", title: "A Captain Without Harbor", story: "A brilliant raider from Frumo's own waters turns every lane into a gamble." }
+  ],
+  bizi: [
+    { id: "hera-threshold", opponentName: "General Hera", title: "The Acceleration Threshold", story: "Focus challenges Hera's power discipline in the desert labs outside Constanti." },
+    { id: "constanti-grid", opponentName: "Constanti Systems Choir", title: "The City's Calculation", story: "The hub's predictive engines reject Focus as an inefficient conductor of progress." },
+    { id: "brass-sun", opponentName: "The Brass Sun Prototype", title: "Heat Death Test", story: "A Bizi weapon wakes under the sepia dunes, and Focus must conduct it before it conducts him." }
+  ]
+};
+
+function getCampaignChapter(factionId, chapterId) {
+  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId) || null;
+}
+
 const basicGameProfile = {
   id: "basic",
   name: "Basic Gauntlet",
@@ -2488,6 +2515,47 @@ io.on("connection", (socket) => {
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = "Training AI";
     roomState.game.message = `Tutorial game started. Player ${roomState.game.priority} has priority.`;
+    emitState(roomState);
+    scheduleTrainingAi(roomState);
+  });
+
+  socket.on("createCampaignRoom", async ({ authToken, guestName, factionId, chapterId } = {}) => {
+    console.log(`[Socket] createCampaignRoom: faction=${factionId}, chapter=${chapterId}`);
+    removeFromMatchmaking(socket.id);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) return;
+
+    const faction = getFactionById(factionId);
+    const chapter = getCampaignChapter(factionId, chapterId);
+    if (!faction || !chapter) {
+      socket.emit("errorMessage", "Choose a valid campaign chapter.");
+      return;
+    }
+
+    const roomState = createRoom();
+    roomState.lobby.gameMode = "factions";
+    roomState.lobby.campaign = { factionId, chapterId, title: chapter.title, story: chapter.story, opponentName: chapter.opponentName };
+    roomState.lobby.players[1].socket = socket.id;
+    roomState.lobby.players[1].connected = true;
+    roomState.lobby.players[1].reconnectToken = makeReconnectToken();
+    roomState.lobby.players[1].accountId = identity.id;
+    roomState.lobby.players[1].accountName = identity.name;
+    roomState.lobby.players[1].factionId = factionId;
+    roomState.lobby.players[1].isGuest = identity.type === "guest";
+    roomState.lobby.players[2].connected = true;
+    roomState.lobby.players[2].accountId = null;
+    roomState.lobby.players[2].accountName = chapter.opponentName;
+    roomState.lobby.players[2].factionId = factionId;
+    roomState.lobby.players[2].isGuest = false;
+    roomState.lobby.players[2].isAI = true;
+    await touchAccountStats(identity.id, "gamesCreated");
+    attachPlayerSocket(roomState, socket, 1);
+
+    createGameFromLobby(roomState);
+    roomState.game.campaign = roomState.lobby.campaign;
+    roomState.game.players[2].connected = true;
+    roomState.game.players[2].accountName = chapter.opponentName;
+    roomState.game.message = `${chapter.title}: ${chapter.story} Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });

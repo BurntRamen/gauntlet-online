@@ -170,6 +170,49 @@ const FACTION_VOICE_LINES = {
   ]
 };
 
+const CAMPAIGN_CHAPTERS = {
+  rumin: {
+    factionName: "Rumin",
+    commanderName: "Kaiser, the Jewel",
+    pitch: "Command modern Rumie's capital, courts, and imperial rivals.",
+    chapters: [
+      { id: "meerus-audit", opponentName: "General Meerus", title: "The Imperial Audit", story: "Kaiser returns to Rumie to prove the empire's jewel-backed war chest can still command obedience." },
+      { id: "rumie-ledger", opponentName: "Praetor Valens of Rumie", title: "The Ledger Revolt", story: "A city magistrate challenges Kaiser's right to spend the empire's future on one decisive campaign." },
+      { id: "jewel-mirror", opponentName: "The Jewel Regent", title: "The Crown's Reflection", story: "The old court raises a mirror claimant, forcing Kaiser to conquer the myth of his own rule." }
+    ]
+  },
+  sheen: {
+    factionName: "Sheen",
+    commanderName: "Emperor Nu",
+    pitch: "Guide the living city through patience, roots, and contested growth.",
+    chapters: [
+      { id: "tang-grove", opponentName: "General Tang", title: "Roots Under Beli", story: "Emperor Nu enters the living groves to learn whether patience can survive a wounded city." },
+      { id: "beli-heart", opponentName: "Beli's Verdant Council", title: "The Living City's Trial", story: "The council tests Nu's harmony against the ancient instincts of the forest itself." },
+      { id: "old-canopy", opponentName: "The Old Canopy", title: "Ink Before Spring", story: "An elder order refuses imperial pruning, and Nu must show that growth can still be command." }
+    ]
+  },
+  frumo: {
+    factionName: "Frumo",
+    commanderName: "Lord Commander Polea",
+    pitch: "Take command beneath Ristus, where every tide is a wager.",
+    chapters: [
+      { id: "lafayette-tide", opponentName: "General Lafayette", title: "The Admiral's Wager", story: "Polea dives beneath Ristus to settle whether courage or calculation should steer the fleet." },
+      { id: "ristus-depths", opponentName: "The Ristus Tide Court", title: "Court Beneath the Sun", story: "The sunken city's nobles demand proof that Polea can command where maps become water." },
+      { id: "pearl-corsair", opponentName: "The Pearl Corsair", title: "A Captain Without Harbor", story: "A brilliant raider from Frumo's own waters turns every lane into a gamble." }
+    ]
+  },
+  bizi: {
+    factionName: "Bizi",
+    commanderName: "Focus, Conductor of Progress",
+    pitch: "Conduct progress through desert systems, rivals, and unstable machines.",
+    chapters: [
+      { id: "hera-threshold", opponentName: "General Hera", title: "The Acceleration Threshold", story: "Focus challenges Hera's power discipline in the desert labs outside Constanti." },
+      { id: "constanti-grid", opponentName: "Constanti Systems Choir", title: "The City's Calculation", story: "The hub's predictive engines reject Focus as an inefficient conductor of progress." },
+      { id: "brass-sun", opponentName: "The Brass Sun Prototype", title: "Heat Death Test", story: "A Bizi weapon wakes under the sepia dunes, and Focus must conduct it before it conducts him." }
+    ]
+  }
+};
+
 const FACTION_VOICE_AUDIO = {
   rumin: [
     "/assets/gauntlet/voices/kaiser-1.mp3",
@@ -1311,6 +1354,44 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
+function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
+  return (
+    <div style={MENU_THEME.page}>
+      <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Commander Archives</div>
+            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Faction Campaigns</h1>
+          </div>
+          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+        </div>
+        {!canPlayAsPlayer && <div style={{ marginBottom: 14, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start a campaign battle.</div>}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, campaign]) => {
+            const theme = getFactionTheme(factionId);
+            return (
+              <MenuCard key={factionId} title={`${campaign.factionName}: ${campaign.commanderName}`}>
+                <p style={{ marginTop: 0, color: "#bfdbfe", lineHeight: 1.45 }}>{campaign.pitch}</p>
+                <div style={{ display: "grid", gap: 10 }}>
+                  {campaign.chapters.map((chapter, index) => (
+                    <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${theme.primary}`, background: "rgba(2,6,23,0.36)" }}>
+                      <div style={{ color: "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}</div>
+                      <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
+                      <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
+                      <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
+                      <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer}>Begin Battle</MenuButton>
+                    </div>
+                  ))}
+                </div>
+              </MenuCard>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -1352,6 +1433,7 @@ export default function App() {
     }
   });
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showCampaign, setShowCampaign] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
@@ -1846,6 +1928,13 @@ export default function App() {
     socket.emit("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
   }
 
+  function startCampaignChapter(factionId, chapterId) {
+    clearReconnectInfo();
+    setShowCampaign(false);
+    setError("");
+    socket.emit("createCampaignRoom", { ...playerIdentityPayload(), factionId, chapterId });
+  }
+
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
     setError("");
@@ -1942,6 +2031,8 @@ export default function App() {
     setError("");
     setFactionVoice(null);
     setIncomingAttackAlert(null);
+    setShowCampaign(false);
+    setShowTutorial(false);
     seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
   }
@@ -1994,6 +2085,16 @@ export default function App() {
 
   const canPlayAsPlayer = !!account || playAsGuest;
 
+  if (showCampaign) {
+    return (
+      <CampaignScreen
+        onBack={() => setShowCampaign(false)}
+        onStartChapter={startCampaignChapter}
+        canPlayAsPlayer={canPlayAsPlayer}
+      />
+    );
+  }
+
   if (showTutorial) {
     return (
       <TutorialScreen
@@ -2036,6 +2137,10 @@ export default function App() {
           <MenuCard title="Tutorial">
             <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>
             <MenuButton onClick={() => setShowTutorial(true)}>Start Tutorial</MenuButton>
+          </MenuCard>
+          <MenuCard title="Campaign">
+            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play as each faction commander through story battles against figures from their own history.</p>
+            <MenuButton onClick={() => setShowCampaign(true)}>Choose Campaign</MenuButton>
           </MenuCard>
           <AccountPanel
             account={account}
@@ -3247,6 +3352,12 @@ export default function App() {
       <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
+      {game.campaign && (
+        <div style={{ marginBottom: 6, padding: "8px 10px", borderRadius: 8, border: `1px solid ${myTheme.border}`, background: "rgba(255,255,255,0.9)", color: "#111827", flex: "0 0 auto" }}>
+          <strong>{game.campaign.title}</strong>
+          <span style={{ marginLeft: 8 }}>{game.campaign.story}</span>
+        </div>
+      )}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
       {incomingAttackAlert && (
         <div
