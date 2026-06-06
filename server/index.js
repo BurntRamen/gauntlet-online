@@ -962,6 +962,17 @@ function getCampaignChapter(factionId, chapterId) {
   return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId) || null;
 }
 
+function getCampaignDifficulty(factionId, chapterId) {
+  const chapterIndex = Math.max(0, (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId));
+  return {
+    bossLife: [20, 30, 42][chapterIndex] || 42,
+    attacksPerTurn: 4 + chapterIndex,
+    minAttackValue: 5 + chapterIndex,
+    maxAttackValue: 8 + chapterIndex,
+    chapterNumber: chapterIndex + 1
+  };
+}
+
 const basicGameProfile = {
   id: "basic",
   name: "Basic Gauntlet",
@@ -2024,6 +2035,7 @@ async function advanceEndPlacement(roomState) {
     for (const p of playerNumbers) {
       game.players[p].turnData = createTurnData();
     }
+    if (game.campaign) game.campaign.bossAttacksThisTurn = 0;
     game.message = `Turn ${game.turn} - Player ${game.priority} has priority`;
   }
 }
@@ -2094,6 +2106,52 @@ function declareAiHandAttack(roomState) {
   return false;
 }
 
+function declareCampaignBossAttack(roomState) {
+  const game = roomState.game;
+  const ai = game.players[2];
+  const campaign = game.campaign;
+  if (!campaign) return false;
+
+  const attackNumber = (campaign.bossAttacksThisTurn || 0) + 1;
+  const minValue = campaign.minAttackValue || 5;
+  const maxValue = campaign.maxAttackValue || 8;
+  const valueRange = Math.max(1, maxValue - minValue + 1);
+  const value = minValue + ((game.turn + attackNumber + (campaign.chapterNumber || 1)) % valueRange);
+  const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
+  const suit = suits[(game.turn + attackNumber + (campaign.chapterNumber || 1)) % suits.length];
+  const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
+  const rank = rankNames[value] || String(value);
+  const attackCard = {
+    id: `campaign-${campaign.chapterId}-${game.turn}-${attackNumber}-${Date.now()}`,
+    value,
+    suit,
+    rank,
+    name: `${campaign.opponentName} Strike ${attackNumber}`,
+    faction: ai.faction.name,
+    factionId: ai.faction.id,
+    image: ai.faction.cardImage,
+    campaignBossCard: true
+  };
+  const attack = {
+    id: `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    player: 2,
+    card: attackCard,
+    source: "campaignBoss",
+    effectiveValue: value,
+    block: [],
+    notes: [`Boss strike ${attackNumber}/${campaign.attacksPerTurn}`],
+    payment: { player: 2, cards: [], total: 0, required: 0, campaignBoss: true }
+  };
+
+  campaign.bossAttacksThisTurn = attackNumber;
+  game.handAttacks.push(attack);
+  resetPriorityPassed(game);
+  game.priority = 1;
+  game.mostRecentAttackDefender = 1;
+  game.message = `${campaign.opponentName} launched scripted attack ${attackNumber}/${campaign.attacksPerTurn}: ${describeCardValue(attackCard, value, attack.notes)}. Player 1 can block or pass.`;
+  return true;
+}
+
 async function aiResolveDamageIfReady(roomState) {
   const game = roomState.game;
   if (game.phase !== "damage") return false;
@@ -2103,8 +2161,9 @@ async function aiResolveDamageIfReady(roomState) {
 
 async function aiPassPriority(roomState) {
   const game = roomState.game;
+  const aiName = game.campaign?.opponentName || "Training AI";
   game.priorityPassed[2] = true;
-  game.message = "Training AI passed priority.";
+  game.message = `${aiName} passed priority.`;
 
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       if (hasPendingAttacks(game)) {
@@ -2135,6 +2194,7 @@ function aiNeedsLaneSetup(game) {
 async function aiEndPlacement(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
+  const aiName = game.campaign?.opponentName || "Training AI";
   const lane = game.endPlacementLaneIndex;
   if (game.phase !== "end" || getCurrentEndPlacementPlayer(game) !== 2) return false;
 
@@ -2142,10 +2202,10 @@ async function aiEndPlacement(roomState) {
     const card = ai.hand.splice(0, 1)[0];
     game.lanes[lane].facedown[2] = card;
     game.endPlaced[2][lane] = true;
-    game.message = `Training AI placed a face-down card in lane ${lane + 1}.`;
+    game.message = `${aiName} placed a face-down card in lane ${lane + 1}.`;
   } else {
     game.endPlaced[2][lane] = true;
-    game.message = `Training AI skipped lane ${lane + 1}.`;
+    game.message = `${aiName} skipped lane ${lane + 1}.`;
   }
 
   await advanceEndPlacement(roomState);
@@ -2168,6 +2228,16 @@ async function runTrainingAi(roomState) {
       game.priority = 1;
       game.message = "Player 1 can block or pass.";
       acted = true;
+    } else if (game.campaign) {
+      if (pendingAttacks.length > 0) {
+        await aiPassPriority(roomState);
+        acted = true;
+      } else if ((game.campaign.bossAttacksThisTurn || 0) < game.campaign.attacksPerTurn) {
+        acted = declareCampaignBossAttack(roomState);
+      } else {
+        await aiPassPriority(roomState);
+        acted = true;
+      }
     } else if (pendingAttacks.length > 0 || aiNeedsLaneSetup(game)) {
       await aiPassPriority(roomState);
       acted = true;
@@ -2532,9 +2602,10 @@ io.on("connection", (socket) => {
       return;
     }
 
+    const difficulty = getCampaignDifficulty(factionId, chapterId);
     const roomState = createRoom();
     roomState.lobby.gameMode = "factions";
-    roomState.lobby.campaign = { factionId, chapterId, title: chapter.title, story: chapter.story, opponentName: chapter.opponentName };
+    roomState.lobby.campaign = { factionId, chapterId, title: chapter.title, story: chapter.story, opponentName: chapter.opponentName, ...difficulty, bossAttacksThisTurn: 0 };
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
@@ -2555,7 +2626,8 @@ io.on("connection", (socket) => {
     roomState.game.campaign = roomState.lobby.campaign;
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = chapter.opponentName;
-    roomState.game.message = `${chapter.title}: ${chapter.story} Player ${roomState.game.priority} has priority.`;
+    roomState.game.players[2].life = difficulty.bossLife;
+    roomState.game.message = `${chapter.title}: ${chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn. Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });

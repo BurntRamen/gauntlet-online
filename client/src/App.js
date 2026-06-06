@@ -271,6 +271,15 @@ function getFactionVoiceAudio(factionId, quote) {
   return quoteIndex >= 0 ? clips[quoteIndex] : null;
 }
 
+function getCampaignDifficulty(chapterIndex) {
+  return {
+    bossLife: [20, 30, 42][chapterIndex] || 42,
+    attacksPerTurn: 4 + chapterIndex,
+    minAttackValue: 5 + chapterIndex,
+    maxAttackValue: 8 + chapterIndex
+  };
+}
+
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
   if (roomCode) localStorage.setItem(STORAGE_KEYS.roomCode, roomCode);
   if (reconnectToken) localStorage.setItem(STORAGE_KEYS.reconnectToken, reconnectToken);
@@ -1374,13 +1383,19 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
                 <p style={{ marginTop: 0, color: "#bfdbfe", lineHeight: 1.45 }}>{campaign.pitch}</p>
                 <div style={{ display: "grid", gap: 10 }}>
                   {campaign.chapters.map((chapter, index) => (
-                    <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${theme.primary}`, background: "rgba(2,6,23,0.36)" }}>
-                      <div style={{ color: "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}</div>
-                      <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
-                      <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
-                      <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
-                      <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer}>Begin Battle</MenuButton>
-                    </div>
+                    (() => {
+                      const difficulty = getCampaignDifficulty(index);
+                      return (
+                        <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${theme.primary}`, background: "rgba(2,6,23,0.36)" }}>
+                          <div style={{ color: "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}</div>
+                          <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
+                          <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
+                          <div style={{ color: "#fde68a", fontSize: 12, marginBottom: 6 }}>Boss: {difficulty.bossLife} life, {difficulty.attacksPerTurn} attacks/turn, values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
+                          <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
+                          <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer}>Begin Battle</MenuButton>
+                        </div>
+                      );
+                    })()
                   ))}
                 </div>
               </MenuCard>
@@ -3356,6 +3371,9 @@ export default function App() {
         <div style={{ marginBottom: 6, padding: "8px 10px", borderRadius: 8, border: `1px solid ${myTheme.border}`, background: "rgba(255,255,255,0.9)", color: "#111827", flex: "0 0 auto" }}>
           <strong>{game.campaign.title}</strong>
           <span style={{ marginLeft: 8 }}>{game.campaign.story}</span>
+          <div style={{ marginTop: 4, fontSize: 12, color: "#475569" }}>
+            Boss: {game.campaign.opponentName} - {game.players?.[2]?.life ?? game.campaign.bossLife} life - {game.campaign.attacksPerTurn} scripted attacks/turn - values {game.campaign.minAttackValue}-{game.campaign.maxAttackValue}
+          </div>
         </div>
       )}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
