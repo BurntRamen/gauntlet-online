@@ -9,6 +9,10 @@ const PUBLIC_GAME_URL =
   (typeof window !== "undefined" && window.location.origin
     ? window.location.origin
     : "https://gauntlet-online.vercel.app");
+const INITIAL_JOIN_ROOM_CODE =
+  typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
+    : "";
 
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
@@ -1016,6 +1020,11 @@ function CombatStrip({ game }) {
   );
 }
 
+function roomJoinUrl(code) {
+  const baseUrl = PUBLIC_GAME_URL.replace(/\/$/, "");
+  return code ? `${baseUrl}?join=${encodeURIComponent(code)}` : baseUrl;
+}
+
 function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
   if (!code) return null;
 
@@ -1041,7 +1050,7 @@ function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
       />
       <button
         type="button"
-        onClick={() => onCopy(code)}
+        onClick={() => onCopy(code, "code")}
         style={{
           border: "1px solid currentColor",
           borderRadius: 6,
@@ -1054,6 +1063,22 @@ function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
         }}
       >
         Copy
+      </button>
+      <button
+        type="button"
+        onClick={() => onCopy(code, "link")}
+        style={{
+          border: "1px solid currentColor",
+          borderRadius: 6,
+          background: "transparent",
+          color: "inherit",
+          padding: "3px 8px",
+          fontSize: 12,
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}
+      >
+        Copy Link
       </button>
       <span>| {roleLabel}</span>
     </div>
@@ -1461,7 +1486,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [peekResult, setPeekResult] = useState("");
   const [useHeraBonus, setUseHeraBonus] = useState(false);
-  const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [roomCodeInput, setRoomCodeInput] = useState(INITIAL_JOIN_ROOM_CODE);
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
@@ -2967,14 +2992,16 @@ export default function App() {
     if (laneIndex >= 0) startAttackFromLane(laneIndex);
   }
 
-  async function copyRoomCode(code) {
+  async function copyRoomCode(code, mode = "code") {
     if (!code) return;
+    const value = mode === "link" ? roomJoinUrl(code) : code;
+    const label = mode === "link" ? "join link" : `room ${code}`;
     try {
-      await navigator.clipboard.writeText(code);
-      setCopyNotice(`Copied room ${code}.`);
+      await navigator.clipboard.writeText(value);
+      setCopyNotice(`Copied ${label}.`);
     } catch {
       const textArea = document.createElement("textarea");
-      textArea.value = code;
+      textArea.value = value;
       textArea.setAttribute("readonly", "");
       textArea.style.position = "fixed";
       textArea.style.opacity = "0";
@@ -2982,7 +3009,7 @@ export default function App() {
       textArea.select();
       const copied = document.execCommand("copy");
       document.body.removeChild(textArea);
-      setCopyNotice(copied ? `Copied room ${code}.` : `Select room ${code} and press Ctrl+C to copy it.`);
+      setCopyNotice(copied ? `Copied ${label}.` : `Select ${value} and press Ctrl+C to copy it.`);
     }
   }
 

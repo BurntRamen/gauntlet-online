@@ -1041,7 +1041,10 @@ function makeReconnectToken() {
 }
 
 function createRoom() {
-  const roomCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+  let roomCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+  while (rooms.has(roomCode)) {
+    roomCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+  }
   const roomState = {
     roomCode,
     lobby: {
