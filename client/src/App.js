@@ -36,6 +36,17 @@ const FACTION_COLORS = {
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
 
+const TABLETOP_THEME = {
+  text: "#f5ead5",
+  muted: "#cbb38b",
+  panel: "linear-gradient(180deg, rgba(47, 30, 18, 0.94), rgba(16, 10, 7, 0.95))",
+  panelSoft: "linear-gradient(180deg, rgba(64, 42, 25, 0.88), rgba(24, 15, 10, 0.92))",
+  gold: "rgba(205, 154, 86, 0.82)",
+  goldSoft: "rgba(205, 154, 86, 0.36)",
+  ember: "#f59e0b",
+  shadow: "0 14px 36px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,232,188,0.08), inset 0 18px 42px rgba(255,255,255,0.04)"
+};
+
 const MUSIC_TRACKS = {
   menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
@@ -400,19 +411,24 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
+  const cardSurface = bg === "white"
+    ? "linear-gradient(180deg, #f8ecd5 0%, #e5c9a6 58%, #caa47a 100%)"
+    : `linear-gradient(180deg, ${bg}, #ead6b8)`;
 
   return (
     <div
       className="card-box"
       style={{
-        border: selected ? `3px solid ${accent}` : "1px solid black",
-        borderRadius: 8,
+        border: selected ? `2px solid ${accent}` : "1px solid rgba(82, 50, 26, 0.86)",
+        borderRadius: 6,
         padding: 6,
         width: 108,
         minWidth: 108,
         minHeight: 164,
-        background: bg,
-        boxShadow: selected ? `0 0 0 3px ${accent}22` : "none",
+        background: cardSurface,
+        boxShadow: selected
+          ? `0 0 0 3px ${accent}55, 0 12px 24px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,255,255,0.42)`
+          : "0 9px 18px rgba(0,0,0,0.32), inset 0 0 0 1px rgba(255,255,255,0.38)",
         position: "relative",
         display: "flex",
         flexDirection: "column",
@@ -435,7 +451,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         onClick={onInspect ? (event) => { event.stopPropagation(); onInspect(card); } : undefined}
         disabled={!onInspect || !card}
         title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
-        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.12)", background: "#f8fafc", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
+        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
       >
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -508,8 +524,9 @@ function CardInspectModal({ card, onClose }) {
 }
 
 function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {}, className }) {
+  const combinedClassName = ["section-card-shell", className].filter(Boolean).join(" ");
   return (
-    <div className={className} style={{ border: `2px solid ${borderColor}`, borderRadius: 14, padding: 16, marginBottom: 18, background, ...style }}>
+    <div className={combinedClassName} style={{ border: `2px solid ${borderColor}`, borderRadius: 8, padding: 16, marginBottom: 18, background, ...style }}>
       {title && <h3 style={{ marginTop: 0, marginBottom: 12, ...headingStyle }}>{title}</h3>}
       {children}
     </div>
@@ -918,8 +935,8 @@ function FriendsPanel({
 
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
   return (
-    <div style={{ padding: "7px 9px", borderRadius: 8, background: bg, border: "1px solid rgba(0,0,0,0.08)" }}>
-      <div style={{ fontSize: 11, color: "#555" }}>{label}</div>
+    <div style={{ padding: "7px 9px", borderRadius: 6, background: bg, border: "1px solid rgba(205,154,86,0.34)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)" }}>
+      <div style={{ fontSize: 11, color: TABLETOP_THEME.muted }}>{label}</div>
       <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 13 }}>{value}</div>
     </div>
   );
@@ -1176,7 +1193,7 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
 
 function LaneCardLabel({ label, card, hidden = false }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.18)", borderRadius: 6, padding: 5, background: hidden ? "#1f2937" : "#fff", color: hidden ? "#f9fafb" : "#111827", minHeight: 32 }}>
+    <div style={{ border: "1px solid rgba(205,154,86,0.34)", borderRadius: 5, padding: 5, background: hidden ? "linear-gradient(180deg, #20150e, #0f0906)" : "linear-gradient(180deg, rgba(255,246,224,0.96), rgba(210,174,126,0.86))", color: hidden ? "#f9fafb" : "#21150c", minHeight: 32, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
       <div style={{ fontSize: 9, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
       <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 12 }}>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
     </div>
@@ -1186,7 +1203,7 @@ function LaneCardLabel({ label, card, hidden = false }) {
 function SmallCardToken({ card }) {
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
   return (
-    <div title={card?.name || getCardShortLabel(card)} style={{ width: 42, minHeight: 56, border: "1px solid rgba(0,0,0,0.28)", borderRadius: 6, background: "#fff", padding: 4, display: "grid", alignContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}>
+    <div title={card?.name || getCardShortLabel(card)} style={{ width: 42, minHeight: 56, border: "1px solid rgba(82,50,26,0.62)", borderRadius: 5, background: "linear-gradient(180deg, #f8ecd5, #d6b386)", padding: 4, display: "grid", alignContent: "space-between", boxShadow: "0 4px 10px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.35)" }}>
       <strong style={{ color: suitColor, fontSize: 14 }}>{getCardRank(card)}</strong>
       <span style={{ color: suitColor, fontSize: 18, lineHeight: 1, textAlign: "center" }}>{getSuitSymbol(card?.suit)}</span>
       <span style={{ fontSize: 8, color: "#475569", textAlign: "right" }}>{getCardNumericValue(card)}</span>
@@ -1235,11 +1252,11 @@ function PaymentLogPanel({ game }) {
   const entries = (game.paymentLog || []).slice().reverse();
   if (entries.length === 0) return null;
   return (
-    <div style={{ marginTop: 10, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, background: "#f8fafc", padding: 8, minHeight: 0 }}>
-      <h3 style={{ margin: "0 0 6px 0", fontSize: 14 }}>Payments & Reveals</h3>
-      <div className="payment-log-list" style={{ display: "grid", gap: 6, maxHeight: "min(22dvh, 220px)", overflowY: "auto", paddingRight: 4 }}>
+    <div className="payment-log-panel" style={{ marginTop: 10, border: `1px solid ${TABLETOP_THEME.goldSoft}`, borderRadius: 6, background: "rgba(12,8,5,0.72)", padding: 8, minHeight: 0, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04)" }}>
+      <h3 style={{ margin: "0 0 6px 0", fontSize: 14, color: TABLETOP_THEME.text }}>Payments & Reveals</h3>
+      <div className="payment-log-list" style={{ display: "grid", gap: 6, maxHeight: "min(20dvh, 190px)", overflowY: "auto", paddingRight: 4 }}>
         {entries.map((entry) => (
-          <div key={entry.id} style={{ borderTop: "1px solid #e5e7eb", paddingTop: 6, fontSize: 12 }}>
+          <div key={entry.id} style={{ borderTop: `1px solid ${TABLETOP_THEME.goldSoft}`, paddingTop: 6, fontSize: 12, color: TABLETOP_THEME.text }}>
             <strong>P{entry.player}</strong> {entry.label}
             {entry.cards?.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>{entry.cards.map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}</div>}
           </div>
@@ -2378,6 +2395,13 @@ export default function App() {
   const myTheme = !isSpectator && me ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator && opponent ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
   const boardBackground = !isSpectator && me ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
+  const tabletopBoardBackground = `
+    radial-gradient(circle at 50% 22%, rgba(255, 214, 140, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(8, 5, 3, 0.44), rgba(8, 5, 3, 0.76)),
+    ${boardBackground},
+    repeating-linear-gradient(90deg, rgba(92, 52, 25, 0.44) 0 2px, transparent 2px 140px),
+    linear-gradient(90deg, #2a160b 0%, #5b341b 42%, #2b170d 100%)
+  `;
   const gameIsOver = game.phase === "gameOver" || game.winner != null;
 
   if (gameIsOver) {
@@ -3278,9 +3302,110 @@ export default function App() {
   }
 
   return (
-    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: boardBackground, backgroundAttachment: "fixed" }}>
+    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
       <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
       <style>{`
+        .game-root button {
+          border-radius: 5px;
+          border: 1px solid rgba(205,154,86,0.54);
+          background: linear-gradient(180deg, #513019, #1e120b);
+          color: #f5ead5;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 8px rgba(0,0,0,0.24);
+        }
+        .game-root button:disabled {
+          opacity: 0.48;
+          filter: grayscale(0.6);
+          box-shadow: none;
+        }
+        .game-root select,
+        .game-root input {
+          border-radius: 4px;
+          border: 1px solid rgba(205,154,86,0.42);
+          background: rgba(16,10,7,0.84);
+          color: #f5ead5;
+        }
+        .game-root .section-card-shell {
+          position: relative;
+        }
+        .game-root .board-lanes,
+        .game-root .hand-section,
+        .game-root .power-section,
+        .game-root .response-strip,
+        .game-root .recent-events-section,
+        .game-root .opponent-intel,
+        .game-root .game-side > .section-card-shell,
+        .game-root > .section-card-shell {
+          background: ${TABLETOP_THEME.panel} !important;
+          border-color: ${TABLETOP_THEME.goldSoft} !important;
+          color: ${TABLETOP_THEME.text};
+          border-radius: 7px !important;
+          box-shadow: ${TABLETOP_THEME.shadow};
+          outline: 1px solid rgba(43,25,12,0.92);
+          outline-offset: -5px;
+        }
+        .game-root .board-lanes::before,
+        .game-root .hand-section::before,
+        .game-root .power-section::before,
+        .game-root .response-strip::before,
+        .game-root .recent-events-section::before,
+        .game-root .game-side > .section-card-shell::before {
+          content: "";
+          position: absolute;
+          inset: 5px;
+          pointer-events: none;
+          border: 1px solid rgba(205,154,86,0.28);
+          border-radius: 4px;
+        }
+        .game-root h2,
+        .game-root h3,
+        .game-root strong {
+          color: #f7d99e;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.58);
+        }
+        .game-root p,
+        .game-root span,
+        .game-root label,
+        .game-root div {
+          scrollbar-color: rgba(205,154,86,0.66) rgba(16,10,7,0.7);
+        }
+        .game-root .lane-card {
+          background: radial-gradient(circle at 50% 28%, rgba(205,154,86,0.13), transparent 34%), linear-gradient(180deg, rgba(28,18,11,0.86), rgba(10,7,5,0.9)) !important;
+          border-color: rgba(205,154,86,0.52) !important;
+          border-radius: 6px !important;
+          color: ${TABLETOP_THEME.text};
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -24px 48px rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.3) !important;
+        }
+        .game-root .lane-card > p {
+          color: ${TABLETOP_THEME.muted};
+          text-align: center;
+          letter-spacing: 0;
+          text-transform: uppercase;
+        }
+        .game-root .card-box button {
+          color: #23160d;
+          background: linear-gradient(180deg, #f7dfb9, #c7965d);
+          border-color: rgba(82,50,26,0.45);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.42);
+        }
+        .game-root .hand-section {
+          background: linear-gradient(180deg, rgba(45,28,16,0.96), rgba(14,9,6,0.97)) !important;
+        }
+        .game-root .hand-card-row {
+          padding: 4px 2px 7px 2px;
+        }
+        .game-root .recent-events-list > div,
+        .game-root .payment-log-list > div {
+          background: rgba(14,9,6,0.62);
+          border-color: rgba(205,154,86,0.24) !important;
+          color: ${TABLETOP_THEME.text};
+        }
+        .game-root .recent-events-list > div div:first-child {
+          color: ${TABLETOP_THEME.muted} !important;
+        }
+        .game-root .quick-action-button {
+          border: 1px solid rgba(205,154,86,0.6);
+          border-radius: 5px;
+        }
         .game-main {
           display: flex;
           flex-direction: column;
