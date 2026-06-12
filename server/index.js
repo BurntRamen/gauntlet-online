@@ -1002,18 +1002,18 @@ function getCampaignDifficulty(factionId, chapterId) {
   const chapterIndex = Math.max(0, (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId));
   if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi") {
     return {
-      bossLife: Math.min(80, 20 + chapterIndex * 5),
-      attacksPerTurn: 4 + Math.floor(chapterIndex / 2),
-      minAttackValue: 5 + Math.floor(chapterIndex / 4),
-      maxAttackValue: 8 + Math.floor(chapterIndex / 3),
+      bossLife: Math.min(58, 18 + chapterIndex * 3),
+      attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
+      minAttackValue: 2 + Math.floor(chapterIndex / 5),
+      maxAttackValue: 5 + Math.floor(chapterIndex / 4),
       chapterNumber: chapterIndex + 1
     };
   }
   return {
-    bossLife: [20, 30, 42][chapterIndex] || 42,
-    attacksPerTurn: 4 + chapterIndex,
-    minAttackValue: 5 + chapterIndex,
-    maxAttackValue: 8 + chapterIndex,
+    bossLife: [18, 24, 32][chapterIndex] || 32,
+    attacksPerTurn: Math.min(4, 2 + chapterIndex),
+    minAttackValue: 2 + chapterIndex,
+    maxAttackValue: 5 + chapterIndex,
     chapterNumber: chapterIndex + 1
   };
 }

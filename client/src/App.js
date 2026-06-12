@@ -52,19 +52,39 @@ const MUSIC_TRACKS = {
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "March of the Rumin",
-    sources: ["/assets/gauntlet/music/rumin-1.mp3", "/assets/gauntlet/music/rumin-2.mp3"]
+    sources: [
+      "/assets/gauntlet/music/rumin-1.mp3",
+      "/assets/gauntlet/music/rumin-2.mp3",
+      "/assets/gauntlet/music/rumin-3.mp3",
+      "/assets/gauntlet/music/rumin-4.mp3"
+    ]
   },
   sheen: {
     label: "Song of the Sheen",
-    sources: ["/assets/gauntlet/music/sheen-1.mp3", "/assets/gauntlet/music/sheen-2.mp3"]
+    sources: [
+      "/assets/gauntlet/music/sheen-1.mp3",
+      "/assets/gauntlet/music/sheen-2.mp3",
+      "/assets/gauntlet/music/sheen-3.mp3",
+      "/assets/gauntlet/music/sheen-4.mp3"
+    ]
   },
   frumo: {
     label: "The Frumos Anthem",
-    sources: ["/assets/gauntlet/music/frumo-1.mp3", "/assets/gauntlet/music/frumo-2.mp3"]
+    sources: [
+      "/assets/gauntlet/music/frumo-1.mp3",
+      "/assets/gauntlet/music/frumo-2.mp3",
+      "/assets/gauntlet/music/frumo-3.mp3",
+      "/assets/gauntlet/music/frumo-4.mp3"
+    ]
   },
   bizi: {
     label: "Hymn of the Gilded Dust",
-    sources: ["/assets/gauntlet/music/bizi-1.mp3"]
+    sources: [
+      "/assets/gauntlet/music/bizi-1.mp3",
+      "/assets/gauntlet/music/bizi-2.mp3",
+      "/assets/gauntlet/music/bizi-3.mp3",
+      "/assets/gauntlet/music/bizi-4.mp3"
+    ]
   }
 };
 
@@ -325,17 +345,17 @@ function getFactionVoiceAudio(factionId, quote) {
 function getCampaignDifficulty(factionId, chapterIndex) {
   if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi") {
     return {
-      bossLife: Math.min(80, 20 + chapterIndex * 5),
-      attacksPerTurn: 4 + Math.floor(chapterIndex / 2),
-      minAttackValue: 5 + Math.floor(chapterIndex / 4),
-      maxAttackValue: 8 + Math.floor(chapterIndex / 3)
+      bossLife: Math.min(58, 18 + chapterIndex * 3),
+      attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
+      minAttackValue: 2 + Math.floor(chapterIndex / 5),
+      maxAttackValue: 5 + Math.floor(chapterIndex / 4)
     };
   }
   return {
-    bossLife: [20, 30, 42][chapterIndex] || 42,
-    attacksPerTurn: 4 + chapterIndex,
-    minAttackValue: 5 + chapterIndex,
-    maxAttackValue: 8 + chapterIndex
+    bossLife: [18, 24, 32][chapterIndex] || 32,
+    attacksPerTurn: Math.min(4, 2 + chapterIndex),
+    minAttackValue: 2 + chapterIndex,
+    maxAttackValue: 5 + chapterIndex
   };
 }
 
@@ -566,9 +586,9 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
 }
 
 function startProceduralTrack(trackKey, volume) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {} };
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return () => {};
+  if (!AudioContext) return { stop: () => {}, setVolume: () => {} };
 
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   const context = new AudioContext();
@@ -622,22 +642,28 @@ function startProceduralTrack(trackKey, volume) {
   playNote();
   const intervalId = window.setInterval(playNote, track.tempo);
 
-  return () => {
-    window.removeEventListener("pointerdown", resumeContext);
-    window.removeEventListener("keydown", resumeContext);
-    window.clearInterval(intervalId);
-    padNodes.forEach((node) => {
-      try { node.stop(); } catch (_error) {}
-    });
-    context.close();
+  return {
+    setVolume: (nextVolume) => {
+      master.gain.value = nextVolume;
+    },
+    stop: () => {
+      window.removeEventListener("pointerdown", resumeContext);
+      window.removeEventListener("keydown", resumeContext);
+      window.clearInterval(intervalId);
+      padNodes.forEach((node) => {
+        try { node.stop(); } catch (_error) {}
+      });
+      context.close();
+    }
   };
 }
 
 function startAudioPlaylist(track, volume) {
-  if (typeof window === "undefined" || !track?.sources?.length) return () => {};
+  if (typeof window === "undefined" || !track?.sources?.length) return { stop: () => {}, setVolume: () => {} };
 
   let stopped = false;
-  let trackIndex = 0;
+  let failedSources = 0;
+  let trackIndex = Math.floor(Math.random() * track.sources.length);
   const audio = new Audio(resolveAssetPath(track.sources[trackIndex]));
   audio.preload = "auto";
   audio.volume = volume;
@@ -650,26 +676,41 @@ function startAudioPlaylist(track, volume) {
 
   const playNext = () => {
     if (stopped || track.sources.length <= 1) return;
+    failedSources++;
+    if (failedSources > track.sources.length * 2) return;
     trackIndex = (trackIndex + 1) % track.sources.length;
     audio.src = resolveAssetPath(track.sources[trackIndex]);
     audio.load();
     play();
   };
 
+  const clearFailureCount = () => {
+    failedSources = 0;
+  };
+
   const resumeAudio = () => play();
+  audio.addEventListener("playing", clearFailureCount);
   audio.addEventListener("ended", playNext);
+  audio.addEventListener("error", playNext);
   window.addEventListener("pointerdown", resumeAudio);
   window.addEventListener("keydown", resumeAudio);
   play();
 
-  return () => {
-    stopped = true;
-    window.removeEventListener("pointerdown", resumeAudio);
-    window.removeEventListener("keydown", resumeAudio);
-    audio.removeEventListener("ended", playNext);
-    audio.pause();
-    audio.removeAttribute("src");
-    audio.load();
+  return {
+    setVolume: (nextVolume) => {
+      audio.volume = nextVolume;
+    },
+    stop: () => {
+      stopped = true;
+      window.removeEventListener("pointerdown", resumeAudio);
+      window.removeEventListener("keydown", resumeAudio);
+      audio.removeEventListener("playing", clearFailureCount);
+      audio.removeEventListener("ended", playNext);
+      audio.removeEventListener("error", playNext);
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    }
   };
 }
 
@@ -1542,6 +1583,7 @@ export default function App() {
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const musicStopRef = useRef(null);
+  const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
@@ -1695,20 +1737,25 @@ export default function App() {
   }, [friendReadAt]);
 
   useEffect(() => {
+    musicVolumeRef.current = musicVolume;
+    musicStopRef.current?.setVolume(musicVolume);
+  }, [musicVolume]);
+
+  useEffect(() => {
     if (musicStopRef.current) {
-      musicStopRef.current();
+      musicStopRef.current.stop();
       musicStopRef.current = null;
     }
     if (musicEnabled && !accountSoundMuted) {
-      musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolume);
+      musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
     }
     return () => {
       if (musicStopRef.current) {
-        musicStopRef.current();
+        musicStopRef.current.stop();
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, musicVolume, accountSoundMuted]);
+  }, [activeMusicTrack, musicEnabled, accountSoundMuted]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
