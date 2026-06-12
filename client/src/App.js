@@ -975,10 +975,11 @@ function FriendsPanel({
 }
 
 function StatusPill({ label, value, bg = "#f3f4f6" }) {
+  const lightSurface = bg === "white" || bg === "#fff" || bg === "#f3f4f6";
   return (
-    <div style={{ padding: "7px 9px", borderRadius: 6, background: bg, border: "1px solid rgba(205,154,86,0.34)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)" }}>
-      <div style={{ fontSize: 11, color: TABLETOP_THEME.muted }}>{label}</div>
-      <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 13 }}>{value}</div>
+    <div style={{ padding: "7px 9px", borderRadius: 6, background: lightSurface ? "linear-gradient(180deg, rgba(255, 246, 224, 0.96), rgba(218, 183, 134, 0.92))" : bg, border: "1px solid rgba(205,154,86,0.34)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
+      <div style={{ fontSize: 11, color: lightSurface ? "#6b3f17" : TABLETOP_THEME.muted }}>{label}</div>
+      <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 13, color: lightSurface ? "#1f130a" : TABLETOP_THEME.text }}>{value}</div>
     </div>
   );
 }
@@ -3375,7 +3376,6 @@ export default function App() {
           position: relative;
         }
         .game-root .board-lanes,
-        .game-root .hand-section,
         .game-root .power-section,
         .game-root .response-strip,
         .game-root .recent-events-section,
@@ -3391,7 +3391,6 @@ export default function App() {
           outline-offset: -5px;
         }
         .game-root .board-lanes::before,
-        .game-root .hand-section::before,
         .game-root .power-section::before,
         .game-root .response-strip::before,
         .game-root .recent-events-section::before,
@@ -3404,8 +3403,7 @@ export default function App() {
           border-radius: 4px;
         }
         .game-root h2,
-        .game-root h3,
-        .game-root strong {
+        .game-root h3 {
           color: #f7d99e;
           text-shadow: 0 1px 2px rgba(0,0,0,0.58);
         }
@@ -3435,10 +3433,58 @@ export default function App() {
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.42);
         }
         .game-root .hand-section {
-          background: linear-gradient(180deg, rgba(45,28,16,0.96), rgba(14,9,6,0.97)) !important;
+          background: transparent !important;
+          border: 0 !important;
+          outline: 0 !important;
+          box-shadow: none !important;
+          color: ${TABLETOP_THEME.text};
         }
         .game-root .hand-card-row {
           padding: 4px 2px 7px 2px;
+        }
+        .game-root .hand-section h3 {
+          margin-bottom: 6px !important;
+        }
+        .game-root .top-play-area {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr);
+          gap: 8px;
+          align-items: start;
+          flex: 0 0 auto;
+          margin-bottom: 8px;
+        }
+        .game-root .tabletop-status-strip {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(120px, 1fr));
+          gap: 7px;
+          padding: 6px;
+          margin-bottom: 8px;
+          border-top: 1px solid rgba(205,154,86,0.28);
+          border-bottom: 1px solid rgba(205,154,86,0.28);
+          background: rgba(10,7,5,0.42);
+        }
+        .game-root .player-intel-row {
+          display: grid;
+          grid-template-columns: minmax(0, 0.95fr) minmax(260px, 1.05fr);
+          gap: 8px;
+          align-items: stretch;
+          margin-bottom: 8px;
+        }
+        .game-root .opponent-intel {
+          margin-bottom: 0 !important;
+          min-height: 100%;
+        }
+        .game-root .board-lanes {
+          min-height: clamp(250px, 38dvh, 430px);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .game-root .lane-grid {
+          align-items: center;
+        }
+        .game-root .game-side {
+          gap: 8px;
         }
         .game-root .recent-events-list > div,
         .game-root .payment-log-list > div {
@@ -3454,13 +3500,14 @@ export default function App() {
           border-radius: 5px;
         }
         .game-main {
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          grid-template-rows: auto auto minmax(250px, 1fr) auto;
+          gap: 8px;
         }
-        .board-lanes { order: 1; }
-        .response-strip { order: 2; }
-        .power-section { order: 3; }
-        .hand-section { order: 4; }
+        .hand-section { order: 1; }
+        .power-section { order: 2; }
+        .board-lanes { order: 3; }
+        .response-strip { order: 4; }
         .hand-content {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 220px;
@@ -3544,6 +3591,11 @@ export default function App() {
           .hand-section {
             position: static !important;
             box-shadow: none !important;
+          }
+          .player-intel-row,
+          .top-play-area,
+          .tabletop-status-strip {
+            grid-template-columns: 1fr !important;
           }
           .hand-content {
             grid-template-columns: 1fr !important;
@@ -3663,26 +3715,28 @@ export default function App() {
         </div>
       )}
 
-      <SectionCard borderColor={myTheme.border} background={myTheme.light} style={{ padding: 7, marginBottom: 6, flex: "0 0 auto" }}>
-        <div className="status-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))", gap: 6 }}>
+      <div className="tabletop-status-strip" style={{ flex: "0 0 auto" }}>
+        <div className="status-grid" style={{ display: "contents" }}>
           <StatusPill label="Turn" value={game.turn} bg="white" />
           <StatusPill label="Step" value={phaseDisplayName()} bg="white" />
           <StatusPill label="Priority" value={`Player ${game.priority}`} bg="white" />
           <StatusPill label="Status" value={phaseHelpText()} bg="white" />
         </div>
         <HelperText enabled={showHelperLabels}>Priority controls who can act. Combat must be blocked or passed through before a new attack.</HelperText>
-      </SectionCard>
+      </div>
       <div style={{ flex: "0 0 auto", marginBottom: 6 }}><CombatStrip game={game} /></div>
 
-      <div style={{ flex: "0 0 auto" }}><CompactPlayerBar game={game} player={player} /></div>
-      {!isSpectator && (
-        <OpponentIntelPanel
-          game={game}
-          player={player}
-          showAbilities={showOpponentAbilities}
-          onToggleAbilities={() => setShowOpponentAbilities((value) => !value)}
-        />
-      )}
+      <div className="player-intel-row" style={{ flex: "0 0 auto" }}>
+        <div><CompactPlayerBar game={game} player={player} /></div>
+        {!isSpectator && (
+          <OpponentIntelPanel
+            game={game}
+            player={player}
+            showAbilities={showOpponentAbilities}
+            onToggleAbilities={() => setShowOpponentAbilities((value) => !value)}
+          />
+        )}
+      </div>
 
       <div className="game-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 8, alignItems: "stretch", minHeight: 0, flex: 1 }}>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
@@ -3726,7 +3780,7 @@ export default function App() {
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
               </SectionCard>}
 
-              <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6, position: "sticky", bottom: 0, zIndex: 6, boxShadow: "0 -8px 24px rgba(0,0,0,0.18)" }} className="hand-section">
+              <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 0, marginBottom: 0 }} className="hand-section">
                 <div className="hand-content">
                   <div className="hand-card-row">
                     {me.hand.map((card, i) => {
