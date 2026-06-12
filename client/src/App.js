@@ -1251,9 +1251,9 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
 
 function LaneCardLabel({ label, card, hidden = false }) {
   return (
-    <div style={{ border: "1px solid rgba(205,154,86,0.34)", borderRadius: 5, padding: 5, background: hidden ? "linear-gradient(180deg, #20150e, #0f0906)" : "linear-gradient(180deg, rgba(255,246,224,0.96), rgba(210,174,126,0.86))", color: hidden ? "#f9fafb" : "#21150c", minHeight: 32, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
-      <div style={{ fontSize: 9, opacity: hidden ? 0.75 : 0.65, textTransform: "uppercase", fontWeight: "bold" }}>{label}</div>
-      <div style={{ fontWeight: "bold", marginTop: 2, fontSize: 12 }}>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</div>
+    <div className="lane-card-line" style={{ color: hidden ? "#f9fafb" : TABLETOP_THEME.text }}>
+      <span>{label}</span>
+      <strong>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</strong>
     </div>
   );
 }
@@ -3206,17 +3206,19 @@ export default function App() {
     <div
       className="near-hand-actions"
       style={{
-        border: `2px solid ${myTheme.border}`,
-        borderRadius: 10,
-        background: myTheme.light,
-        padding: 10,
+        border: `1px solid ${myTheme.border}`,
+        borderRadius: 6,
+        background: "rgba(12,8,5,0.84)",
+        padding: 8,
         display: "grid",
         alignContent: "start",
-        gap: 8,
-        minWidth: 190
+        gap: 6,
+        minWidth: 0,
+        maxHeight: 124,
+        overflowY: "auto"
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
+      <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
       {attackMode && (
         <>
           <button className="quick-action-button quick-action-primary" onClick={confirmAttack} disabled={!activeAttackCard}>Confirm Attack</button>
@@ -3255,7 +3257,7 @@ export default function App() {
         </>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
-      <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? myTheme.primary : "#555", fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
+      <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
         {quickActionHelpText()}
       </div>
     </div>
@@ -3453,19 +3455,22 @@ export default function App() {
         }
         .top-opponent-panel {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 260px 230px;
+          grid-template-columns: minmax(0, 1fr) auto;
           gap: 8px;
           align-items: stretch;
           padding: 8px;
         }
-        .deck-slot-row {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(72px, 1fr));
-          gap: 8px;
-          min-width: 0;
+        .top-state-pills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          align-content: center;
+          justify-content: flex-end;
+          width: min(420px, 34vw);
         }
         .deck-slot {
-          min-height: 62px;
+          min-height: 0;
+          min-width: 66px;
           border: 1px solid rgba(205,154,86,0.28);
           border-radius: 5px;
           display: grid;
@@ -3474,6 +3479,7 @@ export default function App() {
           background: rgba(8,5,3,0.34);
           font-family: Georgia, serif;
           font-size: 13px;
+          padding: 8px 10px;
         }
         .top-action-panel {
           display: grid;
@@ -3547,10 +3553,17 @@ export default function App() {
           max-height: 204px;
           overflow: hidden;
         }
+        .bottom-left-actions {
+          min-height: 0;
+          display: grid;
+          grid-template-rows: minmax(0, 1fr) auto;
+          gap: 7px;
+          overflow: hidden;
+        }
         .table-side-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr) 152px;
+          grid-template-rows: minmax(0, 1fr) minmax(0, 0.8fr) 152px;
           gap: 8px;
           padding: 8px;
           overflow: hidden;
@@ -3559,6 +3572,14 @@ export default function App() {
           min-height: 0;
           overflow: auto;
           margin-bottom: 0 !important;
+        }
+        .passive-status-actions button,
+        .passive-status-actions select,
+        .passive-status-actions label {
+          display: none !important;
+        }
+        .passive-status-actions {
+          color: ${TABLETOP_THEME.text};
         }
         .card-preview-panel {
           min-height: 0;
@@ -3634,6 +3655,25 @@ export default function App() {
           letter-spacing: 0;
           text-transform: uppercase;
           margin-bottom: 4px !important;
+        }
+        .lane-card-line {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          align-items: baseline;
+          padding: 2px 0;
+          border-bottom: 1px solid rgba(205,154,86,0.16);
+          font-size: 12px;
+        }
+        .lane-card-line span {
+          color: ${TABLETOP_THEME.muted};
+          font-size: 9px;
+          text-transform: uppercase;
+          font-weight: 800;
+        }
+        .lane-card-line strong {
+          color: ${TABLETOP_THEME.text};
+          font-size: 12px;
         }
         .game-root .card-box button {
           color: #23160d;
@@ -3876,12 +3916,12 @@ export default function App() {
         }
         .quick-action-button {
           width: 100%;
-          min-height: 44px;
+          min-height: 36px;
           border: 0;
           border-radius: 10px;
-          padding: 10px 12px;
+          padding: 8px 10px;
           color: #fff;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 800;
           letter-spacing: 0;
           box-shadow: 0 3px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.22);
@@ -3982,12 +4022,10 @@ export default function App() {
         </div>
         <div className="top-opponent-panel">
           <PlayerFrameRow game={game} player={player} placement="opponents" />
-          <div className="deck-slot-row">
+          <div className="top-state-pills">
             <div className="deck-slot">Deck</div>
             <div className="deck-slot">Discard</div>
             <div className="deck-slot">{phaseDisplayName()}</div>
-          </div>
-          <div className="deck-slot-row">
             <div className="deck-slot">Turn {game.turn}</div>
             <div className="deck-slot">P{game.priority}</div>
             <div className="deck-slot">{game.phase === "gameOver" ? "Game Over" : "Live"}</div>
@@ -4104,7 +4142,10 @@ export default function App() {
               </SectionCard>}
 
               <div className="bottom-player-panel">
-                <PlayerFrameRow game={game} player={player} placement="self" />
+                <div className="bottom-left-actions">
+                  {nearHandActionPad}
+                  <PlayerFrameRow game={game} player={player} placement="self" />
+                </div>
                 <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 0, marginBottom: 0 }} className="hand-section">
                 <div className="hand-content">
                   <div className="hand-card-row">
@@ -4205,6 +4246,12 @@ export default function App() {
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Status" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>
+              <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
+                <div><strong>Mode:</strong> {phaseDisplayName()}</div>
+                <div><strong>Turn:</strong> {game.turn}</div>
+                <div><strong>Priority:</strong> Player {game.priority}</div>
+                <div style={{ color: TABLETOP_THEME.muted }}>{phaseHelpText()}</div>
+              </div>
               {undoRequest && (
                 <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
                   <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
@@ -4217,8 +4264,7 @@ export default function App() {
                 </div>
               )}
               {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
-              {rightPanel}
-              {nearHandActionPad}
+              <div className="passive-status-actions">{rightPanel}</div>
               {!isSpectator && (
                 <OpponentIntelPanel
                   game={game}
