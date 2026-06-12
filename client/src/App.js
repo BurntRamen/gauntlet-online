@@ -585,6 +585,22 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
   );
 }
 
+function ActionIconButton({ icon, label, onClick, disabled = false, danger = false, title }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title || label}
+      className={`icon-action-button${danger ? " icon-action-danger" : ""}`}
+      aria-label={label}
+    >
+      <span aria-hidden="true" className="icon-action-mark">{icon}</span>
+      <span className="icon-action-label">{label}</span>
+    </button>
+  );
+}
+
 function startProceduralTrack(trackKey, volume) {
   if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {} };
   const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1253,13 +1269,66 @@ function SmallCardToken({ card }) {
   );
 }
 
+function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" }) {
+  const infoPlayer = game.players?.[playerNum];
+  if (!infoPlayer) return null;
+  const theme = getFactionTheme(infoPlayer.faction?.id);
+  const isSelf = playerNum === perspectivePlayer;
+  const handCount = isSelf ? infoPlayer.hand?.length ?? 0 : infoPlayer.handCount ?? infoPlayer.hand?.length ?? 0;
+  const connectionColor = infoPlayer.connected ? "#86efac" : "#fca5a5";
+  const ccgText = infoPlayer.faction?.commander
+    ? `${infoPlayer.faction.commander.name} / ${infoPlayer.faction.city?.name || "City"} / ${infoPlayer.faction.general?.name || "General"}`
+    : infoPlayer.faction?.name || "Basic";
+
+  return (
+    <div
+      className={`player-frame player-frame-${position}${isSelf ? " player-frame-self" : ""}`}
+      style={{
+        borderColor: theme.border,
+        background: `linear-gradient(180deg, rgba(16,10,7,0.9), rgba(8,5,3,0.86)), linear-gradient(90deg, ${theme.primary}44, transparent)`,
+        color: TABLETOP_THEME.text
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
+          <strong style={{ color: "#f7d99e", fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getGamePlayerName(game, playerNum)}</strong>
+          <span style={{ color: TABLETOP_THEME.muted, fontSize: 12 }}>P{playerNum}</span>
+        </div>
+        <div style={{ color: connectionColor, fontSize: 12, marginTop: 2 }}>{infoPlayer.connected ? "Connected" : "Disconnected"}</div>
+      </div>
+      <div className="player-frame-stats">
+        <span title="Life total"><span className="player-stat-icon">♥</span>{infoPlayer.life}</span>
+        <span title="Cards in hand"><span className="player-stat-icon">▰</span>{handCount}</span>
+        <span title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
+      </div>
+    </div>
+  );
+}
+
+function PlayerFrameStack({ game, player }) {
+  const playerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
+  const topPlayers = playerNumbers.filter((p) => p !== player);
+  const bottomPlayers = playerNumbers.filter((p) => p === player);
+
+  return (
+    <div className="player-frame-stack">
+      <div className="player-frame-row player-frame-row-top">
+        {topPlayers.map((p) => <PlayerInfoBox key={p} game={game} playerNum={p} perspectivePlayer={player} position="top" />)}
+      </div>
+      <div className="player-frame-row player-frame-row-bottom">
+        {bottomPlayers.map((p) => <PlayerInfoBox key={p} game={game} playerNum={p} perspectivePlayer={player} position="bottom" />)}
+      </div>
+    </div>
+  );
+}
+
 function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) {
   const opponentNumbers = Object.keys(game.players || {}).map(Number).filter((p) => p !== player).sort((a, b) => a - b);
   if (opponentNumbers.length === 0) return null;
   return (
     <SectionCard className="opponent-intel" borderColor="#334155" background="rgba(255,255,255,0.94)" style={{ padding: 8, marginBottom: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 15 }}>Opponent Intel</h3>
+        <h3 style={{ margin: 0, fontSize: 15 }}>Opponent Abilities</h3>
         <button onClick={onToggleAbilities} style={{ padding: "4px 8px", fontSize: 12 }}>{showAbilities ? "Hide Abilities" : "Show Abilities"}</button>
       </div>
       <div style={{ display: "grid", gap: 8 }}>
@@ -1268,10 +1337,7 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
           const theme = getFactionTheme(opponent.faction.id);
           return (
             <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
-                <strong style={{ color: theme.primary }}>{getGamePlayerName(game, p)} (P{p})</strong>
-                <span style={{ fontSize: 12 }}>{opponent.handCount ?? opponent.hand?.length ?? 0} cards</span>
-              </div>
+              <strong style={{ color: theme.primary }}>{opponent.faction?.name || `Player ${p}`}</strong>
               {showAbilities && (
                 <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
                   {["commander", "city", "general"].map((key) => opponent.faction?.[key] && (
@@ -1304,23 +1370,6 @@ function PaymentLogPanel({ game }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function CompactPlayerBar({ game, player }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 6, marginBottom: 6 }}>
-      {[1, 2].map((p) => {
-        const theme = getFactionTheme(game.players[p].faction.id);
-        return (
-          <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, padding: "6px 8px", background: p === player ? theme.light : "#fff", display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", fontSize: 13 }}>
-            <span style={{ fontWeight: "bold", color: theme.primary }}>{getGamePlayerName(game, p)} <span style={{ color: "#555", fontWeight: "normal" }}>(P{p})</span></span>
-            <span>{game.players[p].life} life</span>
-            <span style={{ fontSize: 12, color: game.players[p].connected ? "#166534" : "#991b1b" }}>{game.players[p].connected ? "Connected" : "Disconnected"}</span>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -3143,15 +3192,16 @@ export default function App() {
 
   const undoRequest = game.undoRequest;
   const undoNeedsMyApproval = !isSpectator && undoRequest?.approvalsNeeded?.includes(player) && !undoRequest?.approvals?.[player];
+  const drawActionLabel = game.drawOfferBy && game.drawOfferBy !== player ? "Accept Draw" : game.drawOfferBy === player ? "Draw Offered" : "Offer Draw";
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-      <button onClick={requestUndo}>Request Undo</button>
-      <button onClick={returnToMainMenu}>Main Menu</button>
+      <ActionIconButton icon="↶" label="Request Undo" onClick={requestUndo} />
+      <ActionIconButton icon="☰" label="Main Menu" onClick={returnToMainMenu} />
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
       {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
       {!isBasicGame && me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
-      <button onClick={offerDraw} disabled={game.drawOfferBy === player}>{game.drawOfferBy && game.drawOfferBy !== player ? "Accept Draw" : game.drawOfferBy === player ? "Draw Offered" : "Offer Draw"}</button>
-      <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
+      <ActionIconButton icon="½" label={drawActionLabel} onClick={offerDraw} disabled={game.drawOfferBy === player} />
+      <ActionIconButton icon="×" label="Concede" onClick={concedeGame} danger />
     </div>
   ) : null;
 
@@ -3465,10 +3515,64 @@ export default function App() {
         }
         .game-root .player-intel-row {
           display: grid;
-          grid-template-columns: minmax(0, 0.95fr) minmax(260px, 1.05fr);
+          grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr);
           gap: 8px;
           align-items: stretch;
           margin-bottom: 8px;
+        }
+        .player-frame-stack {
+          display: grid;
+          grid-template-rows: auto auto;
+          gap: 8px;
+          min-height: 100%;
+        }
+        .player-frame-row {
+          display: flex;
+          gap: 8px;
+        }
+        .player-frame-row-bottom {
+          align-items: end;
+        }
+        .player-frame {
+          width: 100%;
+          min-width: 0;
+          border: 1px solid;
+          border-radius: 6px;
+          padding: 9px 10px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 10px;
+          box-shadow: ${TABLETOP_THEME.shadow};
+        }
+        .player-frame-top {
+          border-bottom-width: 3px;
+        }
+        .player-frame-bottom {
+          border-top-width: 3px;
+        }
+        .player-frame-stats {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          justify-content: flex-end;
+          flex-wrap: wrap;
+          color: #f5ead5;
+          font-weight: 800;
+          font-size: 13px;
+          min-width: 0;
+        }
+        .player-frame-stats > span {
+          min-width: 0;
+          max-width: min(42vw, 360px);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .player-stat-icon {
+          color: #f7d99e;
+          margin-right: 4px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.7);
         }
         .game-root .opponent-intel {
           margin-bottom: 0 !important;
@@ -3498,6 +3602,42 @@ export default function App() {
         .game-root .quick-action-button {
           border: 1px solid rgba(205,154,86,0.6);
           border-radius: 5px;
+        }
+        .game-root .icon-action-button {
+          min-width: 42px;
+          min-height: 38px;
+          padding: 6px 8px;
+          display: inline-grid;
+          grid-template-columns: auto 1fr;
+          gap: 6px;
+          align-items: center;
+          border-radius: 5px;
+          font-size: 12px;
+          font-weight: 800;
+        }
+        .game-root .icon-action-mark {
+          width: 20px;
+          height: 20px;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid rgba(247,217,158,0.42);
+          border-radius: 4px;
+          color: #f7d99e;
+          background: rgba(8,5,3,0.38);
+          font-size: 14px;
+          line-height: 1;
+        }
+        .game-root .icon-action-label {
+          white-space: nowrap;
+        }
+        .game-root .icon-action-danger {
+          color: #fecaca;
+          border-color: rgba(248,113,113,0.64);
+          background: linear-gradient(180deg, #571c16, #24100c);
+        }
+        .game-root .icon-action-danger .icon-action-mark {
+          color: #fecaca;
+          border-color: rgba(248,113,113,0.56);
         }
         .game-main {
           display: grid;
@@ -3596,6 +3736,12 @@ export default function App() {
           .top-play-area,
           .tabletop-status-strip {
             grid-template-columns: 1fr !important;
+          }
+          .player-frame {
+            grid-template-columns: 1fr !important;
+          }
+          .player-frame-stats {
+            justify-content: flex-start !important;
           }
           .hand-content {
             grid-template-columns: 1fr !important;
@@ -3727,7 +3873,7 @@ export default function App() {
       <div style={{ flex: "0 0 auto", marginBottom: 6 }}><CombatStrip game={game} /></div>
 
       <div className="player-intel-row" style={{ flex: "0 0 auto" }}>
-        <div><CompactPlayerBar game={game} player={player} /></div>
+        <PlayerFrameStack game={game} player={player} />
         {!isSpectator && (
           <OpponentIntelPanel
             game={game}
