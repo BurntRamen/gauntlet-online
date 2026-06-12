@@ -1605,7 +1605,7 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -3421,11 +3421,11 @@ export default function App() {
         }
         .match-top-frame {
           display: grid;
-          grid-template-columns: 230px minmax(0, 1fr) 292px;
-          gap: 10px;
+          grid-template-columns: 210px minmax(0, 1fr) 292px;
+          gap: 8px;
           align-items: stretch;
-          min-height: 108px;
-          margin-bottom: 8px;
+          min-height: 92px;
+          margin-bottom: 6px;
         }
         .gauntlet-logo-panel,
         .top-opponent-panel,
@@ -3442,11 +3442,11 @@ export default function App() {
         .gauntlet-logo-panel {
           display: grid;
           align-content: center;
-          padding: 12px 16px;
+          padding: 10px 14px;
         }
         .gauntlet-logo-panel h2 {
           font-family: Georgia, serif;
-          font-size: 30px;
+          font-size: 27px;
           line-height: 0.92;
           margin: 0;
           letter-spacing: 0;
@@ -3454,9 +3454,9 @@ export default function App() {
         .top-opponent-panel {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 260px 230px;
-          gap: 10px;
+          gap: 8px;
           align-items: stretch;
-          padding: 10px;
+          padding: 8px;
         }
         .deck-slot-row {
           display: grid;
@@ -3465,7 +3465,7 @@ export default function App() {
           min-width: 0;
         }
         .deck-slot {
-          min-height: 78px;
+          min-height: 62px;
           border: 1px solid rgba(205,154,86,0.28);
           border-radius: 5px;
           display: grid;
@@ -3478,8 +3478,8 @@ export default function App() {
         .top-action-panel {
           display: grid;
           grid-template-rows: auto 1fr;
-          gap: 8px;
-          padding: 10px;
+          gap: 6px;
+          padding: 8px;
         }
         .top-action-panel .music-control {
           display: grid;
@@ -3508,15 +3508,16 @@ export default function App() {
         .match-table-frame {
           min-height: 0;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 300px;
+          grid-template-columns: minmax(0, 1fr) minmax(270px, 300px);
           grid-template-rows: minmax(0, 1fr);
           gap: 10px;
+          overflow: hidden;
         }
         .table-main-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: auto minmax(0, 1fr) auto;
-          gap: 8px;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: 6px;
           overflow: hidden;
         }
         .current-play-panel {
@@ -3526,9 +3527,11 @@ export default function App() {
           border-radius: 5px;
           background: rgba(14,9,6,0.82);
           color: ${TABLETOP_THEME.text};
-          padding: 7px 10px;
+          padding: 6px 10px;
           text-align: center;
           box-shadow: ${TABLETOP_THEME.shadow};
+          max-height: 96px;
+          overflow: hidden;
         }
         .current-play-panel strong {
           color: #f7d99e;
@@ -3536,19 +3539,26 @@ export default function App() {
         }
         .bottom-player-panel {
           display: grid;
-          grid-template-columns: 340px minmax(0, 1fr);
-          gap: 10px;
+          grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+          gap: 8px;
           align-items: stretch;
-          padding: 8px;
-          min-height: 188px;
+          padding: 7px;
+          min-height: 0;
+          max-height: 204px;
+          overflow: hidden;
         }
         .table-side-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: auto minmax(0, 1fr) minmax(170px, 0.8fr);
+          grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr) 152px;
           gap: 8px;
           padding: 8px;
           overflow: hidden;
+        }
+        .table-side-panel > .section-card-shell {
+          min-height: 0;
+          overflow: auto;
+          margin-bottom: 0 !important;
         }
         .card-preview-panel {
           min-height: 0;
@@ -3614,6 +3624,8 @@ export default function App() {
           border-color: rgba(205,154,86,0.52) !important;
           border-radius: 6px !important;
           color: ${TABLETOP_THEME.text};
+          min-height: clamp(118px, 22dvh, 158px) !important;
+          padding: 6px !important;
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -24px 48px rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.3) !important;
         }
         .game-root .lane-card > p {
@@ -3621,6 +3633,7 @@ export default function App() {
           text-align: center;
           letter-spacing: 0;
           text-transform: uppercase;
+          margin-bottom: 4px !important;
         }
         .game-root .card-box button {
           color: #23160d;
@@ -3726,13 +3739,16 @@ export default function App() {
         }
         .game-root .board-lanes {
           min-height: 0;
+          height: 100%;
           display: flex;
           flex-direction: column;
           justify-content: center;
           margin-bottom: 0 !important;
+          overflow: hidden;
         }
         .game-root .lane-grid {
           align-items: center;
+          min-height: 0;
         }
         .game-root .game-side {
           gap: 8px;
@@ -3800,9 +3816,10 @@ export default function App() {
         .game-main {
           display: grid;
           grid-template-rows: minmax(0, 1fr) auto auto;
-          gap: 8px;
+          gap: 6px;
           overflow: hidden !important;
           padding-right: 0 !important;
+          min-height: 0;
         }
         .board-lanes { order: 1; }
         .response-strip { order: 2; }
@@ -3819,9 +3836,26 @@ export default function App() {
           flex-wrap: nowrap;
           gap: 7px;
           overflow-x: auto;
+          overflow-y: hidden;
           padding-bottom: 5px;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-x;
+        }
+        .game-root .bottom-player-panel .card-box {
+          width: 98px !important;
+          min-width: 98px !important;
+          min-height: 150px !important;
+        }
+        .game-root .bottom-player-panel .card-box button[title] {
+          height: 44px !important;
+        }
+        .game-root .power-section {
+          max-height: 116px;
+          overflow: auto;
+          margin-bottom: 0 !important;
+        }
+        .game-root .response-strip {
+          display: none !important;
         }
         .recent-events-section {
           flex: 1 1 220px;
@@ -3983,7 +4017,7 @@ export default function App() {
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-      {incomingAttackAlert && (
+      {false && incomingAttackAlert && (
         <div
           role="alert"
           style={{
@@ -4022,9 +4056,9 @@ export default function App() {
       <div className="match-table-frame">
         <div className="table-main-panel">
           <div className="current-play-panel">
-            <strong>{game.campaign?.title || phaseDisplayName()}</strong>
+            <strong>{incomingAttackAlert?.text || game.campaign?.title || phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {game.campaign ? game.campaign.story : phaseHelpText()}
+              {incomingAttackAlert ? "Respond in the status rail before taking another action." : game.campaign ? game.campaign.story : phaseHelpText()}
             </div>
             <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
           </div>
