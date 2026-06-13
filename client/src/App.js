@@ -427,7 +427,7 @@ function resolveAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect }) {
+function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
@@ -438,6 +438,8 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   return (
     <div
       className="card-box"
+      onMouseEnter={onPreview && card ? () => onPreview(card) : undefined}
+      onFocus={onPreview && card ? () => onPreview(card) : undefined}
       style={{
         border: selected ? `2px solid ${accent}` : "1px solid rgba(82, 50, 26, 0.86)",
         borderRadius: 6,
@@ -468,7 +470,11 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
 
       <button
         type="button"
-        onClick={onInspect ? (event) => { event.stopPropagation(); onInspect(card); } : undefined}
+        onClick={onInspect ? (event) => {
+          event.stopPropagation();
+          if (onPreview) onPreview(card);
+          onInspect(card);
+        } : undefined}
         disabled={!onInspect || !card}
         title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
         style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
@@ -1629,6 +1635,7 @@ export default function App() {
   const [showHelperLabels, setShowHelperLabels] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
+  const [previewedCard, setPreviewedCard] = useState(null);
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
@@ -2780,7 +2787,7 @@ export default function App() {
                       const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
                       return (
                         <div key={card.id || i} className="ffa-card">
-                          <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard}>
+                          <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                             <div style={{ fontSize: 9, color: "#4b5563" }}>Index {i}</div>
                             {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
                             {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
@@ -3262,6 +3269,7 @@ export default function App() {
       </div>
     </div>
   ) : null;
+  const sidePreviewCard = previewedCard || inspectedCard;
 
   const powerCards = !isSpectator && !isBasicGame
     ? [
@@ -3470,16 +3478,51 @@ export default function App() {
         }
         .deck-slot {
           min-height: 0;
-          min-width: 66px;
+          min-width: 58px;
           border: 1px solid rgba(205,154,86,0.28);
           border-radius: 5px;
           display: grid;
+          grid-template-rows: auto 1fr;
+          gap: 4px;
           place-items: center;
           color: ${TABLETOP_THEME.muted};
           background: rgba(8,5,3,0.34);
           font-family: Georgia, serif;
-          font-size: 13px;
-          padding: 8px 10px;
+          font-size: 11px;
+          padding: 5px 7px;
+          text-align: center;
+        }
+        .deck-slot.compact {
+          grid-template-rows: 1fr;
+          min-width: 54px;
+          font-size: 12px;
+          padding: 8px 9px;
+        }
+        .deck-slot-card {
+          width: 34px;
+          height: 48px;
+          border: 1px solid rgba(247,217,158,0.58);
+          border-radius: 4px;
+          display: grid;
+          place-items: center;
+          color: #ffe5a9;
+          background:
+            radial-gradient(circle at 50% 42%, rgba(247,217,158,0.28), transparent 24%),
+            linear-gradient(135deg, rgba(42,24,13,0.98), rgba(9,6,4,0.98));
+          box-shadow: inset 0 0 0 2px rgba(0,0,0,0.36), 0 4px 10px rgba(0,0,0,0.38);
+          font-size: 16px;
+          line-height: 1;
+        }
+        .deck-slot-card.empty {
+          color: rgba(247,217,158,0.46);
+          background: linear-gradient(180deg, rgba(25,15,9,0.78), rgba(7,5,4,0.82));
+          font-size: 9px;
+          text-transform: uppercase;
+        }
+        .deck-slot-card.status-card {
+          width: 46px;
+          font-size: 10px;
+          padding: 0 4px;
         }
         .top-action-panel {
           display: grid;
@@ -3583,14 +3626,15 @@ export default function App() {
         }
         .card-preview-panel {
           min-height: 0;
-          border: 1px solid rgba(205,154,86,0.28);
+          border: 1px solid rgba(247,217,158,0.42);
           border-radius: 5px;
-          background: rgba(8,5,3,0.46);
+          background: linear-gradient(180deg, rgba(20,12,7,0.74), rgba(6,4,3,0.68));
           padding: 8px;
           display: grid;
           align-content: start;
           justify-items: center;
           gap: 8px;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
         }
         .card-preview-panel h3 {
           margin: 0;
@@ -3641,28 +3685,31 @@ export default function App() {
           scrollbar-color: rgba(205,154,86,0.66) rgba(16,10,7,0.7);
         }
         .game-root .lane-card {
-          background: radial-gradient(circle at 50% 28%, rgba(205,154,86,0.13), transparent 34%), linear-gradient(180deg, rgba(28,18,11,0.86), rgba(10,7,5,0.9)) !important;
-          border-color: rgba(205,154,86,0.52) !important;
+          background: radial-gradient(circle at 50% 25%, rgba(247,217,158,0.2), transparent 36%), linear-gradient(180deg, rgba(43,27,16,0.94), rgba(10,7,5,0.94)) !important;
+          border-color: rgba(247,217,158,0.78) !important;
           border-radius: 6px !important;
           color: ${TABLETOP_THEME.text};
           min-height: clamp(118px, 22dvh, 158px) !important;
           padding: 6px !important;
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -24px 48px rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.3) !important;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 -24px 48px rgba(0,0,0,0.34), 0 10px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(0,0,0,0.8) !important;
         }
         .game-root .lane-card > p {
-          color: ${TABLETOP_THEME.muted};
+          color: #ffe1a3;
           text-align: center;
           letter-spacing: 0;
           text-transform: uppercase;
           margin-bottom: 4px !important;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.72);
         }
         .lane-card-line {
           display: flex;
           justify-content: space-between;
           gap: 8px;
           align-items: baseline;
-          padding: 2px 0;
-          border-bottom: 1px solid rgba(205,154,86,0.16);
+          padding: 3px 4px;
+          border-bottom: 1px solid rgba(247,217,158,0.18);
+          background: rgba(255,239,207,0.05);
+          border-radius: 4px;
           font-size: 12px;
         }
         .lane-card-line span {
@@ -3672,7 +3719,7 @@ export default function App() {
           font-weight: 800;
         }
         .lane-card-line strong {
-          color: ${TABLETOP_THEME.text};
+          color: #fff4d6;
           font-size: 12px;
         }
         .game-root .card-box button {
@@ -3799,8 +3846,15 @@ export default function App() {
           border-color: rgba(205,154,86,0.24) !important;
           color: ${TABLETOP_THEME.text};
         }
+        .game-root .recent-events-list > div {
+          background: linear-gradient(180deg, rgba(62,39,22,0.92), rgba(20,13,8,0.94)) !important;
+          border: 1px solid rgba(247,217,158,0.5) !important;
+          color: #fff7e6 !important;
+          box-shadow: inset 3px 0 0 rgba(245,158,11,0.82), 0 4px 12px rgba(0,0,0,0.2);
+        }
         .game-root .recent-events-list > div div:first-child {
-          color: ${TABLETOP_THEME.muted} !important;
+          color: #f7d99e !important;
+          font-weight: 800;
         }
         .game-root .quick-action-button {
           border: 1px solid rgba(205,154,86,0.6);
@@ -4023,12 +4077,12 @@ export default function App() {
         <div className="top-opponent-panel">
           <PlayerFrameRow game={game} player={player} placement="opponents" />
           <div className="top-state-pills">
-            <div className="deck-slot">Deck</div>
-            <div className="deck-slot">Discard</div>
-            <div className="deck-slot">{phaseDisplayName()}</div>
-            <div className="deck-slot">Turn {game.turn}</div>
-            <div className="deck-slot">P{game.priority}</div>
-            <div className="deck-slot">{game.phase === "gameOver" ? "Game Over" : "Live"}</div>
+            <div className="deck-slot"><span>Deck</span><span className="deck-slot-card">♦</span></div>
+            <div className="deck-slot"><span>Discard</span><span className="deck-slot-card empty">Empty</span></div>
+            <div className="deck-slot"><span>Command</span><span className="deck-slot-card status-card">{phaseDisplayName()}</span></div>
+            <div className="deck-slot compact">Turn {game.turn}</div>
+            <div className="deck-slot compact">P{game.priority}</div>
+            <div className="deck-slot compact">{game.phase === "gameOver" ? "Game Over" : "Live"}</div>
           </div>
         </div>
         <div className="top-action-panel">
@@ -4161,7 +4215,7 @@ export default function App() {
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
                       return (
-                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard}>
+                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                           <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
                           {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
                           {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
@@ -4295,8 +4349,8 @@ export default function App() {
           </SectionCard>
           <div className="card-preview-panel">
             <h3>Card Preview</h3>
-            {inspectedCard ? (
-              <CardBox card={inspectedCard} onInspect={setInspectedCard} />
+            {sidePreviewCard ? (
+              <CardBox card={sidePreviewCard} onInspect={setInspectedCard} />
             ) : (
               <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Select card art to preview.</div>
             )}
