@@ -549,6 +549,55 @@ function CardInspectModal({ card, onClose }) {
   );
 }
 
+function DiscardPileModal({ game, playerNumbers, onClose, onInspect, onPreview }) {
+  if (!game) return null;
+
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 78, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
+      <div onClick={(event) => event.stopPropagation()} style={{ width: "min(820px, 94vw)", maxHeight: "86dvh", overflow: "auto", border: "2px solid rgba(250,204,21,0.72)", borderRadius: 10, background: "linear-gradient(180deg, #21150c, #090604)", color: "#fff7e6", boxShadow: "0 24px 80px rgba(0,0,0,0.58)", padding: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
+          <h2 style={{ margin: 0, fontFamily: "Georgia, serif", color: "#f7d99e" }}>Discard Piles</h2>
+          <button onClick={onClose} style={{ border: "1px solid rgba(247,217,158,0.52)", borderRadius: 6, background: "rgba(8,5,3,0.62)", color: "#fff7e6", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+          {playerNumbers.map((playerNum) => {
+            const discard = game.players?.[playerNum]?.discard || [];
+            return (
+              <section key={playerNum} style={{ border: "1px solid rgba(247,217,158,0.36)", borderRadius: 8, background: "rgba(255,239,207,0.06)", padding: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", marginBottom: 8 }}>
+                  <strong style={{ color: "#f7d99e" }}>{getGamePlayerName(game, playerNum)} (P{playerNum})</strong>
+                  <span style={{ color: TABLETOP_THEME.muted, fontSize: 12 }}>{discard.length} cards</span>
+                </div>
+                {discard.length === 0 ? (
+                  <div style={{ color: TABLETOP_THEME.muted, fontSize: 13 }}>No cards in discard.</div>
+                ) : (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {discard.map((card, index) => (
+                      <button
+                        key={card.id || `${playerNum}-${index}`}
+                        type="button"
+                        onMouseEnter={() => onPreview(card)}
+                        onFocus={() => onPreview(card)}
+                        onClick={() => {
+                          onPreview(card);
+                          onInspect(card);
+                        }}
+                        style={{ border: 0, background: "transparent", padding: 0, cursor: "zoom-in" }}
+                      >
+                        <SmallCardToken card={card} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {}, className }) {
   const combinedClassName = ["section-card-shell", className].filter(Boolean).join(" ");
   return (
@@ -1636,6 +1685,7 @@ export default function App() {
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
+  const [showDiscardViewer, setShowDiscardViewer] = useState(false);
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
@@ -2504,6 +2554,7 @@ export default function App() {
     linear-gradient(90deg, #2a160b 0%, #5b341b 42%, #2b170d 100%)
   `;
   const gameIsOver = game.phase === "gameOver" || game.winner != null;
+  const matchPlayerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
 
   if (gameIsOver) {
     const isDraw = game.winner == null;
@@ -2700,6 +2751,15 @@ export default function App() {
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
         <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+        {showDiscardViewer && (
+          <DiscardPileModal
+            game={game}
+            playerNumbers={matchPlayerNumbers}
+            onClose={() => setShowDiscardViewer(false)}
+            onInspect={setInspectedCard}
+            onPreview={setPreviewedCard}
+          />
+        )}
         <style>{`
           .ffa-hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 6px; }
           .ffa-hand-content { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 8px; align-items: start; }
@@ -3270,6 +3330,8 @@ export default function App() {
     </div>
   ) : null;
   const sidePreviewCard = previewedCard || inspectedCard;
+  const deckCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.deckCount ?? game.players?.[p]?.deck?.length ?? 0}`).join(" / ");
+  const discardCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.discardCount ?? game.players?.[p]?.discard?.length ?? 0}`).join(" / ");
 
   const powerCards = !isSpectator && !isBasicGame
     ? [
@@ -3409,6 +3471,15 @@ export default function App() {
   return (
     <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
       <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+      {showDiscardViewer && (
+        <DiscardPileModal
+          game={game}
+          playerNumbers={matchPlayerNumbers}
+          onClose={() => setShowDiscardViewer(false)}
+          onInspect={setInspectedCard}
+          onPreview={setPreviewedCard}
+        />
+      )}
       <style>{`
         .game-root button {
           border-radius: 5px;
@@ -3478,11 +3549,11 @@ export default function App() {
         }
         .deck-slot {
           min-height: 0;
-          min-width: 58px;
+          min-width: 72px;
           border: 1px solid rgba(205,154,86,0.28);
           border-radius: 5px;
           display: grid;
-          grid-template-rows: auto 1fr;
+          grid-template-rows: auto 1fr auto;
           gap: 4px;
           place-items: center;
           color: ${TABLETOP_THEME.muted};
@@ -3491,6 +3562,18 @@ export default function App() {
           font-size: 11px;
           padding: 5px 7px;
           text-align: center;
+        }
+        button.deck-slot {
+          cursor: pointer;
+          background: rgba(8,5,3,0.34);
+          color: ${TABLETOP_THEME.muted};
+          font-family: Georgia, serif;
+          box-shadow: none;
+        }
+        button.deck-slot:hover,
+        button.deck-slot:focus-visible {
+          border-color: rgba(247,217,158,0.7);
+          box-shadow: 0 0 0 2px rgba(245,158,11,0.18), 0 4px 12px rgba(0,0,0,0.28);
         }
         .deck-slot.compact {
           grid-template-rows: 1fr;
@@ -3523,6 +3606,15 @@ export default function App() {
           width: 46px;
           font-size: 10px;
           padding: 0 4px;
+        }
+        .deck-slot-count {
+          color: #fff4d6;
+          font-family: Arial, sans-serif;
+          font-size: 10px;
+          font-weight: 800;
+          line-height: 1.15;
+          max-width: 86px;
+          overflow-wrap: anywhere;
         }
         .top-action-panel {
           display: grid;
@@ -3786,9 +3878,9 @@ export default function App() {
           border-radius: 6px;
           padding: 9px 10px;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) auto;
-          align-items: center;
-          gap: 10px;
+          grid-template-columns: minmax(0, 1fr);
+          align-items: start;
+          gap: 6px;
           box-shadow: ${TABLETOP_THEME.shadow};
         }
         .player-frame-top {
@@ -3799,21 +3891,25 @@ export default function App() {
         }
         .player-frame-stats {
           display: flex;
-          gap: 10px;
+          gap: 6px 10px;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: flex-start;
           flex-wrap: wrap;
           color: #f5ead5;
           font-weight: 800;
-          font-size: 13px;
+          font-size: 12px;
           min-width: 0;
         }
         .player-frame-stats > span {
           min-width: 0;
-          max-width: min(42vw, 360px);
+          max-width: min(40vw, 430px);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+        .player-frame-stats > span[title^="CCG"] {
+          flex: 1 1 240px;
+          max-width: 100%;
         }
         .player-stat-icon {
           color: #f7d99e;
@@ -4077,8 +4173,8 @@ export default function App() {
         <div className="top-opponent-panel">
           <PlayerFrameRow game={game} player={player} placement="opponents" />
           <div className="top-state-pills">
-            <div className="deck-slot"><span>Deck</span><span className="deck-slot-card">♦</span></div>
-            <div className="deck-slot"><span>Discard</span><span className="deck-slot-card empty">Empty</span></div>
+            <div className="deck-slot" title={`Cards in deck: ${deckCountSummary}`}><span>Deck</span><span className="deck-slot-card">♦</span><span className="deck-slot-count">{deckCountSummary}</span></div>
+            <button type="button" className="deck-slot" onClick={() => setShowDiscardViewer(true)} title="View discard piles"><span>Discard</span><span className="deck-slot-card empty">View</span><span className="deck-slot-count">{discardCountSummary}</span></button>
             <div className="deck-slot"><span>Command</span><span className="deck-slot-card status-card">{phaseDisplayName()}</span></div>
             <div className="deck-slot compact">Turn {game.turn}</div>
             <div className="deck-slot compact">P{game.priority}</div>
