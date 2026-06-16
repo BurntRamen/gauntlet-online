@@ -1082,6 +1082,21 @@ function HelperToggle({ enabled, onToggle, light = false }) {
   );
 }
 
+function QuickActionButton({ children, className = "", disabled = false, reason = "", title = "", ...props }) {
+  const helpTitle = disabled && reason ? reason : title;
+  return (
+    <button
+      {...props}
+      className={`quick-action-button ${className}`.trim()}
+      disabled={disabled}
+      title={helpTitle}
+      aria-label={helpTitle ? `${children}: ${helpTitle}` : undefined}
+    >
+      {children}
+    </button>
+  );
+}
+
 function LobbySeatGrid({ lobby }) {
   const playerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
   return (
@@ -1115,7 +1130,9 @@ function getCombatSummaries(game) {
     defender: attack.targetPlayer || (attack.player === 1 ? 2 : 1),
     card: attack.card,
     attackValue: attack.effectiveValue || 0,
-    blockValue: (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0)
+    blockValue: (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0),
+    payment: attack.payment || null,
+    blocks: attack.block || []
   }));
   const lanes = (game.lanes || [])
     .map((lane, laneIndex) => lane.attack ? ({
@@ -1125,10 +1142,17 @@ function getCombatSummaries(game) {
       defender: lane.attack.targetPlayer || (lane.attack.player === 1 ? 2 : 1),
       card: lane.attack.card,
       attackValue: lane.attack.effectiveValue || 0,
-      blockValue: (lane.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0)
+      blockValue: (lane.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0),
+      payment: lane.attack.payment || null,
+      blocks: lane.block || []
     }) : null)
     .filter(Boolean);
   return [...hand, ...lanes].map((summary) => ({ ...summary, projectedDamage: Math.max(0, summary.attackValue - summary.blockValue) }));
+}
+
+function formatCombatCards(cards) {
+  if (!Array.isArray(cards) || cards.length === 0) return "none";
+  return cards.map(getCardShortLabel).join(", ");
 }
 
 function CombatStrip({ game }) {
@@ -1136,14 +1160,20 @@ function CombatStrip({ game }) {
   if (summaries.length === 0) return null;
 
   return (
-    <div style={{ border: "2px solid #f59e0b", borderRadius: 8, background: "rgba(15,23,42,0.92)", color: "#f8fafc", padding: 8, display: "grid", gap: 6 }}>
+    <div style={{ border: "2px solid #f59e0b", borderRadius: 8, background: "rgba(15,23,42,0.92)", color: "#f8fafc", padding: 8, display: "grid", gap: 8 }}>
       {summaries.map((summary) => (
-        <div key={summary.id} style={{ display: "grid", gridTemplateColumns: "minmax(80px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center", fontSize: 13 }}>
-          <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
-          <span>P{summary.attacker}{" -> "}P{summary.defender}: {getCardShortLabel(summary.card)}</span>
-          <span>ATK {summary.attackValue}</span>
-          <span>BLK {summary.blockValue}</span>
-          <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
+        <div key={summary.id} style={{ display: "grid", gap: 5, fontSize: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(68px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center" }}>
+            <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
+            <span>P{summary.attacker}{" -> "}P{summary.defender}: <strong>{getCardShortLabel(summary.card)}</strong></span>
+            <span>ATK {summary.attackValue}</span>
+            <span>BLK {summary.blockValue}</span>
+            <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 6, color: "#cbd5e1" }}>
+            <span>Attack paid: {summary.payment ? `${summary.payment.total}/${summary.payment.required} with ${formatCombatCards(summary.payment.cards)}` : "none"}</span>
+            <span>Blocks: {summary.blocks.length > 0 ? summary.blocks.map((block) => `P${block.player} ${getCardShortLabel(block.card)}${block.payment ? ` paid ${block.payment.total}/${block.payment.required}` : ""}`).join("; ") : "none"}</span>
+          </div>
         </div>
       ))}
     </div>
@@ -1660,7 +1690,7 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: true, actions: false, events: false, attacks: true });
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -2618,6 +2648,23 @@ export default function App() {
     const activeBlockRequired = blockMode?.type === "handAttack"
       ? activeBlockCards.reduce((sum, card) => sum + getCardNumericValue(card), 0)
       : activeBlockCard ? getCardNumericValue(activeBlockCard) : 0;
+    const ffaAttackConfirmReason =
+      attackMode && !activeAttackCard
+        ? "Choose an attacking card first."
+        : attackMode && !currentTarget
+          ? "Choose a target player."
+          : attackMode && paymentTotal < activeAttackRequired
+            ? `Select payment cards worth at least ${activeAttackRequired}. Current payment is ${paymentTotal}.`
+            : "";
+    const ffaBlockConfirmReason =
+      blockMode?.type === "handAttack" && activeBlockCards.length === 0
+        ? "Choose one or more cards to block with."
+        : blockMode?.type === "laneAttack" && !activeBlockCard
+          ? "You need a face-down card in that lane to block."
+          : blockMode && paymentTotal < activeBlockRequired
+            ? `Select payment cards worth at least ${activeBlockRequired}. Current payment is ${paymentTotal}.`
+            : "";
+    const ffaPlacementConfirmReason = placementMode && selectedPlacementCardIndex == null ? "Choose a hand card to place face-down." : "";
     const currentEndLane = game.endPlacementLaneIndex;
     const firstIndex = Math.max(0, activePlayers.indexOf(game.endPlacementFirstPlayer));
     const currentEndPlayer = activePlayers.length > 0 ? activePlayers[(firstIndex + (game.endPlacementStep || 0)) % activePlayers.length] : null;
@@ -2708,41 +2755,49 @@ export default function App() {
         }}
       >
         <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
+        {(attackMode || blockMode) && (
+          <div style={{ border: "1px solid rgba(17,24,39,0.16)", borderRadius: 6, padding: "5px 6px", color: "#111827", fontSize: 12, background: "rgba(255,255,255,0.58)", fontWeight: "bold" }}>
+            Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
+          </div>
+        )}
         {attackMode && (
           <>
             <div style={{ color: "#555", fontSize: 12 }}>
               {attackMode.from === "hand" ? "Choose an attack card, target, and payment." : "Choose a target and payment."}
             </div>
-            <button className="quick-action-button quick-action-primary" onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget || paymentTotal < activeAttackRequired}>Confirm Attack</button>
-            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+            <QuickActionButton className="quick-action-primary" onClick={confirmFfaAttack} disabled={!!ffaAttackConfirmReason} reason={ffaAttackConfirmReason}>Confirm Attack</QuickActionButton>
+            <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
           </>
         )}
         {blockMode && (
           <>
             <div style={{ color: "#555", fontSize: 12 }}>Choose block cards if needed, then pay at least the block value.</div>
-            <button className="quick-action-button quick-action-primary" onClick={confirmFfaBlock} disabled={activeBlockRequired <= 0 || paymentTotal < activeBlockRequired}>Confirm Block</button>
-            <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take Damage</button>
-            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+            <QuickActionButton className="quick-action-primary" onClick={confirmFfaBlock} disabled={!!ffaBlockConfirmReason} reason={ffaBlockConfirmReason}>Confirm Block</QuickActionButton>
+            <QuickActionButton className="quick-action-danger" onClick={passFfaBlock}>Take Damage</QuickActionButton>
+            <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
           </>
         )}
         {placementMode && (
           <>
             <div style={{ color: "#555", fontSize: 12 }}>Choose one hand card to place face-down in lane {placementMode.lane + 1}.</div>
-            <button className="quick-action-button quick-action-primary" onClick={confirmFfaPlacement} disabled={selectedPlacementCardIndex == null}>Place Facedown</button>
-            <button className="quick-action-button quick-action-secondary" onClick={() => skipFfaPlacement(placementMode.lane)}>Skip Lane</button>
-            <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+            <QuickActionButton className="quick-action-primary" onClick={confirmFfaPlacement} disabled={!!ffaPlacementConfirmReason} reason={ffaPlacementConfirmReason}>Place Facedown</QuickActionButton>
+            <QuickActionButton className="quick-action-secondary" onClick={() => skipFfaPlacement(placementMode.lane)}>Skip Lane</QuickActionButton>
+            <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
           </>
         )}
         {!attackMode && !blockMode && !placementMode && (
           <>
-            {incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={startFfaHandBlock}>Block with Cards</button>}
-            {incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-            {incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={startFfaLaneBlock}>Block Lane</button>}
-            {incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={passFfaBlock}>Take Damage</button>}
-            {canDeclareAttack && <button className="quick-action-button quick-action-primary" onClick={startFfaHandAttack}>Attack from Hand</button>}
-            {game.phase === "priority" && isMyPriority && <button className="quick-action-button quick-action-primary" onClick={passPriority}>Pass / Continue</button>}
-            {game.phase === "end" && isMyEndPlacementTurn && <button className="quick-action-button quick-action-secondary" onClick={() => skipFfaPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+            {incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={startFfaHandBlock}>Block with Cards</QuickActionButton>}
+            {incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={passFfaBlock}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
+            {incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={startFfaLaneBlock}>Block Lane</QuickActionButton>}
+            {incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={passFfaBlock}>Take Damage</QuickActionButton>}
+            {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startFfaHandAttack}>Attack from Hand</QuickActionButton>}
+            {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
+            {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipFfaPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
           </>
+        )}
+        {(ffaAttackConfirmReason || ffaBlockConfirmReason || ffaPlacementConfirmReason) && (
+          <div style={{ color: "#92400e", fontSize: 12, fontWeight: "bold" }}>{ffaAttackConfirmReason || ffaBlockConfirmReason || ffaPlacementConfirmReason}</div>
         )}
         <div style={{ color: "#555", fontSize: 12 }}>{game.message || "Choose an action."}</div>
       </div>
@@ -2978,6 +3033,21 @@ export default function App() {
       : blockMode && activeBlockRequired > 0 && paymentTotal < activeBlockRequired
         ? `Need ${activeBlockRequired} payment; selected ${paymentTotal}.`
         : "";
+  const attackConfirmReason =
+    attackMode && !activeAttackCard
+      ? "Choose an attacking card first."
+      : attackMode && paymentTotal < activeAttackRequired
+        ? `Select payment cards worth at least ${activeAttackRequired}. Current payment is ${paymentTotal}.`
+        : "";
+  const blockConfirmReason =
+    blockMode?.type === "handAttack" && activeBlockCards.length === 0
+      ? "Choose one or more cards to block with."
+      : blockMode?.type === "laneAttack" && !activeBlockCard
+        ? "You need a face-down card in that lane to block."
+        : blockMode && paymentTotal < activeBlockRequired
+          ? `Select payment cards worth at least ${activeBlockRequired}. Current payment is ${paymentTotal}.`
+          : "";
+  const placementConfirmReason = placementMode && !activePlacementCard ? "Choose a hand card to place face-down." : "";
 
   const currentEndLane = game.endPlacementLaneIndex;
   const isMyEndPlacementTurn =
@@ -3286,42 +3356,50 @@ export default function App() {
       }}
     >
       <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
+      {(attackMode || blockMode) && (
+        <div style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
+          Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
+        </div>
+      )}
       {attackMode && (
         <>
-          <button className="quick-action-button quick-action-primary" onClick={confirmAttack} disabled={!activeAttackCard}>Confirm Attack</button>
-          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          <QuickActionButton className="quick-action-primary" onClick={confirmAttack} disabled={!!attackConfirmReason} reason={attackConfirmReason}>Confirm Attack</QuickActionButton>
+          <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
       )}
       {blockMode && (
         <>
-          <button className="quick-action-button quick-action-primary" onClick={confirmBlock} disabled={blockMode.type === "handAttack" ? activeBlockCards.length === 0 || paymentTotal < activeBlockRequired : !activeBlockCard || paymentTotal < activeBlockRequired}>Confirm Block</button>
-          <button className="quick-action-button quick-action-danger" onClick={passCurrentBlock}>Take Damage</button>
-          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          <QuickActionButton className="quick-action-primary" onClick={confirmBlock} disabled={!!blockConfirmReason} reason={blockConfirmReason}>Confirm Block</QuickActionButton>
+          <QuickActionButton className="quick-action-danger" onClick={passCurrentBlock}>Take Damage</QuickActionButton>
+          <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
       )}
       {placementMode && (
         <>
-          <button className="quick-action-button quick-action-primary" onClick={confirmPlacement} disabled={!activePlacementCard}>Place Facedown</button>
-          <button className="quick-action-button quick-action-secondary" onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</button>
-          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          <QuickActionButton className="quick-action-primary" onClick={confirmPlacement} disabled={!!placementConfirmReason} reason={placementConfirmReason}>Place Facedown</QuickActionButton>
+          <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</QuickActionButton>
+          <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
       )}
       {abilityMode && (
         <>
-          <button className="quick-action-button quick-action-primary" onClick={confirmAbility}>Confirm Ability</button>
-          <button className="quick-action-button quick-action-secondary" onClick={resetSelections}>Cancel</button>
+          <QuickActionButton className="quick-action-primary" onClick={confirmAbility}>Confirm Ability</QuickActionButton>
+          <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <button className="quick-action-button quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</button>}
-          {canDeclareAttack && <button className="quick-action-button quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</button>}
-          {game.phase === "priority" && isMyPriority && <button className="quick-action-button quick-action-primary" onClick={passPriority}>Pass / Continue</button>}
-          {game.phase === "end" && isMyEndPlacementTurn && <button className="quick-action-button quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</button>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</QuickActionButton>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</QuickActionButton>}
+          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</QuickActionButton>}
+          {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</QuickActionButton>}
+          {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
+          {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
         </>
+      )}
+      {(attackConfirmReason || blockConfirmReason || placementConfirmReason) && (
+        <div style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
       <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
@@ -3671,8 +3749,8 @@ export default function App() {
           padding: 6px 10px;
           text-align: center;
           box-shadow: ${TABLETOP_THEME.shadow};
-          max-height: 96px;
-          overflow: hidden;
+          max-height: 132px;
+          overflow: auto;
         }
         .current-play-panel strong {
           color: #f7d99e;
@@ -4094,73 +4172,260 @@ export default function App() {
         }
         @media (max-width: 760px) {
           .game-root {
-            height: auto !important;
+            height: 100dvh !important;
             min-height: 100dvh !important;
-            overflow: visible !important;
-            padding: 6px !important;
+            overflow: hidden !important;
+            padding: 4px !important;
+            grid-template-rows: auto minmax(0, 1fr) !important;
+            gap: 4px !important;
           }
-          .game-grid { grid-template-columns: 1fr !important; gap: 6px !important; }
-          .game-main {
-            overflow: visible !important;
-            padding-right: 0 !important;
+          .match-top-frame {
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            min-height: 0 !important;
+            max-height: 92px !important;
+            gap: 4px !important;
+            margin-bottom: 0 !important;
           }
-          .game-side {
-            position: static !important;
-            max-height: none !important;
-            display: grid !important;
+          .gauntlet-logo-panel {
+            display: none !important;
+          }
+          .top-opponent-panel {
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 4px !important;
+            padding: 4px !important;
+          }
+          .top-action-panel {
+            padding: 4px !important;
+            align-content: start !important;
+          }
+          .top-action-icons {
+            grid-template-columns: 36px 36px !important;
+            gap: 4px !important;
+          }
+          .action-icon-dock {
+            display: none !important;
+          }
+          .top-state-pills {
+            width: auto !important;
+            max-width: 112px !important;
+            gap: 3px !important;
+          }
+          .deck-slot {
+            min-width: 48px !important;
+            padding: 3px 4px !important;
+            font-size: 9px !important;
+            gap: 2px !important;
+          }
+          .deck-slot-card {
+            width: 22px !important;
+            height: 30px !important;
+            font-size: 10px !important;
+          }
+          .deck-slot-card.status-card {
+            width: 34px !important;
+            font-size: 8px !important;
+          }
+          .deck-slot-count {
+            font-size: 8px !important;
+            max-width: 48px !important;
+          }
+          .deck-slot.compact {
+            display: none !important;
+          }
+          .player-frame {
+            padding: 5px 6px !important;
+            gap: 2px !important;
+          }
+          .player-frame strong {
+            font-size: 12px !important;
+          }
+          .player-frame-stats {
+            font-size: 10px !important;
+            gap: 3px 6px !important;
+          }
+          .player-frame-stats > span[title^="CCG"] {
+            flex-basis: 100% !important;
+          }
+          .match-table-frame {
             grid-template-columns: 1fr !important;
-            gap: 6px !important;
-            overflow: visible !important;
+            gap: 4px !important;
+            overflow: hidden !important;
+          }
+          .table-side-panel {
+            display: none !important;
+          }
+          .table-main-panel {
+            grid-template-rows: auto minmax(0, 1fr) !important;
+            gap: 4px !important;
+            overflow: hidden !important;
+          }
+          .current-play-panel {
+            width: 100% !important;
+            max-height: 72px !important;
+            padding: 4px 6px !important;
+            font-size: 11px !important;
+          }
+          .current-play-panel > div {
+            font-size: 10px !important;
+            margin-top: 2px !important;
+          }
+          .current-play-panel [style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+          }
+          .game-main {
+            display: grid !important;
+            grid-template-rows: minmax(118px, 0.82fr) auto minmax(230px, 1.18fr) !important;
+            gap: 4px !important;
+            overflow: hidden !important;
+            padding-right: 0 !important;
+            min-height: 0 !important;
+          }
+          .board-lanes {
+            order: 1 !important;
+            min-height: 0 !important;
+            padding: 4px !important;
+            overflow: hidden !important;
+          }
+          .power-section {
+            order: 2 !important;
+            max-height: 82px !important;
+            min-height: 0 !important;
+            padding: 4px !important;
+            overflow: auto !important;
+            margin-bottom: 0 !important;
+          }
+          .power-section h3,
+          .power-section button {
+            font-size: 10px !important;
+          }
+          .power-section .section-card-shell {
+            padding: 4px !important;
+          }
+          .power-section [style*="grid-template-columns"] {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 4px !important;
+          }
+          .power-section img,
+          .power-section span[style*="width: 46"] {
+            width: 30px !important;
+            height: 30px !important;
+          }
+          .bottom-player-panel {
+            order: 3 !important;
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto minmax(0, 1fr) !important;
+            gap: 4px !important;
+            max-height: none !important;
+            min-height: 0 !important;
+            padding: 4px !important;
+            overflow: hidden !important;
+          }
+          .bottom-left-actions {
+            grid-template-rows: auto !important;
+            gap: 4px !important;
+          }
+          .bottom-left-actions .player-frame-row {
+            display: none !important;
+          }
+          .near-hand-actions {
+            max-height: 84px !important;
+            min-width: 0 !important;
+            padding: 5px !important;
+            gap: 4px !important;
+            overflow-y: auto !important;
+          }
+          .near-hand-actions > div:first-child {
+            font-size: 10px !important;
+          }
+          .quick-action-button {
+            min-height: 28px !important;
+            padding: 5px 7px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
           }
           .hand-section {
             position: static !important;
             box-shadow: none !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
           }
-          .player-intel-row,
-          .top-play-area,
-          .tabletop-status-strip {
-            grid-template-columns: 1fr !important;
-          }
-          .player-frame {
-            grid-template-columns: 1fr !important;
-          }
-          .player-frame-stats {
-            justify-content: flex-start !important;
+          .hand-section h3 {
+            font-size: 14px !important;
+            margin: 0 0 3px 0 !important;
           }
           .hand-content {
             grid-template-columns: 1fr !important;
-          }
-          .near-hand-actions {
-            min-width: 0 !important;
+            min-height: 0 !important;
           }
           .hand-card-row {
             display: grid !important;
             grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            gap: 5px !important;
+            grid-auto-rows: minmax(0, 1fr) !important;
+            gap: 3px !important;
             overflow-x: visible !important;
+            overflow-y: hidden !important;
             padding-bottom: 0 !important;
             touch-action: auto !important;
+            min-height: 0 !important;
           }
           .card-box {
             width: 100% !important;
             min-width: 0 !important;
-            min-height: 126px !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            padding: 3px !important;
+            font-size: 9px !important;
+            border-radius: 5px !important;
+          }
+          .card-box > div:first-child div:first-child {
+            font-size: 13px !important;
+          }
+          .card-box > button[title] {
+            height: 28px !important;
+            margin: 2px 0 !important;
+          }
+          .card-box > button[title] + div {
+            margin-bottom: 1px !important;
+          }
+          .card-box button:not([title]) {
+            font-size: 9px !important;
+            padding: 2px !important;
+            min-height: 20px !important;
+          }
+          .lane-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 3px !important;
+            overflow: hidden !important;
+            min-height: 0 !important;
+          }
+          .lane-card {
+            min-height: 0 !important;
+            height: 100% !important;
             padding: 4px !important;
-            font-size: 11px !important;
+            font-size: 9px !important;
+          }
+          .lane-card > p {
+            font-size: 10px !important;
+            margin-bottom: 2px !important;
+          }
+          .lane-card-line {
+            font-size: 9px !important;
+            gap: 3px !important;
+            padding: 2px !important;
+          }
+          .lane-card-line span,
+          .lane-card-line strong {
+            font-size: 8px !important;
+            line-height: 1.1 !important;
           }
           .recent-events-section {
-            flex: 0 0 auto !important;
-            overflow: visible !important;
+            display: none !important;
           }
           .recent-events-list {
-            max-height: 240px !important;
+            max-height: 120px !important;
           }
-          .game-header { align-items: flex-start !important; }
-          .game-header h2 { font-size: 18px !important; }
           .music-control { display: none !important; }
-          .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .lane-grid { grid-template-columns: repeat(3, minmax(105px, 1fr)) !important; overflow-x: auto !important; }
-          .lane-card { min-height: 118px !important; padding: 6px !important; }
+          .card-preview-panel { display: none !important; }
         }
       `}</style>
       <div className="match-top-frame">
