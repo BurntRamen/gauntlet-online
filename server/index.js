@@ -189,6 +189,137 @@ const PROGRESSION_COSMETICS = {
   }
 };
 
+const RUMIN_COLLECTION_CARDS = [
+  {
+    id: "rumin-gilded-scale-legionary",
+    factionId: "rumin",
+    name: "Gilded Scale Legionary",
+    type: "unit",
+    rarity: "common",
+    value: 3,
+    text: "When this attacks after a diamond was paid this turn, it gets +1 value."
+  },
+  {
+    id: "rumin-forum-ledger-runner",
+    factionId: "rumin",
+    name: "Forum Ledger Runner",
+    type: "unit",
+    rarity: "common",
+    value: 2,
+    text: "If this is your first attack this turn, you may treat one payment card as +1 value."
+  },
+  {
+    id: "rumin-vault-shield-bearer",
+    factionId: "rumin",
+    name: "Vault Shield Bearer",
+    type: "unit",
+    rarity: "common",
+    value: 4,
+    text: "When blocking, prevent 1 damage if you overpaid for this block."
+  },
+  {
+    id: "rumin-coin-scale-spear",
+    factionId: "rumin",
+    name: "Coin-Scale Spear",
+    type: "weapon",
+    rarity: "common",
+    value: 4,
+    text: "Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this."
+  },
+  {
+    id: "rumin-senate-vault-guard",
+    factionId: "rumin",
+    name: "Senate Vault Guard",
+    type: "unit",
+    rarity: "uncommon",
+    value: 5,
+    text: "The first time you overpay for this each turn, gain 1 life."
+  },
+  {
+    id: "rumin-marble-market-tribune",
+    factionId: "rumin",
+    name: "Marble Market Tribune",
+    type: "unit",
+    rarity: "uncommon",
+    value: 6,
+    text: "After this attacks, your next Rumin weapon armed from a lane gives an additional +1 value."
+  },
+  {
+    id: "rumin-rumie-vault-shield",
+    factionId: "rumin",
+    name: "Rumie Vault Shield",
+    type: "weapon",
+    rarity: "uncommon",
+    value: 6,
+    text: "Arm from lane: attach to a hand attacker or blocker. It gets +3 value this combat, then discard this."
+  },
+  {
+    id: "rumin-imperial-scale-pike",
+    factionId: "rumin",
+    name: "Imperial Scale Pike",
+    type: "weapon",
+    rarity: "uncommon",
+    value: 5,
+    text: "Arm from lane: attach to a hand attacker. It gets +2 value, or +4 if it shares a suit with your previous attack."
+  },
+  {
+    id: "rumin-aurelian-clawblade",
+    factionId: "rumin",
+    name: "Aurelian Clawblade",
+    type: "weapon",
+    rarity: "rare",
+    value: 7,
+    text: "Arm from lane: attach to a hand attacker. It gets +4 value this combat. If you overpaid by 2 or more, gain 1 life."
+  },
+  {
+    id: "rumin-basilisk-standard",
+    factionId: "rumin",
+    name: "Basilisk Standard",
+    type: "standard",
+    rarity: "rare",
+    value: 6,
+    text: "Your fourth attack each turn gets +2 additional value if a weapon is armed to it."
+  },
+  {
+    id: "rumin-jewel-bank-contract",
+    factionId: "rumin",
+    name: "Jewel-Bank Contract",
+    type: "tactic",
+    rarity: "rare",
+    value: 5,
+    text: "The next Rumin card you play this turn may be paid for with one card as though it had +2 value."
+  },
+  {
+    id: "rumin-kaisers-gold-claw",
+    factionId: "rumin",
+    name: "Kaiser's Gold Claw",
+    type: "weapon",
+    rarity: "mythic",
+    value: 9,
+    text: "Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +7 if it is your fourth attack this turn."
+  },
+  {
+    id: "rumin-rumie-market-colossus",
+    factionId: "rumin",
+    name: "Rumie Market Colossus",
+    type: "unit",
+    rarity: "mythic",
+    value: 10,
+    text: "When this attacks, each Rumin weapon you control in a lane may arm to it. Each armed weapon gives an extra +1 value."
+  }
+];
+
+const BOOSTER_PRODUCTS = {
+  "rumin-foundation": {
+    id: "rumin-foundation",
+    name: "Rumin Foundation Pack",
+    factionId: "rumin",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+  }
+};
+
 function emptyProgression() {
   return {
     achievements: {},
@@ -202,6 +333,34 @@ function emptyProgression() {
       selectedCardBack: "classic",
       selectedFactionBadge: "none"
     }
+  };
+}
+
+function emptyCollection() {
+  return {
+    cards: {},
+    openedPacks: 0,
+    lastPack: null
+  };
+}
+
+function normalizeCollection(stats = {}) {
+  const base = emptyCollection();
+  const collection = stats.collection || {};
+  return {
+    cards: { ...base.cards, ...(collection.cards || {}) },
+    openedPacks: Number(collection.openedPacks || 0),
+    lastPack: collection.lastPack || null
+  };
+}
+
+function collectionSummary(stats = {}) {
+  return {
+    ...normalizeCollection(stats),
+    catalog: {
+      rumin: RUMIN_COLLECTION_CARDS
+    },
+    boosters: BOOSTER_PRODUCTS
   };
 }
 
@@ -237,7 +396,8 @@ function publicAccount(account) {
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
     stats: account.stats || {},
-    progression: progressionSummary(account.stats || {})
+    progression: progressionSummary(account.stats || {}),
+    collection: collectionSummary(account.stats || {})
   };
 }
 
@@ -719,6 +879,45 @@ function getAccountMatchProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
+function pickCollectionCard(factionId, rarity) {
+  const cardPool = RUMIN_COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
+  if (cardPool.length === 0) return null;
+  return cardPool[crypto.randomInt(cardPool.length)];
+}
+
+function resolveBoosterSlot(slot) {
+  if (slot !== "wild") return slot;
+  return crypto.randomInt(100) < 20 ? "mythic" : "rare";
+}
+
+function openCollectionBooster(stats, packId) {
+  const pack = BOOSTER_PRODUCTS[packId];
+  if (!pack) throw new Error("Unknown booster pack.");
+
+  const collection = normalizeCollection(stats);
+  const openedCards = pack.slots
+    .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
+    .filter(Boolean);
+
+  openedCards.forEach((card) => {
+    collection.cards[card.id] = (collection.cards[card.id] || 0) + 1;
+  });
+
+  collection.openedPacks += 1;
+  collection.lastPack = {
+    packId,
+    openedAt: new Date().toISOString(),
+    cardIds: openedCards.map((card) => card.id)
+  };
+  stats.collection = collection;
+
+  const progression = normalizeProgression(stats);
+  awardAchievement(progression, "first-booster", "First Pack", "Open your first faction booster pack.", collection.lastPack.openedAt);
+  stats.progression = progression;
+
+  return openedCards;
+}
+
 app.post("/api/auth/register", async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
@@ -745,7 +944,7 @@ app.post("/api/auth/register", async (req, res) => {
     lastSeenAt: now,
     friends: [],
     messages: [],
-    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0, progression: emptyProgression() }
+    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0, progression: emptyProgression(), collection: emptyCollection() }
   };
 
   try {
@@ -856,6 +1055,31 @@ app.patch("/api/account/progression", async (req, res) => {
   context.account.lastSeenAt = new Date().toISOString();
   saveAccountStore(context.store);
   res.json({ account: publicAccount(context.account) });
+});
+
+app.post("/api/collection/open-pack", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+
+  const packId = String(req.body?.packId || "rumin-foundation");
+  try {
+    const stats = context.account.stats || {};
+    const openedCards = openCollectionBooster(stats, packId);
+
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: new Date().toISOString() });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated), openedCards });
+      return;
+    }
+
+    context.account.stats = stats;
+    context.account.lastSeenAt = new Date().toISOString();
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account), openedCards });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not open booster pack." });
+  }
 });
 
 app.get("/api/friends", async (req, res) => {

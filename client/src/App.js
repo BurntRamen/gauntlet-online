@@ -1008,6 +1008,84 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
   );
 }
 
+const RARITY_STYLES = {
+  common: { label: "Common", color: "#dbeafe", border: "rgba(191,219,254,0.5)" },
+  uncommon: { label: "Uncommon", color: "#bbf7d0", border: "rgba(187,247,208,0.5)" },
+  rare: { label: "Rare", color: "#fde68a", border: "rgba(253,230,138,0.62)" },
+  mythic: { label: "Mythic", color: "#fca5a5", border: "rgba(252,165,165,0.65)" }
+};
+
+function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
+  if (!account) {
+    return (
+      <MenuCard title="Collection">
+        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to open faction boosters and build a card collection.</p>
+      </MenuCard>
+    );
+  }
+
+  const collection = account.collection || {};
+  const cardsOwned = collection.cards || {};
+  const ruminCatalog = collection.catalog?.rumin || [];
+  const booster = collection.boosters?.["rumin-foundation"];
+  const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
+  const groupedCards = ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => ruminCatalog.filter((card) => card.rarity === rarity));
+
+  return (
+    <MenuCard title="Rumin Collection">
+      <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ color: "#bfdbfe", fontSize: 13 }}>
+            {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened
+          </div>
+          <MenuButton onClick={() => onOpenPack(booster?.id || "rumin-foundation")}>Open Rumin Pack</MenuButton>
+        </div>
+        {booster && (
+          <div style={{ border: "1px solid rgba(253,230,138,0.22)", borderRadius: 8, padding: 10, background: "rgba(15,23,42,0.34)", color: "#dbeafe", fontSize: 13 }}>
+            <strong style={{ color: "#fde68a" }}>{booster.name}</strong>
+            <div>{booster.description}</div>
+          </div>
+        )}
+        {lastOpenedPack?.length > 0 && (
+          <div>
+            <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Last Pack</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
+              {lastOpenedPack.map((card, index) => {
+                const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+                return (
+                  <div key={`${card.id}-${index}`} style={{ border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
+                    <strong style={{ color: rarity.color }}>{card.name}</strong>
+                    <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div>
+          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Rumin Card Catalog</h4>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
+            {groupedCards.map((card) => {
+              const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+              const count = cardsOwned[card.id] || 0;
+              return (
+                <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.7)" : "rgba(15,23,42,0.36)", opacity: count > 0 ? 1 : 0.72 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <strong style={{ color: rarity.color }}>{card.name}</strong>
+                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>x{count}</span>
+                  </div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value}</div>
+                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </MenuCard>
+  );
+}
+
 function LeaderboardPanel({ leaderboard, error }) {
   return (
     <MenuCard title="Leaderboard">
@@ -1794,6 +1872,7 @@ export default function App() {
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -2281,10 +2360,28 @@ export default function App() {
     }
   }
 
+  async function openBoosterPack(packId) {
+    if (!authToken) return;
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/collection/open-pack`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ packId })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not open booster pack.");
+      setAccount(data.account);
+      setLastOpenedPack(data.openedCards || []);
+    } catch (collectionError) {
+      setError(collectionError.message);
+    }
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
+    setLastOpenedPack([]);
     setFriendsData({ friends: [], messages: [] });
     setSelectedFriendId("");
     setFriendNameInput("");
@@ -2552,6 +2649,7 @@ export default function App() {
             onSignOut={signOut}
           />
           <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
+          <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} onOpenPack={openBoosterPack} />
           <MenuCard title="Create Room">
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
@@ -3492,6 +3590,10 @@ export default function App() {
       )}
       {placementMode && (
         <>
+          <div className="mobile-action-detail">
+            <strong>Lane {placementMode.lane + 1}</strong>
+            <span>{activePlacementCard ? `Selected: ${getCardShortLabel(activePlacementCard)}` : "Choose a hand card, then place it face-down."}</span>
+          </div>
           <QuickActionButton className="quick-action-primary" onClick={confirmPlacement} disabled={!!placementConfirmReason} reason={placementConfirmReason}>Place Facedown</QuickActionButton>
           <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(placementMode.lane)}>Skip Lane</QuickActionButton>
           <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
@@ -3499,6 +3601,134 @@ export default function App() {
       )}
       {abilityMode && (
         <>
+          <div className="mobile-action-detail">
+            {abilityMode.type === "polea" && (
+              <>
+                <label>Mode
+                  <select value={abilityMode.mode} onChange={(e) => setAbilityMode((prev) => ({ ...prev, mode: e.target.value, handIndex: "", lane: "", laneA: "", laneB: "", targetPlayer: "", targetType: "", handAttackId: "" }))}>
+                    <option value="">Select mode</option>
+                    <option value="1">Put hand card into empty lane</option>
+                    <option value="2">Switch lane cards</option>
+                    <option value="3">Look at face-down card</option>
+                    <option value="4">Give +1 value</option>
+                  </select>
+                </label>
+                {String(abilityMode.mode) === "1" && (
+                  <>
+                    <label>Hand card
+                      <select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))}>
+                        <option value="">Select hand card</option>
+                        {me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}
+                      </select>
+                    </label>
+                    <label>Empty lane
+                      <select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}>
+                        <option value="">Select lane</option>
+                        {clickableTargets.poleaPlaceLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
+                {String(abilityMode.mode) === "2" && (
+                  <>
+                    <label>First lane
+                      <select value={abilityMode.laneA} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneA: e.target.value }))}>
+                        <option value="">Select lane</option>
+                        {clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                      </select>
+                    </label>
+                    <label>Second lane
+                      <select value={abilityMode.laneB} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneB: e.target.value }))}>
+                        <option value="">Select lane</option>
+                        {clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
+                {String(abilityMode.mode) === "3" && (
+                  <label>Face-down target
+                    <select value={abilityMode.targetPlayer !== "" && abilityMode.lane !== "" ? `${abilityMode.targetPlayer}-${abilityMode.lane}` : ""} onChange={(e) => { const [targetPlayer, lane] = e.target.value.split("-"); setAbilityMode((prev) => ({ ...prev, targetPlayer: targetPlayer ?? "", lane: lane ?? "" })); }}>
+                      <option value="">Select face-down card</option>
+                      {clickableTargets.poleaPeekTargets.map((t, idx) => <option key={`${t.targetPlayer}-${t.lane}-${idx}`} value={`${t.targetPlayer}-${t.lane}`}>Player {t.targetPlayer} - Lane {t.lane + 1}</option>)}
+                    </select>
+                  </label>
+                )}
+                {String(abilityMode.mode) === "4" && (
+                  <>
+                    <label>Target type
+                      <select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))}>
+                        <option value="">Select target type</option>
+                        <option value="laneCard">Your face-down lane card</option>
+                        <option value="laneAttack">Your lane attack</option>
+                        <option value="handAttack">Your hand attack</option>
+                      </select>
+                    </label>
+                    {(abilityMode.targetType === "laneCard" || abilityMode.targetType === "laneAttack") && (
+                      <label>Lane
+                        <select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}>
+                          <option value="">Select lane</option>
+                          {(abilityMode.targetType === "laneCard" ? clickableTargets.poleaBuffLaneCards : clickableTargets.poleaBuffLaneAttacks).map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                        </select>
+                      </label>
+                    )}
+                    {abilityMode.targetType === "handAttack" && (
+                      <label>Hand attack
+                        <select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))}>
+                          <option value="">Select hand attack</option>
+                          {clickableTargets.poleaBuffHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {abilityMode.type === "lafayette" && (
+              <>
+                <label>Lane card
+                  <select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}>
+                    <option value="">Select lane</option>
+                    {clickableTargets.lafayetteLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                  </select>
+                </label>
+                <label>Hand card
+                  <select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))}>
+                    <option value="">Select hand card</option>
+                    {me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}
+                  </select>
+                </label>
+              </>
+            )}
+            {abilityMode.type === "focus" && (
+              <>
+                <span>Acceleration: {me.accelerationCounters}</span>
+                <label>Target type
+                  <select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))}>
+                    <option value="">Select target type</option>
+                    <option value="laneCard">Your face-down lane card</option>
+                    <option value="laneAttack">Your lane attack</option>
+                    <option value="handAttack">Your hand attack</option>
+                  </select>
+                </label>
+                {(abilityMode.targetType === "laneCard" || abilityMode.targetType === "laneAttack") && (
+                  <label>Lane
+                    <select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))}>
+                      <option value="">Select lane</option>
+                      {(abilityMode.targetType === "laneCard" ? clickableTargets.focusLaneCards : clickableTargets.focusLaneAttacks).map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}
+                    </select>
+                  </label>
+                )}
+                {abilityMode.targetType === "handAttack" && (
+                  <label>Hand attack
+                    <select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))}>
+                      <option value="">Select hand attack</option>
+                      {clickableTargets.focusHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}
+                    </select>
+                  </label>
+                )}
+              </>
+            )}
+          </div>
           <QuickActionButton className="quick-action-primary" onClick={confirmAbility}>Confirm Ability</QuickActionButton>
           <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
@@ -3693,6 +3923,9 @@ export default function App() {
           border: 1px solid rgba(205,154,86,0.42);
           background: rgba(16,10,7,0.84);
           color: #f5ead5;
+        }
+        .mobile-action-detail {
+          display: none;
         }
         .match-top-frame {
           display: grid;
@@ -4461,6 +4694,34 @@ export default function App() {
             font-size: 9px !important;
             padding: 2px 4px !important;
             line-height: 1.1 !important;
+          }
+          .mobile-action-detail {
+            display: grid !important;
+            grid-column: span 3;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 3px 5px;
+            max-height: 86px;
+            overflow: auto;
+            border: 1px solid rgba(247,217,158,0.28);
+            border-radius: 6px;
+            background: rgba(255,239,207,0.08);
+            color: #fff4d6;
+          }
+          .mobile-action-detail label,
+          .mobile-action-detail span,
+          .mobile-action-detail strong {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+            font-size: 9px !important;
+            line-height: 1.05 !important;
+          }
+          .mobile-action-detail select {
+            min-width: 0;
+            width: 100%;
+            height: 22px;
+            font-size: 9px !important;
+            padding: 1px 2px;
           }
           .quick-action-button {
             min-height: 24px !important;
