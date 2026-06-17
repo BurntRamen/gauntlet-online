@@ -909,6 +909,105 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
   );
 }
 
+function ProgressionPanel({ account, onSelectCosmetic }) {
+  if (!account) {
+    return (
+      <MenuCard title="Progression">
+        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to unlock titles, card backs, faction badges, achievements, campaign progress, and match history.</p>
+      </MenuCard>
+    );
+  }
+
+  const progression = account.progression || {};
+  const definitions = progression.definitions || {};
+  const cosmetics = progression.cosmetics || {};
+  const achievements = Object.values(progression.achievements || {}).sort((a, b) => String(b.unlockedAt || "").localeCompare(String(a.unlockedAt || "")));
+  const matchHistory = progression.matchHistory || [];
+  const campaign = progression.campaign || {};
+
+  const renderOptions = (ids, bucket, selected, field) => (
+    <select
+      value={selected || ids?.[0] || ""}
+      onChange={(event) => onSelectCosmetic({ [field]: event.target.value })}
+      style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box" }}
+    >
+      {(ids || []).map((id) => {
+        const entry = definitions[bucket]?.[id] || { name: id };
+        return <option key={id} value={id}>{entry.name}</option>;
+      })}
+    </select>
+  );
+
+  return (
+    <MenuCard title="Progression">
+      <div style={{ display: "grid", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+            Title
+            {renderOptions(cosmetics.unlockedTitles, "titles", cosmetics.selectedTitle, "title")}
+          </label>
+          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+            Card Back
+            {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
+          </label>
+          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+            Faction Badge
+            {renderOptions(cosmetics.unlockedFactionBadges, "factionBadges", cosmetics.selectedFactionBadge, "factionBadge")}
+          </label>
+        </div>
+
+        <div>
+          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Achievements</h4>
+          {achievements.length === 0 ? (
+            <p style={{ margin: 0, color: "#bfdbfe", fontSize: 13 }}>No achievements yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 6 }}>
+              {achievements.slice(0, 8).map((achievement) => (
+                <div key={achievement.id} style={{ border: "1px solid rgba(250,204,21,0.28)", borderRadius: 6, padding: 8, background: "rgba(245,158,11,0.12)" }}>
+                  <strong style={{ color: "#fde68a" }}>{achievement.name}</strong>
+                  <div style={{ color: "#bfdbfe", fontSize: 12 }}>{achievement.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Campaign Progress</h4>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+            {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, entry]) => {
+              const completed = campaign[factionId]?.length || 0;
+              return (
+                <div key={factionId} style={{ border: "1px solid rgba(125,211,252,0.25)", borderRadius: 6, padding: 8, color: "#dbeafe" }}>
+                  <strong>{entry.factionName}</strong>
+                  <div style={{ fontSize: 12 }}>{completed}/{entry.chapters.length} chapters</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Recent Matches</h4>
+          {matchHistory.length === 0 ? (
+            <p style={{ margin: 0, color: "#bfdbfe", fontSize: 13 }}>No match history yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 5, maxHeight: 180, overflowY: "auto" }}>
+              {matchHistory.slice(0, 10).map((match) => (
+                <div key={match.id} style={{ display: "grid", gridTemplateColumns: "80px 1fr auto", gap: 8, alignItems: "center", color: "#e5e7eb", fontSize: 12, borderBottom: "1px solid rgba(148,163,184,0.16)", paddingBottom: 5 }}>
+                  <strong style={{ color: match.result === "win" ? "#86efac" : match.result === "loss" ? "#fca5a5" : "#fde68a" }}>{match.result.toUpperCase()}</strong>
+                  <span>{match.campaign?.title || `${match.factionName || "Basic"} vs ${match.opponentName || "Opponent"}`}</span>
+                  <span>{match.life != null ? `${match.life} life` : ""}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </MenuCard>
+  );
+}
+
 function LeaderboardPanel({ leaderboard, error }) {
   return (
     <MenuCard title="Leaderboard">
@@ -2166,6 +2265,22 @@ export default function App() {
     }
   }
 
+  async function selectAccountCosmetic(selected) {
+    if (!authToken) return;
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/account/progression`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ selected })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update progression.");
+      setAccount(data.account);
+    } catch (progressionError) {
+      setError(progressionError.message);
+    }
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
@@ -2436,6 +2551,7 @@ export default function App() {
             onSubmit={submitAuth}
             onSignOut={signOut}
           />
+          <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
           <MenuCard title="Create Room">
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
@@ -4261,20 +4377,20 @@ export default function App() {
           }
           .current-play-panel {
             width: 100% !important;
-            max-height: 72px !important;
-            padding: 4px 6px !important;
-            font-size: 11px !important;
+            max-height: 54px !important;
+            padding: 3px 5px !important;
+            font-size: 10px !important;
           }
           .current-play-panel > div {
-            font-size: 10px !important;
-            margin-top: 2px !important;
+            font-size: 9px !important;
+            margin-top: 1px !important;
           }
           .current-play-panel [style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
           }
           .game-main {
             display: grid !important;
-            grid-template-rows: minmax(118px, 0.82fr) auto minmax(230px, 1.18fr) !important;
+            grid-template-rows: minmax(106px, 0.72fr) auto minmax(252px, 1.28fr) !important;
             gap: 4px !important;
             overflow: hidden !important;
             padding-right: 0 !important;
@@ -4288,9 +4404,9 @@ export default function App() {
           }
           .power-section {
             order: 2 !important;
-            max-height: 82px !important;
+            max-height: 58px !important;
             min-height: 0 !important;
-            padding: 4px !important;
+            padding: 3px 4px !important;
             overflow: auto !important;
             margin-bottom: 0 !important;
           }
@@ -4307,8 +4423,8 @@ export default function App() {
           }
           .power-section img,
           .power-section span[style*="width: 46"] {
-            width: 30px !important;
-            height: 30px !important;
+            width: 24px !important;
+            height: 24px !important;
           }
           .bottom-player-panel {
             order: 3 !important;
@@ -4328,20 +4444,30 @@ export default function App() {
             display: none !important;
           }
           .near-hand-actions {
-            max-height: 84px !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            align-items: stretch !important;
+            max-height: none !important;
             min-width: 0 !important;
-            padding: 5px !important;
-            gap: 4px !important;
-            overflow-y: auto !important;
+            padding: 4px !important;
+            gap: 3px !important;
+            overflow: hidden !important;
           }
           .near-hand-actions > div:first-child {
-            font-size: 10px !important;
+            display: none !important;
+          }
+          .near-hand-actions > div:not(:first-child) {
+            grid-column: span 3;
+            font-size: 9px !important;
+            padding: 2px 4px !important;
+            line-height: 1.1 !important;
           }
           .quick-action-button {
-            min-height: 28px !important;
-            padding: 5px 7px !important;
-            font-size: 11px !important;
+            min-height: 24px !important;
+            padding: 3px 5px !important;
+            font-size: 10px !important;
             border-radius: 6px !important;
+            line-height: 1.05 !important;
           }
           .hand-section {
             position: static !important;
@@ -4350,8 +4476,8 @@ export default function App() {
             overflow: hidden !important;
           }
           .hand-section h3 {
-            font-size: 14px !important;
-            margin: 0 0 3px 0 !important;
+            font-size: 12px !important;
+            margin: 0 0 2px 0 !important;
           }
           .hand-content {
             grid-template-columns: 1fr !important;
@@ -4360,7 +4486,8 @@ export default function App() {
           .hand-card-row {
             display: grid !important;
             grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            grid-auto-rows: minmax(0, 1fr) !important;
+            grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+            grid-auto-rows: 0 !important;
             gap: 3px !important;
             overflow-x: visible !important;
             overflow-y: hidden !important;
@@ -4373,24 +4500,39 @@ export default function App() {
             min-width: 0 !important;
             min-height: 0 !important;
             height: 100% !important;
-            padding: 3px !important;
-            font-size: 9px !important;
+            padding: 2px !important;
+            font-size: 8px !important;
             border-radius: 5px !important;
+            gap: 1px !important;
           }
           .card-box > div:first-child div:first-child {
-            font-size: 13px !important;
+            font-size: 12px !important;
+          }
+          .card-box > div:first-child div:nth-child(2) {
+            font-size: 10px !important;
           }
           .card-box > button[title] {
-            height: 28px !important;
-            margin: 2px 0 !important;
+            height: 22px !important;
+            margin: 1px 0 !important;
           }
           .card-box > button[title] + div {
-            margin-bottom: 1px !important;
+            margin-bottom: 0 !important;
+          }
+          .card-box > button[title] + div div {
+            font-size: 8px !important;
+            line-height: 1.05 !important;
           }
           .card-box button:not([title]) {
-            font-size: 9px !important;
-            padding: 2px !important;
-            min-height: 20px !important;
+            font-size: 8px !important;
+            padding: 1px 2px !important;
+            min-height: 16px !important;
+            line-height: 1 !important;
+          }
+          .card-box [style*="bottom: 50"] {
+            display: none !important;
+          }
+          .card-box [style*="display: grid"][style*="gap: 4"] {
+            gap: 1px !important;
           }
           .lane-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr)) !important;

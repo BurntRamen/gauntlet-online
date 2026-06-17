@@ -165,12 +165,79 @@ function verifyAuthToken(token) {
   }
 }
 
+const PROGRESSION_COSMETICS = {
+  titles: {
+    recruit: { id: "recruit", name: "Recruit", requirement: "Create an account." },
+    firstVictor: { id: "firstVictor", name: "First Victor", requirement: "Win your first game." },
+    campaigner: { id: "campaigner", name: "Campaigner", requirement: "Clear a campaign chapter." },
+    ruminChampion: { id: "ruminChampion", name: "Rumin Champion", requirement: "Win with Rumin." },
+    sheenChampion: { id: "sheenChampion", name: "Sheen Champion", requirement: "Win with Sheen." },
+    frumoChampion: { id: "frumoChampion", name: "Frumo Champion", requirement: "Win with Frumo." },
+    biziChampion: { id: "biziChampion", name: "Bizi Champion", requirement: "Win with Bizi." }
+  },
+  cardBacks: {
+    classic: { id: "classic", name: "Classic Gauntlet", requirement: "Default card back." },
+    victorGold: { id: "victorGold", name: "Victor Gold", requirement: "Win your first game." },
+    campaignMap: { id: "campaignMap", name: "Campaign Map", requirement: "Clear a campaign chapter." }
+  },
+  factionBadges: {
+    none: { id: "none", name: "No Badge", requirement: "Default." },
+    rumin: { id: "rumin", name: "Rumin Laurel", requirement: "Win with Rumin." },
+    sheen: { id: "sheen", name: "Sheen Root", requirement: "Win with Sheen." },
+    frumo: { id: "frumo", name: "Frumo Tide", requirement: "Win with Frumo." },
+    bizi: { id: "bizi", name: "Bizi Gear", requirement: "Win with Bizi." }
+  }
+};
+
+function emptyProgression() {
+  return {
+    achievements: {},
+    campaign: {},
+    matchHistory: [],
+    cosmetics: {
+      unlockedTitles: ["recruit"],
+      unlockedCardBacks: ["classic"],
+      unlockedFactionBadges: ["none"],
+      selectedTitle: "recruit",
+      selectedCardBack: "classic",
+      selectedFactionBadge: "none"
+    }
+  };
+}
+
+function normalizeProgression(stats = {}) {
+  const base = emptyProgression();
+  const progression = stats.progression || {};
+  return {
+    achievements: { ...base.achievements, ...(progression.achievements || {}) },
+    campaign: { ...base.campaign, ...(progression.campaign || {}) },
+    matchHistory: Array.isArray(progression.matchHistory) ? progression.matchHistory.slice(0, 30) : [],
+    cosmetics: {
+      ...base.cosmetics,
+      ...(progression.cosmetics || {}),
+      unlockedTitles: [...new Set([...(base.cosmetics.unlockedTitles || []), ...((progression.cosmetics || {}).unlockedTitles || [])])],
+      unlockedCardBacks: [...new Set([...(base.cosmetics.unlockedCardBacks || []), ...((progression.cosmetics || {}).unlockedCardBacks || [])])],
+      unlockedFactionBadges: [...new Set([...(base.cosmetics.unlockedFactionBadges || []), ...((progression.cosmetics || {}).unlockedFactionBadges || [])])]
+    }
+  };
+}
+
+function progressionSummary(stats = {}) {
+  const progression = normalizeProgression(stats);
+  return {
+    ...progression,
+    definitions: PROGRESSION_COSMETICS
+  };
+}
+
 function publicAccount(account) {
   return {
     id: account.id,
     name: account.name,
     createdAt: account.createdAt,
-    lastLoginAt: account.lastLoginAt || null
+    lastLoginAt: account.lastLoginAt || null,
+    stats: account.stats || {},
+    progression: progressionSummary(account.stats || {})
   };
 }
 
@@ -408,7 +475,70 @@ async function touchAccountStats(accountId, field) {
   saveAccountStore(store);
 }
 
-async function recordAccountGameResult(accountId, result) {
+function unlockProgressionItem(progression, bucket, id) {
+  const key = bucket === "titles" ? "unlockedTitles" : bucket === "cardBacks" ? "unlockedCardBacks" : "unlockedFactionBadges";
+  if (!progression.cosmetics[key].includes(id)) progression.cosmetics[key].push(id);
+}
+
+function awardAchievement(progression, id, name, description, unlockedAt) {
+  if (progression.achievements[id]) return;
+  progression.achievements[id] = { id, name, description, unlockedAt };
+}
+
+function applyProgressionForResult(stats, result, context = {}) {
+  const now = context.completedAt || new Date().toISOString();
+  const progression = normalizeProgression(stats);
+  const factionId = context.factionId || "basic";
+  const factionName = context.factionName || (factionId === "basic" ? "Basic" : factionId);
+  const opponentName = context.opponentName || "Opponent";
+
+  progression.matchHistory.unshift({
+    id: crypto.randomUUID(),
+    completedAt: now,
+    result,
+    mode: context.mode || "duel",
+    factionId,
+    factionName,
+    opponentName,
+    life: context.life ?? null,
+    opponentLife: context.opponentLife ?? null,
+    campaign: context.campaign ? {
+      factionId: context.campaign.factionId,
+      chapterId: context.campaign.chapterId,
+      title: context.campaign.title
+    } : null
+  });
+  progression.matchHistory = progression.matchHistory.slice(0, 30);
+
+  if (result === "win") {
+    awardAchievement(progression, "first-win", "First Win", "Win your first account game.", now);
+    unlockProgressionItem(progression, "titles", "firstVictor");
+    unlockProgressionItem(progression, "cardBacks", "victorGold");
+
+    if (factionId && factionId !== "basic") {
+      awardAchievement(progression, `win-${factionId}`, `${factionName} Victory`, `Win a game with ${factionName}.`, now);
+      unlockProgressionItem(progression, "titles", `${factionId}Champion`);
+      unlockProgressionItem(progression, "factionBadges", factionId);
+    }
+
+    if ((context.life ?? 1) <= 10) awardAchievement(progression, "comeback", "Comeback", "Win while ending at 10 life or less.", now);
+    if ((context.life ?? 0) >= 42) awardAchievement(progression, "perfect-defense", "Perfect Defense", "Win without losing life.", now);
+  }
+
+  if (context.campaign && result === "win") {
+    const campaignFaction = context.campaign.factionId;
+    const completed = Array.isArray(progression.campaign[campaignFaction]) ? progression.campaign[campaignFaction] : [];
+    if (!completed.includes(context.campaign.chapterId)) completed.push(context.campaign.chapterId);
+    progression.campaign[campaignFaction] = completed;
+    awardAchievement(progression, "first-campaign-clear", "Campaigner", "Clear a campaign chapter.", now);
+    unlockProgressionItem(progression, "titles", "campaigner");
+    unlockProgressionItem(progression, "cardBacks", "campaignMap");
+  }
+
+  stats.progression = progression;
+}
+
+async function recordAccountGameResult(accountId, result, context = {}) {
   if (!accountId || !["win", "loss", "draw"].includes(result)) return;
   if (useSupabaseStore()) {
     const account = await findSupabaseAccountById(accountId);
@@ -418,10 +548,13 @@ async function recordAccountGameResult(accountId, result) {
     if (result === "win") stats.gamesWon = (stats.gamesWon || 0) + 1;
     if (result === "loss") stats.gamesLost = (stats.gamesLost || 0) + 1;
     if (result === "draw") stats.gamesDrawn = (stats.gamesDrawn || 0) + 1;
-    stats.rankedGamesPlayed = (stats.rankedGamesPlayed || 0) + 1;
-    if (result === "win") stats.rankedGamesWon = (stats.rankedGamesWon || 0) + 1;
-    if (result === "loss") stats.rankedGamesLost = (stats.rankedGamesLost || 0) + 1;
-    if (result === "draw") stats.rankedGamesDrawn = (stats.rankedGamesDrawn || 0) + 1;
+    if (context.ranked !== false) {
+      stats.rankedGamesPlayed = (stats.rankedGamesPlayed || 0) + 1;
+      if (result === "win") stats.rankedGamesWon = (stats.rankedGamesWon || 0) + 1;
+      if (result === "loss") stats.rankedGamesLost = (stats.rankedGamesLost || 0) + 1;
+      if (result === "draw") stats.rankedGamesDrawn = (stats.rankedGamesDrawn || 0) + 1;
+    }
+    applyProgressionForResult(stats, result, context);
     await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
     return;
   }
@@ -435,10 +568,13 @@ async function recordAccountGameResult(accountId, result) {
   if (result === "win") account.stats.gamesWon = (account.stats.gamesWon || 0) + 1;
   if (result === "loss") account.stats.gamesLost = (account.stats.gamesLost || 0) + 1;
   if (result === "draw") account.stats.gamesDrawn = (account.stats.gamesDrawn || 0) + 1;
-  account.stats.rankedGamesPlayed = (account.stats.rankedGamesPlayed || 0) + 1;
-  if (result === "win") account.stats.rankedGamesWon = (account.stats.rankedGamesWon || 0) + 1;
-  if (result === "loss") account.stats.rankedGamesLost = (account.stats.rankedGamesLost || 0) + 1;
-  if (result === "draw") account.stats.rankedGamesDrawn = (account.stats.rankedGamesDrawn || 0) + 1;
+  if (context.ranked !== false) {
+    account.stats.rankedGamesPlayed = (account.stats.rankedGamesPlayed || 0) + 1;
+    if (result === "win") account.stats.rankedGamesWon = (account.stats.rankedGamesWon || 0) + 1;
+    if (result === "loss") account.stats.rankedGamesLost = (account.stats.rankedGamesLost || 0) + 1;
+    if (result === "draw") account.stats.rankedGamesDrawn = (account.stats.rankedGamesDrawn || 0) + 1;
+  }
+  applyProgressionForResult(account.stats, result, context);
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
 }
@@ -609,7 +745,7 @@ app.post("/api/auth/register", async (req, res) => {
     lastSeenAt: now,
     friends: [],
     messages: [],
-    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0 }
+    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0, progression: emptyProgression() }
   };
 
   try {
@@ -692,6 +828,34 @@ app.get("/api/auth/me", async (req, res) => {
     return;
   }
   res.json({ account });
+});
+
+app.patch("/api/account/progression", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+
+  const selected = req.body?.selected || {};
+  const stats = context.account.stats || {};
+  const progression = normalizeProgression(stats);
+  const cosmetics = progression.cosmetics;
+
+  if (selected.title && cosmetics.unlockedTitles.includes(selected.title)) cosmetics.selectedTitle = selected.title;
+  if (selected.cardBack && cosmetics.unlockedCardBacks.includes(selected.cardBack)) cosmetics.selectedCardBack = selected.cardBack;
+  if (selected.factionBadge && cosmetics.unlockedFactionBadges.includes(selected.factionBadge)) cosmetics.selectedFactionBadge = selected.factionBadge;
+
+  stats.progression = progression;
+
+  if (context.source === "supabase") {
+    await patchSupabaseAccount(context.account.id, { stats, last_seen_at: new Date().toISOString() });
+    const updated = await findSupabaseAccountById(context.account.id);
+    res.json({ account: publicAccount(updated) });
+    return;
+  }
+
+  context.account.stats = stats;
+  context.account.lastSeenAt = new Date().toISOString();
+  saveAccountStore(context.store);
+  res.json({ account: publicAccount(context.account) });
 });
 
 app.get("/api/friends", async (req, res) => {
@@ -1201,7 +1365,10 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
     const playerNum = Number(rawPlayerNum);
     const realPlayer = game.players?.[playerNum];
     playerState.handCount = realPlayer?.hand?.length || 0;
+    playerState.deckCount = realPlayer?.deck?.length || 0;
+    playerState.discardCount = realPlayer?.discard?.length || 0;
     if (viewerPlayerNum !== playerNum) playerState.hand = [];
+    playerState.deck = [];
   }
   visibleGame.spectatorCount = spectatorCount;
   return visibleGame;
@@ -1914,20 +2081,53 @@ async function recordFinalGameStats(roomState) {
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
   if (isTrainingAiRoom(roomState)) {
+    if (game.campaign && game.winner === 1) {
+      await recordAccountGameResult(roomState.lobby.players[1].accountId, "win", {
+        ranked: false,
+        mode: "campaign",
+        factionId: game.players[1]?.faction?.id,
+        factionName: game.players[1]?.faction?.name,
+        opponentName: game.campaign.opponentName,
+        life: game.players[1]?.life,
+        opponentLife: game.players[2]?.life,
+        campaign: {
+          factionId: game.campaign.factionId,
+          chapterId: game.campaign.chapterId,
+          title: game.campaign.title
+        }
+      });
+    }
     game.statsRecorded = true;
     return;
   }
 
   await recordFactionGameStats(game);
 
+  const completedAt = new Date().toISOString();
+  const buildContext = (playerNum, result) => {
+    const opponentNums = getLobbyPlayerNumbers(roomState).filter((entry) => entry !== playerNum);
+    const primaryOpponent = opponentNums[0];
+    return {
+      ranked: true,
+      completedAt,
+      mode: game.gameMode || "duel",
+      factionId: game.players[playerNum]?.faction?.id,
+      factionName: game.players[playerNum]?.faction?.name,
+      opponentName: primaryOpponent ? (game.players[primaryOpponent]?.accountName || `Player ${primaryOpponent}`) : "Opponent",
+      life: game.players[playerNum]?.life,
+      opponentLife: primaryOpponent ? game.players[primaryOpponent]?.life : null,
+      result
+    };
+  };
+
   if (game.winner == null) {
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {
-      await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "draw");
+      await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "draw", buildContext(playerNum, "draw"));
     }
   } else {
-    await recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win");
+    await recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win", buildContext(game.winner, "win"));
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {
-      if (playerNum !== game.winner) await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "loss");
+      if (playerNum !== game.winner) await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "loss", buildContext(playerNum, "loss"));
     }
   }
 
