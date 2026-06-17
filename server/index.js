@@ -309,11 +309,397 @@ const RUMIN_COLLECTION_CARDS = [
   }
 ];
 
+const SHEEN_COLLECTION_CARDS = [
+  {
+    id: "sheen-rootwatch-initiate",
+    factionId: "sheen",
+    name: "Rootwatch Initiate",
+    type: "unit",
+    rarity: "common",
+    value: 3,
+    text: "When this blocks, it gets +1 value if you have already blocked this turn."
+  },
+  {
+    id: "sheen-quiet-grove-sentinel",
+    factionId: "sheen",
+    name: "Quiet Grove Sentinel",
+    type: "unit",
+    rarity: "common",
+    value: 4,
+    text: "If this prevents all damage from an attack, gain 1 life."
+  },
+  {
+    id: "sheen-mossbound-staff",
+    factionId: "sheen",
+    name: "Mossbound Staff",
+    type: "relic",
+    rarity: "common",
+    value: 2,
+    text: "The next card you block with this turn gets +1 value."
+  },
+  {
+    id: "sheen-living-bark-guard",
+    factionId: "sheen",
+    name: "Living Bark Guard",
+    type: "unit",
+    rarity: "common",
+    value: 5,
+    text: "This may block hand attacks as though it had +1 value."
+  },
+  {
+    id: "sheen-beli-vinebinder",
+    factionId: "sheen",
+    name: "Beli Vinebinder",
+    type: "unit",
+    rarity: "uncommon",
+    value: 5,
+    text: "After your second block each turn, your next attack gets +1 value."
+  },
+  {
+    id: "sheen-harmony-ward",
+    factionId: "sheen",
+    name: "Harmony Ward",
+    type: "ward",
+    rarity: "uncommon",
+    value: 4,
+    text: "When you block with two or more cards, one payment card may pay +1 value."
+  },
+  {
+    id: "sheen-thornroot-counterstroke",
+    factionId: "sheen",
+    name: "Thornroot Counterstroke",
+    type: "tactic",
+    rarity: "uncommon",
+    value: 6,
+    text: "If you took no damage this turn, this gets +2 value while attacking."
+  },
+  {
+    id: "sheen-beli-canopy-shield",
+    factionId: "sheen",
+    name: "Beli Canopy Shield",
+    type: "relic",
+    rarity: "uncommon",
+    value: 6,
+    text: "Once each turn, after you block, prevent 1 additional damage."
+  },
+  {
+    id: "sheen-nus-verdant-edict",
+    factionId: "sheen",
+    name: "Nu's Verdant Edict",
+    type: "tactic",
+    rarity: "rare",
+    value: 7,
+    text: "Your third block this turn gets +3 value instead of +2."
+  },
+  {
+    id: "sheen-roots-that-remember",
+    factionId: "sheen",
+    name: "Roots That Remember",
+    type: "relic",
+    rarity: "rare",
+    value: 5,
+    text: "Whenever you gain life from blocking, your next block this turn gets +1 value."
+  },
+  {
+    id: "sheen-tangs-patient-hand",
+    factionId: "sheen",
+    name: "Tang's Patient Hand",
+    type: "tactic",
+    rarity: "rare",
+    value: 6,
+    text: "After your second block each turn, gain 2 life and draw a card at end of turn."
+  },
+  {
+    id: "sheen-emperors-heartwood",
+    factionId: "sheen",
+    name: "Emperor's Heartwood",
+    type: "relic",
+    rarity: "mythic",
+    value: 9,
+    text: "Your blocking cards get +1 additional value. If it is your third or later block this turn, gain 1 life."
+  },
+  {
+    id: "sheen-beli-awakened",
+    factionId: "sheen",
+    name: "Beli Awakened",
+    type: "unit",
+    rarity: "mythic",
+    value: 10,
+    text: "After you block without taking damage, this may attack with +3 value this turn."
+  }
+];
+
+const FRUMO_COLLECTION_CARDS = [
+  {
+    id: "frumo-deckhand-diver",
+    factionId: "frumo",
+    name: "Deckhand Diver",
+    type: "unit",
+    rarity: "common",
+    value: 3,
+    text: "When this is placed into a lane, you may look at your top deck card."
+  },
+  {
+    id: "frumo-tideglass-cutlass",
+    factionId: "frumo",
+    name: "Tideglass Cutlass",
+    type: "weapon",
+    rarity: "common",
+    value: 4,
+    text: "If this attacks from a lane, it gets +1 value when you have swapped a lane card this turn."
+  },
+  {
+    id: "frumo-sunken-coin",
+    factionId: "frumo",
+    name: "Sunken Coin",
+    type: "relic",
+    rarity: "common",
+    value: 2,
+    text: "When paid for an ability, this pays +1 value if you control an empty lane."
+  },
+  {
+    id: "frumo-coral-hull-guard",
+    factionId: "frumo",
+    name: "Coral-Hull Guard",
+    type: "unit",
+    rarity: "common",
+    value: 5,
+    text: "When this blocks from a lane, you may switch it with another lane card you control after combat."
+  },
+  {
+    id: "frumo-riptide-smuggler",
+    factionId: "frumo",
+    name: "Riptide Smuggler",
+    type: "unit",
+    rarity: "uncommon",
+    value: 5,
+    text: "The first time you peek at a face-down card each turn, this gets +1 value this turn."
+  },
+  {
+    id: "frumo-lafayettes-chart",
+    factionId: "frumo",
+    name: "Lafayette's Chart",
+    type: "relic",
+    rarity: "uncommon",
+    value: 4,
+    text: "After you swap a lane card with a hand card, your next payment card pays +1 value."
+  },
+  {
+    id: "frumo-pressure-lock-pistol",
+    factionId: "frumo",
+    name: "Pressure-Lock Pistol",
+    type: "weapon",
+    rarity: "uncommon",
+    value: 6,
+    text: "When this attacks after a consecutive-value card was played, it gets +2 value."
+  },
+  {
+    id: "frumo-ristus-blackwake",
+    factionId: "frumo",
+    name: "Ristus Blackwake",
+    type: "tactic",
+    rarity: "uncommon",
+    value: 6,
+    text: "Move one lane card you control. If it moves into an empty lane, it gets +1 value this turn."
+  },
+  {
+    id: "frumo-captains-bad-wager",
+    factionId: "frumo",
+    name: "Captain's Bad Wager",
+    type: "tactic",
+    rarity: "rare",
+    value: 7,
+    text: "Choose a lane. If its face-down card has even value, it gets +3 value this turn. Otherwise, draw then discard."
+  },
+  {
+    id: "frumo-poleas-sunken-order",
+    factionId: "frumo",
+    name: "Polea's Sunken Order",
+    type: "tactic",
+    rarity: "rare",
+    value: 6,
+    text: "Use one Polea mode an additional time this turn, but only on your own cards."
+  },
+  {
+    id: "frumo-leviathan-salvage",
+    factionId: "frumo",
+    name: "Leviathan Salvage",
+    type: "relic",
+    rarity: "rare",
+    value: 5,
+    text: "Whenever your first card played each turn gets a consecutive-value bonus, gain 1 life."
+  },
+  {
+    id: "frumo-the-last-gamble",
+    factionId: "frumo",
+    name: "The Last Gamble",
+    type: "tactic",
+    rarity: "mythic",
+    value: 9,
+    text: "Peek at a face-down card, then choose attack or block. Your next card of that kind gets +4 value."
+  },
+  {
+    id: "frumo-ristus-rises",
+    factionId: "frumo",
+    name: "Ristus Rises",
+    type: "unit",
+    rarity: "mythic",
+    value: 10,
+    text: "When this enters a lane, you may switch any two lane cards you control. Each moved card gets +1 value this turn."
+  }
+];
+
+const BIZI_COLLECTION_CARDS = [
+  {
+    id: "bizi-copperline-technician",
+    factionId: "bizi",
+    name: "Copperline Technician",
+    type: "unit",
+    rarity: "common",
+    value: 3,
+    text: "When you overpay for this by 2 or more, gain 1 acceleration counter."
+  },
+  {
+    id: "bizi-voltage-ration",
+    factionId: "bizi",
+    name: "Voltage Ration",
+    type: "tactic",
+    rarity: "common",
+    value: 2,
+    text: "A same-suit payment card pays +1 value for your next Bizi card this turn."
+  },
+  {
+    id: "bizi-dune-circuit-runner",
+    factionId: "bizi",
+    name: "Dune Circuit Runner",
+    type: "unit",
+    rarity: "common",
+    value: 4,
+    text: "If your previous attack had a different suit, this attacks with +1 value."
+  },
+  {
+    id: "bizi-gearplate-shield",
+    factionId: "bizi",
+    name: "Gearplate Shield",
+    type: "relic",
+    rarity: "common",
+    value: 5,
+    text: "When blocking, you may remove 1 acceleration counter to give this +2 value."
+  },
+  {
+    id: "bizi-heras-calibration",
+    factionId: "bizi",
+    name: "Hera's Calibration",
+    type: "tactic",
+    rarity: "uncommon",
+    value: 5,
+    text: "The first same-suit payment card you use this turn pays +2 value instead of +1."
+  },
+  {
+    id: "bizi-solar-array-adept",
+    factionId: "bizi",
+    name: "Solar Array Adept",
+    type: "unit",
+    rarity: "uncommon",
+    value: 5,
+    text: "Whenever you gain an acceleration counter, this gets +1 value until end of turn."
+  },
+  {
+    id: "bizi-constanti-conduit",
+    factionId: "bizi",
+    name: "Constanti Conduit",
+    type: "relic",
+    rarity: "uncommon",
+    value: 6,
+    text: "Your first two different-suit attacks after the first get an additional +1 value."
+  },
+  {
+    id: "bizi-sandstorm-processor",
+    factionId: "bizi",
+    name: "Sandstorm Processor",
+    type: "unit",
+    rarity: "uncommon",
+    value: 6,
+    text: "If you have 2 or more acceleration counters, this may attack with +2 value."
+  },
+  {
+    id: "bizi-focus-overclock",
+    factionId: "bizi",
+    name: "Focus Overclock",
+    type: "tactic",
+    rarity: "rare",
+    value: 7,
+    text: "Remove 1 acceleration counter: give target card +3 value this turn instead of +1."
+  },
+  {
+    id: "bizi-regnum-voltage-bank",
+    factionId: "bizi",
+    name: "Regnum Voltage Bank",
+    type: "relic",
+    rarity: "rare",
+    value: 6,
+    text: "The first time each turn you overpay by 2 or more, gain 1 life and 1 acceleration counter."
+  },
+  {
+    id: "bizi-desert-logic-engine",
+    factionId: "bizi",
+    name: "Desert Logic Engine",
+    type: "relic",
+    rarity: "rare",
+    value: 5,
+    text: "After you attack with a different suit from your previous attack, one payment card may pay +2 value."
+  },
+  {
+    id: "bizi-focus-prime-signal",
+    factionId: "bizi",
+    name: "Focus Prime Signal",
+    type: "tactic",
+    rarity: "mythic",
+    value: 9,
+    text: "Gain 2 acceleration counters. Your next card this turn gets +1 value for each counter you have."
+  },
+  {
+    id: "bizi-constanti-sunforge",
+    factionId: "bizi",
+    name: "Constanti Sunforge",
+    type: "unit",
+    rarity: "mythic",
+    value: 10,
+    text: "When this attacks, remove any number of acceleration counters. It gets +2 value for each counter removed."
+  }
+];
+
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+
 const BOOSTER_PRODUCTS = {
   "rumin-foundation": {
     id: "rumin-foundation",
     name: "Rumin Foundation Pack",
     factionId: "rumin",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+  },
+  "sheen-foundation": {
+    id: "sheen-foundation",
+    name: "Sheen Foundation Pack",
+    factionId: "sheen",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+  },
+  "frumo-foundation": {
+    id: "frumo-foundation",
+    name: "Frumo Foundation Pack",
+    factionId: "frumo",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+  },
+  "bizi-foundation": {
+    id: "bizi-foundation",
+    name: "Bizi Foundation Pack",
+    factionId: "bizi",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
     description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
@@ -358,7 +744,10 @@ function collectionSummary(stats = {}) {
   return {
     ...normalizeCollection(stats),
     catalog: {
-      rumin: RUMIN_COLLECTION_CARDS
+      rumin: RUMIN_COLLECTION_CARDS,
+      sheen: SHEEN_COLLECTION_CARDS,
+      frumo: FRUMO_COLLECTION_CARDS,
+      bizi: BIZI_COLLECTION_CARDS
     },
     boosters: BOOSTER_PRODUCTS
   };
@@ -880,7 +1269,7 @@ function getAccountMatchProfile(account) {
 }
 
 function pickCollectionCard(factionId, rarity) {
-  const cardPool = RUMIN_COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
+  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
   if (cardPool.length === 0) return null;
   return cardPool[crypto.randomInt(cardPool.length)];
 }

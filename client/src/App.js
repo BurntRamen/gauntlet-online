@@ -1026,24 +1026,35 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
 
   const collection = account.collection || {};
   const cardsOwned = collection.cards || {};
-  const ruminCatalog = collection.catalog?.rumin || [];
-  const booster = collection.boosters?.["rumin-foundation"];
+  const catalog = collection.catalog || {};
+  const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
-  const groupedCards = ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => ruminCatalog.filter((card) => card.rarity === rarity));
+  const factionNames = { rumin: "Rumin", sheen: "Sheen", frumo: "Frumo", bizi: "Bizi" };
+  const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
+    ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
+  ));
 
   return (
-    <MenuCard title="Rumin Collection">
+    <MenuCard title="Faction Collection">
       <div style={{ display: "grid", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ color: "#bfdbfe", fontSize: 13 }}>
             {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened
           </div>
-          <MenuButton onClick={() => onOpenPack(booster?.id || "rumin-foundation")}>Open Rumin Pack</MenuButton>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {boosters.map((booster) => (
+              <MenuButton key={booster.id} onClick={() => onOpenPack(booster.id)}>Open {factionNames[booster.factionId] || booster.factionId} Pack</MenuButton>
+            ))}
+          </div>
         </div>
-        {booster && (
-          <div style={{ border: "1px solid rgba(253,230,138,0.22)", borderRadius: 8, padding: 10, background: "rgba(15,23,42,0.34)", color: "#dbeafe", fontSize: 13 }}>
-            <strong style={{ color: "#fde68a" }}>{booster.name}</strong>
-            <div>{booster.description}</div>
+        {boosters.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8 }}>
+            {boosters.map((booster) => (
+              <div key={booster.id} style={{ border: "1px solid rgba(253,230,138,0.22)", borderRadius: 8, padding: 10, background: "rgba(15,23,42,0.34)", color: "#dbeafe", fontSize: 13 }}>
+                <strong style={{ color: "#fde68a" }}>{booster.name}</strong>
+                <div>{booster.description}</div>
+              </div>
+            ))}
           </div>
         )}
         {lastOpenedPack?.length > 0 && (
@@ -1063,9 +1074,9 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
           </div>
         )}
         <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Rumin Card Catalog</h4>
+          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Card Catalog</h4>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
-            {groupedCards.map((card) => {
+            {allCatalogCards.map((card) => {
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = cardsOwned[card.id] || 0;
               return (
@@ -1074,7 +1085,7 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>x{count}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value}</div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{factionNames[card.factionId] || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                 </div>
               );
