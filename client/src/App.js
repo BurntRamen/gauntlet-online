@@ -1015,7 +1015,43 @@ const RARITY_STYLES = {
   mythic: { label: "Mythic", color: "#fca5a5", border: "rgba(252,165,165,0.65)" }
 };
 
-function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
+const PACK_THEMES = {
+  rumin: { name: "Rumin", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(135deg, #451a03, #92400e 42%, #14532d)" },
+  sheen: { name: "Sheen", accent: "#86efac", glow: "rgba(134,239,172,0.3)", background: "linear-gradient(135deg, #052e16, #166534 48%, #0f172a)" },
+  frumo: { name: "Frumo", accent: "#67e8f9", glow: "rgba(103,232,249,0.34)", background: "linear-gradient(135deg, #083344, #0e7490 46%, #312e81)" },
+  bizi: { name: "Bizi", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(135deg, #422006, #a16207 48%, #334155)" }
+};
+
+function BoosterPackTile({ booster, opening, onOpen }) {
+  const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
+  const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
+    counts[slot] = (counts[slot] || 0) + 1;
+    return counts;
+  }, {});
+
+  return (
+    <button
+      type="button"
+      className={`booster-pack-tile ${opening ? "opening" : ""}`}
+      onClick={() => onOpen(booster.id)}
+      disabled={opening}
+      style={{ "--pack-accent": theme.accent, "--pack-glow": theme.glow, background: theme.background }}
+    >
+      <span className="booster-pack-shine" />
+      <span className="booster-pack-topline">Gauntlet Booster</span>
+      <strong>{theme.name}</strong>
+      <span>{booster.cardCount || booster.slots?.length || 8} faction cards</span>
+      <span className="booster-pack-slots">
+        {Object.entries(rarityCounts).map(([rarity, count]) => (
+          <span key={rarity}>{count} {RARITY_STYLES[rarity]?.label || rarity}</span>
+        ))}
+      </span>
+      <span className="booster-pack-open">{opening ? "Opening..." : "Open Pack"}</span>
+    </button>
+  );
+}
+
+function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack }) {
   if (!account) {
     return (
       <MenuCard title="Collection">
@@ -1029,31 +1065,108 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
   const catalog = collection.catalog || {};
   const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
-  const factionNames = { rumin: "Rumin", sheen: "Sheen", frumo: "Frumo", bizi: "Bizi" };
   const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
     ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
   ));
 
   return (
     <MenuCard title="Faction Collection">
+      <style>{`
+        @keyframes packPulse {
+          0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
+          35% { transform: translateY(-3px) scale(1.025) rotate(-1deg); box-shadow: 0 0 28px var(--pack-glow); }
+          70% { transform: translateY(1px) scale(0.99) rotate(1deg); box-shadow: 0 0 42px var(--pack-glow); }
+          100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
+        }
+        @keyframes cardReveal {
+          from { opacity: 0; transform: translateY(20px) rotateX(68deg) scale(0.92); filter: brightness(1.8); }
+          60% { opacity: 1; transform: translateY(-4px) rotateX(0deg) scale(1.02); filter: brightness(1.18); }
+          to { opacity: 1; transform: translateY(0) rotateX(0deg) scale(1); filter: brightness(1); }
+        }
+        .booster-pack-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+          gap: 10px;
+        }
+        .booster-pack-tile {
+          position: relative;
+          min-height: 220px;
+          border: 1px solid color-mix(in srgb, var(--pack-accent) 72%, #ffffff 8%);
+          border-radius: 8px;
+          padding: 14px 12px;
+          color: #fff7dc;
+          text-align: left;
+          overflow: hidden;
+          cursor: pointer;
+          display: grid;
+          align-content: space-between;
+          gap: 8px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 14px 32px rgba(0,0,0,0.28);
+        }
+        .booster-pack-tile:hover {
+          transform: translateY(-2px);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 18px 42px var(--pack-glow);
+        }
+        .booster-pack-tile.opening {
+          animation: packPulse 720ms ease-in-out infinite;
+        }
+        .booster-pack-tile strong {
+          font-family: Georgia, serif;
+          font-size: 28px;
+          line-height: 1;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.58);
+          z-index: 1;
+        }
+        .booster-pack-topline,
+        .booster-pack-open {
+          z-index: 1;
+          color: var(--pack-accent);
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+          font-size: 11px;
+        }
+        .booster-pack-slots {
+          z-index: 1;
+          display: flex;
+          gap: 5px;
+          flex-wrap: wrap;
+          font-size: 10px;
+        }
+        .booster-pack-slots span {
+          border: 1px solid rgba(255,255,255,0.22);
+          border-radius: 999px;
+          padding: 3px 6px;
+          background: rgba(2,6,23,0.34);
+        }
+        .booster-pack-shine {
+          position: absolute;
+          inset: -30% auto auto -30%;
+          width: 80%;
+          height: 160%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+          transform: rotate(18deg);
+        }
+        .opened-card-reveal {
+          animation: cardReveal 520ms ease-out both;
+          transform-origin: center bottom;
+        }
+      `}</style>
       <div style={{ display: "grid", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ color: "#bfdbfe", fontSize: 13 }}>
             {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {boosters.map((booster) => (
-              <MenuButton key={booster.id} onClick={() => onOpenPack(booster.id)}>Open {factionNames[booster.factionId] || booster.factionId} Pack</MenuButton>
-            ))}
-          </div>
         </div>
         {boosters.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8 }}>
+          <div className="booster-pack-grid">
             {boosters.map((booster) => (
-              <div key={booster.id} style={{ border: "1px solid rgba(253,230,138,0.22)", borderRadius: 8, padding: 10, background: "rgba(15,23,42,0.34)", color: "#dbeafe", fontSize: 13 }}>
-                <strong style={{ color: "#fde68a" }}>{booster.name}</strong>
-                <div>{booster.description}</div>
-              </div>
+              <BoosterPackTile
+                key={booster.id}
+                booster={booster}
+                opening={openingPackId === booster.id}
+                onOpen={onOpenPack}
+              />
             ))}
           </div>
         )}
@@ -1064,7 +1177,7 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
               {lastOpenedPack.map((card, index) => {
                 const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
                 return (
-                  <div key={`${card.id}-${index}`} style={{ border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
+                  <div className="opened-card-reveal" key={`${card.id}-${index}`} style={{ animationDelay: `${index * 90}ms`, border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
                   </div>
@@ -1085,7 +1198,7 @@ function CollectionPanel({ account, lastOpenedPack, onOpenPack }) {
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>x{count}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{factionNames[card.factionId] || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                 </div>
               );
@@ -1884,6 +1997,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
+  const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -2372,19 +2486,26 @@ export default function App() {
   }
 
   async function openBoosterPack(packId) {
-    if (!authToken) return;
+    if (!authToken || openingPackId) return;
+    setOpeningPackId(packId);
+    setLastOpenedPack([]);
     try {
-      const response = await fetch(`${SOCKET_URL}/api/collection/open-pack`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ packId })
-      });
+      const [response] = await Promise.all([
+        fetch(`${SOCKET_URL}/api/collection/open-pack`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ packId })
+        }),
+        new Promise((resolve) => window.setTimeout(resolve, 650))
+      ]);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not open booster pack.");
       setAccount(data.account);
       setLastOpenedPack(data.openedCards || []);
     } catch (collectionError) {
       setError(collectionError.message);
+    } finally {
+      setOpeningPackId("");
     }
   }
 
@@ -2393,6 +2514,7 @@ export default function App() {
     setAuthToken("");
     setAccount(null);
     setLastOpenedPack([]);
+    setOpeningPackId("");
     setFriendsData({ friends: [], messages: [] });
     setSelectedFriendId("");
     setFriendNameInput("");
@@ -2660,7 +2782,7 @@ export default function App() {
             onSignOut={signOut}
           />
           <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
-          <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} onOpenPack={openBoosterPack} />
+          <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={openBoosterPack} />
           <MenuCard title="Create Room">
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
