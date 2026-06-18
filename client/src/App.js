@@ -1210,6 +1210,129 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
   );
 }
 
+function DraftCardTile({ card, selected = false, onClick, actionLabel = "Pick" }) {
+  const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+  const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        border: `1px solid ${selected ? theme.accent : rarity.border}`,
+        borderRadius: 8,
+        padding: 9,
+        background: selected ? "rgba(250,204,21,0.18)" : "rgba(2,6,23,0.58)",
+        color: "#e5e7eb",
+        textAlign: "left",
+        display: "grid",
+        gap: 5,
+        minHeight: 132,
+        cursor: "pointer"
+      }}
+    >
+      <strong style={{ color: rarity.color }}>{card.name}</strong>
+      <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - value {card.value}</span>
+      <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
+      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Added" : actionLabel}</span>
+    </button>
+  );
+}
+
+function DraftScreen({ draft, lobby, player, isSpectator, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard }) {
+  const myPack = draft?.myCurrentPack?.cards || [];
+  const myPool = draft?.myPool || [];
+  const myDeckAdditions = draft?.myDeckAdditions || [];
+  const selectedIds = new Set(myDeckAdditions.map((card) => card.draftCopyId));
+  const players = draft?.players || lobby?.players || {};
+  const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
+  const canStart = player === 1 && draft?.status === "lobby";
+
+  return (
+    <div style={MENU_THEME.page}>
+      <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Draft League Match" : "Eight Seat Draft"}</div>
+            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Draft League" : "Gauntlet Draft"}</h1>
+            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>Draft faction cards, then add selected cards to your standard 52-card playing deck.</p>
+          </div>
+          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
+            <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
+            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+          <MenuCard title="Draft Table">
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Seats: {connectedPlayers.length}/8</p>
+            <div style={{ display: "grid", gap: 6 }}>
+              {Array.from({ length: 8 }, (_, index) => index + 1).map((seatNum) => {
+                const seat = players[seatNum] || {};
+                return (
+                  <div key={seatNum} style={{ display: "flex", justifyContent: "space-between", gap: 8, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: 7, color: "#dbeafe" }}>
+                    <strong>P{seatNum}</strong>
+                    <span>{seat.accountName || (seat.connected ? "Connected" : "Open Seat")}</span>
+                    <span style={{ color: seat.connected ? "#86efac" : "#94a3b8" }}>{seat.connected ? "Online" : "Open"}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {canStart && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
+            {draft?.status === "lobby" && !canStart && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Waiting for Player 1 to start the draft.</p>}
+          </MenuCard>
+
+          <MenuCard title="Draft Status">
+            <div style={{ color: "#dbeafe", display: "grid", gap: 6 }}>
+              <div><strong>Status:</strong> {draft?.status || "lobby"}</div>
+              <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
+              <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
+              <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
+              <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
+            </div>
+          </MenuCard>
+        </div>
+
+        {draft?.status === "drafting" && !isSpectator && (
+          <MenuCard title={`Current Pack (${myPack.length} cards)`}>
+            {myPack.length === 0 ? (
+              <p style={{ color: "#bfdbfe", margin: 0 }}>Waiting for the next pack.</p>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+                {myPack.map((card) => (
+                  <DraftCardTile key={card.draftCopyId} card={card} onClick={() => onPickCard(card.draftCopyId)} />
+                ))}
+              </div>
+            )}
+          </MenuCard>
+        )}
+
+        {draft?.status === "building" && !isSpectator && (
+          <MenuCard title={`Build Draft Deck (${myDeckAdditions.length} additions)`}>
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Toggle drafted cards to add them to your standard 52-card deck. Current draft deck size: {(draft?.baseDeck?.cardCount || 52) + myDeckAdditions.length}.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+              {myPool.map((card) => (
+                <DraftCardTile key={card.draftCopyId} card={card} selected={selectedIds.has(card.draftCopyId)} actionLabel="Add" onClick={() => onToggleDeckCard(card.draftCopyId)} />
+              ))}
+            </div>
+          </MenuCard>
+        )}
+
+        <MenuCard title={`Your Draft Pool (${myPool.length})`}>
+          {isSpectator ? (
+            <p style={{ color: "#bfdbfe", margin: 0 }}>Spectators can watch seat and pick counts, but not hidden packs.</p>
+          ) : myPool.length === 0 ? (
+            <p style={{ color: "#bfdbfe", margin: 0 }}>No drafted cards yet.</p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, maxHeight: 320, overflowY: "auto" }}>
+              {myPool.map((card) => <DraftCardTile key={card.draftCopyId} card={card} actionLabel={selectedIds.has(card.draftCopyId) ? "Deck" : "Pool"} />)}
+            </div>
+          )}
+        </MenuCard>
+      </div>
+    </div>
+  );
+}
+
 function LeaderboardPanel({ leaderboard, error }) {
   return (
     <MenuCard title="Leaderboard">
@@ -1243,17 +1366,27 @@ function LeaderboardPanel({ leaderboard, error }) {
   );
 }
 
-function MatchmakingPanel({ account, status, onJoin, onLeave }) {
+function MatchmakingPanel({
+  account,
+  status,
+  onJoin,
+  onLeave,
+  title = "Matchmaking",
+  description = "Find an account opponent with a similar win/loss ratio.",
+  joinLabel = "Find Match",
+  cancelLabel = "Cancel Search",
+  signedOutText = "Sign in to use ranked matchmaking."
+}) {
   return (
-    <MenuCard title="Matchmaking">
-      <p style={{ marginTop: 0, color: "#bfdbfe" }}>Find an account opponent with a similar win/loss ratio.</p>
+    <MenuCard title={title}>
+      <p style={{ marginTop: 0, color: "#bfdbfe" }}>{description}</p>
       {status.message && <div style={{ color: status.inQueue ? "#fde68a" : "#bfdbfe", fontSize: 13, marginBottom: 10 }}>{status.message}</div>}
       {status.inQueue ? (
-        <MenuButton variant="secondary" onClick={onLeave}>Cancel Search</MenuButton>
+        <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
       ) : (
-        <MenuButton onClick={onJoin} disabled={!account}>Find Match</MenuButton>
+        <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
       )}
-      {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to use ranked matchmaking.</p>}
+      {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>{signedOutText}</p>}
     </MenuCard>
   );
 }
@@ -1974,6 +2107,7 @@ export default function App() {
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
   const [lobby, setLobby] = useState(null);
+  const [draftState, setDraftState] = useState(null);
   const [error, setError] = useState("");
   const [peekResult, setPeekResult] = useState("");
   const [useHeraBonus, setUseHeraBonus] = useState(false);
@@ -1999,6 +2133,7 @@ export default function App() {
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
+  const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
   const [friendNameInput, setFriendNameInput] = useState("");
@@ -2210,6 +2345,7 @@ export default function App() {
       setRole(payload.role);
       setPlayer(payload.playerNum);
       setMatchmakingStatus({ inQueue: false, message: "" });
+      setDraftLeagueStatus({ inQueue: false, message: "" });
       saveReconnectInfo({ roomCode: payload.roomCode, reconnectToken: payload.reconnectToken, role: payload.role });
     };
 
@@ -2228,6 +2364,10 @@ export default function App() {
       setError("");
       setLobby(newLobby);
     };
+    const onDraftState = (newDraft) => {
+      setError("");
+      setDraftState(newDraft);
+    };
     const onError = (msg) => {
       if (String(msg || "").toLowerCase().includes("room is no longer active")) {
         clearReconnectInfo();
@@ -2238,6 +2378,7 @@ export default function App() {
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
+    const onDraftLeagueStatus = (status) => setDraftLeagueStatus(status);
     const onGameEnded = () => loadLeaderboard();
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -2254,9 +2395,11 @@ export default function App() {
     socket.on("assignSpectator", onAssignSpectator);
     socket.on("state", onState);
     socket.on("lobbyState", onLobbyState);
+    socket.on("draftState", onDraftState);
     socket.on("errorMessage", onError);
     socket.on("peekResult", onPeek);
     socket.on("matchmakingStatus", onMatchmakingStatus);
+    socket.on("draftLeagueStatus", onDraftLeagueStatus);
     socket.on("gameEnded", onGameEnded);
     attemptReconnect();
 
@@ -2266,9 +2409,11 @@ export default function App() {
       socket.off("assignSpectator", onAssignSpectator);
       socket.off("state", onState);
       socket.off("lobbyState", onLobbyState);
+      socket.off("draftState", onDraftState);
       socket.off("errorMessage", onError);
       socket.off("peekResult", onPeek);
       socket.off("matchmakingStatus", onMatchmakingStatus);
+      socket.off("draftLeagueStatus", onDraftLeagueStatus);
       socket.off("gameEnded", onGameEnded);
     };
   }, [loadLeaderboard]);
@@ -2550,6 +2695,37 @@ export default function App() {
     });
   }
 
+  function createDraftRoom() {
+    clearReconnectInfo();
+    setError("");
+    let answered = false;
+    const timeoutId = window.setTimeout(() => {
+      if (answered) return;
+      setError("Draft room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
+    }, 3500);
+    socket.emit("createDraftRoom", playerIdentityPayload(), (response) => {
+      answered = true;
+      window.clearTimeout(timeoutId);
+      if (response?.error) setError(response.error);
+    });
+  }
+
+  function startDraft() {
+    socket.emit("startDraft");
+  }
+
+  function pickDraftCard(cardCopyId) {
+    socket.emit("draftPick", { cardCopyId });
+  }
+
+  function toggleDraftDeckCard(cardCopyId) {
+    if (!draftState?.myPool) return;
+    const currentIds = new Set((draftState.myDeckAdditions || []).map((card) => card.draftCopyId));
+    if (currentIds.has(cardCopyId)) currentIds.delete(cardCopyId);
+    else currentIds.add(cardCopyId);
+    socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds] });
+  }
+
   function startTutorialVsAi(mode = "basic") {
     clearReconnectInfo();
     setShowTutorial(false);
@@ -2580,6 +2756,18 @@ export default function App() {
 
   function leaveMatchmaking() {
     socket.emit("leaveMatchmaking");
+  }
+
+  function joinDraftLeague() {
+    if (!authToken) {
+      setDraftLeagueStatus({ inQueue: false, message: "Sign in to use draft league matchmaking." });
+      return;
+    }
+    socket.emit("joinDraftLeague", { authToken });
+  }
+
+  function leaveDraftLeague() {
+    socket.emit("leaveDraftLeague");
   }
 
   function chooseFaction(factionId) {
@@ -2653,6 +2841,7 @@ export default function App() {
     resetSelections();
     setGame(null);
     setLobby(null);
+    setDraftState(null);
     setRole(null);
     setPlayer(null);
     setRoomCodeInput("");
@@ -2664,6 +2853,7 @@ export default function App() {
     setShowTutorial(false);
     seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
+    setDraftLeagueStatus({ inQueue: false, message: "" });
   }
 
   function togglePayment(i) {
@@ -2735,6 +2925,22 @@ export default function App() {
     );
   }
 
+  if (draftState || lobby?.gameMode === "draft") {
+    return (
+      <DraftScreen
+        draft={draftState}
+        lobby={lobby}
+        player={player}
+        isSpectator={role === "spectator"}
+        onBack={returnToMainMenu}
+        onCopyRoom={copyRoomCode}
+        onStartDraft={startDraft}
+        onPickCard={pickDraftCard}
+        onToggleDeckCard={toggleDraftDeckCard}
+      />
+    );
+  }
+
   if (!role && !lobby) {
     return (
       <div style={MENU_THEME.page}>
@@ -2786,7 +2992,8 @@ export default function App() {
           <MenuCard title="Create Room">
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players.</p>
+            <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Create Draft Room</MenuButton>
+            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players. Draft supports up to 8 players.</p>
             <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, or Free-for-All for 2-4 seated players with target selection.</HelperText>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
           </MenuCard>
@@ -2800,6 +3007,17 @@ export default function App() {
           </MenuCard>
           <ShareGameQrCard />
           <MatchmakingPanel account={account} status={matchmakingStatus} onJoin={joinMatchmaking} onLeave={leaveMatchmaking} />
+          <MatchmakingPanel
+            account={account}
+            status={draftLeagueStatus}
+            onJoin={joinDraftLeague}
+            onLeave={leaveDraftLeague}
+            title="Draft League"
+            description="Queue for a draft against an account opponent with a similar draft league record."
+            joinLabel="Find Draft Match"
+            cancelLabel="Leave Draft Queue"
+            signedOutText="Sign in to use draft league matchmaking."
+          />
           <FriendsPanel
             account={account}
             friendsData={friendsData}
@@ -3874,6 +4092,7 @@ export default function App() {
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</QuickActionButton>}
           {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</QuickActionButton>}
           {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
+          {game.phase === "end" && isMyEndPlacementTurn && !game.lanes[currentEndLane]?.facedown?.[player] && <QuickActionButton className="quick-action-primary" onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</QuickActionButton>}
           {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
         </>
       )}
@@ -4343,6 +4562,9 @@ export default function App() {
           color: ${TABLETOP_THEME.text};
           min-height: clamp(118px, 22dvh, 158px) !important;
           padding: 6px !important;
+          overflow-y: auto !important;
+          justify-content: flex-start !important;
+          gap: 5px !important;
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 -24px 48px rgba(0,0,0,0.34), 0 10px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(0,0,0,0.8) !important;
         }
         .game-root .lane-card > p {

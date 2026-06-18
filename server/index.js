@@ -753,6 +753,49 @@ function collectionSummary(stats = {}) {
   };
 }
 
+const DRAFT_PACKS_PER_PLAYER = 3;
+const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
+
+function createDraftPlayerSeat() {
+  return {
+    socket: null,
+    connected: false,
+    reconnectToken: null,
+    accountId: null,
+    accountName: null,
+    isGuest: false,
+    readyToStart: false
+  };
+}
+
+function createRandomDraftCard() {
+  const factionIds = ["rumin", "sheen", "frumo", "bizi"];
+  const factionId = factionIds[crypto.randomInt(factionIds.length)];
+  const rarity = resolveBoosterSlot(DRAFT_PACK_SLOTS[crypto.randomInt(DRAFT_PACK_SLOTS.length)]);
+  return { ...pickCollectionCard(factionId, rarity), draftCopyId: crypto.randomUUID() };
+}
+
+function createDraftPack(ownerPlayer) {
+  return {
+    id: crypto.randomUUID(),
+    ownerPlayer,
+    cards: DRAFT_PACK_SLOTS.map((slot) => {
+      const factionIds = ["rumin", "sheen", "frumo", "bizi"];
+      const factionId = factionIds[crypto.randomInt(factionIds.length)];
+      const rarity = resolveBoosterSlot(slot);
+      return { ...pickCollectionCard(factionId, rarity), draftCopyId: crypto.randomUUID() };
+    }).filter(Boolean)
+  };
+}
+
+function createBaseDeckSummary() {
+  return {
+    name: "Standard 52-card Gauntlet deck",
+    cardCount: 52,
+    note: "Your drafted cards are added to this base deck for draft deckbuilding."
+  };
+}
+
 function normalizeProgression(stats = {}) {
   const base = emptyProgression();
   const progression = stats.progression || {};
@@ -1103,6 +1146,12 @@ async function recordAccountGameResult(accountId, result, context = {}) {
       if (result === "loss") stats.rankedGamesLost = (stats.rankedGamesLost || 0) + 1;
       if (result === "draw") stats.rankedGamesDrawn = (stats.rankedGamesDrawn || 0) + 1;
     }
+    if (context.draftLeague) {
+      stats.draftLeagueGamesPlayed = (stats.draftLeagueGamesPlayed || 0) + 1;
+      if (result === "win") stats.draftLeagueGamesWon = (stats.draftLeagueGamesWon || 0) + 1;
+      if (result === "loss") stats.draftLeagueGamesLost = (stats.draftLeagueGamesLost || 0) + 1;
+      if (result === "draw") stats.draftLeagueGamesDrawn = (stats.draftLeagueGamesDrawn || 0) + 1;
+    }
     applyProgressionForResult(stats, result, context);
     await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
     return;
@@ -1122,6 +1171,12 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     if (result === "win") account.stats.rankedGamesWon = (account.stats.rankedGamesWon || 0) + 1;
     if (result === "loss") account.stats.rankedGamesLost = (account.stats.rankedGamesLost || 0) + 1;
     if (result === "draw") account.stats.rankedGamesDrawn = (account.stats.rankedGamesDrawn || 0) + 1;
+  }
+  if (context.draftLeague) {
+    account.stats.draftLeagueGamesPlayed = (account.stats.draftLeagueGamesPlayed || 0) + 1;
+    if (result === "win") account.stats.draftLeagueGamesWon = (account.stats.draftLeagueGamesWon || 0) + 1;
+    if (result === "loss") account.stats.draftLeagueGamesLost = (account.stats.draftLeagueGamesLost || 0) + 1;
+    if (result === "draw") account.stats.draftLeagueGamesDrawn = (account.stats.draftLeagueGamesDrawn || 0) + 1;
   }
   applyProgressionForResult(account.stats, result, context);
   account.lastSeenAt = new Date().toISOString();
@@ -1264,6 +1319,16 @@ function getAccountMatchProfile(account) {
   const draws = hasRankedStats ? account.stats?.rankedGamesDrawn || 0 : account.stats?.gamesDrawn || 0;
   const decidedGames = wins + losses;
   const gamesPlayed = wins + losses + draws;
+  const winRatio = decidedGames > 0 ? wins / decidedGames : 0.5;
+  return { wins, losses, draws, gamesPlayed, winRatio };
+}
+
+function getDraftLeagueProfile(account) {
+  const wins = account.stats?.draftLeagueGamesWon || 0;
+  const losses = account.stats?.draftLeagueGamesLost || 0;
+  const draws = account.stats?.draftLeagueGamesDrawn || 0;
+  const gamesPlayed = account.stats?.draftLeagueGamesPlayed || wins + losses + draws;
+  const decidedGames = wins + losses;
   const winRatio = decidedGames > 0 ? wins / decidedGames : 0.5;
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
@@ -1805,6 +1870,7 @@ const basicGameProfile = {
 };
 
 function getLobbyGameMode(roomState) {
+  if (roomState.lobby.gameMode === "draft") return "draft";
   if (roomState.lobby.gameMode === "freeForAll") return "freeForAll";
   return roomState.lobby.gameMode === "basic" ? "basic" : "factions";
 }
@@ -1812,6 +1878,7 @@ function getLobbyGameMode(roomState) {
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
 const matchmakingQueue = [];
+const draftLeagueQueue = [];
 
 function makeReconnectToken() {
   return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -1853,6 +1920,46 @@ function createFreeForAllRoom() {
   return roomState;
 }
 
+function createDraftRoom() {
+  let roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  while (rooms.has(roomCode)) {
+    roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+  const players = {};
+  for (let playerNum = 1; playerNum <= 8; playerNum++) {
+    players[playerNum] = createDraftPlayerSeat();
+  }
+
+  const roomState = {
+    roomCode,
+    lobby: {
+      gameMode: "draft",
+      players,
+      spectators: []
+    },
+    game: null,
+    draft: {
+      status: "lobby",
+      maxPlayers: 8,
+      packsPerPlayer: DRAFT_PACKS_PER_PLAYER,
+      packSize: DRAFT_PACK_SLOTS.length,
+      activePlayers: [],
+      round: 0,
+      pickNumber: 0,
+      direction: "left",
+      unopenedPacks: {},
+      currentPacks: {},
+      draftedPools: {},
+      deckAdditions: {},
+      completedAt: null,
+      baseDeck: createBaseDeckSummary()
+    },
+    damageConfirmed: { 1: false, 2: false }
+  };
+  rooms.set(roomCode, roomState);
+  return roomState;
+}
+
 function getLobbyPlayerNumbers(roomState) {
   return Object.keys(roomState.lobby.players).map(Number).sort((a, b) => a - b);
 }
@@ -1869,21 +1976,30 @@ function isFreeForAllRoom(roomState) {
   return roomState?.lobby?.gameMode === "freeForAll" || roomState?.game?.gameMode === "freeForAll";
 }
 
+function isDraftRoom(roomState) {
+  return roomState?.lobby?.gameMode === "draft" || !!roomState?.draft;
+}
+
 function removeFromMatchmaking(socketId) {
   const index = matchmakingQueue.findIndex((entry) => entry.socketId === socketId);
   if (index >= 0) matchmakingQueue.splice(index, 1);
+}
+
+function removeFromDraftLeague(socketId) {
+  const index = draftLeagueQueue.findIndex((entry) => entry.socketId === socketId);
+  if (index >= 0) draftLeagueQueue.splice(index, 1);
 }
 
 function getMatchTolerance(waitMs) {
   return Math.min(1, 0.35 + Math.floor(waitMs / 20000) * 0.15);
 }
 
-function findMatchForEntry(entry) {
+function findMatchForEntryInQueue(entry, queue) {
   const now = Date.now();
   let best = null;
   let bestScore = Infinity;
 
-  for (const candidate of matchmakingQueue) {
+  for (const candidate of queue) {
     if (candidate.socketId === entry.socketId || candidate.accountId === entry.accountId) continue;
     const tolerance = Math.max(getMatchTolerance(now - entry.joinedAt), getMatchTolerance(now - candidate.joinedAt));
     const ratioGap = Math.abs(entry.winRatio - candidate.winRatio);
@@ -1897,6 +2013,14 @@ function findMatchForEntry(entry) {
   }
 
   return best;
+}
+
+function findMatchForEntry(entry) {
+  return findMatchForEntryInQueue(entry, matchmakingQueue);
+}
+
+function findDraftLeagueMatchForEntry(entry) {
+  return findMatchForEntryInQueue(entry, draftLeagueQueue);
 }
 
 function createMatchedRoom(entryA, entryB) {
@@ -1926,6 +2050,47 @@ function createMatchedRoom(entryA, entryB) {
   }
 
   emitLobbyState(roomState);
+  return roomState;
+}
+
+function createDraftLeagueRoom(entryA, entryB) {
+  const roomState = createDraftRoom();
+  roomState.draft.league = true;
+  roomState.draft.leagueMatch = {
+    matchedAt: new Date().toISOString(),
+    playerAccountIds: [entryA.accountId, entryB.accountId]
+  };
+
+  const firstEntry = Math.random() < 0.5 ? entryA : entryB;
+  const secondEntry = firstEntry === entryA ? entryB : entryA;
+  const assignments = [
+    { playerNum: 1, entry: firstEntry },
+    { playerNum: 2, entry: secondEntry }
+  ];
+
+  for (const assignment of assignments) {
+    const lobbyPlayer = roomState.lobby.players[assignment.playerNum];
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = assignment.entry.accountId;
+    lobbyPlayer.accountName = assignment.entry.accountName;
+    lobbyPlayer.isGuest = false;
+  }
+
+  for (const assignment of assignments) {
+    const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
+    if (playerSocket) {
+      attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
+      playerSocket.emit("draftLeagueStatus", {
+        inQueue: false,
+        message: `Draft league match found. Room ${roomState.roomCode}.`,
+        roomCode: roomState.roomCode
+      });
+    }
+  }
+
+  startDraft(roomState);
+  emitLobbyState(roomState);
+  emitDraftState(roomState);
   return roomState;
 }
 
@@ -1970,6 +2135,57 @@ function emitLobbyState(roomState) {
     factions: listFactions(),
     spectatorCount: roomState.lobby.spectators.length
   });
+}
+
+function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
+  const draft = roomState.draft;
+  if (!draft) return null;
+  const players = {};
+  getLobbyPlayerNumbers(roomState).forEach((playerNum) => {
+    players[playerNum] = sanitizeLobbyPlayer(roomState.lobby.players[playerNum]);
+  });
+  const playerKey = viewerPlayerNum ? String(viewerPlayerNum) : null;
+  const myCurrentPack = playerKey ? draft.currentPacks[playerKey] || null : null;
+  const myPool = playerKey ? draft.draftedPools[playerKey] || [] : [];
+  const myDeckAdditions = playerKey ? draft.deckAdditions[playerKey] || [] : [];
+
+  const poolCounts = {};
+  Object.keys(draft.draftedPools || {}).forEach((key) => {
+    poolCounts[key] = draft.draftedPools[key]?.length || 0;
+  });
+
+  return {
+    roomCode: roomState.roomCode,
+    status: draft.status,
+    league: !!draft.league,
+    maxPlayers: draft.maxPlayers,
+    packsPerPlayer: draft.packsPerPlayer,
+    packSize: draft.packSize,
+    activePlayers: draft.activePlayers,
+    round: draft.round,
+    pickNumber: draft.pickNumber,
+    direction: draft.direction,
+    players,
+    spectatorCount: roomState.lobby.spectators.length,
+    baseDeck: draft.baseDeck,
+    myCurrentPack,
+    myPool,
+    myDeckAdditions,
+    poolCounts,
+    deckAdditionCounts: Object.fromEntries(Object.entries(draft.deckAdditions || {}).map(([key, cards]) => [key, cards.length])),
+    completedAt: draft.completedAt
+  };
+}
+
+function emitDraftState(roomState) {
+  if (!roomState.draft) return;
+  for (const playerNum of getLobbyPlayerNumbers(roomState)) {
+    const socketId = roomState.lobby.players[playerNum].socket;
+    if (socketId) io.to(socketId).emit("draftState", sanitizeDraftForViewer(roomState, playerNum));
+  }
+  for (const socketId of roomState.lobby.spectators) {
+    io.to(socketId).emit("draftState", sanitizeDraftForViewer(roomState, null));
+  }
 }
 
 function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
@@ -2084,6 +2300,11 @@ function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
   socket.data.role = null;
   socket.data.playerNum = null;
 
+  if (roomState.draft) {
+    emitLobbyState(roomState);
+    emitDraftState(roomState);
+    return;
+  }
   if (roomState.game) emitState(roomState);
   else emitLobbyState(roomState);
 }
@@ -2108,6 +2329,80 @@ function resetStartConfirmations(roomState) {
 function playersConfirmedStart(roomState) {
   const seated = getConnectedLobbyPlayerNumbers(roomState);
   return seated.length >= 2 && seated.every((playerNum) => roomState.lobby.players[playerNum].readyToStart || roomState.lobby.players[playerNum].isAI);
+}
+
+function getConnectedDraftPlayers(roomState) {
+  return getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => !roomState.lobby.players[playerNum].isAI);
+}
+
+function startDraft(roomState) {
+  const draft = roomState.draft;
+  const activePlayers = getConnectedDraftPlayers(roomState);
+  draft.status = "drafting";
+  draft.activePlayers = activePlayers;
+  draft.round = 1;
+  draft.pickNumber = 1;
+  draft.direction = "left";
+  draft.unopenedPacks = {};
+  draft.currentPacks = {};
+  draft.draftedPools = {};
+  draft.deckAdditions = {};
+  draft.completedAt = null;
+
+  activePlayers.forEach((playerNum) => {
+    const key = String(playerNum);
+    draft.unopenedPacks[key] = [];
+    draft.draftedPools[key] = [];
+    draft.deckAdditions[key] = [];
+    for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
+      draft.unopenedPacks[key].push(createDraftPack(playerNum));
+    }
+    draft.currentPacks[key] = draft.unopenedPacks[key].shift();
+  });
+}
+
+function advanceDraftAfterPick(roomState) {
+  const draft = roomState.draft;
+  const activeKeys = draft.activePlayers.map(String);
+  const allPicked = activeKeys.every((key) => !draft.currentPacks[key] || draft.currentPacks[key].pickedThisPass);
+  if (!allPicked) return;
+
+  const packsWithCards = activeKeys.filter((key) => (draft.currentPacks[key]?.cards || []).length > 0);
+  if (packsWithCards.length > 0) {
+    const previousPacks = {};
+    activeKeys.forEach((key) => {
+      if (draft.currentPacks[key]) {
+        draft.currentPacks[key].pickedThisPass = false;
+        previousPacks[key] = draft.currentPacks[key];
+      }
+    });
+
+    activeKeys.forEach((key, index) => {
+      const fromIndex = draft.direction === "left"
+        ? (index + 1) % activeKeys.length
+        : (index - 1 + activeKeys.length) % activeKeys.length;
+      draft.currentPacks[key] = previousPacks[activeKeys[fromIndex]] || null;
+    });
+    draft.pickNumber += 1;
+    return;
+  }
+
+  const nextRound = draft.round + 1;
+  if (nextRound > DRAFT_PACKS_PER_PLAYER) {
+    draft.status = "building";
+    draft.completedAt = new Date().toISOString();
+    activeKeys.forEach((key) => {
+      draft.currentPacks[key] = null;
+    });
+    return;
+  }
+
+  draft.round = nextRound;
+  draft.pickNumber = 1;
+  draft.direction = nextRound % 2 === 0 ? "right" : "left";
+  activeKeys.forEach((key) => {
+    draft.currentPacks[key] = draft.unopenedPacks[key]?.shift() || null;
+  });
 }
 
 async function requirePlayerIdentity(socket, authToken, guestName) {
@@ -2722,6 +3017,7 @@ async function recordFinalGameStats(roomState) {
     const primaryOpponent = opponentNums[0];
     return {
       ranked: true,
+      draftLeague: !!roomState.draft?.league,
       completedAt,
       mode: game.gameMode || "duel",
       factionId: game.players[playerNum]?.faction?.id,
@@ -3342,6 +3638,7 @@ io.on("connection", (socket) => {
     }
 
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -3372,10 +3669,56 @@ io.on("connection", (socket) => {
     removeFromMatchmaking(socket.id);
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
   });
+
+  socket.on("joinDraftLeague", async ({ authToken } = {}) => {
+    console.log("[Socket] joinDraftLeague");
+    const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
+    if (!account) {
+      socket.emit("draftLeagueStatus", { inQueue: false, message: "Sign in to use draft league matchmaking." });
+      return;
+    }
+    if (socket.data.roomCode) {
+      socket.emit("draftLeagueStatus", { inQueue: false, message: "Leave your current room before entering the draft league queue." });
+      return;
+    }
+
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const profile = getDraftLeagueProfile(account);
+    const entry = {
+      socketId: socket.id,
+      accountId: account.id,
+      accountName: account.name,
+      winRatio: profile.winRatio,
+      gamesPlayed: profile.gamesPlayed,
+      joinedAt: Date.now()
+    };
+
+    const match = findDraftLeagueMatchForEntry(entry);
+    if (match) {
+      removeFromDraftLeague(match.socketId);
+      createDraftLeagueRoom(entry, match);
+      return;
+    }
+
+    draftLeagueQueue.push(entry);
+    socket.data.authToken = authToken || socket.data.authToken;
+    socket.emit("draftLeagueStatus", {
+      inQueue: true,
+      message: `Searching for a draft league opponent... ${draftLeagueQueue.length} player${draftLeagueQueue.length === 1 ? "" : "s"} in queue.`,
+      queueSize: draftLeagueQueue.length
+    });
+  });
+
+  socket.on("leaveDraftLeague", () => {
+    removeFromDraftLeague(socket.id);
+    socket.emit("draftLeagueStatus", { inQueue: false, message: "Left draft league queue." });
+  });
   
   socket.on("createRoom", async ({ authToken, guestName } = {}) => {
     console.log("[Socket] createRoom");
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
     const roomState = createRoom();
@@ -3393,6 +3736,7 @@ io.on("connection", (socket) => {
   socket.on("createFreeForAllRoom", async ({ authToken, guestName } = {}, ack) => {
     console.log("[Socket] createFreeForAllRoom");
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) {
       if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
@@ -3412,9 +3756,34 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "freeForAll" });
   });
 
+  socket.on("createDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+    console.log("[Socket] createDraftRoom");
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) {
+      if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
+      return;
+    }
+    const roomState = createDraftRoom();
+    const lobbyPlayer = roomState.lobby.players[1];
+    lobbyPlayer.socket = socket.id;
+    lobbyPlayer.connected = true;
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = identity.id;
+    lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.isGuest = identity.type === "guest";
+    await touchAccountStats(identity.id, "gamesCreated");
+    attachPlayerSocket(roomState, socket, 1);
+    emitLobbyState(roomState);
+    emitDraftState(roomState);
+    if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft" });
+  });
+
   socket.on("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
     console.log("[Socket] createAiTutorialRoom");
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
 
@@ -3453,6 +3822,7 @@ io.on("connection", (socket) => {
   socket.on("createCampaignRoom", async ({ authToken, guestName, factionId, chapterId } = {}) => {
     console.log(`[Socket] createCampaignRoom: faction=${factionId}, chapter=${chapterId}`);
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
 
@@ -3496,6 +3866,7 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", async ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     if (!roomCode) {
       socket.emit("errorMessage", "Enter a room code.");
       return;
@@ -3514,6 +3885,11 @@ io.on("connection", (socket) => {
       socket.emit("assignSpectator", { role: "spectator", roomCode: normalized });
       const spectatorAccount = await getAccountFromToken(authToken);
       if (spectatorAccount) await touchAccountStats(spectatorAccount.id, "gamesSpectated");
+      if (roomState.draft) {
+        emitLobbyState(roomState);
+        emitDraftState(roomState);
+        return;
+      }
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
@@ -3523,6 +3899,11 @@ io.on("connection", (socket) => {
     const reconnectSeat = getDisconnectedSeatForIdentity(roomState, identity, reconnectToken);
     if (reconnectSeat) {
       attachPlayerSocket(roomState, socket, reconnectSeat);
+      if (roomState.draft) {
+        emitLobbyState(roomState);
+        emitDraftState(roomState);
+        return;
+      }
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
@@ -3536,6 +3917,7 @@ io.on("connection", (socket) => {
       await touchAccountStats(identity.id, "gamesJoined");
       attachPlayerSocket(roomState, socket, openSeat);
       emitLobbyState(roomState);
+      if (roomState.draft) emitDraftState(roomState);
       return;
     }
     socket.emit("errorMessage", "Room is full. Join as spectator instead.");
@@ -3558,6 +3940,11 @@ io.on("connection", (socket) => {
     const playerNum = await getReconnectPlayerNumber(roomState, reconnectToken, authToken);
     if (playerNum) {
       attachPlayerSocket(roomState, socket, playerNum);
+      if (roomState.draft) {
+        emitLobbyState(roomState);
+        emitDraftState(roomState);
+        return;
+      }
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
@@ -3570,6 +3957,11 @@ io.on("connection", (socket) => {
       socket.data.roomCode = normalized;
       socket.data.role = "spectator";
       socket.emit("assignSpectator", { role: "spectator", roomCode: normalized });
+      if (roomState.draft) {
+        emitLobbyState(roomState);
+        emitDraftState(roomState);
+        return;
+      }
       if (roomState.game) emitState(roomState);
       else emitLobbyState(roomState);
       return;
@@ -3620,10 +4012,70 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
+  socket.on("startDraft", () => {
+    console.log("[Socket] startDraft");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.draft || roomState.draft.status !== "lobby") return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (playerNum !== 1) {
+      socket.emit("errorMessage", "Only Player 1 can start the draft.");
+      return;
+    }
+    const seated = getConnectedDraftPlayers(roomState);
+    if (seated.length < 2) {
+      socket.emit("errorMessage", "Draft needs at least 2 connected players. It supports up to 8.");
+      return;
+    }
+    startDraft(roomState);
+    emitLobbyState(roomState);
+    emitDraftState(roomState);
+  });
+
+  socket.on("draftPick", ({ cardCopyId } = {}) => {
+    console.log("[Socket] draftPick");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.draft || roomState.draft.status !== "drafting") return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum || !roomState.draft.activePlayers.includes(playerNum)) return;
+    const key = String(playerNum);
+    const currentPack = roomState.draft.currentPacks[key];
+    if (!currentPack || currentPack.pickedThisPass) {
+      socket.emit("errorMessage", "You have already picked from this pack.");
+      return;
+    }
+    const cardIndex = currentPack.cards.findIndex((card) => card.draftCopyId === cardCopyId);
+    if (cardIndex < 0) {
+      socket.emit("errorMessage", "Choose a card from your current pack.");
+      return;
+    }
+    const [card] = currentPack.cards.splice(cardIndex, 1);
+    roomState.draft.draftedPools[key].push(card);
+    currentPack.pickedThisPass = true;
+    advanceDraftAfterPick(roomState);
+    emitDraftState(roomState);
+  });
+
+  socket.on("setDraftDeckAdditions", ({ cardCopyIds } = {}) => {
+    console.log("[Socket] setDraftDeckAdditions");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const key = String(playerNum);
+    const selectedIds = new Set(Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []);
+    const pool = roomState.draft.draftedPools[key] || [];
+    roomState.draft.deckAdditions[key] = pool.filter((card) => selectedIds.has(card.draftCopyId));
+    emitDraftState(roomState);
+  });
+
   socket.on("startGame", () => {
     console.log(`[Socket] startGame`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
+    if (roomState.draft) {
+      socket.emit("errorMessage", "Draft rooms use the draft controls instead of Start Game.");
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     if (!roomPlayersReady(roomState)) {
@@ -4546,6 +4998,7 @@ io.on("connection", (socket) => {
   socket.on("leaveRoom", () => {
     console.log("[Socket] leaveRoom");
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const roomState = getRoomForSocket(socket);
     if (!roomState) return;
     detachSocketFromRoom(roomState, socket);
@@ -4554,6 +5007,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`[Socket] Disconnected: ${socket.id}`);
     removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
     const roomState = getRoomForSocket(socket);
     if (roomState) {
       detachSocketFromRoom(roomState, socket, { leaveSocket: false });
