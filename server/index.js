@@ -233,7 +233,7 @@ const RUMIN_COLLECTION_CARDS = [
     type: "unit",
     rarity: "uncommon",
     value: 5,
-    text: "The first time you overpay for this each turn, gain 1 life."
+    text: "The first time each turn you overpay for this by 2 or more, gain 1 life."
   },
   {
     id: "rumin-marble-market-tribune",
@@ -251,7 +251,7 @@ const RUMIN_COLLECTION_CARDS = [
     type: "weapon",
     rarity: "uncommon",
     value: 6,
-    text: "Arm from lane: attach to a hand attacker or blocker. It gets +3 value this combat, then discard this."
+    text: "Arm from lane: attach to a hand attacker. It gets +3 value this combat, then discard this."
   },
   {
     id: "rumin-imperial-scale-pike",
@@ -335,7 +335,7 @@ const SHEEN_COLLECTION_CARDS = [
     type: "relic",
     rarity: "common",
     value: 2,
-    text: "The next card you block with this turn gets +1 value."
+    text: "When paid for a block, the first blocking card gets +1 value."
   },
   {
     id: "sheen-living-bark-guard",
@@ -455,7 +455,7 @@ const FRUMO_COLLECTION_CARDS = [
     type: "relic",
     rarity: "common",
     value: 2,
-    text: "When paid for an ability, this pays +1 value if you control an empty lane."
+    text: "When paid for an attack, block, or ability, this pays +1 value if you control an empty lane."
   },
   {
     id: "frumo-coral-hull-guard",
@@ -464,7 +464,7 @@ const FRUMO_COLLECTION_CARDS = [
     type: "unit",
     rarity: "common",
     value: 5,
-    text: "When this blocks from a lane, you may switch it with another lane card you control after combat."
+    text: "When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn."
   },
   {
     id: "frumo-riptide-smuggler",
@@ -500,7 +500,7 @@ const FRUMO_COLLECTION_CARDS = [
     type: "tactic",
     rarity: "uncommon",
     value: 6,
-    text: "Move one lane card you control. If it moves into an empty lane, it gets +1 value this turn."
+    text: "When this attacks from a lane while you control an empty lane, it gets +1 value."
   },
   {
     id: "frumo-captains-bad-wager",
@@ -509,7 +509,7 @@ const FRUMO_COLLECTION_CARDS = [
     type: "tactic",
     rarity: "rare",
     value: 7,
-    text: "Choose a lane. If its face-down card has even value, it gets +3 value this turn. Otherwise, draw then discard."
+    text: "When this attacks from a lane after you played an even-value card, it gets +3 value this turn."
   },
   {
     id: "frumo-poleas-sunken-order",
@@ -545,7 +545,7 @@ const FRUMO_COLLECTION_CARDS = [
     type: "unit",
     rarity: "mythic",
     value: 10,
-    text: "When this enters a lane, you may switch any two lane cards you control. Each moved card gets +1 value this turn."
+    text: "When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards."
   }
 ];
 
@@ -566,7 +566,7 @@ const BIZI_COLLECTION_CARDS = [
     type: "tactic",
     rarity: "common",
     value: 2,
-    text: "A same-suit payment card pays +1 value for your next Bizi card this turn."
+    text: "When paid for a Bizi card, this pays +1 additional value once each turn."
   },
   {
     id: "bizi-dune-circuit-runner",
@@ -593,7 +593,7 @@ const BIZI_COLLECTION_CARDS = [
     type: "tactic",
     rarity: "uncommon",
     value: 5,
-    text: "The first same-suit payment card you use this turn pays +2 value instead of +1."
+    text: "When paid for a Bizi card, this pays +2 additional value."
   },
   {
     id: "bizi-solar-array-adept",
@@ -647,7 +647,7 @@ const BIZI_COLLECTION_CARDS = [
     type: "relic",
     rarity: "rare",
     value: 5,
-    text: "After you attack with a different suit from your previous attack, one payment card may pay +2 value."
+    text: "When you attack with a different suit from your previous attack, that attack gets +2 value."
   },
   {
     id: "bizi-focus-prime-signal",
@@ -670,6 +670,21 @@ const BIZI_COLLECTION_CARDS = [
 ];
 
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+const DRAFT_CARD_SUITS = ["spades", "hearts", "diamonds", "clubs"];
+
+function getDraftCardSuit() {
+  return DRAFT_CARD_SUITS[crypto.randomInt(DRAFT_CARD_SUITS.length)];
+}
+
+function getPlayableCollectionCard(card, overrides = {}) {
+  const factionName = getFactionById(card.factionId)?.name || card.factionId;
+  return {
+    ...card,
+    ...overrides,
+    rulesText: card.rulesText || card.text || `Draft ${card.type}. Value ${card.value}.`,
+    text: card.text || `Draft ${card.type}. Value ${card.value}.`
+  };
+}
 
 const BOOSTER_PRODUCTS = {
   "rumin-foundation": {
@@ -744,10 +759,10 @@ function collectionSummary(stats = {}) {
   return {
     ...normalizeCollection(stats),
     catalog: {
-      rumin: RUMIN_COLLECTION_CARDS,
-      sheen: SHEEN_COLLECTION_CARDS,
-      frumo: FRUMO_COLLECTION_CARDS,
-      bizi: BIZI_COLLECTION_CARDS
+      rumin: RUMIN_COLLECTION_CARDS.map(getPlayableCollectionCard),
+      sheen: SHEEN_COLLECTION_CARDS.map(getPlayableCollectionCard),
+      frumo: FRUMO_COLLECTION_CARDS.map(getPlayableCollectionCard),
+      bizi: BIZI_COLLECTION_CARDS.map(getPlayableCollectionCard)
     },
     boosters: BOOSTER_PRODUCTS
   };
@@ -768,13 +783,6 @@ function createDraftPlayerSeat() {
   };
 }
 
-function createRandomDraftCard() {
-  const factionIds = ["rumin", "sheen", "frumo", "bizi"];
-  const factionId = factionIds[crypto.randomInt(factionIds.length)];
-  const rarity = resolveBoosterSlot(DRAFT_PACK_SLOTS[crypto.randomInt(DRAFT_PACK_SLOTS.length)]);
-  return { ...pickCollectionCard(factionId, rarity), draftCopyId: crypto.randomUUID() };
-}
-
 function createDraftPack(ownerPlayer) {
   return {
     id: crypto.randomUUID(),
@@ -783,7 +791,7 @@ function createDraftPack(ownerPlayer) {
       const factionIds = ["rumin", "sheen", "frumo", "bizi"];
       const factionId = factionIds[crypto.randomInt(factionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      return { ...pickCollectionCard(factionId, rarity), draftCopyId: crypto.randomUUID() };
+      return { ...pickCollectionCard(factionId, rarity), suit: getDraftCardSuit(), draftCopyId: crypto.randomUUID() };
     }).filter(Boolean)
   };
 }
@@ -793,6 +801,25 @@ function createBaseDeckSummary() {
     name: "Standard 52-card Gauntlet deck",
     cardCount: 52,
     note: "Your drafted cards are added to this base deck for draft deckbuilding."
+  };
+}
+
+function getSavedDraftDeck(stats = {}) {
+  const deck = stats.savedDraftDeck;
+  if (!deck || !Array.isArray(deck.cards) || deck.cards.length === 0 || !deck.factionId) return null;
+  const cards = deck.cards
+    .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
+    .map((card) => getPlayableCollectionCard(card, {
+      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit()
+    }));
+  if (cards.length === 0) return null;
+  return {
+    name: deck.name || `${deck.factionName || deck.factionId} Draft Deck`,
+    factionId: deck.factionId,
+    factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
+    cardCount: cards.length,
+    savedAt: deck.savedAt || null,
+    cards
   };
 }
 
@@ -1183,6 +1210,46 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   saveAccountStore(store);
 }
 
+async function saveAccountDraftDeck(accountId, draftDeck) {
+  if (!accountId || !draftDeck) return null;
+  const savedDraftDeck = {
+    name: draftDeck.name,
+    factionId: draftDeck.factionId,
+    factionName: draftDeck.factionName,
+    cardCount: draftDeck.cards.length,
+    savedAt: new Date().toISOString(),
+    cards: draftDeck.cards.map((card) => ({
+      id: card.id,
+      name: card.name,
+      type: card.type,
+      rarity: card.rarity,
+      value: card.value,
+      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      factionId: card.factionId,
+      text: card.text || "",
+      rulesText: card.rulesText || card.text || ""
+    }))
+  };
+
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(accountId);
+    if (!account) return null;
+    const stats = account.stats || {};
+    stats.savedDraftDeck = savedDraftDeck;
+    await patchSupabaseAccount(accountId, { stats, last_seen_at: savedDraftDeck.savedAt });
+    return publicAccount(await findSupabaseAccountById(accountId));
+  }
+
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === accountId);
+  if (!account) return null;
+  account.stats = account.stats || {};
+  account.stats.savedDraftDeck = savedDraftDeck;
+  account.lastSeenAt = savedDraftDeck.savedAt;
+  saveAccountStore(store);
+  return publicAccount(account);
+}
+
 function getFactionStatsPlayerEntries(game) {
   return Object.keys(game.players || {})
     .map(Number)
@@ -1336,7 +1403,7 @@ function getDraftLeagueProfile(account) {
 function pickCollectionCard(factionId, rarity) {
   const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
   if (cardPool.length === 0) return null;
-  return cardPool[crypto.randomInt(cardPool.length)];
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
 }
 
 function resolveBoosterSlot(slot) {
@@ -1836,8 +1903,208 @@ const campaignChapters = {
   ]
 };
 
+const CAMPAIGN_NARRATION = {
+  "brothers-of-destiny": {
+    beforeBattle: "Rumie begins as a fragile dream between two brothers: Rolmus, who sees trade as the road to greatness, and Remex, who believes only conquest can keep the city alive. Their argument will decide the soul of the empire before it is even born.",
+    afterBattle: "Rolmus wins the first argument, but not the last. Rumie is founded on trade, ambition, and the unresolved truth that wealth will always need soldiers to guard it."
+  },
+  "the-republic": {
+    beforeBattle: "Generations later, Rumie is rich, proud, and rotten beneath its marble. Senators speak of tradition while banks, legions, and private debts quietly decide the fate of citizens.",
+    afterBattle: "The Republic survives, but its weakness has been exposed. Rumie's laws still stand, yet more people now wonder whether law without justice is only another kind of market."
+  },
+  "the-jewel": {
+    beforeBattle: "Kaiser rises from officer to public champion, paying debts and walking among workers while the aristocracy protects its own. Governor Severan believes popularity cannot defeat power.",
+    afterBattle: "Severan falls, and Kaiser becomes more than a soldier. To the people, he is the Jewel of Rumie; to the Senate, he is a warning."
+  },
+  "gaulic-wars": {
+    beforeBattle: "Northern tribes unite against Rumie's frontier, threatening roads, trade, and imperial pride. Kaiser marches north, knowing victory will make him beloved and feared in equal measure.",
+    afterBattle: "The frontier opens. Kaiser returns with wealth, veterans, and a legend too large for the Senate to comfortably contain."
+  },
+  "three-runes": {
+    beforeBattle: "Beneath conquered lands, Kaiser finds ancient vaults of Strength, Protection, and Experience. The runes promise power, but every sacred weapon demands a price from the hand that holds it.",
+    afterBattle: "The legions are changed forever. Rumie now commands not only soldiers and gold, but myth itself."
+  },
+  "first-empire-bank": {
+    beforeBattle: "Kaiser turns from conquest to reform, building roads, grain systems, and public credit. His enemies strike at the markets, hoping the people will blame him when Rumie hungers.",
+    afterBattle: "The markets hold. Kaiser proves that money can be a weapon of stability, and the people begin trusting him more than the institutions meant to govern him."
+  },
+  "the-crossing": {
+    beforeBattle: "The Senate orders Kaiser to surrender command. Brutus begs him to preserve the Republic, but Kaiser believes the Republic has already been sold by the men claiming to save it.",
+    afterBattle: "The line is crossed. Civil war begins, and Rumie must now choose between a corrupt freedom and an honest empire."
+  },
+  "last-republic": {
+    beforeBattle: "Legions and senators collide while Brutus fights for a dying order. Kaiser fights for the city itself, even if saving Rumie means conquering it.",
+    afterBattle: "Kaiser wins the city. The Republic still has voices, but no longer has control."
+  },
+  "emperor-of-gold": {
+    beforeBattle: "Roads flourish, banks expand, and the legions obey one hand. Yet prosperity casts a long shadow: taxes, prisoners, and obedience gather beneath the gold.",
+    afterBattle: "Kaiser reaches the height of power. Rumie is safer and richer than ever, but citizens begin asking whether rescue has become rule."
+  },
+  "ides-of-rumie": {
+    beforeBattle: "The conspiracy reaches the Senate floor. Kaiser enters believing his work has saved Rumie; Brutus waits believing only betrayal can save what remains.",
+    afterBattle: "Kaiser falls, but the empire does not. The assassins kill the man and accidentally preserve his myth."
+  },
+  "war-of-successors": {
+    beforeBattle: "Bobei takes up vengeance while Brutus tries to restore the Republic from blood and ashes. Both claim Kaiser's death proves their cause.",
+    afterBattle: "Brutus loses the future. The Republic he tried to save becomes a memory carried by the empire that replaces it."
+  },
+  "first-emperor": {
+    beforeBattle: "Augustus and Bobei clash over Kaiser's legacy: sword or law, vengeance or settlement. Rumie waits to see what shape empire will finally take.",
+    afterBattle: "Augustus wins. The Senate returns in ceremony, the empire remains in fact, and Rumie learns to call obedience tradition."
+  },
+  "iron-roots": {
+    beforeBattle: "The Obsidian Lords drain the forest through Iron Root outposts, turning living land into tribute. Leafen Gao's rebellion begins among starving villages with little more than anger and patience.",
+    afterBattle: "The first chains break. The Sheen learn that roots can strangle as well as nourish."
+  },
+  "verdant-uprising": {
+    beforeBattle: "Hushan joins Leafen as the rebellion spreads through villages, groves, and hidden paths. The Thorn Guard believes a scattered forest cannot become an army.",
+    afterBattle: "The rebellion becomes a people. What began as hunger has grown into a shared memory of injustice."
+  },
+  "obsidian-throne": {
+    beforeBattle: "Leshan and Dowan strike at the Iron Roots themselves, forcing Blackthorn into a final stand. If the root survives, the forest will never be free.",
+    afterBattle: "Blackthorn falls. The Sheen win their forest, but victory leaves them with the harder task of building a kingdom that does not become another chain."
+  },
+  "beli-living-city": {
+    beforeBattle: "The Sheen found Beli and begin the Root Network, but nature itself tests the newborn kingdom through blight and scarcity. Rebellion must become stewardship.",
+    afterBattle: "Beli survives. The Sheen discover that a city can grow like a forest if its people accept patience as power."
+  },
+  "root-network": {
+    beforeBattle: "Dowan expands botanical science into roads, shields, greenhouses, and trade routes. The Ash Serpent burns the nodes, proving that connection also creates vulnerability.",
+    afterBattle: "The network bends instead of breaking. The Sheen learn that defense is not a wall, but a living system."
+  },
+  "blooming-age": {
+    beforeBattle: "Shelters, retreats, springs, and greenhouses bring abundance, but prosperity attracts enemies from dry borders. The Drought King comes to prove growth can be starved.",
+    afterBattle: "The Blooming Age endures. The Sheen understand prosperity as preparation, not comfort."
+  },
+  "court-of-blossoms": {
+    beforeBattle: "As Beli blooms, politics rot quietly inside the court. Den watches nobles and ministers turn harmony into influence.",
+    afterBattle: "Den preserves stability for now. But the court has revealed a dangerous truth: a peaceful kingdom can still decay."
+  },
+  "the-reformer": {
+    beforeBattle: "Tang rises against inequality and noble stagnation, promising reforms that return life to the poor. His cause is just, but justice can grow thorns.",
+    afterBattle: "Tang wins the people's faith. Reform becomes power, and power begins asking for obedience."
+  },
+  "thorned-crown": {
+    beforeBattle: "Tang creates the Thornblades and centralizes authority to protect reform from corruption. Ringan sees the danger: a cure becoming a crown.",
+    afterBattle: "Tang defeats his critics, but the kingdom is no longer merely healing. It is being commanded."
+  },
+  "war-of-roots": {
+    beforeBattle: "Civil war spreads through the forest. Shelters become forts, roads carry armies, and the Root Network becomes a battlefield.",
+    afterBattle: "The old harmony burns. The Sheen learn that even living systems can be weaponized when fear takes root."
+  },
+  "fall-of-thorn-mang": {
+    beforeBattle: "Tang stands as healer, reformer, ruler, and living thorn avatar. He finally sees the pain caused in the name of survival, but too late to step aside peacefully.",
+    afterBattle: "Tang falls. The Sheen mourn both the tyrant he became and the reformer he once was."
+  },
+  "green-era": {
+    beforeBattle: "Dowan inherits a wounded kingdom. The Root Network must be restored, not as a tool of control, but as a promise of balance.",
+    afterBattle: "The Green Era begins. The Sheen choose renewal over revenge, and remember that growth without harmony becomes overgrowth."
+  },
+  "tax-of-tides": {
+    beforeBattle: "King Ludvik's tribute fleets bleed Ristus dry while royal collectors seize treasure from captains and families. Lafayette sees a kingdom drowning in its own greed.",
+    afterBattle: "The tax fleet is broken. The Frumo learn that the sea does not belong only to crowns."
+  },
+  "voices-of-revolution": {
+    beforeBattle: "Taverns, pirate dens, and hidden harbors fill with reformers. Mirabeau, Danton, Marat, Robespier, and Lafayette speak different visions of freedom.",
+    afterBattle: "The voices become a movement. The monarchy still stands, but the Frumo have learned to imagine life without it."
+  },
+  "fall-of-silver-shoals": {
+    beforeBattle: "Silver Shoals guards Ludvik's treasure and the myth of royal invincibility. Danton leads common captains against trained formations and fortress guns.",
+    afterBattle: "Silver Shoals falls. The revolution proves that courage, tide, and timing can defeat inherited power."
+  },
+  "sunken-fortress": {
+    beforeBattle: "The capital floods with unrest. Ludvik believes treasure can buy loyalty, but Lafayette knows fear and gold cannot hold a kingdom forever.",
+    afterBattle: "The monarchy breaks. Ludvik discovers too late that a crown is heavy only while people agree to carry it."
+  },
+  "trial-of-king": {
+    beforeBattle: "The Frumo must decide whether Ludvik should be spared, imprisoned, or executed. Justice and vengeance begin wearing the same face.",
+    afterBattle: "The king's fate divides the revolution. Freedom has won its first victory and immediately faces its first moral wound."
+  },
+  "reign-of-revolution": {
+    beforeBattle: "Robespier hunts enemies of freedom until suspicion becomes government. Marat sees the revolution turning its blade inward.",
+    afterBattle: "The terror consumes itself. The Frumo learn that a revolution can drown in the name of purity."
+  },
+  "hero-of-republic": {
+    beforeBattle: "Coalition fleets gather while the republic trembles. Polea wins impossible battles and gives the Frumo a hero when they most need one.",
+    afterBattle: "Polea saves the republic. In doing so, he becomes the one person the republic fears it cannot survive without."
+  },
+  "lord-commander": {
+    beforeBattle: "The Council grants Polea more command with every crisis. Each emergency passes, but his authority remains.",
+    afterBattle: "The Council yields piece by piece. Polea has not seized the republic all at once; he has taught it to depend on him."
+  },
+  "frumo-empire": {
+    beforeBattle: "Polea crowns himself Lord Commander of All Frumo. He claims unity, order, and survival; his shadow whispers another word: ambition.",
+    afterBattle: "The republic becomes an empire. The Frumo are strong, victorious, and no longer free in the way they once demanded."
+  },
+  "hundred-fleets": {
+    beforeBattle: "Rival sea powers unite against Polea's endless victories. The oceans themselves seem to ask whether one commander can own every tide.",
+    afterBattle: "Polea dominates the seas. But each victory makes his empire wider, colder, and harder to hold."
+  },
+  "frozen-sea": {
+    beforeBattle: "Polea sails north to conquer what no fleet has held. Ice, hunger, storms, and silence await the navy that believed itself invincible.",
+    afterBattle: "The fleet shatters. Polea survives, but his myth is cracked by a sea that refuses command."
+  },
+  "last-tide": {
+    beforeBattle: "Former allies and rival fleets gather for one final reckoning. Polea insists history will understand him; Lafayette insists the living cannot wait for history.",
+    afterBattle: "Polea falls. The Council is restored, but the Frumo remember how easily freedom can become command when fear asks for a hero."
+  },
+  "kharons-vision": {
+    beforeBattle: "Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings. Maxor stands in the way with older claims to power.",
+    afterBattle: "Maxor falls at Iron River. Constanti is founded, and the Bizi begin believing the future can be engineered."
+  },
+  "first-titan": {
+    beforeBattle: "Machina sleeps beneath Constanti, dividing thinkers over whether the Titan is creator, guide, or dangerous machine. Faith and reason meet over the same engine.",
+    afterBattle: "The debate does not end. Instead, it becomes the foundation of Bizi identity: progress powered by doubt."
+  },
+  "golden-empire": {
+    beforeBattle: "Centuries later, Justine, Theo, and Beli try to restore the old empire at its dazzling height. The Vandal Engine threatens to prove that splendor cannot stop collapse.",
+    afterBattle: "The empire shines again. Yet beneath the gold, every repair reveals how much machinery is already wearing thin."
+  },
+  "riot-of-sparks": {
+    beforeBattle: "Constanti burns in rebellion, and Justine nearly flees from the city he was meant to rule. Theo forces him to choose between command and disappearance.",
+    afterBattle: "Order returns, but trust does not. The Bizi learn that machines can restart faster than societies can forgive."
+  },
+  "last-victories": {
+    beforeBattle: "Beli reclaims territory from desert coalitions, iron tribes, and sea raiders. Each triumph looks impossible, and each one stretches the empire thinner.",
+    afterBattle: "Beli wins again, but victory becomes exhaustion. The empire is not dying from defeat, but from the cost of refusing to shrink."
+  },
+  "age-of-focus": {
+    beforeBattle: "After decline and paralysis, Focus seizes power with a promise of absolute efficiency. Compassion is treated as waste; progress becomes command.",
+    afterBattle: "Focus takes control. The empire runs cleaner, faster, and colder, proving that efficiency without mercy can become its own kind of ruin."
+  },
+  "great-invasion": {
+    beforeBattle: "Khosar the Conqueror breaks the eastern empire, destroying factories, shrines, and old defenses. The Bizi face extinction as systems fail one after another.",
+    afterBattle: "The Bizi survive the first collapse. Not because their machines never fail, but because they know how to restart."
+  },
+  "heras-counterattack": {
+    beforeBattle: "Hera rises when defeat seems certain, marching into enemy territory with determination stronger than the machines around her. One victory must become many.",
+    afterBattle: "Hera turns the war. The Bizi remember that progress is not only invention; sometimes it is refusal."
+  },
+  "three-titans": {
+    beforeBattle: "Followers of Machina, Melech, and Meca argue over creation, guidance, and control. Faith becomes circuitry for civil danger.",
+    afterBattle: "The Titan faith fractures. The Bizi gain a deeper mythology, but lose the unity that once made it powerful."
+  },
+  "the-schism": {
+    beforeBattle: "The empire weakens as certainty hardens into doctrine. Old allies become enemies, each claiming the true meaning of the Titans.",
+    afterBattle: "The schism becomes permanent. The Bizi discover that ideas can preserve an empire or split it from the inside."
+  },
+  "the-restoration": {
+    beforeBattle: "Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and borders under pressure. Repair must become revolution.",
+    afterBattle: "Xios restores the empire's engine. The Bizi prove that decline is not destiny while knowledge, discipline, and courage remain."
+  },
+  "last-gear": {
+    beforeBattle: "Constanti stands under final siege. The Titans are silent, engines fail, and divided Bizi fight together so their knowledge will outlive the city.",
+    afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
+  }
+};
+
+function getCampaignNarration(chapterId) {
+  return CAMPAIGN_NARRATION[chapterId] || {};
+}
+
 function getCampaignChapter(factionId, chapterId) {
-  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId) || null;
+  const chapter = (campaignChapters[factionId] || []).find((entry) => entry.id === chapterId) || null;
+  return chapter ? { ...chapter, ...getCampaignNarration(chapter.id) } : null;
 }
 
 function getCampaignDifficulty(factionId, chapterId) {
@@ -2054,9 +2321,10 @@ function createMatchedRoom(entryA, entryB) {
 }
 
 function createDraftLeagueRoom(entryA, entryB) {
-  const roomState = createDraftRoom();
-  roomState.draft.league = true;
-  roomState.draft.leagueMatch = {
+  const roomState = createRoom();
+  roomState.ranked = true;
+  roomState.draftLeague = true;
+  roomState.draftLeagueMatch = {
     matchedAt: new Date().toISOString(),
     playerAccountIds: [entryA.accountId, entryB.accountId]
   };
@@ -2074,6 +2342,8 @@ function createDraftLeagueRoom(entryA, entryB) {
     lobbyPlayer.accountId = assignment.entry.accountId;
     lobbyPlayer.accountName = assignment.entry.accountName;
     lobbyPlayer.isGuest = false;
+    lobbyPlayer.factionId = assignment.entry.savedDraftDeck.factionId;
+    lobbyPlayer.savedDraftDeck = assignment.entry.savedDraftDeck;
   }
 
   for (const assignment of assignments) {
@@ -2082,15 +2352,16 @@ function createDraftLeagueRoom(entryA, entryB) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
       playerSocket.emit("draftLeagueStatus", {
         inQueue: false,
-        message: `Draft league match found. Room ${roomState.roomCode}.`,
+        message: `Draft league match found. Using your saved ${assignment.entry.savedDraftDeck.factionName} deck.`,
         roomCode: roomState.roomCode
       });
     }
   }
 
-  startDraft(roomState);
-  emitLobbyState(roomState);
-  emitDraftState(roomState);
+  createGameFromLobby(roomState);
+  roomState.game.draftLeague = true;
+  roomState.game.message = `Draft league match started. Player ${roomState.game.priority} has priority.`;
+  emitState(roomState);
   return roomState;
 }
 
@@ -2551,13 +2822,31 @@ function createTurnData() {
   return {
     attacksDeclaredThisTurn: 0,
     blocksDeclaredThisTurn: 0,
+    damageTakenThisTurn: 0,
     previousAttackSuit: null,
     previousPlayedValue: null,
     suitsPlayedThisTurn: [],
+    paymentSuitsThisTurn: [],
     ruminSharedSuitBuffsUsed: 0,
+    ruminSenateVaultGuardUsed: false,
     biziDifferentSuitBuffsUsed: 0,
     meerusFreeAttackAvailable: false,
     beliHighCostAttackBuffAvailable: false,
+    sheenNextAttackBonus: 0,
+    sheenNextBlockBonus: 0,
+    sheenEndTurnDraws: 0,
+    beliCanopyShieldUsed: false,
+    beliAwakenedReady: false,
+    ruminNextWeaponArmBonus: 0,
+    ruminJewelBankUsed: false,
+    frumoLaneSwappedThisTurn: false,
+    frumoNextPaymentBonus: 0,
+    frumoNextActionBonus: 0,
+    frumoRiptideSmugglerUsed: false,
+    poleaSunkenOrderUsed: false,
+    biziVoltageBonusUsed: false,
+    biziFirstOverpayRewardUsed: false,
+    biziPrimeSignalBonus: 0,
     tangLifeGainUsed: false,
     ristusConsecutiveBuffUsed: false,
     poleaUsed: false,
@@ -2652,6 +2941,74 @@ function getCardCurrentValue(card) {
   return getBaseCardValue(card) + (card?.tempBuff || 0);
 }
 
+function cardIs(card, id) {
+  return card?.id === id;
+}
+
+function cardHasType(card, type) {
+  return String(card?.type || "").toLowerCase() === type;
+}
+
+function getPlayerControlledLaneCards(game, playerNum) {
+  return (game?.lanes || [])
+    .map((lane, laneIndex) => ({ lane, laneIndex, card: lane.facedown?.[playerNum] }))
+    .filter((entry) => entry.card);
+}
+
+function getPlayerVisibleCards(game, playerNum) {
+  const player = game.players[playerNum];
+  return [
+    ...(player.hand || []),
+    ...(player.discard || []),
+    ...getPlayerControlledLaneCards(game, playerNum).map((entry) => entry.card),
+    ...(game.handAttacks || []).filter((attack) => attack.player === playerNum).map((attack) => attack.card),
+    ...(game.lanes || []).filter((lane) => lane.attack?.player === playerNum).map((lane) => lane.attack.card)
+  ].filter(Boolean);
+}
+
+function playerHasVisibleCard(game, playerNum, id) {
+  return getPlayerVisibleCards(game, playerNum).some((card) => cardIs(card, id));
+}
+
+function getPlayerSupportCards(game, playerNum) {
+  return [
+    ...getPlayerControlledLaneCards(game, playerNum).map((entry) => entry.card),
+    ...(game.handAttacks || []).filter((attack) => attack.player === playerNum).map((attack) => attack.card),
+    ...(game.lanes || []).filter((lane) => lane.attack?.player === playerNum).map((lane) => lane.attack.card)
+  ].filter(Boolean);
+}
+
+function playerControlsCard(game, playerNum, id) {
+  return getPlayerSupportCards(game, playerNum).some((card) => cardIs(card, id));
+}
+
+function addPaymentSuits(player, paymentCards) {
+  for (const card of paymentCards || []) {
+    if (card?.suit && !player.turnData.paymentSuitsThisTurn.includes(card.suit)) {
+      player.turnData.paymentSuitsThisTurn.push(card.suit);
+    }
+  }
+}
+
+function drawCards(player, count) {
+  let drawn = 0;
+  for (let i = 0; i < count; i++) {
+    if (!player.deck?.length) break;
+    player.hand.push(player.deck.pop());
+    drawn++;
+  }
+  return drawn;
+}
+
+function gainLifeFromBlocking(game, playerNum, amount, notes = []) {
+  const player = game.players[playerNum];
+  player.life += amount;
+  if (playerControlsCard(game, playerNum, "sheen-roots-that-remember")) {
+    player.turnData.sheenNextBlockBonus = (player.turnData.sheenNextBlockBonus || 0) + 1;
+    notes.push("Roots That Remember next block +1");
+  }
+}
+
 function clearCardBuff(card) {
   if (card && card.tempBuff) delete card.tempBuff;
 }
@@ -2675,7 +3032,51 @@ function clearEndTurnBuffs(game) {
   });
 }
 
-function calculateAttackBonuses(player, card) {
+function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, source, notes) {
+  const player = game.players[playerNum];
+  if (player.faction?.id !== "rumin" || source !== "hand") return { value: 0, armedCards: [] };
+
+  const weaponEntries = getPlayerControlledLaneCards(game, playerNum)
+    .filter((entry) => entry.card.factionId === "rumin" && cardHasType(entry.card, "weapon"));
+  if (weaponEntries.length === 0) return { value: 0, armedCards: [] };
+
+  const shouldArmAll = cardIs(attackCard, "rumin-rumie-market-colossus");
+  const entriesToArm = shouldArmAll ? weaponEntries : weaponEntries.slice(0, 1);
+  let value = 0;
+  const armedCards = [];
+
+  for (const entry of entriesToArm) {
+    const weapon = entry.card;
+    let bonus = 0;
+    if (cardIs(weapon, "rumin-coin-scale-spear")) bonus = 2;
+    else if (cardIs(weapon, "rumin-rumie-vault-shield")) bonus = 3;
+    else if (cardIs(weapon, "rumin-imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
+    else if (cardIs(weapon, "rumin-aurelian-clawblade")) bonus = 4;
+    else if (cardIs(weapon, "rumin-kaisers-gold-claw")) bonus = attackNumber === 4 ? 7 : 5;
+    else bonus = Math.max(1, Math.floor(getBaseCardValue(weapon) / 2));
+
+    if (player.turnData.ruminNextWeaponArmBonus) {
+      bonus += player.turnData.ruminNextWeaponArmBonus;
+      notes.push(`Marble Market Tribune armed weapon +${player.turnData.ruminNextWeaponArmBonus}`);
+      player.turnData.ruminNextWeaponArmBonus = 0;
+    }
+    if (shouldArmAll) bonus += 1;
+    if (attackNumber === 4 && playerControlsCard(game, playerNum, "rumin-basilisk-standard")) {
+      bonus += 2;
+      notes.push("Basilisk Standard +2");
+    }
+
+    value += bonus;
+    armedCards.push(weapon);
+    game.lanes[entry.laneIndex].facedown[playerNum] = null;
+    notes.push(`${weapon.name} armed +${bonus}`);
+  }
+
+  return { value, armedCards };
+}
+
+function calculateAttackBonuses(game, playerNum, card, source) {
+  const player = game.players[playerNum];
   const notes = [];
   let value = 0;
   const attackNumber = player.turnData.attacksDeclaredThisTurn + 1;
@@ -2702,6 +3103,20 @@ function calculateAttackBonuses(player, card) {
     player.turnData.beliHighCostAttackBuffAvailable = false;
     notes.push("Beli high-cost attack +2");
   }
+  if (player.turnData.sheenNextAttackBonus) {
+    value += player.turnData.sheenNextAttackBonus;
+    notes.push(`Sheen next attack +${player.turnData.sheenNextAttackBonus}`);
+    player.turnData.sheenNextAttackBonus = 0;
+  }
+  if (cardIs(card, "sheen-thornroot-counterstroke") && (player.turnData.damageTakenThisTurn || 0) === 0) {
+    value += 2;
+    notes.push("Thornroot Counterstroke no damage +2");
+  }
+  if (cardIs(card, "sheen-beli-awakened") && player.turnData.beliAwakenedReady) {
+    value += 3;
+    notes.push("Beli Awakened +3");
+    player.turnData.beliAwakenedReady = false;
+  }
 
   if (
     player.faction?.id === "bizi" &&
@@ -2713,9 +3128,62 @@ function calculateAttackBonuses(player, card) {
     value += 1;
     player.turnData.biziDifferentSuitBuffsUsed += 1;
     notes.push("Constanti different suit +1");
+    if (playerControlsCard(game, playerNum, "bizi-constanti-conduit")) {
+      value += 1;
+      notes.push("Constanti Conduit +1");
+    }
+    if (cardIs(card, "bizi-dune-circuit-runner")) {
+      value += 1;
+      notes.push("Dune Circuit Runner +1");
+    }
+    if (playerControlsCard(game, playerNum, "bizi-desert-logic-engine")) {
+      value += 2;
+      notes.push("Desert Logic Engine +2");
+    }
+  }
+  if (player.faction?.id === "bizi" && cardIs(card, "bizi-sandstorm-processor") && (player.accelerationCounters || 0) >= 2) {
+    value += 2;
+    notes.push("Sandstorm Processor +2");
+  }
+  if (player.faction?.id === "bizi" && cardIs(card, "bizi-constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
+    const spent = player.accelerationCounters;
+    player.accelerationCounters = 0;
+    value += spent * 2;
+    notes.push(`Constanti Sunforge spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
+  }
+  if (player.faction?.id === "bizi" && player.turnData.biziPrimeSignalBonus) {
+    value += player.turnData.biziPrimeSignalBonus;
+    notes.push(`Focus Prime Signal +${player.turnData.biziPrimeSignalBonus}`);
+    player.turnData.biziPrimeSignalBonus = 0;
   }
 
-  return { value, notes };
+  if (player.faction?.id === "frumo") {
+    if (source === "lane" && cardIs(card, "frumo-tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
+      value += 1;
+      notes.push("Tideglass Cutlass swapped lane +1");
+    }
+    if (cardIs(card, "frumo-pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
+      value += 2;
+      notes.push("Pressure-Lock Pistol consecutive +2");
+    }
+    if (source === "lane" && cardIs(card, "frumo-ristus-blackwake") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
+      value += 1;
+      notes.push("Ristus Blackwake empty lane +1");
+    }
+    if (source === "lane" && cardIs(card, "frumo-captains-bad-wager") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue % 2 === 0) {
+      value += 3;
+      notes.push("Captain's Bad Wager previous even value +3");
+    }
+    if (player.turnData.frumoNextActionBonus) {
+      value += player.turnData.frumoNextActionBonus;
+      notes.push(`Frumo next action +${player.turnData.frumoNextActionBonus}`);
+      player.turnData.frumoNextActionBonus = 0;
+    }
+  }
+
+  const armed = armRuminWeaponsForAttack(game, playerNum, card, attackNumber, source, notes);
+  value += armed.value;
+  return { value, notes, armedCards: armed.armedCards };
 }
 
 function getAttackPaymentRequirement(player, card) {
@@ -2734,12 +3202,51 @@ function getAttackPaymentRequirement(player, card) {
   return { required, freeAttackUsed: false };
 }
 
-function getPaymentTotal(player, paymentIndexes, useHeraBonus) {
+function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
   let total = 0;
   const paymentCards = paymentIndexes.map((idx) => player.hand[idx]).filter(Boolean);
   for (const idx of paymentIndexes) {
     if (player.hand[idx]) total += getBaseCardValue(player.hand[idx]);
   }
+  const notes = [];
+  const consume = {
+    ruminJewelBank: false,
+    frumoNextPaymentBonus: false,
+    biziVoltageBonus: false
+  };
+
+  if (context.action === "attack" && cardIs(context.card, "rumin-forum-ledger-runner") && player.turnData.attacksDeclaredThisTurn === 0 && paymentCards.length > 0) {
+    total += 1;
+    notes.push("Forum Ledger Runner payment +1");
+  }
+  if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => cardIs(card, "rumin-jewel-bank-contract"))) {
+    total += 2;
+    consume.ruminJewelBank = true;
+    notes.push("Jewel-Bank Contract payment +2");
+  }
+  if (context.action === "block" && context.blockCards?.length >= 2 && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))) {
+    total += 1;
+    notes.push("Harmony Ward payment +1");
+  }
+  if (paymentCards.some((card) => cardIs(card, "frumo-sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
+    total += 1;
+    notes.push("Sunken Coin payment +1");
+  }
+  if (player.turnData.frumoNextPaymentBonus) {
+    total += player.turnData.frumoNextPaymentBonus;
+    notes.push(`Lafayette's Chart payment +${player.turnData.frumoNextPaymentBonus}`);
+    consume.frumoNextPaymentBonus = true;
+  }
+  if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-voltage-ration"))) {
+    total += 1;
+    consume.biziVoltageBonus = true;
+    notes.push("Voltage Ration payment +1");
+  }
+  if (context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-heras-calibration"))) {
+    total += 2;
+    notes.push("Hera's Calibration payment +2");
+  }
+
   let heraUsedNow = false;
   const hasHeraPaymentCard = paymentCards.some((card) => player.turnData.suitsPlayedThisTurn.includes(card.suit));
   if (
@@ -2752,7 +3259,14 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus) {
     total += 2;
     heraUsedNow = true;
   }
-  return { total, heraUsedNow };
+  return { total, heraUsedNow, notes, consume };
+}
+
+function consumePaymentBonuses(player, payment) {
+  if (!payment?.consume) return;
+  if (payment.consume.ruminJewelBank) player.turnData.ruminJewelBankUsed = true;
+  if (payment.consume.frumoNextPaymentBonus) player.turnData.frumoNextPaymentBonus = 0;
+  if (payment.consume.biziVoltageBonus) player.turnData.biziVoltageBonusUsed = true;
 }
 
 function finalizeAttackDeclaration(player, card, attackBonus, freeUsed) {
@@ -2771,7 +3285,8 @@ function finalizeAttackDeclaration(player, card, attackBonus, freeUsed) {
   return { effectiveValue, notes };
 }
 
-function applyBlockBonuses(player, card) {
+function applyBlockBonuses(game, playerNum, card, context = {}) {
+  const player = game.players[playerNum];
   const playedNotes = applyPlayedCardBonuses(player, card);
   let effectiveValue = getCardCurrentValue(card);
   const notes = [...playedNotes];
@@ -2784,23 +3299,155 @@ function applyBlockBonuses(player, card) {
       notes.push("Emperor Nu third block +2");
     }
   }
+  if (player.turnData.sheenNextBlockBonus) {
+    effectiveValue += player.turnData.sheenNextBlockBonus;
+    notes.push(`Sheen next block +${player.turnData.sheenNextBlockBonus}`);
+    player.turnData.sheenNextBlockBonus = 0;
+  }
+  if (cardIs(card, "sheen-rootwatch-initiate") && player.turnData.blocksDeclaredThisTurn > 0) {
+    effectiveValue += 1;
+    notes.push("Rootwatch Initiate +1");
+  }
+  if (cardIs(card, "sheen-living-bark-guard") && context.attack?.source === "hand") {
+    effectiveValue += 1;
+    notes.push("Living Bark Guard +1");
+  }
+  if (cardIs(card, "sheen-nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
+    effectiveValue += 1;
+    notes.push("Nu's Verdant Edict third block upgrade +1");
+  }
+  if (playerControlsCard(game, playerNum, "sheen-emperors-heartwood")) {
+    effectiveValue += 1;
+    notes.push("Emperor's Heartwood +1");
+  }
+  if (cardIs(card, "bizi-gearplate-shield") && (player.accelerationCounters || 0) > 0) {
+    player.accelerationCounters -= 1;
+    effectiveValue += 2;
+    notes.push("Gearplate Shield spent 1 acceleration +2");
+  }
+  if (context.isLaneBlock && cardIs(card, "frumo-coral-hull-guard")) {
+    effectiveValue += 1;
+    player.turnData.frumoLaneSwappedThisTurn = true;
+    notes.push("Coral-Hull Guard lane feint +1");
+  }
+  if (player.turnData.frumoNextActionBonus) {
+    effectiveValue += player.turnData.frumoNextActionBonus;
+    notes.push(`Frumo next action +${player.turnData.frumoNextActionBonus}`);
+    player.turnData.frumoNextActionBonus = 0;
+  }
   return { effectiveValue, notes };
 }
 
-function finalizeBlockDeclaration(player) {
+function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCards = []) {
+  if (!blockEntries.length) return;
+  if (paymentCards.some((card) => cardIs(card, "sheen-mossbound-staff"))) {
+    blockEntries[0].effectiveValue += 1;
+    blockEntries[0].notes.push("Mossbound Staff block +1");
+  }
+}
+
+function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
+  const player = game.players[playerNum];
   player.turnData.blocksDeclaredThisTurn++;
   if (player.faction?.id === "sheen" && player.turnData.blocksDeclaredThisTurn === 2) {
     if (!player.turnData.tangLifeGainUsed) {
-      player.life += 2;
+      const notes = blockEntries[0]?.notes || [];
+      gainLifeFromBlocking(game, playerNum, 2, notes);
       player.turnData.tangLifeGainUsed = true;
     }
     player.turnData.beliHighCostAttackBuffAvailable = true;
   }
+  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-beli-vinebinder")) && player.turnData.blocksDeclaredThisTurn >= 2) {
+    player.turnData.sheenNextAttackBonus = (player.turnData.sheenNextAttackBonus || 0) + 1;
+    blockEntries[0]?.notes.push("Beli Vinebinder next attack +1");
+  }
+  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
+    gainLifeFromBlocking(game, playerNum, 2, blockEntries[0]?.notes || []);
+    player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
+    blockEntries[0]?.notes.push("Tang's Patient Hand draw at end of turn");
+  }
+  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
+    gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
+    blockEntries[0]?.notes.push("Emperor's Heartwood +1 life");
+  }
 }
 
-function addAccelerationIfOverpaid(player, paid, required) {
+function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null, notes = []) {
+  const player = game.players[playerNum];
   if (player.faction?.id === "bizi" && paid - required >= 2) {
-    player.accelerationCounters = (player.accelerationCounters || 0) + 1;
+    let gained = 1;
+    if (cardIs(card, "bizi-copperline-technician")) gained += 1;
+    if (playerControlsCard(game, playerNum, "bizi-regnum-voltage-bank") && !player.turnData.biziFirstOverpayRewardUsed) {
+      gained += 1;
+      player.life += 1;
+      player.turnData.biziFirstOverpayRewardUsed = true;
+      notes.push("Regnum Voltage Bank +1 life and +1 counter");
+    }
+    player.accelerationCounters = (player.accelerationCounters || 0) + gained;
+    notes.push(`Bizi overpay +${gained} acceleration`);
+    for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
+      if (cardIs(visibleCard, "bizi-solar-array-adept")) {
+        visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
+        notes.push("Solar Array Adept +1");
+      }
+    }
+  }
+}
+
+function applyOverpayCardRewards(game, playerNum, paid, required, card = null, notes = []) {
+  const player = game.players[playerNum];
+  if (paid - required < 2) return;
+  if (cardIs(card, "rumin-senate-vault-guard") && !player.turnData.ruminSenateVaultGuardUsed) {
+    player.life += 1;
+    player.turnData.ruminSenateVaultGuardUsed = true;
+    notes.push("Senate Vault Guard overpay +1 life");
+  }
+}
+
+function applyAfterAttackDeclared(game, playerNum, attack, payment) {
+  const player = game.players[playerNum];
+  const card = attack.card;
+  const notes = attack.notes || [];
+
+  if (cardIs(card, "rumin-marble-market-tribune")) {
+    player.turnData.ruminNextWeaponArmBonus = (player.turnData.ruminNextWeaponArmBonus || 0) + 1;
+    notes.push("Marble Market Tribune next armed weapon +1");
+  }
+  if ((attack.attachedCards || []).some((weapon) => cardIs(weapon, "rumin-aurelian-clawblade")) && (payment.total || 0) - (payment.required || 0) >= 2) {
+    player.life += 1;
+    notes.push("Aurelian Clawblade overpay +1 life");
+  }
+  if (cardIs(card, "bizi-focus-prime-signal")) {
+    player.accelerationCounters = (player.accelerationCounters || 0) + 2;
+    player.turnData.biziPrimeSignalBonus = player.accelerationCounters || 0;
+    notes.push(`Focus Prime Signal +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
+  }
+  if (cardIs(card, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
+    player.life += 1;
+    notes.push("Leviathan Salvage +1 life");
+  }
+}
+
+function applyLaneEntryTriggers(game, playerNum, card, laneIndex, socket = null) {
+  const player = game.players[playerNum];
+  const notes = [];
+  if (cardIs(card, "frumo-deckhand-diver")) {
+    const top = player.deck[player.deck.length - 1];
+    if (socket) socket.emit("peekResult", top ? `Top deck card: ${top.name}` : "Your deck is empty.");
+    notes.push("Deckhand Diver peeked at top deck card");
+  }
+  if (cardIs(card, "frumo-ristus-rises")) {
+    card.tempBuff = (card.tempBuff || 0) + 1;
+    player.turnData.frumoLaneSwappedThisTurn = true;
+    notes.push("Ristus Rises +1");
+  }
+  if (cardIs(card, "frumo-riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
+    card.tempBuff = (card.tempBuff || 0) + 1;
+    player.turnData.frumoRiptideSmugglerUsed = true;
+    notes.push("Riptide Smuggler +1");
+  }
+  if (notes.length > 0) {
+    game.message = `Player ${playerNum} placed ${card.name || "a card"} in lane ${laneIndex + 1}. ${notes.join(", ")}.`;
   }
 }
 
@@ -3017,7 +3664,7 @@ async function recordFinalGameStats(roomState) {
     const primaryOpponent = opponentNums[0];
     return {
       ranked: true,
-      draftLeague: !!roomState.draft?.league,
+      draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
       completedAt,
       mode: game.gameMode || "duel",
       factionId: game.players[playerNum]?.faction?.id,
@@ -3050,47 +3697,42 @@ function resolveDamage(game, roomState) {
   }
   const damageMessages = [];
 
-  for (const attack of game.handAttacks) {
-    let totalBlock = 0;
-    for (const block of attack.block) {
-      totalBlock += block.effectiveValue || 0;
-    }
-    const damage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
-    const defender = getOtherPlayer(attack.player);
-    const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
+  function resolveAttackDamage(attack, laneLabel = "") {
+    const totalBlock = (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0);
+    const totalPrevent = (attack.block || []).reduce((sum, block) => sum + (block.preventDamage || 0), 0);
+    const rawDamage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
+    const damage = Math.max(0, rawDamage - totalPrevent);
+    const defender = getAttackDefender(game, attack);
+    const blockedText = totalBlock > 0 ? ` after ${totalBlock} block${totalPrevent ? ` and ${totalPrevent} prevention` : ""}` : "";
+
     if (damage > 0) {
       game.players[defender].life -= damage;
-      damageMessages.push(`Hand attack ${describeCardValue(attack.card, attack.effectiveValue, attack.notes)}${blockedText} = ${damage} damage to Player ${defender}`);
+      game.players[defender].turnData.damageTakenThisTurn = (game.players[defender].turnData.damageTakenThisTurn || 0) + damage;
+      damageMessages.push(`${laneLabel}${describeCardValue(attack.card, attack.effectiveValue, attack.notes)}${blockedText} = ${damage} damage to Player ${defender}`);
     } else {
-      damageMessages.push(`Hand attack ${describeCardValue(attack.card, attack.effectiveValue, attack.notes)} was fully blocked by ${totalBlock}`);
+      damageMessages.push(`${laneLabel}${describeCardValue(attack.card, attack.effectiveValue, attack.notes)} was fully blocked by ${totalBlock}${totalPrevent ? ` with ${totalPrevent} prevention` : ""}`);
+      for (const block of attack.block || []) {
+        if (cardIs(block.card, "sheen-quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (cardIs(block.card, "sheen-beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
+      }
     }
 
     game.players[attack.player].discard.push(attack.card);
-    for (const block of attack.block) {
+    (attack.attachedCards || []).forEach((card) => game.players[attack.player].discard.push(card));
+    for (const block of attack.block || []) {
       game.players[block.player].discard.push(block.card);
     }
+  }
+
+  for (const attack of game.handAttacks) {
+    resolveAttackDamage(attack, "Hand attack ");
   }
   
   for (let i = 0; i < game.lanes.length; i++) {
     const lane = game.lanes[i];
     if (lane.attack) {
-      let totalBlock = 0;
-      for (const block of lane.block) {
-        totalBlock += block.effectiveValue || 0;
-      }
-      const damage = Math.max(0, (lane.attack.effectiveValue || 0) - totalBlock);
-      const defender = getOtherPlayer(lane.attack.player);
-      const blockedText = totalBlock > 0 ? ` after ${totalBlock} block` : "";
-      if (damage > 0) {
-        game.players[defender].life -= damage;
-        damageMessages.push(`Lane ${i + 1} attack ${describeCardValue(lane.attack.card, lane.attack.effectiveValue, lane.attack.notes)}${blockedText} = ${damage} damage to Player ${defender}`);
-      } else {
-        damageMessages.push(`Lane ${i + 1} attack ${describeCardValue(lane.attack.card, lane.attack.effectiveValue, lane.attack.notes)} was fully blocked by ${totalBlock}`);
-      }
-      game.players[lane.attack.player].discard.push(lane.attack.card);
-      for (const block of lane.block) {
-        game.players[block.player].discard.push(block.card);
-      }
+      lane.attack.block = lane.block || [];
+      resolveAttackDamage(lane.attack, `Lane ${i + 1} attack `);
       lane.attack = null;
       lane.block = [];
     }
@@ -3173,8 +3815,13 @@ async function advanceEndPlacement(roomState) {
   
   if (game.endPlacementLaneIndex >= 3) {
     const playerNumbers = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game) : [1, 2];
+    const endTurnMessages = [];
     for (const p of playerNumbers) {
       const player = game.players[p];
+      if (player.turnData.sheenEndTurnDraws) {
+        const drawn = drawCards(player, player.turnData.sheenEndTurnDraws);
+        if (drawn > 0) endTurnMessages.push(`Player ${p} drew ${drawn} extra card${drawn === 1 ? "" : "s"} from Sheen draft cards.`);
+      }
       while (player.hand.length < 8 && player.deck.length > 0) {
         player.hand.push(player.deck.pop());
       }
@@ -3193,7 +3840,7 @@ async function advanceEndPlacement(roomState) {
       game.players[p].turnData = createTurnData();
     }
     if (game.campaign) game.campaign.bossAttacksThisTurn = 0;
-    game.message = `Turn ${game.turn} - Player ${game.priority} has priority`;
+    game.message = `${endTurnMessages.length > 0 ? `${endTurnMessages.join(" ")} ` : ""}Turn ${game.turn} - Player ${game.priority} has priority`;
   }
 }
 
@@ -3238,10 +3885,16 @@ function declareAiHandAttack(roomState) {
     if (!paymentIndexes) continue;
 
     const attackCard = ai.hand[option.index];
-    const paymentTotal = getPaymentTotal(ai, paymentIndexes, false).total;
+    const payment = getPaymentTotal(ai, paymentIndexes, false, { game, playerNum: 2, action: "attack", card: option.card });
+    const paymentCards = getHandCardsByIndexes(ai, paymentIndexes);
+    consumePaymentBonuses(ai, payment);
     removeSelectedCardAndPayments(ai, option.index, paymentIndexes);
-    addAccelerationIfOverpaid(ai, paymentTotal, option.value);
-    const attackInfo = finalizeAttackDeclaration(ai, attackCard, calculateAttackBonuses(ai, attackCard), false);
+    addPaymentSuits(ai, paymentCards);
+    const attackBonus = calculateAttackBonuses(game, 2, attackCard, "hand");
+    attackBonus.notes.push(...(payment.notes || []));
+    addAccelerationIfOverpaid(game, 2, payment.total, option.value, attackCard, attackBonus.notes);
+    applyOverpayCardRewards(game, 2, payment.total, option.value, attackCard, attackBonus.notes);
+    const attackInfo = finalizeAttackDeclaration(ai, attackCard, attackBonus, false);
     const attack = {
       id: `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       player: 2,
@@ -3249,8 +3902,11 @@ function declareAiHandAttack(roomState) {
       source: "hand",
       effectiveValue: attackInfo.effectiveValue,
       block: [],
+      attachedCards: attackBonus.armedCards || [],
       notes: attackInfo.notes
     };
+    attack.payment = { player: 2, cards: paymentCards, total: payment.total, required: option.value };
+    applyAfterAttackDeclared(game, 2, attack, attack.payment);
 
     game.handAttacks.push(attack);
     resetPriorityPassed(game);
@@ -3435,7 +4091,25 @@ function createGameFromLobby(roomState) {
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
-  function createDeck(faction) {
+  function createDraftCardForDeck(card, faction) {
+    return {
+      id: `draft-${card.id || card.draftCopyId}-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+      value: Number(card.value),
+      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      name: card.name,
+      rank: String(card.value),
+      faction: faction.name,
+      factionId: faction.id,
+      image: card.image || faction.cardImage,
+      rarity: card.rarity || "common",
+      type: card.type || "draft",
+      text: card.text || "",
+      rulesText: card.rulesText || card.text || "",
+      draftCard: true
+    };
+  }
+
+  function createDeck(faction, draftDeckCards = []) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -3451,6 +4125,9 @@ function createGameFromLobby(roomState) {
         });
       }
     }
+    draftDeckCards
+      .filter((card) => card && card.factionId === faction.id && Number.isFinite(Number(card.value)))
+      .forEach((card) => deck.push(createDraftCardForDeck(card, faction)));
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -3474,7 +4151,7 @@ function createGameFromLobby(roomState) {
         faction: faction1,
         life: 42,
         hand: [],
-        deck: createDeck(faction1),
+        deck: createDeck(faction1, roomState.lobby.players[1].savedDraftDeck?.cards || []),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -3486,7 +4163,7 @@ function createGameFromLobby(roomState) {
         faction: faction2,
         life: 42,
         hand: [],
-        deck: createDeck(faction2),
+        deck: createDeck(faction2, roomState.lobby.players[2].savedDraftDeck?.cards || []),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -3681,6 +4358,11 @@ io.on("connection", (socket) => {
       socket.emit("draftLeagueStatus", { inQueue: false, message: "Leave your current room before entering the draft league queue." });
       return;
     }
+    const savedDraftDeck = getSavedDraftDeck(account.stats || {});
+    if (!savedDraftDeck) {
+      socket.emit("draftLeagueStatus", { inQueue: false, message: "Save a one-faction draft deck before entering the draft league queue." });
+      return;
+    }
 
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -3689,6 +4371,7 @@ io.on("connection", (socket) => {
       socketId: socket.id,
       accountId: account.id,
       accountName: account.name,
+      savedDraftDeck,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
       joinedAt: Date.now()
@@ -3836,7 +4519,19 @@ io.on("connection", (socket) => {
     const difficulty = getCampaignDifficulty(factionId, chapterId);
     const roomState = createRoom();
     roomState.lobby.gameMode = "factions";
-    roomState.lobby.campaign = { factionId, chapterId, title: chapter.title, story: chapter.story, opponentName: chapter.opponentName, playableName: chapter.playableName || faction.commander?.name || faction.name, dialogue: chapter.dialogue || [], ...difficulty, bossAttacksThisTurn: 0 };
+    roomState.lobby.campaign = {
+      factionId,
+      chapterId,
+      title: chapter.title,
+      story: chapter.story,
+      beforeBattle: chapter.beforeBattle || chapter.story,
+      afterBattle: chapter.afterBattle || "",
+      opponentName: chapter.opponentName,
+      playableName: chapter.playableName || faction.commander?.name || faction.name,
+      dialogue: chapter.dialogue || [],
+      ...difficulty,
+      bossAttacksThisTurn: 0
+    };
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
@@ -3858,7 +4553,7 @@ io.on("connection", (socket) => {
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = chapter.opponentName;
     roomState.game.players[2].life = difficulty.bossLife;
-    roomState.game.message = `${chapter.title}: ${chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn. Player ${roomState.game.priority} has priority.`;
+    roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn. Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });
@@ -4064,8 +4759,53 @@ io.on("connection", (socket) => {
     const key = String(playerNum);
     const selectedIds = new Set(Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []);
     const pool = roomState.draft.draftedPools[key] || [];
-    roomState.draft.deckAdditions[key] = pool.filter((card) => selectedIds.has(card.draftCopyId));
+    const selectedCards = pool.filter((card) => selectedIds.has(card.draftCopyId));
+    const selectedFactionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+    if (selectedFactionIds.length > 1) {
+      socket.emit("errorMessage", "Draft decks can only include cards from one faction.");
+      return;
+    }
+    roomState.draft.deckAdditions[key] = selectedCards;
     emitDraftState(roomState);
+  });
+
+  socket.on("saveDraftDeck", async () => {
+    console.log("[Socket] saveDraftDeck");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) return;
+    const lobbyPlayer = roomState.lobby.players[playerNum];
+    if (!lobbyPlayer.accountId || lobbyPlayer.isGuest) {
+      socket.emit("errorMessage", "Sign in with an account to save a draft deck.");
+      return;
+    }
+    const key = String(playerNum);
+    const selectedCards = roomState.draft.deckAdditions[key] || [];
+    if (selectedCards.length === 0) {
+      socket.emit("errorMessage", "Choose at least one drafted card before saving.");
+      return;
+    }
+    const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+    if (factionIds.length !== 1) {
+      socket.emit("errorMessage", "Save a deck with cards from exactly one faction.");
+      return;
+    }
+    const faction = getFactionById(factionIds[0]);
+    const savedAccount = await saveAccountDraftDeck(lobbyPlayer.accountId, {
+      name: `${faction?.name || factionIds[0]} Draft Deck`,
+      factionId: factionIds[0],
+      factionName: faction?.name || factionIds[0],
+      cards: selectedCards
+    });
+    if (!savedAccount) {
+      socket.emit("errorMessage", "Could not save draft deck.");
+      return;
+    }
+    socket.emit("accountUpdated", savedAccount);
+    socket.emit("draftDeckSaved", {
+      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} card${selectedCards.length === 1 ? "" : "s"} for Draft League.`
+    });
   });
 
   socket.on("startGame", () => {
@@ -4408,7 +5148,7 @@ io.on("connection", (socket) => {
     }
     
     const attackPayment = getAttackPaymentRequirement(player, attackCard);
-    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
+    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus, { game, playerNum, action: "attack", card: attackCard });
     const required = attackPayment.required;
     const paymentCards = getHandCardsByIndexes(player, paymentValidation.indexes);
     
@@ -4416,6 +5156,7 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", `Need ${required} payment, have ${payment.total}`);
       return;
     }
+    consumePaymentBonuses(player, payment);
 
     saveUndoSnapshot(roomState, playerNum, from === "lane" ? `attacked from lane ${laneIndex + 1}` : "attacked from hand");
 
@@ -4426,8 +5167,12 @@ io.on("connection", (socket) => {
       game.lanes[laneIndex].facedown[playerNum] = null;
     }
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
-    addAccelerationIfOverpaid(player, payment.total, required);
-    const attackInfo = finalizeAttackDeclaration(player, attackCard, calculateAttackBonuses(player, attackCard), attackPayment.freeAttackUsed);
+    addPaymentSuits(player, paymentCards);
+    const attackBonus = calculateAttackBonuses(game, playerNum, attackCard, from);
+    attackBonus.notes.push(...(payment.notes || []));
+    addAccelerationIfOverpaid(game, playerNum, payment.total, required, attackCard, attackBonus.notes);
+    applyOverpayCardRewards(game, playerNum, payment.total, required, attackCard, attackBonus.notes);
+    const attackInfo = finalizeAttackDeclaration(player, attackCard, attackBonus, attackPayment.freeAttackUsed);
     
     const attackId = `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const attack = {
@@ -4438,7 +5183,8 @@ io.on("connection", (socket) => {
       effectiveValue: attackInfo.effectiveValue,
       block: [],
       targetPlayer: defender,
-      notes: attackInfo.notes
+      notes: attackInfo.notes,
+      attachedCards: attackBonus.armedCards || []
     };
     attack.payment = {
       player: playerNum,
@@ -4447,6 +5193,7 @@ io.on("connection", (socket) => {
       required,
       heraUsed: payment.heraUsedNow
     };
+    applyAfterAttackDeclared(game, playerNum, attack, attack.payment);
     recordPaymentLog(game, {
       type: "attack",
       player: playerNum,
@@ -4628,7 +5375,7 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", paymentValidation.error);
       return;
     }
-    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus);
+    const payment = getPaymentTotal(player, paymentValidation.indexes, useHeraBonus, { game, playerNum, action: "block", card: blockCards[0], blockCards });
     const paymentCards = getHandCardsByIndexes(player, paymentValidation.indexes);
     
     console.log(`[Socket] Block payment check: need ${blockCardValue}, have ${payment.total}`);
@@ -4637,16 +5384,28 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", `Need ${blockCardValue} payment to block, have ${payment.total}`);
       return;
     }
+    consumePaymentBonuses(player, payment);
     
     saveUndoSnapshot(roomState, playerNum, isLaneBlock ? `blocked lane ${laneIndex + 1}` : "blocked from hand");
 
     const blockEntries = blockCards.map((blockCard) => {
-      const blockInfo = applyBlockBonuses(player, blockCard);
+      const blockInfo = applyBlockBonuses(game, playerNum, blockCard, { attack, isLaneBlock });
+      let preventDamage = 0;
+      if (cardIs(blockCard, "rumin-vault-shield-bearer") && payment.total - blockCardValue >= 1) {
+        preventDamage += 1;
+        blockInfo.notes.push("Vault Shield Bearer prevents 1");
+      }
+      if (cardIs(blockCard, "sheen-beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
+        preventDamage += 1;
+        player.turnData.beliCanopyShieldUsed = true;
+        blockInfo.notes.push("Beli Canopy Shield prevents 1");
+      }
       return {
         player: playerNum,
         card: blockCard,
         source: isLaneBlock ? "lane" : "hand",
         effectiveValue: blockInfo.effectiveValue,
+        preventDamage,
         notes: blockInfo.notes,
         payment: {
           player: playerNum,
@@ -4657,6 +5416,7 @@ io.on("connection", (socket) => {
         }
       };
     });
+    applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCards);
 
     // Process block only after the blocker values have been captured.
     if (isLaneBlock) {
@@ -4666,8 +5426,11 @@ io.on("connection", (socket) => {
       removeSelectedCardsAndPayments(player, selectedBlockIndexes, paymentValidation.indexes);
     }
     if (payment.heraUsedNow) player.turnData.heraUsed = true;
-    addAccelerationIfOverpaid(player, payment.total, blockCardValue);
-    finalizeBlockDeclaration(player);
+    addPaymentSuits(player, paymentCards);
+    blockEntries.forEach((entry) => entry.notes.push(...(payment.notes || [])));
+    addAccelerationIfOverpaid(game, playerNum, payment.total, blockCardValue, blockCards[0], blockEntries[0]?.notes || []);
+    applyOverpayCardRewards(game, playerNum, payment.total, blockCardValue, blockCards[0], blockEntries[0]?.notes || []);
+    finalizeBlockDeclaration(game, playerNum, blockEntries);
     
     if (isLaneBlock) laneState.block.push(...blockEntries);
     else attack.block.push(...blockEntries);
@@ -4706,8 +5469,13 @@ io.on("connection", (socket) => {
 
     if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
     if (player.turnData.poleaUsed) {
+      const canUseSunkenOrder = playerControlsCard(game, playerNum, "frumo-poleas-sunken-order") && !player.turnData.poleaSunkenOrderUsed;
+      if (canUseSunkenOrder) {
+        player.turnData.poleaSunkenOrderUsed = true;
+      } else {
       socket.emit("errorMessage", "Polea already used this turn");
       return;
+      }
     }
 
     const selectedMode = Number(mode);
@@ -4725,6 +5493,7 @@ io.on("connection", (socket) => {
       saveUndoSnapshot(roomState, playerNum, `used Polea to place a card in lane ${laneIndex + 1}`);
       const [card] = player.hand.splice(selectedHandIndex, 1);
       game.lanes[laneIndex].facedown[playerNum] = card;
+      applyLaneEntryTriggers(game, playerNum, card, laneIndex, socket);
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       recordPaymentLog(game, {
@@ -4759,6 +5528,7 @@ io.on("connection", (socket) => {
       }
       saveUndoSnapshot(roomState, playerNum, `used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}`);
       [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
+      player.turnData.frumoLaneSwappedThisTurn = true;
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       recordPaymentLog(game, {
@@ -4786,6 +5556,15 @@ io.on("connection", (socket) => {
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       socket.emit("peekResult", `Player ${peekPlayer} lane ${laneIndex + 1}: ${card.name}`);
+      if (playerControlsCard(game, playerNum, "frumo-the-last-gamble")) {
+        player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + 4;
+      }
+      for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
+        if (cardIs(visibleCard, "frumo-riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
+          visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
+          player.turnData.frumoRiptideSmugglerUsed = true;
+        }
+      }
       recordPaymentLog(game, {
         type: "ability",
         player: playerNum,
@@ -4855,6 +5634,11 @@ io.on("connection", (socket) => {
     saveUndoSnapshot(roomState, playerNum, `used Lafayette on lane ${laneIndex + 1}`);
     player.hand[selectedHandIndex] = game.lanes[laneIndex].facedown[playerNum];
     game.lanes[laneIndex].facedown[playerNum] = handCard;
+    player.turnData.frumoLaneSwappedThisTurn = true;
+    if (playerControlsCard(game, playerNum, "frumo-lafayettes-chart")) {
+      player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
+    }
+    applyLaneEntryTriggers(game, playerNum, handCard, laneIndex, socket);
     player.turnData.lafayetteUsed = true;
     resetPriorityPassed(game);
     recordPaymentLog(game, {
@@ -4897,7 +5681,8 @@ io.on("connection", (socket) => {
     saveUndoSnapshot(roomState, playerNum, "used Focus Buff");
     player.accelerationCounters -= 1;
     player.turnData.focusBuffUsed = true;
-    target.tempBuff = (target.tempBuff || 0) + 1;
+    const focusBonus = playerControlsCard(game, playerNum, "bizi-focus-overclock") ? 3 : 1;
+    target.tempBuff = (target.tempBuff || 0) + focusBonus;
     resetPriorityPassed(game);
     recordPaymentLog(game, {
       type: "ability",
@@ -4905,9 +5690,9 @@ io.on("connection", (socket) => {
       cards: [target],
       total: 1,
       required: 1,
-      label: `Player ${playerNum} spent 1 acceleration counter with Focus to give ${target.name || "a card"} +1.`
+      label: `Player ${playerNum} spent 1 acceleration counter with Focus to give ${target.name || "a card"} +${focusBonus}.`
     });
-    game.message = `Player ${playerNum} removed an acceleration counter to give ${describeCardValue(target, getCardCurrentValue(target), ["Focus +1"])} this turn.`;
+    game.message = `Player ${playerNum} removed an acceleration counter to give ${describeCardValue(target, getCardCurrentValue(target), [`Focus +${focusBonus}`])} this turn.`;
     emitState(roomState);
   });
 
@@ -4949,9 +5734,9 @@ io.on("connection", (socket) => {
     saveUndoSnapshot(roomState, playerNum, `placed a face-down card in lane ${lane + 1}`);
     const card = player.hand.splice(handIndex, 1)[0];
     game.lanes[lane].facedown[playerNum] = card;
-    saveUndoSnapshot(roomState, playerNum, `skipped lane ${lane + 1}`);
     game.endPlaced[playerNum][lane] = true;
     game.message = `Player ${playerNum} placed a card in lane ${lane + 1}`;
+    applyLaneEntryTriggers(game, playerNum, card, lane, socket);
     
     await advanceEndPlacement(roomState);
     emitState(roomState);

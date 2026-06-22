@@ -284,6 +284,205 @@ const CAMPAIGN_CHAPTERS = {
   }
 };
 
+const CAMPAIGN_NARRATION = {
+  "brothers-of-destiny": {
+    beforeBattle: "Rumie begins as a fragile dream between two brothers: Rolmus, who sees trade as the road to greatness, and Remex, who believes only conquest can keep the city alive. Their argument will decide the soul of the empire before it is even born.",
+    afterBattle: "Rolmus wins the first argument, but not the last. Rumie is founded on trade, ambition, and the unresolved truth that wealth will always need soldiers to guard it."
+  },
+  "the-republic": {
+    beforeBattle: "Generations later, Rumie is rich, proud, and rotten beneath its marble. Senators speak of tradition while banks, legions, and private debts quietly decide the fate of citizens.",
+    afterBattle: "The Republic survives, but its weakness has been exposed. Rumie's laws still stand, yet more people now wonder whether law without justice is only another kind of market."
+  },
+  "the-jewel": {
+    beforeBattle: "Kaiser rises from officer to public champion, paying debts and walking among workers while the aristocracy protects its own. Governor Severan believes popularity cannot defeat power.",
+    afterBattle: "Severan falls, and Kaiser becomes more than a soldier. To the people, he is the Jewel of Rumie; to the Senate, he is a warning."
+  },
+  "gaulic-wars": {
+    beforeBattle: "Northern tribes unite against Rumie's frontier, threatening roads, trade, and imperial pride. Kaiser marches north, knowing victory will make him beloved and feared in equal measure.",
+    afterBattle: "The frontier opens. Kaiser returns with wealth, veterans, and a legend too large for the Senate to comfortably contain."
+  },
+  "three-runes": {
+    beforeBattle: "Beneath conquered lands, Kaiser finds ancient vaults of Strength, Protection, and Experience. The runes promise power, but every sacred weapon demands a price from the hand that holds it.",
+    afterBattle: "The legions are changed forever. Rumie now commands not only soldiers and gold, but myth itself."
+  },
+  "first-empire-bank": {
+    beforeBattle: "Kaiser turns from conquest to reform, building roads, grain systems, and public credit. His enemies strike at the markets, hoping the people will blame him when Rumie hungers.",
+    afterBattle: "The markets hold. Kaiser proves that money can be a weapon of stability, and the people begin trusting him more than the institutions meant to govern him."
+  },
+  "the-crossing": {
+    beforeBattle: "The Senate orders Kaiser to surrender command. Brutus begs him to preserve the Republic, but Kaiser believes the Republic has already been sold by the men claiming to save it.",
+    afterBattle: "The line is crossed. Civil war begins, and Rumie must now choose between a corrupt freedom and an honest empire."
+  },
+  "last-republic": {
+    beforeBattle: "Legions and senators collide while Brutus fights for a dying order. Kaiser fights for the city itself, even if saving Rumie means conquering it.",
+    afterBattle: "Kaiser wins the city. The Republic still has voices, but no longer has control."
+  },
+  "emperor-of-gold": {
+    beforeBattle: "Roads flourish, banks expand, and the legions obey one hand. Yet prosperity casts a long shadow: taxes, prisoners, and obedience gather beneath the gold.",
+    afterBattle: "Kaiser reaches the height of power. Rumie is safer and richer than ever, but citizens begin asking whether rescue has become rule."
+  },
+  "ides-of-rumie": {
+    beforeBattle: "The conspiracy reaches the Senate floor. Kaiser enters believing his work has saved Rumie; Brutus waits believing only betrayal can save what remains.",
+    afterBattle: "Kaiser falls, but the empire does not. The assassins kill the man and accidentally preserve his myth."
+  },
+  "war-of-successors": {
+    beforeBattle: "Bobei takes up vengeance while Brutus tries to restore the Republic from blood and ashes. Both claim Kaiser's death proves their cause.",
+    afterBattle: "Brutus loses the future. The Republic he tried to save becomes a memory carried by the empire that replaces it."
+  },
+  "first-emperor": {
+    beforeBattle: "Augustus and Bobei clash over Kaiser's legacy: sword or law, vengeance or settlement. Rumie waits to see what shape empire will finally take.",
+    afterBattle: "Augustus wins. The Senate returns in ceremony, the empire remains in fact, and Rumie learns to call obedience tradition."
+  },
+  "iron-roots": {
+    beforeBattle: "The Obsidian Lords drain the forest through Iron Root outposts, turning living land into tribute. Leafen Gao's rebellion begins among starving villages with little more than anger and patience.",
+    afterBattle: "The first chains break. The Sheen learn that roots can strangle as well as nourish."
+  },
+  "verdant-uprising": {
+    beforeBattle: "Hushan joins Leafen as the rebellion spreads through villages, groves, and hidden paths. The Thorn Guard believes a scattered forest cannot become an army.",
+    afterBattle: "The rebellion becomes a people. What began as hunger has grown into a shared memory of injustice."
+  },
+  "obsidian-throne": {
+    beforeBattle: "Leshan and Dowan strike at the Iron Roots themselves, forcing Blackthorn into a final stand. If the root survives, the forest will never be free.",
+    afterBattle: "Blackthorn falls. The Sheen win their forest, but victory leaves them with the harder task of building a kingdom that does not become another chain."
+  },
+  "beli-living-city": {
+    beforeBattle: "The Sheen found Beli and begin the Root Network, but nature itself tests the newborn kingdom through blight and scarcity. Rebellion must become stewardship.",
+    afterBattle: "Beli survives. The Sheen discover that a city can grow like a forest if its people accept patience as power."
+  },
+  "root-network": {
+    beforeBattle: "Dowan expands botanical science into roads, shields, greenhouses, and trade routes. The Ash Serpent burns the nodes, proving that connection also creates vulnerability.",
+    afterBattle: "The network bends instead of breaking. The Sheen learn that defense is not a wall, but a living system."
+  },
+  "blooming-age": {
+    beforeBattle: "Shelters, retreats, springs, and greenhouses bring abundance, but prosperity attracts enemies from dry borders. The Drought King comes to prove growth can be starved.",
+    afterBattle: "The Blooming Age endures. The Sheen understand prosperity as preparation, not comfort."
+  },
+  "court-of-blossoms": {
+    beforeBattle: "As Beli blooms, politics rot quietly inside the court. Den watches nobles and ministers turn harmony into influence.",
+    afterBattle: "Den preserves stability for now. But the court has revealed a dangerous truth: a peaceful kingdom can still decay."
+  },
+  "the-reformer": {
+    beforeBattle: "Tang rises against inequality and noble stagnation, promising reforms that return life to the poor. His cause is just, but justice can grow thorns.",
+    afterBattle: "Tang wins the people's faith. Reform becomes power, and power begins asking for obedience."
+  },
+  "thorned-crown": {
+    beforeBattle: "Tang creates the Thornblades and centralizes authority to protect reform from corruption. Ringan sees the danger: a cure becoming a crown.",
+    afterBattle: "Tang defeats his critics, but the kingdom is no longer merely healing. It is being commanded."
+  },
+  "war-of-roots": {
+    beforeBattle: "Civil war spreads through the forest. Shelters become forts, roads carry armies, and the Root Network becomes a battlefield.",
+    afterBattle: "The old harmony burns. The Sheen learn that even living systems can be weaponized when fear takes root."
+  },
+  "fall-of-thorn-mang": {
+    beforeBattle: "Tang stands as healer, reformer, ruler, and living thorn avatar. He finally sees the pain caused in the name of survival, but too late to step aside peacefully.",
+    afterBattle: "Tang falls. The Sheen mourn both the tyrant he became and the reformer he once was."
+  },
+  "green-era": {
+    beforeBattle: "Dowan inherits a wounded kingdom. The Root Network must be restored, not as a tool of control, but as a promise of balance.",
+    afterBattle: "The Green Era begins. The Sheen choose renewal over revenge, and remember that growth without harmony becomes overgrowth."
+  },
+  "tax-of-tides": {
+    beforeBattle: "King Ludvik's tribute fleets bleed Ristus dry while royal collectors seize treasure from captains and families. Lafayette sees a kingdom drowning in its own greed.",
+    afterBattle: "The tax fleet is broken. The Frumo learn that the sea does not belong only to crowns."
+  },
+  "voices-of-revolution": {
+    beforeBattle: "Taverns, pirate dens, and hidden harbors fill with reformers. Mirabeau, Danton, Marat, Robespier, and Lafayette speak different visions of freedom.",
+    afterBattle: "The voices become a movement. The monarchy still stands, but the Frumo have learned to imagine life without it."
+  },
+  "fall-of-silver-shoals": {
+    beforeBattle: "Silver Shoals guards Ludvik's treasure and the myth of royal invincibility. Danton leads common captains against trained formations and fortress guns.",
+    afterBattle: "Silver Shoals falls. The revolution proves that courage, tide, and timing can defeat inherited power."
+  },
+  "sunken-fortress": {
+    beforeBattle: "The capital floods with unrest. Ludvik believes treasure can buy loyalty, but Lafayette knows fear and gold cannot hold a kingdom forever.",
+    afterBattle: "The monarchy breaks. Ludvik discovers too late that a crown is heavy only while people agree to carry it."
+  },
+  "trial-of-king": {
+    beforeBattle: "The Frumo must decide whether Ludvik should be spared, imprisoned, or executed. Justice and vengeance begin wearing the same face.",
+    afterBattle: "The king's fate divides the revolution. Freedom has won its first victory and immediately faces its first moral wound."
+  },
+  "reign-of-revolution": {
+    beforeBattle: "Robespier hunts enemies of freedom until suspicion becomes government. Marat sees the revolution turning its blade inward.",
+    afterBattle: "The terror consumes itself. The Frumo learn that a revolution can drown in the name of purity."
+  },
+  "hero-of-republic": {
+    beforeBattle: "Coalition fleets gather while the republic trembles. Polea wins impossible battles and gives the Frumo a hero when they most need one.",
+    afterBattle: "Polea saves the republic. In doing so, he becomes the one person the republic fears it cannot survive without."
+  },
+  "lord-commander": {
+    beforeBattle: "The Council grants Polea more command with every crisis. Each emergency passes, but his authority remains.",
+    afterBattle: "The Council yields piece by piece. Polea has not seized the republic all at once; he has taught it to depend on him."
+  },
+  "frumo-empire": {
+    beforeBattle: "Polea crowns himself Lord Commander of All Frumo. He claims unity, order, and survival; his shadow whispers another word: ambition.",
+    afterBattle: "The republic becomes an empire. The Frumo are strong, victorious, and no longer free in the way they once demanded."
+  },
+  "hundred-fleets": {
+    beforeBattle: "Rival sea powers unite against Polea's endless victories. The oceans themselves seem to ask whether one commander can own every tide.",
+    afterBattle: "Polea dominates the seas. But each victory makes his empire wider, colder, and harder to hold."
+  },
+  "frozen-sea": {
+    beforeBattle: "Polea sails north to conquer what no fleet has held. Ice, hunger, storms, and silence await the navy that believed itself invincible.",
+    afterBattle: "The fleet shatters. Polea survives, but his myth is cracked by a sea that refuses command."
+  },
+  "last-tide": {
+    beforeBattle: "Former allies and rival fleets gather for one final reckoning. Polea insists history will understand him; Lafayette insists the living cannot wait for history.",
+    afterBattle: "Polea falls. The Council is restored, but the Frumo remember how easily freedom can become command when fear asks for a hero."
+  },
+  "kharons-vision": {
+    beforeBattle: "Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings. Maxor stands in the way with older claims to power.",
+    afterBattle: "Maxor falls at Iron River. Constanti is founded, and the Bizi begin believing the future can be engineered."
+  },
+  "first-titan": {
+    beforeBattle: "Machina sleeps beneath Constanti, dividing thinkers over whether the Titan is creator, guide, or dangerous machine. Faith and reason meet over the same engine.",
+    afterBattle: "The debate does not end. Instead, it becomes the foundation of Bizi identity: progress powered by doubt."
+  },
+  "golden-empire": {
+    beforeBattle: "Centuries later, Justine, Theo, and Beli try to restore the old empire at its dazzling height. The Vandal Engine threatens to prove that splendor cannot stop collapse.",
+    afterBattle: "The empire shines again. Yet beneath the gold, every repair reveals how much machinery is already wearing thin."
+  },
+  "riot-of-sparks": {
+    beforeBattle: "Constanti burns in rebellion, and Justine nearly flees from the city he was meant to rule. Theo forces him to choose between command and disappearance.",
+    afterBattle: "Order returns, but trust does not. The Bizi learn that machines can restart faster than societies can forgive."
+  },
+  "last-victories": {
+    beforeBattle: "Beli reclaims territory from desert coalitions, iron tribes, and sea raiders. Each triumph looks impossible, and each one stretches the empire thinner.",
+    afterBattle: "Beli wins again, but victory becomes exhaustion. The empire is not dying from defeat, but from the cost of refusing to shrink."
+  },
+  "age-of-focus": {
+    beforeBattle: "After decline and paralysis, Focus seizes power with a promise of absolute efficiency. Compassion is treated as waste; progress becomes command.",
+    afterBattle: "Focus takes control. The empire runs cleaner, faster, and colder, proving that efficiency without mercy can become its own kind of ruin."
+  },
+  "great-invasion": {
+    beforeBattle: "Khosar the Conqueror breaks the eastern empire, destroying factories, shrines, and old defenses. The Bizi face extinction as systems fail one after another.",
+    afterBattle: "The Bizi survive the first collapse. Not because their machines never fail, but because they know how to restart."
+  },
+  "heras-counterattack": {
+    beforeBattle: "Hera rises when defeat seems certain, marching into enemy territory with determination stronger than the machines around her. One victory must become many.",
+    afterBattle: "Hera turns the war. The Bizi remember that progress is not only invention; sometimes it is refusal."
+  },
+  "three-titans": {
+    beforeBattle: "Followers of Machina, Melech, and Meca argue over creation, guidance, and control. Faith becomes circuitry for civil danger.",
+    afterBattle: "The Titan faith fractures. The Bizi gain a deeper mythology, but lose the unity that once made it powerful."
+  },
+  "the-schism": {
+    beforeBattle: "The empire weakens as certainty hardens into doctrine. Old allies become enemies, each claiming the true meaning of the Titans.",
+    afterBattle: "The schism becomes permanent. The Bizi discover that ideas can preserve an empire or split it from the inside."
+  },
+  "the-restoration": {
+    beforeBattle: "Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and borders under pressure. Repair must become revolution.",
+    afterBattle: "Xios restores the empire's engine. The Bizi prove that decline is not destiny while knowledge, discipline, and courage remain."
+  },
+  "last-gear": {
+    beforeBattle: "Constanti stands under final siege. The Titans are silent, engines fail, and divided Bizi fight together so their knowledge will outlive the city.",
+    afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
+  }
+};
+
+function getCampaignNarration(chapterId) {
+  return CAMPAIGN_NARRATION[chapterId] || {};
+}
+
 const FACTION_VOICE_AUDIO = {
   rumin: [
     "/assets/gauntlet/voices/kaiser-1.mp3",
@@ -386,7 +585,8 @@ function getSuitSymbol(suit) {
     diamonds: "♦"
   };
 
-  return map[String(suit).toLowerCase()] || suit;
+  const key = String(suit);
+  return map[key] || map[key.toLowerCase()] || suit;
 }
 
 function isRedSuit(suit) {
@@ -543,6 +743,11 @@ function CardInspectModal({ card, onClose }) {
             <StatusPill label="Suit" value={suit} bg="#fff" />
             <StatusPill label="Buff" value={card.tempBuff ? `+${card.tempBuff}` : "None"} bg="#fff" />
           </div>
+          {(card.rulesText || card.text) && (
+            <div style={{ marginTop: 14, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, padding: 10, color: "#1f2937", background: "#fff7ed", lineHeight: 1.35 }}>
+              {card.rulesText || card.text}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1210,13 +1415,14 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
   );
 }
 
-function DraftCardTile({ card, selected = false, onClick, actionLabel = "Pick" }) {
+function DraftCardTile({ card, selected = false, disabled = false, onClick, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       style={{
         border: `1px solid ${selected ? theme.accent : rarity.border}`,
         borderRadius: 8,
@@ -1227,7 +1433,8 @@ function DraftCardTile({ card, selected = false, onClick, actionLabel = "Pick" }
         display: "grid",
         gap: 5,
         minHeight: 132,
-        cursor: "pointer"
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.48 : 1
       }}
     >
       <strong style={{ color: rarity.color }}>{card.name}</strong>
@@ -1238,14 +1445,19 @@ function DraftCardTile({ card, selected = false, onClick, actionLabel = "Pick" }
   );
 }
 
-function DraftScreen({ draft, lobby, player, isSpectator, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard }) {
+function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
   const myPack = draft?.myCurrentPack?.cards || [];
   const myPool = draft?.myPool || [];
   const myDeckAdditions = draft?.myDeckAdditions || [];
   const selectedIds = new Set(myDeckAdditions.map((card) => card.draftCopyId));
+  const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter(Boolean))];
+  const selectedFactionId = selectedFactionIds[0] || "";
+  const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
+  const savedDraftDeck = account?.stats?.savedDraftDeck || null;
   const players = draft?.players || lobby?.players || {};
   const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
   const canStart = player === 1 && draft?.status === "lobby";
+  const hasPickedThisPass = !!draft?.myCurrentPack?.pickedThisPass;
 
   return (
     <div style={MENU_THEME.page}>
@@ -1288,18 +1500,20 @@ function DraftScreen({ draft, lobby, player, isSpectator, onBack, onCopyRoom, on
               <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
               <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
               <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
+              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || savedDraftDeck.cards?.length || 0})</div>}
             </div>
           </MenuCard>
         </div>
 
         {draft?.status === "drafting" && !isSpectator && (
           <MenuCard title={`Current Pack (${myPack.length} cards)`}>
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>{hasPickedThisPass ? "Pick locked in. Waiting for the other players before the next pack." : "Pick exactly one card from this pack."}</p>
             {myPack.length === 0 ? (
               <p style={{ color: "#bfdbfe", margin: 0 }}>Waiting for the next pack.</p>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
                 {myPack.map((card) => (
-                  <DraftCardTile key={card.draftCopyId} card={card} onClick={() => onPickCard(card.draftCopyId)} />
+                  <DraftCardTile key={card.draftCopyId} card={card} disabled={draftPickPending || hasPickedThisPass} actionLabel={draftPickPending || hasPickedThisPass ? "Waiting" : "Pick"} onClick={() => onPickCard(card.draftCopyId)} />
                 ))}
               </div>
             )}
@@ -1308,10 +1522,29 @@ function DraftScreen({ draft, lobby, player, isSpectator, onBack, onCopyRoom, on
 
         {draft?.status === "building" && !isSpectator && (
           <MenuCard title={`Build Draft Deck (${myDeckAdditions.length} additions)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Toggle drafted cards to add them to your standard 52-card deck. Current draft deck size: {(draft?.baseDeck?.cardCount || 52) + myDeckAdditions.length}.</p>
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Your saved Draft League deck will be your 52-card base deck plus these additions.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
+              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
+                <strong>Deck size</strong>
+                <div>{(draft?.baseDeck?.cardCount || 52) + myDeckAdditions.length} cards</div>
+              </div>
+              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
+                <strong>Faction</strong>
+                <div>{selectedFactionName || "Choose your first card"}</div>
+              </div>
+              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
+                <strong>Draft League</strong>
+                <div>{savedDraftDeck ? `Saved: ${savedDraftDeck.factionName || savedDraftDeck.factionId}` : "No saved deck yet"}</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1}>Save Deck for Draft League</MenuButton>
+              {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
+              {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
               {myPool.map((card) => (
-                <DraftCardTile key={card.draftCopyId} card={card} selected={selectedIds.has(card.draftCopyId)} actionLabel="Add" onClick={() => onToggleDeckCard(card.draftCopyId)} />
+                <DraftCardTile key={card.draftCopyId} card={card} selected={selectedIds.has(card.draftCopyId)} disabled={!selectedIds.has(card.draftCopyId) && selectedFactionId && card.factionId !== selectedFactionId} actionLabel={selectedIds.has(card.draftCopyId) ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : "Add"} onClick={() => onToggleDeckCard(card.draftCopyId)} />
               ))}
             </div>
           </MenuCard>
@@ -2078,6 +2311,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
                   {campaign.chapters.map((chapter, index) => (
                     (() => {
                       const difficulty = getCampaignDifficulty(factionId, index);
+                      const narration = getCampaignNarration(chapter.id);
                       return (
                         <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${theme.primary}`, background: "rgba(2,6,23,0.36)" }}>
                           <div style={{ color: "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}</div>
@@ -2086,6 +2320,16 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
                           <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
                           <div style={{ color: "#fde68a", fontSize: 12, marginBottom: 6 }}>Boss: {difficulty.bossLife} life, {difficulty.attacksPerTurn} attacks/turn, values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
                           <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
+                          {narration.beforeBattle && (
+                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.58)", border: "1px solid rgba(253,230,138,0.2)", color: "#fde68a", fontSize: 12, lineHeight: 1.35 }}>
+                              <strong>Before Battle:</strong> {narration.beforeBattle}
+                            </div>
+                          )}
+                          {narration.afterBattle && (
+                            <div style={{ margin: "0 0 10px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.44)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
+                              <strong>After Battle:</strong> {narration.afterBattle}
+                            </div>
+                          )}
                           {chapter.dialogue?.length > 0 && <div style={{ margin: "0 0 10px 0", color: "#e0f2fe", fontSize: 12, display: "grid", gap: 3 }}>{chapter.dialogue.slice(0, 3).map((line) => <div key={line}>{line}</div>)}</div>}
                           <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer}>Begin Battle</MenuButton>
                         </div>
@@ -2134,6 +2378,8 @@ export default function App() {
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
+  const [draftPickPending, setDraftPickPending] = useState(false);
+  const [draftSaveMessage, setDraftSaveMessage] = useState("");
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
   const [friendNameInput, setFriendNameInput] = useState("");
@@ -2367,6 +2613,7 @@ export default function App() {
     const onDraftState = (newDraft) => {
       setError("");
       setDraftState(newDraft);
+      setDraftPickPending(false);
     };
     const onError = (msg) => {
       if (String(msg || "").toLowerCase().includes("room is no longer active")) {
@@ -2375,10 +2622,13 @@ export default function App() {
         return;
       }
       setError(msg);
+      setDraftPickPending(false);
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
     const onDraftLeagueStatus = (status) => setDraftLeagueStatus(status);
+    const onAccountUpdated = (updatedAccount) => setAccount(updatedAccount);
+    const onDraftDeckSaved = (payload) => setDraftSaveMessage(payload?.message || "Draft deck saved.");
     const onGameEnded = () => loadLeaderboard();
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
@@ -2400,6 +2650,8 @@ export default function App() {
     socket.on("peekResult", onPeek);
     socket.on("matchmakingStatus", onMatchmakingStatus);
     socket.on("draftLeagueStatus", onDraftLeagueStatus);
+    socket.on("accountUpdated", onAccountUpdated);
+    socket.on("draftDeckSaved", onDraftDeckSaved);
     socket.on("gameEnded", onGameEnded);
     attemptReconnect();
 
@@ -2414,6 +2666,8 @@ export default function App() {
       socket.off("peekResult", onPeek);
       socket.off("matchmakingStatus", onMatchmakingStatus);
       socket.off("draftLeagueStatus", onDraftLeagueStatus);
+      socket.off("accountUpdated", onAccountUpdated);
+      socket.off("draftDeckSaved", onDraftDeckSaved);
       socket.off("gameEnded", onGameEnded);
     };
   }, [loadLeaderboard]);
@@ -2715,15 +2969,29 @@ export default function App() {
   }
 
   function pickDraftCard(cardCopyId) {
+    if (draftPickPending || draftState?.myCurrentPack?.pickedThisPass) return;
+    setDraftPickPending(true);
     socket.emit("draftPick", { cardCopyId });
   }
 
   function toggleDraftDeckCard(cardCopyId) {
     if (!draftState?.myPool) return;
     const currentIds = new Set((draftState.myDeckAdditions || []).map((card) => card.draftCopyId));
+    const chosenCard = draftState.myPool.find((card) => card.draftCopyId === cardCopyId);
+    const currentFactionIds = [...new Set((draftState.myDeckAdditions || []).map((card) => card.factionId).filter(Boolean))];
+    if (chosenCard && !currentIds.has(cardCopyId) && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
+      setError("Draft decks can only include cards from one faction. Remove the current faction cards first to switch.");
+      return;
+    }
     if (currentIds.has(cardCopyId)) currentIds.delete(cardCopyId);
     else currentIds.add(cardCopyId);
+    setDraftSaveMessage("");
     socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds] });
+  }
+
+  function saveDraftDeck() {
+    setDraftSaveMessage("");
+    socket.emit("saveDraftDeck");
   }
 
   function startTutorialVsAi(mode = "basic") {
@@ -2932,11 +3200,15 @@ export default function App() {
         lobby={lobby}
         player={player}
         isSpectator={role === "spectator"}
+        account={account}
+        draftPickPending={draftPickPending}
+        draftSaveMessage={draftSaveMessage}
         onBack={returnToMainMenu}
         onCopyRoom={copyRoomCode}
         onStartDraft={startDraft}
         onPickCard={pickDraftCard}
         onToggleDeckCard={toggleDraftDeckCard}
+        onSaveDraftDeck={saveDraftDeck}
       />
     );
   }
@@ -3013,10 +3285,10 @@ export default function App() {
             onJoin={joinDraftLeague}
             onLeave={leaveDraftLeague}
             title="Draft League"
-            description="Queue for a draft against an account opponent with a similar draft league record."
+            description="Queue with your saved one-faction draft deck against an account opponent with a similar draft league record."
             joinLabel="Find Draft Match"
             cancelLabel="Leave Draft Queue"
-            signedOutText="Sign in to use draft league matchmaking."
+            signedOutText="Sign in and save a draft deck to use draft league matchmaking."
           />
           <FriendsPanel
             account={account}
@@ -3166,6 +3438,11 @@ export default function App() {
           <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>Game Over</div>
           <h1 style={{ margin: "0 0 10px 0", fontSize: 44 }}>{resultTitle}</h1>
           <p style={{ margin: "0 auto 20px auto", maxWidth: 520, fontSize: 18 }}>{resultDetail}</p>
+          {game.campaign?.afterBattle && (
+            <div style={{ margin: "0 auto 20px auto", maxWidth: 620, padding: 14, borderRadius: 10, background: "rgba(15,23,42,0.08)", border: `1px solid ${resultBorder}`, textAlign: "left", lineHeight: 1.45 }}>
+              <strong>After Battle:</strong> {game.campaign.afterBattle}
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
             {Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => {
               const theme = getFactionTheme(game.players[p].faction.id);
@@ -5261,6 +5538,11 @@ export default function App() {
       {(game.winner != null || game.phase === "gameOver") && (
         <div style={{ marginBottom: 16, padding: 16, borderRadius: 12, border: "2px solid #111", background: game.winner == null ? "#f3f4f6" : "#dcfce7", fontSize: 20, fontWeight: "bold" }}>
           {game.winner == null ? "Game Over — Draw" : `Game Over — Player ${game.winner} wins!`}
+          {game.campaign?.afterBattle && (
+            <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.45, fontWeight: "normal", color: "#14532d" }}>
+              <strong>After Battle:</strong> {game.campaign.afterBattle}
+            </div>
+          )}
         </div>
       )}
 
@@ -5269,8 +5551,13 @@ export default function App() {
           <div className="current-play-panel">
             <strong>{incomingAttackAlert?.text || game.campaign?.title || phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {incomingAttackAlert ? "Respond in the status rail before taking another action." : game.campaign ? game.campaign.story : phaseHelpText()}
+              {incomingAttackAlert ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
             </div>
+            {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
+              <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
+                {game.campaign.story}
+              </div>
+            )}
             <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
           </div>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
