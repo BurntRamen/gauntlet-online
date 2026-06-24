@@ -1458,15 +1458,16 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
   const canStart = player === 1 && draft?.status === "lobby";
   const hasPickedThisPass = !!draft?.myCurrentPack?.pickedThisPass;
+  const isBotDraft = !!draft?.botDraft;
 
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Draft League Match" : "Eight Seat Draft"}</div>
-            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Draft League" : "Gauntlet Draft"}</h1>
-            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>Draft faction cards, then add selected cards to your standard 52-card playing deck.</p>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Draft League Match" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
+            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Draft League" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
+            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isBotDraft ? "Draft with seven bot drafters, then save a one-faction deck for Draft League." : "Draft faction cards, then add selected cards to your standard 52-card playing deck."}</p>
           </div>
           <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
             <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
@@ -1489,8 +1490,9 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
                 );
               })}
             </div>
-            {canStart && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
+            {canStart && !isBotDraft && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
             {draft?.status === "lobby" && !canStart && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Waiting for Player 1 to start the draft.</p>}
+            {draft?.status === "lobby" && isBotDraft && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Preparing bot draft seats...</p>}
           </MenuCard>
 
           <MenuCard title="Draft Status">
@@ -1500,8 +1502,15 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
               <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
               <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
               <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
+              {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
               {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || savedDraftDeck.cards?.length || 0})</div>}
             </div>
+            {isBotDraft && draft?.botPickLog?.length > 0 && (
+              <div style={{ marginTop: 10, padding: 10, borderRadius: 8, border: "1px solid rgba(125,211,252,0.22)", background: "rgba(15,23,42,0.42)", color: "#bfdbfe", fontSize: 12, display: "grid", gap: 3 }}>
+                <strong style={{ color: "#fde68a" }}>Recent bot picks</strong>
+                {draft.botPickLog.slice(-5).map((line, index) => <div key={`${line}-${index}`}>{line}</div>)}
+              </div>
+            )}
           </MenuCard>
         </div>
 
@@ -2964,6 +2973,21 @@ export default function App() {
     });
   }
 
+  function createBotDraftRoom() {
+    clearReconnectInfo();
+    setError("");
+    let answered = false;
+    const timeoutId = window.setTimeout(() => {
+      if (answered) return;
+      setError("Bot draft creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
+    }, 3500);
+    socket.emit("createBotDraftRoom", playerIdentityPayload(), (response) => {
+      answered = true;
+      window.clearTimeout(timeoutId);
+      if (response?.error) setError(response.error);
+    });
+  }
+
   function startDraft() {
     socket.emit("startDraft");
   }
@@ -3265,8 +3289,9 @@ export default function App() {
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
             <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Create Draft Room</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players. Draft supports up to 8 players.</p>
-            <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, or Free-for-All for 2-4 seated players with target selection.</HelperText>
+            <MenuButton variant="secondary" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Bot Draft</MenuButton>
+            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players. Draft supports up to 8 players. Bot Draft seats you with 7 automated drafters.</p>
+            <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, Free-for-All for 2-4 seated players, Draft Room for live drafters, or Bot Draft for an Arena-style solo draft table.</HelperText>
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
           </MenuCard>
           <MenuCard title="Join Room">

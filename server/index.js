@@ -770,6 +770,15 @@ function collectionSummary(stats = {}) {
 
 const DRAFT_PACKS_PER_PLAYER = 3;
 const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
+const DRAFT_BOT_NAMES = [
+  "Atlas Surveyor",
+  "Copperline Drafter",
+  "Grove Analyst",
+  "Ristus Picker",
+  "Marble Seat",
+  "Signal Adept",
+  "Canopy Scout"
+];
 
 function createDraftPlayerSeat() {
   return {
@@ -2187,7 +2196,7 @@ function createFreeForAllRoom() {
   return roomState;
 }
 
-function createDraftRoom() {
+function createDraftRoom(options = {}) {
   let roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   while (rooms.has(roomCode)) {
     roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -2219,10 +2228,23 @@ function createDraftRoom() {
       draftedPools: {},
       deckAdditions: {},
       completedAt: null,
-      baseDeck: createBaseDeckSummary()
+      baseDeck: createBaseDeckSummary(),
+      botDraft: !!options.botDraft,
+      botPickLog: []
     },
     damageConfirmed: { 1: false, 2: false }
   };
+  if (options.botDraft) {
+    for (let playerNum = 2; playerNum <= 8; playerNum++) {
+      const bot = roomState.lobby.players[playerNum];
+      bot.connected = true;
+      bot.accountId = null;
+      bot.accountName = DRAFT_BOT_NAMES[playerNum - 2] || `Draft Bot ${playerNum - 1}`;
+      bot.isGuest = false;
+      bot.isAI = true;
+      bot.reconnectToken = `BOT-${roomCode}-${playerNum}`;
+    }
+  }
   rooms.set(roomCode, roomState);
   return roomState;
 }
@@ -2429,6 +2451,7 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
     roomCode: roomState.roomCode,
     status: draft.status,
     league: !!draft.league,
+    botDraft: !!draft.botDraft,
     maxPlayers: draft.maxPlayers,
     packsPerPlayer: draft.packsPerPlayer,
     packSize: draft.packSize,
@@ -2443,6 +2466,7 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
     myPool,
     myDeckAdditions,
     poolCounts,
+    botPickLog: draft.botDraft ? (draft.botPickLog || []).slice(-12) : [],
     deckAdditionCounts: Object.fromEntries(Object.entries(draft.deckAdditions || {}).map(([key, cards]) => [key, cards.length])),
     completedAt: draft.completedAt
   };
@@ -2603,7 +2627,9 @@ function playersConfirmedStart(roomState) {
 }
 
 function getConnectedDraftPlayers(roomState) {
-  return getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => !roomState.lobby.players[playerNum].isAI);
+  const connected = getConnectedLobbyPlayerNumbers(roomState);
+  if (roomState.draft?.botDraft) return connected;
+  return connected.filter((playerNum) => !roomState.lobby.players[playerNum].isAI);
 }
 
 function startDraft(roomState) {
@@ -2674,6 +2700,77 @@ function advanceDraftAfterPick(roomState) {
   activeKeys.forEach((key) => {
     draft.currentPacks[key] = draft.unopenedPacks[key]?.shift() || null;
   });
+}
+
+function getDraftBotPreferredFaction(pool = []) {
+  const counts = pool.reduce((acc, card) => {
+    if (card?.factionId) acc[card.factionId] = (acc[card.factionId] || 0) + 1;
+    return acc;
+  }, {});
+  let bestFaction = null;
+  let bestCount = 0;
+  for (const [factionId, count] of Object.entries(counts)) {
+    if (count > bestCount) {
+      bestFaction = factionId;
+      bestCount = count;
+    }
+  }
+  return bestCount >= 2 ? bestFaction : null;
+}
+
+function scoreDraftBotCard(card, pool = []) {
+  const rarityScore = { common: 1, uncommon: 4, rare: 9, mythic: 14 }[card?.rarity] || 2;
+  const preferredFaction = getDraftBotPreferredFaction(pool);
+  const factionScore = preferredFaction && card?.factionId === preferredFaction ? 8 : 0;
+  const earlyFlexScore = !preferredFaction && pool.length < 4 ? (card?.rarity === "rare" || card?.rarity === "mythic" ? 4 : 0) : 0;
+  const curveScore = Math.max(0, 8 - Math.abs((Number(card?.value) || 5) - 5));
+  const typeScore = card?.type === "unit" ? 2 : card?.type === "weapon" ? 1 : 0;
+  return rarityScore * 10 + factionScore + earlyFlexScore + curveScore + typeScore + crypto.randomInt(5);
+}
+
+function makeBotDraftPick(roomState, playerNum) {
+  const draft = roomState.draft;
+  const key = String(playerNum);
+  const pack = draft.currentPacks[key];
+  if (!pack || pack.pickedThisPass || !pack.cards?.length) return false;
+  const pool = draft.draftedPools[key] || [];
+  let bestIndex = 0;
+  let bestScore = -Infinity;
+  pack.cards.forEach((card, index) => {
+    const score = scoreDraftBotCard(card, pool);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+  const [card] = pack.cards.splice(bestIndex, 1);
+  draft.draftedPools[key].push(card);
+  pack.pickedThisPass = true;
+  draft.botPickLog = draft.botPickLog || [];
+  draft.botPickLog.push(`${roomState.lobby.players[playerNum].accountName || `Bot ${playerNum}`} picked a ${card.rarity || "draft"} ${card.factionId || "neutral"} card.`);
+  return true;
+}
+
+function runBotDraftPicks(roomState) {
+  const draft = roomState.draft;
+  if (!draft?.botDraft || draft.status !== "drafting") return;
+  let guard = 0;
+  while (draft.status === "drafting" && guard < 200) {
+    guard++;
+    let pickedAny = false;
+    for (const playerNum of draft.activePlayers || []) {
+      if (!roomState.lobby.players[playerNum]?.isAI) continue;
+      pickedAny = makeBotDraftPick(roomState, playerNum) || pickedAny;
+    }
+    const activeKeys = draft.activePlayers.map(String);
+    const waitingOnHuman = activeKeys.some((key) => {
+      const playerNum = Number(key);
+      const pack = draft.currentPacks[key];
+      return !roomState.lobby.players[playerNum]?.isAI && pack && !pack.pickedThisPass && (pack.cards || []).length > 0;
+    });
+    advanceDraftAfterPick(roomState);
+    if (waitingOnHuman || !pickedAny) break;
+  }
 }
 
 async function requirePlayerIdentity(socket, authToken, guestName) {
@@ -4463,6 +4560,32 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft" });
   });
 
+  socket.on("createBotDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+    console.log("[Socket] createBotDraftRoom");
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) {
+      if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
+      return;
+    }
+    const roomState = createDraftRoom({ botDraft: true });
+    const lobbyPlayer = roomState.lobby.players[1];
+    lobbyPlayer.socket = socket.id;
+    lobbyPlayer.connected = true;
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = identity.id;
+    lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.isGuest = identity.type === "guest";
+    await touchAccountStats(identity.id, "gamesCreated");
+    attachPlayerSocket(roomState, socket, 1);
+    startDraft(roomState);
+    runBotDraftPicks(roomState);
+    emitLobbyState(roomState);
+    emitDraftState(roomState);
+    if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft", botDraft: true });
+  });
+
   socket.on("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
     console.log("[Socket] createAiTutorialRoom");
     removeFromMatchmaking(socket.id);
@@ -4605,6 +4728,10 @@ io.on("connection", (socket) => {
     }
     const openSeat = getLobbyPlayerNumbers(roomState).find((seat) => !roomState.lobby.players[seat].socket && !roomState.lobby.players[seat].reconnectToken);
     if (openSeat) {
+      if (roomState.lobby.players[openSeat].isAI) {
+        socket.emit("errorMessage", "That seat is reserved.");
+        return;
+      }
       roomState.lobby.players[openSeat].reconnectToken = makeReconnectToken();
       roomState.lobby.players[openSeat].accountId = identity.id;
       roomState.lobby.players[openSeat].accountName = identity.name;
@@ -4746,6 +4873,7 @@ io.on("connection", (socket) => {
     const [card] = currentPack.cards.splice(cardIndex, 1);
     roomState.draft.draftedPools[key].push(card);
     currentPack.pickedThisPass = true;
+    if (roomState.draft.botDraft) runBotDraftPicks(roomState);
     advanceDraftAfterPick(roomState);
     emitDraftState(roomState);
   });
