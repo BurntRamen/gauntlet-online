@@ -1503,7 +1503,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
               <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
               <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
               {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
-              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || savedDraftDeck.cards?.length || 0})</div>}
+              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || savedDraftDeck.cards?.length || 0}) - {(savedDraftDeck.draftType || "player") === "bot" ? "Bot Draft" : "Player Draft"}</div>}
             </div>
             {isBotDraft && draft?.botPickLog?.length > 0 && (
               <div style={{ marginTop: 10, padding: 10, borderRadius: 8, border: "1px solid rgba(125,211,252,0.22)", background: "rgba(15,23,42,0.42)", color: "#bfdbfe", fontSize: 12, display: "grid", gap: 3 }}>
@@ -1617,7 +1617,8 @@ function MatchmakingPanel({
   description = "Find an account opponent with a similar win/loss ratio.",
   joinLabel = "Find Match",
   cancelLabel = "Cancel Search",
-  signedOutText = "Sign in to use ranked matchmaking."
+  signedOutText = "Sign in to use ranked matchmaking.",
+  extraActions = null
 }) {
   return (
     <MenuCard title={title}>
@@ -1626,7 +1627,10 @@ function MatchmakingPanel({
       {status.inQueue ? (
         <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
       ) : (
-        <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
+          {extraActions}
+        </div>
       )}
       {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>{signedOutText}</p>}
     </MenuCard>
@@ -3038,24 +3042,24 @@ export default function App() {
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
   }
 
-  function joinMatchmaking() {
+  function joinMatchmaking(bestOf = 1) {
     if (!authToken) {
       setMatchmakingStatus({ inQueue: false, message: "Sign in to use matchmaking." });
       return;
     }
-    socket.emit("joinMatchmaking", { authToken });
+    socket.emit("joinMatchmaking", { authToken, bestOf });
   }
 
   function leaveMatchmaking() {
     socket.emit("leaveMatchmaking");
   }
 
-  function joinDraftLeague() {
+  function joinDraftLeague(draftType = "player", bestOf = 1) {
     if (!authToken) {
       setDraftLeagueStatus({ inQueue: false, message: "Sign in to use draft league matchmaking." });
       return;
     }
-    socket.emit("joinDraftLeague", { authToken });
+    socket.emit("joinDraftLeague", { authToken, draftType, bestOf });
   }
 
   function leaveDraftLeague() {
@@ -3303,17 +3307,30 @@ export default function App() {
             {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
           </MenuCard>
           <ShareGameQrCard />
-          <MatchmakingPanel account={account} status={matchmakingStatus} onJoin={joinMatchmaking} onLeave={leaveMatchmaking} />
+          <MatchmakingPanel
+            account={account}
+            status={matchmakingStatus}
+            onJoin={() => joinMatchmaking(1)}
+            onLeave={leaveMatchmaking}
+            extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find BO3 Match</MenuButton>}
+          />
           <MatchmakingPanel
             account={account}
             status={draftLeagueStatus}
-            onJoin={joinDraftLeague}
+            onJoin={() => joinDraftLeague("player", 1)}
             onLeave={leaveDraftLeague}
             title="Draft League"
-            description="Queue with your saved one-faction draft deck against an account opponent with a similar draft league record."
-            joinLabel="Find Draft Match"
+            description="Queue with your saved one-faction draft deck against an account opponent with a similar draft league record. Player Draft and Bot Draft decks use separate queues."
+            joinLabel="Player Draft"
             cancelLabel="Leave Draft Queue"
             signedOutText="Sign in and save a draft deck to use draft league matchmaking."
+            extraActions={(
+              <>
+                <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
+                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
+                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
+              </>
+            )}
           />
           <FriendsPanel
             account={account}

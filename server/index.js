@@ -826,6 +826,7 @@ function getSavedDraftDeck(stats = {}) {
     name: deck.name || `${deck.factionName || deck.factionId} Draft Deck`,
     factionId: deck.factionId,
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
+    draftType: deck.draftType === "bot" ? "bot" : "player",
     cardCount: cards.length,
     savedAt: deck.savedAt || null,
     cards
@@ -1225,6 +1226,7 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     name: draftDeck.name,
     factionId: draftDeck.factionId,
     factionName: draftDeck.factionName,
+    draftType: draftDeck.draftType === "bot" ? "bot" : "player",
     cardCount: draftDeck.cards.length,
     savedAt: new Date().toISOString(),
     cards: draftDeck.cards.map((card) => ({
@@ -2154,7 +2156,10 @@ function getLobbyGameMode(roomState) {
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
 const matchmakingQueue = [];
-const draftLeagueQueue = [];
+const draftLeagueQueues = {
+  player: [],
+  bot: []
+};
 
 function makeReconnectToken() {
   return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -2275,8 +2280,10 @@ function removeFromMatchmaking(socketId) {
 }
 
 function removeFromDraftLeague(socketId) {
-  const index = draftLeagueQueue.findIndex((entry) => entry.socketId === socketId);
-  if (index >= 0) draftLeagueQueue.splice(index, 1);
+  for (const queue of Object.values(draftLeagueQueues)) {
+    const index = queue.findIndex((entry) => entry.socketId === socketId);
+    if (index >= 0) queue.splice(index, 1);
+  }
 }
 
 function getMatchTolerance(waitMs) {
@@ -2305,16 +2312,25 @@ function findMatchForEntryInQueue(entry, queue) {
 }
 
 function findMatchForEntry(entry) {
-  return findMatchForEntryInQueue(entry, matchmakingQueue);
+  return findMatchForEntryInQueue(entry, matchmakingQueue.filter((candidate) => (candidate.bestOf || 1) === (entry.bestOf || 1)));
 }
 
 function findDraftLeagueMatchForEntry(entry) {
-  return findMatchForEntryInQueue(entry, draftLeagueQueue);
+  const queue = draftLeagueQueues[entry.draftType] || draftLeagueQueues.player;
+  return findMatchForEntryInQueue(entry, queue.filter((candidate) => candidate.bestOf === entry.bestOf));
 }
 
 function createMatchedRoom(entryA, entryB) {
   const roomState = createRoom();
   roomState.ranked = true;
+  if ((entryA.bestOf || 1) === 3) {
+    roomState.bestOf3Series = {
+      bestOf: 3,
+      targetWins: 2,
+      gameNumber: 1,
+      scores: { 1: 0, 2: 0 }
+    };
+  }
   const firstEntry = Math.random() < 0.5 ? entryA : entryB;
   const secondEntry = firstEntry === entryA ? entryB : entryA;
   const assignments = [
@@ -2334,7 +2350,7 @@ function createMatchedRoom(entryA, entryB) {
     const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
     if (playerSocket) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
-      playerSocket.emit("matchmakingStatus", { inQueue: false, message: `Match found. Room ${roomState.roomCode}.` });
+      playerSocket.emit("matchmakingStatus", { inQueue: false, message: `${entryA.bestOf === 3 ? "Best-of-3 m" : "M"}atch found. Room ${roomState.roomCode}.` });
     }
   }
 
@@ -2348,8 +2364,18 @@ function createDraftLeagueRoom(entryA, entryB) {
   roomState.draftLeague = true;
   roomState.draftLeagueMatch = {
     matchedAt: new Date().toISOString(),
-    playerAccountIds: [entryA.accountId, entryB.accountId]
+    playerAccountIds: [entryA.accountId, entryB.accountId],
+    draftType: entryA.draftType,
+    bestOf: entryA.bestOf || 1
   };
+  if ((entryA.bestOf || 1) === 3) {
+    roomState.bestOf3Series = {
+      bestOf: 3,
+      targetWins: 2,
+      gameNumber: 1,
+      scores: { 1: 0, 2: 0 }
+    };
+  }
 
   const firstEntry = Math.random() < 0.5 ? entryA : entryB;
   const secondEntry = firstEntry === entryA ? entryB : entryA;
@@ -2374,7 +2400,7 @@ function createDraftLeagueRoom(entryA, entryB) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
       playerSocket.emit("draftLeagueStatus", {
         inQueue: false,
-        message: `Draft league match found. Using your saved ${assignment.entry.savedDraftDeck.factionName} deck.`,
+        message: `${entryA.bestOf === 3 ? "Best-of-3 d" : "D"}raft league match found. Using your saved ${assignment.entry.savedDraftDeck.factionName} deck.`,
         roomCode: roomState.roomCode
       });
     }
@@ -2382,7 +2408,8 @@ function createDraftLeagueRoom(entryA, entryB) {
 
   createGameFromLobby(roomState);
   roomState.game.draftLeague = true;
-  roomState.game.message = `Draft league match started. Player ${roomState.game.priority} has priority.`;
+  if (roomState.bestOf3Series) roomState.game.bestOf3Series = clonePlain(roomState.bestOf3Series);
+  roomState.game.message = `${roomState.bestOf3Series ? "Best-of-3 d" : "D"}raft league match started. Player ${roomState.game.priority} has priority.`;
   emitState(roomState);
   return roomState;
 }
@@ -3724,7 +3751,40 @@ async function finishGameIfLifeCheckFails(roomState) {
   if (!game || !applyGameOverState(game)) return false;
   captureGameEvent(game);
   await recordFinalGameStats(roomState);
+  if (continueBestOf3Series(roomState)) {
+    emitState(roomState);
+    return true;
+  }
   io.to(roomState.roomCode).emit("gameEnded", { winner: game.winner, tie: game.winner == null });
+  return true;
+}
+
+function continueBestOf3Series(roomState) {
+  const completedGame = roomState.game;
+  const series = roomState.bestOf3Series;
+  if (!completedGame || !series || completedGame.gameMode === "freeForAll") return false;
+  const isDraftLeagueSeries = !!completedGame.draftLeague || !!roomState.draftLeague;
+
+  if (completedGame.winner != null) {
+    const key = String(completedGame.winner);
+    series.scores[key] = (series.scores[key] || 0) + 1;
+  }
+
+  const p1Score = series.scores[1] || series.scores["1"] || 0;
+  const p2Score = series.scores[2] || series.scores["2"] || 0;
+  if (p1Score >= series.targetWins || p2Score >= series.targetWins) {
+    const seriesWinner = p1Score > p2Score ? 1 : 2;
+    completedGame.bestOf3Series = clonePlain(series);
+    completedGame.message = `${completedGame.message} Best-of-3 complete: Player ${seriesWinner} wins the series ${p1Score}-${p2Score}.`;
+    return false;
+  }
+
+  const priorMessage = completedGame.message;
+  series.gameNumber = (series.gameNumber || 1) + 1;
+  createGameFromLobby(roomState);
+  if (isDraftLeagueSeries) roomState.game.draftLeague = true;
+  roomState.game.bestOf3Series = clonePlain(series);
+  roomState.game.message = `${priorMessage} Best-of-3 score is ${p1Score}-${p2Score}. Starting game ${series.gameNumber}. Player ${roomState.game.priority} has priority.`;
   return true;
 }
 
@@ -4399,8 +4459,9 @@ function createFreeForAllGameFromLobby(roomState) {
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
 
-  socket.on("joinMatchmaking", async ({ authToken } = {}) => {
+  socket.on("joinMatchmaking", async ({ authToken, bestOf = 1 } = {}) => {
     console.log("[Socket] joinMatchmaking");
+    const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Sign in to use matchmaking." });
@@ -4418,6 +4479,7 @@ io.on("connection", (socket) => {
       socketId: socket.id,
       accountId: account.id,
       accountName: account.name,
+      bestOf: requestedBestOf,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
       joinedAt: Date.now()
@@ -4432,10 +4494,12 @@ io.on("connection", (socket) => {
 
     matchmakingQueue.push(entry);
     socket.data.authToken = authToken || socket.data.authToken;
+    const queueSize = matchmakingQueue.filter((candidate) => (candidate.bestOf || 1) === requestedBestOf).length;
     socket.emit("matchmakingStatus", {
       inQueue: true,
-      message: `Searching for a similar record... ${matchmakingQueue.length} player${matchmakingQueue.length === 1 ? "" : "s"} in queue.`,
-      queueSize: matchmakingQueue.length
+      message: `Searching for a similar record${requestedBestOf === 3 ? " best-of-3" : ""} opponent... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
+      queueSize,
+      bestOf: requestedBestOf
     });
   });
 
@@ -4444,8 +4508,10 @@ io.on("connection", (socket) => {
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
   });
 
-  socket.on("joinDraftLeague", async ({ authToken } = {}) => {
+  socket.on("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {
     console.log("[Socket] joinDraftLeague");
+    const requestedDraftType = draftType === "bot" ? "bot" : "player";
+    const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
       socket.emit("draftLeagueStatus", { inQueue: false, message: "Sign in to use draft league matchmaking." });
@@ -4460,6 +4526,13 @@ io.on("connection", (socket) => {
       socket.emit("draftLeagueStatus", { inQueue: false, message: "Save a one-faction draft deck before entering the draft league queue." });
       return;
     }
+    if ((savedDraftDeck.draftType || "player") !== requestedDraftType) {
+      socket.emit("draftLeagueStatus", {
+        inQueue: false,
+        message: `Your saved deck is from a ${savedDraftDeck.draftType === "bot" ? "bot" : "player"} draft. Save a ${requestedDraftType} draft deck before entering this queue.`
+      });
+      return;
+    }
 
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -4469,6 +4542,8 @@ io.on("connection", (socket) => {
       accountId: account.id,
       accountName: account.name,
       savedDraftDeck,
+      draftType: requestedDraftType,
+      bestOf: requestedBestOf,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
       joinedAt: Date.now()
@@ -4481,12 +4556,15 @@ io.on("connection", (socket) => {
       return;
     }
 
-    draftLeagueQueue.push(entry);
+    const queue = draftLeagueQueues[requestedDraftType] || draftLeagueQueues.player;
+    queue.push(entry);
     socket.data.authToken = authToken || socket.data.authToken;
     socket.emit("draftLeagueStatus", {
       inQueue: true,
-      message: `Searching for a draft league opponent... ${draftLeagueQueue.length} player${draftLeagueQueue.length === 1 ? "" : "s"} in queue.`,
-      queueSize: draftLeagueQueue.length
+      message: `Searching for a ${requestedBestOf === 3 ? "best-of-3 " : ""}${requestedDraftType} draft league opponent... ${queue.length} player${queue.length === 1 ? "" : "s"} in this queue.`,
+      queueSize: queue.length,
+      draftType: requestedDraftType,
+      bestOf: requestedBestOf
     });
   });
 
@@ -4924,6 +5002,7 @@ io.on("connection", (socket) => {
       name: `${faction?.name || factionIds[0]} Draft Deck`,
       factionId: factionIds[0],
       factionName: faction?.name || factionIds[0],
+      draftType: roomState.draft.botDraft ? "bot" : "player",
       cards: selectedCards
     });
     if (!savedAccount) {
@@ -4932,7 +5011,7 @@ io.on("connection", (socket) => {
     }
     socket.emit("accountUpdated", savedAccount);
     socket.emit("draftDeckSaved", {
-      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} card${selectedCards.length === 1 ? "" : "s"} for Draft League.`
+      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} card${selectedCards.length === 1 ? "" : "s"} for ${roomState.draft.botDraft ? "Bot Draft" : "Player Draft"} League.`
     });
   });
 
@@ -4958,6 +5037,10 @@ io.on("connection", (socket) => {
       return;
     }
     createGameFromLobby(roomState);
+    if (roomState.bestOf3Series) {
+      roomState.game.bestOf3Series = clonePlain(roomState.bestOf3Series);
+      roomState.game.message = `Best-of-3 match started. Player ${roomState.game.priority} has priority.`;
+    }
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });
@@ -5104,6 +5187,11 @@ io.on("connection", (socket) => {
     game.drawOfferBy = null;
     game.message = `Player ${playerNum} conceded. Player ${winner} wins!`;
     await recordFinalGameStats(roomState);
+    if (continueBestOf3Series(roomState)) {
+      emitState(roomState);
+      scheduleTrainingAi(roomState);
+      return;
+    }
     io.to(roomState.roomCode).emit("gameEnded", { winner, tie: false, concededBy: playerNum });
     emitState(roomState);
     scheduleTrainingAi(roomState);
@@ -5133,6 +5221,10 @@ io.on("connection", (socket) => {
       game.drawOfferBy = null;
       game.message = "Players agreed to an intentional draw.";
       await recordFinalGameStats(roomState);
+      if (continueBestOf3Series(roomState)) {
+        emitState(roomState);
+        return;
+      }
       io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true, intentionalDraw: true });
       emitState(roomState);
       return;
