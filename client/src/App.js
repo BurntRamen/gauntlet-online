@@ -1221,13 +1221,13 @@ const RARITY_STYLES = {
 };
 
 const PACK_THEMES = {
-  rumin: { name: "Rumin", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(135deg, #451a03, #92400e 42%, #14532d)" },
-  sheen: { name: "Sheen", accent: "#86efac", glow: "rgba(134,239,172,0.3)", background: "linear-gradient(135deg, #052e16, #166534 48%, #0f172a)" },
-  frumo: { name: "Frumo", accent: "#67e8f9", glow: "rgba(103,232,249,0.34)", background: "linear-gradient(135deg, #083344, #0e7490 46%, #312e81)" },
-  bizi: { name: "Bizi", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(135deg, #422006, #a16207 48%, #334155)" }
+  rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
+  sheen: { name: "Sheen", subtitle: "Living Forest", accent: "#86efac", glow: "rgba(134,239,172,0.3)", background: "linear-gradient(145deg, #052e16, #166534 42%, #0f172a 82%)", art: "repeating-linear-gradient(115deg, rgba(220,252,231,0.72) 0 3px, transparent 3px 12px), linear-gradient(135deg, rgba(5,46,22,0.95), rgba(74,222,128,0.62))" },
+  frumo: { name: "Frumo", subtitle: "Sunken Fleet", accent: "#67e8f9", glow: "rgba(103,232,249,0.34)", background: "linear-gradient(145deg, #083344, #0e7490 44%, #312e81 88%)", art: "radial-gradient(circle at 22% 22%, rgba(186,230,253,0.8), transparent 18%), radial-gradient(circle at 74% 50%, rgba(34,211,238,0.65), transparent 24%), linear-gradient(135deg, rgba(14,116,144,0.95), rgba(49,46,129,0.78))" },
+  bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" }
 };
 
-function BoosterPackTile({ booster, opening, onOpen }) {
+function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
     counts[slot] = (counts[slot] || 0) + 1;
@@ -1238,25 +1238,57 @@ function BoosterPackTile({ booster, opening, onOpen }) {
     <button
       type="button"
       className={`booster-pack-tile ${opening ? "opening" : ""}`}
-      onClick={() => onOpen(booster.id)}
+      onClick={() => {
+        if (canOpen) onOpen(booster.id);
+      }}
       disabled={opening}
-      style={{ "--pack-accent": theme.accent, "--pack-glow": theme.glow, background: theme.background }}
+      style={{ "--pack-accent": theme.accent, "--pack-glow": theme.glow, background: theme.background, opacity: canOpen ? 1 : 0.86 }}
     >
       <span className="booster-pack-shine" />
-      <span className="booster-pack-topline">Gauntlet Booster</span>
+      <span className="booster-pack-crimp booster-pack-crimp-top" />
+      <span className="booster-pack-crimp booster-pack-crimp-bottom" />
+      <span className="booster-pack-hanger" />
+      <span className="booster-pack-topline">Gauntlet Online</span>
+      <span className="booster-pack-set">Foundation Booster</span>
       <strong>{theme.name}</strong>
-      <span>{booster.cardCount || booster.slots?.length || 8} faction cards</span>
+      <span className="booster-pack-subtitle">{theme.subtitle}</span>
+      <span className="booster-pack-art" style={{ background: theme.art }}>
+        <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>
+      </span>
+      <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} digital cards</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
           <span key={rarity}>{count} {RARITY_STYLES[rarity]?.label || rarity}</span>
         ))}
       </span>
-      <span className="booster-pack-open">{opening ? "Opening..." : "Open Pack"}</span>
+      <span className="booster-pack-open">{opening ? "Opening..." : canOpen ? "Open Pack" : "Earn a Pack Credit"}</span>
+      <span className="booster-pack-retail">
+        <span>GAUNTLET</span>
+        <span>$1.00</span>
+      </span>
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={(event) => {
+          event.stopPropagation();
+          onBuyPack(booster.id);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            onBuyPack(booster.id);
+          }
+        }}
+        style={{ zIndex: 2, justifySelf: "start", border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.48)", color: "#fff7dc", fontWeight: 900, fontSize: 12 }}
+      >
+        Buy $1 Pack
+      </span>
     </button>
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack }) {
+function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack }) {
   if (!account) {
     return (
       <MenuCard title="Collection">
@@ -1270,6 +1302,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
   const catalog = collection.catalog || {};
   const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
+  const packCredits = Number(collection.packCredits || 0);
   const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
     ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
   ));
@@ -1290,23 +1323,46 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
         }
         .booster-pack-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
-          gap: 10px;
+          grid-template-columns: repeat(auto-fit, minmax(206px, 1fr));
+          gap: 14px;
         }
         .booster-pack-tile {
           position: relative;
-          min-height: 220px;
-          border: 1px solid color-mix(in srgb, var(--pack-accent) 72%, #ffffff 8%);
-          border-radius: 8px;
-          padding: 14px 12px;
+          min-height: 348px;
+          border: 1px solid color-mix(in srgb, var(--pack-accent) 70%, #fef3c7 18%);
+          border-radius: 5px;
+          padding: 34px 16px 18px;
           color: #fff7dc;
-          text-align: left;
+          text-align: center;
           overflow: hidden;
           cursor: pointer;
           display: grid;
-          align-content: space-between;
+          align-content: start;
           gap: 8px;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 14px 32px rgba(0,0,0,0.28);
+          isolation: isolate;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.26), inset 0 -20px 44px rgba(0,0,0,0.32), 0 16px 36px rgba(0,0,0,0.34);
+          clip-path: polygon(0 4%, 3% 2%, 0 0, 100% 0, 97% 2%, 100% 4%, 100% 96%, 97% 98%, 100% 100%, 0 100%, 3% 98%, 0 96%);
+        }
+        .booster-pack-tile::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            repeating-linear-gradient(90deg, rgba(255,255,255,0.09) 0 1px, transparent 1px 11px),
+            linear-gradient(105deg, transparent 0 22%, rgba(255,255,255,0.2) 28%, transparent 34% 58%, rgba(255,255,255,0.14) 64%, transparent 70%),
+            radial-gradient(circle at 50% 8%, rgba(255,255,255,0.2), transparent 18%);
+          mix-blend-mode: screen;
+          opacity: 0.72;
+          z-index: 0;
+        }
+        .booster-pack-tile::after {
+          content: "";
+          position: absolute;
+          inset: 9px;
+          border: 1px solid rgba(255,247,220,0.24);
+          box-shadow: inset 0 0 0 1px rgba(0,0,0,0.28);
+          pointer-events: none;
+          z-index: 1;
         }
         .booster-pack-tile:hover {
           transform: translateY(-2px);
@@ -1317,25 +1373,80 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
         }
         .booster-pack-tile strong {
           font-family: Georgia, serif;
-          font-size: 28px;
+          font-size: 34px;
           line-height: 1;
-          text-shadow: 0 2px 10px rgba(0,0,0,0.58);
-          z-index: 1;
+          text-shadow: 0 2px 0 rgba(0,0,0,0.8), 0 0 18px var(--pack-glow);
+          z-index: 2;
         }
         .booster-pack-topline,
         .booster-pack-open {
-          z-index: 1;
+          z-index: 2;
           color: var(--pack-accent);
           font-weight: 900;
           text-transform: uppercase;
           letter-spacing: 1.5px;
           font-size: 11px;
         }
+        .booster-pack-set {
+          z-index: 2;
+          color: #fef3c7;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          border-top: 1px solid rgba(255,247,220,0.32);
+          border-bottom: 1px solid rgba(255,247,220,0.32);
+          padding: 5px 0;
+          background: rgba(2,6,23,0.3);
+        }
+        .booster-pack-subtitle,
+        .booster-pack-count {
+          z-index: 2;
+          color: #fde68a;
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+        }
+        .booster-pack-art {
+          z-index: 2;
+          min-height: 112px;
+          border: 2px solid rgba(255,247,220,0.68);
+          box-shadow: inset 0 0 0 2px rgba(0,0,0,0.42), 0 8px 22px rgba(0,0,0,0.32);
+          display: grid;
+          place-items: center;
+          margin: 2px 8px;
+          position: relative;
+          overflow: hidden;
+        }
+        .booster-pack-art::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(115deg, transparent, rgba(255,255,255,0.28), transparent);
+          transform: translateX(-45%);
+        }
+        .booster-pack-sigil {
+          position: relative;
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          border: 2px solid rgba(255,247,220,0.76);
+          background: rgba(2,6,23,0.38);
+          color: #fff7dc;
+          font-family: Georgia, serif;
+          font-size: 34px;
+          font-weight: 900;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.72);
+        }
         .booster-pack-slots {
-          z-index: 1;
+          z-index: 2;
           display: flex;
           gap: 5px;
           flex-wrap: wrap;
+          justify-content: center;
           font-size: 10px;
         }
         .booster-pack-slots span {
@@ -1343,6 +1454,50 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
           border-radius: 999px;
           padding: 3px 6px;
           background: rgba(2,6,23,0.34);
+        }
+        .booster-pack-retail {
+          z-index: 2;
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          align-items: center;
+          border: 1px solid rgba(255,255,255,0.28);
+          background: rgba(255,247,220,0.88);
+          color: #111827;
+          padding: 5px 7px;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.8px;
+        }
+        .booster-pack-hanger {
+          position: absolute;
+          top: 10px;
+          left: 50%;
+          width: 40px;
+          height: 14px;
+          transform: translateX(-50%);
+          border-radius: 0 0 999px 999px;
+          border: 1px solid rgba(255,247,220,0.38);
+          border-top: 0;
+          background: rgba(2,6,23,0.38);
+          z-index: 2;
+        }
+        .booster-pack-crimp {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 18px;
+          background:
+            repeating-linear-gradient(90deg, rgba(255,247,220,0.38) 0 7px, rgba(0,0,0,0.18) 7px 13px),
+            rgba(2,6,23,0.24);
+          z-index: 2;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.45);
+        }
+        .booster-pack-crimp-top {
+          top: 0;
+        }
+        .booster-pack-crimp-bottom {
+          bottom: 0;
         }
         .booster-pack-shine {
           position: absolute;
@@ -1360,8 +1515,9 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
       <div style={{ display: "grid", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ color: "#bfdbfe", fontSize: 13 }}>
-            {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened
+            {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened - {packCredits} pack credit{packCredits === 1 ? "" : "s"}
           </div>
+          <div style={{ color: "#fde68a", fontSize: 12 }}>Earn 1 pack credit the first time you clear each campaign chapter. Paid packs use your configured $1 checkout link.</div>
         </div>
         {boosters.length > 0 && (
           <div className="booster-pack-grid">
@@ -1370,7 +1526,9 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
                 key={booster.id}
                 booster={booster}
                 opening={openingPackId === booster.id}
+                canOpen={packCredits > 0}
                 onOpen={onOpenPack}
+                onBuyPack={onBuyPack}
               />
             ))}
           </div>
@@ -1412,6 +1570,23 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack })
         </div>
       </div>
     </MenuCard>
+  );
+}
+
+function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBack }) {
+  return (
+    <div style={MENU_THEME.page}>
+      <div style={MENU_THEME.frame}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+          <div>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Vault Terminal</div>
+            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Collection</h1>
+          </div>
+          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+        </div>
+        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} />
+      </div>
+    </div>
   );
 }
 
@@ -2302,7 +2477,9 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
+function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
+  const campaignProgress = account?.progression?.campaign || {};
+
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
@@ -2317,6 +2494,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
           {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, campaign]) => {
             const theme = getFactionTheme(factionId);
+            const completedChapters = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId] : [];
             return (
               <MenuCard key={factionId} title={`${campaign.factionName}: ${campaign.commanderName}`}>
                 <p style={{ marginTop: 0, color: "#bfdbfe", lineHeight: 1.45 }}>{campaign.pitch}</p>
@@ -2325,9 +2503,11 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
                     (() => {
                       const difficulty = getCampaignDifficulty(factionId, index);
                       const narration = getCampaignNarration(chapter.id);
+                      const unlocked = index === 0 || completedChapters.includes(campaign.chapters[index - 1]?.id);
+                      const completed = completedChapters.includes(chapter.id);
                       return (
-                        <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${theme.primary}`, background: "rgba(2,6,23,0.36)" }}>
-                          <div style={{ color: "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}</div>
+                        <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${unlocked ? theme.primary : "rgba(148,163,184,0.26)"}`, background: unlocked ? "rgba(2,6,23,0.36)" : "rgba(15,23,42,0.44)", opacity: unlocked ? 1 : 0.72 }}>
+                          <div style={{ color: completed ? "#86efac" : "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}{completed ? " - Cleared" : unlocked ? " - Pack Reward" : " - Locked"}</div>
                           <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
                           {chapter.playableName && <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 4 }}>Playable: {chapter.playableName}</div>}
                           <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
@@ -2344,7 +2524,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer }) {
                             </div>
                           )}
                           {chapter.dialogue?.length > 0 && <div style={{ margin: "0 0 10px 0", color: "#e0f2fe", fontSize: 12, display: "grid", gap: 3 }}>{chapter.dialogue.slice(0, 3).map((line) => <div key={line}>{line}</div>)}</div>}
-                          <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer}>Begin Battle</MenuButton>
+                          <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
                         </div>
                       );
                     })()
@@ -2407,6 +2587,7 @@ export default function App() {
   });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
+  const [showCollection, setShowCollection] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
@@ -2921,6 +3102,25 @@ export default function App() {
     }
   }
 
+  async function buyBoosterPack(packId) {
+    if (!authToken) {
+      setError("Sign in to buy packs.");
+      return;
+    }
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/collection/pack-purchase-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ packId })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Pack purchases are not configured yet.");
+      window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+    } catch (purchaseError) {
+      setError(purchaseError.message);
+    }
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
@@ -3206,6 +3406,20 @@ export default function App() {
         onBack={() => setShowCampaign(false)}
         onStartChapter={startCampaignChapter}
         canPlayAsPlayer={canPlayAsPlayer}
+        account={account}
+      />
+    );
+  }
+
+  if (showCollection) {
+    return (
+      <CollectionScreen
+        account={account}
+        lastOpenedPack={lastOpenedPack}
+        openingPackId={openingPackId}
+        onOpenPack={openBoosterPack}
+        onBuyPack={buyBoosterPack}
+        onBack={() => setShowCollection(false)}
       />
     );
   }
@@ -3277,6 +3491,11 @@ export default function App() {
             <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play as each faction commander through story battles against figures from their own history.</p>
             <MenuButton onClick={() => setShowCampaign(true)}>Choose Campaign</MenuButton>
           </MenuCard>
+          <MenuCard title="Collection">
+            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Open earned campaign packs, view your cards, and buy $1 faction packs once checkout is configured.</p>
+            <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection</MenuButton>
+            {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to use your collection.</p>}
+          </MenuCard>
           <AccountPanel
             account={account}
             mode={authMode}
@@ -3288,7 +3507,6 @@ export default function App() {
             onSignOut={signOut}
           />
           <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
-          <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={openBoosterPack} />
           <MenuCard title="Create Room">
             <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
             <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>

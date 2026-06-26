@@ -16,6 +16,7 @@ const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-aut
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 
 const express = require("express");
 const http = require("http");
@@ -740,6 +741,9 @@ function emptyProgression() {
 function emptyCollection() {
   return {
     cards: {},
+    packCredits: 0,
+    earnedPackCredits: 0,
+    purchasedPacks: 0,
     openedPacks: 0,
     lastPack: null
   };
@@ -750,6 +754,9 @@ function normalizeCollection(stats = {}) {
   const collection = stats.collection || {};
   return {
     cards: { ...base.cards, ...(collection.cards || {}) },
+    packCredits: Math.max(0, Number(collection.packCredits || 0)),
+    earnedPackCredits: Math.max(0, Number(collection.earnedPackCredits || 0)),
+    purchasedPacks: Math.max(0, Number(collection.purchasedPacks || 0)),
     openedPacks: Number(collection.openedPacks || 0),
     lastPack: collection.lastPack || null
   };
@@ -1157,7 +1164,14 @@ function applyProgressionForResult(stats, result, context = {}) {
   if (context.campaign && result === "win") {
     const campaignFaction = context.campaign.factionId;
     const completed = Array.isArray(progression.campaign[campaignFaction]) ? progression.campaign[campaignFaction] : [];
-    if (!completed.includes(context.campaign.chapterId)) completed.push(context.campaign.chapterId);
+    const firstChapterClear = !completed.includes(context.campaign.chapterId);
+    if (firstChapterClear) {
+      completed.push(context.campaign.chapterId);
+      const collection = normalizeCollection(stats);
+      collection.packCredits += 1;
+      collection.earnedPackCredits += 1;
+      stats.collection = collection;
+    }
     progression.campaign[campaignFaction] = completed;
     awardAchievement(progression, "first-campaign-clear", "Campaigner", "Clear a campaign chapter.", now);
     unlockProgressionItem(progression, "titles", "campaigner");
@@ -1427,6 +1441,9 @@ function openCollectionBooster(stats, packId) {
   if (!pack) throw new Error("Unknown booster pack.");
 
   const collection = normalizeCollection(stats);
+  if (collection.packCredits <= 0) {
+    throw new Error("You need an earned pack credit. Clear a new campaign chapter or use the $1 purchase option.");
+  }
   const openedCards = pack.slots
     .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
     .filter(Boolean);
@@ -1435,6 +1452,7 @@ function openCollectionBooster(stats, packId) {
     collection.cards[card.id] = (collection.cards[card.id] || 0) + 1;
   });
 
+  collection.packCredits -= 1;
   collection.openedPacks += 1;
   collection.lastPack = {
     packId,
@@ -1612,6 +1630,26 @@ app.post("/api/collection/open-pack", async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message || "Could not open booster pack." });
   }
+});
+
+app.post("/api/collection/pack-purchase-link", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+
+  const packId = String(req.body?.packId || "rumin-foundation");
+  if (!BOOSTER_PRODUCTS[packId]) {
+    res.status(400).json({ error: "Unknown booster pack." });
+    return;
+  }
+  if (!PACK_PURCHASE_URL) {
+    res.status(400).json({ error: "Pack purchases are not configured yet. Add PACK_PURCHASE_URL on the server to connect a $1 checkout link." });
+    return;
+  }
+
+  const separator = PACK_PURCHASE_URL.includes("?") ? "&" : "?";
+  res.json({
+    checkoutUrl: `${PACK_PURCHASE_URL}${separator}pack=${encodeURIComponent(packId)}&account=${encodeURIComponent(context.account.id)}`
+  });
 });
 
 app.get("/api/friends", async (req, res) => {
@@ -2116,6 +2154,19 @@ function getCampaignNarration(chapterId) {
 function getCampaignChapter(factionId, chapterId) {
   const chapter = (campaignChapters[factionId] || []).find((entry) => entry.id === chapterId) || null;
   return chapter ? { ...chapter, ...getCampaignNarration(chapter.id) } : null;
+}
+
+function getCampaignChapterIndex(factionId, chapterId) {
+  return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
+}
+
+function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
+  const chapters = campaignChapters[factionId] || [];
+  const chapterIndex = getCampaignChapterIndex(factionId, chapterId);
+  if (chapterIndex <= 0) return chapterIndex === 0;
+  const progression = normalizeProgression(stats);
+  const completed = Array.isArray(progression.campaign[factionId]) ? progression.campaign[factionId] : [];
+  return completed.includes(chapters[chapterIndex - 1]?.id);
 }
 
 function getCampaignDifficulty(factionId, chapterId) {
@@ -4714,6 +4765,15 @@ io.on("connection", (socket) => {
     const chapter = getCampaignChapter(factionId, chapterId);
     if (!faction || !chapter) {
       socket.emit("errorMessage", "Choose a valid campaign chapter.");
+      return;
+    }
+    const accountStats = identity.type === "account"
+      ? (useSupabaseStore()
+          ? (await findSupabaseAccountById(identity.id))?.stats || {}
+          : (loadAccountStore().accounts.find((entry) => entry.id === identity.id)?.stats || {}))
+      : {};
+    if (!isCampaignChapterUnlocked(accountStats, factionId, chapterId)) {
+      socket.emit("errorMessage", "Complete the previous chapter with this account to unlock that battle.");
       return;
     }
 
