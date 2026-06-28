@@ -777,6 +777,9 @@ function collectionSummary(stats = {}) {
 
 const DRAFT_PACKS_PER_PLAYER = 3;
 const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
+const BASE_PLAYING_DECK_SIZE = 52;
+const MAX_CONSTRUCTED_DECK_SIZE = 80;
+const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_DECK_SIZE - BASE_PLAYING_DECK_SIZE;
 const DRAFT_BOT_NAMES = [
   "Atlas Surveyor",
   "Copperline Drafter",
@@ -837,6 +840,85 @@ function getSavedDraftDeck(stats = {}) {
     cardCount: cards.length,
     savedAt: deck.savedAt || null,
     cards
+  };
+}
+
+function getCollectionCatalogCard(cardId) {
+  return [
+    ...RUMIN_COLLECTION_CARDS,
+    ...SHEEN_COLLECTION_CARDS,
+    ...FRUMO_COLLECTION_CARDS,
+    ...BIZI_COLLECTION_CARDS
+  ].find((card) => card.id === cardId) || null;
+}
+
+function expandConstructedCardQuantities(cardQuantities = {}, factionId) {
+  return Object.entries(cardQuantities)
+    .flatMap(([cardId, quantity]) => {
+      const count = Math.max(0, Math.floor(Number(quantity || 0)));
+      const card = getCollectionCatalogCard(cardId);
+      if (!card || card.factionId !== factionId || count <= 0) return [];
+      return Array.from({ length: count }, () => getPlayableCollectionCard(card, {
+        suit: getDraftCardSuit()
+      }));
+    });
+}
+
+function getSavedConstructedDeck(stats = {}) {
+  const deck = stats.savedConstructedDeck;
+  if (!deck || !deck.factionId || !deck.cardQuantities || typeof deck.cardQuantities !== "object") return null;
+  const cards = expandConstructedCardQuantities(deck.cardQuantities, deck.factionId);
+  if (cards.length > MAX_CONSTRUCTED_ADDITIONS) return null;
+  return {
+    name: deck.name || `${deck.factionName || deck.factionId} Constructed Deck`,
+    deckType: "constructed",
+    factionId: deck.factionId,
+    factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
+    baseCardCount: BASE_PLAYING_DECK_SIZE,
+    maxCardCount: MAX_CONSTRUCTED_DECK_SIZE,
+    cardCount: BASE_PLAYING_DECK_SIZE + cards.length,
+    additionCount: cards.length,
+    cardQuantities: { ...deck.cardQuantities },
+    savedAt: deck.savedAt || null,
+    cards
+  };
+}
+
+function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  const factionId = String(payload.factionId || "");
+  const faction = getFactionById(factionId);
+  if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
+  const requested = payload.cardQuantities && typeof payload.cardQuantities === "object" ? payload.cardQuantities : {};
+  const collection = normalizeCollection(stats);
+  const sanitized = {};
+  let totalAdditions = 0;
+
+  for (const [cardId, rawQuantity] of Object.entries(requested)) {
+    const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
+    if (quantity <= 0) continue;
+    const card = getCollectionCatalogCard(cardId);
+    if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
+    const owned = Math.max(0, Math.floor(Number(collection.cards?.[cardId] || 0)));
+    if (quantity > owned) throw new Error(`You only own ${owned} cop${owned === 1 ? "y" : "ies"} of ${card.name}.`);
+    totalAdditions += quantity;
+    if (totalAdditions > MAX_CONSTRUCTED_ADDITIONS) {
+      throw new Error(`Constructed decks include the 52-card playing deck and can add up to ${MAX_CONSTRUCTED_ADDITIONS} faction cards (${MAX_CONSTRUCTED_DECK_SIZE} total).`);
+    }
+    sanitized[cardId] = quantity;
+  }
+
+  if (totalAdditions === 0) throw new Error("Choose at least one owned faction card for your constructed deck.");
+
+  return {
+    name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
+    factionId,
+    factionName: faction.name,
+    baseCardCount: BASE_PLAYING_DECK_SIZE,
+    maxCardCount: MAX_CONSTRUCTED_DECK_SIZE,
+    cardCount: BASE_PLAYING_DECK_SIZE + totalAdditions,
+    additionCount: totalAdditions,
+    cardQuantities: sanitized,
+    savedAt: new Date().toISOString()
   };
 }
 
@@ -1013,6 +1095,12 @@ async function getAccountRecordFromToken(token) {
 
   const store = loadAccountStore();
   return store.accounts.find((entry) => entry.id === payload.id) || null;
+}
+
+async function getAccountStatsById(accountId) {
+  if (!accountId) return {};
+  if (useSupabaseStore()) return (await findSupabaseAccountById(accountId))?.stats || {};
+  return loadAccountStore().accounts.find((entry) => entry.id === accountId)?.stats || {};
 }
 
 async function requireAccountRecord(req, res) {
@@ -1650,6 +1738,31 @@ app.post("/api/collection/pack-purchase-link", async (req, res) => {
   res.json({
     checkoutUrl: `${PACK_PURCHASE_URL}${separator}pack=${encodeURIComponent(packId)}&account=${encodeURIComponent(context.account.id)}`
   });
+});
+
+app.post("/api/collection/save-constructed-deck", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+
+  try {
+    const stats = context.account.stats || {};
+    const savedConstructedDeck = validateConstructedDeckPayload(stats, req.body || {});
+    stats.savedConstructedDeck = savedConstructedDeck;
+
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: savedConstructedDeck.savedAt });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated), savedConstructedDeck });
+      return;
+    }
+
+    context.account.stats = stats;
+    context.account.lastSeenAt = savedConstructedDeck.savedAt;
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account), savedConstructedDeck });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not save constructed deck." });
+  }
 });
 
 app.get("/api/friends", async (req, res) => {
@@ -2471,6 +2584,16 @@ function getRoom(roomCode) {
 
 function deleteRoom(roomCode) {
   rooms.delete(roomCode);
+}
+
+async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
+  const lobbyPlayer = roomState?.lobby?.players?.[playerNum];
+  if (!lobbyPlayer?.accountId || lobbyPlayer.isGuest || !lobbyPlayer.factionId) {
+    if (lobbyPlayer) lobbyPlayer.savedConstructedDeck = null;
+    return;
+  }
+  const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId));
+  lobbyPlayer.savedConstructedDeck = savedConstructedDeck?.factionId === lobbyPlayer.factionId ? savedConstructedDeck : null;
 }
 
 function getRoomForSocket(socket) {
@@ -4317,7 +4440,7 @@ function createGameFromLobby(roomState) {
     };
   }
 
-  function createDeck(faction, draftDeckCards = []) {
+  function createDeck(faction, addedCards = []) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -4333,7 +4456,7 @@ function createGameFromLobby(roomState) {
         });
       }
     }
-    draftDeckCards
+    addedCards
       .filter((card) => card && card.factionId === faction.id && Number.isFinite(Number(card.value)))
       .forEach((card) => deck.push(createDraftCardForDeck(card, faction)));
     for (let i = deck.length - 1; i > 0; i--) {
@@ -4341,6 +4464,13 @@ function createGameFromLobby(roomState) {
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
     return deck;
+  }
+
+  function getLobbyDeckAdditions(playerNum) {
+    const lobbyPlayer = roomState.lobby.players[playerNum];
+    if (lobbyPlayer.savedDraftDeck?.cards?.length) return lobbyPlayer.savedDraftDeck.cards;
+    if (lobbyPlayer.savedConstructedDeck?.cards?.length) return lobbyPlayer.savedConstructedDeck.cards;
+    return [];
   }
   
   const game = {
@@ -4359,7 +4489,7 @@ function createGameFromLobby(roomState) {
         faction: faction1,
         life: 42,
         hand: [],
-        deck: createDeck(faction1, roomState.lobby.players[1].savedDraftDeck?.cards || []),
+        deck: createDeck(faction1, getLobbyDeckAdditions(1)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -4371,7 +4501,7 @@ function createGameFromLobby(roomState) {
         faction: faction2,
         life: 42,
         hand: [],
-        deck: createDeck(faction2, roomState.lobby.players[2].savedDraftDeck?.cards || []),
+        deck: createDeck(faction2, getLobbyDeckAdditions(2)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -4416,7 +4546,25 @@ function createFreeForAllGameFromLobby(roomState) {
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 
-  function createDeck(faction) {
+  function createAddedCardForDeck(card, faction) {
+    return {
+      id: `constructed-${card.id || card.draftCopyId}-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+      value: Number(card.value),
+      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      name: card.name,
+      rank: String(card.value),
+      faction: faction.name,
+      factionId: faction.id,
+      image: card.image || faction.cardImage,
+      rarity: card.rarity || "common",
+      type: card.type || "constructed",
+      text: card.text || "",
+      rulesText: card.rulesText || card.text || "",
+      draftCard: true
+    };
+  }
+
+  function createDeck(faction, addedCards = []) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -4432,6 +4580,9 @@ function createFreeForAllGameFromLobby(roomState) {
         });
       }
     }
+    addedCards
+      .filter((card) => card && card.factionId === faction.id && Number.isFinite(Number(card.value)))
+      .forEach((card) => deck.push(createAddedCardForDeck(card, faction)));
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -4447,12 +4598,13 @@ function createFreeForAllGameFromLobby(roomState) {
 
   seatedPlayers.forEach((playerNum) => {
     const faction = getFactionById(roomState.lobby.players[playerNum].factionId);
+    const addedCards = roomState.lobby.players[playerNum].savedConstructedDeck?.cards || [];
     players[playerNum] = {
       accountName: roomState.lobby.players[playerNum].accountName || null,
       faction,
       life: 42,
       hand: [],
-      deck: createDeck(faction),
+      deck: createDeck(faction, addedCards),
       discard: [],
       lanes: [null, null, null],
       connected: true,
@@ -4800,6 +4952,8 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].accountName = identity.name;
     roomState.lobby.players[1].factionId = factionId;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
+    const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
+    roomState.lobby.players[1].savedConstructedDeck = campaignConstructedDeck?.factionId === factionId ? campaignConstructedDeck : null;
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
     roomState.lobby.players[2].accountName = chapter.opponentName;
@@ -4930,7 +5084,7 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Could not reconnect to that player seat.");
   });
 
-  socket.on("selectFaction", ({ factionId }) => {
+  socket.on("selectFaction", async ({ factionId }) => {
     console.log(`[Socket] selectFaction: ${factionId}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
@@ -4945,6 +5099,7 @@ io.on("connection", (socket) => {
       return;
     }
     roomState.lobby.players[playerNum].factionId = factionId;
+    await attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum);
     resetStartConfirmations(roomState);
     emitLobbyState(roomState);
   });

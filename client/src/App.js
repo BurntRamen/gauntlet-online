@@ -1227,6 +1227,10 @@ const PACK_THEMES = {
   bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" }
 };
 
+const BASE_PLAYING_DECK_SIZE = 52;
+const MAX_CONSTRUCTED_DECK_SIZE = 80;
+const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_DECK_SIZE - BASE_PLAYING_DECK_SIZE;
+
 function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
@@ -1288,7 +1292,18 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack }) {
+function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck }) {
+  const savedConstructedDeck = account?.stats?.savedConstructedDeck || null;
+  const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
+  const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
+  const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
+
+  useEffect(() => {
+    setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
+    setConstructedQuantities(savedConstructedDeck?.cardQuantities || {});
+    setConstructedSaveMessage("");
+  }, [account?.id, savedConstructedDeck?.savedAt, savedConstructedDeck?.factionId, savedConstructedDeck?.cardQuantities]);
+
   if (!account) {
     return (
       <MenuCard title="Collection">
@@ -1306,6 +1321,39 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
     ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
   ));
+  const ownedConstructedCards = (catalog[constructedFactionId] || [])
+    .filter((card) => Number(cardsOwned[card.id] || 0) > 0)
+    .sort((a, b) => {
+      const rarityOrder = { mythic: 0, rare: 1, uncommon: 2, common: 3 };
+      return (rarityOrder[a.rarity] ?? 9) - (rarityOrder[b.rarity] ?? 9) || a.name.localeCompare(b.name);
+    });
+  const constructedAdditionCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
+  const constructedDeckCount = BASE_PLAYING_DECK_SIZE + constructedAdditionCount;
+
+  function setConstructedCardQuantity(cardId, nextQuantity) {
+    const owned = Number(cardsOwned[cardId] || 0);
+    const quantity = Math.max(0, Math.min(owned, Math.floor(Number(nextQuantity || 0))));
+    setConstructedSaveMessage("");
+    setConstructedQuantities((current) => {
+      const next = { ...current };
+      if (quantity <= 0) delete next[cardId];
+      else next[cardId] = quantity;
+      return next;
+    });
+  }
+
+  async function saveConstructedDeck() {
+    setConstructedSaveMessage("");
+    try {
+      await onSaveConstructedDeck({
+        factionId: constructedFactionId,
+        cardQuantities: constructedQuantities
+      });
+      setConstructedSaveMessage("Constructed deck saved.");
+    } catch (saveError) {
+      setConstructedSaveMessage(saveError.message || "Could not save constructed deck.");
+    }
+  }
 
   return (
     <MenuCard title="Faction Collection">
@@ -1549,6 +1597,66 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             </div>
           </div>
         )}
+        <div style={{ border: "1px solid rgba(125,211,252,0.24)", borderRadius: 8, padding: 12, background: "rgba(2,6,23,0.36)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+            <div>
+              <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Constructed Deck</h4>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Add up to {MAX_CONSTRUCTED_ADDITIONS} owned cards from one faction for {MAX_CONSTRUCTED_DECK_SIZE} cards total.</div>
+            </div>
+            <div style={{ color: constructedAdditionCount > MAX_CONSTRUCTED_ADDITIONS ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
+              {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+            {Object.values(PACK_THEMES).map((theme) => {
+              const factionId = theme.name.toLowerCase();
+              const active = constructedFactionId === factionId;
+              return (
+                <button
+                  key={factionId}
+                  type="button"
+                  onClick={() => {
+                    setConstructedFactionId(factionId);
+                    setConstructedQuantities({});
+                    setConstructedSaveMessage("");
+                  }}
+                  style={{ border: `1px solid ${active ? theme.accent : "rgba(148,163,184,0.34)"}`, borderRadius: 6, padding: "7px 10px", background: active ? "rgba(250,204,21,0.16)" : "rgba(15,23,42,0.55)", color: active ? "#fde68a" : "#bfdbfe", fontWeight: 900, cursor: "pointer" }}
+                >
+                  {theme.name}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
+            {ownedConstructedCards.length === 0 ? (
+              <div style={{ color: "#bfdbfe", fontSize: 13 }}>Open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} packs to collect cards for this faction.</div>
+            ) : ownedConstructedCards.map((card) => {
+              const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+              const count = Number(constructedQuantities[card.id] || 0);
+              const owned = Number(cardsOwned[card.id] || 0);
+              const canAdd = count < owned && constructedAdditionCount < MAX_CONSTRUCTED_ADDITIONS;
+              return (
+                <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.78)" : "rgba(15,23,42,0.44)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <strong style={{ color: rarity.color }}>{card.name}</strong>
+                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>{count}/{owned}</span>
+                  </div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value}</div>
+                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35, minHeight: 32 }}>{card.text}</div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <button type="button" onClick={() => setConstructedCardQuantity(card.id, count - 1)} disabled={count <= 0} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: count <= 0 ? "not-allowed" : "pointer" }}>-</button>
+                    <button type="button" onClick={() => setConstructedCardQuantity(card.id, count + 1)} disabled={!canAdd} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: canAdd ? "pointer" : "not-allowed" }}>+</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
+            <MenuButton onClick={saveConstructedDeck} disabled={constructedAdditionCount <= 0 || constructedAdditionCount > MAX_CONSTRUCTED_ADDITIONS}>Save Constructed Deck</MenuButton>
+            {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE + (savedConstructedDeck.additionCount || 0)} cards)</span>}
+            {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
+          </div>
+        </div>
         <div>
           <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Card Catalog</h4>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
@@ -1573,7 +1681,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   );
 }
 
-function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBack }) {
+function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onBack }) {
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
@@ -1584,7 +1692,7 @@ function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, 
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} />
+        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} />
       </div>
     </div>
   );
@@ -3121,6 +3229,19 @@ export default function App() {
     }
   }
 
+  async function saveConstructedDeck(deckPayload) {
+    if (!authToken) throw new Error("Sign in to save a constructed deck.");
+    const response = await fetch(`${SOCKET_URL}/api/collection/save-constructed-deck`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify(deckPayload)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not save constructed deck.");
+    setAccount(data.account);
+    return data.savedConstructedDeck;
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
@@ -3419,6 +3540,7 @@ export default function App() {
         openingPackId={openingPackId}
         onOpenPack={openBoosterPack}
         onBuyPack={buyBoosterPack}
+        onSaveConstructedDeck={saveConstructedDeck}
         onBack={() => setShowCollection(false)}
       />
     );
@@ -3930,8 +4052,22 @@ export default function App() {
             .ffa-root { padding: 6px !important; }
             .ffa-grid { grid-template-columns: 1fr !important; }
             .ffa-hand-content { grid-template-columns: 1fr !important; }
-            .ffa-hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-            .ffa-card { min-height: 104px !important; }
+            .ffa-hand {
+              display: flex !important;
+              overflow-x: auto !important;
+              overflow-y: hidden !important;
+              gap: 4px !important;
+              padding-bottom: 6px !important;
+              touch-action: pan-x !important;
+              scroll-snap-type: x proximity;
+            }
+            .ffa-card {
+              flex: 0 0 92px !important;
+              width: 92px !important;
+              min-width: 92px !important;
+              min-height: 132px !important;
+              scroll-snap-align: start;
+            }
           }
         `}</style>
         <div className="ffa-root" style={{ display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr) auto", gap: 8, maxWidth: 1500, margin: "0 auto" }}>
@@ -5515,7 +5651,7 @@ export default function App() {
           }
           .game-main {
             display: grid !important;
-            grid-template-rows: minmax(106px, 0.72fr) auto minmax(252px, 1.28fr) !important;
+            grid-template-rows: minmax(104px, 0.62fr) auto minmax(262px, 1.38fr) !important;
             gap: 4px !important;
             overflow: hidden !important;
             padding-right: 0 !important;
@@ -5529,7 +5665,7 @@ export default function App() {
           }
           .power-section {
             order: 2 !important;
-            max-height: 58px !important;
+            max-height: 88px !important;
             min-height: 0 !important;
             padding: 3px 4px !important;
             overflow: auto !important;
@@ -5637,26 +5773,29 @@ export default function App() {
             min-height: 0 !important;
           }
           .hand-card-row {
-            display: grid !important;
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
-            grid-auto-rows: 0 !important;
+            display: flex !important;
+            align-items: stretch !important;
             gap: 3px !important;
-            overflow-x: visible !important;
+            overflow-x: auto !important;
             overflow-y: hidden !important;
-            padding-bottom: 0 !important;
-            touch-action: auto !important;
-            min-height: 0 !important;
+            padding: 1px 2px 6px !important;
+            touch-action: pan-x !important;
+            min-height: 174px !important;
+            max-height: 184px !important;
+            scroll-snap-type: x proximity;
+            scrollbar-width: thin;
           }
           .card-box {
-            width: 100% !important;
-            min-width: 0 !important;
+            flex: 0 0 88px !important;
+            width: 88px !important;
+            min-width: 88px !important;
             min-height: 0 !important;
-            height: 100% !important;
+            height: 172px !important;
             padding: 2px !important;
             font-size: 8px !important;
             border-radius: 5px !important;
             gap: 1px !important;
+            scroll-snap-align: start;
           }
           .card-box > div:first-child div:first-child {
             font-size: 12px !important;
