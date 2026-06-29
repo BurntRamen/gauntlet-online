@@ -1227,6 +1227,36 @@ const PACK_THEMES = {
   bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" }
 };
 
+function getBattlefieldTexture(factionId) {
+  const textures = {
+    rumin: `
+      radial-gradient(circle at 18% 16%, rgba(252, 211, 77, 0.16), transparent 18%),
+      repeating-linear-gradient(0deg, rgba(255, 247, 220, 0.05) 0 3px, transparent 3px 32px),
+      repeating-linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0 2px, transparent 2px 92px),
+      linear-gradient(135deg, rgba(120, 53, 15, 0.24), rgba(15, 23, 42, 0.12))
+    `,
+    sheen: `
+      radial-gradient(ellipse at 34% 22%, rgba(187, 247, 208, 0.14), transparent 24%),
+      repeating-linear-gradient(104deg, rgba(22, 101, 52, 0.42) 0 4px, transparent 4px 54px),
+      repeating-linear-gradient(82deg, rgba(15, 23, 42, 0.34) 0 2px, transparent 2px 38px),
+      linear-gradient(180deg, rgba(5, 46, 22, 0.22), rgba(2, 6, 23, 0.14))
+    `,
+    frumo: `
+      radial-gradient(circle at 18% 38%, rgba(186, 230, 253, 0.16), transparent 6%),
+      radial-gradient(circle at 72% 18%, rgba(103, 232, 249, 0.16), transparent 8%),
+      repeating-radial-gradient(ellipse at 52% 120%, rgba(103, 232, 249, 0.18) 0 2px, transparent 2px 24px),
+      linear-gradient(160deg, rgba(14, 116, 144, 0.25), rgba(49, 46, 129, 0.16))
+    `,
+    bizi: `
+      linear-gradient(90deg, rgba(250, 204, 21, 0.13) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(250, 204, 21, 0.1) 1px, transparent 1px),
+      repeating-linear-gradient(45deg, transparent 0 36px, rgba(15, 23, 42, 0.34) 36px 39px),
+      radial-gradient(circle at 76% 24%, rgba(250, 204, 21, 0.12), transparent 18%)
+    `
+  };
+  return textures[factionId] || textures.rumin;
+}
+
 const BASE_PLAYING_DECK_SIZE = 52;
 const MAX_CONSTRUCTED_DECK_SIZE = 80;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_DECK_SIZE - BASE_PLAYING_DECK_SIZE;
@@ -1297,6 +1327,10 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
+  const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
+  const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
 
   useEffect(() => {
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
@@ -1321,6 +1355,20 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
     ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
   ));
+  const ownedUniqueCount = allCatalogCards.filter((card) => Number(cardsOwned[card.id] || 0) > 0).length;
+  const ownedPercent = allCatalogCards.length > 0 ? Math.round((ownedUniqueCount / allCatalogCards.length) * 100) : 0;
+  const normalizedCatalogSearch = catalogSearch.trim().toLowerCase();
+  const filteredCatalogCards = allCatalogCards.filter((card) => {
+    const ownedCount = Number(cardsOwned[card.id] || 0);
+    if (catalogFactionFilter !== "all" && card.factionId !== catalogFactionFilter) return false;
+    if (catalogRarityFilter !== "all" && card.rarity !== catalogRarityFilter) return false;
+    if (catalogOwnedOnly && ownedCount <= 0) return false;
+    if (normalizedCatalogSearch) {
+      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId}`.toLowerCase();
+      if (!searchText.includes(normalizedCatalogSearch)) return false;
+    }
+    return true;
+  });
   const ownedConstructedCards = (catalog[constructedFactionId] || [])
     .filter((card) => Number(cardsOwned[card.id] || 0) > 0)
     .sort((a, b) => {
@@ -1658,9 +1706,37 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           </div>
         </div>
         <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Card Catalog</h4>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "end", flexWrap: "wrap", marginBottom: 8 }}>
+            <div>
+              <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Card Catalog</h4>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>Owned: {ownedUniqueCount}/{allCatalogCards.length} unique cards ({ownedPercent}%)</div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <input
+                value={catalogSearch}
+                onChange={(event) => setCatalogSearch(event.target.value)}
+                placeholder="Search cards"
+                style={{ minWidth: 160, border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}
+              />
+              <select value={catalogFactionFilter} onChange={(event) => setCatalogFactionFilter(event.target.value)} style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}>
+                <option value="all">All factions</option>
+                {Object.entries(PACK_THEMES).map(([factionId, theme]) => <option key={factionId} value={factionId}>{theme.name}</option>)}
+              </select>
+              <select value={catalogRarityFilter} onChange={(event) => setCatalogRarityFilter(event.target.value)} style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}>
+                <option value="all">All rarities</option>
+                {Object.entries(RARITY_STYLES).map(([rarity, style]) => <option key={rarity} value={rarity}>{style.label}</option>)}
+              </select>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
+                <input type="checkbox" checked={catalogOwnedOnly} onChange={(event) => setCatalogOwnedOnly(event.target.checked)} />
+                Owned only
+              </label>
+            </div>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
-            {allCatalogCards.map((card) => {
+            {filteredCatalogCards.length === 0 && (
+              <div style={{ color: "#bfdbfe", fontSize: 13 }}>No cards match those filters.</div>
+            )}
+            {filteredCatalogCards.map((card) => {
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = cardsOwned[card.id] || 0;
               return (
@@ -2271,27 +2347,31 @@ function FactionFeature({ title, feature, theme }) {
 function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
   return (
     <button
+      className={`compact-power-card${expanded ? " compact-power-card-active" : ""}`}
       onClick={onToggle}
       style={{
         display: "grid",
-        gridTemplateColumns: "46px minmax(0, 1fr)",
-        gap: 8,
-        alignItems: "center",
+        gridTemplateColumns: "62px minmax(0, 1fr)",
+        gap: 10,
+        alignItems: "stretch",
         textAlign: "left",
-        padding: 8,
+        padding: 7,
         border: `2px solid ${expanded ? theme.primary : theme.border}`,
-        borderRadius: 9,
-        background: expanded ? theme.light : "#fff",
+        borderRadius: 10,
+        background: expanded
+          ? `linear-gradient(135deg, ${theme.primary}33, rgba(255,247,220,0.96))`
+          : "linear-gradient(135deg, rgba(255,247,220,0.96), rgba(93,58,29,0.2))",
         cursor: "pointer",
-        minWidth: 0
+        minWidth: 0,
+        boxShadow: expanded ? `0 0 18px ${theme.primary}55, inset 0 0 0 1px rgba(255,255,255,0.28)` : undefined
       }}
     >
-      <span style={{ width: 46, height: 46, borderRadius: 7, overflow: "hidden", background: "#111", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />}
+      <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
+        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
       </span>
-      <span style={{ minWidth: 0 }}>
+      <span style={{ minWidth: 0, alignSelf: "center" }}>
         <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
-        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
+        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
       </span>
     </button>
   );
@@ -3795,8 +3875,10 @@ export default function App() {
   const myTheme = !isSpectator && me ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator && opponent ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
   const boardBackground = !isSpectator && me ? getBoardBackground(me.faction.id) : "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)";
+  const battlefieldTexture = getBattlefieldTexture(me?.faction?.id || opponent?.faction?.id || "rumin");
   const tabletopBoardBackground = `
     radial-gradient(circle at 50% 22%, rgba(255, 214, 140, 0.12), transparent 28%),
+    ${battlefieldTexture},
     linear-gradient(180deg, rgba(8, 5, 3, 0.44), rgba(8, 5, 3, 0.76)),
     ${boardBackground},
     repeating-linear-gradient(90deg, rgba(92, 52, 25, 0.44) 0 2px, transparent 2px 140px),
@@ -3813,15 +3895,50 @@ export default function App() {
     const resultDetail = game.message || (isDraw ? "The game ended in a draw." : `Player ${game.winner} wins.`);
     const resultColor = isDraw ? "#dbeafe" : didWin ? "#dcfce7" : didLose ? "#fee2e2" : "#f3f4f6";
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
+    const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
+    const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
 
     return (
-      <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: boardBackground, fontFamily: "Arial, sans-serif" }}>
-        <div style={{ width: "min(720px, 100%)", border: `3px solid ${resultBorder}`, borderRadius: 14, background: resultColor, boxShadow: "0 18px 50px rgba(0,0,0,0.28)", padding: 28, textAlign: "center" }}>
-          <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>Game Over</div>
-          <h1 style={{ margin: "0 0 10px 0", fontSize: 44 }}>{resultTitle}</h1>
-          <p style={{ margin: "0 auto 20px auto", maxWidth: 520, fontSize: 18 }}>{resultDetail}</p>
+      <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: `${getBattlefieldTexture(me?.faction?.id || "rumin")}, ${boardBackground}`, fontFamily: "Arial, sans-serif" }}>
+        <style>{`
+          @keyframes gauntletConfettiFall {
+            from { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+            18% { opacity: 1; }
+            to { transform: translateY(380px) rotate(460deg); opacity: 0; }
+          }
+          @keyframes resultBannerPulse {
+            0%, 100% { box-shadow: 0 18px 50px rgba(0,0,0,0.34), 0 0 0 rgba(255,255,255,0); }
+            50% { box-shadow: 0 22px 64px rgba(0,0,0,0.42), 0 0 30px ${celebrationAccent}55; }
+          }
+          .result-confetti {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 18px;
+          }
+          .result-confetti span {
+            position: absolute;
+            top: -24px;
+            width: 8px;
+            height: 14px;
+            background: ${celebrationAccent};
+            animation: gauntletConfettiFall 1500ms ease-in infinite;
+          }
+        `}</style>
+        <div style={{ position: "relative", overflow: "hidden", width: "min(760px, 100%)", border: `3px solid ${resultBorder}`, borderRadius: 18, background: `linear-gradient(180deg, rgba(255,247,220,0.96), ${resultColor})`, boxShadow: "0 18px 50px rgba(0,0,0,0.34)", padding: 28, textAlign: "center", animation: didWin ? "resultBannerPulse 1800ms ease-in-out infinite" : undefined }}>
+          {didWin && (
+            <div className="result-confetti">
+              {confettiPieces.map((piece) => (
+                <span key={piece} style={{ left: `${(piece * 37) % 100}%`, background: piece % 3 === 0 ? "#fde68a" : piece % 3 === 1 ? celebrationAccent : "#f97316", animationDelay: `${piece * 80}ms`, animationDuration: `${1200 + (piece % 5) * 120}ms` }} />
+              ))}
+            </div>
+          )}
+          <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>After Battle</div>
+          <h1 style={{ margin: "0 0 10px 0", fontFamily: "Georgia, serif", fontSize: "clamp(36px, 7vw, 58px)", color: "#2a160b", textShadow: "0 2px 0 rgba(255,255,255,0.48)" }}>{resultTitle}</h1>
+          <p style={{ margin: "0 auto 20px auto", maxWidth: 560, fontSize: 18, color: "#2f1c10" }}>{resultDetail}</p>
           {game.campaign?.afterBattle && (
-            <div style={{ margin: "0 auto 20px auto", maxWidth: 620, padding: 14, borderRadius: 10, background: "rgba(15,23,42,0.08)", border: `1px solid ${resultBorder}`, textAlign: "left", lineHeight: 1.45 }}>
+            <div style={{ margin: "0 auto 20px auto", maxWidth: 620, padding: 14, borderRadius: 10, background: "rgba(15,23,42,0.08)", border: `1px solid ${resultBorder}`, textAlign: "left", lineHeight: 1.45, color: "#2f1c10" }}>
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
@@ -4933,9 +5050,21 @@ export default function App() {
         .game-root button {
           border-radius: 5px;
           border: 1px solid rgba(205,154,86,0.54);
-          background: linear-gradient(180deg, #513019, #1e120b);
+          background: linear-gradient(180deg, #7a4a22 0%, #4c2a16 48%, #1e120b 100%);
           color: #f5ead5;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 8px rgba(0,0,0,0.24);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -10px 18px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.24);
+          transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease, border-color 120ms ease;
+          cursor: pointer;
+        }
+        .game-root button:not(:disabled):hover {
+          transform: translateY(-1px);
+          border-color: rgba(247,217,158,0.76);
+          filter: brightness(1.08);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -10px 18px rgba(0,0,0,0.2), 0 6px 16px rgba(0,0,0,0.34);
+        }
+        .game-root button:not(:disabled):active {
+          transform: translateY(1px) scale(0.985);
+          box-shadow: inset 0 2px 10px rgba(0,0,0,0.42), 0 1px 4px rgba(0,0,0,0.28);
         }
         .game-root button:disabled {
           opacity: 0.48;
@@ -4951,6 +5080,35 @@ export default function App() {
         }
         .mobile-action-detail {
           display: none;
+        }
+        .compact-power-card {
+          position: relative;
+          overflow: hidden;
+        }
+        .compact-power-card::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(110deg, transparent 0 36%, rgba(255,255,255,0.26) 48%, transparent 60%);
+          transform: translateX(-120%);
+          transition: transform 280ms ease;
+          pointer-events: none;
+        }
+        .compact-power-card:hover::after,
+        .compact-power-card-active::after {
+          transform: translateX(120%);
+        }
+        .compact-power-portrait {
+          width: 62px;
+          height: 70px;
+          border-radius: 9px;
+          overflow: hidden;
+          background: radial-gradient(circle at 50% 28%, rgba(247,217,158,0.3), transparent 38%), #111;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 6px 12px rgba(0,0,0,0.28);
         }
         .match-top-frame {
           display: grid;
@@ -5531,6 +5689,16 @@ export default function App() {
           letter-spacing: 0;
           box-shadow: 0 3px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.22);
           cursor: pointer;
+          transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+        }
+        .quick-action-button:not(:disabled):hover {
+          transform: translateY(-1px);
+          filter: brightness(1.08);
+          box-shadow: 0 6px 14px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+        .quick-action-button:not(:disabled):active {
+          transform: translateY(1px) scale(0.985);
+          box-shadow: inset 0 2px 10px rgba(0,0,0,0.35);
         }
         .quick-action-button:disabled {
           cursor: not-allowed;
