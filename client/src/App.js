@@ -25,7 +25,9 @@ const STORAGE_KEYS = {
   authToken: "gauntlet_auth_token",
   guestName: "gauntlet_guest_name",
   friendReadAt: "gauntlet_friend_read_at",
-  accountSoundMuted: "gauntlet_account_sound_muted"
+  accountSoundMuted: "gauntlet_account_sound_muted",
+  onboardingDismissed: "gauntlet_onboarding_dismissed",
+  accountModeGuideSeen: "gauntlet_account_mode_guide_seen"
 };
 
 const FACTION_COLORS = {
@@ -556,6 +558,49 @@ function getCampaignDifficulty(factionId, chapterIndex) {
     minAttackValue: 2 + chapterIndex,
     maxAttackValue: 5 + chapterIndex
   };
+}
+
+function getCampaignAddedCardCount(chapterIndex, side = "player") {
+  if (side === "player") {
+    if (chapterIndex < 2) return 0;
+    if (chapterIndex < 5) return 2;
+    if (chapterIndex < 8) return 4;
+    return 6;
+  }
+  if (chapterIndex < 4) return 0;
+  if (chapterIndex < 8) return 2;
+  return 4;
+}
+
+function getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName = "Boss") {
+  if (chapterIndex < 5) return null;
+  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 7 ? 2 : 1;
+  const previews = {
+    rumin: tier >= 3
+      ? `${opponentName}: Imperial Doctrine - final scripted attack gets +2; earlier attacks get +1.`
+      : `${opponentName}: Imperial Doctrine - first scripted attack each turn gets +1.`,
+    sheen: tier >= 3
+      ? `${opponentName}: Ironroot Pressure - odd attacks get +1 and the boss restores 1 life each turn.`
+      : `${opponentName}: Ironroot Pressure - odd attacks get +1.`,
+    frumo: tier >= 3
+      ? `${opponentName}: Tide Feint - even attacks get +2.`
+      : `${opponentName}: Tide Feint - even attacks get +1.`,
+    bizi: tier >= 3
+      ? `${opponentName}: Overclock Directive - last two attacks each turn get +1.`
+      : `${opponentName}: Overclock Directive - final attack each turn gets +2.`
+  };
+  return previews[factionId] || null;
+}
+
+function getCampaignComplexityPreview(factionId, chapterIndex, opponentName) {
+  const playerCards = getCampaignAddedCardCount(chapterIndex, "player");
+  const bossCards = getCampaignAddedCardCount(chapterIndex, "boss");
+  const bossAbility = getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName);
+  const details = [];
+  if (playerCards > 0) details.push(`Your deck adds ${playerCards} faction card${playerCards === 1 ? "" : "s"}.`);
+  if (bossCards > 0) details.push(`Boss deck adds ${bossCards} faction card${bossCards === 1 ? "" : "s"}.`);
+  if (bossAbility) details.push(bossAbility);
+  return details;
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
@@ -2665,6 +2710,105 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
+function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss }) {
+  const steps = [
+    { label: "Start here", text: "Learn priority, payment, blocking, and lanes in the tutorial." },
+    { label: "Practice safely", text: "Play Basic vs AI before entering multiplayer or faction powers." },
+    { label: "Turn on hints", text: "Use helper labels when you want the interface to explain each option." }
+  ];
+
+  return (
+    <div style={{ position: "relative", overflow: "hidden", border: "1px solid rgba(250,204,21,0.46)", borderRadius: 10, padding: 16, marginBottom: 18, background: "linear-gradient(135deg, rgba(15,23,42,0.92), rgba(69,36,12,0.86)), radial-gradient(circle at 82% 24%, rgba(250,204,21,0.18), transparent 30%)", boxShadow: "0 18px 40px rgba(0,0,0,0.24)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 12 }}>
+        <div>
+          <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>New Player Route</div>
+          <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 28 }}>Learn the game in one guided match</h2>
+          <p style={{ margin: "8px 0 0", color: "#bfdbfe", lineHeight: 1.45, maxWidth: 780 }}>
+            Gauntlet is easiest to learn by playing a low-pressure Basic AI match first. You can still jump into campaign, draft, or multiplayer whenever you are ready.
+          </p>
+        </div>
+        <button type="button" onClick={onDismiss} style={{ flex: "0 0 auto", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.52)", color: "#dbeafe", fontWeight: 900 }}>Dismiss</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 14 }}>
+        {steps.map((step, index) => (
+          <div key={step.label} style={{ border: "1px solid rgba(125,211,252,0.22)", borderRadius: 8, padding: 10, background: "rgba(2,6,23,0.34)" }}>
+            <strong style={{ display: "block", color: "#fde68a", marginBottom: 4 }}>{index + 1}. {step.label}</strong>
+            <span style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{step.text}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <MenuButton onClick={onStartBasicAi}>Play Basic vs AI</MenuButton>
+        <MenuButton variant="secondary" onClick={onStartTutorial}>Open Tutorial</MenuButton>
+        <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
+        {!canPlayAsPlayer && <span style={{ color: "#bfdbfe", fontSize: 13 }}>This will use your guest name unless you sign in first.</span>}
+      </div>
+    </div>
+  );
+}
+
+function ModeGuidePanel({ accountName, onStartBasicAi, onOpenCampaign, onOpenCollection, onEnableHints, onDismiss }) {
+  const modePath = [
+    {
+      title: "1. Basic vs AI",
+      tag: "Best first match",
+      text: "Learn priority, payment, blocking, passing, and lane placement without faction text fighting for attention."
+    },
+    {
+      title: "2. Faction Campaign",
+      tag: "Learn flavor and powers",
+      text: "Pick a faction story once the core loop makes sense. Campaign rewards packs as you clear chapters."
+    },
+    {
+      title: "3. Collection",
+      tag: "Build your pool",
+      text: "Open earned packs, browse cards, and save a constructed deck when you know which faction you like."
+    },
+    {
+      title: "4. Duel or Matchmaking",
+      tag: "Play people",
+      text: "Use normal rooms for friends, matchmaking for similar records, and best-of-three when you want a longer set."
+    },
+    {
+      title: "5. Draft",
+      tag: "Advanced mode",
+      text: "Try bot draft first, then player draft once card choices and one-faction deckbuilding feel natural."
+    }
+  ];
+
+  return (
+    <div style={{ border: "1px solid rgba(125,211,252,0.42)", borderRadius: 10, padding: 16, marginBottom: 18, background: "linear-gradient(135deg, rgba(12,18,32,0.95), rgba(21,44,60,0.88)), radial-gradient(circle at 86% 18%, rgba(56,189,248,0.22), transparent 30%)", boxShadow: "0 18px 42px rgba(0,0,0,0.28)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 12 }}>
+        <div>
+          <div style={{ color: "#67e8f9", fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>First Login Guide</div>
+          <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 28 }}>Welcome{accountName ? `, ${accountName}` : ""}. Here is the cleanest path through Gauntlet.</h2>
+          <p style={{ margin: "8px 0 0", color: "#bfdbfe", lineHeight: 1.45, maxWidth: 820 }}>
+            You do not have to follow this order, but it is the smoothest route from learning the rules to playing real matches.
+          </p>
+        </div>
+        <button type="button" onClick={onDismiss} style={{ flex: "0 0 auto", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.52)", color: "#dbeafe", fontWeight: 900 }}>Got It</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10, marginBottom: 14 }}>
+        {modePath.map((mode) => (
+          <div key={mode.title} style={{ border: "1px solid rgba(125,211,252,0.2)", borderRadius: 8, padding: 10, background: "rgba(2,6,23,0.34)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 5 }}>
+              <strong style={{ color: "#f8fafc" }}>{mode.title}</strong>
+              <span style={{ color: "#fde68a", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{mode.tag}</span>
+            </div>
+            <div style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{mode.text}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <MenuButton onClick={onStartBasicAi}>Start Basic vs AI</MenuButton>
+        <MenuButton variant="secondary" onClick={onOpenCampaign}>Open Campaign</MenuButton>
+        <MenuButton variant="secondary" onClick={onOpenCollection}>Open Collection</MenuButton>
+        <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
+      </div>
+    </div>
+  );
+}
+
 function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
   const campaignProgress = account?.progression?.campaign || {};
 
@@ -2691,6 +2835,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
                     (() => {
                       const difficulty = getCampaignDifficulty(factionId, index);
                       const narration = getCampaignNarration(chapter.id);
+                      const complexity = getCampaignComplexityPreview(factionId, index, chapter.opponentName);
                       const unlocked = index === 0 || completedChapters.includes(campaign.chapters[index - 1]?.id);
                       const completed = completedChapters.includes(chapter.id);
                       return (
@@ -2700,6 +2845,11 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
                           {chapter.playableName && <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 4 }}>Playable: {chapter.playableName}</div>}
                           <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
                           <div style={{ color: "#fde68a", fontSize: 12, marginBottom: 6 }}>Boss: {difficulty.bossLife} life, {difficulty.attacksPerTurn} attacks/turn, values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
+                          {complexity.length > 0 && (
+                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(2,6,23,0.38)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
+                              <strong style={{ color: "#fde68a" }}>Advanced rules:</strong> {complexity.join(" ")}
+                            </div>
+                          )}
                           <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
                           {narration.beforeBattle && (
                             <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.58)", border: "1px solid rgba(253,230,138,0.2)", color: "#fde68a", fontSize: 12, lineHeight: 1.35 }}>
@@ -2778,6 +2928,8 @@ export default function App() {
   const [showCollection, setShowCollection] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(STORAGE_KEYS.onboardingDismissed) !== "true");
+  const [showModeGuide, setShowModeGuide] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
@@ -2799,6 +2951,19 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+
+  useEffect(() => {
+    if (!account?.id) {
+      setShowModeGuide(false);
+      return;
+    }
+    try {
+      const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
+      setShowModeGuide(!seenByAccount[account.id]);
+    } catch {
+      setShowModeGuide(true);
+    }
+  }, [account?.id]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3430,6 +3595,59 @@ export default function App() {
     socket.emit("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
   }
 
+  function dismissOnboarding() {
+    localStorage.setItem(STORAGE_KEYS.onboardingDismissed, "true");
+    setShowOnboarding(false);
+  }
+
+  function startOnboardingBasicAi() {
+    if (!account) setPlayAsGuest(true);
+    dismissOnboarding();
+    startTutorialVsAi("basic");
+  }
+
+  function openOnboardingTutorial() {
+    dismissOnboarding();
+    setShowTutorial(true);
+  }
+
+  function enableOnboardingHints() {
+    setShowHelperLabels(true);
+    dismissOnboarding();
+  }
+
+  function dismissModeGuide() {
+    if (account?.id) {
+      try {
+        const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
+        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ ...seenByAccount, [account.id]: true }));
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ [account.id]: true }));
+      }
+    }
+    setShowModeGuide(false);
+  }
+
+  function startModeGuideBasicAi() {
+    dismissModeGuide();
+    startTutorialVsAi("basic");
+  }
+
+  function openModeGuideCampaign() {
+    dismissModeGuide();
+    setShowCampaign(true);
+  }
+
+  function openModeGuideCollection() {
+    dismissModeGuide();
+    setShowCollection(true);
+  }
+
+  function enableModeGuideHints() {
+    setShowHelperLabels(true);
+    dismissModeGuide();
+  }
+
   function startCampaignChapter(factionId, chapterId) {
     clearReconnectInfo();
     setShowCampaign(false);
@@ -3684,6 +3902,25 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+        {account && showModeGuide && (
+          <ModeGuidePanel
+            accountName={account.name}
+            onStartBasicAi={startModeGuideBasicAi}
+            onOpenCampaign={openModeGuideCampaign}
+            onOpenCollection={openModeGuideCollection}
+            onEnableHints={enableModeGuideHints}
+            onDismiss={dismissModeGuide}
+          />
+        )}
+        {showOnboarding && (
+          <OnboardingPanel
+            canPlayAsPlayer={canPlayAsPlayer}
+            onStartTutorial={openOnboardingTutorial}
+            onStartBasicAi={startOnboardingBasicAi}
+            onEnableHints={enableOnboardingHints}
+            onDismiss={dismissOnboarding}
+          />
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           <MenuCard title="Tutorial">
             <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>

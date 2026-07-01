@@ -2302,6 +2302,95 @@ function getCampaignDifficulty(factionId, chapterId) {
   };
 }
 
+const CAMPAIGN_CARD_PLAN = {
+  rumin: {
+    player: ["rumin-gilded-scale-legionary", "rumin-forum-ledger-runner", "rumin-coin-scale-spear", "rumin-vault-shield-bearer", "rumin-senate-vault-guard", "rumin-marble-market-tribune", "rumin-rumie-vault-shield", "rumin-imperial-scale-pike"],
+    boss: ["rumin-vault-shield-bearer", "rumin-coin-scale-spear", "rumin-senate-vault-guard", "rumin-imperial-scale-pike", "rumin-marble-market-tribune"]
+  },
+  sheen: {
+    player: ["sheen-rootwatch-initiate", "sheen-living-bark-guard", "sheen-mossbound-staff", "sheen-quiet-grove-sentinel", "sheen-beli-vinebinder", "sheen-harmony-ward", "sheen-thornroot-counterstroke", "sheen-beli-canopy-shield"],
+    boss: ["sheen-rootwatch-initiate", "sheen-living-bark-guard", "sheen-harmony-ward", "sheen-beli-canopy-shield", "sheen-roots-that-remember"]
+  },
+  frumo: {
+    player: ["frumo-deckhand-diver", "frumo-sunken-coin", "frumo-tideglass-cutlass", "frumo-coral-hull-guard", "frumo-riptide-smuggler", "frumo-lafayettes-chart", "frumo-pressure-lock-pistol", "frumo-ristus-blackwake"],
+    boss: ["frumo-sunken-coin", "frumo-coral-hull-guard", "frumo-riptide-smuggler", "frumo-pressure-lock-pistol", "frumo-captains-bad-wager"]
+  },
+  bizi: {
+    player: ["bizi-copperline-technician", "bizi-voltage-ration", "bizi-dune-circuit-runner", "bizi-gearplate-shield", "bizi-heras-calibration", "bizi-solar-array-adept", "bizi-constanti-conduit", "bizi-sandstorm-processor"],
+    boss: ["bizi-copperline-technician", "bizi-dune-circuit-runner", "bizi-gearplate-shield", "bizi-heras-calibration", "bizi-solar-array-adept"]
+  }
+};
+
+function getCampaignAddedCardCount(chapterIndex, side = "player") {
+  if (side === "player") {
+    if (chapterIndex < 2) return 0;
+    if (chapterIndex < 5) return 2;
+    if (chapterIndex < 8) return 4;
+    return 6;
+  }
+  if (chapterIndex < 4) return 0;
+  if (chapterIndex < 8) return 2;
+  return 4;
+}
+
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player") {
+  const plan = CAMPAIGN_CARD_PLAN[factionId]?.[side] || [];
+  const count = Math.min(plan.length, getCampaignAddedCardCount(chapterIndex, side));
+  return plan.slice(0, count)
+    .map((cardId) => getCollectionCatalogCard(cardId))
+    .filter(Boolean)
+    .map((card) => getPlayableCollectionCard(card, { suit: getDraftCardSuit() }));
+}
+
+function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
+  if (chapterIndex < 5) return null;
+  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 7 ? 2 : 1;
+  const abilityByFaction = {
+    rumin: {
+      id: "imperial-doctrine",
+      name: `${chapter.opponentName || "Rumin Boss"}: Imperial Doctrine`,
+      text: tier >= 3 ? "The boss's final scripted attack each turn gets +2 value. Earlier attacks get +1 value." : "The boss's first scripted attack each turn gets +1 value."
+    },
+    sheen: {
+      id: "ironroot-pressure",
+      name: `${chapter.opponentName || "Sheen Boss"}: Ironroot Pressure`,
+      text: tier >= 3 ? "Odd-numbered boss attacks get +1 value, and the boss gains 1 life at the start of each turn." : "Odd-numbered boss attacks get +1 value."
+    },
+    frumo: {
+      id: "tide-feint",
+      name: `${chapter.opponentName || "Frumo Boss"}: Tide Feint`,
+      text: tier >= 3 ? "Even-numbered boss attacks get +2 value." : "Even-numbered boss attacks get +1 value."
+    },
+    bizi: {
+      id: "overclock-directive",
+      name: `${chapter.opponentName || "Bizi Boss"}: Overclock Directive`,
+      text: tier >= 3 ? "The boss's last two scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +2 value."
+    }
+  };
+  return abilityByFaction[factionId] ? { ...abilityByFaction[factionId], tier } : null;
+}
+
+function applyCampaignBossAbilityToAttack(campaign, attackNumber, value, notes) {
+  const ability = campaign?.bossAbility;
+  if (!ability) return value;
+  let bonus = 0;
+  if (ability.id === "imperial-doctrine") {
+    bonus = ability.tier >= 3
+      ? (attackNumber === campaign.attacksPerTurn ? 2 : 1)
+      : (attackNumber === 1 ? 1 : 0);
+  } else if (ability.id === "ironroot-pressure") {
+    bonus = attackNumber % 2 === 1 ? 1 : 0;
+  } else if (ability.id === "tide-feint") {
+    bonus = attackNumber % 2 === 0 ? (ability.tier >= 3 ? 2 : 1) : 0;
+  } else if (ability.id === "overclock-directive") {
+    bonus = ability.tier >= 3
+      ? (attackNumber >= Math.max(1, campaign.attacksPerTurn - 1) ? 1 : 0)
+      : (attackNumber === campaign.attacksPerTurn ? 2 : 0);
+  }
+  if (bonus > 0) notes.push(`${ability.name} +${bonus}`);
+  return value + bonus;
+}
+
 const basicGameProfile = {
   id: "basic",
   name: "Basic Gauntlet",
@@ -4170,7 +4259,13 @@ async function advanceEndPlacement(roomState) {
     for (const p of playerNumbers) {
       game.players[p].turnData = createTurnData();
     }
-    if (game.campaign) game.campaign.bossAttacksThisTurn = 0;
+    if (game.campaign) {
+      game.campaign.bossAttacksThisTurn = 0;
+      if (game.campaign.bossAbility?.id === "ironroot-pressure" && game.campaign.bossAbility.tier >= 3 && game.players[2]) {
+        game.players[2].life += 1;
+        endTurnMessages.push(`${game.campaign.bossAbility.name} restored 1 life.`);
+      }
+    }
     game.message = `${endTurnMessages.length > 0 ? `${endTurnMessages.join(" ")} ` : ""}Turn ${game.turn} - Player ${game.priority} has priority`;
   }
 }
@@ -4260,7 +4355,9 @@ function declareCampaignBossAttack(roomState) {
   const minValue = campaign.minAttackValue || 5;
   const maxValue = campaign.maxAttackValue || 8;
   const valueRange = Math.max(1, maxValue - minValue + 1);
-  const value = minValue + ((game.turn + attackNumber + (campaign.chapterNumber || 1)) % valueRange);
+  const baseValue = minValue + ((game.turn + attackNumber + (campaign.chapterNumber || 1)) % valueRange);
+  const notes = [`Boss strike ${attackNumber}/${campaign.attacksPerTurn}`];
+  const value = applyCampaignBossAbilityToAttack(campaign, attackNumber, baseValue, notes);
   const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
   const suit = suits[(game.turn + attackNumber + (campaign.chapterNumber || 1)) % suits.length];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
@@ -4283,7 +4380,7 @@ function declareCampaignBossAttack(roomState) {
     source: "campaignBoss",
     effectiveValue: value,
     block: [],
-    notes: [`Boss strike ${attackNumber}/${campaign.attacksPerTurn}`],
+    notes,
     payment: { player: 2, cards: [], total: 0, required: 0, campaignBoss: true }
   };
 
@@ -4468,9 +4565,11 @@ function createGameFromLobby(roomState) {
 
   function getLobbyDeckAdditions(playerNum) {
     const lobbyPlayer = roomState.lobby.players[playerNum];
-    if (lobbyPlayer.savedDraftDeck?.cards?.length) return lobbyPlayer.savedDraftDeck.cards;
-    if (lobbyPlayer.savedConstructedDeck?.cards?.length) return lobbyPlayer.savedConstructedDeck.cards;
-    return [];
+    const additions = [];
+    if (lobbyPlayer.savedDraftDeck?.cards?.length) additions.push(...lobbyPlayer.savedDraftDeck.cards);
+    else if (lobbyPlayer.savedConstructedDeck?.cards?.length) additions.push(...lobbyPlayer.savedConstructedDeck.cards);
+    if (lobbyPlayer.campaignDeckAdditions?.length) additions.push(...lobbyPlayer.campaignDeckAdditions);
+    return additions;
   }
   
   const game = {
@@ -4930,6 +5029,10 @@ io.on("connection", (socket) => {
     }
 
     const difficulty = getCampaignDifficulty(factionId, chapterId);
+    const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
+    const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player");
+    const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss");
+    const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
     const roomState = createRoom();
     roomState.lobby.gameMode = "factions";
     roomState.lobby.campaign = {
@@ -4942,6 +5045,9 @@ io.on("connection", (socket) => {
       opponentName: chapter.opponentName,
       playableName: chapter.playableName || faction.commander?.name || faction.name,
       dialogue: chapter.dialogue || [],
+      playerCampaignCardCount: playerCampaignCards.length,
+      bossCampaignCardCount: bossCampaignCards.length,
+      bossAbility,
       ...difficulty,
       bossAttacksThisTurn: 0
     };
@@ -4954,12 +5060,14 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
     roomState.lobby.players[1].savedConstructedDeck = campaignConstructedDeck?.factionId === factionId ? campaignConstructedDeck : null;
+    roomState.lobby.players[1].campaignDeckAdditions = playerCampaignCards;
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
     roomState.lobby.players[2].accountName = chapter.opponentName;
     roomState.lobby.players[2].factionId = factionId;
     roomState.lobby.players[2].isGuest = false;
     roomState.lobby.players[2].isAI = true;
+    roomState.lobby.players[2].campaignDeckAdditions = bossCampaignCards;
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
 
@@ -4968,7 +5076,7 @@ io.on("connection", (socket) => {
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = chapter.opponentName;
     roomState.game.players[2].life = difficulty.bossLife;
-    roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn. Player ${roomState.game.priority} has priority.`;
+    roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn.${bossAbility ? ` Boss ability: ${bossAbility.text}` : ""} Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });
