@@ -2269,6 +2269,19 @@ function getCampaignChapter(factionId, chapterId) {
   return chapter ? { ...chapter, ...getCampaignNarration(chapter.id) } : null;
 }
 
+function buildCampaignEndDialogue(chapter = {}, faction = null) {
+  if (Array.isArray(chapter.endDialogue) && chapter.endDialogue.length > 0) {
+    return chapter.endDialogue;
+  }
+  const playableName = chapter.playableName || faction?.commander?.name || faction?.name || "Commander";
+  const opponentName = chapter.opponentName || "Opponent";
+  const lines = [];
+  if (chapter.afterBattle) lines.push(`Narrator: ${chapter.afterBattle}`);
+  lines.push(`${playableName}: This victory will shape what comes next.`);
+  lines.push(`${opponentName}: Then carry it carefully. The next battle will remember this one.`);
+  return lines;
+}
+
 function getCampaignChapterIndex(factionId, chapterId) {
   return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
 }
@@ -5045,6 +5058,8 @@ io.on("connection", (socket) => {
       opponentName: chapter.opponentName,
       playableName: chapter.playableName || faction.commander?.name || faction.name,
       dialogue: chapter.dialogue || [],
+      startDialogue: chapter.dialogue || [],
+      endDialogue: buildCampaignEndDialogue(chapter, faction),
       playerCampaignCardCount: playerCampaignCards.length,
       bossCampaignCardCount: bossCampaignCards.length,
       bossAbility,

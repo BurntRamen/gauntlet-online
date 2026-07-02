@@ -485,6 +485,29 @@ function getCampaignNarration(chapterId) {
   return CAMPAIGN_NARRATION[chapterId] || {};
 }
 
+function getCampaignChapterList(factionId) {
+  return CAMPAIGN_CHAPTERS[factionId]?.chapters || [];
+}
+
+function getNextCampaignChapter(factionId, chapterId) {
+  const chapters = getCampaignChapterList(factionId);
+  const currentIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
+  return currentIndex >= 0 ? chapters[currentIndex + 1] || null : null;
+}
+
+function buildCampaignEndDialogue(campaign = {}) {
+  if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) {
+    return campaign.endDialogue;
+  }
+  const lines = [];
+  const playableName = campaign.playableName || "Commander";
+  const opponentName = campaign.opponentName || "Opponent";
+  if (campaign.afterBattle) lines.push(`Narrator: ${campaign.afterBattle}`);
+  lines.push(`${playableName}: This victory will shape what comes next.`);
+  lines.push(`${opponentName}: Then carry it carefully. The next battle will remember this one.`);
+  return lines;
+}
+
 const FACTION_VOICE_AUDIO = {
   rumin: [
     "/assets/gauntlet/voices/kaiser-1.mp3",
@@ -2264,6 +2287,44 @@ function CombatStrip({ game }) {
   );
 }
 
+function CampaignDialogueBlock({ title = "Dialogue", lines = [], compact = false, light = false }) {
+  const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
+  if (visibleLines.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: compact ? 6 : 12,
+        padding: compact ? "6px 8px" : 12,
+        borderRadius: compact ? 6 : 10,
+        background: light ? "rgba(255,255,255,0.58)" : "rgba(15,23,42,0.3)",
+        border: light ? "1px solid rgba(42,22,11,0.22)" : "1px solid rgba(250,204,21,0.22)",
+        textAlign: "left",
+        color: light ? "#2f1c10" : "#f8fafc",
+        lineHeight: 1.35
+      }}
+    >
+      <div style={{ fontSize: compact ? 10 : 12, textTransform: "uppercase", letterSpacing: 1, color: light ? "#8a4b16" : "#facc15", fontWeight: "bold", marginBottom: compact ? 4 : 8 }}>
+        {title}
+      </div>
+      <div style={{ display: "grid", gap: compact ? 3 : 6, fontSize: compact ? 11 : 14 }}>
+        {visibleLines.map((line, index) => {
+          const text = String(line);
+          const separatorIndex = text.indexOf(":");
+          const speaker = separatorIndex > 0 ? text.slice(0, separatorIndex).trim() : "Narrator";
+          const spoken = separatorIndex > 0 ? text.slice(separatorIndex + 1).trim() : text;
+          return (
+            <div key={`${speaker}-${index}`}>
+              <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}:</strong>{" "}
+              <span>{spoken}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function roomJoinUrl(code) {
   const baseUrl = PUBLIC_GAME_URL.replace(/\/$/, "");
   return code ? `${baseUrl}?join=${encodeURIComponent(code)}` : baseUrl;
@@ -3655,6 +3716,18 @@ export default function App() {
     socket.emit("createCampaignRoom", { ...playerIdentityPayload(), factionId, chapterId });
   }
 
+  function continueCampaignChapter(factionId, chapterId) {
+    socket.emit("leaveRoom");
+    resetSelections();
+    setGame(null);
+    setLobby(null);
+    setRole(null);
+    setPlayer(null);
+    setActionLog([]);
+    setIncomingAttackAlert(null);
+    startCampaignChapter(factionId, chapterId);
+  }
+
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
     setError("");
@@ -4134,6 +4207,8 @@ export default function App() {
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
     const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
     const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
+    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(game.campaign.factionId, game.campaign.chapterId) : null;
+    const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: `${getBattlefieldTexture(me?.faction?.id || "rumin")}, ${boardBackground}`, fontFamily: "Arial, sans-serif" }}>
@@ -4179,6 +4254,7 @@ export default function App() {
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
+          <CampaignDialogueBlock title="Ending Dialogue" lines={campaignEndDialogue} light />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
             {Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => {
               const theme = getFactionTheme(game.players[p].faction.id);
@@ -4190,7 +4266,30 @@ export default function App() {
               );
             })}
           </div>
-          <MenuButton onClick={returnToMainMenu}>Main Menu</MenuButton>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+            {nextCampaignChapter && (
+              <MenuButton onClick={() => continueCampaignChapter(game.campaign.factionId, nextCampaignChapter.id)}>
+                Next Mission: {nextCampaignChapter.title}
+              </MenuButton>
+            )}
+            {game.campaign && (
+              <MenuButton
+                variant="secondary"
+                onClick={() => {
+                  socket.emit("leaveRoom");
+                  resetSelections();
+                  setGame(null);
+                  setLobby(null);
+                  setRole(null);
+                  setPlayer(null);
+                  setShowCampaign(true);
+                }}
+              >
+                Campaign
+              </MenuButton>
+            )}
+            <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
+          </div>
         </div>
       </div>
     );
@@ -6361,6 +6460,9 @@ export default function App() {
               <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
                 {game.campaign.story}
               </div>
+            )}
+            {game.campaign && (
+              <CampaignDialogueBlock title="Opening Dialogue" lines={game.campaign.startDialogue || game.campaign.dialogue} compact />
             )}
             <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
           </div>
