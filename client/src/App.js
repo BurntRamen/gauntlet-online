@@ -2951,6 +2951,7 @@ export default function App() {
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
+  const [incomingAttackMinimized, setIncomingAttackMinimized] = useState(false);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -3055,12 +3056,6 @@ export default function App() {
     const timer = window.setTimeout(() => setFactionVoice(null), 4500);
     return () => window.clearTimeout(timer);
   }, [factionVoice]);
-
-  useEffect(() => {
-    if (!incomingAttackAlert) return undefined;
-    const timer = window.setTimeout(() => setIncomingAttackAlert(null), 6500);
-    return () => window.clearTimeout(timer);
-  }, [incomingAttackAlert]);
 
   const activeMusicTrack = !game || role === "spectator" || !player
     ? "menu"
@@ -3328,6 +3323,7 @@ export default function App() {
       id: newestAttack.id,
       text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
     });
+    setIncomingAttackMinimized(false);
   }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
@@ -5417,6 +5413,47 @@ export default function App() {
         .mobile-action-detail {
           display: none;
         }
+        .mobile-life-hud {
+          display: none;
+        }
+        .incoming-attack-banner {
+          margin-bottom: 6px;
+          padding: 8px 10px;
+          border-radius: 7px;
+          border: 2px solid #dc2626;
+          background: linear-gradient(180deg, rgba(127,29,29,0.98), rgba(45,12,12,0.98));
+          color: #fff7ed;
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          align-items: center;
+          flex: 0 0 auto;
+          font-weight: 800;
+          box-shadow: 0 8px 22px rgba(0,0,0,0.26), inset 0 0 0 1px rgba(254,202,202,0.24);
+        }
+        .incoming-attack-banner button,
+        .incoming-attack-pill button {
+          border: 1px solid rgba(254,202,202,0.5);
+          border-radius: 5px;
+          background: rgba(255,255,255,0.12);
+          color: #fff7ed;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .incoming-attack-pill {
+          margin-bottom: 6px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          align-self: flex-start;
+          padding: 5px 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(254,202,202,0.65);
+          background: rgba(127,29,29,0.96);
+          color: #fff7ed;
+          font-size: 12px;
+          font-weight: 800;
+        }
         .compact-power-card {
           position: relative;
           overflow: hidden;
@@ -6063,9 +6100,46 @@ export default function App() {
           .match-top-frame {
             grid-template-columns: minmax(0, 1fr) auto !important;
             min-height: 0 !important;
-            max-height: 92px !important;
+            max-height: 82px !important;
             gap: 4px !important;
             margin-bottom: 0 !important;
+          }
+          .mobile-life-hud {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 3px;
+            padding: 4px 6px;
+            border: 1px solid rgba(205,154,86,0.52);
+            border-radius: 6px;
+            background: linear-gradient(180deg, rgba(16,10,7,0.96), rgba(8,5,3,0.94));
+            color: #fff4d6;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+            font-size: 10px;
+            line-height: 1.05;
+          }
+          .mobile-life-hud span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .mobile-life-hud strong {
+            color: #f7d99e;
+          }
+          .incoming-attack-banner {
+            padding: 5px 7px !important;
+            font-size: 11px !important;
+            line-height: 1.12 !important;
+            margin-bottom: 3px !important;
+          }
+          .incoming-attack-banner button {
+            padding: 3px 5px !important;
+            font-size: 10px !important;
+          }
+          .incoming-attack-pill {
+            margin-bottom: 3px !important;
+            padding: 3px 7px !important;
+            font-size: 10px !important;
           }
           .gauntlet-logo-panel {
             display: none !important;
@@ -6408,27 +6482,23 @@ export default function App() {
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-      {false && incomingAttackAlert && (
-        <div
-          role="alert"
-          style={{
-            marginBottom: 8,
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "2px solid #dc2626",
-            background: "#fee2e2",
-            color: "#7f1d1d",
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            alignItems: "center",
-            flex: "0 0 auto",
-            fontWeight: "bold",
-            boxShadow: "0 8px 24px rgba(127,29,29,0.16)"
-          }}
-        >
+      {!isSpectator && me && (
+        <div className="mobile-life-hud" aria-label="Player life summary">
+          <span><strong>You</strong> {me.life} life</span>
+          <span>{me.hand?.length || 0} hand</span>
+          <span><strong>{opponent ? getGamePlayerName(game, opponent === game.players[1] ? 1 : 2) : "Opp"}</strong> {opponent?.life ?? "-"} life</span>
+        </div>
+      )}
+      {incomingAttackAlert && !incomingAttackMinimized && (
+        <div className="incoming-attack-banner" role="alert">
           <span>{incomingAttackAlert.text}</span>
-          <button onClick={() => setIncomingAttackAlert(null)} style={{ flex: "0 0 auto" }}>Dismiss</button>
+          <button onClick={() => setIncomingAttackMinimized(true)} style={{ flex: "0 0 auto" }}>Minimize</button>
+        </div>
+      )}
+      {incomingAttackAlert && incomingAttackMinimized && (
+        <div className="incoming-attack-pill" role="status">
+          <span>Incoming attack</span>
+          <button onClick={() => setIncomingAttackMinimized(false)}>Show</button>
         </div>
       )}
       {factionVoice && (
@@ -6452,9 +6522,9 @@ export default function App() {
       <div className="match-table-frame">
         <div className="table-main-panel">
           <div className="current-play-panel">
-            <strong>{incomingAttackAlert?.text || game.campaign?.title || phaseDisplayName()}</strong>
+            <strong>{(incomingAttackAlert && !incomingAttackMinimized) ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {incomingAttackAlert ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
+              {(incomingAttackAlert && !incomingAttackMinimized) ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
             </div>
             {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
               <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
