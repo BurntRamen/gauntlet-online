@@ -3657,6 +3657,13 @@ export default function App() {
     setShowOnboarding(false);
   }
 
+  function reopenOnboardingTips() {
+    localStorage.removeItem(STORAGE_KEYS.onboardingDismissed);
+    setShowModeGuide(false);
+    setShowOnboarding(true);
+    setError("");
+  }
+
   function startOnboardingBasicAi() {
     if (!account) setPlayAsGuest(true);
     dismissOnboarding();
@@ -3993,7 +4000,8 @@ export default function App() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           <MenuCard title="Tutorial">
             <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>
-            <MenuButton onClick={() => setShowTutorial(true)}>Start Tutorial</MenuButton>
+            <MenuButton onClick={() => setShowTutorial(true)} style={{ marginRight: 8, marginBottom: 8 }}>Start Tutorial</MenuButton>
+            <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Onboarding Tips</MenuButton>
           </MenuCard>
           <MenuCard title="Campaign">
             <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play as each faction commander through story battles against figures from their own history.</p>
