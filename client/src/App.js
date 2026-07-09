@@ -596,23 +596,32 @@ function getCampaignAddedCardCount(chapterIndex, side = "player") {
 }
 
 function getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName = "Boss") {
-  if (chapterIndex < 5) return null;
-  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 7 ? 2 : 1;
+  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 6 ? 2 : 1;
+  const earlyBonus = tier >= 3 ? 2 : 1;
   const previews = {
-    rumin: tier >= 3
-      ? `${opponentName}: Imperial Doctrine - final scripted attack gets +2; earlier attacks get +1.`
-      : `${opponentName}: Imperial Doctrine - first scripted attack each turn gets +1.`,
-    sheen: tier >= 3
-      ? `${opponentName}: Ironroot Pressure - odd attacks get +1 and the boss restores 1 life each turn.`
-      : `${opponentName}: Ironroot Pressure - odd attacks get +1.`,
-    frumo: tier >= 3
-      ? `${opponentName}: Tide Feint - even attacks get +2.`
-      : `${opponentName}: Tide Feint - even attacks get +1.`,
-    bizi: tier >= 3
-      ? `${opponentName}: Overclock Directive - last two attacks each turn get +1.`
-      : `${opponentName}: Overclock Directive - final attack each turn gets +2.`
+    rumin: [
+      `${opponentName}: Fortified Claim - first scripted attack each turn gets +1.`,
+      `${opponentName}: Senate Pressure - final scripted attack each turn gets +${earlyBonus}.`,
+      `${opponentName}: Imperial Doctrine - ${tier >= 3 ? "last two scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
+    ],
+    sheen: [
+      `${opponentName}: Ironroot Pressure - odd-numbered attacks get +1.`,
+      `${opponentName}: Thorned Advance - first scripted attack each turn gets +1.`,
+      `${opponentName}: Living Siege - odd-numbered attacks get +1${tier >= 3 ? " and the boss restores 1 life each turn" : ""}.`
+    ],
+    frumo: [
+      `${opponentName}: Tide Feint - even-numbered attacks get +1.`,
+      `${opponentName}: Boarding Rush - final scripted attack each turn gets +${earlyBonus}.`,
+      `${opponentName}: Admiral's Ruse - even-numbered attacks get +${tier >= 3 ? 2 : 1}.`
+    ],
+    bizi: [
+      `${opponentName}: Prototype Surge - final scripted attack each turn gets +1.`,
+      `${opponentName}: Overclock Directive - last two scripted attacks each turn get +1.`,
+      `${opponentName}: Machine Logic - ${tier >= 3 ? "first and final scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
+    ]
   };
-  return previews[factionId] || null;
+  const options = previews[factionId];
+  return options ? options[Math.min(options.length - 1, Math.floor(chapterIndex / 4))] : null;
 }
 
 function getCampaignComplexityPreview(factionId, chapterIndex, opponentName) {
@@ -2567,14 +2576,18 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
           const opponent = game.players[p];
           const theme = getFactionTheme(opponent.faction.id);
           return (
-            <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8 }}>
-              <strong style={{ color: theme.primary }}>{opponent.faction?.name || `Player ${p}`}</strong>
+            <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8, textAlign: "center" }}>
+              <strong style={{ color: theme.primary, display: "block", marginBottom: showAbilities ? 8 : 0 }}>{opponent.accountName || opponent.faction?.name || `Player ${p}`}</strong>
               {showAbilities && (
-                <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
+                <div className="opponent-ability-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))", gap: 6, fontSize: 12, alignItems: "stretch" }}>
                   {["commander", "city", "general"].map((key) => opponent.faction?.[key] && (
-                    <div key={key} style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 6 }}>
-                      <strong style={{ color: theme.primary, textTransform: "capitalize" }}>{key}: {opponent.faction[key].name}</strong>
-                      <div style={{ color: "#475569" }}>{opponent.faction[key].text}</div>
+                    <div key={key} style={{ border: `1px solid ${theme.border}`, borderRadius: 7, padding: 8, background: "rgba(255,255,255,0.72)", display: "grid", alignContent: "start", justifyItems: "center", textAlign: "center", minHeight: 92 }}>
+                      {opponent.faction[key].image && (
+                        <img src={opponent.faction[key].image} alt="" style={{ width: 34, height: 34, borderRadius: 5, objectFit: "cover", marginBottom: 5, border: `1px solid ${theme.border}` }} />
+                      )}
+                      <span style={{ color: "#6b7280", fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.6 }}>{key}</span>
+                      <strong style={{ color: theme.primary, display: "block", lineHeight: 1.15 }}>{opponent.faction[key].name}</strong>
+                      <div style={{ color: "#475569", marginTop: 4, lineHeight: 1.25 }}>{opponent.faction[key].text}</div>
                     </div>
                   ))}
                 </div>
@@ -4555,13 +4568,14 @@ export default function App() {
                   {p !== player && <div>{game.players[p].handCount ?? game.players[p].hand?.length ?? 0} cards in hand</div>}
                   {game.players[p].eliminated && <div style={{ color: "#991b1b", fontWeight: "bold" }}>Eliminated</div>}
                   {p !== player && showOpponentAbilities && (
-                    <div style={{ borderTop: `1px solid ${pTheme.border}`, marginTop: 6, paddingTop: 6, fontSize: 12 }}>
-                      <strong>{game.players[p].faction.commander?.name}</strong>
-                      <div>{game.players[p].faction.commander?.text}</div>
-                      <strong>{game.players[p].faction.city?.name}</strong>
-                      <div>{game.players[p].faction.city?.text}</div>
-                      <strong>{game.players[p].faction.general?.name}</strong>
-                      <div>{game.players[p].faction.general?.text}</div>
+                    <div style={{ borderTop: `1px solid ${pTheme.border}`, marginTop: 6, paddingTop: 6, fontSize: 12, display: "grid", gap: 6, textAlign: "center" }}>
+                      {["commander", "city", "general"].map((key) => game.players[p].faction?.[key] && (
+                        <div key={key} style={{ border: `1px solid ${pTheme.border}`, borderRadius: 7, padding: 7, background: "rgba(255,255,255,0.62)" }}>
+                          <span style={{ color: "#64748b", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>{key}</span>
+                          <strong style={{ display: "block", color: pTheme.primary }}>{game.players[p].faction[key].name}</strong>
+                          <div>{game.players[p].faction[key].text}</div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -5536,7 +5550,7 @@ export default function App() {
           gap: 6px;
           align-content: center;
           justify-content: flex-end;
-          width: min(420px, 34vw);
+          width: min(360px, 31vw);
         }
         .deck-slot {
           min-height: 0;
@@ -5565,6 +5579,19 @@ export default function App() {
         button.deck-slot:focus-visible {
           border-color: rgba(247,217,158,0.7);
           box-shadow: 0 0 0 2px rgba(245,158,11,0.18), 0 4px 12px rgba(0,0,0,0.28);
+        }
+        .deck-slot-live {
+          border-color: rgba(34,197,94,0.48);
+          box-shadow: inset 0 0 0 1px rgba(34,197,94,0.16), 0 4px 12px rgba(0,0,0,0.24);
+        }
+        .command-slot {
+          min-width: 104px;
+          border-color: rgba(247,217,158,0.54);
+        }
+        .command-slot .deck-slot-card {
+          width: 58px;
+          height: 34px;
+          font-size: 10px;
         }
         .deck-slot.compact {
           grid-template-rows: 1fr;
@@ -5682,14 +5709,14 @@ export default function App() {
         .bottom-left-actions {
           min-height: 0;
           display: grid;
-          grid-template-rows: minmax(0, 1fr) auto;
+          grid-template-rows: auto minmax(0, 1fr);
           gap: 7px;
           overflow: hidden;
         }
         .table-side-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: minmax(0, 1fr) minmax(0, 0.8fr) 152px;
+          grid-template-rows: minmax(0, 0.9fr) minmax(0, 0.72fr) minmax(178px, 0.74fr);
           gap: 8px;
           padding: 8px;
           overflow: hidden;
@@ -5714,10 +5741,11 @@ export default function App() {
           background: linear-gradient(180deg, rgba(20,12,7,0.74), rgba(6,4,3,0.68));
           padding: 8px;
           display: grid;
-          align-content: start;
+          align-content: stretch;
           justify-items: center;
           gap: 8px;
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+          overflow: hidden;
         }
         .card-preview-panel h3 {
           margin: 0;
@@ -5725,6 +5753,17 @@ export default function App() {
           text-transform: uppercase;
           letter-spacing: 0;
           font-size: 16px;
+        }
+        .card-preview-panel .card-box {
+          width: min(154px, 100%) !important;
+          min-width: 0 !important;
+          min-height: 148px !important;
+          max-height: 100% !important;
+        }
+        .card-preview-panel .card-box button {
+          min-height: 22px !important;
+          padding-top: 3px !important;
+          padding-bottom: 3px !important;
         }
         .game-root .section-card-shell {
           position: relative;
@@ -5914,18 +5953,32 @@ export default function App() {
           margin-bottom: 0 !important;
           min-height: 100%;
         }
+        .game-root .near-hand-actions {
+          max-height: 132px;
+          overflow: auto;
+          padding: 6px !important;
+        }
         .game-root .board-lanes {
           min-height: 0;
-          height: 100%;
+          height: auto;
           display: flex;
           flex-direction: column;
-          justify-content: center;
+          justify-content: start;
+          align-self: stretch;
+          padding: 6px 8px !important;
           margin-bottom: 0 !important;
           overflow: hidden;
         }
+        .game-root .board-lanes h3 {
+          font-size: 14px !important;
+          margin-bottom: 4px !important;
+        }
         .game-root .lane-grid {
-          align-items: center;
+          align-items: stretch;
           min-height: 0;
+        }
+        .game-root .lane-card {
+          min-height: 116px !important;
         }
         .game-root .game-side {
           gap: 8px;
@@ -5999,8 +6052,8 @@ export default function App() {
         }
         .game-main {
           display: grid;
-          grid-template-rows: minmax(0, 1fr) auto auto;
-          gap: 6px;
+          grid-template-rows: minmax(118px, 0.72fr) auto minmax(176px, 0.96fr);
+          gap: 5px;
           overflow: hidden !important;
           padding-right: 0 !important;
           min-height: 0;
@@ -6458,12 +6511,13 @@ export default function App() {
         <div className="top-opponent-panel">
           <PlayerFrameRow game={game} player={player} placement="opponents" />
           <div className="top-state-pills">
-            <div className="deck-slot" title={`Cards in deck: ${deckCountSummary}`}><span>Deck</span><span className="deck-slot-card">♦</span><span className="deck-slot-count">{deckCountSummary}</span></div>
-            <button type="button" className="deck-slot" onClick={() => setShowDiscardViewer(true)} title="View discard piles"><span>Discard</span><span className="deck-slot-card empty">View</span><span className="deck-slot-count">{discardCountSummary}</span></button>
-            <div className="deck-slot"><span>Command</span><span className="deck-slot-card status-card">{phaseDisplayName()}</span></div>
-            <div className="deck-slot compact">Turn {game.turn}</div>
-            <div className="deck-slot compact">P{game.priority}</div>
-            <div className="deck-slot compact">{game.phase === "gameOver" ? "Game Over" : "Live"}</div>
+            <div className="deck-slot deck-slot-live" title={`Cards in deck: ${deckCountSummary}`}><span>Decks</span><span className="deck-slot-card">D</span><span className="deck-slot-count">{deckCountSummary}</span></div>
+            <button type="button" className="deck-slot deck-slot-live" onClick={() => setShowDiscardViewer(true)} title="View discard piles"><span>Discard</span><span className="deck-slot-card empty">View</span><span className="deck-slot-count">{discardCountSummary}</span></button>
+            <div className="deck-slot command-slot" title={`Turn ${game.turn}. Priority Player ${game.priority}. ${game.phase === "gameOver" ? "Game over" : "Live game"}.`}>
+              <span>Command</span>
+              <span className="deck-slot-card status-card">{phaseDisplayName()}</span>
+              <span className="deck-slot-count">T{game.turn} / P{game.priority} / {game.phase === "gameOver" ? "Over" : "Live"}</span>
+            </div>
           </div>
         </div>
         <div className="top-action-panel">

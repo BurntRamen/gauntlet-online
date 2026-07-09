@@ -2356,49 +2356,80 @@ function getCampaignDeckAdditions(factionId, chapterIndex, side = "player") {
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
-  if (chapterIndex < 5) return null;
-  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 7 ? 2 : 1;
-  const abilityByFaction = {
-    rumin: {
-      id: "imperial-doctrine",
-      name: `${chapter.opponentName || "Rumin Boss"}: Imperial Doctrine`,
-      text: tier >= 3 ? "The boss's final scripted attack each turn gets +2 value. Earlier attacks get +1 value." : "The boss's first scripted attack each turn gets +1 value."
+  const opponentName = chapter.opponentName || "Campaign Boss";
+  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 6 ? 2 : 1;
+  const earlyBonus = tier >= 3 ? 2 : 1;
+  const profileByFaction = {
+    rumin: [
+      { id: "first-strike", title: "Fortified Claim", text: "The boss's first scripted attack each turn gets +1 value." },
+      { id: "final-push", title: "Senate Pressure", text: `The boss's final scripted attack each turn gets +${earlyBonus} value.` },
+      { id: "late-pressure", title: "Imperial Doctrine", text: tier >= 3 ? "The boss's last two scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +1 value." }
+    ],
+    sheen: [
+      { id: "odd-pressure", title: "Ironroot Pressure", text: "Odd-numbered boss attacks get +1 value." },
+      { id: "first-strike", title: "Thorned Advance", text: "The boss's first scripted attack each turn gets +1 value." },
+      { id: "odd-pressure", title: "Living Siege", text: tier >= 3 ? "Odd-numbered boss attacks get +1 value, and the boss restores 1 life at the start of each turn." : "Odd-numbered boss attacks get +1 value.", healAtTurnStart: tier >= 3 ? 1 : 0 }
+    ],
+    frumo: [
+      { id: "even-feint", title: "Tide Feint", text: "Even-numbered boss attacks get +1 value." },
+      { id: "final-push", title: "Boarding Rush", text: `The boss's final scripted attack each turn gets +${earlyBonus} value.` },
+      { id: "even-feint", title: "Admiral's Ruse", text: tier >= 3 ? "Even-numbered boss attacks get +2 value." : "Even-numbered boss attacks get +1 value.", evenBonus: tier >= 3 ? 2 : 1 }
+    ],
+    bizi: [
+      { id: "final-push", title: "Prototype Surge", text: "The boss's final scripted attack each turn gets +1 value." },
+      { id: "late-pressure", title: "Overclock Directive", text: "The boss's last two scripted attacks each turn get +1 value." },
+      { id: "first-and-final", title: "Machine Logic", text: tier >= 3 ? "The boss's first and final scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +1 value." }
+    ]
+  };
+  const options = profileByFaction[factionId] || profileByFaction.rumin;
+  const selected = options[Math.min(options.length - 1, Math.floor(chapterIndex / 4))];
+  return {
+    ...selected,
+    tier,
+    name: `${opponentName}: ${selected.title}`,
+    text: selected.text
+  };
+}
+
+function getCampaignBossPowerProfile(faction, chapter = {}, bossAbility = null) {
+  const opponentName = chapter.opponentName || "Campaign Boss";
+  const title = chapter.title || "Campaign Battle";
+  const factionName = faction?.name || "Faction";
+  return {
+    commander: {
+      name: opponentName,
+      image: faction?.commander?.image || faction?.cardImage || null,
+      text: bossAbility?.text || "This opponent uses scripted campaign attacks."
     },
-    sheen: {
-      id: "ironroot-pressure",
-      name: `${chapter.opponentName || "Sheen Boss"}: Ironroot Pressure`,
-      text: tier >= 3 ? "Odd-numbered boss attacks get +1 value, and the boss gains 1 life at the start of each turn." : "Odd-numbered boss attacks get +1 value."
+    city: {
+      name: `${title} Battlefield`,
+      image: faction?.city?.image || faction?.cardImage || null,
+      text: `Campaign arena for ${opponentName}. The boss follows the ${factionName} story battle script instead of the normal player city ability.`
     },
-    frumo: {
-      id: "tide-feint",
-      name: `${chapter.opponentName || "Frumo Boss"}: Tide Feint`,
-      text: tier >= 3 ? "Even-numbered boss attacks get +2 value." : "Even-numbered boss attacks get +1 value."
-    },
-    bizi: {
-      id: "overclock-directive",
-      name: `${chapter.opponentName || "Bizi Boss"}: Overclock Directive`,
-      text: tier >= 3 ? "The boss's last two scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +2 value."
+    general: {
+      name: `${opponentName} Tactics`,
+      image: faction?.general?.image || faction?.cardImage || null,
+      text: `At the start of the boss turn, ${opponentName} may launch up to ${getCampaignDifficulty(faction?.id, chapter.id).attacksPerTurn} scripted attacks if combat is clear.`
     }
   };
-  return abilityByFaction[factionId] ? { ...abilityByFaction[factionId], tier } : null;
 }
 
 function applyCampaignBossAbilityToAttack(campaign, attackNumber, value, notes) {
   const ability = campaign?.bossAbility;
   if (!ability) return value;
   let bonus = 0;
-  if (ability.id === "imperial-doctrine") {
-    bonus = ability.tier >= 3
-      ? (attackNumber === campaign.attacksPerTurn ? 2 : 1)
-      : (attackNumber === 1 ? 1 : 0);
-  } else if (ability.id === "ironroot-pressure") {
+  if (ability.id === "first-strike") {
+    bonus = attackNumber === 1 ? 1 : 0;
+  } else if (ability.id === "odd-pressure") {
     bonus = attackNumber % 2 === 1 ? 1 : 0;
-  } else if (ability.id === "tide-feint") {
-    bonus = attackNumber % 2 === 0 ? (ability.tier >= 3 ? 2 : 1) : 0;
-  } else if (ability.id === "overclock-directive") {
-    bonus = ability.tier >= 3
-      ? (attackNumber >= Math.max(1, campaign.attacksPerTurn - 1) ? 1 : 0)
-      : (attackNumber === campaign.attacksPerTurn ? 2 : 0);
+  } else if (ability.id === "even-feint") {
+    bonus = attackNumber % 2 === 0 ? (ability.evenBonus || 1) : 0;
+  } else if (ability.id === "final-push") {
+    bonus = attackNumber === campaign.attacksPerTurn ? (ability.tier >= 3 ? 2 : 1) : 0;
+  } else if (ability.id === "late-pressure") {
+    bonus = attackNumber >= Math.max(1, campaign.attacksPerTurn - 1) ? 1 : 0;
+  } else if (ability.id === "first-and-final") {
+    bonus = attackNumber === 1 || attackNumber === campaign.attacksPerTurn ? 1 : 0;
   }
   if (bonus > 0) notes.push(`${ability.name} +${bonus}`);
   return value + bonus;
@@ -4274,9 +4305,10 @@ async function advanceEndPlacement(roomState) {
     }
     if (game.campaign) {
       game.campaign.bossAttacksThisTurn = 0;
-      if (game.campaign.bossAbility?.id === "ironroot-pressure" && game.campaign.bossAbility.tier >= 3 && game.players[2]) {
-        game.players[2].life += 1;
-        endTurnMessages.push(`${game.campaign.bossAbility.name} restored 1 life.`);
+      const bossHealing = Number(game.campaign.bossAbility?.healAtTurnStart || 0);
+      if (bossHealing > 0 && game.players[2]) {
+        game.players[2].life += bossHealing;
+        endTurnMessages.push(`${game.campaign.bossAbility.name} restored ${bossHealing} life.`);
       }
     }
     game.message = `${endTurnMessages.length > 0 ? `${endTurnMessages.join(" ")} ` : ""}Turn ${game.turn} - Player ${game.priority} has priority`;
@@ -5046,6 +5078,7 @@ io.on("connection", (socket) => {
     const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player");
     const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss");
     const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
+    const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
     const roomState = createRoom();
     roomState.lobby.gameMode = "factions";
     roomState.lobby.campaign = {
@@ -5063,6 +5096,7 @@ io.on("connection", (socket) => {
       playerCampaignCardCount: playerCampaignCards.length,
       bossCampaignCardCount: bossCampaignCards.length,
       bossAbility,
+      bossPowerProfile,
       ...difficulty,
       bossAttacksThisTurn: 0
     };
@@ -5090,6 +5124,12 @@ io.on("connection", (socket) => {
     roomState.game.campaign = roomState.lobby.campaign;
     roomState.game.players[2].connected = true;
     roomState.game.players[2].accountName = chapter.opponentName;
+    roomState.game.players[2].faction = {
+      ...roomState.game.players[2].faction,
+      commander: bossPowerProfile.commander,
+      city: bossPowerProfile.city,
+      general: bossPowerProfile.general
+    };
     roomState.game.players[2].life = difficulty.bossLife;
     roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn.${bossAbility ? ` Boss ability: ${bossAbility.text}` : ""} Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
