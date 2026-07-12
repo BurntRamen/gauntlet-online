@@ -787,7 +787,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <div style={{ fontSize: 13 }}>{suit}</div>
       </div>
 
-      <div style={{ display: "grid", gap: 4 }}>{children}</div>
+      <div className="card-actions" style={{ display: "grid", gap: 4 }}>{children}</div>
     </div>
   );
 }
@@ -1335,8 +1335,14 @@ function getBattlefieldTexture(factionId) {
 }
 
 const BASE_PLAYING_DECK_SIZE = 52;
-const MAX_CONSTRUCTED_DECK_SIZE = 80;
-const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_DECK_SIZE - BASE_PLAYING_DECK_SIZE;
+const PLAYING_DECK_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+const MAX_REPLACEMENTS_PER_VALUE = 4;
+const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
+
+function getReplacementValue(card) {
+  const value = Number(card?.value);
+  return PLAYING_DECK_VALUES.includes(value) ? value : null;
+}
 
 function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
@@ -1452,12 +1458,27 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
       const rarityOrder = { mythic: 0, rare: 1, uncommon: 2, common: 3 };
       return (rarityOrder[a.rarity] ?? 9) - (rarityOrder[b.rarity] ?? 9) || a.name.localeCompare(b.name);
     });
-  const constructedAdditionCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
-  const constructedDeckCount = BASE_PLAYING_DECK_SIZE + constructedAdditionCount;
+  const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
+  const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
+  const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
+    const value = getReplacementValue(constructedCardsById[cardId]);
+    if (value == null) return counts;
+    counts[value] = (counts[value] || 0) + Math.max(0, Number(count || 0));
+    return counts;
+  }, {});
+  const constructedDeckCount = BASE_PLAYING_DECK_SIZE;
+  const constructedCurveWarning = Object.entries(constructedValueCounts).find(([, count]) => count > MAX_REPLACEMENTS_PER_VALUE);
 
   function setConstructedCardQuantity(cardId, nextQuantity) {
     const owned = Number(cardsOwned[cardId] || 0);
-    const quantity = Math.max(0, Math.min(owned, Math.floor(Number(nextQuantity || 0))));
+    const card = constructedCardsById[cardId];
+    const value = getReplacementValue(card);
+    const sameValueCurrent = value == null ? 0 : Object.entries(constructedQuantities).reduce((sum, [otherCardId, count]) => {
+      if (otherCardId === cardId) return sum;
+      return getReplacementValue(constructedCardsById[otherCardId]) === value ? sum + Math.max(0, Number(count || 0)) : sum;
+    }, 0);
+    const maxForValue = value == null ? 0 : Math.max(0, MAX_REPLACEMENTS_PER_VALUE - sameValueCurrent);
+    const quantity = Math.max(0, Math.min(owned, maxForValue, Math.floor(Number(nextQuantity || 0))));
     setConstructedSaveMessage("");
     setConstructedQuantities((current) => {
       const next = { ...current };
@@ -1726,10 +1747,10 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <div>
               <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Constructed Deck</h4>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Add up to {MAX_CONSTRUCTED_ADDITIONS} owned cards from one faction for {MAX_CONSTRUCTED_DECK_SIZE} cards total.</div>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap owned faction cards into matching values while keeping exactly 4 cards of each value.</div>
             </div>
-            <div style={{ color: constructedAdditionCount > MAX_CONSTRUCTED_ADDITIONS ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
-              {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE}
+            <div style={{ color: constructedCurveWarning ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
+              {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
@@ -1759,14 +1780,16 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = Number(constructedQuantities[card.id] || 0);
               const owned = Number(cardsOwned[card.id] || 0);
-              const canAdd = count < owned && constructedAdditionCount < MAX_CONSTRUCTED_ADDITIONS;
+              const value = getReplacementValue(card);
+              const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
+              const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
               return (
                 <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.78)" : "rgba(15,23,42,0.44)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>{count}/{owned}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value}</div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value} ({valueCount}/{MAX_REPLACEMENTS_PER_VALUE} at this value)</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35, minHeight: 32 }}>{card.text}</div>
                   <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                     <button type="button" onClick={() => setConstructedCardQuantity(card.id, count - 1)} disabled={count <= 0} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: count <= 0 ? "not-allowed" : "pointer" }}>-</button>
@@ -1777,9 +1800,10 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             })}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={constructedAdditionCount <= 0 || constructedAdditionCount > MAX_CONSTRUCTED_ADDITIONS}>Save Constructed Deck</MenuButton>
-            {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE + (savedConstructedDeck.additionCount || 0)} cards)</span>}
+            <MenuButton onClick={saveConstructedDeck} disabled={constructedReplacementCount <= 0 || !!constructedCurveWarning}>Save Constructed Deck</MenuButton>
+            {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
             {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
+            {constructedCurveWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Too many value {constructedCurveWarning[0]} cards.</span>}
           </div>
         </div>
         <div>
@@ -1876,7 +1900,7 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
       <strong style={{ color: rarity.color }}>{card.name}</strong>
       <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - value {card.value}</span>
       <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
-      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Added" : actionLabel}</span>
+      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Swapped" : actionLabel}</span>
     </button>
   );
 }
@@ -1889,6 +1913,12 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter(Boolean))];
   const selectedFactionId = selectedFactionIds[0] || "";
   const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
+  const selectedValueCounts = myDeckAdditions.reduce((counts, card) => {
+    const value = getReplacementValue(card);
+    if (value == null) return counts;
+    counts[value] = (counts[value] || 0) + 1;
+    return counts;
+  }, {});
   const savedDraftDeck = account?.stats?.savedDraftDeck || null;
   const players = draft?.players || lobby?.players || {};
   const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
@@ -1903,7 +1933,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
           <div>
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Draft League Match" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
             <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Draft League" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
-            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isBotDraft ? "Draft with seven bot drafters, then save a one-faction deck for Draft League." : "Draft faction cards, then add selected cards to your standard 52-card playing deck."}</p>
+            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
           </div>
           <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
             <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
@@ -1939,7 +1969,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
               <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
               <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
               {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
-              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || savedDraftDeck.cards?.length || 0}) - {(savedDraftDeck.draftType || "player") === "bot" ? "Bot Draft" : "Player Draft"}</div>}
+              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {(savedDraftDeck.draftType || "player") === "bot" ? "Bot Draft" : "Player Draft"}</div>}
             </div>
             {isBotDraft && draft?.botPickLog?.length > 0 && (
               <div style={{ marginTop: 10, padding: 10, borderRadius: 8, border: "1px solid rgba(125,211,252,0.22)", background: "rgba(15,23,42,0.42)", color: "#bfdbfe", fontSize: 12, display: "grid", gap: 3 }}>
@@ -1966,12 +1996,12 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
         )}
 
         {draft?.status === "building" && !isSpectator && (
-          <MenuCard title={`Build Draft Deck (${myDeckAdditions.length} additions)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Your saved Draft League deck will be your 52-card base deck plus these additions.</p>
+          <MenuCard title={`Build Draft Deck (${myDeckAdditions.length} swaps)`}>
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Each chosen card replaces a same-value card in your 52-card base deck, with no more than 4 cards at any value.</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
               <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
                 <strong>Deck size</strong>
-                <div>{(draft?.baseDeck?.cardCount || 52) + myDeckAdditions.length} cards</div>
+                <div>{draft?.baseDeck?.cardCount || BASE_PLAYING_DECK_SIZE} cards - {myDeckAdditions.length} swap{myDeckAdditions.length === 1 ? "" : "s"}</div>
               </div>
               <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
                 <strong>Faction</strong>
@@ -1989,7 +2019,14 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
               {myPool.map((card) => (
-                <DraftCardTile key={card.draftCopyId} card={card} selected={selectedIds.has(card.draftCopyId)} disabled={!selectedIds.has(card.draftCopyId) && selectedFactionId && card.factionId !== selectedFactionId} actionLabel={selectedIds.has(card.draftCopyId) ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : "Add"} onClick={() => onToggleDeckCard(card.draftCopyId)} />
+                <DraftCardTile
+                  key={card.draftCopyId}
+                  card={card}
+                  selected={selectedIds.has(card.draftCopyId)}
+                  disabled={!selectedIds.has(card.draftCopyId) && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
+                  actionLabel={selectedIds.has(card.draftCopyId) ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
+                  onClick={() => onToggleDeckCard(card.draftCopyId)}
+                />
               ))}
             </div>
           </MenuCard>
@@ -3060,8 +3097,8 @@ export default function App() {
       }
     }
 
-    window.addEventListener("keydown", handleGameplayHotkey);
-    return () => window.removeEventListener("keydown", handleGameplayHotkey);
+    window.addEventListener("keydown", handleGameplayHotkey, true);
+    return () => window.removeEventListener("keydown", handleGameplayHotkey, true);
   }, []);
 
   useEffect(() => {
@@ -3646,6 +3683,14 @@ export default function App() {
     if (chosenCard && !currentIds.has(cardCopyId) && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
       setError("Draft decks can only include cards from one faction. Remove the current faction cards first to switch.");
       return;
+    }
+    if (chosenCard && !currentIds.has(cardCopyId)) {
+      const chosenValue = getReplacementValue(chosenCard);
+      const sameValueCount = (draftState.myDeckAdditions || []).filter((card) => getReplacementValue(card) === chosenValue).length;
+      if (chosenValue == null || sameValueCount >= MAX_REPLACEMENTS_PER_VALUE) {
+        setError(`Draft decks can only swap up to ${MAX_REPLACEMENTS_PER_VALUE} cards of the same value.`);
+        return;
+      }
     }
     if (currentIds.has(cardCopyId)) currentIds.delete(cardCopyId);
     else currentIds.add(cardCopyId);
@@ -5703,7 +5748,7 @@ export default function App() {
           align-items: stretch;
           padding: 7px;
           min-height: 0;
-          max-height: 204px;
+          max-height: 238px;
           overflow: hidden;
         }
         .bottom-left-actions {
@@ -6052,7 +6097,7 @@ export default function App() {
         }
         .game-main {
           display: grid;
-          grid-template-rows: minmax(118px, 0.72fr) auto minmax(176px, 0.96fr);
+          grid-template-rows: minmax(106px, 0.62fr) auto minmax(204px, 1.08fr);
           gap: 5px;
           overflow: hidden !important;
           padding-right: 0 !important;
@@ -6079,12 +6124,24 @@ export default function App() {
           touch-action: pan-x;
         }
         .game-root .bottom-player-panel .card-box {
-          width: 98px !important;
-          min-width: 98px !important;
-          min-height: 150px !important;
+          width: 104px !important;
+          min-width: 104px !important;
+          min-height: 184px !important;
         }
         .game-root .bottom-player-panel .card-box button[title] {
           height: 44px !important;
+        }
+        .game-root .bottom-player-panel .card-actions {
+          margin-top: auto;
+          gap: 3px !important;
+        }
+        .game-root .bottom-player-panel .card-actions > div:first-child {
+          display: none !important;
+        }
+        .game-root .bottom-player-panel .card-actions button {
+          min-height: 22px !important;
+          padding: 3px 4px !important;
+          line-height: 1.05 !important;
         }
         .game-root .power-section {
           max-height: 116px;

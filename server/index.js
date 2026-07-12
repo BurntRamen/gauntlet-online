@@ -297,7 +297,7 @@ const RUMIN_COLLECTION_CARDS = [
     type: "weapon",
     rarity: "mythic",
     value: 9,
-    text: "Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +7 if it is your fourth attack this turn."
+    text: "Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn."
   },
   {
     id: "rumin-rumie-market-colossus",
@@ -657,7 +657,7 @@ const BIZI_COLLECTION_CARDS = [
     type: "tactic",
     rarity: "mythic",
     value: 9,
-    text: "Gain 2 acceleration counters. Your next card this turn gets +1 value for each counter you have."
+    text: "Gain 2 acceleration counters. Your next card this turn gets up to +4 value, one for each acceleration counter you have."
   },
   {
     id: "bizi-constanti-sunforge",
@@ -666,7 +666,7 @@ const BIZI_COLLECTION_CARDS = [
     type: "unit",
     rarity: "mythic",
     value: 10,
-    text: "When this attacks, remove any number of acceleration counters. It gets +2 value for each counter removed."
+    text: "When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed."
   }
 ];
 
@@ -778,8 +778,11 @@ function collectionSummary(stats = {}) {
 const DRAFT_PACKS_PER_PLAYER = 3;
 const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
 const BASE_PLAYING_DECK_SIZE = 52;
-const MAX_CONSTRUCTED_DECK_SIZE = 80;
-const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_DECK_SIZE - BASE_PLAYING_DECK_SIZE;
+const PLAYING_DECK_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+const MAX_REPLACEMENTS_PER_VALUE = 4;
+const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
+const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
+const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 const DRAFT_BOT_NAMES = [
   "Atlas Surveyor",
   "Copperline Drafter",
@@ -819,14 +822,76 @@ function createBaseDeckSummary() {
   return {
     name: "Standard 52-card Gauntlet deck",
     cardCount: 52,
-    note: "Your drafted cards are added to this base deck for draft deckbuilding."
+    note: "Drafted or constructed faction cards replace same-value cards in this 52-card deck."
   };
+}
+
+function getReplacementCardValue(card) {
+  const value = Number(card?.value);
+  return PLAYING_DECK_VALUES.includes(value) ? value : null;
+}
+
+function getReplacementValueCounts(cards = []) {
+  return cards.reduce((counts, card) => {
+    const value = getReplacementCardValue(card);
+    if (value == null) return counts;
+    counts[value] = (counts[value] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function filterValidReplacementCards(cards = [], factionId = null) {
+  const valueCounts = {};
+  return (Array.isArray(cards) ? cards : []).filter((card) => {
+    if (!card) return false;
+    if (factionId && card.factionId !== factionId) return false;
+    const value = getReplacementCardValue(card);
+    if (value == null) return false;
+    valueCounts[value] = (valueCounts[value] || 0) + 1;
+    return valueCounts[value] <= MAX_REPLACEMENTS_PER_VALUE;
+  });
+}
+
+function validateReplacementCardSet(cards = [], { factionId = null, requireOneFaction = true } = {}) {
+  const selectedCards = Array.isArray(cards) ? cards.filter(Boolean) : [];
+  const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+  if (requireOneFaction && factionIds.length > 1) {
+    throw new Error("Decks can only include cards from one faction.");
+  }
+  if (factionId && factionIds.some((id) => id !== factionId)) {
+    throw new Error("Decks can only include cards from the chosen faction.");
+  }
+  const valueCounts = getReplacementValueCounts(selectedCards);
+  for (const [value, count] of Object.entries(valueCounts)) {
+    if (count > MAX_REPLACEMENTS_PER_VALUE) {
+      throw new Error(`You can only swap up to ${MAX_REPLACEMENTS_PER_VALUE} cards of value ${value}.`);
+    }
+  }
+  if (selectedCards.some((card) => getReplacementCardValue(card) == null)) {
+    throw new Error("Every deck card must have a value from 2 through Ace.");
+  }
+  return {
+    factionIds,
+    valueCounts,
+    replacementCount: selectedCards.length
+  };
+}
+
+function applyDeckReplacements(deck, replacementCards, faction, createReplacementCard) {
+  const validReplacements = filterValidReplacementCards(replacementCards, faction?.id);
+  for (const card of validReplacements) {
+    const value = getReplacementCardValue(card);
+    const baseIndex = deck.findIndex((entry) => !entry.draftCard && getBaseCardValue(entry) === value);
+    if (baseIndex < 0) continue;
+    deck.splice(baseIndex, 1);
+    deck.push(createReplacementCard(card, faction));
+  }
 }
 
 function getSavedDraftDeck(stats = {}) {
   const deck = stats.savedDraftDeck;
   if (!deck || !Array.isArray(deck.cards) || deck.cards.length === 0 || !deck.factionId) return null;
-  const cards = deck.cards
+  const cards = filterValidReplacementCards(deck.cards, deck.factionId)
     .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
     .map((card) => getPlayableCollectionCard(card, {
       suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit()
@@ -837,7 +902,12 @@ function getSavedDraftDeck(stats = {}) {
     factionId: deck.factionId,
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
     draftType: deck.draftType === "bot" ? "bot" : "player",
-    cardCount: cards.length,
+    baseCardCount: BASE_PLAYING_DECK_SIZE,
+    maxCardCount: BASE_PLAYING_DECK_SIZE,
+    cardCount: BASE_PLAYING_DECK_SIZE,
+    replacementCount: cards.length,
+    additionCount: cards.length,
+    valueCounts: getReplacementValueCounts(cards),
     savedAt: deck.savedAt || null,
     cards
   };
@@ -867,8 +937,8 @@ function expandConstructedCardQuantities(cardQuantities = {}, factionId) {
 function getSavedConstructedDeck(stats = {}) {
   const deck = stats.savedConstructedDeck;
   if (!deck || !deck.factionId || !deck.cardQuantities || typeof deck.cardQuantities !== "object") return null;
-  const cards = expandConstructedCardQuantities(deck.cardQuantities, deck.factionId);
-  if (cards.length > MAX_CONSTRUCTED_ADDITIONS) return null;
+  const cards = filterValidReplacementCards(expandConstructedCardQuantities(deck.cardQuantities, deck.factionId), deck.factionId);
+  if (cards.length > MAX_CONSTRUCTED_REPLACEMENTS) return null;
   return {
     name: deck.name || `${deck.factionName || deck.factionId} Constructed Deck`,
     deckType: "constructed",
@@ -876,8 +946,10 @@ function getSavedConstructedDeck(stats = {}) {
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: MAX_CONSTRUCTED_DECK_SIZE,
-    cardCount: BASE_PLAYING_DECK_SIZE + cards.length,
+    cardCount: BASE_PLAYING_DECK_SIZE,
+    replacementCount: cards.length,
     additionCount: cards.length,
+    valueCounts: getReplacementValueCounts(cards),
     cardQuantities: { ...deck.cardQuantities },
     savedAt: deck.savedAt || null,
     cards
@@ -891,23 +963,30 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   const requested = payload.cardQuantities && typeof payload.cardQuantities === "object" ? payload.cardQuantities : {};
   const collection = normalizeCollection(stats);
   const sanitized = {};
-  let totalAdditions = 0;
+  let totalReplacements = 0;
+  const valueCounts = {};
 
   for (const [cardId, rawQuantity] of Object.entries(requested)) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
     if (quantity <= 0) continue;
     const card = getCollectionCatalogCard(cardId);
     if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
+    const value = getReplacementCardValue(card);
+    if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
     const owned = Math.max(0, Math.floor(Number(collection.cards?.[cardId] || 0)));
     if (quantity > owned) throw new Error(`You only own ${owned} cop${owned === 1 ? "y" : "ies"} of ${card.name}.`);
-    totalAdditions += quantity;
-    if (totalAdditions > MAX_CONSTRUCTED_ADDITIONS) {
-      throw new Error(`Constructed decks include the 52-card playing deck and can add up to ${MAX_CONSTRUCTED_ADDITIONS} faction cards (${MAX_CONSTRUCTED_DECK_SIZE} total).`);
+    valueCounts[value] = (valueCounts[value] || 0) + quantity;
+    if (valueCounts[value] > MAX_REPLACEMENTS_PER_VALUE) {
+      throw new Error(`Your 52-card deck can only have ${MAX_REPLACEMENTS_PER_VALUE} cards with value ${value}. Swap fewer cards at that value.`);
+    }
+    totalReplacements += quantity;
+    if (totalReplacements > MAX_CONSTRUCTED_REPLACEMENTS) {
+      throw new Error(`Constructed decks stay at ${BASE_PLAYING_DECK_SIZE} cards total.`);
     }
     sanitized[cardId] = quantity;
   }
 
-  if (totalAdditions === 0) throw new Error("Choose at least one owned faction card for your constructed deck.");
+  if (totalReplacements === 0) throw new Error("Choose at least one owned faction card to swap into your constructed deck.");
 
   return {
     name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
@@ -915,8 +994,10 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     factionName: faction.name,
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: MAX_CONSTRUCTED_DECK_SIZE,
-    cardCount: BASE_PLAYING_DECK_SIZE + totalAdditions,
-    additionCount: totalAdditions,
+    cardCount: BASE_PLAYING_DECK_SIZE,
+    replacementCount: totalReplacements,
+    additionCount: totalReplacements,
+    valueCounts,
     cardQuantities: sanitized,
     savedAt: new Date().toISOString()
   };
@@ -1329,7 +1410,12 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     factionId: draftDeck.factionId,
     factionName: draftDeck.factionName,
     draftType: draftDeck.draftType === "bot" ? "bot" : "player",
-    cardCount: draftDeck.cards.length,
+    baseCardCount: BASE_PLAYING_DECK_SIZE,
+    maxCardCount: BASE_PLAYING_DECK_SIZE,
+    cardCount: BASE_PLAYING_DECK_SIZE,
+    replacementCount: draftDeck.cards.length,
+    additionCount: draftDeck.cards.length,
+    valueCounts: getReplacementValueCounts(draftDeck.cards),
     savedAt: new Date().toISOString(),
     cards: draftDeck.cards.map((card) => ({
       id: card.id,
@@ -3483,7 +3569,7 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
     else if (cardIs(weapon, "rumin-rumie-vault-shield")) bonus = 3;
     else if (cardIs(weapon, "rumin-imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
     else if (cardIs(weapon, "rumin-aurelian-clawblade")) bonus = 4;
-    else if (cardIs(weapon, "rumin-kaisers-gold-claw")) bonus = attackNumber === 4 ? 7 : 5;
+    else if (cardIs(weapon, "rumin-kaisers-gold-claw")) bonus = attackNumber === 4 ? 6 : 5;
     else bonus = Math.max(1, Math.floor(getBaseCardValue(weapon) / 2));
 
     if (player.turnData.ruminNextWeaponArmBonus) {
@@ -3577,8 +3663,8 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     notes.push("Sandstorm Processor +2");
   }
   if (player.faction?.id === "bizi" && cardIs(card, "bizi-constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
-    const spent = player.accelerationCounters;
-    player.accelerationCounters = 0;
+    const spent = Math.min(3, player.accelerationCounters || 0);
+    player.accelerationCounters = Math.max(0, (player.accelerationCounters || 0) - spent);
     value += spent * 2;
     notes.push(`Constanti Sunforge spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
   }
@@ -3850,7 +3936,7 @@ function applyAfterAttackDeclared(game, playerNum, attack, payment) {
   }
   if (cardIs(card, "bizi-focus-prime-signal")) {
     player.accelerationCounters = (player.accelerationCounters || 0) + 2;
-    player.turnData.biziPrimeSignalBonus = player.accelerationCounters || 0;
+    player.turnData.biziPrimeSignalBonus = Math.min(4, player.accelerationCounters || 0);
     notes.push(`Focus Prime Signal +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
   }
   if (cardIs(card, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
@@ -4582,7 +4668,7 @@ function createGameFromLobby(roomState) {
     };
   }
 
-  function createDeck(faction, addedCards = []) {
+  function createDeck(faction, replacementCards = []) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -4598,9 +4684,7 @@ function createGameFromLobby(roomState) {
         });
       }
     }
-    addedCards
-      .filter((card) => card && card.factionId === faction.id && Number.isFinite(Number(card.value)))
-      .forEach((card) => deck.push(createDraftCardForDeck(card, faction)));
+    applyDeckReplacements(deck, replacementCards, faction, createDraftCardForDeck);
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -4608,13 +4692,13 @@ function createGameFromLobby(roomState) {
     return deck;
   }
 
-  function getLobbyDeckAdditions(playerNum) {
+  function getLobbyDeckReplacements(playerNum) {
     const lobbyPlayer = roomState.lobby.players[playerNum];
-    const additions = [];
-    if (lobbyPlayer.savedDraftDeck?.cards?.length) additions.push(...lobbyPlayer.savedDraftDeck.cards);
-    else if (lobbyPlayer.savedConstructedDeck?.cards?.length) additions.push(...lobbyPlayer.savedConstructedDeck.cards);
-    if (lobbyPlayer.campaignDeckAdditions?.length) additions.push(...lobbyPlayer.campaignDeckAdditions);
-    return additions;
+    const replacements = [];
+    if (lobbyPlayer.savedDraftDeck?.cards?.length) replacements.push(...lobbyPlayer.savedDraftDeck.cards);
+    else if (lobbyPlayer.savedConstructedDeck?.cards?.length) replacements.push(...lobbyPlayer.savedConstructedDeck.cards);
+    if (lobbyPlayer.campaignDeckAdditions?.length) replacements.push(...lobbyPlayer.campaignDeckAdditions);
+    return replacements;
   }
   
   const game = {
@@ -4633,7 +4717,7 @@ function createGameFromLobby(roomState) {
         faction: faction1,
         life: 42,
         hand: [],
-        deck: createDeck(faction1, getLobbyDeckAdditions(1)),
+        deck: createDeck(faction1, getLobbyDeckReplacements(1)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -4645,7 +4729,7 @@ function createGameFromLobby(roomState) {
         faction: faction2,
         life: 42,
         hand: [],
-        deck: createDeck(faction2, getLobbyDeckAdditions(2)),
+        deck: createDeck(faction2, getLobbyDeckReplacements(2)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -4708,7 +4792,7 @@ function createFreeForAllGameFromLobby(roomState) {
     };
   }
 
-  function createDeck(faction, addedCards = []) {
+  function createDeck(faction, replacementCards = []) {
     const deck = [];
     for (const suit of suits) {
       for (const value of values) {
@@ -4724,9 +4808,7 @@ function createFreeForAllGameFromLobby(roomState) {
         });
       }
     }
-    addedCards
-      .filter((card) => card && card.factionId === faction.id && Number.isFinite(Number(card.value)))
-      .forEach((card) => deck.push(createAddedCardForDeck(card, faction)));
+    applyDeckReplacements(deck, replacementCards, faction, createAddedCardForDeck);
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -5344,9 +5426,10 @@ io.on("connection", (socket) => {
     const selectedIds = new Set(Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []);
     const pool = roomState.draft.draftedPools[key] || [];
     const selectedCards = pool.filter((card) => selectedIds.has(card.draftCopyId));
-    const selectedFactionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
-    if (selectedFactionIds.length > 1) {
-      socket.emit("errorMessage", "Draft decks can only include cards from one faction.");
+    try {
+      validateReplacementCardSet(selectedCards);
+    } catch (error) {
+      socket.emit("errorMessage", error.message || "Draft decks must be one faction and keep four cards per value.");
       return;
     }
     roomState.draft.deckAdditions[key] = selectedCards;
@@ -5370,7 +5453,14 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Choose at least one drafted card before saving.");
       return;
     }
-    const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+    let validation;
+    try {
+      validation = validateReplacementCardSet(selectedCards);
+    } catch (error) {
+      socket.emit("errorMessage", error.message || "Save a one-faction deck with no more than four cards of any value.");
+      return;
+    }
+    const factionIds = validation.factionIds;
     if (factionIds.length !== 1) {
       socket.emit("errorMessage", "Save a deck with cards from exactly one faction.");
       return;
@@ -5389,7 +5479,7 @@ io.on("connection", (socket) => {
     }
     socket.emit("accountUpdated", savedAccount);
     socket.emit("draftDeckSaved", {
-      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} card${selectedCards.length === 1 ? "" : "s"} for ${roomState.draft.botDraft ? "Bot Draft" : "Player Draft"} League.`
+      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} swap${selectedCards.length === 1 ? "" : "s"} for ${roomState.draft.botDraft ? "Bot Draft" : "Player Draft"} League.`
     });
   });
 
