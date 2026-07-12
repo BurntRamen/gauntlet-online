@@ -2457,10 +2457,12 @@ function CombatStrip({ game }) {
   );
 }
 
-function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false }) {
+function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "" }) {
   const dialogueAudioRefs = useRef([]);
+  const autoPlayedRef = useRef("");
   const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
   const audioLines = Array.isArray(audio) ? audio : [];
+  const audioKey = audioLines.filter(Boolean).join("\n");
   const stopDialogueAudio = () => {
     dialogueAudioRefs.current.forEach((clip) => {
       if (!clip) return;
@@ -2485,6 +2487,36 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
       clip.currentTime = 0;
     });
   }, []);
+
+  useEffect(() => {
+    const sources = audioKey.split("\n").filter(Boolean);
+    if (!autoPlayKey || sources.length === 0 || autoPlayedRef.current === autoPlayKey) return undefined;
+    autoPlayedRef.current = autoPlayKey;
+    let cancelled = false;
+    let currentIndex = 0;
+    let activeClip = null;
+    const playNext = () => {
+      if (cancelled || currentIndex >= sources.length || typeof window === "undefined" || typeof window.Audio !== "function") return;
+      const source = sources[currentIndex];
+      currentIndex += 1;
+      if (!source) {
+        playNext();
+        return;
+      }
+      stopDialogueAudio();
+      activeClip = new window.Audio(resolveAssetPath(source));
+      activeClip.volume = 1;
+      dialogueAudioRefs.current[currentIndex - 1] = activeClip;
+      activeClip.onended = playNext;
+      activeClip.play().catch(() => {});
+    };
+    const timer = window.setTimeout(playNext, 600);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (activeClip) activeClip.onended = null;
+    };
+  }, [autoPlayKey, audioKey]);
 
   if (visibleLines.length === 0) return null;
 
@@ -2529,7 +2561,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                     fontSize: compact ? 10 : 12
                   }}
                 >
-                  Voice
+                  Play Voice
                 </button>
               )}
               <span>
@@ -5317,7 +5349,7 @@ export default function App() {
         alignContent: "start",
         gap: 6,
         minWidth: 0,
-        maxHeight: 124,
+        maxHeight: attackMode || blockMode || placementMode ? 190 : 124,
         overflowY: "auto"
       }}
     >
@@ -5960,7 +5992,7 @@ export default function App() {
           align-items: stretch;
           padding: 7px;
           min-height: 0;
-          max-height: 238px;
+          max-height: 270px;
           overflow: hidden;
         }
         .bottom-left-actions {
@@ -6309,7 +6341,7 @@ export default function App() {
         }
         .game-main {
           display: grid;
-          grid-template-rows: minmax(106px, 0.62fr) auto minmax(204px, 1.08fr);
+          grid-template-rows: minmax(98px, 0.5fr) auto minmax(238px, 1.12fr);
           gap: 5px;
           overflow: hidden !important;
           padding-right: 0 !important;
@@ -6338,7 +6370,10 @@ export default function App() {
         .game-root .bottom-player-panel .card-box {
           width: 104px !important;
           min-width: 104px !important;
-          min-height: 202px !important;
+          height: 214px !important;
+          min-height: 214px !important;
+          padding-bottom: 62px !important;
+          overflow: hidden;
         }
         .game-root .bottom-player-panel .card-box button[title] {
           height: 44px !important;
@@ -6347,16 +6382,22 @@ export default function App() {
           margin-top: auto;
           display: grid !important;
           gap: 3px !important;
-          min-height: 54px;
+          min-height: 52px;
+          position: absolute;
+          left: 6px;
+          right: 6px;
+          bottom: 6px;
+          z-index: 3;
         }
         .game-root .bottom-player-panel .card-actions > div:first-child,
         .game-root .bottom-player-panel .card-actions .helper-text {
           display: none !important;
         }
         .game-root .bottom-player-panel .card-actions button {
-          min-height: 22px !important;
-          padding: 3px 4px !important;
+          min-height: 24px !important;
+          padding: 4px 4px !important;
           line-height: 1.05 !important;
+          font-weight: 800;
         }
         .game-root .power-section {
           max-height: 116px;
@@ -6866,7 +6907,13 @@ export default function App() {
               </div>
             )}
             {game.campaign && (
-              <CampaignDialogueBlock title="Opening Dialogue" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
+              <CampaignDialogueBlock
+                title="Opening Dialogue"
+                lines={game.campaign.startDialogue || game.campaign.dialogue}
+                audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+                autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
+                compact
+              />
             )}
             <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
           </div>
