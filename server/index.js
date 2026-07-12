@@ -831,11 +831,49 @@ function getReplacementCardValue(card) {
   return PLAYING_DECK_VALUES.includes(value) ? value : null;
 }
 
+function normalizeDeckSuit(suit) {
+  const key = String(suit || "").toLowerCase();
+  const map = {
+    "♠": "spades",
+    "â™ ": "spades",
+    spade: "spades",
+    spades: "spades",
+    "♥": "hearts",
+    "â™¥": "hearts",
+    heart: "hearts",
+    hearts: "hearts",
+    "♦": "diamonds",
+    "â™¦": "diamonds",
+    diamond: "diamonds",
+    diamonds: "diamonds",
+    "♣": "clubs",
+    "â™£": "clubs",
+    club: "clubs",
+    clubs: "clubs"
+  };
+  return map[key] || (DRAFT_CARD_SUITS.includes(key) ? key : null);
+}
+
+function normalizeReplacementSuit(card) {
+  return normalizeDeckSuit(card?.replacementSuit || card?.suit) || getDraftCardSuit();
+}
+
 function getReplacementValueCounts(cards = []) {
   return cards.reduce((counts, card) => {
     const value = getReplacementCardValue(card);
     if (value == null) return counts;
     counts[value] = (counts[value] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function getReplacementSlotCounts(cards = []) {
+  return cards.reduce((counts, card) => {
+    const value = getReplacementCardValue(card);
+    const suit = normalizeReplacementSuit(card);
+    if (value == null || !suit) return counts;
+    const key = `${value}:${suit}`;
+    counts[key] = (counts[key] || 0) + 1;
     return counts;
   }, {});
 }
@@ -862,9 +900,16 @@ function validateReplacementCardSet(cards = [], { factionId = null, requireOneFa
     throw new Error("Decks can only include cards from the chosen faction.");
   }
   const valueCounts = getReplacementValueCounts(selectedCards);
+  const slotCounts = getReplacementSlotCounts(selectedCards);
   for (const [value, count] of Object.entries(valueCounts)) {
     if (count > MAX_REPLACEMENTS_PER_VALUE) {
       throw new Error(`You can only swap up to ${MAX_REPLACEMENTS_PER_VALUE} cards of value ${value}.`);
+    }
+  }
+  for (const [slot, count] of Object.entries(slotCounts)) {
+    if (count > 1) {
+      const [value, suit] = slot.split(":");
+      throw new Error(`Only one card can replace the ${value} of ${suit}.`);
     }
   }
   if (selectedCards.some((card) => getReplacementCardValue(card) == null)) {
@@ -873,6 +918,7 @@ function validateReplacementCardSet(cards = [], { factionId = null, requireOneFa
   return {
     factionIds,
     valueCounts,
+    slotCounts,
     replacementCount: selectedCards.length
   };
 }
@@ -881,10 +927,17 @@ function applyDeckReplacements(deck, replacementCards, faction, createReplacemen
   const validReplacements = filterValidReplacementCards(replacementCards, faction?.id);
   for (const card of validReplacements) {
     const value = getReplacementCardValue(card);
-    const baseIndex = deck.findIndex((entry) => !entry.draftCard && getBaseCardValue(entry) === value);
-    if (baseIndex < 0) continue;
-    deck.splice(baseIndex, 1);
-    deck.push(createReplacementCard(card, faction));
+    const targetSuit = normalizeReplacementSuit(card);
+    const baseIndex = deck.findIndex((entry) => (
+      !entry.draftCard &&
+      getBaseCardValue(entry) === value &&
+      normalizeDeckSuit(entry.suit) === targetSuit
+    ));
+    const fallbackIndex = baseIndex >= 0 ? baseIndex : deck.findIndex((entry) => !entry.draftCard && getBaseCardValue(entry) === value);
+    if (fallbackIndex < 0) continue;
+    const replacementCard = { ...card, suit: targetSuit, replacementSuit: targetSuit };
+    deck.splice(fallbackIndex, 1);
+    deck.push(createReplacementCard(replacementCard, faction));
   }
 }
 
@@ -894,7 +947,8 @@ function getSavedDraftDeck(stats = {}) {
   const cards = filterValidReplacementCards(deck.cards, deck.factionId)
     .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
     .map((card) => getPlayableCollectionCard(card, {
-      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit()
+      suit: normalizeReplacementSuit(card),
+      replacementSuit: normalizeReplacementSuit(card)
     }));
   if (cards.length === 0) return null;
   return {
@@ -922,22 +976,27 @@ function getCollectionCatalogCard(cardId) {
   ].find((card) => card.id === cardId) || null;
 }
 
-function expandConstructedCardQuantities(cardQuantities = {}, factionId) {
+function expandConstructedCardQuantities(cardQuantities = {}, factionId, cardSuitChoices = {}) {
   return Object.entries(cardQuantities)
     .flatMap(([cardId, quantity]) => {
       const count = Math.max(0, Math.floor(Number(quantity || 0)));
       const card = getCollectionCatalogCard(cardId);
       if (!card || card.factionId !== factionId || count <= 0) return [];
-      return Array.from({ length: count }, () => getPlayableCollectionCard(card, {
-        suit: getDraftCardSuit()
-      }));
+      const suitChoices = Array.isArray(cardSuitChoices?.[cardId]) ? cardSuitChoices[cardId] : [];
+      return Array.from({ length: count }, (_, index) => {
+        const suit = normalizeDeckSuit(suitChoices[index]) || DRAFT_CARD_SUITS[index % DRAFT_CARD_SUITS.length];
+        return getPlayableCollectionCard(card, {
+          suit,
+          replacementSuit: suit
+        });
+      });
     });
 }
 
 function getSavedConstructedDeck(stats = {}) {
   const deck = stats.savedConstructedDeck;
   if (!deck || !deck.factionId || !deck.cardQuantities || typeof deck.cardQuantities !== "object") return null;
-  const cards = filterValidReplacementCards(expandConstructedCardQuantities(deck.cardQuantities, deck.factionId), deck.factionId);
+  const cards = filterValidReplacementCards(expandConstructedCardQuantities(deck.cardQuantities, deck.factionId, deck.cardSuitChoices), deck.factionId);
   if (cards.length > MAX_CONSTRUCTED_REPLACEMENTS) return null;
   return {
     name: deck.name || `${deck.factionName || deck.factionId} Constructed Deck`,
@@ -951,6 +1010,7 @@ function getSavedConstructedDeck(stats = {}) {
     additionCount: cards.length,
     valueCounts: getReplacementValueCounts(cards),
     cardQuantities: { ...deck.cardQuantities },
+    cardSuitChoices: { ...(deck.cardSuitChoices || {}) },
     savedAt: deck.savedAt || null,
     cards
   };
@@ -961,10 +1021,13 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   const faction = getFactionById(factionId);
   if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
   const requested = payload.cardQuantities && typeof payload.cardQuantities === "object" ? payload.cardQuantities : {};
+  const requestedSuitChoices = payload.cardSuitChoices && typeof payload.cardSuitChoices === "object" ? payload.cardSuitChoices : {};
   const collection = normalizeCollection(stats);
   const sanitized = {};
+  const sanitizedSuitChoices = {};
   let totalReplacements = 0;
   const valueCounts = {};
+  const slotCounts = {};
 
   for (const [cardId, rawQuantity] of Object.entries(requested)) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
@@ -984,6 +1047,17 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
       throw new Error(`Constructed decks stay at ${BASE_PLAYING_DECK_SIZE} cards total.`);
     }
     sanitized[cardId] = quantity;
+    const rawSuitChoices = Array.isArray(requestedSuitChoices[cardId]) ? requestedSuitChoices[cardId] : [];
+    sanitizedSuitChoices[cardId] = Array.from({ length: quantity }, (_, index) => (
+      normalizeDeckSuit(rawSuitChoices[index]) || DRAFT_CARD_SUITS[index % DRAFT_CARD_SUITS.length]
+    ));
+    for (const suit of sanitizedSuitChoices[cardId]) {
+      const slotKey = `${value}:${suit}`;
+      slotCounts[slotKey] = (slotCounts[slotKey] || 0) + 1;
+      if (slotCounts[slotKey] > 1) {
+        throw new Error(`Only one card can replace the ${value} of ${suit}. Choose a different suit for one of those cards.`);
+      }
+    }
   }
 
   if (totalReplacements === 0) throw new Error("Choose at least one owned faction card to swap into your constructed deck.");
@@ -998,7 +1072,9 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     replacementCount: totalReplacements,
     additionCount: totalReplacements,
     valueCounts,
+    slotCounts,
     cardQuantities: sanitized,
+    cardSuitChoices: sanitizedSuitChoices,
     savedAt: new Date().toISOString()
   };
 }
@@ -1423,7 +1499,8 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
       type: card.type,
       rarity: card.rarity,
       value: card.value,
-      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      suit: normalizeReplacementSuit(card),
+      replacementSuit: normalizeReplacementSuit(card),
       factionId: card.factionId,
       text: card.text || "",
       rulesText: card.rulesText || card.text || ""
@@ -2094,7 +2171,7 @@ function getFactionById(id) {
 
 const campaignChapters = {
   rumin: [
-    { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."] },
+    { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."], dialogueAudio: ["/assets/gauntlet/voices/rolmus-brothers-1.mp3", "/assets/gauntlet/voices/remex-brothers-1.mp3", "/assets/gauntlet/voices/rolmus-brothers-2.mp3"] },
     { id: "the-republic", playableName: "The Senate Guard", opponentName: "Tribune Marcell", title: "The Republic", story: "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic.", dialogue: ["Senator: The Republic endures because it is slow.", "Marcell: Slow things are easy to buy.", "Young Kaiser: Then someone must become too expensive to own."] },
     { id: "the-jewel", playableName: "Kaiser", opponentName: "Corrupt Governor Severan", title: "The Jewel", story: "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy.", dialogue: ["Severan: You mistake popularity for authority.", "Kaiser: No. I mistake theft for treason.", "Crowd: Kaiser! Kaiser! Kaiser!"] },
     { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."] },
@@ -5174,6 +5251,8 @@ io.on("connection", (socket) => {
       playableName: chapter.playableName || faction.commander?.name || faction.name,
       dialogue: chapter.dialogue || [],
       startDialogue: chapter.dialogue || [],
+      dialogueAudio: chapter.dialogueAudio || [],
+      startDialogueAudio: chapter.dialogueAudio || [],
       endDialogue: buildCampaignEndDialogue(chapter, faction),
       playerCampaignCardCount: playerCampaignCards.length,
       bossCampaignCardCount: bossCampaignCards.length,
@@ -5416,16 +5495,28 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  socket.on("setDraftDeckAdditions", ({ cardCopyIds } = {}) => {
+  socket.on("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}) => {
     console.log("[Socket] setDraftDeckAdditions");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.draft || roomState.draft.status !== "building") return;
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const key = String(playerNum);
-    const selectedIds = new Set(Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []);
+    const normalizedSelections = Array.isArray(selections)
+      ? selections.map((selection) => ({
+        cardCopyId: String(selection?.cardCopyId || ""),
+        suit: normalizeDeckSuit(selection?.suit)
+      })).filter((selection) => selection.cardCopyId)
+      : [];
+    const selectedIds = new Set(normalizedSelections.length > 0 ? normalizedSelections.map((selection) => selection.cardCopyId) : (Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []));
+    const suitByCardCopyId = Object.fromEntries(normalizedSelections.map((selection) => [selection.cardCopyId, selection.suit]));
     const pool = roomState.draft.draftedPools[key] || [];
-    const selectedCards = pool.filter((card) => selectedIds.has(card.draftCopyId));
+    const selectedCards = pool
+      .filter((card) => selectedIds.has(card.draftCopyId))
+      .map((card) => {
+        const suit = suitByCardCopyId[card.draftCopyId] || normalizeReplacementSuit(card);
+        return { ...card, suit, replacementSuit: suit };
+      });
     try {
       validateReplacementCardSet(selectedCards);
     } catch (error) {

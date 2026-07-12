@@ -213,7 +213,7 @@ const CAMPAIGN_CHAPTERS = {
     commanderName: "The Jewel of Rumie",
     pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.",
     chapters: [
-      { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."] },
+      { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."], dialogueAudio: ["/assets/gauntlet/voices/rolmus-brothers-1.mp3", "/assets/gauntlet/voices/remex-brothers-1.mp3", "/assets/gauntlet/voices/rolmus-brothers-2.mp3"] },
       { id: "the-republic", playableName: "The Senate Guard", opponentName: "Tribune Marcell", title: "The Republic", story: "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic.", dialogue: ["Senator: The Republic endures because it is slow.", "Marcell: Slow things are easy to buy.", "Young Kaiser: Then someone must become too expensive to own."] },
       { id: "the-jewel", playableName: "Kaiser", opponentName: "Corrupt Governor Severan", title: "The Jewel", story: "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy.", dialogue: ["Severan: You mistake popularity for authority.", "Kaiser: No. I mistake theft for treason.", "Crowd: Kaiser! Kaiser! Kaiser!"] },
       { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."] },
@@ -1338,10 +1338,35 @@ const BASE_PLAYING_DECK_SIZE = 52;
 const PLAYING_DECK_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const MAX_REPLACEMENTS_PER_VALUE = 4;
 const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
+const REPLACEMENT_SUITS = [
+  { id: "spades", label: "♠" },
+  { id: "hearts", label: "♥" },
+  { id: "diamonds", label: "♦" },
+  { id: "clubs", label: "♣" }
+];
 
 function getReplacementValue(card) {
   const value = Number(card?.value);
   return PLAYING_DECK_VALUES.includes(value) ? value : null;
+}
+
+function normalizeReplacementSuitId(suit) {
+  const key = String(suit || "").toLowerCase();
+  const map = {
+    "♠": "spades",
+    spade: "spades",
+    spades: "spades",
+    "♥": "hearts",
+    heart: "hearts",
+    hearts: "hearts",
+    "♦": "diamonds",
+    diamond: "diamonds",
+    diamonds: "diamonds",
+    "♣": "clubs",
+    club: "clubs",
+    clubs: "clubs"
+  };
+  return map[key] || (REPLACEMENT_SUITS.some((entry) => entry.id === key) ? key : "spades");
 }
 
 function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
@@ -1409,6 +1434,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const savedConstructedDeck = account?.stats?.savedConstructedDeck || null;
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
+  const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
   const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
@@ -1418,8 +1444,9 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   useEffect(() => {
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck?.cardQuantities || {});
+    setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedSaveMessage("");
-  }, [account?.id, savedConstructedDeck?.savedAt, savedConstructedDeck?.factionId, savedConstructedDeck?.cardQuantities]);
+  }, [account?.id, savedConstructedDeck?.savedAt, savedConstructedDeck?.factionId, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
 
   if (!account) {
     return (
@@ -1466,8 +1493,19 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
     counts[value] = (counts[value] || 0) + Math.max(0, Number(count || 0));
     return counts;
   }, {});
+  const constructedSlotCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
+    const value = getReplacementValue(constructedCardsById[cardId]);
+    if (value == null) return counts;
+    const suits = Array.isArray(constructedSuitChoices[cardId]) ? constructedSuitChoices[cardId] : [];
+    Array.from({ length: Math.max(0, Number(count || 0)) }, (_, index) => normalizeReplacementSuitId(suits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => {
+      const key = `${value}:${suit}`;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+  }, {});
   const constructedDeckCount = BASE_PLAYING_DECK_SIZE;
   const constructedCurveWarning = Object.entries(constructedValueCounts).find(([, count]) => count > MAX_REPLACEMENTS_PER_VALUE);
+  const constructedSlotWarning = Object.entries(constructedSlotCounts).find(([, count]) => count > 1);
 
   function setConstructedCardQuantity(cardId, nextQuantity) {
     const owned = Number(cardsOwned[cardId] || 0);
@@ -1486,6 +1524,45 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
       else next[cardId] = quantity;
       return next;
     });
+    setConstructedSuitChoices((current) => {
+      const existing = Array.isArray(current[cardId]) ? current[cardId] : [];
+      const usedSuits = new Set();
+      if (value != null) {
+        for (const [otherCardId, otherCount] of Object.entries(constructedQuantities)) {
+          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId]) !== value) continue;
+          const otherSuits = Array.isArray(current[otherCardId]) ? current[otherCardId] : [];
+          Array.from({ length: Math.max(0, Number(otherCount || 0)) }, (_, index) => normalizeReplacementSuitId(otherSuits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => usedSuits.add(suit));
+        }
+      }
+      const next = { ...current };
+      if (quantity <= 0) {
+        delete next[cardId];
+      } else {
+        next[cardId] = Array.from({ length: quantity }, (_, index) => {
+          const preferred = normalizeReplacementSuitId(existing[index] || "");
+          const suit = preferred && !usedSuits.has(preferred)
+            ? preferred
+            : REPLACEMENT_SUITS.find((entry) => !usedSuits.has(entry.id))?.id || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id;
+          usedSuits.add(suit);
+          return suit;
+        });
+      }
+      return next;
+    });
+  }
+
+  function setConstructedCardSuit(cardId, copyIndex, suit) {
+    setConstructedSaveMessage("");
+    setConstructedSuitChoices((current) => {
+      const quantity = Math.max(0, Number(constructedQuantities[cardId] || 0));
+      const existing = Array.isArray(current[cardId]) ? current[cardId] : [];
+      return {
+        ...current,
+        [cardId]: Array.from({ length: quantity }, (_, index) => (
+          index === copyIndex ? normalizeReplacementSuitId(suit) : normalizeReplacementSuitId(existing[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)
+        ))
+      };
+    });
   }
 
   async function saveConstructedDeck() {
@@ -1493,7 +1570,8 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
     try {
       await onSaveConstructedDeck({
         factionId: constructedFactionId,
-        cardQuantities: constructedQuantities
+        cardQuantities: constructedQuantities,
+        cardSuitChoices: constructedSuitChoices
       });
       setConstructedSaveMessage("Constructed deck saved.");
     } catch (saveError) {
@@ -1764,6 +1842,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
                   onClick={() => {
                     setConstructedFactionId(factionId);
                     setConstructedQuantities({});
+                    setConstructedSuitChoices({});
                     setConstructedSaveMessage("");
                   }}
                   style={{ border: `1px solid ${active ? theme.accent : "rgba(148,163,184,0.34)"}`, borderRadius: 6, padding: "7px 10px", background: active ? "rgba(250,204,21,0.16)" : "rgba(15,23,42,0.55)", color: active ? "#fde68a" : "#bfdbfe", fontWeight: 900, cursor: "pointer" }}
@@ -1795,15 +1874,34 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
                     <button type="button" onClick={() => setConstructedCardQuantity(card.id, count - 1)} disabled={count <= 0} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: count <= 0 ? "not-allowed" : "pointer" }}>-</button>
                     <button type="button" onClick={() => setConstructedCardQuantity(card.id, count + 1)} disabled={!canAdd} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: canAdd ? "pointer" : "not-allowed" }}>+</button>
                   </div>
+                  {count > 0 && (
+                    <div style={{ display: "grid", gap: 5, marginTop: 8 }}>
+                      <div style={{ color: "#fde68a", fontSize: 11, fontWeight: 900 }}>Replace suits</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {Array.from({ length: count }, (_, copyIndex) => (
+                          <select
+                            key={`${card.id}-suit-${copyIndex}`}
+                            value={normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex])}
+                            onChange={(event) => setConstructedCardSuit(card.id, copyIndex, event.target.value)}
+                            aria-label={`${card.name} replacement suit ${copyIndex + 1}`}
+                            style={{ border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "4px 6px", background: "rgba(2,6,23,0.62)", color: "#e5e7eb", fontWeight: 900 }}
+                          >
+                            {REPLACEMENT_SUITS.map((suit) => <option key={suit.id} value={suit.id}>{suit.label}</option>)}
+                          </select>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={constructedReplacementCount <= 0 || !!constructedCurveWarning}>Save Constructed Deck</MenuButton>
+            <MenuButton onClick={saveConstructedDeck} disabled={constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>Save Constructed Deck</MenuButton>
             {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
             {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
             {constructedCurveWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Too many value {constructedCurveWarning[0]} cards.</span>}
+            {constructedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Two cards are replacing the same {constructedSlotWarning[0].replace(":", " of ")}.</span>}
           </div>
         </div>
         <div>
@@ -1905,7 +2003,7 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
   );
 }
 
-function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
+function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSetDeckCardSuit, onSaveDraftDeck }) {
   const myPack = draft?.myCurrentPack?.cards || [];
   const myPool = draft?.myPool || [];
   const myDeckAdditions = draft?.myDeckAdditions || [];
@@ -1919,6 +2017,15 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
     counts[value] = (counts[value] || 0) + 1;
     return counts;
   }, {});
+  const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
+    const value = getReplacementValue(card);
+    if (value == null) return counts;
+    const suit = normalizeReplacementSuitId(card.replacementSuit || card.suit);
+    const key = `${value}:${suit}`;
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const selectedSlotWarning = Object.entries(selectedSlotCounts).find(([, count]) => count > 1);
   const savedDraftDeck = account?.stats?.savedDraftDeck || null;
   const players = draft?.players || lobby?.players || {};
   const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
@@ -2013,21 +2120,38 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1}>Save Deck for Draft League</MenuButton>
+              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for Draft League</MenuButton>
               {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
               {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
+              {selectedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: "bold" }}>Two cards are replacing the same {selectedSlotWarning[0].replace(":", " of ")}.</span>}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-              {myPool.map((card) => (
-                <DraftCardTile
-                  key={card.draftCopyId}
-                  card={card}
-                  selected={selectedIds.has(card.draftCopyId)}
-                  disabled={!selectedIds.has(card.draftCopyId) && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
-                  actionLabel={selectedIds.has(card.draftCopyId) ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
-                  onClick={() => onToggleDeckCard(card.draftCopyId)}
-                />
-              ))}
+              {myPool.map((card) => {
+                const selected = selectedIds.has(card.draftCopyId);
+                return (
+                  <div key={card.draftCopyId} style={{ display: "grid", gap: 6 }}>
+                    <DraftCardTile
+                      card={card}
+                      selected={selected}
+                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
+                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
+                      onClick={() => onToggleDeckCard(card.draftCopyId)}
+                    />
+                    {selected && (
+                      <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>
+                        Replace suit
+                        <select
+                          value={normalizeReplacementSuitId(card.replacementSuit || card.suit)}
+                          onChange={(event) => onSetDeckCardSuit(card.draftCopyId, event.target.value)}
+                          style={{ border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "4px 6px", background: "rgba(2,6,23,0.62)", color: "#e5e7eb", fontWeight: 900 }}
+                        >
+                          {REPLACEMENT_SUITS.map((suit) => <option key={suit.id} value={suit.id}>{suit.label}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </MenuCard>
         )}
@@ -2210,7 +2334,7 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
 
 function HelperText({ enabled, children }) {
   if (!enabled || !children) return null;
-  return <div style={{ marginTop: 5, color: "#475569", fontSize: 12, lineHeight: 1.3 }}>{children}</div>;
+  return <div className="helper-text" style={{ marginTop: 5, color: "#475569", fontSize: 12, lineHeight: 1.3 }}>{children}</div>;
 }
 
 function HelperToggle({ enabled, onToggle, light = false }) {
@@ -2333,8 +2457,35 @@ function CombatStrip({ game }) {
   );
 }
 
-function CampaignDialogueBlock({ title = "Dialogue", lines = [], compact = false, light = false }) {
+function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false }) {
+  const dialogueAudioRefs = useRef([]);
   const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
+  const audioLines = Array.isArray(audio) ? audio : [];
+  const stopDialogueAudio = () => {
+    dialogueAudioRefs.current.forEach((clip) => {
+      if (!clip) return;
+      clip.pause();
+      clip.currentTime = 0;
+    });
+  };
+  const playDialogueAudio = (index) => {
+    const source = audioLines[index];
+    if (!source || typeof window === "undefined" || typeof window.Audio !== "function") return;
+    stopDialogueAudio();
+    const clip = new window.Audio(resolveAssetPath(source));
+    clip.volume = 1;
+    dialogueAudioRefs.current[index] = clip;
+    clip.play().catch(() => {});
+  };
+
+  useEffect(() => () => {
+    dialogueAudioRefs.current.forEach((clip) => {
+      if (!clip) return;
+      clip.pause();
+      clip.currentTime = 0;
+    });
+  }, []);
+
   if (visibleLines.length === 0) return null;
 
   return (
@@ -2359,10 +2510,32 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], compact = false
           const separatorIndex = text.indexOf(":");
           const speaker = separatorIndex > 0 ? text.slice(0, separatorIndex).trim() : "Narrator";
           const spoken = separatorIndex > 0 ? text.slice(separatorIndex + 1).trim() : text;
+          const hasAudio = Boolean(audioLines[index]);
           return (
-            <div key={`${speaker}-${index}`}>
-              <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}:</strong>{" "}
-              <span>{spoken}</span>
+            <div key={`${speaker}-${index}`} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              {hasAudio && (
+                <button
+                  type="button"
+                  onClick={() => playDialogueAudio(index)}
+                  title={`Play ${speaker} voice`}
+                  style={{
+                    border: "1px solid rgba(250,204,21,0.42)",
+                    borderRadius: 4,
+                    padding: compact ? "1px 5px" : "2px 7px",
+                    background: light ? "rgba(255,247,237,0.86)" : "rgba(42,22,11,0.72)",
+                    color: light ? "#7c2d12" : "#fde68a",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    fontSize: compact ? 10 : 12
+                  }}
+                >
+                  Voice
+                </button>
+              )}
+              <span>
+                <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}:</strong>{" "}
+                <span>{spoken}</span>
+              </span>
             </div>
           );
         })}
@@ -3695,7 +3868,45 @@ export default function App() {
     if (currentIds.has(cardCopyId)) currentIds.delete(cardCopyId);
     else currentIds.add(cardCopyId);
     setDraftSaveMessage("");
-    socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds] });
+    const selections = draftState.myPool
+      .filter((card) => currentIds.has(card.draftCopyId))
+      .reduce((selected, card) => {
+        const existing = (draftState.myDeckAdditions || []).find((selectedCard) => selectedCard.draftCopyId === card.draftCopyId);
+        const value = getReplacementValue(card);
+        const usedSuits = new Set(selected.filter((selection) => selection.value === value).map((selection) => selection.suit));
+        const preferred = normalizeReplacementSuitId(existing?.replacementSuit || existing?.suit || card.replacementSuit || card.suit);
+        const suit = preferred && !usedSuits.has(preferred)
+          ? preferred
+          : REPLACEMENT_SUITS.find((entry) => !usedSuits.has(entry.id))?.id || preferred;
+        selected.push({
+          value,
+          cardCopyId: card.draftCopyId,
+          suit
+        });
+        return selected;
+      }, [])
+      .map((selection) => ({
+        cardCopyId: selection.cardCopyId,
+        suit: selection.suit
+      }));
+    socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds], selections });
+  }
+
+  function setDraftDeckCardSuit(cardCopyId, suit) {
+    if (!draftState?.myDeckAdditions) return;
+    const targetCard = draftState.myDeckAdditions.find((card) => card.draftCopyId === cardCopyId);
+    const targetValue = getReplacementValue(targetCard);
+    const targetSuit = normalizeReplacementSuitId(suit);
+    if (draftState.myDeckAdditions.some((card) => card.draftCopyId !== cardCopyId && getReplacementValue(card) === targetValue && normalizeReplacementSuitId(card.replacementSuit || card.suit) === targetSuit)) {
+      setError(`Another value ${targetValue} card is already replacing ${targetSuit}. Choose a different suit first.`);
+      return;
+    }
+    const selections = draftState.myDeckAdditions.map((card) => ({
+      cardCopyId: card.draftCopyId,
+      suit: card.draftCopyId === cardCopyId ? targetSuit : normalizeReplacementSuitId(card.replacementSuit || card.suit)
+    }));
+    setDraftSaveMessage("");
+    socket.emit("setDraftDeckAdditions", { cardCopyIds: selections.map((selection) => selection.cardCopyId), selections });
   }
 
   function saveDraftDeck() {
@@ -4004,6 +4215,7 @@ export default function App() {
         onStartDraft={startDraft}
         onPickCard={pickDraftCard}
         onToggleDeckCard={toggleDraftDeckCard}
+        onSetDeckCardSuit={setDraftDeckCardSuit}
         onSaveDraftDeck={saveDraftDeck}
       />
     );
@@ -6126,16 +6338,19 @@ export default function App() {
         .game-root .bottom-player-panel .card-box {
           width: 104px !important;
           min-width: 104px !important;
-          min-height: 184px !important;
+          min-height: 202px !important;
         }
         .game-root .bottom-player-panel .card-box button[title] {
           height: 44px !important;
         }
         .game-root .bottom-player-panel .card-actions {
           margin-top: auto;
+          display: grid !important;
           gap: 3px !important;
+          min-height: 54px;
         }
-        .game-root .bottom-player-panel .card-actions > div:first-child {
+        .game-root .bottom-player-panel .card-actions > div:first-child,
+        .game-root .bottom-player-panel .card-actions .helper-text {
           display: none !important;
         }
         .game-root .bottom-player-panel .card-actions button {
@@ -6651,7 +6866,7 @@ export default function App() {
               </div>
             )}
             {game.campaign && (
-              <CampaignDialogueBlock title="Opening Dialogue" lines={game.campaign.startDialogue || game.campaign.dialogue} compact />
+              <CampaignDialogueBlock title="Opening Dialogue" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
             )}
             <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
           </div>
