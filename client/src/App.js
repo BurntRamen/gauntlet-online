@@ -787,7 +787,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <div style={{ fontSize: 13 }}>{suit}</div>
       </div>
 
-      <div className="card-actions" style={{ display: "grid", gap: 4 }}>{children}</div>
+      {children}
     </div>
   );
 }
@@ -2495,25 +2495,43 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
     let cancelled = false;
     let currentIndex = 0;
     let activeClip = null;
+    let gestureArmed = false;
+    const removeGestureListeners = () => {
+      if (!gestureArmed || typeof window === "undefined") return;
+      gestureArmed = false;
+      window.removeEventListener("pointerdown", playNext, true);
+      window.removeEventListener("keydown", playNext, true);
+    };
+    const armGestureRetry = () => {
+      if (gestureArmed || typeof window === "undefined") return;
+      gestureArmed = true;
+      window.addEventListener("pointerdown", playNext, true);
+      window.addEventListener("keydown", playNext, true);
+    };
     const playNext = () => {
+      removeGestureListeners();
       if (cancelled || currentIndex >= sources.length || typeof window === "undefined" || typeof window.Audio !== "function") return;
       const source = sources[currentIndex];
-      currentIndex += 1;
       if (!source) {
+        currentIndex += 1;
         playNext();
         return;
       }
       stopDialogueAudio();
       activeClip = new window.Audio(resolveAssetPath(source));
       activeClip.volume = 1;
-      dialogueAudioRefs.current[currentIndex - 1] = activeClip;
-      activeClip.onended = playNext;
-      activeClip.play().catch(() => {});
+      dialogueAudioRefs.current[currentIndex] = activeClip;
+      activeClip.onended = () => {
+        currentIndex += 1;
+        playNext();
+      };
+      activeClip.play().catch(armGestureRetry);
     };
-    const timer = window.setTimeout(playNext, 600);
+    const timer = window.setTimeout(playNext, 50);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      removeGestureListeners();
       if (activeClip) activeClip.onended = null;
     };
   }, [autoPlayKey, audioKey]);
@@ -4901,11 +4919,17 @@ export default function App() {
                       return (
                         <div key={card.id || i} className="ffa-card">
                           <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
-                            <div style={{ fontSize: 9, color: "#4b5563" }}>Index {i}</div>
-                            {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
-                            {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
-                            {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
-                            {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
+                            {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
+                              <div className="card-action-rail">
+                                {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
+                                {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
+                                {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
+                                {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
+                              </div>
+                            )}
+                            <div className="card-actions" style={{ display: "grid", gap: 4 }}>
+                              <div style={{ fontSize: 9, color: "#4b5563" }}>Index {i}</div>
+                            </div>
                           </CardBox>
                         </div>
                       );
@@ -6142,6 +6166,30 @@ export default function App() {
           border-color: rgba(82,50,26,0.45);
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.42);
         }
+        .game-root .card-action-rail {
+          position: absolute;
+          left: 5px;
+          right: 5px;
+          top: 31px;
+          z-index: 8;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+          gap: 3px;
+          padding: 3px;
+          border: 1px solid rgba(82,50,26,0.4);
+          border-radius: 5px;
+          background: linear-gradient(180deg, rgba(255,247,237,0.98), rgba(232,194,142,0.96));
+          box-shadow: 0 5px 12px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.54);
+        }
+        .game-root .card-action-rail button {
+          min-height: 25px;
+          padding: 4px 5px;
+          font-size: 10px;
+          line-height: 1.05;
+          font-weight: 900;
+          border-radius: 4px;
+          cursor: pointer;
+        }
         .game-root .hand-section {
           background: transparent !important;
           border: 0 !important;
@@ -6772,6 +6820,19 @@ export default function App() {
             min-height: 16px !important;
             line-height: 1 !important;
           }
+          .card-action-rail {
+            top: 24px !important;
+            left: 3px !important;
+            right: 3px !important;
+            grid-template-columns: 1fr !important;
+            gap: 2px !important;
+            padding: 2px !important;
+          }
+          .card-action-rail button {
+            min-height: 18px !important;
+            font-size: 9px !important;
+            padding: 2px 3px !important;
+          }
           .card-box [style*="bottom: 50"] {
             display: none !important;
           }
@@ -6979,12 +7040,18 @@ export default function App() {
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
                       return (
                         <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
-                          <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
-                          {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
-                          {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
-                          {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
-                          {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
-                          <HelperText enabled={showHelperLabels}>{attackMode || blockMode ? "Pay cards cover the cost; the attacking/blocking card cannot also pay." : "Tap the art to inspect."}</HelperText>
+                          {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
+                            <div className="card-action-rail">
+                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
+                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
+                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
+                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
+                            </div>
+                          )}
+                          <div className="card-actions" style={{ display: "grid", gap: 4 }}>
+                            <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
+                            <HelperText enabled={showHelperLabels}>{attackMode || blockMode ? "Pay cards cover the cost; the attacking/blocking card cannot also pay." : "Tap the art to inspect."}</HelperText>
+                          </div>
                         </CardBox>
                       );
                     })}
