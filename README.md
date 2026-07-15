@@ -90,11 +90,12 @@ From the repository root:
 ```powershell
 npm run check:server
 npm run test:server
+npm run test:client
 npm run build:client
 npm run check
 ```
 
-`check:server` runs `node --check server/index.js`. `test:server` runs the server rule-contract tests. `build:client` creates `client/build`, which is ignored. `check` runs all three commands.
+`check:server` runs `node --check server/index.js`. `test:server` runs the server rule-contract tests, and `test:client` runs focused client behavior tests once. `build:client` creates `client/build`, which is ignored. `check` runs all four commands.
 
 ## Git workflow
 
