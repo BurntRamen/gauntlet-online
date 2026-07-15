@@ -18,6 +18,7 @@ const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
+const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
 
 const express = require("express");
 const http = require("http");
@@ -1715,6 +1716,52 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
+function normalizeFriendChallenges(stats = {}, now = Date.now()) {
+  const challenges = Array.isArray(stats.friendChallenges) ? stats.friendChallenges : [];
+  const normalized = challenges
+    .filter((challenge) => challenge?.id && challenge?.roomCode && challenge?.fromId && challenge?.toId)
+    .map((challenge) => {
+      const next = { ...challenge };
+      if (next.status === "pending" && Date.parse(next.expiresAt || 0) <= now) next.status = "expired";
+      return next;
+    })
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 30);
+  stats.friendChallenges = normalized;
+  return normalized;
+}
+
+function publicFriendChallenge(challenge) {
+  return {
+    id: challenge.id,
+    fromId: challenge.fromId,
+    fromName: challenge.fromName,
+    toId: challenge.toId,
+    toName: challenge.toName,
+    roomCode: challenge.roomCode,
+    mode: challenge.mode || "factions",
+    bestOf: challenge.bestOf === 3 ? 3 : 1,
+    status: challenge.status,
+    createdAt: challenge.createdAt,
+    expiresAt: challenge.expiresAt,
+    respondedAt: challenge.respondedAt || null
+  };
+}
+
+function addFriendChallenge(stats = {}, challenge) {
+  const challenges = normalizeFriendChallenges(stats).filter((entry) => entry.id !== challenge.id);
+  stats.friendChallenges = [clonePlain(challenge), ...challenges].slice(0, 30);
+  return challenge;
+}
+
+function setFriendChallengeStatus(stats = {}, challengeId, status, respondedAt = new Date().toISOString()) {
+  const challenge = normalizeFriendChallenges(stats).find((entry) => entry.id === challengeId);
+  if (!challenge) return null;
+  challenge.status = status;
+  challenge.respondedAt = respondedAt;
+  return challenge;
+}
+
 function matchRecordToSupabaseRow(record) {
   return {
     id: record.matchId,
@@ -1902,7 +1949,8 @@ function getLocalFriendPayload(store, account) {
   const messages = (account.messages || [])
     .map(publicFriendMessage)
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  return { friends, messages };
+  const challenges = normalizeFriendChallenges(account.stats || {}).map(publicFriendChallenge);
+  return { friends, messages, challenges };
 }
 
 async function getSupabaseFriendPayload(account) {
@@ -1931,12 +1979,90 @@ async function getSupabaseFriendPayload(account) {
     createdAt: message.created_at
   }));
 
-  return { friends, messages };
+  const challenges = normalizeFriendChallenges(account.stats || {}).map(publicFriendChallenge);
+  return { friends, messages, challenges };
 }
 
 async function getFriendPayload(context) {
   if (context.source === "supabase") return getSupabaseFriendPayload(context.account);
   return getLocalFriendPayload(context.store, context.account);
+}
+
+async function persistFriendChallenge(challenge) {
+  if (useSupabaseStore()) {
+    const [sender, recipient] = await Promise.all([
+      findSupabaseAccountById(challenge.fromId),
+      findSupabaseAccountById(challenge.toId)
+    ]);
+    if (!sender || !recipient) throw new Error("Friend account not found.");
+    const senderStats = sender.stats || {};
+    const recipientStats = recipient.stats || {};
+    addFriendChallenge(senderStats, challenge);
+    addFriendChallenge(recipientStats, challenge);
+    await Promise.all([
+      patchSupabaseAccount(sender.id, { stats: senderStats }),
+      patchSupabaseAccount(recipient.id, { stats: recipientStats })
+    ]);
+    return challenge;
+  }
+
+  const store = loadAccountStore();
+  const sender = store.accounts.find((account) => account.id === challenge.fromId);
+  const recipient = store.accounts.find((account) => account.id === challenge.toId);
+  if (!sender || !recipient) throw new Error("Friend account not found.");
+  sender.stats = sender.stats || {};
+  recipient.stats = recipient.stats || {};
+  addFriendChallenge(sender.stats, challenge);
+  addFriendChallenge(recipient.stats, challenge);
+  saveAccountStore(store);
+  return challenge;
+}
+
+async function updateFriendChallengeStatus(challengeId, actorId, status) {
+  const allowedStatuses = new Set(["accepted", "declined", "cancelled"]);
+  if (!allowedStatuses.has(status)) throw new Error("Unknown challenge response.");
+  const respondedAt = new Date().toISOString();
+
+  if (useSupabaseStore()) {
+    const actor = await findSupabaseAccountById(actorId);
+    const challenge = normalizeFriendChallenges(actor?.stats || {}).find((entry) => entry.id === challengeId);
+    if (!challenge || challenge.status !== "pending") throw new Error("That challenge is no longer available.");
+    if (status === "cancelled" ? challenge.fromId !== actorId : challenge.toId !== actorId) throw new Error("That challenge is not yours to update.");
+    const [sender, recipient] = await Promise.all([
+      findSupabaseAccountById(challenge.fromId),
+      findSupabaseAccountById(challenge.toId)
+    ]);
+    for (const account of [sender, recipient]) {
+      if (!account) continue;
+      account.stats = account.stats || {};
+      setFriendChallengeStatus(account.stats, challengeId, status, respondedAt);
+    }
+    await Promise.all([sender, recipient].filter(Boolean).map((account) => patchSupabaseAccount(account.id, { stats: account.stats })));
+    return { ...challenge, status, respondedAt };
+  }
+
+  const store = loadAccountStore();
+  const actor = store.accounts.find((account) => account.id === actorId);
+  const challenge = normalizeFriendChallenges(actor?.stats || {}).find((entry) => entry.id === challengeId);
+  if (!challenge || challenge.status !== "pending") throw new Error("That challenge is no longer available.");
+  if (status === "cancelled" ? challenge.fromId !== actorId : challenge.toId !== actorId) throw new Error("That challenge is not yours to update.");
+  for (const account of store.accounts.filter((entry) => entry.id === challenge.fromId || entry.id === challenge.toId)) {
+    account.stats = account.stats || {};
+    setFriendChallengeStatus(account.stats, challengeId, status, respondedAt);
+  }
+  saveAccountStore(store);
+  return { ...challenge, status, respondedAt };
+}
+
+async function acceptFriendChallengeForRoom(roomCode, accountId) {
+  if (!accountId) return null;
+  const account = useSupabaseStore()
+    ? await findSupabaseAccountById(accountId)
+    : loadAccountStore().accounts.find((entry) => entry.id === accountId);
+  const challenge = normalizeFriendChallenges(account?.stats || {}).find((entry) => (
+    entry.roomCode === roomCode && entry.toId === accountId && entry.status === "pending"
+  ));
+  return challenge ? updateFriendChallengeStatus(challenge.id, accountId, "accepted") : null;
 }
 
 async function touchAccountStats(accountId, field) {
@@ -2711,6 +2837,31 @@ app.post("/api/friends/:friendId/messages", async (req, res) => {
     saveAccountStore(context.store);
   }
   res.json(await getFriendPayload(context));
+});
+
+app.patch("/api/friend-challenges/:challengeId", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const status = req.body?.action === "cancel" ? "cancelled" : req.body?.action === "decline" ? "declined" : "";
+    if (!status) {
+      res.status(400).json({ error: "Choose decline or cancel." });
+      return;
+    }
+    const challenge = await updateFriendChallengeStatus(req.params.challengeId, context.account.id, status);
+    const roomState = getRoom(challenge.roomCode);
+    if (roomState?.friendChallengeId === challenge.id) {
+      roomState.invitedAccountId = null;
+      io.to(roomState.roomCode).emit("friendChallengeStatus", {
+        challengeId: challenge.id,
+        status,
+        message: status === "declined" ? `${challenge.toName} declined the challenge.` : `${challenge.fromName} cancelled the challenge.`
+      });
+    }
+    res.json({ challenge });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not update challenge." });
+  }
 });
 
 app.get("/api/admin/account-stats", async (req, res) => {
@@ -3635,6 +3786,42 @@ function deleteRoom(roomCode) {
   return true;
 }
 
+function canOfferRematch(roomState) {
+  const players = roomState?.lobby?.players || {};
+  return !!roomState?.game
+    && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
+    && !roomState.draft
+    && !roomState.lobby.campaign
+    && roomState.lobby.gameMode !== "freeForAll"
+    && !players[1]?.isAI
+    && !players[2]?.isAI
+    && !!players[1]?.accountName
+    && !!players[2]?.accountName;
+}
+
+function emitRematchStatus(roomState, message = "") {
+  io.to(roomState.roomCode).emit("rematchStatus", {
+    available: canOfferRematch(roomState),
+    requestedBy: roomState.rematch?.requestedBy || null,
+    message
+  });
+}
+
+function resetRoomForRematch(roomState) {
+  roomState.game = null;
+  roomState.damageConfirmed = { 1: false, 2: false };
+  roomState.lifecycle = createRoomLifecycle();
+  roomState.rematch = null;
+  roomState.bestOf3Series = null;
+  for (const playerNum of [1, 2]) {
+    const lobbyPlayer = roomState.lobby.players[playerNum];
+    lobbyPlayer.connected = !!lobbyPlayer.socket;
+    lobbyPlayer.readyToStart = false;
+  }
+  io.to(roomState.roomCode).emit("rematchStarted", { roomCode: roomState.roomCode });
+  emitLobbyState(roomState);
+}
+
 async function abandonActiveRoom(roomState, reason = "reconnect_timeout", now = Date.now()) {
   const game = roomState?.game;
   if (!game || game.phase === "gameOver") return null;
@@ -4106,6 +4293,16 @@ function runBotDraftPicks(roomState) {
     advanceDraftAfterPick(roomState);
     if (waitingOnHuman || !pickedAny) break;
   }
+}
+
+async function getFriendAccountForChallenge(accountId, friendId) {
+  if (useSupabaseStore()) {
+    const friendship = await supabaseRequest(`gauntlet_friends?account_id=eq.${encodeURIComponent(accountId)}&friend_id=eq.${encodeURIComponent(friendId)}&select=friend_id`);
+    return friendship.length > 0 ? findSupabaseAccountById(friendId) : null;
+  }
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === accountId);
+  return account?.friends?.includes(friendId) ? store.accounts.find((entry) => entry.id === friendId) || null : null;
 }
 
 async function requirePlayerIdentity(socket, authToken, guestName) {
@@ -6064,6 +6261,63 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
+  socket.on("createFriendChallenge", async ({ authToken, friendId } = {}, ack) => {
+    console.log("[Socket] createFriendChallenge");
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    if (getRoomForSocket(socket)) {
+      if (typeof ack === "function") ack({ ok: false, error: "Leave your current room before challenging a friend." });
+      return;
+    }
+    const identity = await requirePlayerIdentity(socket, authToken, "");
+    if (!identity || identity.type !== "account") {
+      if (typeof ack === "function") ack({ ok: false, error: "Sign in to challenge a friend." });
+      return;
+    }
+    const friend = await getFriendAccountForChallenge(identity.id, String(friendId || ""));
+    if (!friend) {
+      if (typeof ack === "function") ack({ ok: false, error: "Friend not found." });
+      return;
+    }
+
+    const roomState = createRoom();
+    const lobbyPlayer = roomState.lobby.players[1];
+    lobbyPlayer.socket = socket.id;
+    lobbyPlayer.connected = true;
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = identity.id;
+    lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.isGuest = false;
+    const createdAt = new Date();
+    const challenge = {
+      id: crypto.randomUUID(),
+      fromId: identity.id,
+      fromName: identity.name,
+      toId: friend.id,
+      toName: friend.name,
+      roomCode: roomState.roomCode,
+      mode: "factions",
+      bestOf: 1,
+      status: "pending",
+      createdAt: createdAt.toISOString(),
+      expiresAt: new Date(createdAt.getTime() + FRIEND_CHALLENGE_TTL_MS).toISOString(),
+      respondedAt: null
+    };
+    roomState.friendChallengeId = challenge.id;
+    roomState.invitedAccountId = friend.id;
+    roomState.friendChallengeExpiresAt = challenge.expiresAt;
+    try {
+      await touchAccountStats(identity.id, "gamesCreated");
+      await persistFriendChallenge(challenge);
+      attachPlayerSocket(roomState, socket, 1);
+      emitLobbyState(roomState);
+      if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, challenge: publicFriendChallenge(challenge) });
+    } catch (error) {
+      rooms.delete(roomState.roomCode);
+      if (typeof ack === "function") ack({ ok: false, error: error.message || "Could not create friend challenge." });
+    }
+  });
+
   socket.on("createFreeForAllRoom", async ({ authToken, guestName } = {}, ack) => {
     console.log("[Socket] createFreeForAllRoom");
     removeFromMatchmaking(socket.id);
@@ -6309,6 +6563,16 @@ io.on("connection", (socket) => {
       else emitLobbyState(roomState);
       return;
     }
+    if (roomState.invitedAccountId) {
+      if (Date.parse(roomState.friendChallengeExpiresAt || 0) <= Date.now()) {
+        socket.emit("errorMessage", "That friend challenge has expired.");
+        return;
+      }
+      if (identity.type !== "account" || identity.id !== roomState.invitedAccountId) {
+        socket.emit("errorMessage", "That player seat is reserved for the invited friend.");
+        return;
+      }
+    }
     const openSeat = getLobbyPlayerNumbers(roomState).find((seat) => !roomState.lobby.players[seat].socket && !roomState.lobby.players[seat].reconnectToken);
     if (openSeat) {
       if (roomState.lobby.players[openSeat].isAI) {
@@ -6321,6 +6585,8 @@ io.on("connection", (socket) => {
       roomState.lobby.players[openSeat].isGuest = identity.type === "guest";
       await touchAccountStats(identity.id, "gamesJoined");
       attachPlayerSocket(roomState, socket, openSeat);
+      if (identity.type === "account") await acceptFriendChallengeForRoom(roomState.roomCode, identity.id);
+      roomState.invitedAccountId = null;
       emitLobbyState(roomState);
       if (roomState.draft) emitDraftState(roomState);
       return;
@@ -6373,6 +6639,31 @@ io.on("connection", (socket) => {
     }
 
     socket.emit("errorMessage", "Could not reconnect to that player seat.");
+  });
+
+  socket.on("requestRematch", () => {
+    const roomState = getRoomForSocket(socket);
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!roomState || !playerNum || !canOfferRematch(roomState)) {
+      socket.emit("errorMessage", "Rematch is available after a completed two-player duel.");
+      return;
+    }
+    if (!roomState.rematch) {
+      roomState.rematch = { requestedBy: playerNum, requestedAt: new Date().toISOString() };
+      emitRematchStatus(roomState, `${roomState.lobby.players[playerNum].accountName} requested a rematch.`);
+      return;
+    }
+    if (roomState.rematch.requestedBy === playerNum) return;
+    resetRoomForRematch(roomState);
+  });
+
+  socket.on("declineRematch", () => {
+    const roomState = getRoomForSocket(socket);
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!roomState || !playerNum || !roomState.rematch || roomState.rematch.requestedBy === playerNum) return;
+    const playerName = roomState.lobby.players[playerNum].accountName || `Player ${playerNum}`;
+    roomState.rematch = null;
+    emitRematchStatus(roomState, `${playerName} declined the rematch.`);
   });
 
   socket.on("selectFaction", async ({ factionId }) => {
@@ -7587,8 +7878,10 @@ module.exports = {
     applyBlockBonuses,
     applyGameOverState,
     applyDeckResult,
+    addFriendChallenge,
     applyProgressionForResult,
     calculateAttackBonuses,
+    canOfferRematch,
     abandonActiveRoom,
     abandonActiveRoomsForShutdown,
     createFreeForAllGameFromLobby,
@@ -7600,8 +7893,10 @@ module.exports = {
     getSavedConstructedDeck,
     getSavedDraftDeck,
     normalizeDeckLibrary,
+    normalizeFriendChallenges,
     saveConstructedDeckToLibrary,
     saveDraftDeckToLibrary,
+    setFriendChallengeStatus,
     updateDeckLibraryRecord,
     recordFinalGameStats,
     resolveDamage,
