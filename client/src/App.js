@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL =
-  process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
+const DEFAULT_SOCKET_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:4000"
+    : "https://gauntlet-online.onrender.com";
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || DEFAULT_SOCKET_URL;
 const DONATE_URL = process.env.REACT_APP_DONATE_URL || "";
 const PUBLIC_GAME_URL =
   process.env.REACT_APP_PUBLIC_GAME_URL ||
