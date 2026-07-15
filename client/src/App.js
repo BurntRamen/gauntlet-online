@@ -3223,8 +3223,6 @@ export default function App() {
   const [roomCodeInput, setRoomCodeInput] = useState(INITIAL_JOIN_ROOM_CODE);
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
-  const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
-  const [incomingAttackMinimized, setIncomingAttackMinimized] = useState(false);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -3272,7 +3270,6 @@ export default function App() {
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
-  const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
 
   const [attackMode, setAttackMode] = useState(null);
@@ -3556,48 +3553,6 @@ export default function App() {
     if (!game?.message) return;
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
-
-  useEffect(() => {
-    if (!game || role !== "player" || !player) {
-      seenIncomingAttackIdsRef.current = new Set();
-      setIncomingAttackAlert(null);
-      return;
-    }
-
-    const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
-    const incomingAttacks = [
-      ...(game.handAttacks || [])
-        .filter((attack) => game.gameMode === "freeForAll" ? attack.targetPlayer === player : attack.player === opponentNumber)
-        .map((attack) => ({
-          id: attack.id,
-          label: `${getCardShortLabel(attack.card)} from hand`,
-          value: attack.effectiveValue
-        })),
-      ...(game.lanes || [])
-        .map((lane, laneIndex) => ({ lane, laneIndex }))
-        .filter(({ lane }) => game.gameMode === "freeForAll" ? lane.attack?.targetPlayer === player : lane.attack?.player === opponentNumber)
-        .map(({ lane, laneIndex }) => ({
-          id: lane.attack.id || `lane-${laneIndex}-${lane.attack.card?.id || lane.attack.card?.name || "attack"}`,
-          label: `${getCardShortLabel(lane.attack.card)} from lane ${laneIndex + 1}`,
-          value: lane.attack.effectiveValue
-        }))
-    ];
-
-    const currentIds = new Set(incomingAttacks.map((attack) => attack.id));
-    seenIncomingAttackIdsRef.current.forEach((id) => {
-      if (!currentIds.has(id)) seenIncomingAttackIdsRef.current.delete(id);
-    });
-
-    const newestAttack = incomingAttacks.find((attack) => !seenIncomingAttackIdsRef.current.has(attack.id));
-    if (!newestAttack) return;
-
-    seenIncomingAttackIdsRef.current.add(newestAttack.id);
-    setIncomingAttackAlert({
-      id: newestAttack.id,
-      text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
-    });
-    setIncomingAttackMinimized(false);
-  }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
     if (voiceAudioRef.current) {
@@ -4046,7 +4001,6 @@ export default function App() {
     setRole(null);
     setPlayer(null);
     setActionLog([]);
-    setIncomingAttackAlert(null);
     startCampaignChapter(factionId, chapterId);
   }
 
@@ -4158,10 +4112,8 @@ export default function App() {
     setActionLog([]);
     setError("");
     setFactionVoice(null);
-    setIncomingAttackAlert(null);
     setShowCampaign(false);
     setShowTutorial(false);
-    seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
     setDraftLeagueStatus({ inQueue: false, message: "" });
   }
@@ -5070,6 +5022,36 @@ export default function App() {
           ? `Select payment cards worth at least ${activeBlockRequired}. Current payment is ${paymentTotal}.`
           : "";
   const placementConfirmReason = placementMode && !activePlacementCard ? "Choose a hand card to place face-down." : "";
+  const priorityName = getGamePlayerName(game, game.priority);
+  const priorityIsMine = !isSpectator && game.priority === player;
+  const incomingAttackSummary = incomingHandAttack
+    ? `${getCardShortLabel(incomingHandAttack.card)} from hand, effective ${incomingHandAttack.effectiveValue}`
+    : incomingLaneAttack
+      ? `${getCardShortLabel(incomingLaneAttack.lane.attack.card)} from lane ${incomingLaneAttack.laneIndex + 1}, effective ${incomingLaneAttack.lane.attack.effectiveValue}`
+      : "";
+  const requiredResponseText = hasIncomingAttack
+    ? defenderMayBlock
+      ? "Response required: block the attack or take damage."
+      : game.priorityPassed?.[player]
+        ? "You passed on this attack. Waiting for combat to move to damage."
+        : "Combat is pending. Waiting for the player with priority."
+    : "";
+  const attackUnavailableReason =
+    game.phase !== "priority"
+      ? "Attacks are only available during Command."
+      : !isMyPriority
+        ? `${priorityName} has priority.`
+        : hasIncomingAttack
+          ? "Respond to the incoming attack first."
+          : hasAnyUnresolvedAttack
+            ? "Resolve the current combat first."
+            : "";
+  const passUnavailableReason =
+    game.phase !== "priority"
+      ? "Passing is only available during Command."
+      : !isMyPriority
+        ? `${priorityName} has priority.`
+        : "";
 
   const currentEndLane = game.endPlacementLaneIndex;
   const isMyEndPlacementTurn =
@@ -5084,6 +5066,12 @@ export default function App() {
       const currentPlayer = game.endPlacementStep === 0 ? first : second;
       return currentPlayer === player;
     })();
+  const placementUnavailableReason =
+    game.phase !== "end"
+      ? "Lane placement happens at end of turn."
+      : !isMyEndPlacementTurn
+        ? "Waiting for your lane placement turn."
+        : "";
 
   const clickableTargets = isSpectator
     ? { poleaPlaceLanes: [], poleaSwitchableLanes: [], poleaPeekTargets: [], poleaBuffLaneCards: [], poleaBuffLaneAttacks: [], poleaBuffHandAttacks: [], lafayetteLanes: [], focusLaneCards: [], focusLaneAttacks: [], focusHandAttacks: [] }
@@ -5543,14 +5531,14 @@ export default function App() {
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</QuickActionButton>}
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</QuickActionButton>}
-          {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</QuickActionButton>}
-          {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</QuickActionButton>}
-          {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
-          {game.phase === "end" && isMyEndPlacementTurn && !game.lanes[currentEndLane]?.facedown?.[player] && <QuickActionButton className="quick-action-primary" onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</QuickActionButton>}
-          {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
+          {hasIncomingAttack && incomingHandAttack && <QuickActionButton className="quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })} disabled={!defenderMayBlock} reason={defenderMayBlock ? "" : "Waiting for your priority to respond."}>Block with Cards</QuickActionButton>}
+          {hasIncomingAttack && incomingHandAttack && <QuickActionButton className="quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)} disabled={!defenderMayBlock} reason={defenderMayBlock ? "" : "Waiting for your priority to respond."}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
+          {hasIncomingAttack && incomingLaneAttack && <QuickActionButton className="quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)} disabled={!defenderMayBlock} reason={defenderMayBlock ? "" : "Waiting for your priority to respond."}>Block Lane</QuickActionButton>}
+          {hasIncomingAttack && incomingLaneAttack && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} disabled={!defenderMayBlock} reason={defenderMayBlock ? "" : "Waiting for your priority to respond."}>Take Damage</QuickActionButton>}
+          {!hasIncomingAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand} disabled={!!attackUnavailableReason} reason={attackUnavailableReason}>Attack from Hand</QuickActionButton>}
+          {!hasIncomingAttack && <QuickActionButton className="quick-action-primary" onClick={passPriority} disabled={!!passUnavailableReason} reason={passUnavailableReason}>Pass / Continue</QuickActionButton>}
+          {!hasIncomingAttack && game.phase === "end" && <QuickActionButton className="quick-action-primary" onClick={() => startPlacement(currentEndLane)} disabled={!!placementUnavailableReason || !!game.lanes[currentEndLane]?.facedown?.[player]} reason={placementUnavailableReason || (game.lanes[currentEndLane]?.facedown?.[player] ? "This lane already has your face-down card." : "")}>Place Lane {currentEndLane + 1}</QuickActionButton>}
+          {!hasIncomingAttack && game.phase === "end" && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)} disabled={!!placementUnavailableReason} reason={placementUnavailableReason}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
         </>
       )}
       {(attackConfirmReason || blockConfirmReason || placementConfirmReason) && (
@@ -6008,6 +5996,50 @@ export default function App() {
         .current-play-panel strong {
           color: #f7d99e;
           font-family: Georgia, serif;
+        }
+        .command-focus {
+          display: grid;
+          gap: 6px;
+        }
+        .command-focus-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .command-priority-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(247,217,158,0.58);
+          background: rgba(245,158,11,0.16);
+          color: #fff4d6;
+          font-size: 12px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .command-priority-badge.waiting {
+          background: rgba(71,85,105,0.28);
+          color: ${TABLETOP_THEME.muted};
+        }
+        .command-priority-badge.danger {
+          border-color: rgba(248,113,113,0.75);
+          background: rgba(153,27,27,0.42);
+          color: #fee2e2;
+        }
+        .command-main-text {
+          color: #f7d99e;
+          font-family: Georgia, serif;
+          font-size: 17px;
+          font-weight: 900;
+        }
+        .command-help-text {
+          color: ${TABLETOP_THEME.muted};
+          font-size: 12px;
+          line-height: 1.3;
         }
         .bottom-player-panel {
           display: grid;
@@ -6497,8 +6529,9 @@ export default function App() {
         }
         .quick-action-button:disabled {
           cursor: not-allowed;
-          filter: grayscale(0.65);
-          opacity: 0.55;
+          filter: grayscale(0.35);
+          opacity: 0.72;
+          border-style: dashed;
           box-shadow: none;
         }
         .quick-action-primary {
@@ -6925,18 +6958,6 @@ export default function App() {
           <span><strong>{opponent ? getGamePlayerName(game, opponent === game.players[1] ? 1 : 2) : "Opp"}</strong> {opponent?.life ?? "-"} life</span>
         </div>
       )}
-      {incomingAttackAlert && !incomingAttackMinimized && (
-        <div className="incoming-attack-banner" role="alert">
-          <span>{incomingAttackAlert.text}</span>
-          <button onClick={() => setIncomingAttackMinimized(true)} style={{ flex: "0 0 auto" }}>Minimize</button>
-        </div>
-      )}
-      {incomingAttackAlert && incomingAttackMinimized && (
-        <div className="incoming-attack-pill" role="status">
-          <span>Incoming attack</span>
-          <button onClick={() => setIncomingAttackMinimized(false)}>Show</button>
-        </div>
-      )}
       {factionVoice && (
         <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
@@ -6958,9 +6979,20 @@ export default function App() {
       <div className="match-table-frame">
         <div className="table-main-panel">
           <div className="current-play-panel">
-            <strong>{(incomingAttackAlert && !incomingAttackMinimized) ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
-            <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {(incomingAttackAlert && !incomingAttackMinimized) ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
+            <div className="command-focus">
+              <div className="command-focus-row">
+                <span className={`command-priority-badge ${hasIncomingAttack ? "danger" : priorityIsMine ? "" : "waiting"}`}>
+                  {hasIncomingAttack ? "Incoming Attack" : priorityIsMine ? "Your Priority" : `${priorityName}'s Priority`}
+                </span>
+                <span className="command-main-text">{game.campaign?.title || phaseDisplayName()}</span>
+              </div>
+              <div className="command-help-text">
+                {hasIncomingAttack
+                  ? `${incomingAttackSummary}. ${requiredResponseText}`
+                  : game.campaign
+                    ? (game.campaign.beforeBattle || game.campaign.story)
+                    : phaseHelpText()}
+              </div>
             </div>
             {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
               <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
@@ -7099,30 +7131,6 @@ export default function App() {
             })}
             </div>
           </SectionCard>
-
-          {!isSpectator && hasIncomingAttack && (
-            <SectionCard className="response-strip" borderColor="#991b1b" background="#fff1f2" style={{ padding: 10, marginBottom: 6 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: "bold", color: "#7f1d1d", fontSize: 16 }}>
-                    Incoming Attack: {incomingHandAttack
-                      ? `${getCardShortLabel(incomingHandAttack.card)} from hand (effective ${incomingHandAttack.effectiveValue})`
-                      : incomingLaneAttack
-                        ? `${getCardShortLabel(incomingLaneAttack.lane.attack.card)} from lane ${incomingLaneAttack.laneIndex + 1} (effective ${incomingLaneAttack.lane.attack.effectiveValue})`
-                        : "Resolve combat"}
-                  </div>
-                  <div style={{ color: "#7f1d1d", fontSize: 12, marginTop: 2 }}>Respond here before taking another action.</div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
-                  {!defenderMayBlock && <button onClick={passPriority} disabled={!isMyPriority}>Pass / Continue</button>}
-                </div>
-              </div>
-            </SectionCard>
-          )}
         </div>
         </div>
 
@@ -7131,10 +7139,9 @@ export default function App() {
             <CollapseHeader title="Status" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>
               <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
-                <div><strong>Mode:</strong> {phaseDisplayName()}</div>
-                <div><strong>Turn:</strong> {game.turn}</div>
-                <div><strong>Priority:</strong> Player {game.priority}</div>
-                <div style={{ color: TABLETOP_THEME.muted }}>{phaseHelpText()}</div>
+                <div><strong>Turn {game.turn}</strong> - {phaseDisplayName()}</div>
+                <div><strong>Priority:</strong> {priorityName}</div>
+                <div style={{ color: hasIncomingAttack ? "#fecaca" : TABLETOP_THEME.muted, fontWeight: hasIncomingAttack ? 800 : "normal" }}>{requiredResponseText || phaseHelpText()}</div>
               </div>
               {undoRequest && (
                 <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
