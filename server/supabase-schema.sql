@@ -37,3 +37,45 @@ create table if not exists gauntlet_faction_stats (
   data jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+create table if not exists gauntlet_match_records (
+  id uuid primary key,
+  series_id uuid,
+  mode text not null,
+  rules_version text not null,
+  content_version text not null,
+  ranked boolean not null default false,
+  started_at timestamptz not null,
+  completed_at timestamptz not null,
+  completion_reason text not null,
+  winner_player_num integer,
+  participant_account_ids uuid[] not null default '{}'::uuid[],
+  record jsonb not null
+);
+
+create index if not exists gauntlet_match_records_completed_idx
+  on gauntlet_match_records (completed_at desc);
+
+create index if not exists gauntlet_match_records_participants_idx
+  on gauntlet_match_records using gin (participant_account_ids);
+
+create table if not exists gauntlet_match_events (
+  match_id uuid not null references gauntlet_match_records(id) on delete cascade,
+  sequence integer not null,
+  turn integer not null,
+  phase text not null,
+  actor_player_num integer,
+  event_type text not null,
+  public_payload jsonb not null default '{}'::jsonb,
+  server_timestamp timestamptz not null,
+  state_checksum text,
+  primary key (match_id, sequence)
+);
+
+alter table gauntlet_match_records enable row level security;
+alter table gauntlet_match_events enable row level security;
+
+revoke all on gauntlet_match_records from anon, authenticated;
+revoke all on gauntlet_match_events from anon, authenticated;
+grant select, insert, update, delete on gauntlet_match_records to service_role;
+grant select, insert, update, delete on gauntlet_match_events to service_role;

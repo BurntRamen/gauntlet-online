@@ -12,6 +12,7 @@ const ALLOWED_ORIGINS = [
 ];
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
+const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
 const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
@@ -25,6 +26,17 @@ const path = require("path");
 const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const {
+  buildMatchRecord,
+  captureAuditEvent,
+  createLocalMatchStore,
+  createMatchMetadata,
+  publicMatchRecord,
+  publicMatchSummary,
+  recordCombatResolution
+} = require("./matchRecords");
+
+const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
 
 function isAllowedOrigin(origin) {
   return !origin || ALLOWED_ORIGINS.includes(origin);
@@ -1354,6 +1366,65 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
+function matchRecordToSupabaseRow(record) {
+  return {
+    id: record.matchId,
+    series_id: record.seriesId,
+    mode: record.mode,
+    rules_version: record.rulesVersion,
+    content_version: record.contentVersion,
+    ranked: record.ranked,
+    started_at: record.startedAt,
+    completed_at: record.completedAt,
+    completion_reason: record.completionReason,
+    winner_player_num: record.winnerPlayerNum,
+    participant_account_ids: record.participants.map((participant) => participant.accountId).filter(Boolean),
+    record
+  };
+}
+
+async function persistMatchRecord(record) {
+  if (!useSupabaseStore()) return localMatchStore.upsert(record);
+  await supabaseRequest("gauntlet_match_records?on_conflict=id", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify([matchRecordToSupabaseRow(record)])
+  });
+  if (record.auditEvents.length > 0) {
+    await supabaseRequest("gauntlet_match_events?on_conflict=match_id,sequence", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(record.auditEvents.map((event) => ({
+        match_id: record.matchId,
+        sequence: event.sequence,
+        turn: event.turn,
+        phase: event.phase,
+        actor_player_num: event.actorPlayerNum,
+        event_type: event.eventType,
+        public_payload: event.publicPayload,
+        server_timestamp: event.serverTimestamp,
+        state_checksum: event.stateChecksum
+      })))
+    });
+  }
+  return record;
+}
+
+async function findMatchRecordById(matchId) {
+  if (!useSupabaseStore()) return localMatchStore.findById(matchId);
+  const rows = await supabaseRequest(`gauntlet_match_records?id=eq.${encodeURIComponent(matchId)}&select=record`);
+  return rows?.[0]?.record || null;
+}
+
+async function listMatchRecordsByAccount(accountId, limit = 30) {
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100));
+  if (!useSupabaseStore()) return localMatchStore.listByAccount(accountId, safeLimit);
+  const rows = await supabaseRequest(
+    `gauntlet_match_records?participant_account_ids=cs.{${encodeURIComponent(accountId)}}&select=record&order=completed_at.desc&limit=${safeLimit}`
+  );
+  return rows.map((row) => row.record).filter(Boolean);
+}
+
 async function loadFactionStatsStore() {
   if (!useSupabaseStore()) return loadLocalFactionStatsStore();
   const rows = await supabaseRequest("gauntlet_faction_stats?id=eq.global&select=data");
@@ -1557,7 +1628,8 @@ function applyProgressionForResult(stats, result, context = {}) {
   const opponentName = context.opponentName || "Opponent";
 
   progression.matchHistory.unshift({
-    id: crypto.randomUUID(),
+    id: context.matchId || crypto.randomUUID(),
+    matchId: context.matchId || null,
     completedAt: now,
     result,
     mode: context.mode || "duel",
@@ -1901,6 +1973,37 @@ function openCollectionBooster(stats, packId) {
 
   return openedCards;
 }
+
+app.get("/api/matches/:matchId", async (req, res) => {
+  const matchId = String(req.params.matchId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
+    res.status(400).json({ error: "Invalid match ID." });
+    return;
+  }
+  try {
+    const record = await findMatchRecordById(matchId);
+    if (!record) {
+      res.status(404).json({ error: "Match not found." });
+      return;
+    }
+    res.json({ match: publicMatchRecord(record) });
+  } catch (error) {
+    console.error("[Matches] Failed to load public match", error);
+    res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
+
+app.get("/api/account/matches", async (req, res) => {
+  try {
+    const context = await requireAccountRecord(req, res);
+    if (!context) return;
+    const records = await listMatchRecordsByAccount(context.account.id, req.query.limit);
+    res.json({ matches: records.map(publicMatchSummary) });
+  } catch (error) {
+    console.error("[Matches] Failed to load account matches", error);
+    res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
 
 app.post("/api/auth/register", async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
@@ -3032,6 +3135,7 @@ function createMatchedRoom(entryA, entryB) {
   const roomState = createRoom();
   roomState.ranked = true;
   if ((entryA.bestOf || 1) === 3) {
+    roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
       bestOf: 3,
       targetWins: 2,
@@ -3077,6 +3181,7 @@ function createDraftLeagueRoom(entryA, entryB) {
     bestOf: entryA.bestOf || 1
   };
   if ((entryA.bestOf || 1) === 3) {
+    roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
       bestOf: 3,
       targetWins: 2,
@@ -3237,6 +3342,8 @@ function emitDraftState(roomState) {
 
 function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   const visibleGame = JSON.parse(JSON.stringify(game));
+  delete visibleGame.serverAuditEvents;
+  delete visibleGame.serverCombatStats;
   for (const [rawPlayerNum, playerState] of Object.entries(visibleGame.players || {})) {
     const playerNum = Number(rawPlayerNum);
     const realPlayer = game.players?.[playerNum];
@@ -3570,13 +3677,15 @@ function captureGameEvent(game) {
   game.eventLog = Array.isArray(game.eventLog) ? game.eventLog : [];
   const last = game.eventLog[game.eventLog.length - 1];
   if (last && last.text === game.message && last.turn === game.turn && last.phase === game.phase) return;
-  game.eventLog.push({
+  const event = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     turn: game.turn || 1,
     phase: game.phase || "setup",
     text: game.message,
     createdAt: new Date().toISOString()
-  });
+  };
+  game.eventLog.push(event);
+  captureAuditEvent(game, event.createdAt);
   if (game.eventLog.length > 300) game.eventLog = game.eventLog.slice(-300);
 }
 
@@ -4547,7 +4656,7 @@ async function finishGameIfLifeCheckFails(roomState) {
   const game = roomState.game;
   if (!game || !applyGameOverState(game)) return false;
   captureGameEvent(game);
-  await recordFinalGameStats(roomState);
+  await recordFinalGameStats(roomState, { completionReason: "life_total" });
   if (continueBestOf3Series(roomState)) {
     emitState(roomState);
     return true;
@@ -4585,14 +4694,27 @@ function continueBestOf3Series(roomState) {
   return true;
 }
 
-async function recordFinalGameStats(roomState) {
+async function recordFinalGameStats(roomState, options = {}) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
+  captureGameEvent(game);
+  const completedAt = options.completedAt || new Date().toISOString();
+  const completionReason = options.completionReason || "life_total";
+  let matchRecord = null;
+  try {
+    matchRecord = buildMatchRecord(roomState, { completedAt, completionReason });
+    await persistMatchRecord(matchRecord);
+    roomState.matchMetadata.recordedMatchId = matchRecord.matchId;
+  } catch (error) {
+    console.error("[Matches] Failed to persist completed match", error);
+  }
   if (isTrainingAiRoom(roomState)) {
     if (game.campaign && game.winner === 1) {
       await recordAccountGameResult(roomState.lobby.players[1].accountId, "win", {
         ranked: false,
+        matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
+        completedAt,
         mode: "campaign",
         factionId: game.players[1]?.faction?.id,
         factionName: game.players[1]?.faction?.name,
@@ -4612,13 +4734,13 @@ async function recordFinalGameStats(roomState) {
 
   await recordFactionGameStats(game);
 
-  const completedAt = new Date().toISOString();
   const buildContext = (playerNum, result) => {
     const opponentNums = getLobbyPlayerNumbers(roomState).filter((entry) => entry !== playerNum);
     const primaryOpponent = opponentNums[0];
     return {
       ranked: true,
       draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
+      matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
       completedAt,
       mode: game.gameMode || "duel",
       factionId: game.players[playerNum]?.faction?.id,
@@ -4658,6 +4780,14 @@ function resolveDamage(game, roomState) {
     const damage = Math.max(0, rawDamage - totalPrevent);
     const defender = getAttackDefender(game, attack);
     const blockedText = totalBlock > 0 ? ` after ${totalBlock} block${totalPrevent ? ` and ${totalPrevent} prevention` : ""}` : "";
+    recordCombatResolution(game, {
+      attackerPlayerNum: attack.player,
+      defenderPlayerNum: defender,
+      attackValue: attack.effectiveValue,
+      blockValue: totalBlock,
+      preventionValue: totalPrevent,
+      damage
+    });
 
     if (damage > 0) {
       game.players[defender].life -= damage;
@@ -4713,6 +4843,14 @@ function resolveFreeForAllDamage(game, roomState) {
     const totalBlock = (attack.block || []).reduce((sum, block) => sum + (block.effectiveValue || 0), 0);
     const damage = Math.max(0, (attack.effectiveValue || 0) - totalBlock);
     const defender = attack.targetPlayer;
+    recordCombatResolution(game, {
+      attackerPlayerNum: attack.player,
+      defenderPlayerNum: defender,
+      attackValue: attack.effectiveValue,
+      blockValue: totalBlock,
+      preventionValue: 0,
+      damage
+    });
     if (damage > 0) {
       game.players[defender].life -= damage;
       damageMessages.push(`Player ${attack.player} hit Player ${defender} for ${damage}.`);
@@ -5055,6 +5193,10 @@ function createGameFromLobby(roomState) {
     createFreeForAllGameFromLobby(roomState);
     return;
   }
+  roomState.matchMetadata = createMatchMetadata({
+    seriesId: roomState.seriesId || null,
+    gameNumber: roomState.bestOf3Series?.gameNumber || 1
+  });
   const gameMode = getLobbyGameMode(roomState);
   const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId);
   const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId);
@@ -5182,6 +5324,7 @@ function createGameFromLobby(roomState) {
 }
 
 function createFreeForAllGameFromLobby(roomState) {
+  roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
   const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
@@ -6067,7 +6210,7 @@ io.on("connection", (socket) => {
         game.phase = "gameOver";
         game.winner = winner;
         game.message = winner == null ? `Player ${playerNum} conceded. Free-for-all ends in a draw.` : `Player ${playerNum} conceded. Player ${winner} wins the free-for-all!`;
-        await recordFinalGameStats(roomState);
+        await recordFinalGameStats(roomState, { completionReason: "concession" });
         io.to(roomState.roomCode).emit("gameEnded", { winner, tie: winner == null, concededBy: playerNum });
       } else {
         if (game.priority === playerNum) game.priority = activePlayers[0];
@@ -6083,7 +6226,7 @@ io.on("connection", (socket) => {
     game.winner = winner;
     game.drawOfferBy = null;
     game.message = `Player ${playerNum} conceded. Player ${winner} wins!`;
-    await recordFinalGameStats(roomState);
+    await recordFinalGameStats(roomState, { completionReason: "concession" });
     if (continueBestOf3Series(roomState)) {
       emitState(roomState);
       scheduleTrainingAi(roomState);
@@ -6117,7 +6260,7 @@ io.on("connection", (socket) => {
       game.winner = null;
       game.drawOfferBy = null;
       game.message = "Players agreed to an intentional draw.";
-      await recordFinalGameStats(roomState);
+      await recordFinalGameStats(roomState, { completionReason: "intentional_draw" });
       if (continueBestOf3Series(roomState)) {
         emitState(roomState);
         return;
@@ -6942,7 +7085,9 @@ module.exports = {
     createTurnData,
     getBaseCardValue,
     getPaymentTotal,
+    recordFinalGameStats,
     resolveDamage,
+    sanitizeGameForViewer,
     startEndPhase,
     advanceEndPlacement,
     validateConstructedDeckPayload,

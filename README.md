@@ -75,6 +75,7 @@ Server variables:
 | `CLIENT_URLS` | Additional comma-separated allowed origins | Empty |
 | `ACCOUNT_DATA_FILE` | Local account JSON path when Supabase is unavailable | `server/accounts.json` |
 | `FACTION_STATS_DATA_FILE` | Local faction statistics JSON path | `server/faction-stats.json` |
+| `MATCH_DATA_FILE` | Local durable match-record JSON path | `server/matches.json` |
 | `ACCOUNT_AUTH_SECRET` | HMAC secret for account sessions | Development fallback; required secret in production |
 | `OWNER_STATS_TOKEN` | Token for owner-only statistics endpoints | Empty |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
@@ -111,5 +112,7 @@ npm run check
 The React client is deployed from the `client` directory on Vercel at `https://gauntlet-online.vercel.app`. The Node/Express/Socket.IO server is deployed from the `server` directory on Render at `https://gauntlet-online.onrender.com`. These deployment roots remain separate; the repository does not use npm workspaces.
 
 Production account, friend, message, progression, collection, and leaderboard data can be stored in Supabase when the server credentials are configured. See `server/SUPABASE.md`.
+
+Completed matches are stored separately from active rooms. Each server-authored record includes public participant and deck-version snapshots, completion metadata, combat aggregates, and a privacy-filtered audit stream. `GET /api/matches/:matchId` returns a public record, while authenticated accounts can list their recent records at `GET /api/account/matches`.
 
 Active rooms, matchmaking queues, draft queues, and live game state are currently held in server memory. They are not restart-safe and may be lost whenever the Render server restarts or redeploys.
