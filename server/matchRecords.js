@@ -227,6 +227,8 @@ function buildMatchRecord(roomState, options = {}) {
     gameNumber: roomState.bestOf3Series?.gameNumber
   });
   roomState.matchMetadata = metadata;
+  const completionReason = options.completionReason || "life_total";
+  const abandoned = completionReason === "abandoned";
   const playerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
   const participants = playerNumbers.map((playerNum) => {
     const lobbyPlayer = roomState.lobby?.players?.[playerNum] || {};
@@ -242,7 +244,7 @@ function buildMatchRecord(roomState, options = {}) {
       },
       deck: getDeckSnapshot(lobbyPlayer, gamePlayer),
       finalLife: Number(gamePlayer.life || 0),
-      result: game.winner == null ? "draw" : Number(game.winner) === playerNum ? "win" : "loss"
+      result: abandoned ? "abandoned" : game.winner == null ? "draw" : Number(game.winner) === playerNum ? "win" : "loss"
     };
   });
   const auditEvents = Array.isArray(game.serverAuditEvents) && game.serverAuditEvents.length > 0
@@ -259,7 +261,6 @@ function buildMatchRecord(roomState, options = {}) {
       }));
   const combatStats = clonePlain(game.serverCombatStats || ensureCombatStats(game));
   const lifeValues = participants.map((participant) => participant.finalLife);
-  const completionReason = options.completionReason || "life_total";
   const mode = game.campaign
     ? "campaign"
     : roomState.draftLeague || game.draftLeague
@@ -277,6 +278,7 @@ function buildMatchRecord(roomState, options = {}) {
     startedAt: metadata.startedAt,
     completedAt: options.completedAt || new Date().toISOString(),
     completionReason,
+    abandonmentReason: abandoned ? options.abandonmentReason || "unknown" : null,
     winnerPlayerNum: game.winner == null ? null : Number(game.winner),
     turnCount: Number(game.turn || 1),
     participants,
