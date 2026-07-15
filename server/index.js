@@ -35,8 +35,19 @@ const {
   publicMatchSummary,
   recordCombatResolution
 } = require("./matchRecords");
+const {
+  createRoomLifecycle,
+  getRoomLifecycleAction,
+  getRoomLifecycleConfig,
+  markRoomCompleted,
+  syncRoomPresence,
+  touchRoom
+} = require("./roomLifecycle");
 
 const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
+const roomLifecycleConfig = getRoomLifecycleConfig();
+let roomLifecycleTimer = null;
+let roomLifecycleSweepRunning = false;
 
 function isAllowedOrigin(origin) {
   return !origin || ALLOWED_ORIGINS.includes(origin);
@@ -2983,6 +2994,7 @@ function createRoom() {
   }
   const roomState = {
     roomCode,
+    lifecycle: createRoomLifecycle(),
     lobby: {
       gameMode: "factions",
       players: {
@@ -3024,6 +3036,7 @@ function createDraftRoom(options = {}) {
 
   const roomState = {
     roomCode,
+    lifecycle: createRoomLifecycle(),
     lobby: {
       gameMode: "draft",
       players,
@@ -3232,7 +3245,95 @@ function getRoom(roomCode) {
 }
 
 function deleteRoom(roomCode) {
+  const roomState = rooms.get(roomCode);
+  if (!roomState) return false;
+  if (roomState.aiMoveTimer) clearTimeout(roomState.aiMoveTimer);
+  const socketIds = [
+    ...getLobbyPlayerNumbers(roomState).map((playerNum) => roomState.lobby.players[playerNum].socket),
+    ...(roomState.lobby.spectators || [])
+  ].filter(Boolean);
+  for (const socketId of socketIds) {
+    const socket = io.sockets.sockets.get(socketId);
+    if (!socket) continue;
+    socket.leave(roomCode);
+    if (socket.data.roomCode === roomCode) {
+      socket.data.roomCode = null;
+      socket.data.role = null;
+      socket.data.playerNum = null;
+    }
+  }
   rooms.delete(roomCode);
+  return true;
+}
+
+async function abandonActiveRoom(roomState, reason = "reconnect_timeout", now = Date.now()) {
+  const game = roomState?.game;
+  if (!game || game.phase === "gameOver") return null;
+  game.phase = "gameOver";
+  game.winner = null;
+  game.drawOfferBy = null;
+  game.message = reason === "server_shutdown"
+    ? "Match abandoned because the game server shut down before completion."
+    : "Match abandoned after every human player exceeded the reconnect grace period.";
+  const completedAt = new Date(now).toISOString();
+  await recordFinalGameStats(roomState, {
+    completionReason: "abandoned",
+    abandonmentReason: reason,
+    completedAt
+  });
+  markRoomCompleted(roomState, completedAt, reason);
+  emitState(roomState);
+  return roomState.matchMetadata?.recordedMatchId || roomState.matchMetadata?.matchId || null;
+}
+
+async function sweepRoomLifecycle(options = {}) {
+  if (roomLifecycleSweepRunning) return { skipped: true, abandoned: 0, deleted: 0 };
+  roomLifecycleSweepRunning = true;
+  const now = options.now ?? Date.now();
+  const config = options.config || roomLifecycleConfig;
+  const result = { skipped: false, abandoned: 0, deleted: 0, actions: [] };
+  try {
+    for (const roomState of [...rooms.values()]) {
+      const action = getRoomLifecycleAction(roomState, now, config);
+      if (action === "abandon_match") {
+        await abandonActiveRoom(roomState, "reconnect_timeout", now);
+        result.abandoned += 1;
+        result.actions.push({ roomCode: roomState.roomCode, action });
+      } else if (action.startsWith("delete_")) {
+        deleteRoom(roomState.roomCode);
+        result.deleted += 1;
+        result.actions.push({ roomCode: roomState.roomCode, action });
+      }
+    }
+    return result;
+  } finally {
+    roomLifecycleSweepRunning = false;
+  }
+}
+
+function startRoomLifecycleSweep() {
+  if (roomLifecycleTimer) return roomLifecycleTimer;
+  roomLifecycleTimer = setInterval(() => {
+    sweepRoomLifecycle().catch((error) => console.error("[Rooms] Lifecycle sweep failed", error));
+  }, roomLifecycleConfig.sweepIntervalMs);
+  roomLifecycleTimer.unref?.();
+  return roomLifecycleTimer;
+}
+
+function stopRoomLifecycleSweep() {
+  if (!roomLifecycleTimer) return;
+  clearInterval(roomLifecycleTimer);
+  roomLifecycleTimer = null;
+}
+
+async function abandonActiveRoomsForShutdown(now = Date.now()) {
+  const abandonedMatchIds = [];
+  for (const roomState of rooms.values()) {
+    if (!roomState.game || roomState.game.phase === "gameOver") continue;
+    const matchId = await abandonActiveRoom(roomState, "server_shutdown", now);
+    if (matchId) abandonedMatchIds.push(matchId);
+  }
+  return abandonedMatchIds;
 }
 
 async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
@@ -3256,6 +3357,7 @@ function getRoomForSocket(socket) {
   for (const [code, room] of rooms) {
     if (getLobbyPlayerNumbers(room).some((playerNum) => room.lobby.players[playerNum].socket === socket.id) ||
         room.lobby.spectators.includes(socket.id)) {
+      touchRoom(room);
       return room;
     }
   }
@@ -3274,6 +3376,7 @@ function sanitizeLobbyPlayer(player) {
 }
 
 function emitLobbyState(roomState) {
+  touchRoom(roomState);
   const players = {};
   getLobbyPlayerNumbers(roomState).forEach((playerNum) => {
     players[playerNum] = sanitizeLobbyPlayer(roomState.lobby.players[playerNum]);
@@ -3331,6 +3434,7 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
 
 function emitDraftState(roomState) {
   if (!roomState.draft) return;
+  touchRoom(roomState);
   for (const playerNum of getLobbyPlayerNumbers(roomState)) {
     const socketId = roomState.lobby.players[playerNum].socket;
     if (socketId) io.to(socketId).emit("draftState", sanitizeDraftForViewer(roomState, playerNum));
@@ -3359,6 +3463,7 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
 
 function emitState(roomState) {
   if (!roomState.game) return;
+  touchRoom(roomState);
   captureGameEvent(roomState.game);
   const spectatorCount = roomState.lobby.spectators.length;
 
@@ -3425,6 +3530,7 @@ function attachPlayerSocket(roomState, socket, playerNum) {
   lobbyPlayer.connected = true;
   if (!lobbyPlayer.reconnectToken) lobbyPlayer.reconnectToken = makeReconnectToken();
   if (roomState.game?.players?.[playerNum]) roomState.game.players[playerNum].connected = true;
+  touchRoom(roomState);
 
   socket.join(roomState.roomCode);
   socket.data.roomCode = roomState.roomCode;
@@ -3453,6 +3559,7 @@ function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
   socket.data.roomCode = null;
   socket.data.role = null;
   socket.data.playerNum = null;
+  touchRoom(roomState);
 
   if (roomState.draft) {
     emitLobbyState(roomState);
@@ -4703,11 +4810,20 @@ async function recordFinalGameStats(roomState, options = {}) {
   const completionReason = options.completionReason || "life_total";
   let matchRecord = null;
   try {
-    matchRecord = buildMatchRecord(roomState, { completedAt, completionReason });
+    matchRecord = buildMatchRecord(roomState, {
+      completedAt,
+      completionReason,
+      abandonmentReason: options.abandonmentReason || null
+    });
     await persistMatchRecord(matchRecord);
     roomState.matchMetadata.recordedMatchId = matchRecord.matchId;
   } catch (error) {
     console.error("[Matches] Failed to persist completed match", error);
+  }
+  markRoomCompleted(roomState, completedAt, options.abandonmentReason || completionReason);
+  if (completionReason === "abandoned") {
+    game.statsRecorded = true;
+    return;
   }
   if (isTrainingAiRoom(roomState)) {
     if (game.campaign && game.winner === 1) {
@@ -7066,10 +7182,31 @@ io.on("connection", (socket) => {
   });
 });
 
+let shutdownStarted = false;
+
+async function shutdownServer(signal = "shutdown") {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  console.log(`[Server] ${signal} received; finalizing active rooms.`);
+  stopRoomLifecycleSweep();
+  server.close();
+  try {
+    const matchIds = await abandonActiveRoomsForShutdown();
+    console.log(`[Server] Recorded ${matchIds.length} abandoned active match${matchIds.length === 1 ? "" : "es"}.`);
+  } catch (error) {
+    console.error("[Server] Failed to finalize active rooms", error);
+  }
+  io.close(() => process.exit(0));
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
 if (require.main === module) {
   server.listen(PORT, () => {
+    startRoomLifecycleSweep();
     console.log(`Server running on port ${PORT}`);
   });
+  process.once("SIGTERM", () => shutdownServer("SIGTERM"));
+  process.once("SIGINT", () => shutdownServer("SIGINT"));
 }
 
 module.exports = {
@@ -7080,14 +7217,20 @@ module.exports = {
     applyGameOverState,
     applyProgressionForResult,
     calculateAttackBonuses,
+    abandonActiveRoom,
+    abandonActiveRoomsForShutdown,
     createFreeForAllGameFromLobby,
     createGameFromLobby,
+    createRoom,
     createTurnData,
     getBaseCardValue,
     getPaymentTotal,
     recordFinalGameStats,
     resolveDamage,
     sanitizeGameForViewer,
+    sweepRoomLifecycle,
+    deleteRoom,
+    rooms,
     startEndPhase,
     advanceEndPlacement,
     validateConstructedDeckPayload,
