@@ -28,6 +28,7 @@ const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const {
+  buildParaMatchExport,
   buildMatchRecord,
   captureAuditEvent,
   createLocalMatchStore,
@@ -1716,6 +1717,89 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
+function buildPublicPlayerProfile(account, matchRecords = []) {
+  const stats = account?.stats || {};
+  const library = normalizeDeckLibrary(stats, account?.id);
+  const ranked = {
+    wins: Number(stats.rankedGamesWon || 0),
+    losses: Number(stats.rankedGamesLost || 0),
+    draws: Number(stats.rankedGamesDrawn || 0)
+  };
+  ranked.gamesPlayed = ranked.wins + ranked.losses + ranked.draws;
+  ranked.winRate = ranked.wins + ranked.losses > 0 ? Math.round((ranked.wins / (ranked.wins + ranked.losses)) * 1000) / 10 : 0;
+  const all = {
+    wins: Number(stats.gamesWon || 0),
+    losses: Number(stats.gamesLost || 0),
+    draws: Number(stats.gamesDrawn || 0)
+  };
+  all.gamesPlayed = all.wins + all.losses + all.draws;
+  all.winRate = all.wins + all.losses > 0 ? Math.round((all.wins / (all.wins + all.losses)) * 1000) / 10 : 0;
+
+  const factionRecords = {};
+  let largestAttack = null;
+  let totalDamageDealt = 0;
+  let totalDamagePrevented = 0;
+  for (const record of matchRecords) {
+    const participant = record.participants?.find((entry) => entry.accountId === account.id);
+    if (!participant) continue;
+    const factionId = participant.faction?.id || "basic";
+    factionRecords[factionId] = factionRecords[factionId] || {
+      factionId,
+      factionName: participant.faction?.name || factionId,
+      wins: 0,
+      losses: 0,
+      draws: 0
+    };
+    const resultField = participant.result === "win" ? "wins" : participant.result === "loss" ? "losses" : participant.result === "draw" ? "draws" : null;
+    if (resultField) factionRecords[factionId][resultField] += 1;
+    const playerCombat = record.combatStats?.byPlayer?.[String(participant.playerNum)] || {};
+    totalDamageDealt += Number(playerCombat.damageDealt || 0);
+    totalDamagePrevented += Number(playerCombat.damagePrevented || 0);
+    if (record.notableMoments?.largestAttack?.playerNum === participant.playerNum) {
+      const candidate = { ...record.notableMoments.largestAttack, matchId: record.matchId };
+      if (!largestAttack || candidate.value > largestAttack.value) largestAttack = candidate;
+    }
+  }
+
+  const progression = normalizeProgression(stats);
+  const cosmetics = progression.cosmetics || {};
+  return {
+    profileVersion: 1,
+    accountId: account.id,
+    displayName: account.name,
+    memberSince: account.createdAt,
+    lastSeenAt: account.lastSeenAt || null,
+    identity: {
+      selectedTitle: cosmetics.selectedTitle || "recruit",
+      selectedFactionBadge: cosmetics.selectedFactionBadge || "none",
+      selectedCardBack: cosmetics.selectedCardBack || "classic"
+    },
+    competitiveRecord: { ranked, all },
+    verifiedMatchCount: matchRecords.length,
+    factionRecords: Object.values(factionRecords).sort((a, b) => b.wins - a.wins || a.factionName.localeCompare(b.factionName)),
+    notableStats: { largestAttack, totalDamageDealt, totalDamagePrevented },
+    achievements: Object.values(progression.achievements || {}).map((achievement) => ({
+      id: achievement.id,
+      name: achievement.name,
+      description: achievement.description,
+      unlockedAt: achievement.unlockedAt
+    })),
+    featuredDecks: library.decks.filter((deck) => deck.featured && !deck.archived).slice(0, 3).map((deck) => ({
+      id: deck.id,
+      name: deck.name,
+      factionId: deck.factionId,
+      factionName: deck.factionName,
+      format: deck.format,
+      draftType: deck.draftType,
+      coverId: deck.coverId,
+      currentVersionId: deck.currentVersionId,
+      updatedAt: deck.updatedAt,
+      record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
+    })),
+    recentMatches: matchRecords.slice(0, 12).map(publicMatchSummary)
+  };
+}
+
 function normalizeFriendChallenges(stats = {}, now = Date.now()) {
   const challenges = Array.isArray(stats.friendChallenges) ? stats.friendChallenges : [];
   const normalized = challenges
@@ -2478,6 +2562,26 @@ app.get("/api/matches/:matchId", async (req, res) => {
   }
 });
 
+app.get("/api/matches/:matchId/export/para", async (req, res) => {
+  const matchId = String(req.params.matchId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
+    res.status(400).json({ error: "Invalid match ID." });
+    return;
+  }
+  try {
+    const record = await findMatchRecordById(matchId);
+    if (!record) {
+      res.status(404).json({ error: "Match not found." });
+      return;
+    }
+    const matchUrl = `${CLIENT_URL.replace(/\/$/, "")}/?match=${encodeURIComponent(matchId)}`;
+    res.json(buildParaMatchExport(record, matchUrl));
+  } catch (error) {
+    console.error("[Matches] Failed to export match", error);
+    res.status(503).json({ error: "Match export is temporarily unavailable." });
+  }
+});
+
 app.get("/api/account/matches", async (req, res) => {
   try {
     const context = await requireAccountRecord(req, res);
@@ -2487,6 +2591,28 @@ app.get("/api/account/matches", async (req, res) => {
   } catch (error) {
     console.error("[Matches] Failed to load account matches", error);
     res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
+
+app.get("/api/profiles/:accountId", async (req, res) => {
+  const accountId = String(req.params.accountId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(accountId)) {
+    res.status(400).json({ error: "Invalid profile ID." });
+    return;
+  }
+  try {
+    const account = useSupabaseStore()
+      ? await findSupabaseAccountById(accountId)
+      : loadAccountStore().accounts.find((entry) => entry.id === accountId);
+    if (!account) {
+      res.status(404).json({ error: "Profile not found." });
+      return;
+    }
+    const records = await listMatchRecordsByAccount(account.id, 100);
+    res.json({ profile: buildPublicPlayerProfile(account, records) });
+  } catch (error) {
+    console.error("[Profiles] Failed to load public profile", error);
+    res.status(503).json({ error: "Player profiles are temporarily unavailable." });
   }
 });
 
@@ -2927,6 +3053,7 @@ app.get("/api/leaderboard", async (_req, res) => {
       const gamesPlayed = wins + losses;
       const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 1000) / 10 : 0;
       return {
+        accountId: account.id,
         name: account.name,
         wins,
         losses,
@@ -7880,6 +8007,7 @@ module.exports = {
     applyDeckResult,
     addFriendChallenge,
     applyProgressionForResult,
+    buildPublicPlayerProfile,
     calculateAttackBonuses,
     canOfferRematch,
     abandonActiveRoom,

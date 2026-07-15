@@ -1,9 +1,10 @@
 import { useState } from "react";
 import "./DeckLibraryPanel.css";
 
-function DeckRow({ deck, active, selected, onSelect, onAction }) {
+function DeckRow({ deck, active, selected, onSelect, onAction, onOpenMatch }) {
   const record = deck.record || {};
   const versionCount = deck.versions?.length || 1;
+  const latestMatchId = record.recentMatchIds?.[0] || null;
   return (
     <div className={`deck-library-row ${selected ? "selected" : ""} ${deck.archived ? "archived" : ""}`}>
       <button type="button" className="deck-library-main" onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
@@ -23,13 +24,14 @@ function DeckRow({ deck, active, selected, onSelect, onAction }) {
         {!deck.archived && !active && <button type="button" onClick={() => onAction(deck.id, "activate")}>Use</button>}
         {!deck.archived && <button type="button" onClick={() => onAction(deck.id, "duplicate")}>Duplicate</button>}
         {!deck.archived && <button type="button" onClick={() => onAction(deck.id, "feature")}>{deck.featured ? "Unfeature" : "Feature"}</button>}
+        {latestMatchId && <button type="button" onClick={() => onOpenMatch(latestMatchId)}>Recent Match</button>}
         <button type="button" onClick={() => onAction(deck.id, deck.archived ? "restore" : "archive")}>{deck.archived ? "Restore" : "Archive"}</button>
       </div>
     </div>
   );
 }
 
-export default function DeckLibraryPanel({ library, selectedDeckId, onSelect, onNew, onAction }) {
+export default function DeckLibraryPanel({ library, selectedDeckId, onSelect, onNew, onAction, onOpenMatch }) {
   const [showArchived, setShowArchived] = useState(false);
   const decks = (library?.decks || []).filter((deck) => showArchived || !deck.archived);
   const activeIds = new Set([
@@ -60,6 +62,7 @@ export default function DeckLibraryPanel({ library, selectedDeckId, onSelect, on
           selected={deck.id === selectedDeckId}
           onSelect={onSelect}
           onAction={onAction}
+          onOpenMatch={onOpenMatch}
         />
       ))}
     </section>
