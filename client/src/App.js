@@ -2338,6 +2338,9 @@ function FriendsPanel({
   onAddFriend,
   onRemoveFriend,
   onSendMessage,
+  onChallengeFriend,
+  onJoinChallenge,
+  onUpdateChallenge,
   onRefresh,
   unreadCounts = {},
   unreadTotal = 0
@@ -2352,6 +2355,9 @@ function FriendsPanel({
 
   const friends = friendsData.friends || [];
   const messages = friendsData.messages || [];
+  const challenges = friendsData.challenges || [];
+  const incomingChallenges = challenges.filter((challenge) => challenge.toId === account.id && challenge.status === "pending");
+  const outgoingChallenges = challenges.filter((challenge) => challenge.fromId === account.id && challenge.status === "pending");
   const selectedFriend = friends.find((friend) => friend.id === selectedFriendId) || null;
   const selectedMessages = selectedFriend
     ? messages.filter((message) => message.fromId === selectedFriend.id || message.toId === selectedFriend.id)
@@ -2360,6 +2366,19 @@ function FriendsPanel({
   return (
     <MenuCard title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
       {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
+      {incomingChallenges.map((challenge) => (
+        <div key={challenge.id} style={{ border: "1px solid #f59e0b", borderRadius: 6, padding: 9, marginBottom: 10, background: "rgba(245,158,11,0.14)", color: "#f8fafc" }}>
+          <strong>{challenge.fromName} challenged you</strong>
+          <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0 8px" }}>Faction Duel · room {challenge.roomCode}</div>
+          <MenuButton onClick={() => onJoinChallenge(challenge)} style={{ marginRight: 7 }}>Join Table</MenuButton>
+          <MenuButton variant="secondary" onClick={() => onUpdateChallenge(challenge.id, "decline")}>Decline</MenuButton>
+        </div>
+      ))}
+      {outgoingChallenges.length > 0 && (
+        <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 10 }}>
+          Waiting on {outgoingChallenges.map((challenge) => challenge.toName).join(", ")}.
+        </div>
+      )}
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
         <MenuButton onClick={onAddFriend}>Add</MenuButton>
@@ -2385,7 +2404,10 @@ function FriendsPanel({
                   <div style={{ padding: 8, borderTop: "1px solid rgba(125,211,252,0.25)", background: "rgba(2,6,23,0.34)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
                       <strong>{friend.name}</strong>
-                      <button onClick={() => onRemoveFriend(friend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <MenuButton onClick={() => onChallengeFriend(friend.id)}>Challenge</MenuButton>
+                        <button onClick={() => onRemoveFriend(friend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
+                      </div>
                     </div>
                     <div style={{ height: 130, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
                       {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
@@ -3273,9 +3295,10 @@ export default function App() {
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
+  const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
   const [draftPickPending, setDraftPickPending] = useState(false);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
-  const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
+  const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
   const [friendNameInput, setFriendNameInput] = useState("");
   const [friendMessageInput, setFriendMessageInput] = useState("");
@@ -3425,7 +3448,7 @@ export default function App() {
 
   const loadFriends = useCallback(async () => {
     if (!authToken) {
-      setFriendsData({ friends: [], messages: [] });
+      setFriendsData({ friends: [], messages: [], challenges: [] });
       setSelectedFriendId("");
       return;
     }
@@ -3436,7 +3459,7 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load friends.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
@@ -3547,6 +3570,13 @@ export default function App() {
     const onAccountUpdated = (updatedAccount) => setAccount(updatedAccount);
     const onDraftDeckSaved = (payload) => setDraftSaveMessage(payload?.message || "Draft deck saved.");
     const onGameEnded = () => loadLeaderboard();
+    const onRematchStatus = (status) => setRematchStatus(status || { requestedBy: null, message: "" });
+    const onRematchStarted = () => {
+      resetSelections();
+      setGame(null);
+      setRematchStatus({ requestedBy: null, message: "" });
+      setActionLog([]);
+    };
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
       const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
@@ -3570,6 +3600,8 @@ export default function App() {
     socket.on("accountUpdated", onAccountUpdated);
     socket.on("draftDeckSaved", onDraftDeckSaved);
     socket.on("gameEnded", onGameEnded);
+    socket.on("rematchStatus", onRematchStatus);
+    socket.on("rematchStarted", onRematchStarted);
     attemptReconnect();
 
     return () => {
@@ -3586,6 +3618,8 @@ export default function App() {
       socket.off("accountUpdated", onAccountUpdated);
       socket.off("draftDeckSaved", onDraftDeckSaved);
       socket.off("gameEnded", onGameEnded);
+      socket.off("rematchStatus", onRematchStatus);
+      socket.off("rematchStarted", onRematchStarted);
     };
   }, [currentIdentityKey, loadLeaderboard]);
 
@@ -3877,7 +3911,7 @@ export default function App() {
     setAccount(null);
     setLastOpenedPack([]);
     setOpeningPackId("");
-    setFriendsData({ friends: [], messages: [] });
+    setFriendsData({ friends: [], messages: [], challenges: [] });
     setSelectedFriendId("");
     setFriendNameInput("");
     setFriendMessageInput("");
@@ -4127,6 +4161,14 @@ export default function App() {
     socket.emit("startGame");
   }
 
+  function requestRematch() {
+    socket.emit("requestRematch");
+  }
+
+  function declineRematch() {
+    socket.emit("declineRematch");
+  }
+
   async function submitFriendRequest() {
     setFriendsError("");
     try {
@@ -4137,7 +4179,7 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not add friend.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(data.friends?.find((friend) => friend.name.toLowerCase() === friendNameInput.trim().toLowerCase())?.id || selectedFriendId || data.friends?.[0]?.id || "");
       setFriendNameInput("");
     } catch (friendAddError) {
@@ -4154,7 +4196,7 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not remove friend.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(data.friends?.[0]?.id || "");
       setFriendMessageInput("");
     } catch (friendRemoveError) {
@@ -4172,11 +4214,49 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not send message.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(friendId);
       setFriendMessageInput("");
     } catch (friendMessageError) {
       setFriendsError(friendMessageError.message);
+    }
+  }
+
+  function challengeFriend(friendId) {
+    setFriendsError("");
+    clearReconnectInfo();
+    socket.emit("createFriendChallenge", { authToken, friendId }, (response) => {
+      if (!response?.ok) {
+        setFriendsError(response?.error || "Could not create friend challenge.");
+        return;
+      }
+      loadFriends();
+    });
+  }
+
+  function joinFriendChallenge(challenge) {
+    setFriendsError("");
+    clearReconnectInfo();
+    socket.emit("joinRoom", {
+      roomCode: challenge.roomCode,
+      asSpectator: false,
+      ...playerIdentityPayload()
+    });
+  }
+
+  async function updateFriendChallenge(challengeId, action) {
+    setFriendsError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friend-challenges/${encodeURIComponent(challengeId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ action })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update challenge.");
+      await loadFriends();
+    } catch (challengeError) {
+      setFriendsError(challengeError.message);
     }
   }
 
@@ -4191,6 +4271,7 @@ export default function App() {
     setPlayer(null);
     setRoomCodeInput("");
     setActionLog([]);
+    setRematchStatus({ requestedBy: null, message: "" });
     setError("");
     setFactionVoice(null);
     setIncomingAttackAlert(null);
@@ -4556,6 +4637,9 @@ export default function App() {
                 onAddFriend={submitFriendRequest}
                 onRemoveFriend={removeFriend}
                 onSendMessage={sendFriendMessage}
+                onChallengeFriend={challengeFriend}
+                onJoinChallenge={joinFriendChallenge}
+                onUpdateChallenge={updateFriendChallenge}
                 onRefresh={loadFriends}
                 unreadCounts={friendUnreadCounts}
                 unreadTotal={friendUnreadTotal}
@@ -4671,6 +4755,17 @@ export default function App() {
     const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
     const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(game.campaign.factionId, game.campaign.chapterId) : null;
     const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
+    const canRematch = !isSpectator
+      && !game.campaign
+      && game.gameMode !== "freeForAll"
+      && lobby?.gameMode !== "draft"
+      && !lobby?.players?.[1]?.isAI
+      && !lobby?.players?.[2]?.isAI
+      && !game.players?.[1]?.isAI
+      && !game.players?.[2]?.isAI
+      && game.players?.[2]?.accountName !== "Training AI";
+    const rematchRequestedByMe = rematchStatus.requestedBy === player;
+    const rematchRequestedByOpponent = !!rematchStatus.requestedBy && rematchStatus.requestedBy !== player;
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: `${getBattlefieldTexture(me?.faction?.id || "rumin")}, ${boardBackground}`, fontFamily: "Arial, sans-serif" }}>
@@ -4750,8 +4845,15 @@ export default function App() {
                 Campaign
               </MenuButton>
             )}
+            {canRematch && (
+              <MenuButton onClick={requestRematch} disabled={rematchRequestedByMe}>
+                {rematchRequestedByOpponent ? "Accept Rematch" : rematchRequestedByMe ? "Rematch Requested" : "Request Rematch"}
+              </MenuButton>
+            )}
+            {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
             <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
+          {canRematch && rematchStatus.message && <p style={{ margin: "12px 0 0", color: "#4b2d16", fontSize: 13 }}>{rematchStatus.message}</p>}
         </div>
       </div>
     );
