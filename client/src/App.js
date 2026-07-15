@@ -695,6 +695,7 @@ function getCardRank(card) {
 
 function getCardShortLabel(card) {
   if (!card) return "None";
+  if (card.campaignBossCard) return getCardRank(card);
   return `${getCardRank(card)}${getSuitSymbol(card.suit)}`;
 }
 
@@ -6516,7 +6517,8 @@ export default function App() {
             min-height: 100dvh !important;
             overflow: hidden !important;
             padding: 4px !important;
-            grid-template-rows: auto minmax(0, 1fr) !important;
+            display: flex !important;
+            flex-direction: column !important;
             gap: 4px !important;
           }
           .match-top-frame {
@@ -6529,6 +6531,8 @@ export default function App() {
           .mobile-life-hud {
             display: grid !important;
             grid-template-columns: repeat(3, minmax(0, 1fr));
+            flex: 0 0 auto;
+            align-items: center;
             gap: 3px;
             padding: 4px 6px;
             border: 1px solid rgba(205,154,86,0.52);
@@ -6538,12 +6542,14 @@ export default function App() {
             box-shadow: 0 4px 14px rgba(0,0,0,0.28);
             font-size: 10px;
             line-height: 1.05;
+            min-height: 0;
           }
           .mobile-life-hud span {
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            text-align: center;
           }
           .mobile-life-hud strong {
             color: #f7d99e;
@@ -6625,6 +6631,8 @@ export default function App() {
           }
           .match-table-frame {
             grid-template-columns: 1fr !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
             gap: 4px !important;
             overflow: hidden !important;
           }
@@ -6638,20 +6646,22 @@ export default function App() {
           }
           .current-play-panel {
             width: 100% !important;
-            max-height: 54px !important;
-            padding: 3px 5px !important;
+            max-height: none !important;
+            padding: 5px 6px !important;
             font-size: 10px !important;
+            line-height: 1.18 !important;
           }
           .current-play-panel > div {
             font-size: 9px !important;
-            margin-top: 1px !important;
+            margin-top: 2px !important;
+            line-height: 1.18 !important;
           }
           .current-play-panel [style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
           }
           .game-main {
             display: grid !important;
-            grid-template-rows: minmax(104px, 0.62fr) auto minmax(262px, 1.38fr) !important;
+            grid-template-rows: minmax(98px, 0.58fr) auto minmax(262px, 1.38fr) !important;
             gap: 4px !important;
             overflow: hidden !important;
             padding-right: 0 !important;
