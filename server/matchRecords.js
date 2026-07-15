@@ -2,9 +2,9 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+const { CONTENT_VERSION, RULES_VERSION } = require("./gameContent");
+
 const MATCH_RECORD_VERSION = 1;
-const RULES_VERSION = "gauntlet-rules-v1";
-const CONTENT_VERSION = "gauntlet-content-v1";
 
 function clonePlain(value) {
   return JSON.parse(JSON.stringify(value));

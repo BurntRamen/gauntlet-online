@@ -220,298 +220,18 @@ const FACTION_VOICE_LINES = {
   ]
 };
 
-const CAMPAIGN_CHAPTERS = {
-  rumin: {
-    factionName: "Rumin",
-    commanderName: "The Jewel of Rumie",
-    pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.",
-    chapters: [
-      { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."], dialogueAudio: ["/assets/gauntlet/voices/rolmus-brothers-2.mp3", "/assets/gauntlet/voices/remex-brothers-1.mp3", "/assets/gauntlet/voices/rolmus-brothers-1.mp3"] },
-      { id: "the-republic", playableName: "The Senate Guard", opponentName: "Tribune Marcell", title: "The Republic", story: "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic.", dialogue: ["Senator: The Republic endures because it is slow.", "Marcell: Slow things are easy to buy.", "Young Kaiser: Then someone must become too expensive to own."] },
-      { id: "the-jewel", playableName: "Kaiser", opponentName: "Corrupt Governor Severan", title: "The Jewel", story: "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy.", dialogue: ["Severan: You mistake popularity for authority.", "Kaiser: No. I mistake theft for treason.", "Crowd: Kaiser! Kaiser! Kaiser!"] },
-      { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."] },
-      { id: "three-runes", playableName: "Kaiser", opponentName: "Ancient Rune Guardian", title: "The Three Runes", story: "Kaiser discovers vaults of Strength, Protection, and Experience, then begins binding sacred runes to the legions.", dialogue: ["Guardian: Strength without wisdom breaks itself.", "Kaiser: Then I will take wisdom too.", "Guardian: All conquerors say that before the vault closes."] },
-      { id: "first-empire-bank", playableName: "Kaiser", opponentName: "Market Collapse", title: "The First Empire Bank", story: "Kaiser returns to build roads, grain systems, public works, and banking reforms while saboteurs try to break Rumie's markets.", dialogue: ["Merchant: The city eats because credit moves.", "Brutus: And if one man commands the credit?", "Kaiser: Then one man answers if the people starve."] },
-      { id: "the-crossing", playableName: "Kaiser", opponentName: "Senate General Cassius", title: "The Crossing", story: "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins.", dialogue: ["Brutus: Kaiser, do not do this.", "Kaiser: If I surrender, Rumie returns to corruption.", "Brutus: Then save the Republic.", "Kaiser: I intend to."] },
-      { id: "last-republic", playableName: "Kaiser", opponentName: "Brutus", title: "The Last Republic", story: "Rumie burns as legions and senators collide. Kaiser wins the city, but Brutus survives the fall of the old order.", dialogue: ["Brutus: You have saved Rumie by conquering it.", "Kaiser: I have saved Rumie from men who sold it.", "Brutus: Then we are both traitors."] },
-      { id: "emperor-of-gold", playableName: "Kaiser", opponentName: "Rebel Senate Coalition", title: "Emperor of Gold", story: "At Kaiser's peak, roads, banks, and legions flourish, but prisoners, taxes, and central rule make citizens question the jewel.", dialogue: ["Senator: Prosperity is not freedom.", "Kaiser: Freedom without bread is a slogan.", "Brutus: And bread without law is obedience."] },
-      { id: "ides-of-rumie", playableName: "Kaiser", opponentName: "Brutus and the Conspirators", title: "The Ides of Rumie", story: "Kaiser stabilizes the empire, yet the conspiracy reaches the Senate floor. This chapter frames the tragedy more than the victory.", dialogue: ["Kaiser: You too, Brutus?", "Brutus: I do this for Rumie.", "Kaiser: No. You do it because Rumie no longer needs you."] },
-      { id: "war-of-successors", playableName: "Bobei", opponentName: "Brutus", title: "War of the Successors", story: "After Kaiser dies, Bobei seeks vengeance while Brutus tries to restore the Republic from the ruins.", dialogue: ["Bobei: You killed a man and woke an empire.", "Brutus: I killed a tyrant.", "Bobei: Then why does Rumie weep?"] },
-      { id: "first-emperor", playableName: "Augustus", opponentName: "Bobei the Great", title: "The First Emperor", story: "Augustus defeats Bobei, keeps the bank, legions, and rune program, restores Senate traditions, and leaves Rumie with an empire wearing republican robes.", dialogue: ["Bobei: I was Kaiser's sword.", "Augustus: And I will be his law.", "Old Senator: Perhaps the better question is whether Rumie could have survived without him."] }
-    ]
-  },
-  sheen: {
-    factionName: "Sheen",
-    commanderName: "The Rise and Trials of the Sheen",
-    pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal.",
-    chapters: [
-      { id: "iron-roots", playableName: "Leafen Gao", opponentName: "Emperor Blackthorn", title: "The Iron Roots", story: "The Obsidian Lords drain the forests through Iron Root outposts while Leafen Gao begins a rebellion among starving villages.", dialogue: ["Leafen Gao: A root that drinks everything is not a root. It is a chain.", "Blackthorn: Chains hold kingdoms together.", "Leafen Gao: Then the forest will break yours."] },
-      { id: "verdant-uprising", playableName: "Leafen Gao and Hushan", opponentName: "The Thorn Guard Commanders", title: "The Verdant Uprising", story: "Hushan joins Leafen as the rebellion spreads against Ironbark, Thornclaw, and Rootlash.", dialogue: ["Hushan: They say this rebellion is doomed.", "Leafen Gao: Seeds are buried before they rise.", "Ironbark: Then we will salt the soil."] },
-      { id: "obsidian-throne", playableName: "Leafen Gao, Hushan, and Leshan", opponentName: "Blackthorn, Lord of Iron", title: "Fall of the Obsidian Throne", story: "Leshan and Dowan collapse the Iron Roots themselves, forcing Blackthorn into one last monstrous stand.", dialogue: ["Leshan: Strike the root, not the branch.", "Blackthorn: I am the root.", "Leafen Gao: Then fall with it."] },
-      { id: "beli-living-city", playableName: "Leafen Gao", opponentName: "The Great Blight", title: "Beli, Living City", story: "The Sheen rebuild, found Beli, and begin the Root Network while a natural blight threatens the new kingdom.", dialogue: ["Leafen Gao: We won a forest. Now we must make it a home.", "Reane: Homes are grown, not declared.", "The Great Blight: All growth returns to hunger."] },
-      { id: "root-network", playableName: "Bark Xin and Dowan", opponentName: "The Ash Serpent", title: "The Root Network", story: "Dowan expands Sheen botanical science with barriers, shields, greenhouses, and trade routes, but the Ash Serpent burns the nodes.", dialogue: ["Dowan: The network must bend before it spreads.", "Bark Xin: And if fire follows the roots?", "Dowan: Then we teach roots to carry rain."] },
-      { id: "blooming-age", playableName: "Reane and Hushan", opponentName: "The Drought King", title: "The Blooming Age", story: "The Sheen enter a golden age of shelters, retreats, springs, and living greenhouses as a desert warlord tests the border.", dialogue: ["Reane: Prosperity is not how much we store. It is how much survives winter.", "Drought King: I bring a longer winter.", "Hushan: Then we bring deeper roots."] },
-      { id: "court-of-blossoms", playableName: "Den", opponentName: "Minister Hollowvine", title: "The Court of Blossoms", story: "Political factions emerge in Beli as Den tries to preserve stability while Aime and Tang rise through the court.", dialogue: ["Den: A court can rot while every garden blooms.", "Hollowvine: Rot feeds the next garden.", "Den: Not while I still prune."] },
-      { id: "the-reformer", playableName: "Tang", opponentName: "Lord Goldroot", title: "The Reformer", story: "Tang sees inequality and stagnation, introduces reforms that truly help, and wins sympathy against corrupt nobles.", dialogue: ["Tang: Tradition has become a fence around empty soil.", "Goldroot: Empty soil is still mine.", "Tang: Not after the roots remember the poor."] },
-      { id: "thorned-crown", playableName: "Tang", opponentName: "Ringan", title: "Thorned Crown", story: "Tang centralizes power and creates the Thornblades, while Ringan, a former ally, tries to stop his imbalance.", dialogue: ["Ringan: You wanted reform. This is control.", "Tang: Control is reform that cannot be bribed.", "Ringan: And cannot be questioned."] },
-      { id: "war-of-roots", playableName: "Dowan, Hushan, and Ringan", opponentName: "The Thornblade Generals", title: "The War of Roots", story: "Civil war burns the forests as shelters are weaponized and the Root Network collapses under Ashroot, Briarfang, and Ironvine.", dialogue: ["Dowan: I built these roads to feed cities.", "Ashroot: Roads also carry armies.", "Hushan: Then we cut the roads and save the roots."] },
-      { id: "fall-of-thorn-mang", playableName: "Dowan and Reane", opponentName: "Tang, Crown of Thorns", title: "Fall of Thorn Mang", story: "Tang realizes too late what his reforms became, then falls as healer, commander, and living thorn avatar.", dialogue: ["Tang: I only wanted the kingdom to live.", "Reane: Then why does it bleed when you speak?", "Tang: Because I mistook pain for pruning."] },
-      { id: "green-era", playableName: "Dowan", opponentName: "The Great Renewal", title: "The Green Era", story: "Dowan restores the Root Network, shelters, healing, greenhouses, and balance after the civil war.", dialogue: ["Dowan: Growth without harmony becomes overgrowth.", "Reane: Tradition without growth becomes ash.", "Dowan: Then wisdom is knowing when to nurture and when to prune."] }
-    ]
-  },
-  frumo: {
-    factionName: "Frumo",
-    commanderName: "The Last Tide",
-    pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council.",
-    chapters: [
-      { id: "tax-of-tides", playableName: "Lafayette", opponentName: "Royal Tax Collector", title: "The Tax of the Tides", story: "King Ludvik's tribute fleets bleed Ristus while royal collectors seize treasure from every captain and family.", dialogue: ["Lafayette: The sea gives enough for all Frumo.", "Tax Collector: Then all Frumo can pay the king.", "Lafayette: The tide is turning against your vaults."] },
-      { id: "voices-of-revolution", playableName: "Privateer Mirabeau", opponentName: "Royal Governor of Coral Bay", title: "Voices of Revolution", story: "Hidden taverns and pirate dens fill with reformers as Mirabeau, Danton, Marat, Robespier, and Lafayette demand a freer kingdom.", dialogue: ["Mirabeau: A king who ignores his people will hear their cannons.", "Governor: Coral Bay answers only to Ludvik.", "Danton: Then Coral Bay will learn a new language."] },
-      { id: "fall-of-silver-shoals", playableName: "Corsair Danton", opponentName: "General Carnot", title: "The Fall of Silver Shoals", story: "Revolutionary captains storm Ludvik's treasure fortress, proving common pirates can defeat royal formations.", dialogue: ["Danton: Silver Shoals was built to scare us.", "Carnot: It was built to contain you.", "Danton: Then watch what escapes."] },
-      { id: "sunken-fortress", playableName: "Lafayette", opponentName: "King Ludvik", title: "The Sunken Fortress", story: "The capital floods with revolution as Ludvik discovers his treasure can buy armies, but not loyalty.", dialogue: ["Ludvik: You call it greed. I call it responsibility.", "Lafayette: Responsibility does not wear a jewel-covered crown.", "Ludvik: Do you know how difficult it is being king?"] },
-      { id: "trial-of-king", playableName: "Robespier", opponentName: "Royal Loyalists", title: "The Trial of the King", story: "The monarchy falls, but Frumo divides over whether Ludvik should be imprisoned, spared, or executed.", dialogue: ["Robespier: No kingdom can be free while the crown still lives.", "Lafayette: Justice is not hunger with a blade.", "Robespier: Mercy is how tyrants learn to swim back."] },
-      { id: "reign-of-revolution", playableName: "Marat", opponentName: "Robespier the Red Tide", title: "The Reign of the Revolution", story: "Victory curdles into suspicion as Robespier hunts enemies of freedom until the revolution itself becomes dangerous.", dialogue: ["Robespier: The enemies of freedom wear many faces.", "Marat: Then you will soon accuse the mirror.", "Robespier: Mercy is the weapon of tyrants."] },
-      { id: "hero-of-republic", playableName: "Polea", opponentName: "Admiral of the Northern Coalition", title: "The Hero of the Republic", story: "As chaos spreads, Polea wins impossible naval battles, defeats Frumo-world invaders, and gives the republic hope.", dialogue: ["Polea: I did not come to rule the republic.", "Admiral: No. You came to make it need you.", "Polea: Today it needs victory."] },
-      { id: "lord-commander", playableName: "Polea", opponentName: "Council Rivals", title: "Lord Commander", story: "Polea saves the republic, then takes control of it as the Council of Captains yields more power each year.", dialogue: ["Councilor: You were given command for one crisis.", "Polea: The crisis learned to change names.", "Councilor: So did ambition."] },
-      { id: "frumo-empire", playableName: "Polea", opponentName: "Polea's Shadow", title: "The Frumo Empire", story: "Polea crowns himself Lord Commander of All Frumo: no king, no council, no election, only command.", dialogue: ["Polea: I freed the Frumo from kings.", "Shadow: And gave them a commander instead.", "Polea: Better one helm than a thousand drowning hands."] },
-      { id: "hundred-fleets", playableName: "Polea", opponentName: "The Coral Crown, Kelpbound Princes, and Brasswater League", title: "The Hundred Fleets", story: "Polea's armadas dominate Reath's oceans as rival Frumo sea powers unite against his endless victories.", dialogue: ["Coral Envoy: The seas do not belong to one captain.", "Polea: Then why do they answer mine?", "Brasswater Admiral: Because fear sounds like obedience."] },
-      { id: "frozen-sea", playableName: "Polea", opponentName: "The Ice Leviathan", title: "The Frozen Sea", story: "Polea attempts to conquer the northern oceans, but storms, ice, hunger, and a leviathan shatter the once-invincible navy.", dialogue: ["Polea: No tide has ever refused me.", "Ice Leviathan: This is not tide. This is silence.", "Polea: Then I will break silence too."] },
-      { id: "last-tide", playableName: "The Restored Council", opponentName: "Lord Commander Polea", title: "The Last Tide", story: "Former allies and rival fleets face Polea one final time, then restore the Council with the uneasy knowledge that freedom can decay again.", dialogue: ["Polea: I freed the Frumo. I united them. I made them strong.", "Lafayette: And then you made them yours.", "Polea: If that makes me a tyrant, history may judge me."] }
-    ]
-  },
-  bizi: {
-    factionName: "Bizi",
-    commanderName: "The Gears of Eternity",
-    pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.",
-    chapters: [
-      { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders."] },
-      { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina sleeps beneath Constanti, dividing Bizi thinkers over whether the Titan created them or merely guides them.", dialogue: ["Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering."] },
-      { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli attempt to restore the old Bizi world at the empire's dazzling peak.", dialogue: ["Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it."] },
-      { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Constanti burns in rebellion, Justine nearly flees, and Theo forces him to choose rule over escape.", dialogue: ["Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Beli: Open the gates. I will restore order."] },
-      { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns and reclaims ancient territories, but each victory stretches the empire thinner.", dialogue: ["Beli: We have won another province.", "Theo: And inherited another wound.", "Beli: Then the empire is made of wounds that refused to close."] },
-      { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus seizes power and promises order through absolute efficiency.", dialogue: ["Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul."] },
-      { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "The eastern empire collapses, factories fall, shrines are destroyed, and the Bizi face extinction.", dialogue: ["Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them."] },
-      { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera rises when victory seems impossible, marches into enemy territory, and turns one victory into ten.", dialogue: ["Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures."] },
-      { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Followers of Machina, Melech, and Meca fight over creation, guidance, and control until faith becomes civil danger.", dialogue: ["Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth."] },
-      { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold."] },
-      { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that."] },
-      { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal."] }
-    ]
-  }
-};
-
-const CAMPAIGN_NARRATION = {
-  "brothers-of-destiny": {
-    beforeBattle: "Rumie begins as a fragile dream between two brothers: Rolmus, who sees trade as the road to greatness, and Remex, who believes only conquest can keep the city alive. Their argument will decide the soul of the empire before it is even born.",
-    afterBattle: "Rolmus wins the first argument, but not the last. Rumie is founded on trade, ambition, and the unresolved truth that wealth will always need soldiers to guard it."
-  },
-  "the-republic": {
-    beforeBattle: "Generations later, Rumie is rich, proud, and rotten beneath its marble. Senators speak of tradition while banks, legions, and private debts quietly decide the fate of citizens.",
-    afterBattle: "The Republic survives, but its weakness has been exposed. Rumie's laws still stand, yet more people now wonder whether law without justice is only another kind of market."
-  },
-  "the-jewel": {
-    beforeBattle: "Kaiser rises from officer to public champion, paying debts and walking among workers while the aristocracy protects its own. Governor Severan believes popularity cannot defeat power.",
-    afterBattle: "Severan falls, and Kaiser becomes more than a soldier. To the people, he is the Jewel of Rumie; to the Senate, he is a warning."
-  },
-  "gaulic-wars": {
-    beforeBattle: "Northern tribes unite against Rumie's frontier, threatening roads, trade, and imperial pride. Kaiser marches north, knowing victory will make him beloved and feared in equal measure.",
-    afterBattle: "The frontier opens. Kaiser returns with wealth, veterans, and a legend too large for the Senate to comfortably contain."
-  },
-  "three-runes": {
-    beforeBattle: "Beneath conquered lands, Kaiser finds ancient vaults of Strength, Protection, and Experience. The runes promise power, but every sacred weapon demands a price from the hand that holds it.",
-    afterBattle: "The legions are changed forever. Rumie now commands not only soldiers and gold, but myth itself."
-  },
-  "first-empire-bank": {
-    beforeBattle: "Kaiser turns from conquest to reform, building roads, grain systems, and public credit. His enemies strike at the markets, hoping the people will blame him when Rumie hungers.",
-    afterBattle: "The markets hold. Kaiser proves that money can be a weapon of stability, and the people begin trusting him more than the institutions meant to govern him."
-  },
-  "the-crossing": {
-    beforeBattle: "The Senate orders Kaiser to surrender command. Brutus begs him to preserve the Republic, but Kaiser believes the Republic has already been sold by the men claiming to save it.",
-    afterBattle: "The line is crossed. Civil war begins, and Rumie must now choose between a corrupt freedom and an honest empire."
-  },
-  "last-republic": {
-    beforeBattle: "Legions and senators collide while Brutus fights for a dying order. Kaiser fights for the city itself, even if saving Rumie means conquering it.",
-    afterBattle: "Kaiser wins the city. The Republic still has voices, but no longer has control."
-  },
-  "emperor-of-gold": {
-    beforeBattle: "Roads flourish, banks expand, and the legions obey one hand. Yet prosperity casts a long shadow: taxes, prisoners, and obedience gather beneath the gold.",
-    afterBattle: "Kaiser reaches the height of power. Rumie is safer and richer than ever, but citizens begin asking whether rescue has become rule."
-  },
-  "ides-of-rumie": {
-    beforeBattle: "The conspiracy reaches the Senate floor. Kaiser enters believing his work has saved Rumie; Brutus waits believing only betrayal can save what remains.",
-    afterBattle: "Kaiser falls, but the empire does not. The assassins kill the man and accidentally preserve his myth."
-  },
-  "war-of-successors": {
-    beforeBattle: "Bobei takes up vengeance while Brutus tries to restore the Republic from blood and ashes. Both claim Kaiser's death proves their cause.",
-    afterBattle: "Brutus loses the future. The Republic he tried to save becomes a memory carried by the empire that replaces it."
-  },
-  "first-emperor": {
-    beforeBattle: "Augustus and Bobei clash over Kaiser's legacy: sword or law, vengeance or settlement. Rumie waits to see what shape empire will finally take.",
-    afterBattle: "Augustus wins. The Senate returns in ceremony, the empire remains in fact, and Rumie learns to call obedience tradition."
-  },
-  "iron-roots": {
-    beforeBattle: "The Obsidian Lords drain the forest through Iron Root outposts, turning living land into tribute. Leafen Gao's rebellion begins among starving villages with little more than anger and patience.",
-    afterBattle: "The first chains break. The Sheen learn that roots can strangle as well as nourish."
-  },
-  "verdant-uprising": {
-    beforeBattle: "Hushan joins Leafen as the rebellion spreads through villages, groves, and hidden paths. The Thorn Guard believes a scattered forest cannot become an army.",
-    afterBattle: "The rebellion becomes a people. What began as hunger has grown into a shared memory of injustice."
-  },
-  "obsidian-throne": {
-    beforeBattle: "Leshan and Dowan strike at the Iron Roots themselves, forcing Blackthorn into a final stand. If the root survives, the forest will never be free.",
-    afterBattle: "Blackthorn falls. The Sheen win their forest, but victory leaves them with the harder task of building a kingdom that does not become another chain."
-  },
-  "beli-living-city": {
-    beforeBattle: "The Sheen found Beli and begin the Root Network, but nature itself tests the newborn kingdom through blight and scarcity. Rebellion must become stewardship.",
-    afterBattle: "Beli survives. The Sheen discover that a city can grow like a forest if its people accept patience as power."
-  },
-  "root-network": {
-    beforeBattle: "Dowan expands botanical science into roads, shields, greenhouses, and trade routes. The Ash Serpent burns the nodes, proving that connection also creates vulnerability.",
-    afterBattle: "The network bends instead of breaking. The Sheen learn that defense is not a wall, but a living system."
-  },
-  "blooming-age": {
-    beforeBattle: "Shelters, retreats, springs, and greenhouses bring abundance, but prosperity attracts enemies from dry borders. The Drought King comes to prove growth can be starved.",
-    afterBattle: "The Blooming Age endures. The Sheen understand prosperity as preparation, not comfort."
-  },
-  "court-of-blossoms": {
-    beforeBattle: "As Beli blooms, politics rot quietly inside the court. Den watches nobles and ministers turn harmony into influence.",
-    afterBattle: "Den preserves stability for now. But the court has revealed a dangerous truth: a peaceful kingdom can still decay."
-  },
-  "the-reformer": {
-    beforeBattle: "Tang rises against inequality and noble stagnation, promising reforms that return life to the poor. His cause is just, but justice can grow thorns.",
-    afterBattle: "Tang wins the people's faith. Reform becomes power, and power begins asking for obedience."
-  },
-  "thorned-crown": {
-    beforeBattle: "Tang creates the Thornblades and centralizes authority to protect reform from corruption. Ringan sees the danger: a cure becoming a crown.",
-    afterBattle: "Tang defeats his critics, but the kingdom is no longer merely healing. It is being commanded."
-  },
-  "war-of-roots": {
-    beforeBattle: "Civil war spreads through the forest. Shelters become forts, roads carry armies, and the Root Network becomes a battlefield.",
-    afterBattle: "The old harmony burns. The Sheen learn that even living systems can be weaponized when fear takes root."
-  },
-  "fall-of-thorn-mang": {
-    beforeBattle: "Tang stands as healer, reformer, ruler, and living thorn avatar. He finally sees the pain caused in the name of survival, but too late to step aside peacefully.",
-    afterBattle: "Tang falls. The Sheen mourn both the tyrant he became and the reformer he once was."
-  },
-  "green-era": {
-    beforeBattle: "Dowan inherits a wounded kingdom. The Root Network must be restored, not as a tool of control, but as a promise of balance.",
-    afterBattle: "The Green Era begins. The Sheen choose renewal over revenge, and remember that growth without harmony becomes overgrowth."
-  },
-  "tax-of-tides": {
-    beforeBattle: "King Ludvik's tribute fleets bleed Ristus dry while royal collectors seize treasure from captains and families. Lafayette sees a kingdom drowning in its own greed.",
-    afterBattle: "The tax fleet is broken. The Frumo learn that the sea does not belong only to crowns."
-  },
-  "voices-of-revolution": {
-    beforeBattle: "Taverns, pirate dens, and hidden harbors fill with reformers. Mirabeau, Danton, Marat, Robespier, and Lafayette speak different visions of freedom.",
-    afterBattle: "The voices become a movement. The monarchy still stands, but the Frumo have learned to imagine life without it."
-  },
-  "fall-of-silver-shoals": {
-    beforeBattle: "Silver Shoals guards Ludvik's treasure and the myth of royal invincibility. Danton leads common captains against trained formations and fortress guns.",
-    afterBattle: "Silver Shoals falls. The revolution proves that courage, tide, and timing can defeat inherited power."
-  },
-  "sunken-fortress": {
-    beforeBattle: "The capital floods with unrest. Ludvik believes treasure can buy loyalty, but Lafayette knows fear and gold cannot hold a kingdom forever.",
-    afterBattle: "The monarchy breaks. Ludvik discovers too late that a crown is heavy only while people agree to carry it."
-  },
-  "trial-of-king": {
-    beforeBattle: "The Frumo must decide whether Ludvik should be spared, imprisoned, or executed. Justice and vengeance begin wearing the same face.",
-    afterBattle: "The king's fate divides the revolution. Freedom has won its first victory and immediately faces its first moral wound."
-  },
-  "reign-of-revolution": {
-    beforeBattle: "Robespier hunts enemies of freedom until suspicion becomes government. Marat sees the revolution turning its blade inward.",
-    afterBattle: "The terror consumes itself. The Frumo learn that a revolution can drown in the name of purity."
-  },
-  "hero-of-republic": {
-    beforeBattle: "Coalition fleets gather while the republic trembles. Polea wins impossible battles and gives the Frumo a hero when they most need one.",
-    afterBattle: "Polea saves the republic. In doing so, he becomes the one person the republic fears it cannot survive without."
-  },
-  "lord-commander": {
-    beforeBattle: "The Council grants Polea more command with every crisis. Each emergency passes, but his authority remains.",
-    afterBattle: "The Council yields piece by piece. Polea has not seized the republic all at once; he has taught it to depend on him."
-  },
-  "frumo-empire": {
-    beforeBattle: "Polea crowns himself Lord Commander of All Frumo. He claims unity, order, and survival; his shadow whispers another word: ambition.",
-    afterBattle: "The republic becomes an empire. The Frumo are strong, victorious, and no longer free in the way they once demanded."
-  },
-  "hundred-fleets": {
-    beforeBattle: "Rival sea powers unite against Polea's endless victories. The oceans themselves seem to ask whether one commander can own every tide.",
-    afterBattle: "Polea dominates the seas. But each victory makes his empire wider, colder, and harder to hold."
-  },
-  "frozen-sea": {
-    beforeBattle: "Polea sails north to conquer what no fleet has held. Ice, hunger, storms, and silence await the navy that believed itself invincible.",
-    afterBattle: "The fleet shatters. Polea survives, but his myth is cracked by a sea that refuses command."
-  },
-  "last-tide": {
-    beforeBattle: "Former allies and rival fleets gather for one final reckoning. Polea insists history will understand him; Lafayette insists the living cannot wait for history.",
-    afterBattle: "Polea falls. The Council is restored, but the Frumo remember how easily freedom can become command when fear asks for a hero."
-  },
-  "kharons-vision": {
-    beforeBattle: "Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings. Maxor stands in the way with older claims to power.",
-    afterBattle: "Maxor falls at Iron River. Constanti is founded, and the Bizi begin believing the future can be engineered."
-  },
-  "first-titan": {
-    beforeBattle: "Machina sleeps beneath Constanti, dividing thinkers over whether the Titan is creator, guide, or dangerous machine. Faith and reason meet over the same engine.",
-    afterBattle: "The debate does not end. Instead, it becomes the foundation of Bizi identity: progress powered by doubt."
-  },
-  "golden-empire": {
-    beforeBattle: "Centuries later, Justine, Theo, and Beli try to restore the old empire at its dazzling height. The Vandal Engine threatens to prove that splendor cannot stop collapse.",
-    afterBattle: "The empire shines again. Yet beneath the gold, every repair reveals how much machinery is already wearing thin."
-  },
-  "riot-of-sparks": {
-    beforeBattle: "Constanti burns in rebellion, and Justine nearly flees from the city he was meant to rule. Theo forces him to choose between command and disappearance.",
-    afterBattle: "Order returns, but trust does not. The Bizi learn that machines can restart faster than societies can forgive."
-  },
-  "last-victories": {
-    beforeBattle: "Beli reclaims territory from desert coalitions, iron tribes, and sea raiders. Each triumph looks impossible, and each one stretches the empire thinner.",
-    afterBattle: "Beli wins again, but victory becomes exhaustion. The empire is not dying from defeat, but from the cost of refusing to shrink."
-  },
-  "age-of-focus": {
-    beforeBattle: "After decline and paralysis, Focus seizes power with a promise of absolute efficiency. Compassion is treated as waste; progress becomes command.",
-    afterBattle: "Focus takes control. The empire runs cleaner, faster, and colder, proving that efficiency without mercy can become its own kind of ruin."
-  },
-  "great-invasion": {
-    beforeBattle: "Khosar the Conqueror breaks the eastern empire, destroying factories, shrines, and old defenses. The Bizi face extinction as systems fail one after another.",
-    afterBattle: "The Bizi survive the first collapse. Not because their machines never fail, but because they know how to restart."
-  },
-  "heras-counterattack": {
-    beforeBattle: "Hera rises when defeat seems certain, marching into enemy territory with determination stronger than the machines around her. One victory must become many.",
-    afterBattle: "Hera turns the war. The Bizi remember that progress is not only invention; sometimes it is refusal."
-  },
-  "three-titans": {
-    beforeBattle: "Followers of Machina, Melech, and Meca argue over creation, guidance, and control. Faith becomes circuitry for civil danger.",
-    afterBattle: "The Titan faith fractures. The Bizi gain a deeper mythology, but lose the unity that once made it powerful."
-  },
-  "the-schism": {
-    beforeBattle: "The empire weakens as certainty hardens into doctrine. Old allies become enemies, each claiming the true meaning of the Titans.",
-    afterBattle: "The schism becomes permanent. The Bizi discover that ideas can preserve an empire or split it from the inside."
-  },
-  "the-restoration": {
-    beforeBattle: "Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and borders under pressure. Repair must become revolution.",
-    afterBattle: "Xios restores the empire's engine. The Bizi prove that decline is not destiny while knowledge, discipline, and courage remain."
-  },
-  "last-gear": {
-    beforeBattle: "Constanti stands under final siege. The Titans are silent, engines fail, and divided Bizi fight together so their knowledge will outlive the city.",
-    afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
-  }
-};
-
-function getCampaignNarration(chapterId) {
-  return CAMPAIGN_NARRATION[chapterId] || {};
+function getCampaignChapterList(campaigns, factionId) {
+  return campaigns?.[factionId]?.chapters || [];
 }
 
-function getCampaignChapterList(factionId) {
-  return CAMPAIGN_CHAPTERS[factionId]?.chapters || [];
-}
-
-function getNextCampaignChapter(factionId, chapterId) {
-  const chapters = getCampaignChapterList(factionId);
+function getNextCampaignChapter(campaigns, factionId, chapterId) {
+  const chapters = getCampaignChapterList(campaigns, factionId);
   const currentIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
   return currentIndex >= 0 ? chapters[currentIndex + 1] || null : null;
 }
 
 function buildCampaignEndDialogue(campaign = {}) {
-  if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) {
-    return campaign.endDialogue;
-  }
+  if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) return campaign.endDialogue;
   const lines = [];
   const playableName = campaign.playableName || "Commander";
   const opponentName = campaign.opponentName || "Opponent";
@@ -1204,7 +924,7 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
   );
 }
 
-function ProgressionPanel({ account, onSelectCosmetic }) {
+function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   if (!account) {
     return (
       <MenuCard title="Progression">
@@ -1269,7 +989,7 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
         <div>
           <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Campaign Progress</h4>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
-            {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, entry]) => {
+            {Object.entries(campaigns).map(([factionId, entry]) => {
               const completed = campaign[factionId]?.length || 0;
               return (
                 <div key={factionId} style={{ border: "1px solid rgba(125,211,252,0.25)", borderRadius: 6, padding: 8, color: "#dbeafe" }}>
@@ -1330,10 +1050,6 @@ function getBattlefieldTexture(factionId) {
   return textures[factionId] || textures.rumin;
 }
 
-const BASE_PLAYING_DECK_SIZE = 52;
-const PLAYING_DECK_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
-const MAX_REPLACEMENTS_PER_VALUE = 4;
-const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
 const REPLACEMENT_SUITS = [
   { id: "spades", label: "♠" },
   { id: "hearts", label: "♥" },
@@ -1341,9 +1057,9 @@ const REPLACEMENT_SUITS = [
   { id: "clubs", label: "♣" }
 ];
 
-function getReplacementValue(card) {
+function getReplacementValue(card, playingDeckValues) {
   const value = Number(card?.value);
-  return PLAYING_DECK_VALUES.includes(value) ? value : null;
+  return playingDeckValues.includes(value) ? value : null;
 }
 
 function normalizeReplacementSuitId(suit) {
@@ -1426,7 +1142,11 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
+  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
+  const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
+  const MAX_CONSTRUCTED_DECK_SIZE = deckRules.maxConstructedDeckSize;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
   const [selectedConstructedDeckId, setSelectedConstructedDeckId] = useState(deckLibrary.activeConstructedDeckId || "");
   const selectedConstructedRecord = (deckLibrary.decks || []).find((deck) => deck.id === selectedConstructedDeckId && deck.format === "constructed") || null;
@@ -1505,13 +1225,13 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
   const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
-    const value = getReplacementValue(constructedCardsById[cardId]);
+    const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
     if (value == null) return counts;
     counts[value] = (counts[value] || 0) + Math.max(0, Number(count || 0));
     return counts;
   }, {});
   const constructedSlotCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
-    const value = getReplacementValue(constructedCardsById[cardId]);
+    const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
     if (value == null) return counts;
     const suits = Array.isArray(constructedSuitChoices[cardId]) ? constructedSuitChoices[cardId] : [];
     Array.from({ length: Math.max(0, Number(count || 0)) }, (_, index) => normalizeReplacementSuitId(suits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => {
@@ -1527,10 +1247,10 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   function setConstructedCardQuantity(cardId, nextQuantity) {
     const owned = Number(cardsOwned[cardId] || 0);
     const card = constructedCardsById[cardId];
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     const sameValueCurrent = value == null ? 0 : Object.entries(constructedQuantities).reduce((sum, [otherCardId, count]) => {
       if (otherCardId === cardId) return sum;
-      return getReplacementValue(constructedCardsById[otherCardId]) === value ? sum + Math.max(0, Number(count || 0)) : sum;
+      return getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) === value ? sum + Math.max(0, Number(count || 0)) : sum;
     }, 0);
     const maxForValue = value == null ? 0 : Math.max(0, MAX_REPLACEMENTS_PER_VALUE - sameValueCurrent);
     const quantity = Math.max(0, Math.min(owned, maxForValue, Math.floor(Number(nextQuantity || 0))));
@@ -1546,7 +1266,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
       const usedSuits = new Set();
       if (value != null) {
         for (const [otherCardId, otherCount] of Object.entries(constructedQuantities)) {
-          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId]) !== value) continue;
+          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) !== value) continue;
           const otherSuits = Array.isArray(current[otherCardId]) ? current[otherCardId] : [];
           Array.from({ length: Math.max(0, Number(otherCount || 0)) }, (_, index) => normalizeReplacementSuitId(otherSuits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => usedSuits.add(suit));
         }
@@ -1945,7 +1665,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = Number(constructedQuantities[card.id] || 0);
               const owned = Number(cardsOwned[card.id] || 0);
-              const value = getReplacementValue(card);
+              const value = getReplacementValue(card, PLAYING_DECK_VALUES);
               const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
               const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
               return (
@@ -2042,7 +1762,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   );
 }
 
-function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
@@ -2053,7 +1773,7 @@ function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, 
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
       </div>
     </div>
   );
@@ -2089,7 +1809,10 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
   );
 }
 
-function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSetDeckCardSuit, onSaveDraftDeck }) {
+function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSetDeckCardSuit, onSaveDraftDeck }) {
+  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
+  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
+  const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const myPack = draft?.myCurrentPack?.cards || [];
   const myPool = draft?.myPool || [];
   const myDeckAdditions = draft?.myDeckAdditions || [];
@@ -2098,13 +1821,13 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   const selectedFactionId = selectedFactionIds[0] || "";
   const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
   const selectedValueCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     if (value == null) return counts;
     counts[value] = (counts[value] || 0) + 1;
     return counts;
   }, {});
   const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     if (value == null) return counts;
     const suit = normalizeReplacementSuitId(card.replacementSuit || card.suit);
     const key = `${value}:${suit}`;
@@ -2219,8 +1942,8 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
                     <DraftCardTile
                       card={card}
                       selected={selected}
-                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
-                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
+                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card, PLAYING_DECK_VALUES)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
+                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card, PLAYING_DECK_VALUES)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
                       onClick={() => onToggleDeckCard(card.draftCopyId)}
                     />
                     {selected && (
@@ -3193,7 +2916,7 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
+function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns }) {
   const campaignProgress = account?.progression?.campaign || {};
 
   return (
@@ -3208,7 +2931,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
         </div>
         {!canPlayAsPlayer && <div style={{ marginBottom: 14, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start a campaign battle.</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, campaign]) => {
+          {Object.entries(campaigns).map(([factionId, campaign]) => {
             const theme = getFactionTheme(factionId);
             const completedChapters = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId] : [];
             return (
@@ -3218,7 +2941,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
                   {campaign.chapters.map((chapter, index) => (
                     (() => {
                       const difficulty = getCampaignDifficulty(factionId, index);
-                      const narration = getCampaignNarration(chapter.id);
+                      const narration = chapter;
                       const complexity = getCampaignComplexityPreview(factionId, index, chapter.opponentName);
                       const unlocked = index === 0 || completedChapters.includes(campaign.chapters[index - 1]?.id);
                       const completed = completedChapters.includes(chapter.id);
@@ -3290,6 +3013,8 @@ export default function App() {
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [gameContent, setGameContent] = useState(null);
+  const [gameContentError, setGameContentError] = useState("");
   const [competitiveProfile, setCompetitiveProfile] = useState(null);
   const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
   const [competitiveProfileError, setCompetitiveProfileError] = useState("");
@@ -3356,6 +3081,27 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+  const PLAYING_DECK_VALUES = gameContent?.deckRules?.playingDeckValues || [];
+  const MAX_REPLACEMENTS_PER_VALUE = gameContent?.deckRules?.maxReplacementsPerValue || 0;
+
+  const loadGameContent = useCallback(async () => {
+    setGameContentError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/game-content`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load game content.");
+      if (!data.content?.contentVersion || !data.content?.campaigns || !data.content?.deckRules) {
+        throw new Error("The server returned an unsupported game-content manifest.");
+      }
+      setGameContent(data.content);
+    } catch (contentError) {
+      setGameContentError(contentError.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGameContent();
+  }, [loadGameContent]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -4087,8 +3833,8 @@ export default function App() {
       return;
     }
     if (chosenCard && !currentIds.has(cardCopyId)) {
-      const chosenValue = getReplacementValue(chosenCard);
-      const sameValueCount = (draftState.myDeckAdditions || []).filter((card) => getReplacementValue(card) === chosenValue).length;
+      const chosenValue = getReplacementValue(chosenCard, PLAYING_DECK_VALUES);
+      const sameValueCount = (draftState.myDeckAdditions || []).filter((card) => getReplacementValue(card, PLAYING_DECK_VALUES) === chosenValue).length;
       if (chosenValue == null || sameValueCount >= MAX_REPLACEMENTS_PER_VALUE) {
         setError(`Draft decks can only swap up to ${MAX_REPLACEMENTS_PER_VALUE} cards of the same value.`);
         return;
@@ -4101,7 +3847,7 @@ export default function App() {
       .filter((card) => currentIds.has(card.draftCopyId))
       .reduce((selected, card) => {
         const existing = (draftState.myDeckAdditions || []).find((selectedCard) => selectedCard.draftCopyId === card.draftCopyId);
-        const value = getReplacementValue(card);
+        const value = getReplacementValue(card, PLAYING_DECK_VALUES);
         const usedSuits = new Set(selected.filter((selection) => selection.value === value).map((selection) => selection.suit));
         const preferred = normalizeReplacementSuitId(existing?.replacementSuit || existing?.suit || card.replacementSuit || card.suit);
         const suit = preferred && !usedSuits.has(preferred)
@@ -4124,9 +3870,9 @@ export default function App() {
   function setDraftDeckCardSuit(cardCopyId, suit) {
     if (!draftState?.myDeckAdditions) return;
     const targetCard = draftState.myDeckAdditions.find((card) => card.draftCopyId === cardCopyId);
-    const targetValue = getReplacementValue(targetCard);
+    const targetValue = getReplacementValue(targetCard, PLAYING_DECK_VALUES);
     const targetSuit = normalizeReplacementSuitId(suit);
-    if (draftState.myDeckAdditions.some((card) => card.draftCopyId !== cardCopyId && getReplacementValue(card) === targetValue && normalizeReplacementSuitId(card.replacementSuit || card.suit) === targetSuit)) {
+    if (draftState.myDeckAdditions.some((card) => card.draftCopyId !== cardCopyId && getReplacementValue(card, PLAYING_DECK_VALUES) === targetValue && normalizeReplacementSuitId(card.replacementSuit || card.suit) === targetSuit)) {
       setError(`Another value ${targetValue} card is already replacing ${targetSuit}. Choose a different suit first.`);
       return;
     }
@@ -4512,6 +4258,20 @@ export default function App() {
     );
   }
 
+  if (!gameContent) {
+    return (
+      <main style={MENU_THEME.page}>
+        <div style={{ ...MENU_THEME.frame, maxWidth: 620, margin: "10vh auto" }}>
+          <h1 style={{ marginTop: 0 }}>Loading Gauntlet</h1>
+          <p style={{ color: gameContentError ? "#fca5a5" : "#bfdbfe" }}>
+            {gameContentError || "Checking the server's game-content version..."}
+          </p>
+          {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
+        </div>
+      </main>
+    );
+  }
+
   if (showCampaign) {
     return (
       <CampaignScreen
@@ -4519,6 +4279,7 @@ export default function App() {
         onStartChapter={startCampaignChapter}
         canPlayAsPlayer={canPlayAsPlayer}
         account={account}
+        campaigns={gameContent.campaigns}
       />
     );
   }
@@ -4527,6 +4288,7 @@ export default function App() {
     return (
       <CollectionScreen
         account={account}
+        deckRules={gameContent.deckRules}
         lastOpenedPack={lastOpenedPack}
         openingPackId={openingPackId}
         onOpenPack={openBoosterPack}
@@ -4558,6 +4320,7 @@ export default function App() {
         player={player}
         isSpectator={role === "spectator"}
         account={account}
+        deckRules={gameContent.deckRules}
         draftPickPending={draftPickPending}
         draftSaveMessage={draftSaveMessage}
         onBack={returnToMainMenu}
@@ -4731,7 +4494,7 @@ export default function App() {
                 />
                 {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
               </MenuCard>
-              <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
+              <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
               <CompetitiveIdentityPanel
                 profile={competitiveProfile}
                 loading={competitiveProfileLoading}
@@ -4877,7 +4640,7 @@ export default function App() {
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
     const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
     const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
-    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(game.campaign.factionId, game.campaign.chapterId) : null;
+    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(gameContent.campaigns, game.campaign.factionId, game.campaign.chapterId) : null;
     const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
     const canRematch = !isSpectator
       && !game.campaign

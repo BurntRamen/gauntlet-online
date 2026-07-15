@@ -2,6 +2,8 @@
 
 Gauntlet Online is a multiplayer card game with a Create React App client and a Node.js server. The client renders the menus, collection, campaigns, drafts, and tabletop match interface. The Express and Socket.IO server owns accounts, rooms, matchmaking, game rules, AI turns, progression, collection updates, and match results.
 
+Faction, campaign, faction-card, and deck-rule definitions live in `server/gameContent.js`. The registry validates itself when the server starts and publishes its browser-safe manifest at `GET /api/game-content`; the React client loads that manifest instead of maintaining campaign and deck-rule copies. `rulesVersion` and `contentVersion` are also written into server-authored match records. Increment the appropriate version whenever a reviewed rules or content change is introduced.
+
 ## Requirements
 
 - Node.js 22 or 24 (see `.nvmrc`)
