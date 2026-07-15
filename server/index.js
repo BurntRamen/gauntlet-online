@@ -1144,8 +1144,143 @@ function applyDeckReplacements(deck, replacementCards, faction, createReplacemen
   }
 }
 
-function getSavedDraftDeck(stats = {}) {
-  const deck = stats.savedDraftDeck;
+const DECK_LIBRARY_SCHEMA_VERSION = 1;
+
+function getLegacyDeckIdentity(deck, format) {
+  const fingerprint = crypto.createHash("sha256").update(JSON.stringify({
+    format,
+    factionId: deck?.factionId || null,
+    draftType: deck?.draftType || null,
+    savedAt: deck?.savedAt || null,
+    cardQuantities: deck?.cardQuantities || null,
+    cardSuitChoices: deck?.cardSuitChoices || null,
+    cards: (deck?.cards || []).map((card) => ({ id: card.id, value: card.value, suit: card.suit }))
+  })).digest("hex").slice(0, 24);
+  return {
+    deckId: `legacy-deck-${fingerprint}`,
+    versionId: `legacy-version-${fingerprint}`
+  };
+}
+
+function createDeckRecordFromLegacy(deck, format, ownerId = null) {
+  if (!deck) return null;
+  const legacyIdentity = getLegacyDeckIdentity(deck, format);
+  const identity = {
+    deckId: deck.deckId || legacyIdentity.deckId,
+    versionId: deck.versionId || legacyIdentity.versionId
+  };
+  const createdAt = deck.savedAt || new Date(0).toISOString();
+  return {
+    id: identity.deckId,
+    ownerId,
+    name: deck.name || `${deck.factionName || deck.factionId || "Gauntlet"} ${format === "draft" ? "Draft" : "Constructed"} Deck`,
+    factionId: deck.factionId || "basic",
+    factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId || "Basic",
+    format,
+    source: format === "draft" ? "draft" : "legacy-migration",
+    draftType: format === "draft" ? (deck.draftType === "bot" ? "bot" : "player") : null,
+    coverId: deck.factionId || "basic",
+    archived: false,
+    featured: false,
+    createdAt,
+    updatedAt: createdAt,
+    currentVersionId: identity.versionId,
+    versions: [{
+      ...clonePlain(deck),
+      id: identity.versionId,
+      createdAt,
+      source: format === "draft" ? "draft" : "legacy-migration"
+    }],
+    record: { wins: 0, losses: 0, draws: 0, recentMatchIds: [] }
+  };
+}
+
+function normalizeDeckRecord(record, ownerId = null) {
+  if (!record?.id || !record.format) return null;
+  const versions = Array.isArray(record.versions) ? record.versions.filter((version) => version?.id) : [];
+  if (versions.length === 0) return null;
+  const currentVersionId = versions.some((version) => version.id === record.currentVersionId)
+    ? record.currentVersionId
+    : versions[versions.length - 1].id;
+  return {
+    ...record,
+    ownerId: record.ownerId || ownerId,
+    source: record.source || getDeckRecordVersion(record)?.source || "unknown",
+    archived: !!record.archived,
+    featured: !!record.featured,
+    versions,
+    currentVersionId,
+    record: {
+      wins: Number(record.record?.wins || 0),
+      losses: Number(record.record?.losses || 0),
+      draws: Number(record.record?.draws || 0),
+      recentMatchIds: Array.isArray(record.record?.recentMatchIds) ? record.record.recentMatchIds.slice(0, 10) : []
+    }
+  };
+}
+
+function normalizeDeckLibrary(stats = {}, ownerId = null) {
+  const raw = stats.deckLibrary || {};
+  const decks = (Array.isArray(raw.decks) ? raw.decks : [])
+    .map((deck) => normalizeDeckRecord(deck, ownerId))
+    .filter(Boolean);
+  const addLegacyDeck = (legacyDeck, format) => {
+    if (!legacyDeck) return;
+    if (legacyDeck.deckId && decks.some((deck) => deck.id === legacyDeck.deckId)) return;
+    const migrated = createDeckRecordFromLegacy(legacyDeck, format, ownerId);
+    if (migrated && !decks.some((deck) => deck.id === migrated.id)) decks.push(migrated);
+  };
+  addLegacyDeck(stats.savedConstructedDeck, "constructed");
+  addLegacyDeck(stats.savedDraftDeck, "draft");
+
+  const activeConstructedDeckId = decks.some((deck) => deck.id === raw.activeConstructedDeckId && deck.format === "constructed" && !deck.archived)
+    ? raw.activeConstructedDeckId
+    : decks.find((deck) => deck.format === "constructed" && !deck.archived)?.id || null;
+  const activeDraftDeckIds = {
+    player: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.player && deck.format === "draft" && deck.draftType !== "bot" && !deck.archived)
+      ? raw.activeDraftDeckIds.player
+      : decks.find((deck) => deck.format === "draft" && deck.draftType !== "bot" && !deck.archived)?.id || null,
+    bot: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.bot && deck.format === "draft" && deck.draftType === "bot" && !deck.archived)
+      ? raw.activeDraftDeckIds.bot
+      : decks.find((deck) => deck.format === "draft" && deck.draftType === "bot" && !deck.archived)?.id || null
+  };
+  const library = {
+    schemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
+    decks,
+    activeConstructedDeckId,
+    activeDraftDeckIds,
+    featuredDeckIds: decks.filter((deck) => deck.featured && !deck.archived).map((deck) => deck.id).slice(0, 3)
+  };
+  stats.deckLibrary = library;
+  return library;
+}
+
+function getDeckRecordVersion(record) {
+  return record?.versions?.find((version) => version.id === record.currentVersionId) || record?.versions?.[record.versions.length - 1] || null;
+}
+
+function getActiveDeckRecord(stats = {}, format, draftType = "player") {
+  const library = normalizeDeckLibrary(stats);
+  const deckId = format === "constructed"
+    ? library.activeConstructedDeckId
+    : library.activeDraftDeckIds[draftType === "bot" ? "bot" : "player"];
+  return library.decks.find((deck) => deck.id === deckId && !deck.archived) || null;
+}
+
+function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
+  const libraryRecord = requestedDraftType
+    ? getActiveDeckRecord(stats, "draft", requestedDraftType)
+    : getActiveDeckRecord(stats, "draft", stats.savedDraftDeck?.draftType || "player") || getActiveDeckRecord(stats, "draft", "bot");
+  const libraryVersion = getDeckRecordVersion(libraryRecord);
+  const deck = libraryVersion ? {
+    ...libraryVersion,
+    name: libraryRecord.name,
+    factionId: libraryRecord.factionId,
+    factionName: libraryRecord.factionName,
+    draftType: libraryRecord.draftType,
+    deckId: libraryRecord.id,
+    versionId: libraryVersion.id
+  } : stats.savedDraftDeck;
   if (!deck || !Array.isArray(deck.cards) || deck.cards.length === 0 || !deck.factionId) return null;
   const cards = filterValidReplacementCards(deck.cards, deck.factionId)
     .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
@@ -1166,6 +1301,8 @@ function getSavedDraftDeck(stats = {}) {
     additionCount: cards.length,
     valueCounts: getReplacementValueCounts(cards),
     savedAt: deck.savedAt || null,
+    deckId: deck.deckId || null,
+    versionId: deck.versionId || null,
     cards
   };
 }
@@ -1197,7 +1334,16 @@ function expandConstructedCardQuantities(cardQuantities = {}, factionId, cardSui
 }
 
 function getSavedConstructedDeck(stats = {}) {
-  const deck = stats.savedConstructedDeck;
+  const libraryRecord = getActiveDeckRecord(stats, "constructed");
+  const libraryVersion = getDeckRecordVersion(libraryRecord);
+  const deck = libraryVersion ? {
+    ...libraryVersion,
+    name: libraryRecord.name,
+    factionId: libraryRecord.factionId,
+    factionName: libraryRecord.factionName,
+    deckId: libraryRecord.id,
+    versionId: libraryVersion.id
+  } : stats.savedConstructedDeck;
   if (!deck || !deck.factionId || !deck.cardQuantities || typeof deck.cardQuantities !== "object") return null;
   const cards = expandConstructedCardQuantities(deck.cardQuantities, deck.factionId, deck.cardSuitChoices);
   try {
@@ -1220,6 +1366,8 @@ function getSavedConstructedDeck(stats = {}) {
     cardQuantities: { ...deck.cardQuantities },
     cardSuitChoices: { ...(deck.cardSuitChoices || {}) },
     savedAt: deck.savedAt || null,
+    deckId: deck.deckId || null,
+    versionId: deck.versionId || null,
     cards
   };
 }
@@ -1279,10 +1427,198 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     additionCount: totalReplacements,
     valueCounts,
     slotCounts,
+    legality: {
+      valid: true,
+      errors: [],
+      replacementCount: totalReplacements,
+      cardCount: BASE_PLAYING_DECK_SIZE
+    },
     cardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
     savedAt: new Date().toISOString()
   };
+}
+
+function makeDeckVersion(deck, source = "constructed-editor") {
+  const createdAt = new Date().toISOString();
+  return {
+    ...clonePlain(deck),
+    id: crypto.randomUUID(),
+    createdAt,
+    source,
+    savedAt: createdAt
+  };
+}
+
+function syncLegacyDeckPointers(stats = {}) {
+  const library = normalizeDeckLibrary(stats);
+  const constructedRecord = library.decks.find((deck) => deck.id === library.activeConstructedDeckId && !deck.archived);
+  const constructedVersion = getDeckRecordVersion(constructedRecord);
+  stats.savedConstructedDeck = constructedRecord && constructedVersion ? {
+    ...clonePlain(constructedVersion),
+    name: constructedRecord.name,
+    factionId: constructedRecord.factionId,
+    factionName: constructedRecord.factionName,
+    deckId: constructedRecord.id,
+    versionId: constructedVersion.id
+  } : null;
+
+  const activeDraftRecords = Object.values(library.activeDraftDeckIds || {})
+    .map((deckId) => library.decks.find((deck) => deck.id === deckId && !deck.archived))
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  const draftRecord = activeDraftRecords[0] || null;
+  const draftVersion = getDeckRecordVersion(draftRecord);
+  stats.savedDraftDeck = draftRecord && draftVersion ? {
+    ...clonePlain(draftVersion),
+    name: draftRecord.name,
+    factionId: draftRecord.factionId,
+    factionName: draftRecord.factionName,
+    draftType: draftRecord.draftType,
+    deckId: draftRecord.id,
+    versionId: draftVersion.id
+  } : null;
+  return library;
+}
+
+function saveConstructedDeckToLibrary(stats = {}, payload = {}, ownerId = null) {
+  const validated = validateConstructedDeckPayload(stats, payload);
+  const library = normalizeDeckLibrary(stats, ownerId);
+  const existing = payload.deckId
+    ? library.decks.find((deck) => deck.id === payload.deckId && deck.format === "constructed" && !deck.archived)
+    : null;
+  if (payload.deckId && !existing) throw new Error("That constructed deck could not be found.");
+  const version = makeDeckVersion(validated);
+  const now = version.createdAt;
+  let record;
+  if (existing) {
+    existing.name = validated.name;
+    existing.factionId = validated.factionId;
+    existing.factionName = validated.factionName;
+    existing.coverId = payload.coverId || existing.coverId || validated.factionId;
+    existing.updatedAt = now;
+    existing.currentVersionId = version.id;
+    existing.versions = [...existing.versions, version];
+    record = existing;
+  } else {
+    record = {
+      id: crypto.randomUUID(),
+      ownerId,
+      name: validated.name,
+      factionId: validated.factionId,
+      factionName: validated.factionName,
+      format: "constructed",
+      source: "constructed-editor",
+      draftType: null,
+      coverId: payload.coverId || validated.factionId,
+      archived: false,
+      featured: false,
+      createdAt: now,
+      updatedAt: now,
+      currentVersionId: version.id,
+      versions: [version],
+      record: { wins: 0, losses: 0, draws: 0, recentMatchIds: [] }
+    };
+    library.decks.push(record);
+  }
+  library.activeConstructedDeckId = record.id;
+  stats.deckLibrary = library;
+  syncLegacyDeckPointers(stats);
+  return { record, playableDeck: getSavedConstructedDeck(stats) };
+}
+
+function saveDraftDeckToLibrary(stats = {}, savedDraftDeck, ownerId = null) {
+  const library = normalizeDeckLibrary(stats, ownerId);
+  const version = makeDeckVersion(savedDraftDeck, "draft");
+  const now = version.createdAt;
+  const record = {
+    id: crypto.randomUUID(),
+    ownerId,
+    name: savedDraftDeck.name,
+    factionId: savedDraftDeck.factionId,
+    factionName: savedDraftDeck.factionName,
+    format: "draft",
+    source: "draft",
+    draftType: savedDraftDeck.draftType === "bot" ? "bot" : "player",
+    coverId: savedDraftDeck.factionId,
+    archived: false,
+    featured: false,
+    createdAt: now,
+    updatedAt: now,
+    currentVersionId: version.id,
+    versions: [version],
+    record: { wins: 0, losses: 0, draws: 0, recentMatchIds: [] }
+  };
+  library.decks.push(record);
+  library.activeDraftDeckIds[record.draftType] = record.id;
+  stats.deckLibrary = library;
+  syncLegacyDeckPointers(stats);
+  return record;
+}
+
+function updateDeckLibraryRecord(stats = {}, deckId, patch = {}) {
+  const library = normalizeDeckLibrary(stats);
+  const record = library.decks.find((deck) => deck.id === deckId);
+  if (!record) throw new Error("Deck not found.");
+  const action = patch.action;
+  if (action === "duplicate") {
+    const version = getDeckRecordVersion(record);
+    const duplicateVersion = makeDeckVersion(version, "duplicate");
+    const now = duplicateVersion.createdAt;
+    const duplicate = {
+      ...clonePlain(record),
+      id: crypto.randomUUID(),
+      name: String(patch.name || `${record.name} Copy`).trim().slice(0, 80),
+      source: "duplicate",
+      archived: false,
+      featured: false,
+      createdAt: now,
+      updatedAt: now,
+      currentVersionId: duplicateVersion.id,
+      versions: [duplicateVersion],
+      record: { wins: 0, losses: 0, draws: 0, recentMatchIds: [] }
+    };
+    library.decks.push(duplicate);
+    stats.deckLibrary = library;
+    syncLegacyDeckPointers(stats);
+    return duplicate;
+  }
+  if (action === "archive") {
+    record.archived = true;
+    record.featured = false;
+  } else if (action === "restore") {
+    record.archived = false;
+  } else if (action === "activate") {
+    if (record.archived) throw new Error("Restore this deck before activating it.");
+    if (record.format === "constructed") library.activeConstructedDeckId = record.id;
+    else library.activeDraftDeckIds[record.draftType === "bot" ? "bot" : "player"] = record.id;
+  } else if (action === "feature") {
+    if (record.archived) throw new Error("Restore this deck before featuring it.");
+    const featuredCount = library.decks.filter((deck) => deck.featured && !deck.archived && deck.id !== record.id).length;
+    if (!record.featured && featuredCount >= 3) throw new Error("You can feature up to three decks.");
+    record.featured = !record.featured;
+  } else if (action === "rename") {
+    const name = String(patch.name || "").trim().slice(0, 80);
+    if (!name) throw new Error("Deck name is required.");
+    record.name = name;
+  } else {
+    throw new Error("Unknown deck action.");
+  }
+  record.updatedAt = new Date().toISOString();
+  stats.deckLibrary = library;
+  syncLegacyDeckPointers(stats);
+  return record;
+}
+
+function applyDeckResult(stats = {}, deckVersionId, result, matchId) {
+  if (!deckVersionId || !["win", "loss", "draw"].includes(result)) return;
+  const library = normalizeDeckLibrary(stats);
+  const record = library.decks.find((deck) => deck.versions.some((version) => version.id === deckVersionId));
+  if (!record) return;
+  const field = result === "win" ? "wins" : result === "loss" ? "losses" : "draws";
+  record.record[field] = (record.record[field] || 0) + 1;
+  if (matchId) record.record.recentMatchIds = [matchId, ...(record.record.recentMatchIds || []).filter((id) => id !== matchId)].slice(0, 10);
+  stats.deckLibrary = library;
 }
 
 function normalizeProgression(stats = {}) {
@@ -1311,14 +1647,16 @@ function progressionSummary(stats = {}) {
 }
 
 function publicAccount(account) {
+  const stats = account.stats || {};
+  normalizeDeckLibrary(stats, account.id);
   return {
     id: account.id,
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
-    stats: account.stats || {},
-    progression: progressionSummary(account.stats || {}),
-    collection: collectionSummary(account.stats || {})
+    stats,
+    progression: progressionSummary(stats),
+    collection: collectionSummary(stats)
   };
 }
 
@@ -1714,6 +2052,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
       if (result === "loss") stats.draftLeagueGamesLost = (stats.draftLeagueGamesLost || 0) + 1;
       if (result === "draw") stats.draftLeagueGamesDrawn = (stats.draftLeagueGamesDrawn || 0) + 1;
     }
+    applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
     await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
     return;
@@ -1740,6 +2079,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     if (result === "loss") account.stats.draftLeagueGamesLost = (account.stats.draftLeagueGamesLost || 0) + 1;
     if (result === "draw") account.stats.draftLeagueGamesDrawn = (account.stats.draftLeagueGamesDrawn || 0) + 1;
   }
+  applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
@@ -1747,6 +2087,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
 
 async function saveAccountDraftDeck(accountId, draftDeck) {
   if (!accountId || !draftDeck) return null;
+  const draftLegality = validateReplacementCardSet(draftDeck.cards, { factionId: draftDeck.factionId });
   const savedDraftDeck = {
     name: draftDeck.name,
     factionId: draftDeck.factionId,
@@ -1758,6 +2099,13 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     replacementCount: draftDeck.cards.length,
     additionCount: draftDeck.cards.length,
     valueCounts: getReplacementValueCounts(draftDeck.cards),
+    slotCounts: draftLegality.slotCounts,
+    legality: {
+      valid: true,
+      errors: [],
+      replacementCount: draftLegality.replacementCount,
+      cardCount: BASE_PLAYING_DECK_SIZE
+    },
     savedAt: new Date().toISOString(),
     cards: draftDeck.cards.map((card) => ({
       id: card.id,
@@ -1777,7 +2125,7 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     const account = await findSupabaseAccountById(accountId);
     if (!account) return null;
     const stats = account.stats || {};
-    stats.savedDraftDeck = savedDraftDeck;
+    saveDraftDeckToLibrary(stats, savedDraftDeck, accountId);
     await patchSupabaseAccount(accountId, { stats, last_seen_at: savedDraftDeck.savedAt });
     return publicAccount(await findSupabaseAccountById(accountId));
   }
@@ -1786,7 +2134,7 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
   const account = store.accounts.find((entry) => entry.id === accountId);
   if (!account) return null;
   account.stats = account.stats || {};
-  account.stats.savedDraftDeck = savedDraftDeck;
+  saveDraftDeckToLibrary(account.stats, savedDraftDeck, accountId);
   account.lastSeenAt = savedDraftDeck.savedAt;
   saveAccountStore(store);
   return publicAccount(account);
@@ -2206,22 +2554,43 @@ app.post("/api/collection/save-constructed-deck", async (req, res) => {
 
   try {
     const stats = context.account.stats || {};
-    const savedConstructedDeck = validateConstructedDeckPayload(stats, req.body || {});
-    stats.savedConstructedDeck = savedConstructedDeck;
+    const { record, playableDeck: savedConstructedDeck } = saveConstructedDeckToLibrary(stats, req.body || {}, context.account.id);
 
     if (context.source === "supabase") {
       await patchSupabaseAccount(context.account.id, { stats, last_seen_at: savedConstructedDeck.savedAt });
       const updated = await findSupabaseAccountById(context.account.id);
-      res.json({ account: publicAccount(updated), savedConstructedDeck });
+      res.json({ account: publicAccount(updated), savedConstructedDeck, deck: record });
       return;
     }
 
     context.account.stats = stats;
     context.account.lastSeenAt = savedConstructedDeck.savedAt;
     saveAccountStore(context.store);
-    res.json({ account: publicAccount(context.account), savedConstructedDeck });
+    res.json({ account: publicAccount(context.account), savedConstructedDeck, deck: record });
   } catch (error) {
     res.status(400).json({ error: error.message || "Could not save constructed deck." });
+  }
+});
+
+app.patch("/api/decks/:deckId", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const stats = context.account.stats || {};
+    const deck = updateDeckLibraryRecord(stats, String(req.params.deckId || ""), req.body || {});
+    const updatedAt = new Date().toISOString();
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: updatedAt });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated), deck });
+      return;
+    }
+    context.account.stats = stats;
+    context.account.lastSeenAt = updatedAt;
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account), deck });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not update deck." });
   }
 });
 
@@ -4831,6 +5200,7 @@ async function recordFinalGameStats(roomState, options = {}) {
         ranked: false,
         matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
         completedAt,
+        deckVersionId: roomState.lobby.players[1].savedConstructedDeck?.versionId || null,
         mode: "campaign",
         factionId: game.players[1]?.faction?.id,
         factionName: game.players[1]?.faction?.name,
@@ -4857,6 +5227,7 @@ async function recordFinalGameStats(roomState, options = {}) {
       ranked: true,
       draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
       matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
+      deckVersionId: roomState.lobby.players[playerNum].savedDraftDeck?.versionId || roomState.lobby.players[playerNum].savedConstructedDeck?.versionId || null,
       completedAt,
       mode: game.gameMode || "duel",
       factionId: game.players[playerNum]?.faction?.id,
@@ -5623,7 +5994,7 @@ io.on("connection", (socket) => {
       socket.emit("draftLeagueStatus", { inQueue: false, message: "Leave your current room before entering the draft league queue." });
       return;
     }
-    const savedDraftDeck = getSavedDraftDeck(account.stats || {});
+    const savedDraftDeck = getSavedDraftDeck(account.stats || {}, requestedDraftType);
     if (!savedDraftDeck) {
       socket.emit("draftLeagueStatus", { inQueue: false, message: "Save a one-faction draft deck before entering the draft league queue." });
       return;
@@ -7215,6 +7586,7 @@ module.exports = {
   __test: {
     applyBlockBonuses,
     applyGameOverState,
+    applyDeckResult,
     applyProgressionForResult,
     calculateAttackBonuses,
     abandonActiveRoom,
@@ -7225,6 +7597,12 @@ module.exports = {
     createTurnData,
     getBaseCardValue,
     getPaymentTotal,
+    getSavedConstructedDeck,
+    getSavedDraftDeck,
+    normalizeDeckLibrary,
+    saveConstructedDeckToLibrary,
+    saveDraftDeckToLibrary,
+    updateDeckLibraryRecord,
     recordFinalGameStats,
     resolveDamage,
     sanitizeGameForViewer,
