@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import HomeNavigation from "./HomeNavigation";
+import DeckLibraryPanel from "./DeckLibraryPanel";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -1431,8 +1432,22 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck }) {
-  const savedConstructedDeck = account?.stats?.savedConstructedDeck || null;
+function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction }) {
+  const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
+  const [selectedConstructedDeckId, setSelectedConstructedDeckId] = useState(deckLibrary.activeConstructedDeckId || "");
+  const selectedConstructedRecord = (deckLibrary.decks || []).find((deck) => deck.id === selectedConstructedDeckId && deck.format === "constructed") || null;
+  const selectedConstructedVersion = selectedConstructedRecord?.versions?.find((version) => version.id === selectedConstructedRecord.currentVersionId)
+    || selectedConstructedRecord?.versions?.[selectedConstructedRecord.versions.length - 1]
+    || null;
+  const savedConstructedDeck = selectedConstructedVersion ? {
+    ...selectedConstructedVersion,
+    name: selectedConstructedRecord.name,
+    factionId: selectedConstructedRecord.factionId,
+    factionName: selectedConstructedRecord.factionName,
+    deckId: selectedConstructedRecord.id,
+    versionId: selectedConstructedVersion.id
+  } : account?.stats?.savedConstructedDeck || null;
+  const [constructedDeckName, setConstructedDeckName] = useState(savedConstructedDeck?.name || "Rumin Constructed Deck");
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
@@ -1443,11 +1458,18 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
 
   useEffect(() => {
+    const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
+    const selectedStillExists = account?.stats?.deckLibrary?.decks?.some((deck) => deck.id === selectedConstructedDeckId && !deck.archived);
+    if (!selectedStillExists && activeId !== selectedConstructedDeckId) setSelectedConstructedDeckId(activeId);
+  }, [account?.id, account?.stats?.deckLibrary?.activeConstructedDeckId, account?.stats?.deckLibrary?.decks, selectedConstructedDeckId]);
+
+  useEffect(() => {
+    setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedSaveMessage("");
-  }, [account?.id, savedConstructedDeck?.savedAt, savedConstructedDeck?.factionId, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
 
   if (!account) {
     return (
@@ -1569,14 +1591,38 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   async function saveConstructedDeck() {
     setConstructedSaveMessage("");
     try {
-      await onSaveConstructedDeck({
+      const saved = await onSaveConstructedDeck({
+        deckId: selectedConstructedDeckId || undefined,
+        name: constructedDeckName,
         factionId: constructedFactionId,
         cardQuantities: constructedQuantities,
         cardSuitChoices: constructedSuitChoices
       });
+      if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
     } catch (saveError) {
       setConstructedSaveMessage(saveError.message || "Could not save constructed deck.");
+    }
+  }
+
+  function startNewConstructedDeck() {
+    setSelectedConstructedDeckId("");
+    setConstructedDeckName("Rumin Constructed Deck");
+    setConstructedFactionId("rumin");
+    setConstructedQuantities({});
+    setConstructedSuitChoices({});
+    setConstructedSaveMessage("");
+  }
+
+  async function runDeckAction(deckId, action) {
+    setConstructedSaveMessage("");
+    try {
+      const deck = await onDeckAction(deckId, action);
+      if (action === "duplicate" && deck?.format === "constructed") setSelectedConstructedDeckId(deck.id);
+      if (action === "archive" && selectedConstructedDeckId === deckId) setSelectedConstructedDeckId("");
+      setConstructedSaveMessage(action === "activate" ? "Active deck updated." : `Deck ${action} complete.`);
+    } catch (actionError) {
+      setConstructedSaveMessage(actionError.message || "Could not update deck.");
     }
   }
 
@@ -1598,6 +1644,14 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(206px, 1fr));
           gap: 14px;
+        }
+        @media (max-width: 700px) {
+          .booster-pack-grid {
+            grid-template-columns: minmax(0, 1fr);
+          }
+          .booster-pack-tile {
+            min-width: 0;
+          }
         }
         .booster-pack-tile {
           position: relative;
@@ -1785,7 +1839,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           transform-origin: center bottom;
         }
       `}</style>
-      <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ color: "#bfdbfe", fontSize: 13 }}>
             {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened - {packCredits} pack credit{packCredits === 1 ? "" : "s"}
@@ -1822,6 +1876,13 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             </div>
           </div>
         )}
+        <DeckLibraryPanel
+          library={deckLibrary}
+          selectedDeckId={selectedConstructedDeckId}
+          onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
+          onNew={startNewConstructedDeck}
+          onAction={runDeckAction}
+        />
         <div style={{ border: "1px solid rgba(125,211,252,0.24)", borderRadius: 8, padding: 12, background: "rgba(2,6,23,0.36)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <div>
@@ -1832,6 +1893,18 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
               {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
             </div>
           </div>
+          <label style={{ display: "grid", gap: 4, maxWidth: 420, marginBottom: 10, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
+            Deck name
+            <input
+              value={constructedDeckName}
+              onChange={(event) => {
+                setConstructedDeckName(event.target.value);
+                setConstructedSaveMessage("");
+              }}
+              maxLength={80}
+              style={{ border: "1px solid rgba(125,211,252,0.34)", borderRadius: 5, padding: "8px 9px", background: "rgba(15,23,42,0.72)", color: "#f8fafc" }}
+            />
+          </label>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
             {Object.values(PACK_THEMES).map((theme) => {
               const factionId = theme.name.toLowerCase();
@@ -1852,6 +1925,23 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
                 </button>
               );
             })}
+          </div>
+          <div className="replacement-map-wrap" aria-label="52-card replacement map">
+            <div className="replacement-map">
+              <div className="replacement-map-cell">Suit</div>
+              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => <div className="replacement-map-cell" key={`head-${value}`}>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</div>)}
+              {REPLACEMENT_SUITS.flatMap((suit) => [
+                <div className="replacement-map-cell" key={`label-${suit.id}`}>{suit.label}</div>,
+                ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => {
+                  const replaced = !!constructedSlotCounts[`${value}:${suit.id}`];
+                  return <div className={`replacement-map-cell ${replaced ? "replaced" : ""}`} title={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} key={`${suit.id}-${value}`}>{replaced ? "Swap" : "Base"}</div>;
+                })
+              ])}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 10, color: "#bfdbfe", fontSize: 12 }}>
+            <span><strong style={{ color: "#f8fafc" }}>Value curve:</strong> {Object.entries(constructedValueCounts).map(([value, count]) => `${value}:${count}`).join(" ") || "No swaps"}</span>
+            <span><strong style={{ color: "#f8fafc" }}>Suit swaps:</strong> {REPLACEMENT_SUITS.map((suit) => `${suit.label}:${Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length}`).join(" ")}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
             {ownedConstructedCards.length === 0 ? (
@@ -1898,7 +1988,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             })}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>Save Constructed Deck</MenuButton>
+            <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
             {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
             {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
             {constructedCurveWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Too many value {constructedCurveWarning[0]} cards.</span>}
@@ -1957,7 +2047,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   );
 }
 
-function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onBack }) {
+function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onBack }) {
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
@@ -1968,7 +2058,7 @@ function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, 
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} />
+        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} />
       </div>
     </div>
   );
@@ -3768,6 +3858,19 @@ export default function App() {
     return data.savedConstructedDeck;
   }
 
+  async function updateDeck(deckId, action, patch = {}) {
+    if (!authToken) throw new Error("Sign in to update a deck.");
+    const response = await fetch(`${SOCKET_URL}/api/decks/${encodeURIComponent(deckId)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ action, ...patch })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not update deck.");
+    setAccount(data.account);
+    return data.deck;
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
@@ -4154,6 +4257,10 @@ export default function App() {
   const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
   const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
   const packCredits = Number(account?.collection?.packCredits || 0);
+  const deckLibrary = account?.stats?.deckLibrary || { decks: [] };
+  const activeDecks = (deckLibrary.decks || []).filter((deck) => !deck.archived);
+  const constructedDecks = activeDecks.filter((deck) => deck.format === "constructed");
+  const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
   let journeyNextStep;
 
@@ -4228,6 +4335,7 @@ export default function App() {
         onOpenPack={openBoosterPack}
         onBuyPack={buyBoosterPack}
         onSaveConstructedDeck={saveConstructedDeck}
+        onDeckAction={updateDeck}
         onBack={() => setShowCollection(false)}
       />
     );
@@ -4371,10 +4479,10 @@ export default function App() {
           {homeArea === "build" && (
             <div className="home-panel-grid">
               <MenuCard title="Collection and Deck">
-                <p style={{ marginTop: 0, color: "#bfdbfe" }}>{account ? `${packCredits} unopened pack${packCredits === 1 ? "" : "s"}.` : "Sign in to keep a collection and constructed deck."}</p>
+                <p style={{ marginTop: 0, color: "#bfdbfe" }}>{account ? `${packCredits} unopened pack${packCredits === 1 ? "" : "s"}. ${activeDecks.length} active saved deck${activeDecks.length === 1 ? "" : "s"}.` : "Sign in to keep a collection and constructed decks."}</p>
                 <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Build</MenuButton>
               </MenuCard>
-              <MenuCard title="Saved Constructed Deck">
+              <MenuCard title={`Constructed Decks (${constructedDecks.length})`}>
                 {account?.stats?.savedConstructedDeck ? (
                   <p style={{ marginTop: 0, color: "#dbeafe" }}><strong>{account.stats.savedConstructedDeck.name || `${account.stats.savedConstructedDeck.factionName} Constructed Deck`}</strong><br />{account.stats.savedConstructedDeck.replacementCount || 0} faction-card replacements</p>
                 ) : (
@@ -4426,6 +4534,15 @@ export default function App() {
                 {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
               </MenuCard>
               <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
+              <MenuCard title="Featured Decks">
+                {featuredDecks.length > 0 ? featuredDecks.map((deck) => (
+                  <div key={deck.id} style={{ borderBottom: "1px solid rgba(125, 211, 252, 0.18)", padding: "7px 0", color: "#dbeafe" }}>
+                    <strong>{deck.name}</strong>
+                    <div style={{ color: "#93c5fd", fontSize: 12 }}>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"} · {deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</div>
+                  </div>
+                )) : <p style={{ marginTop: 0, color: "#bfdbfe" }}>Feature up to three decks from Build to make them part of your identity.</p>}
+                <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account} style={{ marginTop: 8 }}>Manage Decks</MenuButton>
+              </MenuCard>
               <FriendsPanel
                 account={account}
                 friendsData={friendsData}
