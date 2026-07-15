@@ -104,6 +104,7 @@ function logAuthFailure(event, req, details = {}) {
   console.warn("[AuthSecurity]", JSON.stringify({
     timestamp: new Date().toISOString(),
     event,
+    path: req.path,
     address: getRequestAddress(req),
     account: accountFingerprint(details.accountName),
     reason: details.reason || null

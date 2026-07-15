@@ -3688,6 +3688,11 @@ export default function App() {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await response.json();
+      if (response.status === 401) {
+        localStorage.removeItem(STORAGE_KEYS.authToken);
+        setAuthToken("");
+        setAccount(null);
+      }
       if (!response.ok) throw new Error(data.error || "Could not load friends.");
       setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
