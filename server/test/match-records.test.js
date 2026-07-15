@@ -10,6 +10,7 @@ const matchDataFile = path.join(tempDir, "matches.json");
 process.env.MATCH_DATA_FILE = matchDataFile;
 
 const {
+  buildParaMatchExport,
   buildMatchRecord,
   captureAuditEvent,
   createLocalMatchStore,
@@ -160,6 +161,21 @@ test("builds a server-authored public record with combat and audit data", () => 
   assert.equal(record.combatStats.totalDamagePrevented, 7);
   assert.equal(record.auditEvents[0].eventType, "game_completed");
   assert.match(record.auditEvents[0].stateChecksum, /^[0-9a-f]{64}$/);
+});
+
+test("builds a versioned Para export without private state", () => {
+  const record = buildMatchRecord(makeRoom({ ranked: true }), {
+    completionReason: "life_total",
+    completedAt: "2026-07-15T12:30:00.000Z"
+  });
+  const exported = buildParaMatchExport(record, `https://example.test/?match=${record.matchId}`, "2026-07-15T12:31:00.000Z");
+
+  assert.equal(exported.schemaVersion, "gauntlet.para-match.v1");
+  assert.equal(exported.source.serverAuthored, true);
+  assert.equal(exported.match.matchId, record.matchId);
+  assert.equal(exported.participants[0].deckVersionId, record.participants[0].deck.deckVersionId);
+  assert.equal(exported.verification.auditEventCount, record.auditEvents.length);
+  assert.equal(JSON.stringify(exported).includes("Private Alpha Hand"), false);
 });
 
 test("captures draw, concession, campaign, draft league, and best-of-three metadata", () => {

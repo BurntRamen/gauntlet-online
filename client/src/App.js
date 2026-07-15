@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
+import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -15,6 +16,16 @@ const INITIAL_JOIN_ROOM_CODE =
   typeof window !== "undefined"
     ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
     : "";
+
+function getPublicViewFromLocation() {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const matchId = params.get("match");
+  const profileId = params.get("profile");
+  if (matchId) return { type: "match", id: matchId };
+  if (profileId) return { type: "profile", id: profileId };
+  return null;
+}
 
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
@@ -1206,7 +1217,6 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
   const definitions = progression.definitions || {};
   const cosmetics = progression.cosmetics || {};
   const achievements = Object.values(progression.achievements || {}).sort((a, b) => String(b.unlockedAt || "").localeCompare(String(a.unlockedAt || "")));
-  const matchHistory = progression.matchHistory || [];
   const campaign = progression.campaign || {};
 
   const renderOptions = (ids, bucket, selected, field) => (
@@ -1271,22 +1281,6 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
           </div>
         </div>
 
-        <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Recent Matches</h4>
-          {matchHistory.length === 0 ? (
-            <p style={{ margin: 0, color: "#bfdbfe", fontSize: 13 }}>No match history yet.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 5, maxHeight: 180, overflowY: "auto" }}>
-              {matchHistory.slice(0, 10).map((match) => (
-                <div key={match.id} style={{ display: "grid", gridTemplateColumns: "80px 1fr auto", gap: 8, alignItems: "center", color: "#e5e7eb", fontSize: 12, borderBottom: "1px solid rgba(148,163,184,0.16)", paddingBottom: 5 }}>
-                  <strong style={{ color: match.result === "win" ? "#86efac" : match.result === "loss" ? "#fca5a5" : "#fde68a" }}>{match.result.toUpperCase()}</strong>
-                  <span>{match.campaign?.title || `${match.factionName || "Basic"} vs ${match.opponentName || "Opponent"}`}</span>
-                  <span>{match.life != null ? `${match.life} life` : ""}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </MenuCard>
   );
@@ -1432,7 +1426,7 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction }) {
+function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
   const [selectedConstructedDeckId, setSelectedConstructedDeckId] = useState(deckLibrary.activeConstructedDeckId || "");
   const selectedConstructedRecord = (deckLibrary.decks || []).find((deck) => deck.id === selectedConstructedDeckId && deck.format === "constructed") || null;
@@ -1882,6 +1876,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
           onNew={startNewConstructedDeck}
           onAction={runDeckAction}
+          onOpenMatch={onOpenMatch}
         />
         <div style={{ border: "1px solid rgba(125,211,252,0.24)", borderRadius: 8, padding: 12, background: "rgba(2,6,23,0.36)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
@@ -2047,7 +2042,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   );
 }
 
-function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onBack }) {
+function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
@@ -2058,7 +2053,7 @@ function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, 
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} />
+        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
       </div>
     </div>
   );
@@ -2263,7 +2258,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   );
 }
 
-function LeaderboardPanel({ leaderboard, error }) {
+function LeaderboardPanel({ leaderboard, error, onOpenProfile }) {
   return (
     <MenuCard title="Leaderboard">
       {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
@@ -2282,7 +2277,11 @@ function LeaderboardPanel({ leaderboard, error }) {
             <tbody>
               {leaderboard.slice(0, 8).map((entry, index) => (
                 <tr key={entry.name} style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.16)" }}>
-                  <td style={{ padding: "6px 4px" }}>{index + 1}. {entry.name}</td>
+                  <td style={{ padding: "6px 4px" }}>
+                    <button type="button" onClick={() => onOpenProfile(entry.accountId)} disabled={!entry.accountId} style={{ border: 0, padding: 0, background: "transparent", color: "#dbeafe", cursor: entry.accountId ? "pointer" : "default", fontWeight: 800 }}>
+                      {index + 1}. {entry.name}
+                    </button>
+                  </td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.wins}</td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.losses}</td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.winRate}%</td>
@@ -3291,6 +3290,13 @@ export default function App() {
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [competitiveProfile, setCompetitiveProfile] = useState(null);
+  const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
+  const [competitiveProfileError, setCompetitiveProfileError] = useState("");
+  const [publicView, setPublicView] = useState(getPublicViewFromLocation);
+  const [publicViewData, setPublicViewData] = useState(null);
+  const [publicViewLoading, setPublicViewLoading] = useState(false);
+  const [publicViewError, setPublicViewError] = useState("");
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
@@ -3446,6 +3452,60 @@ export default function App() {
     return () => window.clearInterval(intervalId);
   }, [loadLeaderboard]);
 
+  const loadCompetitiveProfile = useCallback(async () => {
+    if (!account?.id) {
+      setCompetitiveProfile(null);
+      setCompetitiveProfileError("");
+      return;
+    }
+    setCompetitiveProfileLoading(true);
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load competitive profile.");
+      setCompetitiveProfile(data.profile);
+      setCompetitiveProfileError("");
+    } catch (profileError) {
+      setCompetitiveProfileError(profileError.message);
+    } finally {
+      setCompetitiveProfileLoading(false);
+    }
+  }, [account?.id]);
+
+  useEffect(() => {
+    loadCompetitiveProfile();
+  }, [loadCompetitiveProfile]);
+
+  useEffect(() => {
+    const handlePopState = () => setPublicView(getPublicViewFromLocation());
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!publicView) {
+      setPublicViewData(null);
+      setPublicViewError("");
+      return;
+    }
+    let active = true;
+    setPublicViewLoading(true);
+    setPublicViewData(null);
+    setPublicViewError("");
+    const path = publicView.type === "match"
+      ? `/api/matches/${encodeURIComponent(publicView.id)}`
+      : `/api/profiles/${encodeURIComponent(publicView.id)}`;
+    fetch(`${SOCKET_URL}${path}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load public record.");
+        if (active) setPublicViewData(publicView.type === "match" ? data.match : data.profile);
+      })
+      .catch((viewError) => active && setPublicViewError(viewError.message))
+      .finally(() => active && setPublicViewLoading(false));
+    return () => { active = false; };
+  }, [publicView]);
+
   const loadFriends = useCallback(async () => {
     if (!authToken) {
       setFriendsData({ friends: [], messages: [], challenges: [] });
@@ -3569,7 +3629,10 @@ export default function App() {
     const onDraftLeagueStatus = (status) => setDraftLeagueStatus(status);
     const onAccountUpdated = (updatedAccount) => setAccount(updatedAccount);
     const onDraftDeckSaved = (payload) => setDraftSaveMessage(payload?.message || "Draft deck saved.");
-    const onGameEnded = () => loadLeaderboard();
+    const onGameEnded = () => {
+      loadLeaderboard();
+      loadCompetitiveProfile();
+    };
     const onRematchStatus = (status) => setRematchStatus(status || { requestedBy: null, message: "" });
     const onRematchStarted = () => {
       resetSelections();
@@ -3621,7 +3684,7 @@ export default function App() {
       socket.off("rematchStatus", onRematchStatus);
       socket.off("rematchStarted", onRematchStarted);
     };
-  }, [currentIdentityKey, loadLeaderboard]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -3902,6 +3965,7 @@ export default function App() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not update deck.");
     setAccount(data.account);
+    loadCompetitiveProfile();
     return data.deck;
   }
 
@@ -3924,6 +3988,28 @@ export default function App() {
     const normalizedGuestName = guestName.trim() || "Guest";
     localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
     return { guestName: normalizedGuestName, reconnectToken };
+  }
+
+  function openPublicView(type, id) {
+    if (!id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("match");
+    url.searchParams.delete("profile");
+    url.searchParams.set(type, id);
+    window.history.pushState({ gauntletPublicView: true }, "", url);
+    setPublicView({ type, id });
+  }
+
+  function closePublicView() {
+    if (window.history.state?.gauntletPublicView) {
+      window.history.back();
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("match");
+    url.searchParams.delete("profile");
+    window.history.pushState({}, "", url);
+    setPublicView(null);
   }
 
   function createRoom() {
@@ -4396,6 +4482,31 @@ export default function App() {
     };
   }
 
+  if (publicView?.type === "match") {
+    return (
+      <MatchRecordScreen
+        match={publicViewData}
+        loading={publicViewLoading}
+        error={publicViewError}
+        serverUrl={SOCKET_URL}
+        onBack={closePublicView}
+        onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+      />
+    );
+  }
+
+  if (publicView?.type === "profile") {
+    return (
+      <PublicProfileScreen
+        profile={publicViewData}
+        loading={publicViewLoading}
+        error={publicViewError}
+        onBack={closePublicView}
+        onOpenMatch={(matchId) => openPublicView("match", matchId)}
+      />
+    );
+  }
+
   if (showCampaign) {
     return (
       <CampaignScreen
@@ -4417,6 +4528,7 @@ export default function App() {
         onBuyPack={buyBoosterPack}
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
+        onOpenMatch={(matchId) => openPublicView("match", matchId)}
         onBack={() => setShowCollection(false)}
       />
     );
@@ -4615,6 +4727,13 @@ export default function App() {
                 {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
               </MenuCard>
               <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
+              <CompetitiveIdentityPanel
+                profile={competitiveProfile}
+                loading={competitiveProfileLoading}
+                error={competitiveProfileError}
+                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+                onOpenMatch={(matchId) => openPublicView("match", matchId)}
+              />
               <MenuCard title="Featured Decks">
                 {featuredDecks.length > 0 ? featuredDecks.map((deck) => (
                   <div key={deck.id} style={{ borderBottom: "1px solid rgba(125, 211, 252, 0.18)", padding: "7px 0", color: "#dbeafe" }}>
@@ -4644,7 +4763,7 @@ export default function App() {
                 unreadCounts={friendUnreadCounts}
                 unreadTotal={friendUnreadTotal}
               />
-              <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} />
+              <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} onOpenProfile={(accountId) => openPublicView("profile", accountId)} />
             </div>
           )}
         </HomeNavigation>

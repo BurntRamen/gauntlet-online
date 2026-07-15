@@ -14,7 +14,7 @@ const library = {
       archived: false,
       featured: true,
       versions: [{ id: "version-1" }, { id: "version-2" }],
-      record: { wins: 3, losses: 1, draws: 0 }
+      record: { wins: 3, losses: 1, draws: 0, recentMatchIds: ["match-1"] }
     },
     {
       id: "draft-1",
@@ -46,7 +46,8 @@ test("shows active deck identity and exposes library actions", () => {
   const onSelect = jest.fn();
   const onNew = jest.fn();
   const onAction = jest.fn();
-  render(<DeckLibraryPanel library={library} selectedDeckId="deck-1" onSelect={onSelect} onNew={onNew} onAction={onAction} />);
+  const onOpenMatch = jest.fn();
+  render(<DeckLibraryPanel library={library} selectedDeckId="deck-1" onSelect={onSelect} onNew={onNew} onAction={onAction} onOpenMatch={onOpenMatch} />);
 
   expect(screen.getByText("Gold Guard")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /Gold Guard Rumin Constructed - v2 3W 1L 0D/ })).toBeInTheDocument();
@@ -58,6 +59,9 @@ test("shows active deck identity and exposes library actions", () => {
 
   fireEvent.click(screen.getAllByRole("button", { name: "Duplicate" })[0]);
   expect(onAction).toHaveBeenCalledWith("deck-1", "duplicate");
+
+  fireEvent.click(screen.getByRole("button", { name: "Recent Match" }));
+  expect(onOpenMatch).toHaveBeenCalledWith("match-1");
 
   fireEvent.click(screen.getByRole("button", { name: "New Constructed" }));
   expect(onNew).toHaveBeenCalled();

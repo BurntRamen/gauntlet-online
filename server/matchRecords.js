@@ -319,6 +319,48 @@ function publicMatchSummary(record) {
   return clonePlain({ ...summary, auditEventCount: Array.isArray(auditEvents) ? auditEvents.length : 0 });
 }
 
+function buildParaMatchExport(record, matchUrl = null, exportedAt = new Date().toISOString()) {
+  if (!record) return null;
+  return {
+    schemaVersion: "gauntlet.para-match.v1",
+    exportedAt,
+    source: {
+      product: "Gauntlet Online",
+      serverAuthored: true,
+      matchUrl
+    },
+    match: {
+      matchId: record.matchId,
+      seriesId: record.seriesId || null,
+      mode: record.mode,
+      ranked: !!record.ranked,
+      rulesVersion: record.rulesVersion,
+      contentVersion: record.contentVersion,
+      startedAt: record.startedAt,
+      completedAt: record.completedAt,
+      completionReason: record.completionReason,
+      winnerPlayerNum: record.winnerPlayerNum,
+      turnCount: record.turnCount
+    },
+    participants: (record.participants || []).map((participant) => ({
+      playerNum: participant.playerNum,
+      accountId: participant.accountId,
+      displayName: participant.displayName,
+      identityType: participant.identityType,
+      factionId: participant.faction?.id || "basic",
+      deckId: participant.deck?.deckId || null,
+      deckVersionId: participant.deck?.deckVersionId || null,
+      result: participant.result,
+      finalLife: participant.finalLife
+    })),
+    verification: {
+      matchRecordVersion: record.recordVersion,
+      auditEventCount: Array.isArray(record.auditEvents) ? record.auditEvents.length : 0,
+      finalStateChecksum: record.auditEvents?.[record.auditEvents.length - 1]?.stateChecksum || null
+    }
+  };
+}
+
 function createLocalMatchStore(dataFile) {
   function load() {
     try {
@@ -364,6 +406,7 @@ module.exports = {
   RULES_VERSION,
   CONTENT_VERSION,
   buildMatchRecord,
+  buildParaMatchExport,
   captureAuditEvent,
   createLocalMatchStore,
   createMatchMetadata,
