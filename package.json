@@ -6,8 +6,9 @@
     "install:all": "npm --prefix server ci && npm --prefix client ci",
     "check:server": "node --check server/index.js",
     "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test -- --watchAll=false",
     "build:client": "npm --prefix client run build",
-    "check": "npm run check:server && npm run test:server && npm run build:client"
+    "check": "npm run check:server && npm run test:server && npm run test:client && npm run build:client"
   },
   "engines": {
     "node": ">=22 <25"

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import HomeNavigation from "./HomeNavigation";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -27,7 +28,7 @@ const STORAGE_KEYS = {
   friendReadAt: "gauntlet_friend_read_at",
   accountSoundMuted: "gauntlet_account_sound_muted",
   onboardingDismissed: "gauntlet_onboarding_dismissed",
-  accountModeGuideSeen: "gauntlet_account_mode_guide_seen"
+  tutorialCompletions: "gauntlet_tutorial_completions"
 };
 
 const FACTION_COLORS = {
@@ -3251,68 +3252,6 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function ModeGuidePanel({ accountName, onStartBasicAi, onOpenCampaign, onOpenCollection, onEnableHints, onDismiss }) {
-  const modePath = [
-    {
-      title: "1. Basic vs AI",
-      tag: "Best first match",
-      text: "Learn priority, payment, blocking, passing, and lane placement without faction text fighting for attention."
-    },
-    {
-      title: "2. Faction Campaign",
-      tag: "Learn flavor and powers",
-      text: "Pick a faction story once the core loop makes sense. Campaign rewards packs as you clear chapters."
-    },
-    {
-      title: "3. Collection",
-      tag: "Build your pool",
-      text: "Open earned packs, browse cards, and save a constructed deck when you know which faction you like."
-    },
-    {
-      title: "4. Duel or Matchmaking",
-      tag: "Play people",
-      text: "Use normal rooms for friends, matchmaking for similar records, and best-of-three when you want a longer set."
-    },
-    {
-      title: "5. Draft",
-      tag: "Advanced mode",
-      text: "Try bot draft first, then player draft once card choices and one-faction deckbuilding feel natural."
-    }
-  ];
-
-  return (
-    <div style={{ border: "1px solid rgba(125,211,252,0.42)", borderRadius: 10, padding: 16, marginBottom: 18, background: "linear-gradient(135deg, rgba(12,18,32,0.95), rgba(21,44,60,0.88)), radial-gradient(circle at 86% 18%, rgba(56,189,248,0.22), transparent 30%)", boxShadow: "0 18px 42px rgba(0,0,0,0.28)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 12 }}>
-        <div>
-          <div style={{ color: "#67e8f9", fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>First Login Guide</div>
-          <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 28 }}>Welcome{accountName ? `, ${accountName}` : ""}. Here is the cleanest path through Gauntlet.</h2>
-          <p style={{ margin: "8px 0 0", color: "#bfdbfe", lineHeight: 1.45, maxWidth: 820 }}>
-            You do not have to follow this order, but it is the smoothest route from learning the rules to playing real matches.
-          </p>
-        </div>
-        <button type="button" onClick={onDismiss} style={{ flex: "0 0 auto", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.52)", color: "#dbeafe", fontWeight: 900 }}>Got It</button>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10, marginBottom: 14 }}>
-        {modePath.map((mode) => (
-          <div key={mode.title} style={{ border: "1px solid rgba(125,211,252,0.2)", borderRadius: 8, padding: 10, background: "rgba(2,6,23,0.34)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 5 }}>
-              <strong style={{ color: "#f8fafc" }}>{mode.title}</strong>
-              <span style={{ color: "#fde68a", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{mode.tag}</span>
-            </div>
-            <div style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{mode.text}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <MenuButton onClick={onStartBasicAi}>Start Basic vs AI</MenuButton>
-        <MenuButton variant="secondary" onClick={onOpenCampaign}>Open Campaign</MenuButton>
-        <MenuButton variant="secondary" onClick={onOpenCollection}>Open Collection</MenuButton>
-        <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
-      </div>
-    </div>
-  );
-}
-
 function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
   const campaignProgress = account?.progression?.campaign || {};
 
@@ -3431,10 +3370,17 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
+  const [homeArea, setHomeArea] = useState("journey");
+  const [tutorialCompletions, setTutorialCompletions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
+    } catch {
+      return {};
+    }
+  });
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(STORAGE_KEYS.onboardingDismissed) !== "true");
-  const [showModeGuide, setShowModeGuide] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
@@ -3444,6 +3390,11 @@ export default function App() {
   const voiceAudioRef = useRef(null);
   const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
+  const currentIdentityKey = account?.id
+    ? `account:${account.id}`
+    : playAsGuest && guestName.trim()
+      ? `guest:${guestName.trim().toLowerCase()}`
+      : "";
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -3456,19 +3407,6 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
-
-  useEffect(() => {
-    if (!account?.id) {
-      setShowModeGuide(false);
-      return;
-    }
-    try {
-      const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
-      setShowModeGuide(!seenByAccount[account.id]);
-    } catch {
-      setShowModeGuide(true);
-    }
-  }, [account?.id]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3651,6 +3589,19 @@ export default function App() {
     const onState = (newGame) => {
       setError("");
       setGame(newGame);
+      if (
+        currentIdentityKey &&
+        newGame?.phase === "gameOver" &&
+        newGame?.gameMode === "basic" &&
+        newGame?.players?.[2]?.accountName === "Training AI"
+      ) {
+        setTutorialCompletions((previous) => {
+          if (previous[currentIdentityKey]) return previous;
+          const next = { ...previous, [currentIdentityKey]: new Date().toISOString() };
+          localStorage.setItem(STORAGE_KEYS.tutorialCompletions, JSON.stringify(next));
+          return next;
+        });
+      }
     };
     const onLobbyState = (newLobby) => {
       setError("");
@@ -3716,7 +3667,7 @@ export default function App() {
       socket.off("draftDeckSaved", onDraftDeckSaved);
       socket.off("gameEnded", onGameEnded);
     };
-  }, [loadLeaderboard]);
+  }, [currentIdentityKey, loadLeaderboard]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -4141,6 +4092,20 @@ export default function App() {
     socket.emit("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
   }
 
+  function resumeSavedRoom() {
+    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
+    const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
+    const savedRole = localStorage.getItem(STORAGE_KEYS.role);
+    if (!roomCode) return;
+    setError("");
+    socket.emit("reconnectToRoom", {
+      roomCode,
+      reconnectToken,
+      role: savedRole,
+      authToken: localStorage.getItem(STORAGE_KEYS.authToken)
+    });
+  }
+
   function dismissOnboarding() {
     localStorage.setItem(STORAGE_KEYS.onboardingDismissed, "true");
     setShowOnboarding(false);
@@ -4148,7 +4113,6 @@ export default function App() {
 
   function reopenOnboardingTips() {
     localStorage.removeItem(STORAGE_KEYS.onboardingDismissed);
-    setShowModeGuide(false);
     setShowOnboarding(true);
     setError("");
   }
@@ -4167,38 +4131,6 @@ export default function App() {
   function enableOnboardingHints() {
     setShowHelperLabels(true);
     dismissOnboarding();
-  }
-
-  function dismissModeGuide() {
-    if (account?.id) {
-      try {
-        const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
-        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ ...seenByAccount, [account.id]: true }));
-      } catch {
-        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ [account.id]: true }));
-      }
-    }
-    setShowModeGuide(false);
-  }
-
-  function startModeGuideBasicAi() {
-    dismissModeGuide();
-    startTutorialVsAi("basic");
-  }
-
-  function openModeGuideCampaign() {
-    dismissModeGuide();
-    setShowCampaign(true);
-  }
-
-  function openModeGuideCollection() {
-    dismissModeGuide();
-    setShowCollection(true);
-  }
-
-  function enableModeGuideHints() {
-    setShowHelperLabels(true);
-    dismissModeGuide();
   }
 
   function startCampaignChapter(factionId, chapterId) {
@@ -4383,6 +4315,68 @@ export default function App() {
   }
 
   const canPlayAsPlayer = !!account || playAsGuest;
+  const savedRoomCode = localStorage.getItem(STORAGE_KEYS.roomCode) || "";
+  const savedReconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
+  const savedRole = localStorage.getItem(STORAGE_KEYS.role) || "";
+  const hasSavedRoom = !!savedRoomCode && (!!savedReconnectToken || savedRole === "spectator");
+  const completedCampaignChapters = Object.values(account?.progression?.campaign || {})
+    .reduce((total, chapters) => total + (Array.isArray(chapters) ? chapters.length : 0), 0);
+  const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
+  const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
+  const packCredits = Number(account?.collection?.packCredits || 0);
+  const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
+  let journeyNextStep;
+
+  if (hasSavedRoom) {
+    journeyNextStep = {
+      title: `Resume room ${savedRoomCode}`,
+      description: "Return to your saved player seat or spectator view.",
+      actionLabel: "Resume Match",
+      onClick: resumeSavedRoom
+    };
+  } else if (!canPlayAsPlayer) {
+    journeyNextStep = {
+      title: "Choose your player identity",
+      description: "Sign in for progression or enter a named guest identity to begin.",
+      actionLabel: "Open Identity",
+      onClick: () => setHomeArea("identity")
+    };
+  } else if (!tutorialComplete) {
+    journeyNextStep = {
+      title: "Learn the core game",
+      description: "Start with Basic Gauntlet before adding faction powers.",
+      actionLabel: "Learn Gauntlet",
+      onClick: () => setShowTutorial(true)
+    };
+  } else if (completedCampaignChapters === 0) {
+    journeyNextStep = {
+      title: "Choose a faction",
+      description: "Meet the four factions and begin your first campaign chapter.",
+      actionLabel: "Choose Campaign",
+      onClick: () => setShowCampaign(true)
+    };
+  } else if (packCredits > 0) {
+    journeyNextStep = {
+      title: `Open ${packCredits} earned pack${packCredits === 1 ? "" : "s"}`,
+      description: "Claim faction cards earned from campaign victories.",
+      actionLabel: "Open Collection",
+      onClick: () => setShowCollection(true)
+    };
+  } else if (!hasSavedDeck) {
+    journeyNextStep = {
+      title: "Personalize your 52-card deck",
+      description: "Replace ordinary playing cards with faction cards from your collection.",
+      actionLabel: "Build a Deck",
+      onClick: () => setShowCollection(true)
+    };
+  } else {
+    journeyNextStep = {
+      title: "Take your deck to the table",
+      description: "Create a room, invite another player, or enter matchmaking.",
+      actionLabel: "Find a Game",
+      onClick: () => setHomeArea("play")
+    };
+  }
 
   if (showCampaign) {
     return (
@@ -4445,12 +4439,12 @@ export default function App() {
     return (
       <div style={MENU_THEME.page}>
         <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 18, marginBottom: 20 }}>
+        <div className="home-command-header" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 18, marginBottom: 20 }}>
           <div>
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Battle Net Terminal</div>
             <h1 style={{ margin: 0, fontSize: 46, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
           </div>
-          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
+          <div className="home-command-tools" style={{ display: "grid", justifyItems: "end", gap: 8 }}>
             <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
             <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <MusicControl
@@ -4468,134 +4462,161 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        {account && showModeGuide && (
-          <ModeGuidePanel
-            accountName={account.name}
-            onStartBasicAi={startModeGuideBasicAi}
-            onOpenCampaign={openModeGuideCampaign}
-            onOpenCollection={openModeGuideCollection}
-            onEnableHints={enableModeGuideHints}
-            onDismiss={dismissModeGuide}
-          />
-        )}
-        {showOnboarding && (
-          <OnboardingPanel
-            canPlayAsPlayer={canPlayAsPlayer}
-            onStartTutorial={openOnboardingTutorial}
-            onStartBasicAi={startOnboardingBasicAi}
-            onEnableHints={enableOnboardingHints}
-            onDismiss={dismissOnboarding}
-          />
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          <MenuCard title="Tutorial">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>
-            <MenuButton onClick={() => setShowTutorial(true)} style={{ marginRight: 8, marginBottom: 8 }}>Start Tutorial</MenuButton>
-            <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Onboarding Tips</MenuButton>
-          </MenuCard>
-          <MenuCard title="Campaign">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play as each faction commander through story battles against figures from their own history.</p>
-            <MenuButton onClick={() => setShowCampaign(true)}>Choose Campaign</MenuButton>
-          </MenuCard>
-          <MenuCard title="Collection">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Open earned campaign packs, view your cards, and buy $1 faction packs once checkout is configured.</p>
-            <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection</MenuButton>
-            {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to use your collection.</p>}
-          </MenuCard>
-          <AccountPanel
-            account={account}
-            mode={authMode}
-            form={authForm}
-            error={authError}
-            onModeChange={setAuthMode}
-            onFormChange={setAuthForm}
-            onSubmit={submitAuth}
-            onSignOut={signOut}
-          />
-          <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
-          <MenuCard title="Create Room">
-            <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
-            <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
-            <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Create Draft Room</MenuButton>
-            <MenuButton variant="secondary" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Bot Draft</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players. Draft supports up to 8 players. Bot Draft seats you with 7 automated drafters.</p>
-            <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, Free-for-All for 2-4 seated players, Draft Room for live drafters, or Bot Draft for an Arena-style solo draft table.</HelperText>
-            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
-          </MenuCard>
-          <MenuCard title="Join Room">
-            <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ ...MENU_THEME.input, marginRight: 10, marginBottom: 10 }} />
-            <div>
-              <MenuButton onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</MenuButton>
-              <MenuButton variant="secondary" onClick={() => joinRoom(true)}>Join as Spectator</MenuButton>
-            </div>
-            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
-          </MenuCard>
-          <ShareGameQrCard />
-          <MatchmakingPanel
-            account={account}
-            status={matchmakingStatus}
-            onJoin={() => joinMatchmaking(1)}
-            onLeave={leaveMatchmaking}
-            extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find BO3 Match</MenuButton>}
-          />
-          <MatchmakingPanel
-            account={account}
-            status={draftLeagueStatus}
-            onJoin={() => joinDraftLeague("player", 1)}
-            onLeave={leaveDraftLeague}
-            title="Draft League"
-            description="Queue with your saved one-faction draft deck against an account opponent with a similar draft league record. Player Draft and Bot Draft decks use separate queues."
-            joinLabel="Player Draft"
-            cancelLabel="Leave Draft Queue"
-            signedOutText="Sign in and save a draft deck to use draft league matchmaking."
-            extraActions={(
-              <>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
-              </>
-            )}
-          />
-          <FriendsPanel
-            account={account}
-            friendsData={friendsData}
-            selectedFriendId={selectedFriendId}
-            friendName={friendNameInput}
-            messageText={friendMessageInput}
-            error={friendsError}
-            onSelectFriend={selectFriendWithReadReceipt}
-            onFriendNameChange={setFriendNameInput}
-            onMessageTextChange={setFriendMessageInput}
-            onAddFriend={submitFriendRequest}
-            onRemoveFriend={removeFriend}
-            onSendMessage={sendFriendMessage}
-            onRefresh={loadFriends}
-            unreadCounts={friendUnreadCounts}
-            unreadTotal={friendUnreadTotal}
-          />
-          <MenuCard title="Guest Play">
-            <label style={{ display: "block", marginBottom: 10 }}>
-              <input
-                type="checkbox"
-                checked={playAsGuest}
-                onChange={(e) => setPlayAsGuest(e.target.checked)}
-                disabled={!!account}
-                style={{ marginRight: 8 }}
+        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep}>
+          {homeArea === "play" && (
+            <div className="home-panel-grid">
+              <MenuCard title="Practice">
+                <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play privately against the Training AI.</p>
+                <MenuButton onClick={() => startTutorialVsAi("basic")} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Basic vs AI</MenuButton>
+                <MenuButton variant="secondary" onClick={() => startTutorialVsAi("factions")} disabled={!canPlayAsPlayer}>Factions vs AI</MenuButton>
+                {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Choose an account or guest identity first.</p>}
+              </MenuCard>
+              <MenuCard title="Create Table">
+                <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Duel</MenuButton>
+                <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Free-For-All</MenuButton>
+                <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Live Draft</MenuButton>
+                <MenuButton variant="secondary" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer}>Bot Draft</MenuButton>
+                <HelperText enabled={showHelperLabels}>Duel seats 2, Free-For-All seats 2-4, and live draft seats up to 8.</HelperText>
+              </MenuCard>
+              <MenuCard title="Join Room">
+                <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", marginBottom: 10 }} />
+                <MenuButton onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</MenuButton>
+                <MenuButton variant="secondary" onClick={() => joinRoom(true)}>Spectate</MenuButton>
+              </MenuCard>
+              <ShareGameQrCard />
+              <MatchmakingPanel
+                account={account}
+                status={matchmakingStatus}
+                onJoin={() => joinMatchmaking(1)}
+                onLeave={leaveMatchmaking}
+                extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find BO3 Match</MenuButton>}
               />
-              Play as guest
-            </label>
-            <input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest name"
-              disabled={!!account || !playAsGuest}
-              style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
-            />
-            {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
-          </MenuCard>
-          <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} />
-        </div>
-        <RulebookPanel />
+              <MatchmakingPanel
+                account={account}
+                status={draftLeagueStatus}
+                onJoin={() => joinDraftLeague("player", 1)}
+                onLeave={leaveDraftLeague}
+                title="Draft League"
+                description="Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."
+                joinLabel="Player Draft"
+                cancelLabel="Leave Draft Queue"
+                signedOutText="Sign in and save a draft deck to enter Draft League."
+                extraActions={(
+                  <>
+                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
+                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
+                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
+                  </>
+                )}
+              />
+            </div>
+          )}
+
+          {homeArea === "journey" && (
+            <>
+              {showOnboarding && (
+                <OnboardingPanel
+                  canPlayAsPlayer={canPlayAsPlayer}
+                  onStartTutorial={openOnboardingTutorial}
+                  onStartBasicAi={startOnboardingBasicAi}
+                  onEnableHints={enableOnboardingHints}
+                  onDismiss={dismissOnboarding}
+                />
+              )}
+              <div className="home-panel-grid">
+                <MenuCard title="Learn Gauntlet">
+                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn priority, payment, blocking, damage, and lane placement.</p>
+                  <MenuButton onClick={() => setShowTutorial(true)} style={{ marginRight: 8, marginBottom: 8 }}>Open Tutorial</MenuButton>
+                  <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
+                </MenuCard>
+                <MenuCard title="Faction Campaigns">
+                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared.` : "Choose a faction and begin its story."}</p>
+                  <MenuButton onClick={() => setShowCampaign(true)}>Open Campaign Map</MenuButton>
+                </MenuCard>
+              </div>
+              <RulebookPanel />
+            </>
+          )}
+
+          {homeArea === "build" && (
+            <div className="home-panel-grid">
+              <MenuCard title="Collection and Deck">
+                <p style={{ marginTop: 0, color: "#bfdbfe" }}>{account ? `${packCredits} unopened pack${packCredits === 1 ? "" : "s"}.` : "Sign in to keep a collection and constructed deck."}</p>
+                <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Build</MenuButton>
+              </MenuCard>
+              <MenuCard title="Saved Constructed Deck">
+                {account?.stats?.savedConstructedDeck ? (
+                  <p style={{ marginTop: 0, color: "#dbeafe" }}><strong>{account.stats.savedConstructedDeck.name || `${account.stats.savedConstructedDeck.factionName} Constructed Deck`}</strong><br />{account.stats.savedConstructedDeck.replacementCount || 0} faction-card replacements</p>
+                ) : (
+                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>No constructed deck saved yet.</p>
+                )}
+                <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{account?.stats?.savedConstructedDeck ? "Edit Deck" : "Build First Deck"}</MenuButton>
+              </MenuCard>
+              <MenuCard title="Saved Draft Deck">
+                {account?.stats?.savedDraftDeck ? (
+                  <p style={{ marginTop: 0, color: "#dbeafe" }}><strong>{account.stats.savedDraftDeck.name}</strong><br />{account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements</p>
+                ) : (
+                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>Finish a live or bot draft to save a Draft League deck.</p>
+                )}
+                <MenuButton variant="secondary" onClick={() => setHomeArea("play")}>Open Draft Modes</MenuButton>
+              </MenuCard>
+            </div>
+          )}
+
+          {homeArea === "identity" && (
+            <div className="home-panel-grid">
+              <AccountPanel
+                account={account}
+                mode={authMode}
+                form={authForm}
+                error={authError}
+                onModeChange={setAuthMode}
+                onFormChange={setAuthForm}
+                onSubmit={submitAuth}
+                onSignOut={signOut}
+              />
+              <MenuCard title="Guest Identity">
+                <label style={{ display: "block", marginBottom: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={playAsGuest}
+                    onChange={(e) => setPlayAsGuest(e.target.checked)}
+                    disabled={!!account}
+                    style={{ marginRight: 8 }}
+                  />
+                  Play as guest
+                </label>
+                <input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Guest name"
+                  disabled={!!account || !playAsGuest}
+                  style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
+                />
+                {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
+              </MenuCard>
+              <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
+              <FriendsPanel
+                account={account}
+                friendsData={friendsData}
+                selectedFriendId={selectedFriendId}
+                friendName={friendNameInput}
+                messageText={friendMessageInput}
+                error={friendsError}
+                onSelectFriend={selectFriendWithReadReceipt}
+                onFriendNameChange={setFriendNameInput}
+                onMessageTextChange={setFriendMessageInput}
+                onAddFriend={submitFriendRequest}
+                onRemoveFriend={removeFriend}
+                onSendMessage={sendFriendMessage}
+                onRefresh={loadFriends}
+                unreadCounts={friendUnreadCounts}
+                unreadTotal={friendUnreadTotal}
+              />
+              <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} />
+            </div>
+          )}
+        </HomeNavigation>
         </div>
       </div>
     );
