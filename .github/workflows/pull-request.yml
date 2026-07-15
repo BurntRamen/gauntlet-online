@@ -33,5 +33,8 @@ jobs:
       - name: Check server syntax
         run: npm run check:server
 
+      - name: Test server rules
+        run: npm run test:server
+
       - name: Build client
         run: npm run build:client

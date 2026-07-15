@@ -6923,6 +6923,29 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = {
+  app,
+  server,
+  __test: {
+    applyBlockBonuses,
+    applyGameOverState,
+    applyProgressionForResult,
+    calculateAttackBonuses,
+    createFreeForAllGameFromLobby,
+    createGameFromLobby,
+    createTurnData,
+    getBaseCardValue,
+    getPaymentTotal,
+    resolveDamage,
+    startEndPhase,
+    advanceEndPlacement,
+    validateConstructedDeckPayload,
+    validateHandIndexes
+  }
+};
