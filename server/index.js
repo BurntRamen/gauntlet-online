@@ -13,12 +13,26 @@ const ALLOWED_ORIGINS = [
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
 const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
-const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || "dev-gauntlet-auth-secret-change-me";
+const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
+const DEVELOPMENT_AUTH_SECRETS = new Set([
+  DEFAULT_ACCOUNT_AUTH_SECRET,
+  "local-development-secret-change-me"
+]);
+const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || DEFAULT_ACCOUNT_AUTH_SECRET;
+const ACCOUNT_SESSION_TTL_MS = Math.max(60 * 1000, Number(process.env.ACCOUNT_SESSION_TTL_MS) || 7 * 24 * 60 * 60 * 1000);
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
+
+function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = ACCOUNT_AUTH_SECRET) {
+  if (nodeEnv === "production" && DEVELOPMENT_AUTH_SECRETS.has(authSecret)) {
+    throw new Error("ACCOUNT_AUTH_SECRET must be set to a non-default value in production.");
+  }
+}
+
+validateAuthConfiguration();
 
 const express = require("express");
 const http = require("http");
@@ -64,6 +78,7 @@ const corsOptions = {
 };
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -75,6 +90,56 @@ const io = new Server(server, {
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "20kb" }));
+
+function getRequestAddress(req) {
+  return String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 80);
+}
+
+function accountFingerprint(name) {
+  const key = accountNameKey(name);
+  return key ? crypto.createHash("sha256").update(key).digest("hex").slice(0, 12) : null;
+}
+
+function logAuthFailure(event, req, details = {}) {
+  console.warn("[AuthSecurity]", JSON.stringify({
+    timestamp: new Date().toISOString(),
+    event,
+    address: getRequestAddress(req),
+    account: accountFingerprint(details.accountName),
+    reason: details.reason || null
+  }));
+}
+
+function createAuthRateLimiter({ event, windowMs, maxAttempts }) {
+  const attempts = new Map();
+  return function authRateLimiter(req, res, next) {
+    const now = Date.now();
+    const key = getRequestAddress(req);
+    if (!attempts.has(key) && attempts.size >= 10000) {
+      for (const [storedKey, storedEntry] of attempts) {
+        if (storedEntry.resetAt <= now) attempts.delete(storedKey);
+      }
+      if (attempts.size >= 10000) attempts.delete(attempts.keys().next().value);
+    }
+    const current = attempts.get(key);
+    const entry = !current || current.resetAt <= now
+      ? { count: 0, resetAt: now + windowMs }
+      : current;
+    entry.count += 1;
+    attempts.set(key, entry);
+    if (entry.count <= maxAttempts) {
+      next();
+      return;
+    }
+    const retryAfterSeconds = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+    res.set("Retry-After", String(retryAfterSeconds));
+    logAuthFailure(event, req, { accountName: req.body?.name, reason: "rate_limited" });
+    res.status(429).json({ error: "Too many attempts. Please try again later." });
+  };
+}
+
+const registerRateLimit = createAuthRateLimiter({ event: "register_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 5 });
+const loginRateLimit = createAuthRateLimiter({ event: "login_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 10 });
 
 app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
@@ -174,7 +239,7 @@ function signAuthPayload(payload) {
   return `${body}.${signature}`;
 }
 
-function verifyAuthToken(token) {
+function verifyAuthToken(token, now = Date.now()) {
   if (!token || typeof token !== "string" || !token.includes(".")) return null;
   const [body, signature] = token.split(".");
   const expected = crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update(body).digest("base64url");
@@ -184,7 +249,8 @@ function verifyAuthToken(token) {
 
   try {
     const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-    if (!payload.id || !payload.name) return null;
+    if (!payload.id || !payload.name || !Number.isFinite(payload.iat) || !Number.isFinite(payload.exp)) return null;
+    if (payload.exp <= now || payload.iat > now + 60 * 1000 || payload.exp <= payload.iat) return null;
     return payload;
   } catch (_error) {
     return null;
@@ -1682,9 +1748,9 @@ function publicFriendMessage(message) {
   };
 }
 
-function issueAccountSession(account) {
+function issueAccountSession(account, now = Date.now()) {
   return {
-    token: signAuthPayload({ id: account.id, name: account.name }),
+    token: signAuthPayload({ id: account.id, name: account.name, iat: now, exp: now + ACCOUNT_SESSION_TTL_MS }),
     account: publicAccount(account)
   };
 }
@@ -1999,6 +2065,7 @@ async function requireAccountRecord(req, res) {
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const payload = verifyAuthToken(token);
   if (!payload) {
+    logAuthFailure("session_rejected", req, { reason: "invalid_or_expired" });
     res.status(401).json({ error: "Not signed in." });
     return null;
   }
@@ -2616,15 +2683,17 @@ app.get("/api/profiles/:accountId", async (req, res) => {
   }
 });
 
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", registerRateLimit, async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
 
   if (!isValidAccountName(name)) {
+    logAuthFailure("register_rejected", req, { accountName: name, reason: "invalid_name" });
     res.status(400).json({ error: "Account name must be 3-24 characters using letters, numbers, spaces, hyphens, or underscores." });
     return;
   }
   if (password.length < 8) {
+    logAuthFailure("register_rejected", req, { accountName: name, reason: "invalid_password_length" });
     res.status(400).json({ error: "Password must be at least 8 characters." });
     return;
   }
@@ -2648,6 +2717,7 @@ app.post("/api/auth/register", async (req, res) => {
   try {
     if (useSupabaseStore()) {
       if (await findSupabaseAccountByName(name)) {
+        logAuthFailure("register_rejected", req, { accountName: name, reason: "name_taken" });
         res.status(409).json({ error: "That account name is already taken." });
         return;
       }
@@ -2669,6 +2739,7 @@ app.post("/api/auth/register", async (req, res) => {
     } else {
       const store = loadAccountStore();
       if (findAccountByName(store, name)) {
+        logAuthFailure("register_rejected", req, { accountName: name, reason: "name_taken" });
         res.status(409).json({ error: "That account name is already taken." });
         return;
       }
@@ -2678,12 +2749,13 @@ app.post("/api/auth/register", async (req, res) => {
 
     res.json(issueAccountSession(account));
   } catch (error) {
+    logAuthFailure("register_failed", req, { accountName: name, reason: "storage_error" });
     console.error("[Accounts] Register failed", error);
     res.status(500).json({ error: "Could not create account." });
   }
 });
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", loginRateLimit, async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
 
@@ -2693,6 +2765,7 @@ app.post("/api/auth/login", async (req, res) => {
       : findAccountByName(loadAccountStore(), name);
 
     if (!account || !verifyPassword(password, account)) {
+      logAuthFailure("login_rejected", req, { accountName: name, reason: "invalid_credentials" });
       res.status(401).json({ error: "Invalid account name or password." });
       return;
     }
@@ -2711,6 +2784,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.json(issueAccountSession(account));
   } catch (error) {
+    logAuthFailure("login_failed", req, { accountName: name, reason: "storage_error" });
     console.error("[Accounts] Login failed", error);
     res.status(500).json({ error: "Could not sign in." });
   }
@@ -2721,6 +2795,7 @@ app.get("/api/auth/me", async (req, res) => {
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const account = await getAccountFromToken(token);
   if (!account) {
+    logAuthFailure("session_rejected", req, { reason: "invalid_or_expired" });
     res.status(401).json({ error: "Not signed in." });
     return;
   }
@@ -8018,10 +8093,12 @@ module.exports = {
     createTurnData,
     getBaseCardValue,
     getPaymentTotal,
+    issueAccountSession,
     getSavedConstructedDeck,
     getSavedDraftDeck,
     normalizeDeckLibrary,
     normalizeFriendChallenges,
+    signAuthPayload,
     saveConstructedDeckToLibrary,
     saveDraftDeckToLibrary,
     setFriendChallengeStatus,
@@ -8034,7 +8111,9 @@ module.exports = {
     rooms,
     startEndPhase,
     advanceEndPlacement,
+    validateAuthConfiguration,
     validateConstructedDeckPayload,
+    verifyAuthToken,
     validateHandIndexes
   }
 };

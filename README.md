@@ -81,6 +81,7 @@ Server variables:
 | `ROOM_COMPLETED_TTL_MS` | Time a completed or abandoned room remains available | `900000` (15 minutes) |
 | `ROOM_SWEEP_INTERVAL_MS` | Frequency of stale-room lifecycle checks | `30000` (30 seconds) |
 | `ACCOUNT_AUTH_SECRET` | HMAC secret for account sessions | Development fallback; required secret in production |
+| `ACCOUNT_SESSION_TTL_MS` | Lifetime of a signed account session | `604800000` (7 days) |
 | `OWNER_STATS_TOKEN` | Token for owner-only statistics endpoints | Empty |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service key | Empty; never expose to the client |
