@@ -1,7 +1,9 @@
 .deck-library {
   margin: 0 0 18px;
-  border-top: 1px solid rgba(125, 211, 252, 0.28);
-  border-bottom: 1px solid rgba(125, 211, 252, 0.28);
+  padding: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(5, 13, 21, 0.72), rgba(12, 20, 27, 0.52));
 }
 
 .deck-library-heading,
@@ -54,12 +56,19 @@
 }
 
 .deck-library-row {
-  grid-template-columns: minmax(230px, 1fr) auto minmax(220px, auto);
-  border-top: 1px solid rgba(125, 211, 252, 0.16);
+  --deck-accent: #c89b52;
+  grid-template-columns: minmax(260px, 1fr) auto minmax(220px, auto);
+  margin-top: 7px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--deck-accent) 52%, #263746);
+  border-radius: 5px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--deck-accent) 13%, #07101a), rgba(8, 16, 25, 0.86) 44%);
+  box-shadow: inset 3px 0 0 var(--deck-accent);
 }
 
 .deck-library-row.selected {
-  box-shadow: inset 4px 0 0 #f59e0b;
+  border-color: var(--deck-accent);
+  box-shadow: inset 4px 0 0 var(--deck-accent), 0 0 18px color-mix(in srgb, var(--deck-accent) 24%, transparent);
 }
 
 .deck-library-row.archived {
@@ -68,7 +77,7 @@
 
 .deck-library-main {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 74px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   min-width: 0;
@@ -90,6 +99,19 @@
   letter-spacing: 0;
 }
 
+.deck-record {
+  display: flex;
+  gap: 5px;
+  margin-top: 6px;
+  color: #b8cbd2;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.deck-record b {
+  color: #fff4d6;
+}
+
 .deck-library-main small {
   margin-top: 2px;
   color: #bfdbfe;
@@ -98,15 +120,25 @@
 
 .deck-cover {
   display: grid;
-  width: 34px;
-  height: 44px;
+  width: 70px;
+  height: 54px;
   place-items: center;
   border: 1px solid #fbbf24;
   border-radius: 4px;
-  background: #78350f;
+  background: #78350f center 28% / cover no-repeat;
   color: #fff7ed;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 900;
+}
+
+.deck-cover b {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 3px;
+  background: rgba(5,8,12,0.72);
 }
 
 .deck-cover-sheen { background: #166534; }
@@ -114,7 +146,7 @@
 .deck-cover-bizi { background: #9f1239; }
 
 .deck-library-badges span {
-  border: 1px solid rgba(251, 191, 36, 0.48);
+  border: 1px solid var(--deck-accent);
   border-radius: 4px;
   padding: 3px 5px;
   color: #fde68a;
@@ -166,5 +198,14 @@
 
   .deck-library-actions {
     padding: 0 8px;
+  }
+
+  .deck-library-main {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .deck-cover {
+    width: 54px;
+    height: 48px;
   }
 }
