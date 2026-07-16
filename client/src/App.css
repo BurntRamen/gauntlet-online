@@ -174,6 +174,352 @@ textarea:focus-visible {
   object-fit: contain;
 }
 
+.faction-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.faction-choice-card {
+  --faction-accent: #c89b52;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid;
+  border-radius: 6px;
+  background: rgba(7, 13, 20, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 8px 20px rgba(0, 0, 0, 0.22);
+  color: #eef6f8;
+}
+
+.faction-choice-card.is-selected {
+  box-shadow: inset 0 0 0 2px var(--faction-accent), 0 0 22px color-mix(in srgb, var(--faction-accent) 34%, transparent);
+}
+
+.faction-choice-hero {
+  display: flex;
+  min-height: 104px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  background-position: center 24%;
+  background-size: cover;
+  border-bottom: 3px solid var(--faction-accent);
+}
+
+.faction-choice-hero span {
+  display: block;
+  margin-bottom: 3px;
+  color: #e7d9ba;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.faction-choice-hero h3 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  font-size: 27px;
+  line-height: 1;
+}
+
+.faction-selected-mark {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 3px;
+  background: rgba(3, 7, 12, 0.8);
+  color: #fff7d6;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.faction-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 9px;
+}
+
+.faction-feature {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 6px;
+  border: 1px solid;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.faction-feature-image {
+  width: 42px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid;
+  border-radius: 3px;
+}
+
+.faction-feature-copy {
+  min-width: 0;
+}
+
+.faction-feature-copy > span {
+  display: block;
+  color: #aabfc8;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.faction-feature-copy strong {
+  display: block;
+  overflow: hidden;
+  color: #fff7df;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.faction-feature-copy p {
+  display: -webkit-box;
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: #c5d3d8;
+  font-size: 9px;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.faction-choice-action {
+  width: calc(100% - 18px);
+  margin: 0 9px 9px;
+  border-color: var(--faction-accent) !important;
+}
+
+.campaign-frame {
+  max-width: 1500px !important;
+}
+
+.campaign-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-cool);
+}
+
+.campaign-kicker {
+  margin-bottom: 4px;
+  color: var(--brass-bright);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.campaign-heading h1 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.campaign-faction-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.campaign-faction-tab {
+  --faction-accent: #c89b52;
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(188, 213, 222, 0.28);
+  border-bottom: 3px solid transparent;
+  border-radius: 4px;
+  background-position: center 26%;
+  background-size: cover;
+  color: #dce9ed;
+  text-align: left;
+}
+
+.campaign-faction-tab span {
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaign-faction-tab strong {
+  color: #d8c18b;
+  font-size: 11px;
+}
+
+.campaign-faction-tab.is-active {
+  border-color: var(--faction-accent);
+  border-bottom-color: var(--faction-accent);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--faction-accent) 35%, transparent);
+}
+
+.campaign-archive {
+  overflow: hidden;
+  border: 1px solid var(--faction-border);
+  border-radius: 6px;
+  background: rgba(4, 9, 15, 0.66);
+}
+
+.campaign-archive-hero {
+  display: flex;
+  min-height: 144px;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 3px solid var(--faction-accent);
+  background-position: center 24%;
+  background-size: cover;
+}
+
+.campaign-archive-hero > div {
+  max-width: 700px;
+}
+
+.campaign-archive-hero span {
+  color: #e6c979;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.campaign-archive-hero h2 {
+  margin: 4px 0 6px;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  font-size: 28px;
+}
+
+.campaign-archive-hero p {
+  margin: 0;
+  color: #dce8eb;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.campaign-chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 9px;
+}
+
+.campaign-chapter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid rgba(137, 163, 174, 0.25);
+  border-radius: 4px;
+  background: rgba(9, 17, 25, 0.82);
+  color: #dce8eb;
+}
+
+.campaign-chapter.is-unlocked {
+  border-top: 2px solid var(--faction-accent);
+}
+
+.campaign-chapter.is-locked {
+  opacity: 0.64;
+}
+
+.campaign-chapter.is-complete {
+  box-shadow: inset 0 0 0 1px rgba(134, 239, 172, 0.26);
+}
+
+.campaign-chapter-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #d8c18b;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.campaign-chapter-status span {
+  color: #a9c4cd;
+}
+
+.campaign-chapter.is-complete .campaign-chapter-status span {
+  color: #86efac;
+}
+
+.campaign-chapter h3 {
+  margin: 0;
+  color: #fffaf0;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.campaign-chapter-opponent {
+  color: #dce8eb;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.campaign-boss-line {
+  color: #e7c96e;
+  font-size: 9px;
+}
+
+.campaign-chapter > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #bdccd1;
+  font-size: 11px;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.campaign-story-details {
+  margin-top: auto;
+  padding: 5px 0;
+  color: #c9d9de;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.campaign-story-details summary {
+  color: #e7d9ba;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.campaign-story-details div {
+  margin-top: 5px;
+}
+
+.campaign-chapter > button {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 2px;
+  padding: 6px 8px !important;
+  font-size: 11px !important;
+}
+
 @media (max-width: 760px) {
   .menu-page {
     padding: 10px !important;
@@ -236,5 +582,77 @@ textarea:focus-visible {
 
   .home-support-action button {
     width: 100%;
+  }
+
+  .faction-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .faction-choice-hero {
+    min-height: 86px;
+  }
+
+  .faction-feature-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .faction-feature {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 5px;
+    padding: 4px;
+  }
+
+  .faction-feature-image {
+    width: 34px;
+    height: 42px;
+  }
+
+  .faction-feature-copy p {
+    display: none;
+  }
+
+  .campaign-header {
+    align-items: flex-end;
+  }
+
+  .campaign-heading h1 {
+    font-size: 27px;
+  }
+
+  .campaign-faction-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .campaign-faction-tab {
+    min-height: 46px;
+  }
+
+  .campaign-archive-hero {
+    min-height: 126px;
+    padding: 14px;
+  }
+
+  .campaign-archive-hero h2 {
+    font-size: 22px;
+  }
+
+  .campaign-chapter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .campaign-chapter {
+    padding: 7px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .faction-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-chapter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
