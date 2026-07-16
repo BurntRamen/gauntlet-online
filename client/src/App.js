@@ -1205,6 +1205,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
+  const [collectionView, setCollectionView] = useState("packs");
 
   useEffect(() => {
     const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
@@ -1587,6 +1588,48 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           animation: cardReveal 520ms ease-out both;
           transform-origin: center bottom;
         }
+        .collection-view-tabs {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 4px;
+          padding: 4px;
+          border: 1px solid rgba(101,168,126,0.36);
+          border-radius: 6px;
+          background: rgba(2,6,23,0.38);
+        }
+        .collection-view-tabs button {
+          min-height: 38px;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          background: transparent;
+          color: #aebfca;
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .collection-view-tabs button[aria-selected="true"] {
+          border-color: rgba(101,168,126,0.68);
+          background: rgba(101,168,126,0.2);
+          color: #f3eee3;
+          box-shadow: inset 0 -2px #65a87e;
+        }
+        .collection-view-heading {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: end;
+          flex-wrap: wrap;
+        }
+        .collection-view-heading h3 {
+          margin: 0 0 3px;
+          color: #facc15;
+          font-family: Georgia, serif;
+          font-size: 20px;
+        }
+        .collection-view-heading p {
+          margin: 0;
+          color: #bfdbfe;
+          font-size: 12px;
+        }
       `}</style>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
@@ -1594,6 +1637,16 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened - {packCredits} pack credit{packCredits === 1 ? "" : "s"}
           </div>
           <div style={{ color: "#fde68a", fontSize: 12 }}>Earn 1 pack credit the first time you clear each campaign chapter. Paid packs use your configured $1 checkout link.</div>
+        </div>
+        <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
+          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
+            <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
+          ))}
+        </div>
+        {collectionView === "packs" && <>
+        <div className="collection-view-heading">
+          <div><h3>Faction Packs</h3><p>Open earned rewards or browse each faction set.</p></div>
+          <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         {boosters.length > 0 && (
           <div className="booster-pack-grid">
@@ -1625,6 +1678,12 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             </div>
           </div>
         )}
+        </>}
+        {collectionView === "decks" && <>
+        <div className="collection-view-heading">
+          <div><h3>Deck Workshop</h3><p>Choose a saved deck, map replacements, and create its next version.</p></div>
+          <strong style={{ color: "#86efac" }}>{(deckLibrary.decks || []).filter((deck) => !deck.archived).length} active</strong>
+        </div>
         <DeckLibraryPanel
           library={deckLibrary}
           selectedDeckId={selectedConstructedDeckId}
@@ -1745,10 +1804,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             {constructedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Two cards are replacing the same {constructedSlotWarning[0].replace(":", " of ")}.</span>}
           </div>
         </div>
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "end", flexWrap: "wrap", marginBottom: 8 }}>
+        </>}
+        {collectionView === "catalog" && <div>
+          <div className="collection-view-heading" style={{ marginBottom: 8 }}>
             <div>
-              <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Card Catalog</h4>
+              <h3>Card Catalog</h3>
               <div style={{ color: "#bfdbfe", fontSize: 12 }}>Owned: {ownedUniqueCount}/{allCatalogCards.length} unique cards ({ownedPercent}%)</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -1792,6 +1852,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             })}
           </div>
         </div>
+        }
       </div>
     </MenuCard>
   );
@@ -2606,36 +2667,40 @@ function FactionFeature({ title, feature, theme }) {
   );
 }
 
-function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
+function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions = [] }) {
   return (
-    <button
+    <div
       className={`compact-power-card${expanded ? " compact-power-card-active" : ""}`}
-      onClick={onToggle}
       style={{
         display: "grid",
-        gridTemplateColumns: "62px minmax(0, 1fr)",
-        gap: 10,
-        alignItems: "stretch",
-        textAlign: "left",
-        padding: 7,
         border: `2px solid ${expanded ? theme.primary : theme.border}`,
         borderRadius: 10,
         background: expanded
           ? `linear-gradient(135deg, ${theme.primary}33, rgba(255,247,220,0.96))`
           : "linear-gradient(135deg, rgba(255,247,220,0.96), rgba(93,58,29,0.2))",
-        cursor: "pointer",
         minWidth: 0,
         boxShadow: expanded ? `0 0 18px ${theme.primary}55, inset 0 0 0 1px rgba(255,255,255,0.28)` : undefined
       }}
     >
-      <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
-        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
-      </span>
-      <span style={{ minWidth: 0, alignSelf: "center" }}>
-        <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
-        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
-      </span>
-    </button>
+      <button type="button" className="compact-power-select" onClick={onToggle}>
+        <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
+          {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
+        </span>
+        <span style={{ minWidth: 0, alignSelf: "center" }}>
+          <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
+          <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
+        </span>
+      </button>
+      {actions.length > 0 && (
+        <div className="compact-power-actions">
+          {actions.map((action) => (
+            <button key={action.label} type="button" onClick={action.onClick} disabled={action.disabled} title={action.reason || action.label}>
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2689,7 +2754,7 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
       <div className="player-frame-stats">
         <span title="Life total"><span className="player-stat-icon">♥</span>{infoPlayer.life}</span>
         <span title="Cards in hand"><span className="player-stat-icon">▰</span>{handCount}</span>
-        <span title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
+        <span className="player-ccg-summary" title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
       </div>
     </div>
   );
@@ -5527,9 +5592,6 @@ export default function App() {
     <div className="action-icon-dock">
       <ActionIconButton icon="↶" label="Request Undo" onClick={requestUndo} iconOnly />
       <ActionIconButton icon="☰" label="Main Menu" onClick={returnToMainMenu} iconOnly />
-      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
-      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
-      {!isBasicGame && me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
       <ActionIconButton icon="½" label={drawActionLabel} onClick={offerDraw} disabled={game.drawOfferBy === player} iconOnly />
       <ActionIconButton icon="×" label="Concede" onClick={concedeGame} danger iconOnly />
     </div>
@@ -5742,11 +5804,41 @@ export default function App() {
   const deckCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.deckCount ?? game.players?.[p]?.deck?.length ?? 0}`).join(" / ");
   const discardCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.discardCount ?? game.players?.[p]?.discard?.length ?? 0}`).join(" / ");
 
+  const factionActionUnavailableReason = game.phase !== "priority"
+    ? "Faction actions are available during priority."
+    : !isMyPriority
+      ? "Wait until you have priority."
+      : "";
   const powerCards = !isSpectator && !isBasicGame
     ? [
-        { id: "commander", title: "Commander", feature: me.faction.commander },
+        {
+          id: "commander",
+          title: "Commander",
+          feature: me.faction.commander,
+          actions: me.faction.id === "frumo" ? [{
+            label: "Use Polea",
+            onClick: startPolea,
+            disabled: !!factionActionUnavailableReason || me.turnData.poleaUsed,
+            reason: factionActionUnavailableReason || (me.turnData.poleaUsed ? "Polea has already been used this turn." : "Choose a Polea action.")
+          }] : me.faction.id === "bizi" ? [{
+            label: "Use Focus",
+            onClick: startFocus,
+            disabled: !!factionActionUnavailableReason || me.turnData.focusBuffUsed || me.accelerationCounters <= 0,
+            reason: factionActionUnavailableReason || (me.turnData.focusBuffUsed ? "Focus has already been used this turn." : me.accelerationCounters <= 0 ? "Gain an acceleration counter before using Focus." : "Spend an acceleration counter.")
+          }] : []
+        },
         { id: "city", title: "City", feature: me.faction.city },
-        { id: "general", title: "General", feature: me.faction.general }
+        {
+          id: "general",
+          title: "General",
+          feature: me.faction.general,
+          actions: me.faction.id === "frumo" ? [{
+            label: "Use Lafayette",
+            onClick: startLafayette,
+            disabled: !!factionActionUnavailableReason || me.turnData.lafayetteUsed,
+            reason: factionActionUnavailableReason || (me.turnData.lafayetteUsed ? "Lafayette has already been used this turn." : "Swap a lane card with a hand card.")
+          }] : []
+        }
       ]
     : [];
   const selectedPower = powerCards.find((power) => power.id === expandedPower) || powerCards[0];
@@ -5968,9 +6060,53 @@ export default function App() {
         .compact-power-card {
           position: relative;
           overflow: hidden;
-          grid-template-columns: 46px minmax(0, 1fr) !important;
-          gap: 6px !important;
-          padding: 4px !important;
+          padding: 0 !important;
+        }
+        .compact-power-select {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: 46px minmax(0, 1fr);
+          gap: 6px;
+          width: 100%;
+          min-width: 0;
+          padding: 4px;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+          text-align: left;
+          cursor: pointer;
+        }
+        .compact-power-select:hover,
+        .compact-power-select:focus-visible {
+          background: rgba(255,255,255,0.16);
+          box-shadow: none;
+          transform: none;
+        }
+        .compact-power-actions {
+          position: relative;
+          z-index: 2;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+          gap: 3px;
+          padding: 0 4px 4px;
+        }
+        .compact-power-actions button {
+          min-height: 22px;
+          padding: 3px 5px;
+          border: 1px solid ${myTheme.border};
+          border-radius: 3px;
+          background: rgba(22,12,6,0.88);
+          color: #fff4d6;
+          font-size: 9px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .compact-power-actions button:disabled {
+          border-color: rgba(82,50,26,0.45);
+          background: rgba(42,31,22,0.5);
+          color: #806f59;
+          cursor: not-allowed;
         }
         .compact-power-card::after {
           content: "";
@@ -6035,6 +6171,55 @@ export default function App() {
           align-items: stretch;
           padding: 8px;
         }
+        .top-opponent-panel.has-story {
+          grid-template-columns: minmax(250px, 0.95fr) minmax(250px, 0.78fr) auto;
+        }
+        .top-story-brief {
+          position: relative;
+          min-width: 0;
+          padding: 7px 10px;
+          overflow: visible;
+          border-left: 3px solid ${myTheme.primary};
+          background: linear-gradient(90deg, rgba(8,13,18,0.86), rgba(18,12,8,0.42));
+          color: ${TABLETOP_THEME.text};
+        }
+        .top-story-brief > strong {
+          display: block;
+          margin-top: 1px;
+          overflow: hidden;
+          color: #fff4d6;
+          font-family: Georgia, serif;
+          font-size: 14px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .top-story-brief > p {
+          display: -webkit-box;
+          margin: 2px 0 0;
+          overflow: hidden;
+          color: ${TABLETOP_THEME.muted};
+          font-size: 10px;
+          line-height: 1.2;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+        .top-story-brief .match-story-dialogue {
+          margin-top: 3px;
+        }
+        .top-story-brief .match-story-dialogue[open] {
+          position: absolute;
+          z-index: 40;
+          top: calc(100% - 3px);
+          left: 7px;
+          width: min(430px, 60vw);
+          max-height: 260px;
+          padding: 9px;
+          overflow: auto;
+          border: 1px solid rgba(205,154,86,0.62);
+          border-radius: 5px;
+          background: rgba(10,7,5,0.98);
+          box-shadow: 0 14px 32px rgba(0,0,0,0.52);
+        }
         .top-state-pills {
           display: flex;
           flex-wrap: wrap;
@@ -6042,6 +6227,10 @@ export default function App() {
           align-content: center;
           justify-content: flex-end;
           width: min(360px, 31vw);
+        }
+        .top-opponent-panel.has-story .top-state-pills {
+          width: auto;
+          flex-wrap: nowrap;
         }
         .deck-slot {
           min-height: 0;
@@ -6074,15 +6263,6 @@ export default function App() {
         .deck-slot-live {
           border-color: rgba(34,197,94,0.48);
           box-shadow: inset 0 0 0 1px rgba(34,197,94,0.16), 0 4px 12px rgba(0,0,0,0.24);
-        }
-        .command-slot {
-          min-width: 104px;
-          border-color: rgba(247,217,158,0.54);
-        }
-        .command-slot .deck-slot-card {
-          width: 58px;
-          height: 34px;
-          font-size: 10px;
         }
         .deck-slot.compact {
           grid-template-rows: 1fr;
@@ -6526,9 +6706,15 @@ export default function App() {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .player-frame-stats > span[title^="CCG"] {
+        .player-frame-stats > .player-ccg-summary {
           flex: 1 1 240px;
           max-width: 100%;
+          display: -webkit-box;
+          line-height: 1.15;
+          text-overflow: clip;
+          white-space: normal;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
         }
         .player-stat-icon {
           color: #f7d99e;
@@ -6833,45 +7019,12 @@ export default function App() {
           border: 0;
           background: transparent;
         }
-        .match-command-row.has-story {
-          grid-template-columns: minmax(230px, 0.82fr) minmax(300px, 1.18fr) minmax(250px, 0.72fr);
-        }
-        .match-story-panel {
-          min-width: 0;
-          padding: 8px 10px;
-          overflow: hidden;
-          border: 1px solid rgba(205,154,86,0.48);
-          border-left: 4px solid ${myTheme.primary};
-          border-radius: 5px;
-          background:
-            linear-gradient(90deg, rgba(8,13,18,0.96), rgba(18,12,8,0.9)),
-            ${battlefieldTexture};
-          color: ${TABLETOP_THEME.text};
-          box-shadow: inset 0 1px rgba(255,255,255,0.05), 0 8px 22px rgba(0,0,0,0.24);
-        }
         .story-kicker {
           display: block;
           color: ${myTheme.primary};
           font-size: 9px;
           font-weight: 900;
           text-transform: uppercase;
-        }
-        .match-story-panel > strong {
-          display: block;
-          margin-top: 2px;
-          color: #fff4d6;
-          font-family: Georgia, serif;
-          font-size: 15px;
-        }
-        .match-story-panel > p {
-          display: -webkit-box;
-          margin: 3px 0 0;
-          overflow: hidden;
-          color: ${TABLETOP_THEME.muted};
-          font-size: 10px;
-          line-height: 1.25;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
         }
         .match-story-dialogue {
           margin-top: 5px;
@@ -7011,9 +7164,12 @@ export default function App() {
         }
         .hand-card-item {
           display: grid;
+          width: 100%;
+          max-width: 88px;
           min-width: 0;
           grid-template-rows: minmax(0, 1fr) auto;
           align-items: end;
+          justify-self: center;
           gap: 4px;
         }
         .game-root .bottom-player-panel .hand-card-item > .card-box {
@@ -7033,6 +7189,7 @@ export default function App() {
           inset: 0;
           width: 100%;
           height: 100%;
+          background: transparent;
           border-radius: 4px;
         }
         .game-root .bottom-player-panel .hand-card-item.has-actions > .card-box {
@@ -7067,6 +7224,107 @@ export default function App() {
         @media (max-width: 1500px) and (min-width: 761px) {
           .table-side-panel {
             grid-template-rows: minmax(138px, 0.34fr) auto minmax(0, 1fr) !important;
+          }
+        }
+        @media (min-width: 1501px) and (min-height: 800px) {
+          .game-main {
+            grid-template-rows: minmax(116px, 0.58fr) auto minmax(252px, 1fr);
+          }
+          .bottom-player-panel {
+            max-height: none;
+          }
+          .hand-card-row {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 12px;
+          }
+          .hand-card-item {
+            flex: 0 0 116px;
+            width: 116px;
+            max-width: 116px;
+          }
+          .game-root .bottom-player-panel .hand-card-item > .card-box {
+            width: 116px !important;
+            height: 184px !important;
+            min-height: 184px !important;
+          }
+          .game-root .bottom-player-panel .hand-card-item.has-actions > .card-box {
+            height: 168px !important;
+            min-height: 168px !important;
+          }
+          .table-side-panel {
+            grid-template-rows: minmax(270px, 0.5fr) auto minmax(0, 1fr);
+          }
+          .card-preview-panel {
+            padding: 10px;
+            gap: 10px;
+          }
+          .card-preview-panel h3 {
+            font-size: 14px;
+          }
+          .card-preview-panel .card-box {
+            width: 136px !important;
+            height: 212px !important;
+          }
+        }
+        @media (max-height: 760px) and (min-width: 761px) {
+          .game-main {
+            grid-template-rows: minmax(96px, 0.5fr) auto minmax(186px, 1fr);
+          }
+          .game-root .lane-card {
+            min-height: 72px !important;
+          }
+          .game-root .board-lanes {
+            padding: 4px 7px !important;
+          }
+          .game-root .board-lanes h3 {
+            margin-bottom: 2px !important;
+          }
+          .bottom-player-panel {
+            gap: 4px;
+            padding: 4px;
+          }
+          .game-root .hand-card-row {
+            padding-bottom: 1px;
+          }
+          .match-command-actions .near-hand-actions {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            align-content: start !important;
+            gap: 4px !important;
+          }
+          .match-command-actions .near-hand-actions > div:first-child {
+            display: none;
+          }
+          .match-command-actions .quick-action-button {
+            min-height: 30px;
+            padding: 5px 6px;
+            font-size: 11px;
+          }
+          .game-root .power-section {
+            min-height: 78px;
+            padding: 4px !important;
+          }
+          .power-section .compact-power-select {
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 4px;
+            padding: 2px 4px;
+          }
+          .power-section .compact-power-portrait {
+            width: 34px;
+            height: 34px;
+            border-radius: 5px;
+          }
+          .power-section .compact-power-actions {
+            padding: 0 3px 3px;
+          }
+          .power-section .compact-power-actions button {
+            min-height: 18px;
+            padding: 2px 3px;
+            font-size: 8px;
+          }
+          .power-section .power-detail-row {
+            display: none;
           }
         }
         @media (max-width: 760px) {
@@ -7135,6 +7393,9 @@ export default function App() {
             min-height: 0 !important;
             overflow: hidden !important;
           }
+          .top-story-brief {
+            display: none !important;
+          }
           .top-action-panel {
             padding: 4px !important;
             align-content: start !important;
@@ -7187,7 +7448,7 @@ export default function App() {
             font-size: 10px !important;
             gap: 3px 6px !important;
           }
-          .player-frame-stats > span[title^="CCG"] {
+          .player-frame-stats > .player-ccg-summary {
             flex-basis: 100% !important;
           }
           .match-table-frame {
@@ -7206,29 +7467,6 @@ export default function App() {
           .match-command-row {
             grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
             gap: 3px !important;
-          }
-          .match-command-row.has-story {
-            grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
-          }
-          .match-command-row.has-story .match-story-panel {
-            grid-column: 1 / -1;
-            display: flex;
-            min-height: 28px;
-            align-items: center;
-            gap: 6px;
-            padding: 3px 6px;
-            border-left-width: 3px;
-          }
-          .match-story-panel > strong {
-            margin: 0;
-            overflow: hidden;
-            font-size: 10px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-          .match-story-panel > p,
-          .match-story-dialogue {
-            display: none;
           }
           .current-play-panel {
             width: 100% !important;
@@ -7420,11 +7658,12 @@ export default function App() {
             scrollbar-width: thin;
           }
           .hand-card-item {
-            flex: 0 0 96px;
-            width: 96px;
+            flex: 0 0 88px;
+            width: 88px;
+            max-width: 88px;
           }
           .game-root .bottom-player-panel .hand-card-item > .card-box {
-            width: 96px !important;
+            width: 88px !important;
             height: 142px !important;
             min-height: 142px !important;
           }
@@ -7556,16 +7795,30 @@ export default function App() {
             <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
           </div>
         </div>
-        <div className="top-opponent-panel">
+        <div className={`top-opponent-panel${game.campaign ? " has-story" : ""}`}>
           <PlayerFrameRow game={game} player={player} placement="opponents" />
+          {game.campaign && (
+            <aside className="top-story-brief" aria-label="Campaign story">
+              <span className="story-kicker">Current Chapter</span>
+              <strong>{game.campaign.title}</strong>
+              <p>{game.campaign.story}</p>
+              {(game.campaign.startDialogue || game.campaign.dialogue)?.length > 0 && (
+                <details className="match-story-dialogue">
+                  <summary>Opening dialogue</summary>
+                  <CampaignDialogueBlock
+                    title="Voices from the chapter"
+                    lines={game.campaign.startDialogue || game.campaign.dialogue}
+                    audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+                    autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
+                    compact
+                  />
+                </details>
+              )}
+            </aside>
+          )}
           <div className="top-state-pills">
             <div className="deck-slot deck-slot-live" title={`Cards in deck: ${deckCountSummary}`}><span>Decks</span><span className="deck-slot-card">D</span><span className="deck-slot-count">{deckCountSummary}</span></div>
             <button type="button" className="deck-slot deck-slot-live" onClick={() => setShowDiscardViewer(true)} title="View discard piles"><span>Discard</span><span className="deck-slot-card empty">View</span><span className="deck-slot-count">{discardCountSummary}</span></button>
-            <div className="deck-slot command-slot" title={`Turn ${game.turn}. Priority Player ${game.priority}. ${game.phase === "gameOver" ? "Game over" : "Live game"}.`}>
-              <span>Command</span>
-              <span className="deck-slot-card status-card">{phaseDisplayName()}</span>
-              <span className="deck-slot-count">T{game.turn} / P{game.priority} / {game.phase === "gameOver" ? "Over" : "Live"}</span>
-            </div>
           </div>
         </div>
         <div className="top-action-panel">
@@ -7619,26 +7872,7 @@ export default function App() {
 
       <div className="match-table-frame">
         <div className="table-main-panel">
-          <div className={`match-command-row${game.campaign ? " has-story" : ""}`}>
-            {game.campaign && (
-              <aside className="match-story-panel" aria-label="Campaign story">
-                <span className="story-kicker">Current Chapter</span>
-                <strong>{game.campaign.title}</strong>
-                <p>{game.campaign.story}</p>
-                {(game.campaign.startDialogue || game.campaign.dialogue)?.length > 0 && (
-                  <details className="match-story-dialogue">
-                    <summary>Opening dialogue</summary>
-                    <CampaignDialogueBlock
-                      title="Voices from the chapter"
-                      lines={game.campaign.startDialogue || game.campaign.dialogue}
-                      audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
-                      autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
-                      compact
-                    />
-                  </details>
-                )}
-              </aside>
-            )}
+          <div className="match-command-row">
             <div
               className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
               role={hasIncomingAttack ? "alert" : "status"}
@@ -7679,6 +7913,7 @@ export default function App() {
                       theme={myTheme}
                       expanded={selectedPower?.id === power.id}
                       onToggle={() => handlePowerClick(power)}
+                      actions={power.actions}
                     />
                   ))}
                 </div>
