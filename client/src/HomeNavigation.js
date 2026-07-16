@@ -28,6 +28,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, chi
           <button
             key={area.id}
             type="button"
+            data-area={area.id}
             className={activeArea === area.id ? "active" : ""}
             aria-current={activeArea === area.id ? "page" : undefined}
             onClick={() => onSelectArea(area.id)}
