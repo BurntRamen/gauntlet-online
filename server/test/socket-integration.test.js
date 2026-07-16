@@ -9,6 +9,7 @@ const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "gauntlet-socket-int
 process.env.ACCOUNT_DATA_FILE = path.join(tempDirectory, "accounts.json");
 process.env.FACTION_STATS_DATA_FILE = path.join(tempDirectory, "faction-stats.json");
 process.env.MATCH_RECORD_DATA_FILE = path.join(tempDirectory, "match-records.json");
+process.env.ROOM_STATE_DATA_FILE = path.join(tempDirectory, "rooms.json");
 process.env.AUTH_SECRET = "socket-integration-test-secret-with-enough-length";
 
 const { server, __test } = require("../index");
@@ -55,11 +56,12 @@ before(async () => {
 after(async () => {
   for (const socket of clients) socket.disconnect();
   __test.rooms.clear();
+  __test.persistRoomsNow();
   await new Promise((resolve) => server.close(resolve));
   fs.rmSync(tempDirectory, { recursive: true, force: true });
 });
 
-test("two guests can start a private Basic game and reclaim a disconnected seat", async () => {
+test("two guests can recover a private Basic game after room memory is cleared", async () => {
   const host = await connectClient();
   const hostAssignmentPromise = waitForEvent(host, "assign");
   const createdLobbyPromise = waitForEvent(host, "lobbyState");
@@ -106,6 +108,27 @@ test("two guests can start a private Basic game and reclaim a disconnected seat"
   const disconnectedStatePromise = waitForEvent(host, "state", (state) => !state.players[2].connected);
   guest.disconnect();
   const disconnectedState = await disconnectedStatePromise;
+  host.disconnect();
+
+  const persistence = __test.persistRoomsNow();
+  assert.equal(persistence.saved, 1);
+  __test.rooms.clear();
+  const recovery = __test.initializeRoomRecovery(Date.parse("2026-07-16T12:00:00.000Z"));
+  assert.equal(recovery.restored, 1);
+
+  const recoveredHost = await connectClient();
+  const hostReassignmentPromise = waitForEvent(recoveredHost, "assign");
+  const recoveredHostStatePromise = waitForEvent(recoveredHost, "state", (state) => state.players[1].connected);
+  recoveredHost.emit("reconnectToRoom", {
+    roomCode: hostAssignment.roomCode,
+    reconnectToken: hostAssignment.reconnectToken
+  });
+  const hostReassignment = await hostReassignmentPromise;
+  const recoveredHostState = await recoveredHostStatePromise;
+  assert.equal(hostReassignment.playerNum, 1);
+  assert.equal(recoveredHostState.players[1].accountName, "Alpha");
+  assert.ok(recoveredHostState.players[1].hand.length > 0);
+  assert.equal(recoveredHostState.players[2].hand.length, 0);
 
   const reconnectedGuest = await connectClient();
   const reassignmentPromise = waitForEvent(reconnectedGuest, "assign");
@@ -119,7 +142,7 @@ test("two guests can start a private Basic game and reclaim a disconnected seat"
   const recoveredState = await recoveredStatePromise;
   assert.equal(reassignment.playerNum, 2);
   assert.equal(recoveredState.players[2].accountName, "Beta");
-  assert.equal(recoveredState.turnNumber, disconnectedState.turnNumber);
+  assert.equal(recoveredState.turn, disconnectedState.turn);
   assert.equal(recoveredState.priority, disconnectedState.priority);
   assert.ok(recoveredState.players[2].hand.length > 0);
   assert.equal(recoveredState.players[1].hand.length, 0);
