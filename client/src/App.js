@@ -2352,27 +2352,43 @@ function formatCombatCards(cards) {
   return cards.map(getCardShortLabel).join(", ");
 }
 
-function CombatStrip({ game }) {
+function CombatStrip({ game, perspectivePlayer, onInspect }) {
   const summaries = getCombatSummaries(game);
   if (summaries.length === 0) return null;
 
   return (
-    <div style={{ border: "2px solid #f59e0b", borderRadius: 8, background: "rgba(15,23,42,0.92)", color: "#f8fafc", padding: 8, display: "grid", gap: 8 }}>
-      {summaries.map((summary) => (
-        <div key={summary.id} style={{ display: "grid", gap: 5, fontSize: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(68px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center" }}>
-            <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
-            <span>P{summary.attacker}{" -> "}P{summary.defender}: <strong>{getCardShortLabel(summary.card)}</strong></span>
-            <span>ATK {summary.attackValue}</span>
-            <span>BLK {summary.blockValue}</span>
-            <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
+    <div className="combat-tableau" aria-label="Unresolved combat">
+      {summaries.map((summary) => {
+        const incoming = Number(summary.defender) === Number(perspectivePlayer);
+        const attackerName = getGamePlayerName(game, summary.attacker);
+        const defenderName = getGamePlayerName(game, summary.defender);
+        const attackerFactionId = game.players?.[summary.attacker]?.faction?.id;
+        const cardArt = getPlayingCardArtPath(summary.card, attackerFactionId);
+        return (
+          <div key={summary.id} className={`combat-scene${incoming ? " is-incoming" : ""}`}>
+            <button type="button" className="combat-card" onClick={() => onInspect?.(summary.card)} title={`Inspect ${getCardShortLabel(summary.card)}`}>
+              {cardArt ? (
+                <img src={resolveAssetPath(cardArt)} alt={getCardShortLabel(summary.card)} />
+              ) : (
+                <span className="combat-card-fallback"><strong>{getCardRank(summary.card)}</strong>{getSuitSymbol(summary.card?.suit)}</span>
+              )}
+            </button>
+            <div className="combat-story">
+              <span className="combat-kicker">{incoming ? "Defend yourself" : "Attack committed"}</span>
+              <strong>{incoming ? `${attackerName} is attacking you` : `${attackerName} attacks ${defenderName}`}</strong>
+              <span>{summary.laneLabel} / {getCardShortLabel(summary.card)} / power {summary.attackValue}</span>
+              <small>{summary.payment?.cards?.length ? `Fueled by ${formatCombatCards(summary.payment.cards)}` : "No payment cards revealed"}</small>
+            </div>
+            <div className="combat-arrow" aria-hidden="true"><span>{"\u2694"}</span><i /></div>
+            <div className="combat-impact">
+              <span>{summary.blocks.length > 0 ? "Defense committed" : "No defense yet"}</span>
+              <strong>{summary.projectedDamage}</strong>
+              <small>{summary.projectedDamage === 0 ? "damage stopped" : `life at risk${incoming ? " for you" : ""}`}</small>
+              {summary.blocks.length > 0 && <em>{summary.blocks.map((block) => getCardShortLabel(block.card)).join(" + ")} blocks {summary.blockValue}</em>}
+            </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 6, color: "#cbd5e1" }}>
-            <span>Attack paid: {summary.payment ? `${summary.payment.total}/${summary.payment.required} with ${formatCombatCards(summary.payment.cards)}` : "none"}</span>
-            <span>Blocks: {summary.blocks.length > 0 ? summary.blocks.map((block) => `P${block.player} ${getCardShortLabel(block.card)}${block.payment ? ` paid ${block.payment.total}/${block.payment.required}` : ""}`).join("; ") : "none"}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -3179,7 +3195,6 @@ export default function App() {
   const [roomCodeInput, setRoomCodeInput] = useState(INITIAL_JOIN_ROOM_CODE);
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
-  const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -3244,7 +3259,6 @@ export default function App() {
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
-  const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
@@ -3627,47 +3641,6 @@ export default function App() {
     if (!game?.message) return;
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
-
-  useEffect(() => {
-    if (!game || role !== "player" || !player) {
-      seenIncomingAttackIdsRef.current = new Set();
-      setIncomingAttackAlert(null);
-      return;
-    }
-
-    const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
-    const incomingAttacks = [
-      ...(game.handAttacks || [])
-        .filter((attack) => game.gameMode === "freeForAll" ? attack.targetPlayer === player : attack.player === opponentNumber)
-        .map((attack) => ({
-          id: attack.id,
-          label: `${getCardShortLabel(attack.card)} from hand`,
-          value: attack.effectiveValue
-        })),
-      ...(game.lanes || [])
-        .map((lane, laneIndex) => ({ lane, laneIndex }))
-        .filter(({ lane }) => game.gameMode === "freeForAll" ? lane.attack?.targetPlayer === player : lane.attack?.player === opponentNumber)
-        .map(({ lane, laneIndex }) => ({
-          id: lane.attack.id || `lane-${laneIndex}-${lane.attack.card?.id || lane.attack.card?.name || "attack"}`,
-          label: `${getCardShortLabel(lane.attack.card)} from lane ${laneIndex + 1}`,
-          value: lane.attack.effectiveValue
-        }))
-    ];
-
-    const currentIds = new Set(incomingAttacks.map((attack) => attack.id));
-    seenIncomingAttackIdsRef.current.forEach((id) => {
-      if (!currentIds.has(id)) seenIncomingAttackIdsRef.current.delete(id);
-    });
-
-    const newestAttack = incomingAttacks.find((attack) => !seenIncomingAttackIdsRef.current.has(attack.id));
-    if (!newestAttack) return;
-
-    seenIncomingAttackIdsRef.current.add(newestAttack.id);
-    setIncomingAttackAlert({
-      id: newestAttack.id,
-      text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
-    });
-  }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
     if (voiceAudioRef.current) {
@@ -4133,7 +4106,6 @@ export default function App() {
     setRole(null);
     setPlayer(null);
     setActionLog([]);
-    setIncomingAttackAlert(null);
     startCampaignChapter(factionId, chapterId);
   }
 
@@ -4292,10 +4264,8 @@ export default function App() {
     setRematchStatus({ requestedBy: null, message: "" });
     setError("");
     setFactionVoice(null);
-    setIncomingAttackAlert(null);
     setShowCampaign(false);
     setShowTutorial(false);
-    seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
     setDraftLeagueStatus({ inQueue: false, message: "" });
   }
@@ -6958,12 +6928,268 @@ export default function App() {
         .quick-action-danger {
           background: linear-gradient(180deg, #dc2626, #7f1d1d);
         }
+        .top-action-icons {
+          display: flex;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+          overflow: hidden;
+        }
+        .action-icon-dock {
+          display: flex;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+        }
+        .game-root .icon-action-only {
+          width: 34px;
+          min-width: 34px;
+          height: 34px;
+          min-height: 34px;
+          padding: 3px;
+        }
+        .game-root .icon-action-only .icon-action-mark {
+          width: 24px;
+          height: 24px;
+          border: 0;
+          background: transparent;
+        }
+        .match-command-row.has-story {
+          grid-template-columns: minmax(230px, 0.82fr) minmax(300px, 1.18fr) minmax(250px, 0.72fr);
+        }
+        .match-story-panel {
+          min-width: 0;
+          padding: 8px 10px;
+          overflow: hidden;
+          border: 1px solid rgba(205,154,86,0.48);
+          border-left: 4px solid ${myTheme.primary};
+          border-radius: 5px;
+          background:
+            linear-gradient(90deg, rgba(8,13,18,0.96), rgba(18,12,8,0.9)),
+            ${battlefieldTexture};
+          color: ${TABLETOP_THEME.text};
+          box-shadow: inset 0 1px rgba(255,255,255,0.05), 0 8px 22px rgba(0,0,0,0.24);
+        }
+        .story-kicker {
+          display: block;
+          color: ${myTheme.primary};
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .match-story-panel > strong {
+          display: block;
+          margin-top: 2px;
+          color: #fff4d6;
+          font-family: Georgia, serif;
+          font-size: 15px;
+        }
+        .match-story-panel > p {
+          display: -webkit-box;
+          margin: 3px 0 0;
+          overflow: hidden;
+          color: ${TABLETOP_THEME.muted};
+          font-size: 10px;
+          line-height: 1.25;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+        .match-story-dialogue {
+          margin-top: 5px;
+          color: #f7d99e;
+          font-size: 9px;
+        }
+        .match-story-dialogue summary {
+          cursor: pointer;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .combat-tableau {
+          display: grid;
+          gap: 5px;
+          margin-top: 6px;
+        }
+        .combat-scene {
+          display: grid;
+          grid-template-columns: 44px minmax(120px, 1fr) 34px minmax(92px, auto);
+          gap: 7px;
+          align-items: center;
+          padding: 5px 7px;
+          border: 1px solid rgba(241,199,121,0.48);
+          border-radius: 5px;
+          background: linear-gradient(90deg, rgba(42,24,13,0.92), rgba(7,16,26,0.94));
+          color: #fff4d6;
+        }
+        .combat-scene.is-incoming {
+          border-color: rgba(248,113,113,0.82);
+          background: linear-gradient(90deg, rgba(72,20,16,0.94), rgba(18,15,13,0.96));
+          box-shadow: inset 3px 0 0 #ef4444;
+        }
+        .combat-card {
+          width: 40px;
+          height: 56px;
+          padding: 0 !important;
+          overflow: hidden;
+          border: 0 !important;
+          border-radius: 3px !important;
+          background: #090704 !important;
+          box-shadow: 0 5px 12px rgba(0,0,0,0.42) !important;
+          cursor: zoom-in;
+        }
+        .combat-card img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: contain;
+        }
+        .combat-card-fallback {
+          display: grid;
+          height: 100%;
+          place-content: center;
+          color: #29170d;
+          background: #f7dfb9;
+          font-size: 16px;
+        }
+        .combat-story {
+          display: grid;
+          min-width: 0;
+          gap: 1px;
+        }
+        .combat-kicker {
+          color: #f1c779;
+          font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .combat-story > strong {
+          overflow: hidden;
+          color: #fff;
+          font-size: 12px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .combat-story > span:not(.combat-kicker),
+        .combat-story small {
+          color: #c7d6dc;
+          font-size: 9px;
+        }
+        .combat-arrow {
+          display: grid;
+          justify-items: center;
+          color: #f1c779;
+        }
+        .combat-arrow span {
+          font-size: 20px;
+          line-height: 1;
+        }
+        .combat-arrow i {
+          width: 100%;
+          height: 1px;
+          margin-top: 3px;
+          background: currentColor;
+        }
+        .combat-impact {
+          display: grid;
+          justify-items: center;
+          color: #fecaca;
+          text-align: center;
+        }
+        .combat-impact span,
+        .combat-impact small,
+        .combat-impact em {
+          font-size: 8px;
+          font-style: normal;
+        }
+        .combat-impact strong {
+          color: #fff;
+          font-size: 24px;
+          line-height: 0.95;
+        }
+        .table-side-panel {
+          grid-template-rows: minmax(150px, 0.42fr) auto minmax(0, 1fr);
+        }
+        .card-preview-panel {
+          align-content: start;
+          padding: 6px;
+        }
+        .card-preview-panel h3 {
+          font-size: 12px;
+        }
+        .card-preview-panel .card-box {
+          width: min(108px, 100%) !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          height: 142px !important;
+          padding: 0 !important;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .card-preview-panel .card-face-art-button {
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        .hand-card-item {
+          display: grid;
+          min-width: 0;
+          grid-template-rows: minmax(0, 1fr) auto;
+          align-items: end;
+          gap: 4px;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box {
+          width: 100% !important;
+          min-width: 0 !important;
+          height: 142px !important;
+          min-height: 142px !important;
+          padding-bottom: 3px !important;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box-art {
+          padding: 0 !important;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box-art .card-face-art-button {
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 4px;
+        }
+        .game-root .bottom-player-panel .hand-card-item.has-actions > .card-box {
+          height: 118px !important;
+          min-height: 118px !important;
+        }
+        .hand-card-item.is-selected > .card-box-art {
+          filter: drop-shadow(0 0 5px ${myTheme.primary});
+        }
+        .hand-card-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 3px;
+        }
+        .hand-card-actions button {
+          min-width: 0;
+          min-height: 24px;
+          padding: 3px 2px !important;
+          overflow: hidden;
+          border-radius: 3px !important;
+          font-size: 9px !important;
+          font-weight: 900;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .hand-card-actions button.is-active {
+          color: #fff4d6 !important;
+          border-color: ${myTheme.primary} !important;
+          background: ${myTheme.primary} !important;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3) !important;
+        }
         @media (max-width: 1500px) and (min-width: 761px) {
           .table-side-panel {
-            grid-template-rows: auto minmax(0, 1fr) !important;
-          }
-          .card-preview-panel {
-            display: none !important;
+            grid-template-rows: minmax(138px, 0.34fr) auto minmax(0, 1fr) !important;
           }
         }
         @media (max-width: 760px) {
@@ -7112,6 +7338,29 @@ export default function App() {
             grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
             gap: 3px !important;
           }
+          .match-command-row.has-story {
+            grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
+          }
+          .match-command-row.has-story .match-story-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            min-height: 28px;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 6px;
+            border-left-width: 3px;
+          }
+          .match-story-panel > strong {
+            margin: 0;
+            overflow: hidden;
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .match-story-panel > p,
+          .match-story-dialogue {
+            display: none;
+          }
           .current-play-panel {
             width: 100% !important;
             max-height: none !important;
@@ -7129,6 +7378,36 @@ export default function App() {
           }
           .current-play-panel [style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
+          }
+          .combat-tableau {
+            margin-top: 3px;
+          }
+          .combat-scene {
+            grid-template-columns: 30px minmax(0, 1fr) 42px !important;
+            gap: 4px;
+            padding: 3px 4px;
+          }
+          .combat-card {
+            width: 28px;
+            height: 40px;
+          }
+          .combat-arrow {
+            display: none;
+          }
+          .combat-story > strong {
+            font-size: 9px;
+          }
+          .combat-story > span:not(.combat-kicker),
+          .combat-story small,
+          .combat-impact em {
+            display: none;
+          }
+          .combat-impact strong {
+            font-size: 18px;
+          }
+          .combat-impact span,
+          .combat-impact small {
+            font-size: 7px;
           }
           .game-main {
             display: grid !important;
@@ -7272,6 +7551,23 @@ export default function App() {
             max-height: 170px !important;
             scroll-snap-type: x proximity;
             scrollbar-width: thin;
+          }
+          .hand-card-item {
+            flex: 0 0 96px;
+            width: 96px;
+          }
+          .game-root .bottom-player-panel .hand-card-item > .card-box {
+            width: 96px !important;
+            height: 142px !important;
+            min-height: 142px !important;
+          }
+          .hand-card-actions {
+            gap: 2px;
+          }
+          .hand-card-actions button {
+            min-height: 19px !important;
+            padding: 2px 1px !important;
+            font-size: 8px !important;
           }
           .card-box {
             flex: 0 0 96px !important;
@@ -7456,7 +7752,26 @@ export default function App() {
 
       <div className="match-table-frame">
         <div className="table-main-panel">
-          <div className="match-command-row">
+          <div className={`match-command-row${game.campaign ? " has-story" : ""}`}>
+            {game.campaign && (
+              <aside className="match-story-panel" aria-label="Campaign story">
+                <span className="story-kicker">Current Chapter</span>
+                <strong>{game.campaign.title}</strong>
+                <p>{game.campaign.story}</p>
+                {(game.campaign.startDialogue || game.campaign.dialogue)?.length > 0 && (
+                  <details className="match-story-dialogue">
+                    <summary>Opening dialogue</summary>
+                    <CampaignDialogueBlock
+                      title="Voices from the chapter"
+                      lines={game.campaign.startDialogue || game.campaign.dialogue}
+                      audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+                      autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
+                      compact
+                    />
+                  </details>
+                )}
+              </aside>
+            )}
             <div
               className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
               role={hasIncomingAttack ? "alert" : "status"}
@@ -7470,25 +7785,11 @@ export default function App() {
                     ? "Your decision"
                     : `${getGamePlayerName(game, game.priority)} has priority`}
             </span>
-            <strong>{normalizeCardDisplayText(incomingAttackAlert ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName())}</strong>
+            <strong>{hasIncomingAttack ? "Defend Yourself" : phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {incomingAttackAlert ? "Choose a response below before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
+              {phaseHelpText()}
             </div>
-            {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
-              <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
-                {game.campaign.story}
-              </div>
-            )}
-            {game.campaign && (
-              <CampaignDialogueBlock
-                title="Opening Dialogue"
-                lines={game.campaign.startDialogue || game.campaign.dialogue}
-                audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
-                autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
-                compact
-              />
-            )}
-              <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
+              <CombatStrip game={game} perspectivePlayer={player} onInspect={setInspectedCard} />
             </div>
             {!isSpectator && <div className="match-command-actions">{nearHandActionPad}</div>}
           </div>
@@ -7553,21 +7854,19 @@ export default function App() {
                       else if (isSelectedPlacement) bg = "#f3e8ff";
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
+                      const showCardActions = attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode;
                       return (
-                        <CardBox key={card.id || i} card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
-                          {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
-                            <div className="card-action-rail">
-                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
-                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
-                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
-                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
+                        <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${showCardActions ? " has-actions" : ""}`}>
+                          <CardBox card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard} />
+                          {showCardActions && (
+                            <div className="hand-card-actions">
+                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} className={isSelectedAttack ? "is-active" : ""}>{isSelectedAttack ? "Attacker" : "Attack"}</button>}
+                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} className={isSelectedBlock ? "is-active" : ""}>{isSelectedBlock ? "Blocking" : "Block"}</button>}
+                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} className={isSelectedPlacement ? "is-active" : ""}>{isSelectedPlacement ? "Selected" : "Place"}</button>}
+                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} className={isSelectedPayment ? "is-active" : ""}>{isSelectedPayment ? "Paying" : "Pay"}</button>}
                             </div>
                           )}
-                          <div className="card-actions" style={{ display: "grid", gap: 4 }}>
-                            <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
-                            <HelperText enabled={showHelperLabels}>{attackMode || blockMode ? "Pay cards cover the cost; the attacking/blocking card cannot also pay." : "Tap the art to inspect."}</HelperText>
-                          </div>
-                        </CardBox>
+                        </div>
                       );
                     })}
                   </div>
@@ -7642,6 +7941,14 @@ export default function App() {
         </div>
 
         <div className="game-side table-side-panel" style={{ minHeight: 0 }}>
+          <div className="card-preview-panel">
+            <h3>Card Preview</h3>
+            {sidePreviewCard ? (
+              <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
+            ) : (
+              <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Point to a card to preview it.</div>
+            )}
+          </div>
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Match Details" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>
@@ -7692,14 +7999,6 @@ export default function App() {
               )
             )}
           </SectionCard>
-          <div className="card-preview-panel">
-            <h3>Card Preview</h3>
-            {sidePreviewCard ? (
-              <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
-            ) : (
-              <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Select card art to preview.</div>
-            )}
-          </div>
         </div>
       </div>
     </div>

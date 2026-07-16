@@ -50,7 +50,7 @@ test("shows active deck identity and exposes library actions", () => {
   render(<DeckLibraryPanel library={library} selectedDeckId="deck-1" onSelect={onSelect} onNew={onNew} onAction={onAction} onOpenMatch={onOpenMatch} />);
 
   expect(screen.getByText("Gold Guard")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Gold Guard Rumin Constructed - v2 3W 1L 0D/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Gold Guard Rumin \/ Constructed \/ version 2 3 wins 1 losses 0 draws/ })).toBeInTheDocument();
   expect(screen.getAllByText("Active")).toHaveLength(2);
   expect(screen.queryByText("Old Guard")).not.toBeInTheDocument();
 

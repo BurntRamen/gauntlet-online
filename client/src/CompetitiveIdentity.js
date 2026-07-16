@@ -1,5 +1,9 @@
 import "./CompetitiveIdentity.css";
 
+function factionArt(factionId) {
+  return factionId ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${factionId}-card.webp` : "";
+}
+
 function recordForProfile(profile, match) {
   return match?.participants?.find((participant) => participant.accountId === profile?.accountId) || null;
 }
@@ -22,8 +26,10 @@ function MatchRows({ profile, matches, onOpenMatch }) {
         const opponent = match.participants?.find((entry) => entry.accountId !== profile.accountId && entry.identityType !== "ai")
           || match.participants?.find((entry) => entry.accountId !== profile.accountId)
           || null;
+        const participantFactionId = participant?.faction?.id;
         return (
           <button type="button" className="competitive-match-row" onClick={() => onOpenMatch(match.matchId)} key={match.matchId}>
+            <span className="competitive-faction-mark" aria-hidden="true" style={participantFactionId ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.58)), url(${factionArt(participantFactionId)})` } : undefined} />
             <span className={`competitive-result ${resultClass(participant?.result)}`}>{String(participant?.result || "record").toUpperCase()}</span>
             <span>
               <strong>{participant?.faction?.name || "Basic"} vs {opponent?.displayName || "Opponent"}</strong>
@@ -40,9 +46,10 @@ function MatchRows({ profile, matches, onOpenMatch }) {
 function ProfileBody({ profile, onOpenMatch }) {
   const ranked = profile.competitiveRecord?.ranked || {};
   const all = profile.competitiveRecord?.all || {};
+  const identityFactionId = profile.factionRecords?.[0]?.factionId;
   return (
     <>
-      <div className="competitive-profile-header">
+      <div className="competitive-profile-header" style={identityFactionId ? { backgroundImage: `linear-gradient(90deg, rgba(5,11,18,0.98), rgba(5,11,18,0.72), rgba(5,11,18,0.18)), url(${factionArt(identityFactionId)})` } : undefined}>
         <div>
           <span className="competitive-kicker">{profile.identity?.selectedTitle || "Recruit"}</span>
           <h1>{profile.displayName}</h1>
@@ -91,8 +98,9 @@ function ProfileBody({ profile, onOpenMatch }) {
 }
 
 export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfile, onOpenMatch }) {
+  const identityFactionId = profile?.factionRecords?.[0]?.factionId;
   return (
-    <section className="competitive-panel" aria-labelledby="competitive-panel-title">
+    <section className="competitive-panel" aria-labelledby="competitive-panel-title" style={identityFactionId ? { "--identity-art": `url(${factionArt(identityFactionId)})` } : undefined}>
       <div className="competitive-panel-heading">
         <div><span>Competitive Identity</span><h3 id="competitive-panel-title">Verified Record</h3></div>
         {profile && <button type="button" onClick={() => onOpenProfile(profile.accountId)}>Public Profile</button>}

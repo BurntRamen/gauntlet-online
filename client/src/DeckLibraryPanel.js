@@ -1,18 +1,33 @@
 import { useState } from "react";
 import "./DeckLibraryPanel.css";
 
+const DECK_ACCENTS = {
+  rumin: "#bb6849",
+  bizi: "#9d78b7",
+  sheen: "#6da77d",
+  frumo: "#659dcc",
+  basic: "#c89b52"
+};
+
 function DeckRow({ deck, active, selected, onSelect, onAction, onOpenMatch }) {
   const record = deck.record || {};
   const versionCount = deck.versions?.length || 1;
   const latestMatchId = record.recentMatchIds?.[0] || null;
+  const factionId = deck.factionId || "basic";
+  const factionArt = factionId === "basic" ? "" : `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${factionId}-card.webp`;
   return (
-    <div className={`deck-library-row ${selected ? "selected" : ""} ${deck.archived ? "archived" : ""}`}>
+    <div
+      className={`deck-library-row deck-${factionId} ${selected ? "selected" : ""} ${deck.archived ? "archived" : ""}`}
+      style={{ "--deck-accent": DECK_ACCENTS[factionId] || DECK_ACCENTS.basic }}
+    >
       <button type="button" className="deck-library-main" onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
-        <span className={`deck-cover deck-cover-${deck.factionId || "basic"}`} aria-hidden="true">{String(deck.factionName || deck.factionId || "G").slice(0, 1)}</span>
+        <span className={`deck-cover deck-cover-${factionId}`} aria-hidden="true" style={factionArt ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.12), rgba(5,8,12,0.7)), url(${factionArt})` } : undefined}>
+          <b>{String(deck.factionName || deck.factionId || "G").slice(0, 1)}</b>
+        </span>
         <span>
           <strong>{deck.name}</strong>
-          <small>{deck.factionName || deck.factionId} {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"} - v{versionCount}</small>
-          <small>{record.wins || 0}W {record.losses || 0}L {record.draws || 0}D</small>
+          <small>{deck.factionName || deck.factionId} / {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"} / version {versionCount}</small>
+          <span className="deck-record"><b>{record.wins || 0}</b> wins <b>{record.losses || 0}</b> losses <b>{record.draws || 0}</b> draws</span>
         </span>
       </button>
       <div className="deck-library-badges">
