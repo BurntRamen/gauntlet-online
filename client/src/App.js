@@ -4,7 +4,7 @@ import "./App.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
-import { getPlayingCardArtPath } from "./cardArt";
+import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -385,7 +385,8 @@ function clearReconnectInfo() {
 
 function getSuitSymbol(suit) {
   if (!suit) return "";
-  if (["♠", "♣", "♥", "♦"].includes(suit)) return suit;
+  const normalizedSuit = normalizeCardDisplayText(suit);
+  if (["♠", "♣", "♥", "♦"].includes(normalizedSuit)) return normalizedSuit;
 
   const map = {
     S: "♠",
@@ -398,8 +399,8 @@ function getSuitSymbol(suit) {
     diamonds: "♦"
   };
 
-  const key = String(suit);
-  return map[key] || map[key.toLowerCase()] || suit;
+  const key = String(normalizedSuit);
+  return map[key] || map[key.toLowerCase()] || normalizedSuit;
 }
 
 function isRedSuit(suit) {
@@ -2574,15 +2575,16 @@ function ShareGameQrCard() {
 function FactionFeature({ title, feature, theme }) {
   if (!feature) return null;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "78px minmax(0, 1fr)", gap: 10, alignItems: "start", marginBottom: 12 }}>
+    <div className="faction-feature" style={{ borderColor: theme.border }}>
       {feature?.image ? (
-        <img src={resolveAssetPath(feature.image)} alt="" style={{ width: 78, height: 78, objectFit: "cover", borderRadius: 10, border: `2px solid ${theme.border}` }} />
+        <img src={resolveAssetPath(feature.image)} alt="" className="faction-feature-image" style={{ borderColor: theme.border }} />
       ) : (
-        <div style={{ width: 78, height: 78, borderRadius: 10, border: `2px solid ${theme.border}`, background: theme.light }} />
+        <div className="faction-feature-image" style={{ borderColor: theme.border, background: theme.light }} />
       )}
-      <div>
-        <p style={{ margin: "0 0 4px 0" }}><strong>{title}:</strong> {feature.name}</p>
-        <p style={{ color: "#555", margin: 0 }}>{feature.text}</p>
+      <div className="faction-feature-copy">
+        <span>{title}</span>
+        <strong>{feature.name}</strong>
+        <p>{feature.text}</p>
       </div>
     </div>
   );
@@ -2754,14 +2756,23 @@ function getGamePlayerName(game, playerNum) {
 
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
+  const factionArt = resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`);
 
   return (
-    <div style={{ border: selected ? `3px solid ${theme.primary}` : "1px solid rgba(125, 211, 252, 0.38)", borderRadius: 8, padding: 14, background: selected ? theme.light : "rgba(255,255,255,0.94)", color: "#111827" }}>
-      <h3 style={{ marginTop: 0, color: theme.primary }}>{faction.name}</h3>
-      <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
-      <FactionFeature title="City" feature={faction.city} theme={theme} />
-      <FactionFeature title="General" feature={faction.general} theme={theme} />
-      <button onClick={() => onSelect(faction.id)}>{selected ? "Selected" : "Choose Faction"}</button>
+    <div className={`faction-choice-card faction-${faction.id}${selected ? " is-selected" : ""}`} style={{ borderColor: selected ? theme.primary : theme.border, "--faction-accent": theme.primary }}>
+      <div className="faction-choice-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(5,8,12,0.12), rgba(5,8,12,0.86)), url(${factionArt})` }}>
+        <div>
+          <span>Choose Your Command</span>
+          <h3>{faction.name}</h3>
+        </div>
+        {selected && <strong className="faction-selected-mark">Selected</strong>}
+      </div>
+      <div className="faction-feature-grid">
+        <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
+        <FactionFeature title="City" feature={faction.city} theme={theme} />
+        <FactionFeature title="General" feature={faction.general} theme={theme} />
+      </div>
+      <button className="faction-choice-action" onClick={() => onSelect(faction.id)}>{selected ? "Faction Selected" : `Choose ${faction.name}`}</button>
     </div>
   );
 }
@@ -2952,67 +2963,82 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
 
 function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns }) {
   const campaignProgress = account?.progression?.campaign || {};
+  const campaignEntries = Object.entries(campaigns || {});
+  const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
+  const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
+  const activeTheme = getFactionTheme(activeFactionId);
+  const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
 
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Commander Archives</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Faction Campaigns</h1>
+    <div className="campaign-page menu-page" style={MENU_THEME.page}>
+      <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
+        <div className="campaign-header">
+          <div className="campaign-heading">
+            <div className="campaign-kicker">Commander Archives</div>
+            <h1>Faction Campaigns</h1>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
         {!canPlayAsPlayer && <div style={{ marginBottom: 14, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start a campaign battle.</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          {Object.entries(campaigns).map(([factionId, campaign]) => {
+        <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
+          {campaignEntries.map(([factionId, campaign]) => {
+            const selected = factionId === activeFactionId;
             const theme = getFactionTheme(factionId);
-            const completedChapters = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId] : [];
+            const factionClears = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId].length : 0;
             return (
-              <MenuCard key={factionId} title={`${campaign.factionName}: ${campaign.commanderName}`}>
-                <p style={{ marginTop: 0, color: "#bfdbfe", lineHeight: 1.45 }}>{campaign.pitch}</p>
-                <div style={{ display: "grid", gap: 10 }}>
-                  {campaign.chapters.map((chapter, index) => (
-                    (() => {
-                      const difficulty = getCampaignDifficulty(factionId, index);
-                      const narration = chapter;
-                      const complexity = getCampaignComplexityPreview(factionId, index, chapter.opponentName);
-                      const unlocked = index === 0 || completedChapters.includes(campaign.chapters[index - 1]?.id);
-                      const completed = completedChapters.includes(chapter.id);
-                      return (
-                        <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${unlocked ? theme.primary : "rgba(148,163,184,0.26)"}`, background: unlocked ? "rgba(2,6,23,0.36)" : "rgba(15,23,42,0.44)", opacity: unlocked ? 1 : 0.72 }}>
-                          <div style={{ color: completed ? "#86efac" : "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}{completed ? " - Cleared" : unlocked ? " - Pack Reward" : " - Locked"}</div>
-                          <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
-                          {chapter.playableName && <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 4 }}>Playable: {chapter.playableName}</div>}
-                          <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
-                          <div style={{ color: "#fde68a", fontSize: 12, marginBottom: 6 }}>Boss: {difficulty.bossLife} life, {difficulty.attacksPerTurn} attacks/turn, values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
-                          {complexity.length > 0 && (
-                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(2,6,23,0.38)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong style={{ color: "#fde68a" }}>Advanced rules:</strong> {complexity.join(" ")}
-                            </div>
-                          )}
-                          <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
-                          {narration.beforeBattle && (
-                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.58)", border: "1px solid rgba(253,230,138,0.2)", color: "#fde68a", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong>Before Battle:</strong> {narration.beforeBattle}
-                            </div>
-                          )}
-                          {narration.afterBattle && (
-                            <div style={{ margin: "0 0 10px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.44)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong>After Battle:</strong> {narration.afterBattle}
-                            </div>
-                          )}
-                          {chapter.dialogue?.length > 0 && <div style={{ margin: "0 0 10px 0", color: "#e0f2fe", fontSize: 12, display: "grid", gap: 3 }}>{chapter.dialogue.slice(0, 3).map((line) => <div key={line}>{line}</div>)}</div>}
-                          <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
-                        </div>
-                      );
-                    })()
-                  ))}
-                </div>
-              </MenuCard>
+              <button
+                key={factionId}
+                role="tab"
+                aria-selected={selected}
+                className={`campaign-faction-tab${selected ? " is-active" : ""}`}
+                onClick={() => setSelectedFactionId(factionId)}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+              >
+                <span>{campaign.factionName}</span>
+                <strong>{factionClears}/{campaign.chapters.length}</strong>
+              </button>
             );
           })}
         </div>
+        {activeCampaign && (
+          <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
+            <header className="campaign-archive-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveAssetPath(`/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+              <div>
+                <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
+                <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
+                <p>{activeCampaign.pitch}</p>
+              </div>
+            </header>
+            <div className="campaign-chapter-grid">
+              {activeCampaign.chapters.map((chapter, index) => {
+                const difficulty = getCampaignDifficulty(activeFactionId, index);
+                const complexity = getCampaignComplexityPreview(activeFactionId, index, chapter.opponentName);
+                const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
+                const completed = completedChapters.includes(chapter.id);
+                return (
+                  <article key={chapter.id} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}`}>
+                    <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : unlocked ? "Pack Reward" : "Locked"}</span></div>
+                    <h3>{chapter.title}</h3>
+                    <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
+                    <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
+                    <p>{chapter.story}</p>
+                    {(complexity.length > 0 || chapter.beforeBattle || chapter.afterBattle || chapter.dialogue?.length > 0) && (
+                      <details className="campaign-story-details">
+                        <summary>Story & encounter notes</summary>
+                        {chapter.playableName && <div><strong>Playable:</strong> {chapter.playableName}</div>}
+                        {complexity.length > 0 && <div><strong>Advanced rules:</strong> {complexity.join(" ")}</div>}
+                        {chapter.beforeBattle && <div><strong>Before Battle:</strong> {chapter.beforeBattle}</div>}
+                        {chapter.afterBattle && <div><strong>After Battle:</strong> {chapter.afterBattle}</div>}
+                        {chapter.dialogue?.slice(0, 3).map((line) => <div key={line}>{line}</div>)}
+                      </details>
+                    )}
+                    <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -4605,8 +4631,8 @@ export default function App() {
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
 
     return (
-      <div style={MENU_THEME.page}>
-        <div style={MENU_THEME.frame}>
+      <div className="lobby-page menu-page" style={MENU_THEME.page}>
+        <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Faction Command</div>
@@ -4644,7 +4670,7 @@ export default function App() {
             {!isBasicMode && (
               <>
                 <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
+                <div className="faction-choice-grid">
                   {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
                 </div>
               </>
@@ -5551,8 +5577,8 @@ export default function App() {
         alignContent: "start",
         gap: 6,
         minWidth: 0,
-        maxHeight: attackMode || blockMode || placementMode ? 190 : 124,
-        overflowY: "auto"
+        maxHeight: "none",
+        overflow: "visible"
       }}
     >
       <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
@@ -5735,9 +5761,11 @@ export default function App() {
         <div style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
-      <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
-        {quickActionHelpText()}
-      </div>
+      {(attackMode || blockMode || placementMode || abilityMode || (game.phase === "damage" && game.message && /waiting/i.test(game.message))) && (
+        <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
+          {normalizeCardDisplayText(quickActionHelpText())}
+        </div>
+      )}
     </div>
   ) : null;
   const sidePreviewCard = previewedCard || inspectedCard;
@@ -5769,7 +5797,7 @@ export default function App() {
     return (
       <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>Turn {entry.turn || 1} - {entry.phase || "game"}</div>
-        <div>{entry.text}</div>
+        <div>{normalizeCardDisplayText(entry.text)}</div>
       </div>
     );
   }
@@ -5970,6 +5998,9 @@ export default function App() {
         .compact-power-card {
           position: relative;
           overflow: hidden;
+          grid-template-columns: 46px minmax(0, 1fr) !important;
+          gap: 6px !important;
+          padding: 4px !important;
         }
         .compact-power-card::after {
           content: "";
@@ -5985,8 +6016,8 @@ export default function App() {
           transform: translateX(120%);
         }
         .compact-power-portrait {
-          width: 62px;
-          height: 70px;
+          width: 46px;
+          height: 52px;
           border-radius: 9px;
           overflow: hidden;
           background: radial-gradient(circle at 50% 28%, rgba(247,217,158,0.3), transparent 38%), #111;
@@ -6169,6 +6200,13 @@ export default function App() {
           gap: 6px;
           overflow: hidden;
         }
+        .match-command-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+          gap: 6px;
+          align-items: stretch;
+          min-height: 0;
+        }
         .current-play-panel {
           justify-self: stretch;
           width: 100%;
@@ -6180,8 +6218,26 @@ export default function App() {
           padding: 8px 12px;
           text-align: left;
           box-shadow: 0 8px 22px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.05);
-          max-height: 138px;
-          overflow: auto;
+          min-height: 0;
+          max-height: none;
+          overflow: hidden;
+        }
+        .match-command-actions {
+          min-width: 0;
+          display: grid;
+        }
+        .match-command-actions .near-hand-actions {
+          height: 100%;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          align-content: center !important;
+          overflow: hidden !important;
+        }
+        .match-command-actions .near-hand-actions > div:first-child,
+        .match-command-actions .near-hand-actions > div:not(.mobile-action-detail) {
+          grid-column: 1 / -1;
+        }
+        .match-command-actions .near-hand-actions > .mobile-action-detail {
+          grid-column: 1 / -1;
         }
         .current-play-panel.is-my-decision {
           border-left-color: #e9bd61;
@@ -6208,18 +6264,18 @@ export default function App() {
         }
         .bottom-player-panel {
           display: grid;
-          grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+          grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
           gap: 8px;
           align-items: stretch;
           padding: 7px;
           min-height: 0;
-          max-height: 270px;
+          max-height: 220px;
           overflow: hidden;
         }
         .bottom-left-actions {
           min-height: 0;
           display: grid;
-          grid-template-rows: auto minmax(0, 1fr);
+          grid-template-rows: minmax(0, 1fr);
           gap: 7px;
           overflow: hidden;
         }
@@ -6233,7 +6289,7 @@ export default function App() {
         }
         .table-side-panel > .section-card-shell {
           min-height: 0;
-          overflow: auto;
+          overflow: hidden;
           margin-bottom: 0 !important;
         }
         .passive-status-actions button,
@@ -6317,9 +6373,9 @@ export default function App() {
           color: ${TABLETOP_THEME.text};
           min-height: clamp(118px, 22dvh, 158px) !important;
           padding: 6px !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           justify-content: flex-start !important;
-          gap: 5px !important;
+          gap: 3px !important;
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 -24px 48px rgba(0,0,0,0.34), 0 10px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(0,0,0,0.8) !important;
         }
         .game-root .lane-card > p {
@@ -6335,7 +6391,7 @@ export default function App() {
           justify-content: space-between;
           gap: 8px;
           align-items: baseline;
-          padding: 3px 4px;
+          padding: 2px 4px;
           border-bottom: 1px solid rgba(247,217,158,0.18);
           background: rgba(255,239,207,0.05);
           border-radius: 4px;
@@ -6612,7 +6668,7 @@ export default function App() {
         }
         .game-main {
           display: grid;
-          grid-template-rows: minmax(98px, 0.5fr) auto minmax(238px, 1.12fr);
+          grid-template-rows: minmax(112px, 0.64fr) auto minmax(190px, 1fr);
           gap: 5px;
           overflow: hidden !important;
           padding-right: 0 !important;
@@ -6629,21 +6685,19 @@ export default function App() {
           align-items: stretch;
         }
         .hand-card-row {
-          display: flex;
-          flex-wrap: nowrap;
-          gap: 7px;
-          overflow-x: auto;
+          display: grid;
+          grid-template-columns: repeat(8, minmax(0, 1fr));
+          gap: 5px;
+          overflow-x: hidden;
           overflow-y: hidden;
           padding-bottom: 5px;
-          -webkit-overflow-scrolling: touch;
-          touch-action: pan-x;
         }
         .game-root .bottom-player-panel .card-box {
-          width: 116px !important;
-          min-width: 116px !important;
-          height: 176px !important;
-          min-height: 176px !important;
-          padding-bottom: 52px !important;
+          width: 100% !important;
+          min-width: 0 !important;
+          height: 150px !important;
+          min-height: 150px !important;
+          padding-bottom: 46px !important;
           overflow: hidden;
         }
         .game-root .bottom-player-panel .card-box:not(.card-box-art) button[title] {
@@ -6656,7 +6710,7 @@ export default function App() {
           margin-top: auto;
           display: grid !important;
           gap: 3px !important;
-          min-height: 52px;
+          min-height: 44px;
           position: absolute;
           left: 6px;
           right: 6px;
@@ -6674,9 +6728,54 @@ export default function App() {
           font-weight: 800;
         }
         .game-root .power-section {
-          max-height: 116px;
-          overflow: auto;
+          max-height: none;
+          overflow: hidden;
           margin-bottom: 0 !important;
+        }
+        .power-detail-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 7px;
+          margin-top: 7px;
+          align-items: stretch;
+        }
+        .power-story {
+          min-width: 0;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          gap: 6px;
+          align-items: baseline;
+          padding: 4px 6px;
+          border: 1px solid;
+          border-radius: 5px;
+          background: rgba(255,247,220,0.92);
+          color: #29170d;
+          font-size: 11px;
+        }
+        .power-story span {
+          color: #513621;
+        }
+        .power-turn-stats {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(46px, auto));
+          gap: 4px;
+        }
+        .power-turn-stats > span {
+          display: grid;
+          align-content: center;
+          justify-items: center;
+          min-width: 48px;
+          padding: 3px 4px;
+          border: 1px solid rgba(205,154,86,0.32);
+          border-radius: 4px;
+          background: rgba(8,5,3,0.32);
+          color: #fff4d6;
+          font-size: 11px;
+        }
+        .power-turn-stats strong {
+          color: ${TABLETOP_THEME.muted};
+          font-size: 8px;
+          text-transform: uppercase;
         }
         .game-root .response-strip {
           display: none !important;
@@ -6878,9 +6977,13 @@ export default function App() {
             gap: 4px !important;
             overflow: hidden !important;
           }
+          .match-command-row {
+            grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
+            gap: 3px !important;
+          }
           .current-play-panel {
             width: 100% !important;
-            max-height: 68px !important;
+            max-height: none !important;
             padding: 4px 6px !important;
             font-size: 10px !important;
           }
@@ -6896,7 +6999,7 @@ export default function App() {
           }
           .game-main {
             display: grid !important;
-            grid-template-rows: minmax(104px, 0.62fr) auto minmax(262px, 1.38fr) !important;
+            grid-template-rows: minmax(108px, 0.66fr) auto minmax(194px, 1.16fr) !important;
             gap: 4px !important;
             overflow: hidden !important;
             padding-right: 0 !important;
@@ -6910,10 +7013,10 @@ export default function App() {
           }
           .power-section {
             order: 2 !important;
-            max-height: 88px !important;
+            max-height: none !important;
             min-height: 0 !important;
             padding: 3px 4px !important;
-            overflow: auto !important;
+            overflow: hidden !important;
             margin-bottom: 0 !important;
           }
           .power-section h3,
@@ -6959,6 +7062,13 @@ export default function App() {
             gap: 3px !important;
             overflow: hidden !important;
           }
+          .match-command-actions .near-hand-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            align-content: start !important;
+          }
+          .match-command-actions .near-hand-actions > div:not(:first-child) {
+            grid-column: 1 / -1 !important;
+          }
           .near-hand-actions > div:first-child {
             display: none !important;
           }
@@ -6973,8 +7083,8 @@ export default function App() {
             grid-column: span 3;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 3px 5px;
-            max-height: 86px;
-            overflow: auto;
+            max-height: none;
+            overflow: hidden;
             border: 1px solid rgba(247,217,158,0.28);
             border-radius: 6px;
             background: rgba(255,239,207,0.08);
@@ -7051,6 +7161,29 @@ export default function App() {
           .card-box:not(.card-box-art) > button[title] {
             height: 22px !important;
             margin: 1px 0 !important;
+          }
+          .power-detail-row {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 3px !important;
+            margin-top: 3px !important;
+          }
+          .power-story {
+            grid-template-columns: 1fr !important;
+            gap: 1px !important;
+            padding: 3px 4px !important;
+            font-size: 8px !important;
+          }
+          .power-turn-stats {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 2px !important;
+          }
+          .power-turn-stats > span {
+            min-width: 0 !important;
+            padding: 2px !important;
+            font-size: 8px !important;
+          }
+          .power-turn-stats strong {
+            font-size: 7px !important;
           }
           .card-box > button[title] + div {
             margin-bottom: 0 !important;
@@ -7190,10 +7323,11 @@ export default function App() {
 
       <div className="match-table-frame">
         <div className="table-main-panel">
-          <div
-            className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
-            role={hasIncomingAttack ? "alert" : "status"}
-          >
+          <div className="match-command-row">
+            <div
+              className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
+              role={hasIncomingAttack ? "alert" : "status"}
+            >
             <span className="decision-kicker">
               {hasIncomingAttack
                 ? "Incoming attack"
@@ -7203,7 +7337,7 @@ export default function App() {
                     ? "Your decision"
                     : `${getGamePlayerName(game, game.priority)} has priority`}
             </span>
-            <strong>{incomingAttackAlert ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
+            <strong>{normalizeCardDisplayText(incomingAttackAlert ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName())}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
               {incomingAttackAlert ? "Choose a response below before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
             </div>
@@ -7221,7 +7355,9 @@ export default function App() {
                 compact
               />
             )}
-            <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
+              <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
+            </div>
+            {!isSpectator && <div className="match-command-actions">{nearHandActionPad}</div>}
           </div>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
@@ -7245,18 +7381,20 @@ export default function App() {
                     />
                   ))}
                 </div>
-                {selectedPower && (
-                  <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "#fff", border: `1px solid ${myTheme.border}`, fontSize: 12 }}>
-                    <strong>{selectedPower.title}: {selectedPower.feature.name}</strong>
-                    <span style={{ color: "#555" }}> - {selectedPower.feature.text}</span>
+                <div className="power-detail-row">
+                  {selectedPower && (
+                    <div className="power-story" style={{ borderColor: myTheme.border }}>
+                      <strong>{selectedPower.title}: {selectedPower.feature.name}</strong>
+                      <span>{selectedPower.feature.text}</span>
+                    </div>
+                  )}
+                  <div className="power-turn-stats">
+                    <span><strong>Attacks</strong>{me.turnData.attacksDeclaredThisTurn}</span>
+                    <span><strong>Blocks</strong>{me.turnData.blocksDeclaredThisTurn}</span>
+                    <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
+                    <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
+                    <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
                   </div>
-                )}
-                <div style={{ marginTop: 8, fontSize: 12, display: "flex", flexWrap: "wrap", gap: "6px 12px" }}>
-                  <span><strong>Attacks:</strong> {me.turnData.attacksDeclaredThisTurn}</span>
-                  <span><strong>Blocks:</strong> {me.turnData.blocksDeclaredThisTurn}</span>
-                  <span><strong>Prev suit:</strong> {me.turnData.previousAttackSuit || "None"}</span>
-                  <span><strong>Prev value:</strong> {me.turnData.previousPlayedValue ?? "None"}</span>
-                  <span><strong>Acceleration:</strong> {me.accelerationCounters}</span>
                 </div>
                 </>}
               </SectionCard>}
@@ -7266,7 +7404,6 @@ export default function App() {
 
               <div className="bottom-player-panel">
                 <div className="bottom-left-actions">
-                  {nearHandActionPad}
                   <PlayerFrameRow game={game} player={player} placement="self" />
                 </div>
                 <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 0, marginBottom: 0 }} className="hand-section">

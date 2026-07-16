@@ -19,6 +19,24 @@ const SUIT_NAMES = {
   clubs: "clubs"
 };
 
+const MALFORMED_SUITS = [
+  ["Ã¢â„¢Â ", "\u2660"],
+  ["Ã¢â„¢Â¥", "\u2665"],
+  ["Ã¢â„¢Â¦", "\u2666"],
+  ["Ã¢â„¢Â£", "\u2663"],
+  ["â™ ", "\u2660"],
+  ["â™¥", "\u2665"],
+  ["â™¦", "\u2666"],
+  ["â™£", "\u2663"]
+];
+
+export function normalizeCardDisplayText(value) {
+  return MALFORMED_SUITS.reduce(
+    (text, [malformed, symbol]) => text.split(malformed).join(symbol),
+    String(value ?? "")
+  );
+}
+
 function getRankSlug(card) {
   const raw = card?.rank ?? card?.value;
   const normalized = String(raw || "").trim().toLowerCase();
@@ -32,7 +50,7 @@ function getRankSlug(card) {
 
 export function getPlayingCardArtPath(card, factionId) {
   const faction = String(factionId || "").toLowerCase();
-  const suit = SUIT_NAMES[String(card?.suit || "").trim().toLowerCase()] || "";
+  const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
   const rank = getRankSlug(card);
 
   // Collection and draft replacements retain their existing faction-card treatment.
