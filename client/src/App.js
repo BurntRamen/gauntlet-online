@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import "./App.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
+import { getPlayingCardArtPath } from "./cardArt";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -108,20 +110,21 @@ const MUSIC_TRACKS = {
 const MENU_THEME = {
   page: {
     minHeight: "100vh",
-    padding: 30,
+    padding: 20,
     boxSizing: "border-box",
-    fontFamily: "Arial, sans-serif",
-    color: "#e5eef8",
+    fontFamily: "var(--font-ui)",
+    color: "var(--text-primary)",
     background:
-      "radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.22), transparent 28%), radial-gradient(circle at 82% 18%, rgba(180, 83, 9, 0.18), transparent 24%), linear-gradient(135deg, #07111f 0%, #111827 42%, #1f2933 100%)"
+      "linear-gradient(135deg, rgba(13, 31, 46, 0.98), rgba(7, 14, 24, 0.99) 56%, rgba(28, 20, 16, 0.98))"
   },
   frame: {
     maxWidth: 1180,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    borderRadius: 8,
-    padding: 22,
-    background: "linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(17, 24, 39, 0.72))",
-    boxShadow: "0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+    margin: "0 auto",
+    border: "1px solid var(--line-cool)",
+    borderRadius: 6,
+    padding: 18,
+    background: "linear-gradient(180deg, rgba(11, 24, 38, 0.96), rgba(8, 16, 27, 0.94))",
+    boxShadow: "0 24px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
   },
   cardStyle: {
     color: "#dbeafe",
@@ -465,27 +468,28 @@ function resolveAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview }) {
+function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview, artFactionId }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
+  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
   const cardSurface = bg === "white"
     ? "linear-gradient(180deg, #f8ecd5 0%, #e5c9a6 58%, #caa47a 100%)"
     : `linear-gradient(180deg, ${bg}, #ead6b8)`;
 
   return (
     <div
-      className="card-box"
+      className={`card-box${playingCardArt ? " card-box-art" : ""}`}
       onMouseEnter={onPreview && card ? () => onPreview(card) : undefined}
       onFocus={onPreview && card ? () => onPreview(card) : undefined}
       style={{
         border: selected ? `2px solid ${accent}` : "1px solid rgba(82, 50, 26, 0.86)",
         borderRadius: 6,
-        padding: 6,
+        padding: playingCardArt ? 3 : 6,
         width: 108,
         minWidth: 108,
         minHeight: 164,
-        background: cardSurface,
+        background: playingCardArt ? "#090704" : cardSurface,
         boxShadow: selected
           ? `0 0 0 3px ${accent}55, 0 12px 24px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,255,255,0.42)`
           : "0 9px 18px rgba(0,0,0,0.32), inset 0 0 0 1px rgba(255,255,255,0.38)",
@@ -495,6 +499,21 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         justifyContent: "space-between"
       }}
     >
+      {playingCardArt ? (
+        <button
+          type="button"
+          className="card-face-art-button"
+          onClick={onInspect ? (event) => {
+            event.stopPropagation();
+            if (onPreview) onPreview(card);
+            onInspect(card);
+          } : undefined}
+          disabled={!onInspect || !card}
+          title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        >
+          <img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" />
+        </button>
+      ) : <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
           <div style={{ fontSize: 18 }}>{rank}</div>
@@ -548,15 +567,29 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <div style={{ fontSize: 13 }}>{suit}</div>
       </div>
 
+      </>}
+
       {children}
     </div>
   );
 }
 
-function CardInspectModal({ card, onClose }) {
+function CardInspectModal({ card, onClose, artFactionId }) {
   if (!card) return null;
   const suit = getSuitSymbol(card.suit);
   const suitColor = isRedSuit(card.suit) ? "#b91c1c" : "#111827";
+  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
+
+  if (playingCardArt) {
+    return (
+      <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.82)", display: "grid", placeItems: "center", padding: 18 }}>
+        <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "hidden", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
+          <img src={resolveAssetPath(playingCardArt)} alt={`${getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "90dvh", objectFit: "contain", display: "block" }} />
+          <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: "1px solid rgba(255,255,255,0.45)", borderRadius: 4, background: "rgba(7,16,26,0.9)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
@@ -644,8 +677,8 @@ function DiscardPileModal({ game, playerNumbers, onClose, onInspect, onPreview }
 function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {}, className }) {
   const combinedClassName = ["section-card-shell", className].filter(Boolean).join(" ");
   return (
-    <div className={combinedClassName} style={{ border: `2px solid ${borderColor}`, borderRadius: 8, padding: 16, marginBottom: 18, background, ...style }}>
-      {title && <h3 style={{ marginTop: 0, marginBottom: 12, ...headingStyle }}>{title}</h3>}
+    <div className={combinedClassName} style={{ border: `1px solid ${borderColor}`, borderRadius: 6, padding: 14, marginBottom: 12, background, ...style }}>
+      {title && <h3 style={{ marginTop: 0, marginBottom: 10, ...headingStyle }}>{title}</h3>}
       {children}
     </div>
   );
@@ -654,11 +687,12 @@ function SectionCard({ title, children, borderColor = "#333", background = "whit
 function MenuCard({ title, children }) {
   return (
     <SectionCard
+      className="menu-card"
       title={title}
-      borderColor="rgba(125, 211, 252, 0.42)"
-      background="linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.9))"
+      borderColor="rgba(132, 181, 201, 0.34)"
+      background="linear-gradient(180deg, rgba(17, 35, 51, 0.92), rgba(10, 22, 36, 0.94))"
       style={MENU_THEME.cardStyle}
-      headingStyle={{ color: "#facc15", letterSpacing: 0.4, textTransform: "uppercase", fontSize: 18 }}
+      headingStyle={{ color: "#f1c779", letterSpacing: 0, textTransform: "uppercase", fontSize: 16 }}
     >
       {children}
     </SectionCard>
@@ -837,7 +871,7 @@ function startMusicTrack(trackKey, volume) {
 function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
+    <div className="home-music-control" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
       {account && <MenuButton variant="secondary" onClick={() => onSoundMutedChange(!soundMuted)}>{soundMuted ? "Unmute All" : "Mute All"}</MenuButton>}
       <MenuButton variant="secondary" onClick={onToggle} disabled={soundMuted}>{enabled ? "Pause Music" : "Play Music"}</MenuButton>
       <span>{track.label}</span>
@@ -866,7 +900,7 @@ function DonateButton({ onUnavailable }) {
     onUnavailable();
   }
 
-  return <MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton>;
+  return <span className="home-support-action"><MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton></span>;
 }
 
 function HotkeyWindow({ visible, onClose }) {
@@ -3120,7 +3154,6 @@ export default function App() {
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
-  const [incomingAttackMinimized, setIncomingAttackMinimized] = useState(false);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -3131,7 +3164,7 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
+  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: true, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -3608,7 +3641,6 @@ export default function App() {
       id: newestAttack.id,
       text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
     });
-    setIncomingAttackMinimized(false);
   }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
@@ -4459,15 +4491,34 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div style={MENU_THEME.page}>
-        <div style={MENU_THEME.frame}>
-        <div className="home-command-header" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 18, marginBottom: 20 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Battle Net Terminal</div>
-            <h1 style={{ margin: 0, fontSize: 46, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
+      <div className="menu-page" style={MENU_THEME.page}>
+        <div className="menu-frame" style={MENU_THEME.frame}>
+        <div className="home-command-header">
+          <div className="home-brand">
+            <div className="home-brand-copy">
+              <div className="home-brand-kicker">Battle Net Terminal</div>
+              <h1>Gauntlet Online</h1>
+              <div className="home-brand-subtitle">Two-player card command</div>
+            </div>
+            <div className="home-faction-ribbon" aria-label="The four Gauntlet factions">
+              {[
+                ["rumin", "Rumin"],
+                ["bizi", "Bizi"],
+                ["sheen", "Sheen"],
+                ["frumo", "Frumo"]
+              ].map(([factionId, factionName]) => (
+                <span
+                  key={factionId}
+                  className={`home-faction-portrait faction-${factionId}`}
+                  style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+                  title={factionName}
+                  aria-label={factionName}
+                  role="img"
+                />
+              ))}
+            </div>
           </div>
-          <div className="home-command-tools" style={{ display: "grid", justifyItems: "end", gap: 8 }}>
-            <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+          <div className="home-command-tools">
             <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <MusicControl
               trackKey={activeMusicTrack}
@@ -5056,7 +5107,7 @@ export default function App() {
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
-        <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+        <CardInspectModal card={inspectedCard} artFactionId={me?.faction?.id} onClose={() => setInspectedCard(null)} />
         {showDiscardViewer && (
           <DiscardPileModal
             game={game}
@@ -5168,7 +5219,7 @@ export default function App() {
                       const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
                       return (
                         <div key={card.id || i} className="ffa-card">
-                          <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
+                          <CardBox card={card} artFactionId={me?.faction?.id} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                             {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
                               <div className="card-action-rail">
                                 {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
@@ -5953,7 +6004,7 @@ export default function App() {
 
   return (
     <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
-      <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+      <CardInspectModal card={inspectedCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onClose={() => setInspectedCard(null)} />
       {showDiscardViewer && (
         <DiscardPileModal
           game={game}
@@ -6070,7 +6121,7 @@ export default function App() {
         }
         .match-top-frame {
           display: grid;
-          grid-template-columns: 210px minmax(0, 1fr) 292px;
+          grid-template-columns: 186px minmax(0, 1fr) 270px;
           gap: 8px;
           align-items: stretch;
           min-height: 92px;
@@ -6085,8 +6136,7 @@ export default function App() {
           border-radius: 6px;
           background: ${TABLETOP_THEME.panel};
           box-shadow: ${TABLETOP_THEME.shadow};
-          outline: 1px solid rgba(43,25,12,0.92);
-          outline-offset: -5px;
+          outline: none;
         }
         .gauntlet-logo-panel {
           display: grid;
@@ -6230,7 +6280,7 @@ export default function App() {
         .match-table-frame {
           min-height: 0;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(270px, 300px);
+          grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
           grid-template-rows: minmax(0, 1fr);
           gap: 10px;
           overflow: hidden;
@@ -6243,18 +6293,38 @@ export default function App() {
           overflow: hidden;
         }
         .current-play-panel {
-          justify-self: center;
-          width: min(420px, 72%);
-          border: 1px solid rgba(205,154,86,0.4);
+          justify-self: stretch;
+          width: 100%;
+          border: 1px solid rgba(132,181,201,0.42);
+          border-left: 4px solid #6fa8c8;
           border-radius: 5px;
-          background: rgba(14,9,6,0.82);
+          background: linear-gradient(100deg, rgba(11,28,42,0.96), rgba(20,15,11,0.92));
           color: ${TABLETOP_THEME.text};
-          padding: 6px 10px;
-          text-align: center;
-          box-shadow: ${TABLETOP_THEME.shadow};
-          max-height: 132px;
+          padding: 8px 12px;
+          text-align: left;
+          box-shadow: 0 8px 22px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.05);
+          max-height: 138px;
           overflow: auto;
         }
+        .current-play-panel.is-my-decision {
+          border-left-color: #e9bd61;
+          background: linear-gradient(100deg, rgba(50,37,20,0.96), rgba(11,28,42,0.94) 64%);
+        }
+        .current-play-panel.is-incoming {
+          border-color: rgba(239,68,68,0.74);
+          border-left-color: #ef4444;
+          background: linear-gradient(100deg, rgba(78,20,20,0.96), rgba(23,15,13,0.94) 62%);
+        }
+        .decision-kicker {
+          display: block;
+          margin-bottom: 2px;
+          color: #9fc6d8;
+          font-size: 10px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .current-play-panel.is-my-decision .decision-kicker { color: #f7d99e; }
+        .current-play-panel.is-incoming .decision-kicker { color: #fecaca; }
         .current-play-panel strong {
           color: #f7d99e;
           font-family: Georgia, serif;
@@ -6279,7 +6349,7 @@ export default function App() {
         .table-side-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: minmax(0, 0.9fr) minmax(0, 0.72fr) minmax(178px, 0.74fr);
+          grid-template-rows: auto minmax(0, 1fr) minmax(160px, 0.58fr);
           gap: 8px;
           padding: 8px;
           overflow: hidden;
@@ -6343,20 +6413,14 @@ export default function App() {
           color: ${TABLETOP_THEME.text};
           border-radius: 7px !important;
           box-shadow: ${TABLETOP_THEME.shadow};
-          outline: 1px solid rgba(43,25,12,0.92);
-          outline-offset: -5px;
+          outline: none;
         }
         .game-root .board-lanes::before,
         .game-root .power-section::before,
         .game-root .response-strip::before,
         .game-root .recent-events-section::before,
         .game-root .game-side > .section-card-shell::before {
-          content: "";
-          position: absolute;
-          inset: 5px;
-          pointer-events: none;
-          border: 1px solid rgba(205,154,86,0.28);
-          border-radius: 4px;
+          content: none;
         }
         .game-root h2,
         .game-root h3 {
@@ -6370,8 +6434,8 @@ export default function App() {
           scrollbar-color: rgba(205,154,86,0.66) rgba(16,10,7,0.7);
         }
         .game-root .lane-card {
-          background: radial-gradient(circle at 50% 25%, rgba(247,217,158,0.2), transparent 36%), linear-gradient(180deg, rgba(43,27,16,0.94), rgba(10,7,5,0.94)) !important;
-          border-color: rgba(247,217,158,0.78) !important;
+          background: linear-gradient(180deg, rgba(40,28,20,0.94), rgba(11,14,16,0.95)) !important;
+          border-color: rgba(205,174,112,0.56) !important;
           border-radius: 6px !important;
           color: ${TABLETOP_THEME.text};
           min-height: clamp(118px, 22dvh, 158px) !important;
@@ -6439,6 +6503,38 @@ export default function App() {
           font-weight: 900;
           border-radius: 4px;
           cursor: pointer;
+        }
+        .game-root .card-face-art-button {
+          position: absolute;
+          inset: 3px;
+          z-index: 1;
+          width: calc(100% - 6px);
+          height: calc(100% - 6px);
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          border: 0;
+          border-radius: 4px;
+          background: #090704;
+          box-shadow: none;
+          cursor: zoom-in;
+        }
+        .game-root .card-face-art-button:not(:disabled):hover,
+        .game-root .card-face-art-button:not(:disabled):active {
+          transform: none;
+          filter: brightness(1.04);
+          box-shadow: none;
+        }
+        .game-root .card-face-art {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: contain;
+        }
+        .game-root .card-box-art .card-action-rail {
+          top: 7px;
+          background: rgba(7,16,26,0.92);
+          border-color: rgba(241,199,121,0.64);
         }
         .game-root .hand-section {
           background: transparent !important;
@@ -6666,15 +6762,18 @@ export default function App() {
           touch-action: pan-x;
         }
         .game-root .bottom-player-panel .card-box {
-          width: 104px !important;
-          min-width: 104px !important;
-          height: 214px !important;
-          min-height: 214px !important;
-          padding-bottom: 62px !important;
+          width: 116px !important;
+          min-width: 116px !important;
+          height: 176px !important;
+          min-height: 176px !important;
+          padding-bottom: 52px !important;
           overflow: hidden;
         }
-        .game-root .bottom-player-panel .card-box button[title] {
+        .game-root .bottom-player-panel .card-box:not(.card-box-art) button[title] {
           height: 44px !important;
+        }
+        .game-root .bottom-player-panel .card-box-art {
+          padding-bottom: 3px !important;
         }
         .game-root .bottom-player-panel .card-actions {
           margin-top: auto;
@@ -6760,6 +6859,14 @@ export default function App() {
         .quick-action-danger {
           background: linear-gradient(180deg, #dc2626, #7f1d1d);
         }
+        @media (max-width: 1500px) and (min-width: 761px) {
+          .table-side-panel {
+            grid-template-rows: auto minmax(0, 1fr) !important;
+          }
+          .card-preview-panel {
+            display: none !important;
+          }
+        }
         @media (max-width: 760px) {
           .game-root {
             height: 100dvh !important;
@@ -6768,14 +6875,17 @@ export default function App() {
             padding: 4px !important;
             display: flex !important;
             flex-direction: column !important;
+            grid-template-rows: 82px auto minmax(0, 1fr) !important;
             gap: 4px !important;
           }
           .match-top-frame {
             grid-template-columns: minmax(0, 1fr) auto !important;
             min-height: 0 !important;
             max-height: 82px !important;
+            height: 82px !important;
             gap: 4px !important;
             margin-bottom: 0 !important;
+            overflow: hidden !important;
           }
           .mobile-life-hud {
             display: grid !important;
@@ -6825,10 +6935,16 @@ export default function App() {
             grid-template-columns: minmax(0, 1fr) auto !important;
             gap: 4px !important;
             padding: 4px !important;
+            height: 82px !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
           }
           .top-action-panel {
             padding: 4px !important;
             align-content: start !important;
+            height: 82px !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
           }
           .top-action-icons {
             grid-template-columns: 36px 36px !important;
@@ -6899,6 +7015,9 @@ export default function App() {
             padding: 5px 6px !important;
             font-size: 10px !important;
             line-height: 1.18 !important;
+          }
+          .decision-kicker {
+            font-size: 8px !important;
           }
           .current-play-panel > div {
             font-size: 9px !important;
@@ -7039,17 +7158,17 @@ export default function App() {
             overflow-y: hidden !important;
             padding: 1px 2px 6px !important;
             touch-action: pan-x !important;
-            min-height: 174px !important;
-            max-height: 184px !important;
+            min-height: 160px !important;
+            max-height: 170px !important;
             scroll-snap-type: x proximity;
             scrollbar-width: thin;
           }
           .card-box {
-            flex: 0 0 88px !important;
-            width: 88px !important;
-            min-width: 88px !important;
+            flex: 0 0 96px !important;
+            width: 96px !important;
+            min-width: 96px !important;
             min-height: 0 !important;
-            height: 172px !important;
+            height: 158px !important;
             padding: 2px !important;
             font-size: 8px !important;
             border-radius: 5px !important;
@@ -7062,7 +7181,7 @@ export default function App() {
           .card-box > div:first-child div:nth-child(2) {
             font-size: 10px !important;
           }
-          .card-box > button[title] {
+          .card-box:not(.card-box-art) > button[title] {
             height: 22px !important;
             margin: 1px 0 !important;
           }
@@ -7184,18 +7303,6 @@ export default function App() {
           <span><strong>{opponent ? getGamePlayerName(game, opponent === game.players[1] ? 1 : 2) : "Opp"}</strong> {opponent?.life ?? "-"} life</span>
         </div>
       )}
-      {incomingAttackAlert && !incomingAttackMinimized && (
-        <div className="incoming-attack-banner" role="alert">
-          <span>{incomingAttackAlert.text}</span>
-          <button onClick={() => setIncomingAttackMinimized(true)} style={{ flex: "0 0 auto" }}>Minimize</button>
-        </div>
-      )}
-      {incomingAttackAlert && incomingAttackMinimized && (
-        <div className="incoming-attack-pill" role="status">
-          <span>Incoming attack</span>
-          <button onClick={() => setIncomingAttackMinimized(false)}>Show</button>
-        </div>
-      )}
       {factionVoice && (
         <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
@@ -7216,10 +7323,22 @@ export default function App() {
 
       <div className="match-table-frame">
         <div className="table-main-panel">
-          <div className="current-play-panel">
-            <strong>{(incomingAttackAlert && !incomingAttackMinimized) ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
+          <div
+            className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
+            role={hasIncomingAttack ? "alert" : "status"}
+          >
+            <span className="decision-kicker">
+              {hasIncomingAttack
+                ? "Incoming attack"
+                : isSpectator
+                  ? "Match status"
+                  : isMyPriority
+                    ? "Your decision"
+                    : `${getGamePlayerName(game, game.priority)} has priority`}
+            </span>
+            <strong>{incomingAttackAlert ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {(incomingAttackAlert && !incomingAttackMinimized) ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
+              {incomingAttackAlert ? "Choose a response below before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
             </div>
             {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
               <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
@@ -7298,7 +7417,7 @@ export default function App() {
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
                       return (
-                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
+                        <CardBox key={card.id || i} card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                           {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
                             <div className="card-action-rail">
                               {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
@@ -7387,7 +7506,7 @@ export default function App() {
 
         <div className="game-side table-side-panel" style={{ minHeight: 0 }}>
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
-            <CollapseHeader title="Status" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
+            <CollapseHeader title="Match Details" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>
               <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
                 <div><strong>Mode:</strong> {phaseDisplayName()}</div>
@@ -7439,7 +7558,7 @@ export default function App() {
           <div className="card-preview-panel">
             <h3>Card Preview</h3>
             {sidePreviewCard ? (
-              <CardBox card={sidePreviewCard} onInspect={setInspectedCard} />
+              <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
             ) : (
               <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Select card art to preview.</div>
             )}
