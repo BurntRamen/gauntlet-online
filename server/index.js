@@ -13,6 +13,7 @@ const ALLOWED_ORIGINS = [
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
 const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
+const ROOM_STATE_DATA_FILE = process.env.ROOM_STATE_DATA_FILE || `${__dirname}/rooms.json`;
 const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
 const DEVELOPMENT_AUTH_SECRETS = new Set([
   DEFAULT_ACCOUNT_AUTH_SECRET,
@@ -59,6 +60,7 @@ const {
   syncRoomPresence,
   touchRoom
 } = require("./roomLifecycle");
+const { createRoomStateStore, isRoomRecoveryEnabled } = require("./roomStateStore");
 const {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
@@ -82,6 +84,9 @@ const {
 
 const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
 const roomLifecycleConfig = getRoomLifecycleConfig();
+const roomStateStore = createRoomStateStore(ROOM_STATE_DATA_FILE, {
+  enabled: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED)
+});
 let roomLifecycleTimer = null;
 let roomLifecycleSweepRunning = false;
 
@@ -2706,11 +2711,44 @@ function getLobbyGameMode(roomState) {
 
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
+let roomStatePersistTimer = null;
+let roomRecoveryInitialized = false;
 const matchmakingQueue = [];
 const draftLeagueQueues = {
   player: [],
   bot: []
 };
+
+function persistRoomsNow(now = Date.now()) {
+  if (roomStatePersistTimer) {
+    clearTimeout(roomStatePersistTimer);
+    roomStatePersistTimer = null;
+  }
+  return roomStateStore.saveRooms(rooms.values(), now);
+}
+
+function scheduleRoomStatePersist() {
+  if (!roomRecoveryInitialized || !roomStateStore.enabled || roomStatePersistTimer) return;
+  roomStatePersistTimer = setTimeout(() => {
+    roomStatePersistTimer = null;
+    try {
+      roomStateStore.saveRooms(rooms.values());
+    } catch (error) {
+      console.error("[Rooms] Could not persist active-room state", error);
+    }
+  }, 50);
+  roomStatePersistTimer.unref?.();
+}
+
+function initializeRoomRecovery(now = Date.now()) {
+  if (roomRecoveryInitialized) return { enabled: roomStateStore.enabled, restored: 0, alreadyInitialized: true };
+  roomRecoveryInitialized = true;
+  const recoveredRooms = roomStateStore.loadRooms(now);
+  for (const roomState of recoveredRooms) {
+    if (!rooms.has(roomState.roomCode)) rooms.set(roomState.roomCode, roomState);
+  }
+  return { enabled: roomStateStore.enabled, restored: recoveredRooms.length, alreadyInitialized: false };
+}
 
 function makeReconnectToken() {
   return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -2992,6 +3030,7 @@ function deleteRoom(roomCode) {
     }
   }
   rooms.delete(roomCode);
+  scheduleRoomStatePersist();
   return true;
 }
 
@@ -3009,6 +3048,7 @@ function canOfferRematch(roomState) {
 }
 
 function emitRematchStatus(roomState, message = "") {
+  scheduleRoomStatePersist();
   io.to(roomState.roomCode).emit("rematchStatus", {
     available: canOfferRematch(roomState),
     requestedBy: roomState.rematch?.requestedBy || null,
@@ -3091,14 +3131,8 @@ function stopRoomLifecycleSweep() {
   roomLifecycleTimer = null;
 }
 
-async function abandonActiveRoomsForShutdown(now = Date.now()) {
-  const abandonedMatchIds = [];
-  for (const roomState of rooms.values()) {
-    if (!roomState.game || roomState.game.phase === "gameOver") continue;
-    const matchId = await abandonActiveRoom(roomState, "server_shutdown", now);
-    if (matchId) abandonedMatchIds.push(matchId);
-  }
-  return abandonedMatchIds;
+function persistActiveRoomsForShutdown(now = Date.now()) {
+  return persistRoomsNow(now);
 }
 
 async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
@@ -3142,6 +3176,7 @@ function sanitizeLobbyPlayer(player) {
 
 function emitLobbyState(roomState) {
   touchRoom(roomState);
+  scheduleRoomStatePersist();
   const players = {};
   getLobbyPlayerNumbers(roomState).forEach((playerNum) => {
     players[playerNum] = sanitizeLobbyPlayer(roomState.lobby.players[playerNum]);
@@ -3200,6 +3235,7 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
 function emitDraftState(roomState) {
   if (!roomState.draft) return;
   touchRoom(roomState);
+  scheduleRoomStatePersist();
   for (const playerNum of getLobbyPlayerNumbers(roomState)) {
     const socketId = roomState.lobby.players[playerNum].socket;
     if (socketId) io.to(socketId).emit("draftState", sanitizeDraftForViewer(roomState, playerNum));
@@ -3230,6 +3266,7 @@ function emitState(roomState) {
   if (!roomState.game) return;
   touchRoom(roomState);
   captureGameEvent(roomState.game);
+  scheduleRoomStatePersist();
   const spectatorCount = roomState.lobby.spectators.length;
 
   for (const playerNum of getLobbyPlayerNumbers(roomState)) {
@@ -5766,10 +5803,13 @@ io.on("connection", (socket) => {
       if (roomState.draft) {
         emitLobbyState(roomState);
         emitDraftState(roomState);
+        if (roomState.draft.botDraft) runBotDraftPicks(roomState);
         return;
       }
-      if (roomState.game) emitState(roomState);
-      else emitLobbyState(roomState);
+      if (roomState.game) {
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+      } else emitLobbyState(roomState);
       return;
     }
     if (roomState.invitedAccountId) {
@@ -5823,10 +5863,13 @@ io.on("connection", (socket) => {
       if (roomState.draft) {
         emitLobbyState(roomState);
         emitDraftState(roomState);
+        if (roomState.draft.botDraft) runBotDraftPicks(roomState);
         return;
       }
-      if (roomState.game) emitState(roomState);
-      else emitLobbyState(roomState);
+      if (roomState.game) {
+        emitState(roomState);
+        scheduleTrainingAi(roomState);
+      } else emitLobbyState(roomState);
       return;
     }
 
@@ -7058,22 +7101,24 @@ let shutdownStarted = false;
 async function shutdownServer(signal = "shutdown") {
   if (shutdownStarted) return;
   shutdownStarted = true;
-  console.log(`[Server] ${signal} received; finalizing active rooms.`);
+  console.log(`[Server] ${signal} received; preserving active rooms.`);
   stopRoomLifecycleSweep();
   server.close();
   try {
-    const matchIds = await abandonActiveRoomsForShutdown();
-    console.log(`[Server] Recorded ${matchIds.length} abandoned active match${matchIds.length === 1 ? "" : "es"}.`);
+    const result = persistActiveRoomsForShutdown();
+    console.log(`[Server] Preserved ${result.saved} active room${result.saved === 1 ? "" : "s"}.`);
   } catch (error) {
-    console.error("[Server] Failed to finalize active rooms", error);
+    console.error("[Server] Failed to preserve active rooms", error);
   }
   io.close(() => process.exit(0));
   setTimeout(() => process.exit(1), 10000).unref();
 }
 
 if (require.main === module) {
+  const recovery = initializeRoomRecovery();
   server.listen(PORT, () => {
     startRoomLifecycleSweep();
+    if (recovery.enabled) console.log(`[Rooms] Restored ${recovery.restored} active room${recovery.restored === 1 ? "" : "s"}.`);
     console.log(`Server running on port ${PORT}`);
   });
   process.once("SIGTERM", () => shutdownServer("SIGTERM"));
@@ -7093,7 +7138,6 @@ module.exports = {
     calculateAttackBonuses,
     canOfferRematch,
     abandonActiveRoom,
-    abandonActiveRoomsForShutdown,
     createFreeForAllGameFromLobby,
     createGameFromLobby,
     createRoom,
@@ -7101,10 +7145,13 @@ module.exports = {
     getBaseCardValue,
     getPaymentTotal,
     issueAccountSession,
+    initializeRoomRecovery,
     getSavedConstructedDeck,
     getSavedDraftDeck,
     normalizeDeckLibrary,
     normalizeFriendChallenges,
+    persistActiveRoomsForShutdown,
+    persistRoomsNow,
     signAuthPayload,
     saveConstructedDeckToLibrary,
     saveDraftDeckToLibrary,

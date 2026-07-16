@@ -8,6 +8,7 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gauntlet-room-life-"));
 process.env.MATCH_DATA_FILE = path.join(tempDir, "matches.json");
 process.env.ACCOUNT_DATA_FILE = path.join(tempDir, "accounts.json");
 process.env.FACTION_STATS_DATA_FILE = path.join(tempDir, "faction-stats.json");
+process.env.ROOM_STATE_DATA_FILE = path.join(tempDir, "rooms.json");
 
 const {
   createRoomLifecycle,
@@ -169,12 +170,15 @@ test("sweeps disconnected matches, then removes them after completed retention",
   assert.equal(__test.rooms.has(room.roomCode), false);
 });
 
-test("graceful shutdown finalization records every active match", async () => {
+test("graceful shutdown persistence preserves active matches without finalizing them", () => {
   const room = makeActiveGame(__test.createRoom());
   room.matchMetadata.matchId = "55555555-5555-4555-8555-555555555555";
-  const matchIds = await __test.abandonActiveRoomsForShutdown(Date.parse("2026-07-15T14:00:00.000Z"));
-  assert.ok(matchIds.includes(room.matchMetadata.matchId));
-  const store = JSON.parse(fs.readFileSync(process.env.MATCH_DATA_FILE, "utf8"));
-  const record = store.matches.find((entry) => entry.matchId === room.matchMetadata.matchId);
-  assert.equal(record.abandonmentReason, "server_shutdown");
+  const result = __test.persistActiveRoomsForShutdown(Date.parse("2026-07-15T14:00:00.000Z"));
+  assert.ok(result.saved >= 1);
+  const store = JSON.parse(fs.readFileSync(process.env.ROOM_STATE_DATA_FILE, "utf8"));
+  const snapshot = store.rooms.find((entry) => entry.roomCode === room.roomCode);
+  assert.equal(snapshot.game.phase, "priority");
+  assert.equal(snapshot.matchMetadata.matchId, room.matchMetadata.matchId);
+  const matchStore = JSON.parse(fs.readFileSync(process.env.MATCH_DATA_FILE, "utf8"));
+  assert.equal(matchStore.matches.some((entry) => entry.matchId === room.matchMetadata.matchId), false);
 });

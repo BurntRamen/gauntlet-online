@@ -78,6 +78,8 @@ Server variables:
 | `ACCOUNT_DATA_FILE` | Local account JSON path when Supabase is unavailable | `server/accounts.json` |
 | `FACTION_STATS_DATA_FILE` | Local faction statistics JSON path | `server/faction-stats.json` |
 | `MATCH_DATA_FILE` | Local durable match-record JSON path | `server/matches.json` |
+| `ROOM_STATE_DATA_FILE` | Private active-room snapshot path; contains hands and reconnect tokens | `server/rooms.json` |
+| `ROOM_STATE_RECOVERY_ENABLED` | Persist and restore active rooms on this server instance | `true` |
 | `ROOM_RECONNECT_GRACE_MS` | Time an active match waits with no human players connected | `600000` (10 minutes) |
 | `ROOM_LOBBY_TTL_MS` | Time an empty unstarted lobby remains available | `3600000` (1 hour) |
 | `ROOM_COMPLETED_TTL_MS` | Time a completed or abandoned room remains available | `900000` (15 minutes) |
@@ -122,4 +124,8 @@ Production account, friend, message, progression, collection, and leaderboard da
 
 Completed matches are stored separately from active rooms. Each server-authored record includes public participant and deck-version snapshots, completion metadata, combat aggregates, and a privacy-filtered audit stream. `GET /api/matches/:matchId` returns a public record, while authenticated accounts can list their recent records at `GET /api/account/matches`.
 
-Active rooms, matchmaking queues, draft queues, and live game state are held in server memory. Disconnected matches remain reconnectable for the configured grace period; after that, the server records them as abandoned without changing competitive statistics. Empty lobbies, abandoned drafts, and completed rooms are removed on separate expiry clocks. A graceful server shutdown records active matches as abandoned, but room state is not restored after a restart or redeploy.
+Active room state is authoritative in server memory and is also written to the private `ROOM_STATE_DATA_FILE` snapshot by default. The snapshot includes private hands, deck order, and reconnect tokens, so it must never be published or served by the client. On startup, the server restores non-completed lobbies, drafts, and games from that file, marks human seats disconnected, and starts a fresh reconnect grace period. Graceful shutdown preserves these rooms instead of recording them as abandoned.
+
+This is single-instance recovery, not distributed room storage. Matchmaking queues and draft-league queues remain memory-only. Render must mount a persistent disk and point `ROOM_STATE_DATA_FILE` into that mount for recovery to survive instance replacement or redeploy; without persistent storage, recovery only works while the snapshot remains on the same filesystem. `ROOM_STATE_RECOVERY_ENABLED=false` disables snapshot reads and writes. No Render disk or deployment setting is configured by this repository.
+
+Disconnected matches that are not reclaimed within `ROOM_RECONNECT_GRACE_MS` are recorded as abandoned without changing competitive statistics. Empty lobbies, abandoned drafts, and completed rooms are removed on their separate expiry clocks and are omitted from future snapshots.
