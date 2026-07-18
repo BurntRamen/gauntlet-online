@@ -3023,29 +3023,47 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   ];
 
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+    <div className="tutorial-page menu-page" style={MENU_THEME.page}>
+      <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
+        <header className="tutorial-header">
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Training Protocol</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Learn Gauntlet</h1>
+            <div className="tutorial-kicker">Training Protocol</div>
+            <h1>Learn Gauntlet</h1>
+            <p>Follow the rhythm of one complete turn, then practice it against Training AI.</p>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+        </header>
+        <div className="tutorial-layout">
+          <section className="tutorial-sequence" aria-labelledby="tutorial-sequence-heading">
+            <div className="tutorial-section-heading">
+              <span>Core match loop</span>
+              <h2 id="tutorial-sequence-heading">One turn, seven decisions</h2>
+            </div>
+            <div className="tutorial-step-grid">
+              {lessons.map((lesson, index) => (
+                <article className="tutorial-step" key={lesson.title}>
+                  <span className="tutorial-step-number">{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{lesson.title.replace(/^\d+\.\s*/, "")}</h3>
+                    <p>{lesson.text}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+          <aside className="tutorial-practice-panel">
+            <div className="tutorial-card-fan" aria-hidden="true">
+              {["rumin-7-hearts.webp", "sheen-q-spades.webp", "frumo-a-clubs.webp"].map((cardName) => (
+                <span key={cardName} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/playing-cards/${cardName}`)})` }} />
+              ))}
+            </div>
+            <span className="tutorial-practice-kicker">Recommended first match</span>
+            <h2>Practice the core loop</h2>
+            <p>Basic Mode keeps the focus on priority, payment, blocking, damage, and lanes.</p>
             <MenuButton onClick={onPlayBasicAi} disabled={!canPlayAsPlayer}>Play Basic vs AI</MenuButton>
             <MenuButton variant="secondary" onClick={onPlayFactionAi} disabled={!canPlayAsPlayer}>Play Factions vs AI</MenuButton>
-            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-          </div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-          {lessons.map((lesson) => (
-            <MenuCard key={lesson.title} title={lesson.title}>
-              <p style={{ margin: 0, color: "#dbeafe", lineHeight: 1.45 }}>{lesson.text}</p>
-            </MenuCard>
-          ))}
-        </div>
-        <div style={{ marginTop: 18, padding: 14, borderRadius: 8, background: "rgba(2,6,23,0.42)", border: "1px solid rgba(125,211,252,0.28)", color: "#bfdbfe" }}>
-          Best first game: play Basic Mode against Training AI to practice attack, block, pass, damage, and lanes. Choose Factions vs AI when you want commander, city, and general powers in the same training flow.
-          {!canPlayAsPlayer && <div style={{ marginTop: 8, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start the playable tutorial.</div>}
+            {!canPlayAsPlayer && <small>Choose an account or guest identity on the main menu to begin.</small>}
+          </aside>
         </div>
       </div>
     </div>
@@ -3096,6 +3114,9 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
   const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
+  const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
+  const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
+  const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
 
   return (
     <div className="campaign-page menu-page" style={MENU_THEME.page}>
@@ -3131,12 +3152,30 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
         {activeCampaign && (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
             <header className="campaign-archive-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveAssetPath(`/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
-              <div>
+              <div className="campaign-archive-copy">
                 <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
                 <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
                 <p>{activeCampaign.pitch}</p>
               </div>
+              {nextChapter ? (
+                <div className="campaign-next-battle">
+                  <span>Next Battle / Chapter {nextChapterIndex + 1}</span>
+                  <strong>{nextChapter.title}</strong>
+                  <small>Face {nextChapter.opponentName} at {nextDifficulty.bossLife} life.</small>
+                  <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                </div>
+              ) : (
+                <div className="campaign-next-battle is-complete">
+                  <span>Campaign complete</span>
+                  <strong>Archive Cleared</strong>
+                  <small>Every chapter in this faction story has been completed.</small>
+                </div>
+              )}
             </header>
+            <div className="campaign-map-heading">
+              <div><span>Campaign archive</span><h3>Chapter Map</h3></div>
+              <small>Clear chapters in order. Each first clear awards a faction pack.</small>
+            </div>
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
                 const difficulty = getCampaignDifficulty(activeFactionId, index);
@@ -3144,8 +3183,8 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
-                  <article key={chapter.id} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}`}>
-                    <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : unlocked ? "Pack Reward" : "Locked"}</span></div>
+                  <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
+                    <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
                     <h3>{chapter.title}</h3>
                     <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
                     <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
@@ -4618,7 +4657,7 @@ export default function App() {
           )}
 
           {homeArea === "journey" && (
-            <>
+            <div className="journey-hub">
               {showOnboarding && (
                 <OnboardingPanel
                   canPlayAsPlayer={canPlayAsPlayer}
@@ -4628,19 +4667,47 @@ export default function App() {
                   onDismiss={dismissOnboarding}
                 />
               )}
-              <div className="home-panel-grid">
-                <MenuCard title="Learn Gauntlet">
-                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn priority, payment, blocking, damage, and lane placement.</p>
-                  <MenuButton onClick={() => setShowTutorial(true)} style={{ marginRight: 8, marginBottom: 8 }}>Open Tutorial</MenuButton>
-                  <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
-                </MenuCard>
-                <MenuCard title="Faction Campaigns">
-                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared.` : "Choose a faction and begin its story."}</p>
-                  <MenuButton onClick={() => setShowCampaign(true)}>Open Campaign Map</MenuButton>
-                </MenuCard>
+              <div className="journey-route">
+                <section className="journey-learning-panel">
+                  <div className="journey-panel-copy">
+                    <span>Phase One / The Table</span>
+                    <h3>Learn the rhythm of a turn</h3>
+                    <p>Priority moves the match. Learn when to attack, how to pay, when to defend, and how lanes close the turn.</p>
+                  </div>
+                  <div className="journey-turn-flow" aria-label="Core turn sequence">
+                    {["Priority", "Attack", "Defend", "Resolve", "Lanes", "Draw"].map((step, index) => (
+                      <span key={step}><small>{index + 1}</small>{step}</span>
+                    ))}
+                  </div>
+                  <div className="journey-panel-actions">
+                    <MenuButton onClick={() => setShowTutorial(true)}>Open Tutorial</MenuButton>
+                    <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
+                  </div>
+                </section>
+                <section className="journey-campaign-panel">
+                  <div className="journey-faction-strip" aria-label="Choose from four faction campaigns">
+                    {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
+                      <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                    ))}
+                  </div>
+                  <div className="journey-panel-copy">
+                    <span>Phase Two / Choose a Faction</span>
+                    <h3>Enter the commander archives</h3>
+                    <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Four factions, four commanders, and four twelve-chapter campaigns await."}</p>
+                  </div>
+                  <div className="journey-campaign-progress">
+                    <span>Campaign progress</span>
+                    <strong>{completedCampaignChapters}</strong>
+                    <small>chapters cleared</small>
+                  </div>
+                  <MenuButton onClick={() => setShowCampaign(true)}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
+                </section>
               </div>
-              <RulebookPanel />
-            </>
+              <details className="journey-rulebook">
+                <summary><span>Field Rulebook</span><small>Open the complete rules reference</small></summary>
+                <div className="journey-rulebook-content"><RulebookPanel /></div>
+              </details>
+            </div>
           )}
 
           {homeArea === "build" && (
