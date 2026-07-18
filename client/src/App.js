@@ -1130,6 +1130,7 @@ function normalizeReplacementSuitId(suit) {
 
 function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
+  const factionArt = resolveAssetPath(`/assets/gauntlet/${booster.factionId}-card.webp`);
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
     counts[slot] = (counts[slot] || 0) + 1;
     return counts;
@@ -1153,7 +1154,7 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
       <span className="booster-pack-set">Foundation Booster</span>
       <strong>{theme.name}</strong>
       <span className="booster-pack-subtitle">{theme.subtitle}</span>
-      <span className="booster-pack-art" style={{ background: theme.art }}>
+      <span className="booster-pack-art" style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.06), rgba(2,6,23,0.58)), url(${factionArt})` }}>
         <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>
       </span>
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} digital cards</span>
@@ -1389,7 +1390,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   }
 
   return (
-    <MenuCard title="Faction Collection">
+    <MenuCard className="collection-workspace" title="Collection Workshop">
       <style>{`
         @keyframes packPulse {
           0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
@@ -1409,10 +1410,16 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         }
         @media (max-width: 700px) {
           .booster-pack-grid {
-            grid-template-columns: minmax(0, 1fr);
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 0 0 8px;
+            scroll-snap-type: x mandatory;
           }
           .booster-pack-tile {
             min-width: 0;
+            flex: 0 0 min(270px, calc(100vw - 88px));
+            scroll-snap-align: start;
           }
         }
         .booster-pack-tile {
@@ -1507,6 +1514,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           margin: 2px 8px;
           position: relative;
           overflow: hidden;
+          background-position: center 24%;
+          background-size: cover;
         }
         .booster-pack-art::before {
           content: "";
@@ -1624,6 +1633,94 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           color: #f3eee3;
           box-shadow: inset 0 -2px #65a87e;
         }
+        .collection-summary-bar {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(96px, auto)) minmax(260px, 1fr);
+          border: 1px solid rgba(101,168,126,0.3);
+          background: rgba(2,8,14,0.52);
+        }
+        .collection-summary-stat {
+          display: grid;
+          gap: 2px;
+          padding: 9px 11px;
+          border-right: 1px solid rgba(101,168,126,0.22);
+        }
+        .collection-summary-stat span,
+        .collection-summary-note span {
+          color: #9db8aa;
+          font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .collection-summary-stat strong {
+          color: #fff4d7;
+          font-family: Georgia, serif;
+          font-size: 20px;
+          line-height: 1;
+        }
+        .collection-summary-note {
+          display: grid;
+          align-content: center;
+          gap: 3px;
+          padding: 9px 12px;
+          color: #d8c990;
+          font-size: 10px;
+          line-height: 1.35;
+        }
+        .deck-faction-picker {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .deck-faction-picker button {
+          display: grid;
+          grid-template-columns: 46px minmax(0, 1fr);
+          gap: 7px;
+          align-items: center;
+          min-width: 0;
+          min-height: 54px;
+          padding: 5px;
+          border: 1px solid rgba(148,163,184,0.34);
+          border-bottom: 3px solid var(--faction-accent);
+          border-radius: 4px;
+          background: rgba(8,16,25,0.76);
+          color: #bfdbfe;
+          cursor: pointer;
+          text-align: left;
+        }
+        .deck-faction-picker button[aria-pressed="true"] {
+          border-color: var(--faction-accent);
+          background: linear-gradient(90deg, color-mix(in srgb, var(--faction-accent) 22%, #07101a), rgba(8,16,25,0.88));
+          color: #fff4d7;
+          box-shadow: inset 0 0 0 1px var(--faction-accent);
+        }
+        .deck-faction-picker span {
+          width: 44px;
+          height: 44px;
+          border: 1px solid var(--faction-accent);
+          background-position: center 24%;
+          background-size: cover;
+        }
+        .deck-faction-picker strong {
+          overflow: hidden;
+          font-family: Georgia, serif;
+          font-size: 15px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        @media (max-width: 700px) {
+          .collection-summary-bar {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+          .collection-summary-note {
+            grid-column: 1 / -1;
+            border-top: 1px solid rgba(101,168,126,0.22);
+          }
+          .deck-faction-picker {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
         .collection-view-heading {
           display: flex;
           justify-content: space-between;
@@ -1644,11 +1741,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         }
       `}</style>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ color: "#bfdbfe", fontSize: 13 }}>
-            {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened - {packCredits} pack credit{packCredits === 1 ? "" : "s"}
-          </div>
-          <div style={{ color: "#fde68a", fontSize: 12 }}>Earn 1 pack credit the first time you clear each campaign chapter. Paid packs use your configured $1 checkout link.</div>
+        <div className="collection-summary-bar">
+          <div className="collection-summary-stat"><span>Cards owned</span><strong>{ownedTotal}</strong></div>
+          <div className="collection-summary-stat"><span>Packs opened</span><strong>{collection.openedPacks || 0}</strong></div>
+          <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
+          <div className="collection-summary-note"><span>Earned rewards</span>First-time campaign chapter clears award pack credits. Paid packs use the configured $1 checkout link.</div>
         </div>
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
           {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
@@ -1726,7 +1823,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               style={{ border: "1px solid rgba(125,211,252,0.34)", borderRadius: 5, padding: "8px 9px", background: "rgba(15,23,42,0.72)", color: "#f8fafc" }}
             />
           </label>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+          <div className="deck-faction-picker" aria-label="Deck faction">
             {Object.values(PACK_THEMES).map((theme) => {
               const factionId = theme.name.toLowerCase();
               const active = constructedFactionId === factionId;
@@ -1734,15 +1831,17 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 <button
                   key={factionId}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => {
                     setConstructedFactionId(factionId);
                     setConstructedQuantities({});
                     setConstructedSuitChoices({});
                     setConstructedSaveMessage("");
                   }}
-                  style={{ border: `1px solid ${active ? theme.accent : "rgba(148,163,184,0.34)"}`, borderRadius: 6, padding: "7px 10px", background: active ? "rgba(250,204,21,0.16)" : "rgba(15,23,42,0.55)", color: active ? "#fde68a" : "#bfdbfe", fontWeight: 900, cursor: "pointer" }}
+                  style={{ "--faction-accent": theme.accent }}
                 >
-                  {theme.name}
+                  <span aria-hidden="true" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  <strong>{theme.name}</strong>
                 </button>
               );
             })}
@@ -1872,15 +1971,16 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
 function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+    <div className="collection-page menu-page" style={MENU_THEME.page}>
+      <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
+        <header className="collection-header">
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Vault Terminal</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Collection</h1>
+            <div className="collection-kicker">Vault Terminal</div>
+            <h1>Build</h1>
+            <p>Open rewards, survey your collection, and shape decks for the table.</p>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-        </div>
+        </header>
         <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
       </div>
     </div>
@@ -2959,33 +3059,27 @@ function RulebookPanel() {
   ];
 
   return (
-    <section
-      style={{
-        marginTop: 22,
-        padding: 18,
-        border: "2px solid #7c2d12",
-        borderRadius: 12,
-        background: "linear-gradient(180deg, #fff7ed 0%, #f8e7c9 100%)",
-        boxShadow: "0 10px 24px rgba(68, 32, 9, 0.16)",
-        color: "#281407",
-        fontFamily: "Georgia, 'Times New Roman', serif"
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, borderBottom: "1px solid rgba(124, 45, 18, 0.35)", paddingBottom: 10, marginBottom: 14 }}>
-        <h2 style={{ margin: 0, color: "#7c2d12", letterSpacing: 0, fontSize: 28 }}>Field Rulebook</h2>
-        <div style={{ fontSize: 13, color: "#854d0e", fontStyle: "italic" }}>Gauntlet Online</div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
-        {ruleSections.map((section) => (
-          <div key={section.title} style={{ borderLeft: "4px solid #b45309", paddingLeft: 12 }}>
-            <h3 style={{ margin: "0 0 8px 0", color: "#431407", fontSize: 18 }}>{section.title}</h3>
-            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.45, fontSize: 14 }}>
-              {section.rules.map((rule) => <li key={rule} style={{ marginBottom: 6 }}>{rule}</li>)}
-            </ul>
-          </div>
-        ))}
-      </div>
+    <section className="field-rulebook-panel">
+      <img
+        className="field-rulebook-art"
+        src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}
+        alt="Gauntlet Online Field Rulebook covering setup, priority, attacking, blocking, end turn, and victory rules."
+        loading="lazy"
+        decoding="async"
+      />
+      <details className="field-rulebook-transcript">
+        <summary>Read text version</summary>
+        <div className="field-rulebook-grid">
+          {ruleSections.map((section) => (
+            <div key={section.title}>
+              <h3>{section.title}</h3>
+              <ul>
+                {section.rules.map((rule) => <li key={rule}>{rule}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }
@@ -4357,9 +4451,16 @@ export default function App() {
   const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
   const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
   const packCredits = Number(account?.collection?.packCredits || 0);
+  const ownedCardCount = Object.values(account?.collection?.cards || {}).reduce((total, count) => total + Number(count || 0), 0);
+  const openedPackCount = Number(account?.collection?.openedPacks || 0);
   const deckLibrary = account?.stats?.deckLibrary || { decks: [] };
   const activeDecks = (deckLibrary.decks || []).filter((deck) => !deck.archived);
   const constructedDecks = activeDecks.filter((deck) => deck.format === "constructed");
+  const activeConstructedDeck = constructedDecks.find((deck) => deck.id === deckLibrary.activeConstructedDeckId)
+    || constructedDecks[0]
+    || account?.stats?.savedConstructedDeck
+    || null;
+  const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
   let journeyNextStep;
@@ -4711,27 +4812,44 @@ export default function App() {
           )}
 
           {homeArea === "build" && (
-            <div className="home-panel-grid">
-              <MenuCard title="Collection and Deck">
-                <p style={{ marginTop: 0, color: "#bfdbfe" }}>{account ? `${packCredits} unopened pack${packCredits === 1 ? "" : "s"}. ${activeDecks.length} active saved deck${activeDecks.length === 1 ? "" : "s"}.` : "Sign in to keep a collection and constructed decks."}</p>
-                <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Build</MenuButton>
-              </MenuCard>
-              <MenuCard title={`Constructed Decks (${constructedDecks.length})`}>
-                {account?.stats?.savedConstructedDeck ? (
-                  <p style={{ marginTop: 0, color: "#dbeafe" }}><strong>{account.stats.savedConstructedDeck.name || `${account.stats.savedConstructedDeck.factionName} Constructed Deck`}</strong><br />{account.stats.savedConstructedDeck.replacementCount || 0} faction-card replacements</p>
-                ) : (
-                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>No constructed deck saved yet.</p>
-                )}
-                <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{account?.stats?.savedConstructedDeck ? "Edit Deck" : "Build First Deck"}</MenuButton>
-              </MenuCard>
-              <MenuCard title="Saved Draft Deck">
-                {account?.stats?.savedDraftDeck ? (
-                  <p style={{ marginTop: 0, color: "#dbeafe" }}><strong>{account.stats.savedDraftDeck.name}</strong><br />{account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements</p>
-                ) : (
-                  <p style={{ marginTop: 0, color: "#bfdbfe" }}>Finish a live or bot draft to save a Draft League deck.</p>
-                )}
-                <MenuButton variant="secondary" onClick={() => setHomeArea("play")}>Open Draft Modes</MenuButton>
-              </MenuCard>
+            <div className="build-hub">
+              <section className="build-vault-panel">
+                <div className="build-faction-strip" aria-label="Faction collections">
+                  {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
+                    <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  ))}
+                </div>
+                <div className="build-panel-copy">
+                  <span>The Vault</span>
+                  <h3>Turn campaign rewards into a personal deck</h3>
+                  <p>{account ? "Open faction packs, inspect every card, and decide which ordinary playing cards become something more." : "Sign in to keep a collection, open rewards, and save constructed decks."}</p>
+                </div>
+                <div className="build-vault-stats">
+                  <span><small>Cards owned</small><strong>{ownedCardCount}</strong></span>
+                  <span><small>Packs opened</small><strong>{openedPackCount}</strong></span>
+                  <span><small>Credits ready</small><strong>{packCredits}</strong></span>
+                </div>
+                <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection Workshop</MenuButton>
+              </section>
+              <div className="build-deck-stack">
+                <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
+                  <span className="build-deck-cover" aria-hidden="true" style={{ backgroundImage: `linear-gradient(rgba(3,8,13,0.08), rgba(3,8,13,0.72)), url(${resolveAssetPath(`/assets/gauntlet/${buildDeckFactionId}-card.webp`)})` }} />
+                  <div>
+                    <span>Constructed / {constructedDecks.length} saved</span>
+                    <h3>{activeConstructedDeck?.name || "Build your first deck"}</h3>
+                    <p>{activeConstructedDeck ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} faction-card replacements.` : "Begin with the standard 52-card deck, then map owned faction cards into matching values."}</p>
+                    <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{activeConstructedDeck ? "Edit Active Deck" : "Build First Deck"}</MenuButton>
+                  </div>
+                </section>
+                <section className="build-draft-entry">
+                  <div>
+                    <span>Draft Library</span>
+                    <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
+                    <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
+                  </div>
+                  <MenuButton variant="secondary" onClick={() => setHomeArea("play")}>Open Draft Modes</MenuButton>
+                </section>
+              </div>
             </div>
           )}
 

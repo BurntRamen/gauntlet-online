@@ -922,6 +922,213 @@ textarea:focus-visible {
   border-color: var(--faction-accent) !important;
 }
 
+.build-hub {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 12px;
+}
+
+.build-vault-panel,
+.build-deck-entry,
+.build-draft-entry {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(188, 213, 222, 0.28);
+  border-radius: 6px;
+  background: rgba(7, 17, 27, 0.9);
+}
+
+.build-vault-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  gap: 14px;
+  padding: 14px;
+  border-bottom: 3px solid #65a87e;
+  background: linear-gradient(145deg, rgba(8, 38, 31, 0.88), rgba(11, 20, 31, 0.96) 66%);
+}
+
+.build-faction-strip {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  height: 92px;
+  overflow: hidden;
+  border: 1px solid rgba(230, 201, 121, 0.34);
+}
+
+.build-faction-strip span {
+  background-position: center 24%;
+  background-size: cover;
+  box-shadow: inset 0 -42px 34px rgba(2, 7, 12, 0.34);
+}
+
+.build-panel-copy > span,
+.build-deck-entry > div > span,
+.build-draft-entry > div > span {
+  color: #e6c979;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.build-panel-copy h3,
+.build-deck-entry h3,
+.build-draft-entry h3 {
+  margin: 4px 0 6px;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  line-height: 1.08;
+}
+
+.build-panel-copy h3 {
+  font-size: 25px;
+}
+
+.build-panel-copy p,
+.build-deck-entry p,
+.build-draft-entry p {
+  margin: 0;
+  color: #c6d6dc;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.build-vault-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  align-self: end;
+  border: 1px solid rgba(101, 168, 126, 0.34);
+  background: rgba(2, 8, 14, 0.44);
+}
+
+.build-vault-stats > span {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border-right: 1px solid rgba(101, 168, 126, 0.24);
+  text-align: center;
+}
+
+.build-vault-stats > span:last-child {
+  border-right: 0;
+}
+
+.build-vault-stats small {
+  color: #a7c4b4;
+  font-size: 7px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.build-vault-stats strong {
+  color: #fff4d7;
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.build-vault-panel > button {
+  grid-column: 1 / -1;
+}
+
+.build-deck-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.build-deck-entry {
+  --deck-accent: #c89b52;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  gap: 13px;
+  padding: 12px;
+  border-bottom: 3px solid var(--deck-accent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--deck-accent) 15%, #07111b), rgba(8, 16, 25, 0.96));
+}
+
+.build-deck-cover {
+  display: block;
+  min-height: 154px;
+  border: 1px solid var(--deck-accent);
+  background-position: center 24%;
+  background-size: cover;
+  box-shadow: inset 0 0 0 2px rgba(3, 8, 13, 0.5), 0 10px 24px rgba(0, 0, 0, 0.32);
+}
+
+.build-deck-entry > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.build-deck-entry h3,
+.build-draft-entry h3 {
+  font-size: 19px;
+}
+
+.build-deck-entry p {
+  margin-bottom: auto;
+}
+
+.build-deck-entry button {
+  margin-top: 12px;
+}
+
+.build-draft-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border-left: 4px solid #65a1cc;
+}
+
+.build-draft-entry > div {
+  min-width: 0;
+}
+
+.collection-frame {
+  max-width: 1500px !important;
+}
+
+.collection-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.28);
+}
+
+.collection-kicker {
+  margin-bottom: 4px;
+  color: #e6c979;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.collection-header h1 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.collection-header p {
+  margin: 7px 0 0;
+  color: #b9ccd3;
+  font-size: 13px;
+}
+
+.collection-workspace {
+  border-top: 3px solid #65a87e !important;
+}
+
 .journey-hub {
   display: grid;
   gap: 14px;
@@ -1115,6 +1322,64 @@ textarea:focus-visible {
 
 .journey-rulebook-content > section {
   margin-top: 0 !important;
+}
+
+.field-rulebook-panel {
+  overflow: hidden;
+  border: 1px solid rgba(110, 174, 232, 0.48);
+  border-radius: 4px;
+  background: #03070d;
+}
+
+.field-rulebook-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.field-rulebook-transcript {
+  border-top: 1px solid rgba(110, 174, 232, 0.34);
+  background: rgba(7, 15, 25, 0.98);
+}
+
+.field-rulebook-transcript > summary {
+  padding: 10px 12px;
+  color: #d8e8f2;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.field-rulebook-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.field-rulebook-grid > div {
+  padding-left: 10px;
+  border-left: 3px solid #6eaee8;
+}
+
+.field-rulebook-grid h3 {
+  margin: 0 0 6px;
+  color: #fff4d7;
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.field-rulebook-grid ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #c7d7de;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.field-rulebook-grid li + li {
+  margin-top: 5px;
 }
 
 .tutorial-frame {
@@ -1578,6 +1843,36 @@ textarea:focus-visible {
     padding: 12px !important;
   }
 
+  .collection-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .collection-header h1 {
+    font-size: 30px;
+  }
+
+  .build-vault-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .build-vault-stats {
+    grid-column: 1 / -1;
+  }
+
+  .build-deck-entry {
+    grid-template-columns: 94px minmax(0, 1fr);
+  }
+
+  .build-deck-cover {
+    min-height: 132px;
+  }
+
+  .build-draft-entry {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .tutorial-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1621,6 +1916,10 @@ textarea:focus-visible {
 
   .journey-rulebook > summary small {
     display: none;
+  }
+
+  .field-rulebook-grid {
+    grid-template-columns: 1fr;
   }
 
   .home-command-header {
@@ -1767,6 +2066,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 980px) {
+  .build-hub,
   .journey-route,
   .tutorial-layout {
     grid-template-columns: 1fr;
