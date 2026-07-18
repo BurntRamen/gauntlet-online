@@ -151,6 +151,286 @@ textarea:focus-visible {
   opacity: 0.72;
 }
 
+.identity-hub {
+  display: grid;
+  gap: 12px;
+}
+
+.identity-view-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  background: rgba(3, 10, 17, 0.72);
+}
+
+.identity-view-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-right: 1px solid rgba(125, 211, 252, 0.18);
+  border-bottom: 3px solid transparent;
+  background: rgba(11, 24, 38, 0.78);
+  color: #aebfca;
+  font: 800 13px var(--font-ui);
+  cursor: pointer;
+}
+
+.identity-view-tabs button:last-child {
+  border-right: 0;
+}
+
+.identity-view-tabs button:hover {
+  background: rgba(28, 51, 69, 0.78);
+  color: #f8fafc;
+}
+
+.identity-view-tabs button[aria-selected="true"] {
+  border-bottom-color: #f1c779;
+  background: linear-gradient(180deg, rgba(49, 79, 99, 0.92), rgba(23, 47, 65, 0.94));
+  color: #fff4d7;
+}
+
+.identity-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.identity-community-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.7fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.friend-challenge-alert {
+  margin-bottom: 10px;
+  padding: 9px;
+  border: 1px solid #f59e0b;
+  border-radius: 5px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #f8fafc;
+}
+
+.friend-challenge-alert > div {
+  margin: 3px 0 8px;
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.friend-add-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.friends-empty-state,
+.friend-conversation-placeholder,
+.friend-message-empty {
+  display: grid;
+  place-content: center;
+  gap: 5px;
+  min-height: 150px;
+  padding: 18px;
+  border: 1px dashed rgba(125, 211, 252, 0.3);
+  color: #dbeafe;
+  text-align: center;
+}
+
+.friends-empty-state span,
+.friend-conversation-placeholder span,
+.friend-message-empty span {
+  color: #93c5fd;
+  font-size: 12px;
+}
+
+.friends-workspace {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.58fr) minmax(0, 1.42fr);
+  min-height: 350px;
+  overflow: hidden;
+  border: 1px solid rgba(125, 211, 252, 0.27);
+  background: rgba(2, 8, 15, 0.42);
+}
+
+.friend-contact-list {
+  max-height: 390px;
+  overflow-y: auto;
+  border-right: 1px solid rgba(125, 211, 252, 0.22);
+  background: rgba(4, 14, 24, 0.72);
+}
+
+.friend-contact-list > button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.14);
+  background: transparent;
+  color: #dbeafe;
+  cursor: pointer;
+  text-align: left;
+}
+
+.friend-contact-list > button:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.friend-contact-list > button.is-selected {
+  box-shadow: inset 3px 0 #f1c779;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(28, 51, 69, 0.72));
+  color: #fff4d7;
+}
+
+.friend-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 36px;
+  border: 1px solid rgba(241, 199, 121, 0.55);
+  background: linear-gradient(145deg, #8a4b22, #1b3345);
+  color: #fff4d7;
+  font: 800 15px Georgia, serif;
+}
+
+.friend-contact-copy {
+  min-width: 0;
+}
+
+.friend-contact-copy strong,
+.friend-contact-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-contact-copy small {
+  margin-top: 2px;
+  color: #93c5fd;
+  font-size: 10px;
+}
+
+.friend-unread-count {
+  min-width: 18px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #facc15;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.friend-conversation {
+  display: grid;
+  grid-template-rows: auto minmax(210px, 1fr) auto;
+  min-width: 0;
+}
+
+.friend-conversation-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+  background: rgba(11, 24, 38, 0.82);
+}
+
+.friend-conversation-header > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.friend-conversation-header span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.friend-conversation-header strong {
+  color: #fff4d7;
+  font: 700 17px Georgia, serif;
+}
+
+.friend-conversation-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.friend-remove-button {
+  padding: 7px 9px;
+  border: 1px solid rgba(248, 113, 113, 0.72);
+  border-radius: 4px;
+  background: rgba(127, 29, 29, 0.82);
+  color: #fecaca;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.friend-message-history {
+  max-height: 286px;
+  overflow-y: auto;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(3, 10, 17, 0.54), rgba(12, 24, 32, 0.66));
+}
+
+.friend-message {
+  display: flex;
+  margin-bottom: 9px;
+}
+
+.friend-message.is-mine {
+  justify-content: flex-end;
+}
+
+.friend-message > div {
+  max-width: min(78%, 440px);
+  padding: 7px 9px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  background: rgba(29, 78, 216, 0.18);
+  color: #f8fafc;
+}
+
+.friend-message.is-mine > div {
+  border-color: rgba(241, 199, 121, 0.35);
+  background: rgba(146, 64, 14, 0.34);
+}
+
+.friend-message span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.friend-message p {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.friend-message-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid rgba(125, 211, 252, 0.2);
+  background: rgba(11, 24, 38, 0.88);
+}
+
+.friend-message-form input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .card-box .card-face-art-button {
   position: absolute;
   inset: 3px;
@@ -654,5 +934,45 @@ textarea:focus-visible {
 
   .campaign-chapter-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .identity-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .identity-community-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .identity-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .friends-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .friend-contact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    max-height: 170px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(125, 211, 252, 0.22);
+  }
+
+  .friend-contact-list > button {
+    border-right: 1px solid rgba(125, 211, 252, 0.14);
+  }
+
+  .friend-conversation-header {
+    align-items: flex-start;
+  }
+
+  .friend-message-history {
+    max-height: 240px;
   }
 }
