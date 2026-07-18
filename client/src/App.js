@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
-import "./MatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
@@ -2977,10 +2976,9 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions =
 
 function LaneCardLabel({ label, card, hidden = false }) {
   return (
-    <div className={`lane-card-line${hidden ? " is-hidden" : card ? " is-occupied" : " is-empty"}`} style={{ color: hidden ? "#f9fafb" : TABLETOP_THEME.text }}>
-      <span className="lane-slot-mark" aria-hidden="true">{hidden ? "G" : card ? getSuitSymbol(card.suit) : "+"}</span>
-      <span className="lane-slot-label">{label}</span>
-      <strong>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "Open"}</strong>
+    <div className="lane-card-line" style={{ color: hidden ? "#f9fafb" : TABLETOP_THEME.text }}>
+      <span>{label}</span>
+      <strong>{hidden ? "Face-down" : card ? `${getCardShortLabel(card)}${card.tempBuff ? ` (+${card.tempBuff})` : ""}` : "None"}</strong>
     </div>
   );
 }
@@ -3017,7 +3015,6 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
       }}
     >
       <div style={{ minWidth: 0 }}>
-        <span className="player-side-label">{isSelf ? "You" : "Opponent"}</span>
         <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
           <strong style={{ color: "#f7d99e", fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getGamePlayerName(game, playerNum)}</strong>
           <span style={{ color: TABLETOP_THEME.muted, fontSize: 12 }}>P{playerNum}</span>
@@ -3025,9 +3022,9 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
         <div style={{ color: connectionColor, fontSize: 12, marginTop: 2 }}>{infoPlayer.connected ? "Connected" : "Disconnected"}</div>
       </div>
       <div className="player-frame-stats">
-        <span className="player-life-stat" title="Life total"><span className="player-stat-icon">{"\u2665"}</span>{infoPlayer.life}</span>
-        <span title="Cards in hand"><span className="player-stat-icon">{"\u25B0"}</span>{handCount}</span>
-        <span className="player-ccg-summary" title={`CCG: ${ccgText}`}><span className="player-stat-icon">{"\u25C6"}</span>{ccgText}</span>
+        <span title="Life total"><span className="player-stat-icon">♥</span>{infoPlayer.life}</span>
+        <span title="Cards in hand"><span className="player-stat-icon">▰</span>{handCount}</span>
+        <span className="player-ccg-summary" title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
       </div>
     </div>
   );
@@ -6063,10 +6060,10 @@ export default function App() {
   const drawActionLabel = game.drawOfferBy && game.drawOfferBy !== player ? "Accept Draw" : game.drawOfferBy === player ? "Draw Offered" : "Offer Draw";
   const actionControls = !isSpectator && game.phase !== "gameOver" ? (
     <div className="action-icon-dock">
-      <ActionIconButton icon={"\u21B6"} label="Request Undo" onClick={requestUndo} iconOnly />
-      <ActionIconButton icon={"\u2630"} label="Main Menu" onClick={returnToMainMenu} iconOnly />
-      <ActionIconButton icon={"\u00BD"} label={drawActionLabel} onClick={offerDraw} disabled={game.drawOfferBy === player} iconOnly />
-      <ActionIconButton icon={"\u00D7"} label="Concede" onClick={concedeGame} danger iconOnly />
+      <ActionIconButton icon="↶" label="Request Undo" onClick={requestUndo} iconOnly />
+      <ActionIconButton icon="☰" label="Main Menu" onClick={returnToMainMenu} iconOnly />
+      <ActionIconButton icon="½" label={drawActionLabel} onClick={offerDraw} disabled={game.drawOfferBy === player} iconOnly />
+      <ActionIconButton icon="×" label="Concede" onClick={concedeGame} danger iconOnly />
     </div>
   ) : null;
 
@@ -6086,10 +6083,10 @@ export default function App() {
         overflow: "visible"
       }}
     >
-      <div className="decision-action-label">Available Actions</div>
+      <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
       {(attackMode || blockMode) && (
-        <div className="decision-payment" style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
-          {blockMode && !activeBlockCard ? "Choose a block card" : `Payment ${paymentTotal}/${attackMode ? activeAttackRequired : activeBlockRequired}`}
+        <div style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
+          Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
         </div>
       )}
       {attackMode && (
@@ -6263,11 +6260,11 @@ export default function App() {
         </>
       )}
       {(attackConfirmReason || blockConfirmReason || placementConfirmReason) && (
-        <div className="decision-reason" style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
+        <div style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
       )}
-      {paymentWarning && <div className="decision-warning" style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
-      {(abilityMode || ((attackMode || blockMode || placementMode) && !(attackConfirmReason || blockConfirmReason || placementConfirmReason)) || (game.phase === "damage" && game.message && /waiting/i.test(game.message))) && (
-        <div className="decision-help" style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
+      {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
+      {(attackMode || blockMode || placementMode || abilityMode || (game.phase === "damage" && game.message && /waiting/i.test(game.message))) && (
+        <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
           {normalizeCardDisplayText(quickActionHelpText())}
         </div>
       )}
@@ -6329,33 +6326,10 @@ export default function App() {
   const olderEvents = normalizedEvents.filter((entry) => (entry.turn || 1) < recentTurnFloor);
 
   function renderEventEntry(entry, idx, compact = false) {
-    const eventText = String(entry.text || "").toLowerCase();
-    const eventKind = eventText.includes("damage")
-      ? "damage"
-      : eventText.includes("block")
-        ? "block"
-        : eventText.includes("attack")
-          ? "attack"
-          : eventText.includes("pass")
-            ? "pass"
-            : eventText.includes("place") || eventText.includes("lane")
-              ? "placement"
-              : "status";
-    const eventIcon = {
-      attack: "\u2694",
-      block: "\u25C8",
-      damage: "-",
-      pass: "\u2192",
-      placement: "\u25A3",
-      status: "\u00B7"
-    }[eventKind];
     return (
-      <div className={`match-event-entry event-${eventKind}${idx === 0 && !compact ? " is-latest" : ""}`} role="listitem" key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
-        <span className="match-event-icon" aria-hidden="true">{eventIcon}</span>
-        <div className="match-event-copy">
-          <div className="match-event-meta">Turn {entry.turn || 1} - {entry.phase || "game"}</div>
-          <div>{normalizeCardDisplayText(entry.text)}</div>
-        </div>
+      <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
+        <div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>Turn {entry.turn || 1} - {entry.phase || "game"}</div>
+        <div>{normalizeCardDisplayText(entry.text)}</div>
       </div>
     );
   }
@@ -6466,24 +6440,7 @@ export default function App() {
   }
 
   return (
-    <div
-      className="game-root match-screen-v2"
-      style={{
-        padding: 8,
-        fontFamily: "Arial, sans-serif",
-        height: "100dvh",
-        boxSizing: "border-box",
-        overflow: "hidden",
-        display: "grid",
-        gridTemplateRows: "auto auto minmax(0, 1fr)",
-        background: tabletopBoardBackground,
-        backgroundAttachment: "fixed",
-        color: TABLETOP_THEME.text,
-        "--match-accent": myTheme.primary,
-        "--match-accent-border": myTheme.border,
-        "--match-opponent-accent": oppTheme.primary
-      }}
-    >
+    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
       <CardInspectModal card={inspectedCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onClose={() => setInspectedCard(null)} />
       {showDiscardViewer && (
         <DiscardPileModal
@@ -8313,17 +8270,8 @@ export default function App() {
       `}</style>
       <div className="match-top-frame">
         <div className="gauntlet-logo-panel">
-          <div className="match-brand-lockup" aria-label="Gauntlet Online">
-            <span className="match-brand-crest" aria-hidden="true">
-              <img src={resolveAssetPath("/assets/gauntlet/gauntlet-logo.png")} alt="" />
-            </span>
-            <h2>Gauntlet<small>Online</small></h2>
-          </div>
-          <div className="match-round-meta" aria-label={`Turn ${game.turn}. ${isMyPriority ? "You have priority" : `${getGamePlayerName(game, game.priority)} has priority`}.`}>
-            <span>Turn <strong>{game.turn}</strong></span>
-            <span className={isMyPriority ? "has-priority" : ""}>{isMyPriority ? "Your priority" : `${getGamePlayerName(game, game.priority)} acts`}</span>
-          </div>
-          <div className="match-room-code" style={{ color: TABLETOP_THEME.muted, fontSize: 12, marginTop: 8 }}>
+          <h2>Gauntlet<br />Online</h2>
+          <div style={{ color: TABLETOP_THEME.muted, fontSize: 12, marginTop: 8 }}>
             <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
           </div>
         </div>
@@ -8406,9 +8354,8 @@ export default function App() {
         <div className="table-main-panel">
           <div className="match-command-row">
             <div
-              className={`current-play-panel${isMyPriority ? " is-my-decision" : " is-opponent-decision"}${hasIncomingAttack ? " is-incoming" : ""}`}
+              className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
               role={hasIncomingAttack ? "alert" : "status"}
-              aria-live="polite"
             >
             <span className="decision-kicker">
               {hasIncomingAttack
@@ -8419,15 +8366,7 @@ export default function App() {
                     ? "Your decision"
                     : `${getGamePlayerName(game, game.priority)} has priority`}
             </span>
-            <strong>
-              {hasIncomingAttack
-                ? "Defend Yourself"
-                : game.phase === "priority"
-                  ? isMyPriority
-                    ? "Choose Your Action"
-                    : "Opponent Acting"
-                  : phaseDisplayName()}
-            </strong>
+            <strong>{hasIncomingAttack ? "Defend Yourself" : phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
               {phaseHelpText()}
             </div>
@@ -8496,28 +8435,18 @@ export default function App() {
                       else if (isSelectedBlock) bg = "#dcfce7";
                       else if (isSelectedPlacement) bg = "#f3e8ff";
                       else if (isSelectedPayment) bg = "#fee2e2";
-                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
-                       const showCardActions = attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode;
-                       const availableCardState = attackMode?.from === "hand"
-                         ? " can-attack"
-                         : blockMode?.type === "handAttack"
-                           ? " can-block"
-                           : placementMode
-                             ? " can-place"
-                             : attackMode || blockMode
-                               ? " can-pay"
-                               : "";
-                       const selectedCardState = `${isSelectedAttack ? " selected-attack" : ""}${isSelectedBlock ? " selected-block" : ""}${isSelectedPlacement ? " selected-placement" : ""}${isSelectedPayment ? " selected-payment" : ""}`;
-                       return (
-                         <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${showCardActions ? " has-actions" : ""}${availableCardState}${selectedCardState}`}>
-                           <CardBox card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard} />
-                           {showCardActions && (
-                             <div className="hand-card-actions">
-                               {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} className={isSelectedAttack ? "is-active" : ""} aria-pressed={isSelectedAttack}>Attack</button>}
-                               {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} className={isSelectedBlock ? "is-active" : ""} aria-pressed={isSelectedBlock}>Block</button>}
-                               {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} className={isSelectedPlacement ? "is-active" : ""} aria-pressed={isSelectedPlacement}>Place</button>}
-                               {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} className={isSelectedPayment ? "is-active" : ""} aria-pressed={isSelectedPayment}>Pay</button>}
-                             </div>
+                      const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
+                      const showCardActions = attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode;
+                      return (
+                        <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${showCardActions ? " has-actions" : ""}`}>
+                          <CardBox card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard} />
+                          {showCardActions && (
+                            <div className="hand-card-actions">
+                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} className={isSelectedAttack ? "is-active" : ""}>{isSelectedAttack ? "Attacker" : "Attack"}</button>}
+                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} className={isSelectedBlock ? "is-active" : ""}>{isSelectedBlock ? "Blocking" : "Block"}</button>}
+                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} className={isSelectedPlacement ? "is-active" : ""}>{isSelectedPlacement ? "Selected" : "Place"}</button>}
+                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} className={isSelectedPayment ? "is-active" : ""}>{isSelectedPayment ? "Paying" : "Pay"}</button>}
+                            </div>
                           )}
                         </div>
                       );
@@ -8537,7 +8466,7 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} className={`lane-card${lane.attack ? " has-combat" : ""}${i === currentEndLane && game.phase === "end" ? " is-placement-target" : ""}`} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                <div key={i} className="lane-card" style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
                   <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
                     <div style={{ display: "grid", gap: 5 }}>
@@ -8605,9 +8534,6 @@ export default function App() {
           <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
             <CollapseHeader title="Match Details" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
             {!collapsedPanels.actions && <>
-              <div className="match-details-room">
-                <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
-              </div>
               <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
                 <div><strong>Mode:</strong> {phaseDisplayName()}</div>
                 <div><strong>Turn:</strong> {game.turn}</div>
@@ -8638,12 +8564,12 @@ export default function App() {
               <PaymentLogPanel game={game} /></>}
           </SectionCard>
           <SectionCard className="recent-events-section" borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
-            <CollapseHeader title="Combat Log" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
+            <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
             {!collapsedPanels.events && (
               normalizedEvents.length === 0 ? (
                 <p>No events yet.</p>
               ) : (
-                <div className="recent-events-list" role="list" aria-label="Combat log">
+                <div className="recent-events-list">
                   {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
                   {olderEvents.length > 0 && (
                     <div style={{ display: "grid", gap: 6 }}>
