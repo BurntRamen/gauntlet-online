@@ -3231,7 +3231,9 @@ export default function App() {
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState("journey");
+  const [playView, setPlayView] = useState("tables");
   const [identityView, setIdentityView] = useState("profile");
+  const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
   const [tutorialCompletions, setTutorialCompletions] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
@@ -4523,51 +4525,95 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep}>
           {homeArea === "play" && (
-            <div className="home-panel-grid">
-              <MenuCard title="Practice">
-                <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play privately against the Training AI.</p>
-                <MenuButton onClick={() => startTutorialVsAi("basic")} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Basic vs AI</MenuButton>
-                <MenuButton variant="secondary" onClick={() => startTutorialVsAi("factions")} disabled={!canPlayAsPlayer}>Factions vs AI</MenuButton>
-                {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Choose an account or guest identity first.</p>}
-              </MenuCard>
-              <MenuCard title="Create Table">
-                <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Duel</MenuButton>
-                <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Free-For-All</MenuButton>
-                <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Live Draft</MenuButton>
-                <MenuButton variant="secondary" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer}>Bot Draft</MenuButton>
-                <HelperText enabled={showHelperLabels}>Duel seats 2, Free-For-All seats 2-4, and live draft seats up to 8.</HelperText>
-              </MenuCard>
-              <MenuCard title="Join Room">
-                <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", marginBottom: 10 }} />
-                <MenuButton onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</MenuButton>
-                <MenuButton variant="secondary" onClick={() => joinRoom(true)}>Spectate</MenuButton>
-              </MenuCard>
-              <ShareGameQrCard />
-              <MatchmakingPanel
-                account={account}
-                status={matchmakingStatus}
-                onJoin={() => joinMatchmaking(1)}
-                onLeave={leaveMatchmaking}
-                extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find BO3 Match</MenuButton>}
-              />
-              <MatchmakingPanel
-                account={account}
-                status={draftLeagueStatus}
-                onJoin={() => joinDraftLeague("player", 1)}
-                onLeave={leaveDraftLeague}
-                title="Draft League"
-                description="Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."
-                joinLabel="Player Draft"
-                cancelLabel="Leave Draft Queue"
-                signedOutText="Sign in and save a draft deck to enter Draft League."
-                extraActions={(
-                  <>
-                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
-                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
-                    <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
-                  </>
-                )}
-              />
+            <div className="play-hub">
+              <div className="play-view-tabs" role="tablist" aria-label="Play formats">
+                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["draft", "Draft"]].map(([viewId, label]) => (
+                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => setPlayView(viewId)}>{label}</button>
+                ))}
+              </div>
+
+              {playView === "practice" && (
+                <MenuCard className="play-focus-panel" title="Training Grounds">
+                  <div className="play-format-heading">
+                    <div><strong>Practice privately</strong><span>Choose core rules or the complete faction game.</span></div>
+                    {!canPlayAsPlayer && <small>Choose an account or guest identity first.</small>}
+                  </div>
+                  <div className="play-choice-grid">
+                    <button type="button" onClick={() => startTutorialVsAi("basic")} disabled={!canPlayAsPlayer}><span>Core Game</span><strong>Basic vs AI</strong><small>Priority, payment, blocking, and lanes.</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("factions")} disabled={!canPlayAsPlayer}><span>Full Game</span><strong>Factions vs AI</strong><small>Commanders, cities, generals, and faction powers.</small></button>
+                  </div>
+                </MenuCard>
+              )}
+
+              {playView === "tables" && (
+                <div className="play-table-grid">
+                  <MenuCard className="play-focus-panel" title="Create Table">
+                    <div className="play-choice-grid">
+                      <button type="button" onClick={createRoom} disabled={!canPlayAsPlayer}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
+                      <button type="button" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
+                    </div>
+                    <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
+                  </MenuCard>
+                  <MenuCard className="play-join-panel" title="Join Table">
+                    <form
+                      className="play-join-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (roomCodeInput.trim() && canPlayAsPlayer) joinRoom(false);
+                      }}
+                    >
+                      <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" aria-label="Room code" style={MENU_THEME.input} />
+                      <MenuButton type="submit" disabled={!canPlayAsPlayer || !roomCodeInput.trim()}>Join as Player</MenuButton>
+                      <MenuButton variant="secondary" onClick={() => joinRoom(true)} disabled={!roomCodeInput.trim()}>Spectate</MenuButton>
+                    </form>
+                  </MenuCard>
+                  <div className="play-share-panel"><ShareGameQrCard /></div>
+                </div>
+              )}
+
+              {playView === "ranked" && (
+                <div className="play-ranked-grid">
+                  <MatchmakingPanel
+                    account={account}
+                    status={matchmakingStatus}
+                    onJoin={() => joinMatchmaking(1)}
+                    onLeave={leaveMatchmaking}
+                    title="Ranked Duel"
+                    description="Find an account opponent with a similar win/loss ratio."
+                    joinLabel="Find Ranked Match"
+                    extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
+                  />
+                </div>
+              )}
+
+              {playView === "draft" && (
+                <div className="play-draft-grid">
+                  <MenuCard className="play-focus-panel" title="Draft a Deck">
+                    <div className="play-choice-grid">
+                      <button type="button" onClick={createDraftRoom} disabled={!canPlayAsPlayer}><span>Eight Seats</span><strong>Live Draft</strong><small>Draft with players, then save your deck.</small></button>
+                      <button type="button" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer}><span>Solo Table</span><strong>Bot Draft</strong><small>Draft against seven automated seats.</small></button>
+                    </div>
+                  </MenuCard>
+                  <MatchmakingPanel
+                    account={account}
+                    status={draftLeagueStatus}
+                    onJoin={() => joinDraftLeague("player", 1)}
+                    onLeave={leaveDraftLeague}
+                    title="Draft League"
+                    description="Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."
+                    joinLabel="Player Draft"
+                    cancelLabel="Leave Draft Queue"
+                    signedOutText="Sign in and save a draft deck to enter Draft League."
+                    extraActions={(
+                      <>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
+                      </>
+                    )}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -4719,12 +4765,26 @@ export default function App() {
     const isFreeForAllMode = lobby?.gameMode === "freeForAll";
     const lobbyPlayerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
     const connectedLobbyPlayers = lobbyPlayerNumbers.filter((p) => lobby?.players?.[p]?.connected);
+    const lobbyFactions = lobby?.factions || [];
+    const lobbyPreviewFaction = lobbyFactions.find((faction) => faction.id === lobbyFactionPreviewId)
+      || lobbyFactions.find((faction) => faction.id === myFactionId)
+      || lobbyFactions[0]
+      || null;
     const bothReady = isFreeForAllMode
       ? connectedLobbyPlayers.length >= 2 && connectedLobbyPlayers.every((p) => !!lobby?.players?.[p]?.factionId)
       : isBasicMode
         ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
         : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
+    const lobbyReadyBar = (
+      <div className="lobby-ready-bar">
+        <div>
+          <span>{myStartConfirmed ? "Ready confirmed" : "Final decision"}</span>
+          <strong>{isFreeForAllMode ? "All seated players choose a faction and confirm." : "Both players must confirm before the match begins."}</strong>
+        </div>
+        <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
+      </div>
+    );
 
     return (
       <div className="lobby-page menu-page" style={MENU_THEME.page}>
@@ -4748,32 +4808,73 @@ export default function App() {
         {copyNotice && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{copyNotice}</div>}
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <MenuCard title="Lobby">
-          <p><strong>Mode:</strong> {isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
+        <MenuCard className="lobby-command-panel" title="Table Command">
+          <div className="lobby-command-meta">
+            <span><small>Format</small><strong>{isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</strong></span>
+            <span><small>Spectators</small><strong>{lobby?.spectatorCount || 0}</strong></span>
+          </div>
           <LobbySeatGrid lobby={lobby} />
-          <HelperText enabled={showHelperLabels}>{isFreeForAllMode ? "Each connected seat must choose a faction and confirm. Empty seats can stay open." : "Both player seats need to be ready before the match begins."}</HelperText>
-          <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
-        </MenuCard>
-        {role === "player" && (
-          <>
-            {!isFreeForAllMode && <MenuCard title="Game Mode">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {role === "player" && !isFreeForAllMode && (
+            <div className="lobby-mode-row">
+              <div><span>Room rules</span><small>{player === 1 ? "Choose before both players confirm." : "Player 1 controls the room mode."}</small></div>
+              <div>
                 <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
                 <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode}>Basic Mode</MenuButton>
               </div>
-              <p style={{ marginBottom: 0, color: "#bfdbfe", fontSize: 13 }}>{player === 1 ? "Player 1 chooses the room mode before the game starts." : "Waiting for Player 1 to choose the room mode."}</p>
-            </MenuCard>}
-            {!isBasicMode && (
-              <>
-                <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
-                <div className="faction-choice-grid">
-                  {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
+            </div>
+          )}
+          <HelperText enabled={showHelperLabels}>{isFreeForAllMode ? "Each connected seat must choose a faction and confirm. Empty seats can stay open." : "Both player seats need to be ready before the match begins."}</HelperText>
+        </MenuCard>
+        {role === "player" && (
+          <>
+            {!isBasicMode && lobbyPreviewFaction && (
+              <section className="lobby-faction-command" aria-labelledby="lobby-faction-heading">
+                <div className="lobby-section-heading">
+                  <div><span>Choose Your Command</span><h2 id="lobby-faction-heading">Select Your Faction</h2></div>
+                  <small>{myFactionId ? `${lobbyFactions.find((faction) => faction.id === myFactionId)?.name || "Faction"} selected` : "No faction selected"}</small>
                 </div>
+                <div className="lobby-faction-tabs" role="tablist" aria-label="Factions">
+                  {lobbyFactions.map((faction) => {
+                    const previewed = lobbyPreviewFaction.id === faction.id;
+                    const selected = myFactionId === faction.id;
+                    const factionTheme = getFactionTheme(faction.id);
+                    return (
+                      <button
+                        key={faction.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={previewed}
+                        className={`faction-${faction.id}`}
+                        onClick={() => setLobbyFactionPreviewId(faction.id)}
+                        style={{ "--faction-accent": factionTheme.primary }}
+                      >
+                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`)})` }} />
+                        <span><strong>{faction.name}</strong><small>{selected ? "Selected" : previewed ? "Viewing" : "Inspect"}</small></span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {lobbyReadyBar}
+                <div className="lobby-faction-detail">
+                  <FactionChoiceCard
+                    faction={lobbyPreviewFaction}
+                    selected={myFactionId === lobbyPreviewFaction.id}
+                    onSelect={(factionId) => {
+                      setLobbyFactionPreviewId(factionId);
+                      chooseFaction(factionId);
+                    }}
+                  />
+                </div>
+              </section>
+            )}
+            {isBasicMode && (
+              <>
+                <MenuCard title="Basic Mode">
+                  <p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p>
+                </MenuCard>
+                {lobbyReadyBar}
               </>
             )}
-            {isBasicMode && <MenuCard title="Basic Mode"><p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p></MenuCard>}
-            <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13 }}>{isFreeForAllMode ? "All connected seated players must pick a faction and confirm. You can start with 2-4 players." : "Both players must confirm before the match begins."}</p>
           </>
         )}
         {role === "spectator" && <MenuCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></MenuCard>}
