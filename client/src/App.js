@@ -657,10 +657,10 @@ function SectionCard({ title, children, borderColor = "#333", background = "whit
   );
 }
 
-function MenuCard({ title, children }) {
+function MenuCard({ title, children, className = "" }) {
   return (
     <SectionCard
-      className="menu-card"
+      className={["menu-card", className].filter(Boolean).join(" ")}
       title={title}
       borderColor="rgba(132, 181, 201, 0.34)"
       background="linear-gradient(180deg, rgba(17, 35, 51, 0.92), rgba(10, 22, 36, 0.94))"
@@ -672,10 +672,11 @@ function MenuCard({ title, children }) {
   );
 }
 
-function MenuButton({ children, variant = "primary", disabled = false, onClick, style = {} }) {
+function MenuButton({ children, variant = "primary", disabled = false, onClick, style = {}, type = "button" }) {
   const base = variant === "secondary" ? MENU_THEME.secondaryButton : MENU_THEME.button;
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -931,7 +932,18 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
 
   return (
     <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
-      <div style={{ display: "grid", gap: 10 }}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.target.tagName !== "INPUT") return;
+          event.preventDefault();
+          onSubmit();
+        }}
+        style={{ display: "grid", gap: 10 }}
+      >
         <input
           value={form.name}
           onChange={(e) => onFormChange({ ...form, name: e.target.value })}
@@ -949,12 +961,12 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
         />
         {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
         <div>
-          <MenuButton onClick={onSubmit} style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
+          <MenuButton type="submit" style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
           <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
             {mode === "register" ? "Use Existing Account" : "Make Account"}
           </MenuButton>
         </div>
-      </div>
+      </form>
     </MenuCard>
   );
 }
@@ -2182,10 +2194,10 @@ function FriendsPanel({
     : [];
 
   return (
-    <MenuCard title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
+    <MenuCard className="friends-panel" title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
       {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
       {incomingChallenges.map((challenge) => (
-        <div key={challenge.id} style={{ border: "1px solid #f59e0b", borderRadius: 6, padding: 9, marginBottom: 10, background: "rgba(245,158,11,0.14)", color: "#f8fafc" }}>
+        <div key={challenge.id} className="friend-challenge-alert">
           <strong>{challenge.fromName} challenged you</strong>
           <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0 8px" }}>Faction Duel · room {challenge.roomCode}</div>
           <MenuButton onClick={() => onJoinChallenge(challenge)} style={{ marginRight: 7 }}>Join Table</MenuButton>
@@ -2197,56 +2209,91 @@ function FriendsPanel({
           Waiting on {outgoingChallenges.map((challenge) => challenge.toName).join(", ")}.
         </div>
       )}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+      <form
+        className="friend-add-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (friendName.trim()) onAddFriend();
+        }}
+      >
         <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
-        <MenuButton onClick={onAddFriend}>Add</MenuButton>
+        <MenuButton type="submit" disabled={!friendName.trim()}>Add</MenuButton>
         <MenuButton variant="secondary" onClick={onRefresh}>Refresh</MenuButton>
-      </div>
+      </form>
       {friends.length === 0 ? (
-        <p style={{ color: "#bfdbfe", margin: 0 }}>No friends yet.</p>
+        <div className="friends-empty-state">
+          <strong>Your table is quiet.</strong>
+          <span>Add a player by account name to start a conversation or challenge.</span>
+        </div>
       ) : (
-        <div style={{ display: "grid", gap: 8 }}>
-          {friends.map((friend) => {
-            const expanded = selectedFriend?.id === friend.id;
-            const unreadCount = unreadCounts[friend.id] || 0;
-            return (
-              <div key={friend.id} style={{ border: expanded ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", borderRadius: 6, background: expanded ? "rgba(245,158,11,0.14)" : "rgba(15,23,42,0.64)", overflow: "hidden" }}>
-                <button onClick={() => onSelectFriend(expanded ? "" : friend.id)} style={{ width: "100%", textAlign: "left", padding: 8, border: 0, background: "transparent", color: "#dbeafe", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <strong>{friend.name}</strong>
-                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                    {unreadCount > 0 && <span style={{ color: "#0f172a", background: "#facc15", borderRadius: 999, padding: "2px 7px", fontWeight: "bold", fontSize: 12 }}>{unreadCount}</span>}
-                    <span>{expanded ? "Close" : "Open"}</span>
-                  </span>
+        <div className="friends-workspace">
+          <nav className="friend-contact-list" aria-label="Friends">
+            {friends.map((friend) => {
+              const selected = selectedFriend?.id === friend.id;
+              const unreadCount = unreadCounts[friend.id] || 0;
+              return (
+                <button
+                  key={friend.id}
+                  type="button"
+                  className={selected ? "is-selected" : ""}
+                  aria-current={selected ? "true" : undefined}
+                  onClick={() => onSelectFriend(friend.id)}
+                >
+                  <span className="friend-avatar" aria-hidden="true">{friend.name.slice(0, 1).toUpperCase()}</span>
+                  <span className="friend-contact-copy"><strong>{friend.name}</strong><small>{selected ? "Conversation open" : "View conversation"}</small></span>
+                  {unreadCount > 0 && <span className="friend-unread-count">{unreadCount}</span>}
                 </button>
-                {expanded && (
-                  <div style={{ padding: 8, borderTop: "1px solid rgba(125,211,252,0.25)", background: "rgba(2,6,23,0.34)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                      <strong>{friend.name}</strong>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                        <MenuButton onClick={() => onChallengeFriend(friend.id)}>Challenge</MenuButton>
-                        <button onClick={() => onRemoveFriend(friend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
-                      </div>
-                    </div>
-                    <div style={{ height: 130, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
-                      {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
-                      {selectedMessages.map((message) => (
-                        <div key={message.id} style={{ marginBottom: 8, textAlign: message.fromId === account.id ? "right" : "left" }}>
-                          <div style={{ display: "inline-block", maxWidth: "88%", padding: "6px 8px", borderRadius: 6, background: message.fromId === account.id ? "rgba(245,158,11,0.22)" : "rgba(59,130,246,0.18)", color: "#f8fafc" }}>
-                            <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 2 }}>{message.fromName}</div>
-                            <div>{message.text}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input value={messageText} onChange={(e) => onMessageTextChange(e.target.value)} placeholder="Message" maxLength={500} style={{ ...MENU_THEME.input, flex: 1 }} />
-                      <MenuButton onClick={() => onSendMessage(friend.id)}>Send</MenuButton>
-                    </div>
+              );
+            })}
+          </nav>
+          <section className="friend-conversation" aria-label={selectedFriend ? `Conversation with ${selectedFriend.name}` : "Friend conversation"}>
+            {selectedFriend ? (
+              <>
+                <div className="friend-conversation-header">
+                  <div><span>At the table with</span><strong>{selectedFriend.name}</strong></div>
+                  <div className="friend-conversation-actions">
+                    <MenuButton onClick={() => onChallengeFriend(selectedFriend.id)}>Challenge</MenuButton>
+                    <button type="button" onClick={() => onRemoveFriend(selectedFriend.id)} className="friend-remove-button">Remove</button>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+                <div className="friend-message-history" aria-live="polite">
+                  {selectedMessages.length === 0 && <div className="friend-message-empty"><strong>No messages yet.</strong><span>Say hello or send a challenge to begin.</span></div>}
+                  {selectedMessages.map((message) => {
+                    const sentByMe = message.fromId === account.id;
+                    return (
+                      <div key={message.id} className={`friend-message${sentByMe ? " is-mine" : ""}`}>
+                        <div><span>{message.fromName}</span><p>{message.text}</p></div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <form
+                  className="friend-message-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (messageText.trim()) onSendMessage(selectedFriend.id);
+                  }}
+                >
+                  <input
+                    value={messageText}
+                    onChange={(e) => onMessageTextChange(e.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" || !messageText.trim()) return;
+                      event.preventDefault();
+                      onSendMessage(selectedFriend.id);
+                    }}
+                    placeholder={`Message ${selectedFriend.name}`}
+                    aria-label={`Message ${selectedFriend.name}`}
+                    maxLength={500}
+                    style={MENU_THEME.input}
+                  />
+                  <MenuButton type="submit" disabled={!messageText.trim()}>Send</MenuButton>
+                </form>
+              </>
+            ) : (
+              <div className="friend-conversation-placeholder"><strong>Choose a friend</strong><span>Their messages and challenge controls will appear here.</span></div>
+            )}
+          </section>
         </div>
       )}
     </MenuCard>
@@ -3184,6 +3231,7 @@ export default function App() {
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState("journey");
+  const [identityView, setIdentityView] = useState("profile");
   const [tutorialCompletions, setTutorialCompletions] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
@@ -4575,7 +4623,13 @@ export default function App() {
           )}
 
           {homeArea === "identity" && (
-            <div className="home-panel-grid">
+            <div className="identity-hub">
+              <div className="identity-view-tabs" role="tablist" aria-label="Identity views">
+                {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"]].map(([viewId, label]) => (
+                  <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => setIdentityView(viewId)}>{label}</button>
+                ))}
+              </div>
+              {identityView === "profile" && <div className="identity-profile-grid">
               <AccountPanel
                 account={account}
                 mode={authMode}
@@ -4607,6 +4661,8 @@ export default function App() {
                 {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
               </MenuCard>
               <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
+              </div>}
+              {identityView === "record" && (
               <CompetitiveIdentityPanel
                 profile={competitiveProfile}
                 loading={competitiveProfileLoading}
@@ -4614,6 +4670,8 @@ export default function App() {
                 onOpenProfile={(accountId) => openPublicView("profile", accountId)}
                 onOpenMatch={(matchId) => openPublicView("match", matchId)}
               />
+              )}
+              {identityView === "profile" && (
               <MenuCard title="Featured Decks">
                 {featuredDecks.length > 0 ? featuredDecks.map((deck) => (
                   <div key={deck.id} style={{ borderBottom: "1px solid rgba(125, 211, 252, 0.18)", padding: "7px 0", color: "#dbeafe" }}>
@@ -4623,6 +4681,8 @@ export default function App() {
                 )) : <p style={{ marginTop: 0, color: "#bfdbfe" }}>Feature up to three decks from Build to make them part of your identity.</p>}
                 <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account} style={{ marginTop: 8 }}>Manage Decks</MenuButton>
               </MenuCard>
+              )}
+              {identityView === "community" && <div className="identity-community-grid">
               <FriendsPanel
                 account={account}
                 friendsData={friendsData}
@@ -4644,6 +4704,7 @@ export default function App() {
                 unreadTotal={friendUnreadTotal}
               />
               <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} onOpenProfile={(accountId) => openPublicView("profile", accountId)} />
+              </div>}
             </div>
           )}
         </HomeNavigation>
