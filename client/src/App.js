@@ -1580,6 +1580,20 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
     }
   }
 
+  function loadSavedConstructedDeck() {
+    if (!savedConstructedDeck) return;
+    setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
+    setConstructedQuantities(savedConstructedDeck.cardQuantities || {});
+    setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
+    setConstructedSaveMessage("Saved deck loaded into editor.");
+  }
+
+  function clearConstructedDeck() {
+    setConstructedQuantities({});
+    setConstructedSuitChoices({});
+    setConstructedSaveMessage("Base 52-card deck selected. Save to clear constructed swaps.");
+  }
+
   return (
     <MenuCard title="Faction Collection">
       <style>{`
@@ -1826,7 +1840,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <div>
               <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Constructed Deck</h4>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap owned faction cards into matching values while keeping exactly 4 cards of each value.</div>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap owned faction cards into matching values while keeping exactly 4 cards of each value. Faction games load your saved deck when you select that same faction.</div>
             </div>
             <div style={{ color: constructedCurveWarning ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
               {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
@@ -1898,7 +1912,9 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             })}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>Save Constructed Deck</MenuButton>
+            <MenuButton onClick={saveConstructedDeck} disabled={!!constructedCurveWarning || !!constructedSlotWarning}>Save Constructed Deck</MenuButton>
+            <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Clear Swaps</MenuButton>
+            {savedConstructedDeck && <MenuButton variant="secondary" onClick={loadSavedConstructedDeck}>Load Saved Deck</MenuButton>}
             {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
             {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
             {constructedCurveWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Too many value {constructedCurveWarning[0]} cards.</span>}
