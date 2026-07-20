@@ -216,7 +216,7 @@ const CAMPAIGN_CHAPTERS = {
       { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."], dialogueAudio: ["/assets/gauntlet/voices/rolmus-brothers-2.mp3", "/assets/gauntlet/voices/remex-brothers-1.mp3", "/assets/gauntlet/voices/rolmus-brothers-1.mp3"] },
       { id: "the-republic", playableName: "The Senate Guard", opponentName: "Tribune Marcell", title: "The Republic", story: "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic.", dialogue: ["Senator: The Republic endures because it is slow.", "Marcell: Slow things are easy to buy.", "Young Kaiser: Then someone must become too expensive to own."], dialogueAudio: ["/assets/gauntlet/voices/senator-republic-1.mp3", "/assets/gauntlet/voices/marcell-republic-1.mp3", "/assets/gauntlet/voices/young-kaiser-republic-1.mp3"] },
       { id: "the-jewel", playableName: "Kaiser", opponentName: "Corrupt Governor Severan", title: "The Jewel", story: "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy.", dialogue: ["Severan: You mistake popularity for authority.", "Kaiser: No. I mistake theft for treason.", "Crowd: Kaiser! Kaiser! Kaiser!"], dialogueAudio: ["/assets/gauntlet/voices/severan-jewel-1.mp3", "/assets/gauntlet/voices/kaiser-jewel-1.mp3", "/assets/gauntlet/voices/rumin-crowd-jewel-1.mp3"] },
-      { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."] },
+      { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."], dialogueAudio: ["/assets/gauntlet/voices/vercan-gaulic-1.mp3", "/assets/gauntlet/voices/kaiser-gaulic-1.mp3", "/assets/gauntlet/voices/vercan-gaulic-2.mp3"] },
       { id: "three-runes", playableName: "Kaiser", opponentName: "Ancient Rune Guardian", title: "The Three Runes", story: "Kaiser discovers vaults of Strength, Protection, and Experience, then begins binding sacred runes to the legions.", dialogue: ["Guardian: Strength without wisdom breaks itself.", "Kaiser: Then I will take wisdom too.", "Guardian: All conquerors say that before the vault closes."] },
       { id: "first-empire-bank", playableName: "Kaiser", opponentName: "Market Collapse", title: "The First Empire Bank", story: "Kaiser returns to build roads, grain systems, public works, and banking reforms while saboteurs try to break Rumie's markets.", dialogue: ["Merchant: The city eats because credit moves.", "Brutus: And if one man commands the credit?", "Kaiser: Then one man answers if the people starve."] },
       { id: "the-crossing", playableName: "Kaiser", opponentName: "Senate General Cassius", title: "The Crossing", story: "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins.", dialogue: ["Brutus: Kaiser, do not do this.", "Kaiser: If I surrender, Rumie returns to corruption.", "Brutus: Then save the Republic.", "Kaiser: I intend to."] },
@@ -2474,6 +2474,47 @@ function CombatStrip({ game }) {
   );
 }
 
+const CAMPAIGN_SPEAKER_IMAGE_ALIASES = {
+  augustus: "/assets/gauntlet/kaiser-gauntlet.webp",
+  bark: "/assets/gauntlet/sheen-card.webp",
+  blackthorn: "/assets/gauntlet/sheen-card.webp",
+  bobei: "/assets/gauntlet/kaiser-gauntlet.webp",
+  brutus: "/assets/gauntlet/rumin-card.webp",
+  cassius: "/assets/gauntlet/rumin-card.webp",
+  crowd: "/assets/gauntlet/rumie.webp",
+  den: "/assets/gauntlet/sheen-card.webp",
+  dowan: "/assets/gauntlet/sheen-card.webp",
+  focus: "/assets/gauntlet/focus.jpg",
+  guardian: "/assets/gauntlet/rumin-card.webp",
+  hera: "/assets/gauntlet/hera.webp",
+  hushan: "/assets/gauntlet/sheen-card.webp",
+  kaiser: "/assets/gauntlet/kaiser-gauntlet.webp",
+  lafayette: "/assets/gauntlet/lafayette.webp",
+  leafen: "/assets/gauntlet/leafen-gao.png",
+  leshan: "/assets/gauntlet/sheen-card.webp",
+  marcell: "/assets/gauntlet/rumin-card.webp",
+  merchant: "/assets/gauntlet/rumie.webp",
+  polea: "/assets/gauntlet/polea.webp",
+  reane: "/assets/gauntlet/sheen-card.webp",
+  remex: "/assets/gauntlet/rumin-card.webp",
+  rolmus: "/assets/gauntlet/kaiser-gauntlet.webp",
+  senator: "/assets/gauntlet/rumie.webp",
+  severan: "/assets/gauntlet/rumin-card.webp",
+  tang: "/assets/gauntlet/tang.webp",
+  vercan: "/assets/gauntlet/rumin-card.webp",
+  zalara: "/assets/gauntlet/frumo-card.webp"
+};
+
+function getCampaignSpeakerImage(speaker) {
+  const normalized = String(speaker || "").toLowerCase();
+  const aliasKey = Object.keys(CAMPAIGN_SPEAKER_IMAGE_ALIASES).find((key) => normalized.includes(key));
+  if (aliasKey) return CAMPAIGN_SPEAKER_IMAGE_ALIASES[aliasKey];
+  if (["ironbark", "rootlash", "goldroot", "hollowvine", "drought", "blight", "ash"].some((key) => normalized.includes(key))) return "/assets/gauntlet/sheen-card.webp";
+  if (["admiral", "captain", "tide", "pirate", "corsair", "deep", "sunken"].some((key) => normalized.includes(key))) return "/assets/gauntlet/frumo-card.webp";
+  if (["voltari", "silicon", "conductor", "regnum", "engine", "machine"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
+  return "/assets/gauntlet/rumin-card.webp";
+}
+
 function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "" }) {
   const dialogueAudioRefs = useRef([]);
   const autoPlayedRef = useRef("");
@@ -2578,29 +2619,54 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
           const speaker = separatorIndex > 0 ? text.slice(0, separatorIndex).trim() : "Narrator";
           const spoken = separatorIndex > 0 ? text.slice(separatorIndex + 1).trim() : text;
           const hasAudio = Boolean(audioLines[index]);
+          const speakerImage = getCampaignSpeakerImage(speaker);
           return (
-            <div key={`${speaker}-${index}`} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              {hasAudio && (
-                <button
-                  type="button"
-                  onClick={() => playDialogueAudio(index)}
-                  title={`Play ${speaker} voice`}
-                  style={{
-                    border: "1px solid rgba(250,204,21,0.42)",
-                    borderRadius: 4,
-                    padding: compact ? "1px 5px" : "2px 7px",
-                    background: light ? "rgba(255,247,237,0.86)" : "rgba(42,22,11,0.72)",
-                    color: light ? "#7c2d12" : "#fde68a",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    fontSize: compact ? 10 : 12
-                  }}
-                >
-                  Play Voice
-                </button>
-              )}
-              <span>
-                <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}:</strong>{" "}
+            <div
+              key={`${speaker}-${index}`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `${compact ? 34 : 46}px minmax(0, 1fr)`,
+                gap: compact ? 7 : 10,
+                alignItems: "start",
+                padding: compact ? "3px 0" : "5px 0"
+              }}
+            >
+              <img
+                src={resolveAssetPath(speakerImage)}
+                alt=""
+                style={{
+                  width: compact ? 34 : 46,
+                  height: compact ? 34 : 46,
+                  borderRadius: 8,
+                  objectFit: "cover",
+                  border: light ? "1px solid rgba(124,45,18,0.35)" : "1px solid rgba(250,204,21,0.38)",
+                  background: "rgba(15,23,42,0.6)",
+                  boxShadow: "0 6px 18px rgba(0,0,0,0.22)"
+                }}
+              />
+              <span style={{ display: "grid", gap: 3, minWidth: 0 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}</strong>
+                  {hasAudio && (
+                    <button
+                      type="button"
+                      onClick={() => playDialogueAudio(index)}
+                      title={`Play ${speaker} voice`}
+                      style={{
+                        border: "1px solid rgba(250,204,21,0.42)",
+                        borderRadius: 4,
+                        padding: compact ? "1px 5px" : "2px 7px",
+                        background: light ? "rgba(255,247,237,0.86)" : "rgba(42,22,11,0.72)",
+                        color: light ? "#7c2d12" : "#fde68a",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        fontSize: compact ? 10 : 12
+                      }}
+                    >
+                      Play Voice
+                    </button>
+                  )}
+                </span>
                 <span>{spoken}</span>
               </span>
             </div>
