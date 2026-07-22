@@ -35,6 +35,7 @@ const FACTION_COLORS = {
   sheen: { primary: "#2f855a", light: "#e6f6ec", border: "#276749" },
   frumo: { primary: "#2563eb", light: "#e8f0ff", border: "#1d4ed8" },
   bizi: { primary: "#7c3aed", light: "#f3e8ff", border: "#6d28d9" },
+  xendra: { primary: "#a855f7", light: "#f5e8ff", border: "#6b21a8" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
 
@@ -87,7 +88,8 @@ const MUSIC_TRACKS = {
       "/assets/gauntlet/music/bizi-3.mp3",
       "/assets/gauntlet/music/bizi-4.mp3"
     ]
-  }
+  },
+  xendra: { label: "The Deep Currents", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
 };
 
 const MENU_THEME = {
@@ -180,6 +182,13 @@ const BOARD_BACKGROUNDS = {
     linear-gradient(160deg, rgba(20, 184, 166, 0.38), transparent 36%),
     linear-gradient(180deg, #67e8f9 0%, #0891b2 32%, #0369a1 62%, #172554 100%)
   `,
+  xendra: `
+    radial-gradient(circle at 50% 16%, rgba(216, 180, 254, 0.52), transparent 16%),
+    radial-gradient(circle at 18% 42%, rgba(14, 165, 233, 0.24), transparent 18%),
+    repeating-radial-gradient(circle at 54% 22%, rgba(250, 250, 255, 0.18) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.52) 0 24px, rgba(88, 28, 135, 0.34) 24px 27px, transparent 27px 70px),
+    linear-gradient(180deg, #09090f 0%, #1e1b4b 34%, #581c87 68%, #020617 100%)
+  `,
   default:
     "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)"
 };
@@ -204,6 +213,11 @@ const FACTION_VOICE_LINES = {
     "A poor wager, captain.",
     "The tide demands more coin.",
     "No sail catches wind without proper pay."
+  ],
+  xendra: [
+    "The pattern refuses that shape.",
+    "Your payment echoes incomplete.",
+    "The sky has not agreed."
   ]
 };
 
@@ -219,7 +233,7 @@ const CAMPAIGN_CHAPTERS = {
       { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."], dialogueAudio: ["/assets/gauntlet/voices/vercan-gaulic-1.mp3", "/assets/gauntlet/voices/kaiser-gaulic-1.mp3", "/assets/gauntlet/voices/vercan-gaulic-2.mp3"] },
       { id: "three-runes", playableName: "Kaiser", opponentName: "Ancient Rune Guardian", title: "The Three Runes", story: "Kaiser discovers vaults of Strength, Protection, and Experience, then begins binding sacred runes to the legions.", dialogue: ["Guardian: Strength without wisdom breaks itself.", "Kaiser: Then I will take wisdom too.", "Guardian: All conquerors say that before the vault closes."], dialogueAudio: ["/assets/gauntlet/voices/guardian-runes-1.mp3", "/assets/gauntlet/voices/kaiser-runes-1.mp3", "/assets/gauntlet/voices/guardian-runes-2.mp3"] },
       { id: "first-empire-bank", playableName: "Kaiser", opponentName: "Market Collapse", title: "The First Empire Bank", story: "Kaiser returns to build roads, grain systems, public works, and banking reforms while saboteurs try to break Rumie's markets.", dialogue: ["Merchant: The city eats because credit moves.", "Brutus: And if one man commands the credit?", "Kaiser: Then one man answers if the people starve."], dialogueAudio: ["/assets/gauntlet/voices/merchant-bank-1.mp3", "/assets/gauntlet/voices/brutus-bank-1.mp3", "/assets/gauntlet/voices/kaiser-bank-1.mp3"] },
-      { id: "the-crossing", playableName: "Kaiser", opponentName: "Senate General Cassius", title: "The Crossing", story: "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins.", dialogue: ["Brutus: Kaiser, do not do this.", "Kaiser: If I surrender, Rumie returns to corruption.", "Brutus: Then save the Republic.", "Kaiser: I intend to."] },
+      { id: "the-crossing", playableName: "Kaiser", opponentName: "Senate General Cassius", title: "The Crossing", story: "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins.", dialogue: ["Brutus: Kaiser, do not do this.", "Kaiser: If I surrender, Rumie returns to corruption.", "Brutus: Then save the Republic.", "Kaiser: I intend to."], dialogueAudio: ["/assets/gauntlet/voices/brutus-crossing-1.mp3", "/assets/gauntlet/voices/kaiser-crossing-1.mp3", "/assets/gauntlet/voices/brutus-crossing-2.mp3", "/assets/gauntlet/voices/kaiser-crossing-2.mp3"] },
       { id: "last-republic", playableName: "Kaiser", opponentName: "Brutus", title: "The Last Republic", story: "Rumie burns as legions and senators collide. Kaiser wins the city, but Brutus survives the fall of the old order.", dialogue: ["Brutus: You have saved Rumie by conquering it.", "Kaiser: I have saved Rumie from men who sold it.", "Brutus: Then we are both traitors."] },
       { id: "emperor-of-gold", playableName: "Kaiser", opponentName: "Rebel Senate Coalition", title: "Emperor of Gold", story: "At Kaiser's peak, roads, banks, and legions flourish, but prisoners, taxes, and central rule make citizens question the jewel.", dialogue: ["Senator: Prosperity is not freedom.", "Kaiser: Freedom without bread is a slogan.", "Brutus: And bread without law is obedience."] },
       { id: "ides-of-rumie", playableName: "Kaiser", opponentName: "Brutus and the Conspirators", title: "The Ides of Rumie", story: "Kaiser stabilizes the empire, yet the conspiracy reaches the Senate floor. This chapter frames the tragedy more than the victory.", dialogue: ["Kaiser: You too, Brutus?", "Brutus: I do this for Rumie.", "Kaiser: No. You do it because Rumie no longer needs you."] },
@@ -282,6 +296,21 @@ const CAMPAIGN_CHAPTERS = {
       { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold."] },
       { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that."] },
       { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal."] }
+    ]
+  },
+  xendra: {
+    factionName: "XenDra",
+    commanderName: "The Deep Currents",
+    pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual.",
+    chapters: [
+      { id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night", story: "An impossible eclipse settles over Reath. Elias, a cartographer with no combat training, notices that the stars are moving.", dialogue: ["Narrator: Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.", "Elias: Stars do not drift at noon.", "Terrified Villager: Don't look at the sky!"] },
+      { id: "silent-village", playableName: "Elias Varen", opponentName: "The Village Elder", title: "The Silent Village", story: "Elias reaches a polite village where nobody blinks, children play without speaking, and every answer is the same.", dialogue: ["Elias: What did you see during the eclipse?", "Village Elder: The light was beautiful.", "Elias: That is what the children said. Word for word."] },
+      { id: "dreams-that-remember", playableName: "Elias Varen", opponentName: "Syllith, the Echoing Child", title: "Dreams That Remember", story: "Elias dreams of rooms that rearrange themselves and voices that repeat his memories with one word wrong.", dialogue: ["Syllith: Stars do not drift at dawn.", "Elias: I said noon.", "Syllith: Did you?"] },
+      { id: "beneath-observatory", playableName: "Elias Varen", opponentName: "The Thrallmaker", title: "Beneath the Observatory", story: "Ancient observatories reveal that civilizations before recorded history drew the same eclipse symbol: the XenDra glyph.", dialogue: ["Elias: Rumin stone. Sheen ink. Bizi brass. The same mark in every age.", "Thrallmaker: The first mercy is surrender.", "Elias: Then I am still cruel enough to refuse."] },
+      { id: "deep-currents", playableName: "Elias Varen", opponentName: "Nulth, the Hollow Voice", title: "The Deep Currents", story: "Mountains become oceans, maps contradict themselves, and Nulth asks questions that make survival feel like an argument.", dialogue: ["Nulth: If pain could end, who would defend the wound?", "Elias: People are not wounds.", "Nulth: Then why do they spend their lives closing?"] },
+      { id: "the-enlightened", playableName: "Elias Varen", opponentName: "Arel Voss, Enlightened Conduit", title: "The Enlightened", story: "A hidden settlement worships the XenDra willingly, not from fear, but from the belief that the Deep Currents ended suffering.", dialogue: ["Arel Voss: You still believe they are taking people.", "Elias: I have seen what they leave behind.", "Arel Voss: No. They are waiting."] },
+      { id: "the-eclipse", playableName: "Elias Varen", opponentName: "Sovereign Krauth, Crown of Static", title: "The Eclipse", story: "Elias learns the terrible truth: every glyph investigated, every relic activated, and every Harbinger followed strengthened the ritual.", dialogue: ["Krauth: You did not uncover the door. You built it.", "Elias: I was trying to stop you.", "Krauth: Intent is a candle. Consequence is the sun."] },
+      { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
     ]
   }
 };
@@ -478,6 +507,38 @@ const CAMPAIGN_NARRATION = {
   "last-gear": {
     beforeBattle: "Constanti stands under final siege. The Titans are silent, engines fail, and divided Bizi fight together so their knowledge will outlive the city.",
     afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
+  },
+  "longest-night": {
+    beforeBattle: "An eclipse opens over Reath like a beautiful mistake. Elias Varen records the weather, the ruins, and the sudden silence, then notices the impossible: the stars are moving in daylight.",
+    afterBattle: "The terrified villager falls quiet. Elias survives his first fight, but the warning remains: do not look at the sky."
+  },
+  "silent-village": {
+    beforeBattle: "Elias follows the eclipse road to a village that smiles too carefully. The people are healthy, polite, and synchronized in ways no living town should be.",
+    afterBattle: "The Elder's calm breaks, revealing the first Thrall beneath the human mask. Elias leaves with a map that no longer matches the road behind him."
+  },
+  "dreams-that-remember": {
+    beforeBattle: "Sleep becomes a second battlefield. Elias hears yesterday's words repeated by Syllith, the Echoing Child, but each memory returns altered by a single poisonous detail.",
+    afterBattle: "Elias escapes the dream without defeating it. Syllith remains somewhere behind his thoughts, patiently editing the shape of what he remembers."
+  },
+  "beneath-observatory": {
+    beforeBattle: "Ancient observatories beneath Reath show the same eclipse carved in incompatible civilizations. Before Rumin stone, Sheen ink, or Bizi brass, someone drew the XenDra glyph.",
+    afterBattle: "The Thrallmaker dies or perhaps only changes shape. Elias now knows the eclipse is not an event, but a recurrence."
+  },
+  "deep-currents": {
+    beforeBattle: "Reality begins to buckle. Mountains remember being oceans, maps contradict themselves, and Nulth asks questions designed to survive longer than answers.",
+    afterBattle: "There is no corpse, no trophy, and no proof that Elias won. Only the terrible feeling that Nulth allowed the conversation to end."
+  },
+  "the-enlightened": {
+    beforeBattle: "A hidden settlement welcomes Elias with peace instead of panic. Arel Voss claims the XenDra do not steal minds; they wait for exhausted souls to stop defending loneliness.",
+    afterBattle: "Arel falls back smiling, not beaten so much as confirmed. Elias begins to wonder whether terror and mercy can wear the same face."
+  },
+  "the-eclipse": {
+    beforeBattle: "The pattern closes. Every ruin Elias entered, every glyph he activated, and every Harbinger he followed has strengthened the connection he meant to sever.",
+    afterBattle: "Krauth, the Crown of Static, is driven away, but the ritual is complete. Elias did not uncover the door. He built it."
+  },
+  "witness-oblivion": {
+    beforeBattle: "Cities drift apart beneath a sky full of watching stars. The last defenders of Reath raise weapons against Elias, who still believes he is bringing peace.",
+    afterBattle: "The eclipse returns exactly as it began. A tall, faceless Sovereign extends one silent hand. Elias smiles, takes it, and somewhere far away another child asks why stars are out during the day."
   }
 };
 
@@ -575,6 +636,14 @@ function getCampaignDifficulty(factionId, chapterIndex) {
       maxAttackValue: 5 + Math.floor(chapterIndex / 4)
     };
   }
+  if (factionId === "xendra") {
+    return {
+      bossLife: Math.min(48, 16 + chapterIndex * 4),
+      attacksPerTurn: Math.min(4, 1 + Math.floor((chapterIndex + 1) / 2)),
+      minAttackValue: 2 + Math.floor(chapterIndex / 3),
+      maxAttackValue: 4 + Math.floor(chapterIndex / 2)
+    };
+  }
   return {
     bossLife: [18, 24, 32][chapterIndex] || 32,
     attacksPerTurn: Math.min(4, 2 + chapterIndex),
@@ -618,6 +687,11 @@ function getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName = "
       `${opponentName}: Prototype Surge - final scripted attack each turn gets +1.`,
       `${opponentName}: Overclock Directive - last two scripted attacks each turn get +1.`,
       `${opponentName}: Machine Logic - ${tier >= 3 ? "first and final scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
+    ],
+    xendra: [
+      `${opponentName}: Unreliable Perception - first scripted attack each turn gets +1.`,
+      `${opponentName}: Hallucination Loop - even-numbered attacks get +1.`,
+      `${opponentName}: Ritual Completion - first and final scripted attacks each turn get +1.`
     ]
   };
   const options = previews[factionId];
@@ -1330,6 +1404,12 @@ function getBattlefieldTexture(factionId) {
       linear-gradient(0deg, rgba(250, 204, 21, 0.1) 1px, transparent 1px),
       repeating-linear-gradient(45deg, transparent 0 36px, rgba(15, 23, 42, 0.34) 36px 39px),
       radial-gradient(circle at 76% 24%, rgba(250, 204, 21, 0.12), transparent 18%)
+    `,
+    xendra: `
+      radial-gradient(circle at 50% 8%, rgba(216, 180, 254, 0.18), transparent 22%),
+      repeating-radial-gradient(circle at 52% 18%, rgba(168, 85, 247, 0.18) 0 2px, transparent 2px 32px),
+      repeating-linear-gradient(112deg, rgba(30, 27, 75, 0.42) 0 5px, transparent 5px 58px),
+      linear-gradient(160deg, rgba(17, 24, 39, 0.32), rgba(88, 28, 135, 0.18))
     `
   };
   return textures[factionId] || textures.rumin;
@@ -2489,6 +2569,12 @@ const CAMPAIGN_SPEAKER_IMAGE_ALIASES = {
   hera: "/assets/gauntlet/hera.webp",
   hushan: "/assets/gauntlet/sheen-card.webp",
   kaiser: "/assets/gauntlet/kaiser-gauntlet.webp",
+  arel: "/assets/gauntlet/bizi-card.webp",
+  elias: "/assets/gauntlet/rumin-card.webp",
+  krauth: "/assets/gauntlet/bizi-card.webp",
+  nulth: "/assets/gauntlet/frumo-card.webp",
+  syllith: "/assets/gauntlet/sheen-card.webp",
+  thrallmaker: "/assets/gauntlet/bizi-card.webp",
   lafayette: "/assets/gauntlet/lafayette.webp",
   leafen: "/assets/gauntlet/leafen-gao.png",
   leshan: "/assets/gauntlet/sheen-card.webp",
@@ -2512,6 +2598,7 @@ function getCampaignSpeakerImage(speaker) {
   if (["ironbark", "rootlash", "goldroot", "hollowvine", "drought", "blight", "ash"].some((key) => normalized.includes(key))) return "/assets/gauntlet/sheen-card.webp";
   if (["admiral", "captain", "tide", "pirate", "corsair", "deep", "sunken"].some((key) => normalized.includes(key))) return "/assets/gauntlet/frumo-card.webp";
   if (["voltari", "silicon", "conductor", "regnum", "engine", "machine"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
+  if (["xendra", "sovereign", "thrall", "conduit", "eclipse", "defender"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
   return "/assets/gauntlet/rumin-card.webp";
 }
 
