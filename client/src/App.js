@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import "./App.css";
+import "./FocusedMatchScreen.css";
+import HomeNavigation from "./HomeNavigation";
+import DeckLibraryPanel from "./DeckLibraryPanel";
+import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
+import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -14,6 +20,16 @@ const INITIAL_JOIN_ROOM_CODE =
     ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
     : "";
 
+function getPublicViewFromLocation() {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const matchId = params.get("match");
+  const profileId = params.get("profile");
+  if (matchId) return { type: "match", id: matchId };
+  if (profileId) return { type: "profile", id: profileId };
+  return null;
+}
+
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
 });
@@ -27,7 +43,7 @@ const STORAGE_KEYS = {
   friendReadAt: "gauntlet_friend_read_at",
   accountSoundMuted: "gauntlet_account_sound_muted",
   onboardingDismissed: "gauntlet_onboarding_dismissed",
-  accountModeGuideSeen: "gauntlet_account_mode_guide_seen"
+  tutorialCompletions: "gauntlet_tutorial_completions"
 };
 
 const FACTION_COLORS = {
@@ -95,20 +111,21 @@ const MUSIC_TRACKS = {
 const MENU_THEME = {
   page: {
     minHeight: "100vh",
-    padding: 30,
+    padding: 20,
     boxSizing: "border-box",
-    fontFamily: "Arial, sans-serif",
-    color: "#e5eef8",
+    fontFamily: "var(--font-ui)",
+    color: "var(--text-primary)",
     background:
-      "radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.22), transparent 28%), radial-gradient(circle at 82% 18%, rgba(180, 83, 9, 0.18), transparent 24%), linear-gradient(135deg, #07111f 0%, #111827 42%, #1f2933 100%)"
+      "linear-gradient(135deg, rgba(13, 31, 46, 0.98), rgba(7, 14, 24, 0.99) 56%, rgba(28, 20, 16, 0.98))"
   },
   frame: {
     maxWidth: 1180,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    borderRadius: 8,
-    padding: 22,
-    background: "linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(17, 24, 39, 0.72))",
-    boxShadow: "0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+    margin: "0 auto",
+    border: "1px solid var(--line-cool)",
+    borderRadius: 6,
+    padding: 18,
+    background: "linear-gradient(180deg, rgba(11, 24, 38, 0.96), rgba(8, 16, 27, 0.94))",
+    boxShadow: "0 24px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
   },
   cardStyle: {
     color: "#dbeafe",
@@ -221,345 +238,18 @@ const FACTION_VOICE_LINES = {
   ]
 };
 
-const CAMPAIGN_CHAPTERS = {
-  rumin: {
-    factionName: "Rumin",
-    commanderName: "The Jewel of Rumie",
-    pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.",
-    chapters: [
-      { id: "brothers-of-destiny", playableName: "Rolmus", opponentName: "Remex", title: "Brothers of Destiny", story: "Two brothers found Rumie together, then clash over whether trade or conquest will define the city.", dialogue: ["Rolmus: Trade builds empires.", "Remex: Trade only survives behind walls.", "Rolmus: Then today we decide what Rumie is."], dialogueAudio: ["/assets/gauntlet/voices/rolmus-brothers-2.mp3", "/assets/gauntlet/voices/remex-brothers-1.mp3", "/assets/gauntlet/voices/rolmus-brothers-1.mp3"] },
-      { id: "the-republic", playableName: "The Senate Guard", opponentName: "Tribune Marcell", title: "The Republic", story: "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic.", dialogue: ["Senator: The Republic endures because it is slow.", "Marcell: Slow things are easy to buy.", "Young Kaiser: Then someone must become too expensive to own."], dialogueAudio: ["/assets/gauntlet/voices/senator-republic-1.mp3", "/assets/gauntlet/voices/marcell-republic-1.mp3", "/assets/gauntlet/voices/young-kaiser-republic-1.mp3"] },
-      { id: "the-jewel", playableName: "Kaiser", opponentName: "Corrupt Governor Severan", title: "The Jewel", story: "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy.", dialogue: ["Severan: You mistake popularity for authority.", "Kaiser: No. I mistake theft for treason.", "Crowd: Kaiser! Kaiser! Kaiser!"], dialogueAudio: ["/assets/gauntlet/voices/severan-jewel-1.mp3", "/assets/gauntlet/voices/kaiser-jewel-1.mp3", "/assets/gauntlet/voices/rumin-crowd-jewel-1.mp3"] },
-      { id: "gaulic-wars", playableName: "Kaiser", opponentName: "Gaulic Warchief Vercan", title: "The Gaulic Wars", story: "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes.", dialogue: ["Vercan: Your roads end here, jewel prince.", "Kaiser: Roads do not end. They arrive.", "Vercan: Then arrive with steel."], dialogueAudio: ["/assets/gauntlet/voices/vercan-gaulic-1.mp3", "/assets/gauntlet/voices/kaiser-gaulic-1.mp3", "/assets/gauntlet/voices/vercan-gaulic-2.mp3"] },
-      { id: "three-runes", playableName: "Kaiser", opponentName: "Ancient Rune Guardian", title: "The Three Runes", story: "Kaiser discovers vaults of Strength, Protection, and Experience, then begins binding sacred runes to the legions.", dialogue: ["Guardian: Strength without wisdom breaks itself.", "Kaiser: Then I will take wisdom too.", "Guardian: All conquerors say that before the vault closes."], dialogueAudio: ["/assets/gauntlet/voices/guardian-runes-1.mp3", "/assets/gauntlet/voices/kaiser-runes-1.mp3", "/assets/gauntlet/voices/guardian-runes-2.mp3"] },
-      { id: "first-empire-bank", playableName: "Kaiser", opponentName: "Market Collapse", title: "The First Empire Bank", story: "Kaiser returns to build roads, grain systems, public works, and banking reforms while saboteurs try to break Rumie's markets.", dialogue: ["Merchant: The city eats because credit moves.", "Brutus: And if one man commands the credit?", "Kaiser: Then one man answers if the people starve."], dialogueAudio: ["/assets/gauntlet/voices/merchant-bank-1.mp3", "/assets/gauntlet/voices/brutus-bank-1.mp3", "/assets/gauntlet/voices/kaiser-bank-1.mp3"] },
-      { id: "the-crossing", playableName: "Kaiser", opponentName: "Senate General Cassius", title: "The Crossing", story: "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins.", dialogue: ["Brutus: Kaiser, do not do this.", "Kaiser: If I surrender, Rumie returns to corruption.", "Brutus: Then save the Republic.", "Kaiser: I intend to."], dialogueAudio: ["/assets/gauntlet/voices/brutus-crossing-1.mp3", "/assets/gauntlet/voices/kaiser-crossing-1.mp3", "/assets/gauntlet/voices/brutus-crossing-2.mp3", "/assets/gauntlet/voices/kaiser-crossing-2.mp3"] },
-      { id: "last-republic", playableName: "Kaiser", opponentName: "Brutus", title: "The Last Republic", story: "Rumie burns as legions and senators collide. Kaiser wins the city, but Brutus survives the fall of the old order.", dialogue: ["Brutus: You have saved Rumie by conquering it.", "Kaiser: I have saved Rumie from men who sold it.", "Brutus: Then we are both traitors."] },
-      { id: "emperor-of-gold", playableName: "Kaiser", opponentName: "Rebel Senate Coalition", title: "Emperor of Gold", story: "At Kaiser's peak, roads, banks, and legions flourish, but prisoners, taxes, and central rule make citizens question the jewel.", dialogue: ["Senator: Prosperity is not freedom.", "Kaiser: Freedom without bread is a slogan.", "Brutus: And bread without law is obedience."] },
-      { id: "ides-of-rumie", playableName: "Kaiser", opponentName: "Brutus and the Conspirators", title: "The Ides of Rumie", story: "Kaiser stabilizes the empire, yet the conspiracy reaches the Senate floor. This chapter frames the tragedy more than the victory.", dialogue: ["Kaiser: You too, Brutus?", "Brutus: I do this for Rumie.", "Kaiser: No. You do it because Rumie no longer needs you."] },
-      { id: "war-of-successors", playableName: "Bobei", opponentName: "Brutus", title: "War of the Successors", story: "After Kaiser dies, Bobei seeks vengeance while Brutus tries to restore the Republic from the ruins.", dialogue: ["Bobei: You killed a man and woke an empire.", "Brutus: I killed a tyrant.", "Bobei: Then why does Rumie weep?"] },
-      { id: "first-emperor", playableName: "Augustus", opponentName: "Bobei the Great", title: "The First Emperor", story: "Augustus defeats Bobei, keeps the bank, legions, and rune program, restores Senate traditions, and leaves Rumie with an empire wearing republican robes.", dialogue: ["Bobei: I was Kaiser's sword.", "Augustus: And I will be his law.", "Old Senator: Perhaps the better question is whether Rumie could have survived without him."] }
-    ]
-  },
-  sheen: {
-    factionName: "Sheen",
-    commanderName: "The Rise and Trials of the Sheen",
-    pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal.",
-    chapters: [
-      { id: "iron-roots", playableName: "Leafen Gao", opponentName: "Emperor Blackthorn", title: "The Iron Roots", story: "The Obsidian Lords drain the forests through Iron Root outposts while Leafen Gao begins a rebellion among starving villages.", dialogue: ["Leafen Gao: A root that drinks everything is not a root. It is a chain.", "Blackthorn: Chains hold kingdoms together.", "Leafen Gao: Then the forest will break yours."] },
-      { id: "verdant-uprising", playableName: "Leafen Gao and Hushan", opponentName: "The Thorn Guard Commanders", title: "The Verdant Uprising", story: "Hushan joins Leafen as the rebellion spreads against Ironbark, Thornclaw, and Rootlash.", dialogue: ["Hushan: They say this rebellion is doomed.", "Leafen Gao: Seeds are buried before they rise.", "Ironbark: Then we will salt the soil."] },
-      { id: "obsidian-throne", playableName: "Leafen Gao, Hushan, and Leshan", opponentName: "Blackthorn, Lord of Iron", title: "Fall of the Obsidian Throne", story: "Leshan and Dowan collapse the Iron Roots themselves, forcing Blackthorn into one last monstrous stand.", dialogue: ["Leshan: Strike the root, not the branch.", "Blackthorn: I am the root.", "Leafen Gao: Then fall with it."] },
-      { id: "beli-living-city", playableName: "Leafen Gao", opponentName: "The Great Blight", title: "Beli, Living City", story: "The Sheen rebuild, found Beli, and begin the Root Network while a natural blight threatens the new kingdom.", dialogue: ["Leafen Gao: We won a forest. Now we must make it a home.", "Reane: Homes are grown, not declared.", "The Great Blight: All growth returns to hunger."] },
-      { id: "root-network", playableName: "Bark Xin and Dowan", opponentName: "The Ash Serpent", title: "The Root Network", story: "Dowan expands Sheen botanical science with barriers, shields, greenhouses, and trade routes, but the Ash Serpent burns the nodes.", dialogue: ["Dowan: The network must bend before it spreads.", "Bark Xin: And if fire follows the roots?", "Dowan: Then we teach roots to carry rain."] },
-      { id: "blooming-age", playableName: "Reane and Hushan", opponentName: "The Drought King", title: "The Blooming Age", story: "The Sheen enter a golden age of shelters, retreats, springs, and living greenhouses as a desert warlord tests the border.", dialogue: ["Reane: Prosperity is not how much we store. It is how much survives winter.", "Drought King: I bring a longer winter.", "Hushan: Then we bring deeper roots."] },
-      { id: "court-of-blossoms", playableName: "Den", opponentName: "Minister Hollowvine", title: "The Court of Blossoms", story: "Political factions emerge in Beli as Den tries to preserve stability while Aime and Tang rise through the court.", dialogue: ["Den: A court can rot while every garden blooms.", "Hollowvine: Rot feeds the next garden.", "Den: Not while I still prune."] },
-      { id: "the-reformer", playableName: "Tang", opponentName: "Lord Goldroot", title: "The Reformer", story: "Tang sees inequality and stagnation, introduces reforms that truly help, and wins sympathy against corrupt nobles.", dialogue: ["Tang: Tradition has become a fence around empty soil.", "Goldroot: Empty soil is still mine.", "Tang: Not after the roots remember the poor."] },
-      { id: "thorned-crown", playableName: "Tang", opponentName: "Ringan", title: "Thorned Crown", story: "Tang centralizes power and creates the Thornblades, while Ringan, a former ally, tries to stop his imbalance.", dialogue: ["Ringan: You wanted reform. This is control.", "Tang: Control is reform that cannot be bribed.", "Ringan: And cannot be questioned."] },
-      { id: "war-of-roots", playableName: "Dowan, Hushan, and Ringan", opponentName: "The Thornblade Generals", title: "The War of Roots", story: "Civil war burns the forests as shelters are weaponized and the Root Network collapses under Ashroot, Briarfang, and Ironvine.", dialogue: ["Dowan: I built these roads to feed cities.", "Ashroot: Roads also carry armies.", "Hushan: Then we cut the roads and save the roots."] },
-      { id: "fall-of-thorn-mang", playableName: "Dowan and Reane", opponentName: "Tang, Crown of Thorns", title: "Fall of Thorn Mang", story: "Tang realizes too late what his reforms became, then falls as healer, commander, and living thorn avatar.", dialogue: ["Tang: I only wanted the kingdom to live.", "Reane: Then why does it bleed when you speak?", "Tang: Because I mistook pain for pruning."] },
-      { id: "green-era", playableName: "Dowan", opponentName: "The Great Renewal", title: "The Green Era", story: "Dowan restores the Root Network, shelters, healing, greenhouses, and balance after the civil war.", dialogue: ["Dowan: Growth without harmony becomes overgrowth.", "Reane: Tradition without growth becomes ash.", "Dowan: Then wisdom is knowing when to nurture and when to prune."] }
-    ]
-  },
-  frumo: {
-    factionName: "Frumo",
-    commanderName: "The Last Tide",
-    pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council.",
-    chapters: [
-      { id: "tax-of-tides", playableName: "Lafayette", opponentName: "Royal Tax Collector", title: "The Tax of the Tides", story: "King Ludvik's tribute fleets bleed Ristus while royal collectors seize treasure from every captain and family.", dialogue: ["Lafayette: The sea gives enough for all Frumo.", "Tax Collector: Then all Frumo can pay the king.", "Lafayette: The tide is turning against your vaults."] },
-      { id: "voices-of-revolution", playableName: "Privateer Mirabeau", opponentName: "Royal Governor of Coral Bay", title: "Voices of Revolution", story: "Hidden taverns and pirate dens fill with reformers as Mirabeau, Danton, Marat, Robespier, and Lafayette demand a freer kingdom.", dialogue: ["Mirabeau: A king who ignores his people will hear their cannons.", "Governor: Coral Bay answers only to Ludvik.", "Danton: Then Coral Bay will learn a new language."] },
-      { id: "fall-of-silver-shoals", playableName: "Corsair Danton", opponentName: "General Carnot", title: "The Fall of Silver Shoals", story: "Revolutionary captains storm Ludvik's treasure fortress, proving common pirates can defeat royal formations.", dialogue: ["Danton: Silver Shoals was built to scare us.", "Carnot: It was built to contain you.", "Danton: Then watch what escapes."] },
-      { id: "sunken-fortress", playableName: "Lafayette", opponentName: "King Ludvik", title: "The Sunken Fortress", story: "The capital floods with revolution as Ludvik discovers his treasure can buy armies, but not loyalty.", dialogue: ["Ludvik: You call it greed. I call it responsibility.", "Lafayette: Responsibility does not wear a jewel-covered crown.", "Ludvik: Do you know how difficult it is being king?"] },
-      { id: "trial-of-king", playableName: "Robespier", opponentName: "Royal Loyalists", title: "The Trial of the King", story: "The monarchy falls, but Frumo divides over whether Ludvik should be imprisoned, spared, or executed.", dialogue: ["Robespier: No kingdom can be free while the crown still lives.", "Lafayette: Justice is not hunger with a blade.", "Robespier: Mercy is how tyrants learn to swim back."] },
-      { id: "reign-of-revolution", playableName: "Marat", opponentName: "Robespier the Red Tide", title: "The Reign of the Revolution", story: "Victory curdles into suspicion as Robespier hunts enemies of freedom until the revolution itself becomes dangerous.", dialogue: ["Robespier: The enemies of freedom wear many faces.", "Marat: Then you will soon accuse the mirror.", "Robespier: Mercy is the weapon of tyrants."] },
-      { id: "hero-of-republic", playableName: "Polea", opponentName: "Admiral of the Northern Coalition", title: "The Hero of the Republic", story: "As chaos spreads, Polea wins impossible naval battles, defeats Frumo-world invaders, and gives the republic hope.", dialogue: ["Polea: I did not come to rule the republic.", "Admiral: No. You came to make it need you.", "Polea: Today it needs victory."] },
-      { id: "lord-commander", playableName: "Polea", opponentName: "Council Rivals", title: "Lord Commander", story: "Polea saves the republic, then takes control of it as the Council of Captains yields more power each year.", dialogue: ["Councilor: You were given command for one crisis.", "Polea: The crisis learned to change names.", "Councilor: So did ambition."] },
-      { id: "frumo-empire", playableName: "Polea", opponentName: "Polea's Shadow", title: "The Frumo Empire", story: "Polea crowns himself Lord Commander of All Frumo: no king, no council, no election, only command.", dialogue: ["Polea: I freed the Frumo from kings.", "Shadow: And gave them a commander instead.", "Polea: Better one helm than a thousand drowning hands."] },
-      { id: "hundred-fleets", playableName: "Polea", opponentName: "The Coral Crown, Kelpbound Princes, and Brasswater League", title: "The Hundred Fleets", story: "Polea's armadas dominate Reath's oceans as rival Frumo sea powers unite against his endless victories.", dialogue: ["Coral Envoy: The seas do not belong to one captain.", "Polea: Then why do they answer mine?", "Brasswater Admiral: Because fear sounds like obedience."] },
-      { id: "frozen-sea", playableName: "Polea", opponentName: "The Ice Leviathan", title: "The Frozen Sea", story: "Polea attempts to conquer the northern oceans, but storms, ice, hunger, and a leviathan shatter the once-invincible navy.", dialogue: ["Polea: No tide has ever refused me.", "Ice Leviathan: This is not tide. This is silence.", "Polea: Then I will break silence too."] },
-      { id: "last-tide", playableName: "The Restored Council", opponentName: "Lord Commander Polea", title: "The Last Tide", story: "Former allies and rival fleets face Polea one final time, then restore the Council with the uneasy knowledge that freedom can decay again.", dialogue: ["Polea: I freed the Frumo. I united them. I made them strong.", "Lafayette: And then you made them yours.", "Polea: If that makes me a tyrant, history may judge me."] }
-    ]
-  },
-  bizi: {
-    factionName: "Bizi",
-    commanderName: "The Gears of Eternity",
-    pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.",
-    chapters: [
-      { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders."] },
-      { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina sleeps beneath Constanti, dividing Bizi thinkers over whether the Titan created them or merely guides them.", dialogue: ["Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering."] },
-      { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli attempt to restore the old Bizi world at the empire's dazzling peak.", dialogue: ["Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it."] },
-      { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Constanti burns in rebellion, Justine nearly flees, and Theo forces him to choose rule over escape.", dialogue: ["Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Beli: Open the gates. I will restore order."] },
-      { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns and reclaims ancient territories, but each victory stretches the empire thinner.", dialogue: ["Beli: We have won another province.", "Theo: And inherited another wound.", "Beli: Then the empire is made of wounds that refused to close."] },
-      { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus seizes power and promises order through absolute efficiency.", dialogue: ["Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul."] },
-      { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "The eastern empire collapses, factories fall, shrines are destroyed, and the Bizi face extinction.", dialogue: ["Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them."] },
-      { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera rises when victory seems impossible, marches into enemy territory, and turns one victory into ten.", dialogue: ["Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures."] },
-      { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Followers of Machina, Melech, and Meca fight over creation, guidance, and control until faith becomes civil danger.", dialogue: ["Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth."] },
-      { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold."] },
-      { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that."] },
-      { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal."] }
-    ]
-  },
-  xendra: {
-    factionName: "XenDra",
-    commanderName: "The Deep Currents",
-    pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual.",
-    chapters: [
-      { id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night", story: "An impossible eclipse settles over Reath. Elias, a cartographer with no combat training, notices that the stars are moving.", dialogue: ["Narrator: Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.", "Elias: Stars do not drift at noon.", "Terrified Villager: Don't look at the sky!"] },
-      { id: "silent-village", playableName: "Elias Varen", opponentName: "The Village Elder", title: "The Silent Village", story: "Elias reaches a polite village where nobody blinks, children play without speaking, and every answer is the same.", dialogue: ["Elias: What did you see during the eclipse?", "Village Elder: The light was beautiful.", "Elias: That is what the children said. Word for word."] },
-      { id: "dreams-that-remember", playableName: "Elias Varen", opponentName: "Syllith, the Echoing Child", title: "Dreams That Remember", story: "Elias dreams of rooms that rearrange themselves and voices that repeat his memories with one word wrong.", dialogue: ["Syllith: Stars do not drift at dawn.", "Elias: I said noon.", "Syllith: Did you?"] },
-      { id: "beneath-observatory", playableName: "Elias Varen", opponentName: "The Thrallmaker", title: "Beneath the Observatory", story: "Ancient observatories reveal that civilizations before recorded history drew the same eclipse symbol: the XenDra glyph.", dialogue: ["Elias: Rumin stone. Sheen ink. Bizi brass. The same mark in every age.", "Thrallmaker: The first mercy is surrender.", "Elias: Then I am still cruel enough to refuse."] },
-      { id: "deep-currents", playableName: "Elias Varen", opponentName: "Nulth, the Hollow Voice", title: "The Deep Currents", story: "Mountains become oceans, maps contradict themselves, and Nulth asks questions that make survival feel like an argument.", dialogue: ["Nulth: If pain could end, who would defend the wound?", "Elias: People are not wounds.", "Nulth: Then why do they spend their lives closing?"] },
-      { id: "the-enlightened", playableName: "Elias Varen", opponentName: "Arel Voss, Enlightened Conduit", title: "The Enlightened", story: "A hidden settlement worships the XenDra willingly, not from fear, but from the belief that the Deep Currents ended suffering.", dialogue: ["Arel Voss: You still believe they are taking people.", "Elias: I have seen what they leave behind.", "Arel Voss: No. They are waiting."] },
-      { id: "the-eclipse", playableName: "Elias Varen", opponentName: "Sovereign Krauth, Crown of Static", title: "The Eclipse", story: "Elias learns the terrible truth: every glyph investigated, every relic activated, and every Harbinger followed strengthened the ritual.", dialogue: ["Krauth: You did not uncover the door. You built it.", "Elias: I was trying to stop you.", "Krauth: Intent is a candle. Consequence is the sun."] },
-      { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
-    ]
-  }
-};
-
-const CAMPAIGN_NARRATION = {
-  "brothers-of-destiny": {
-    beforeBattle: "Rumie begins as a fragile dream between two brothers: Rolmus, who sees trade as the road to greatness, and Remex, who believes only conquest can keep the city alive. Their argument will decide the soul of the empire before it is even born.",
-    afterBattle: "Rolmus wins the first argument, but not the last. Rumie is founded on trade, ambition, and the unresolved truth that wealth will always need soldiers to guard it."
-  },
-  "the-republic": {
-    beforeBattle: "Generations later, Rumie is rich, proud, and rotten beneath its marble. Senators speak of tradition while banks, legions, and private debts quietly decide the fate of citizens.",
-    afterBattle: "The Republic survives, but its weakness has been exposed. Rumie's laws still stand, yet more people now wonder whether law without justice is only another kind of market."
-  },
-  "the-jewel": {
-    beforeBattle: "Kaiser rises from officer to public champion, paying debts and walking among workers while the aristocracy protects its own. Governor Severan believes popularity cannot defeat power.",
-    afterBattle: "Severan falls, and Kaiser becomes more than a soldier. To the people, he is the Jewel of Rumie; to the Senate, he is a warning."
-  },
-  "gaulic-wars": {
-    beforeBattle: "Northern tribes unite against Rumie's frontier, threatening roads, trade, and imperial pride. Kaiser marches north, knowing victory will make him beloved and feared in equal measure.",
-    afterBattle: "The frontier opens. Kaiser returns with wealth, veterans, and a legend too large for the Senate to comfortably contain."
-  },
-  "three-runes": {
-    beforeBattle: "Beneath conquered lands, Kaiser finds ancient vaults of Strength, Protection, and Experience. The runes promise power, but every sacred weapon demands a price from the hand that holds it.",
-    afterBattle: "The legions are changed forever. Rumie now commands not only soldiers and gold, but myth itself."
-  },
-  "first-empire-bank": {
-    beforeBattle: "Kaiser turns from conquest to reform, building roads, grain systems, and public credit. His enemies strike at the markets, hoping the people will blame him when Rumie hungers.",
-    afterBattle: "The markets hold. Kaiser proves that money can be a weapon of stability, and the people begin trusting him more than the institutions meant to govern him."
-  },
-  "the-crossing": {
-    beforeBattle: "The Senate orders Kaiser to surrender command. Brutus begs him to preserve the Republic, but Kaiser believes the Republic has already been sold by the men claiming to save it.",
-    afterBattle: "The line is crossed. Civil war begins, and Rumie must now choose between a corrupt freedom and an honest empire."
-  },
-  "last-republic": {
-    beforeBattle: "Legions and senators collide while Brutus fights for a dying order. Kaiser fights for the city itself, even if saving Rumie means conquering it.",
-    afterBattle: "Kaiser wins the city. The Republic still has voices, but no longer has control."
-  },
-  "emperor-of-gold": {
-    beforeBattle: "Roads flourish, banks expand, and the legions obey one hand. Yet prosperity casts a long shadow: taxes, prisoners, and obedience gather beneath the gold.",
-    afterBattle: "Kaiser reaches the height of power. Rumie is safer and richer than ever, but citizens begin asking whether rescue has become rule."
-  },
-  "ides-of-rumie": {
-    beforeBattle: "The conspiracy reaches the Senate floor. Kaiser enters believing his work has saved Rumie; Brutus waits believing only betrayal can save what remains.",
-    afterBattle: "Kaiser falls, but the empire does not. The assassins kill the man and accidentally preserve his myth."
-  },
-  "war-of-successors": {
-    beforeBattle: "Bobei takes up vengeance while Brutus tries to restore the Republic from blood and ashes. Both claim Kaiser's death proves their cause.",
-    afterBattle: "Brutus loses the future. The Republic he tried to save becomes a memory carried by the empire that replaces it."
-  },
-  "first-emperor": {
-    beforeBattle: "Augustus and Bobei clash over Kaiser's legacy: sword or law, vengeance or settlement. Rumie waits to see what shape empire will finally take.",
-    afterBattle: "Augustus wins. The Senate returns in ceremony, the empire remains in fact, and Rumie learns to call obedience tradition."
-  },
-  "iron-roots": {
-    beforeBattle: "The Obsidian Lords drain the forest through Iron Root outposts, turning living land into tribute. Leafen Gao's rebellion begins among starving villages with little more than anger and patience.",
-    afterBattle: "The first chains break. The Sheen learn that roots can strangle as well as nourish."
-  },
-  "verdant-uprising": {
-    beforeBattle: "Hushan joins Leafen as the rebellion spreads through villages, groves, and hidden paths. The Thorn Guard believes a scattered forest cannot become an army.",
-    afterBattle: "The rebellion becomes a people. What began as hunger has grown into a shared memory of injustice."
-  },
-  "obsidian-throne": {
-    beforeBattle: "Leshan and Dowan strike at the Iron Roots themselves, forcing Blackthorn into a final stand. If the root survives, the forest will never be free.",
-    afterBattle: "Blackthorn falls. The Sheen win their forest, but victory leaves them with the harder task of building a kingdom that does not become another chain."
-  },
-  "beli-living-city": {
-    beforeBattle: "The Sheen found Beli and begin the Root Network, but nature itself tests the newborn kingdom through blight and scarcity. Rebellion must become stewardship.",
-    afterBattle: "Beli survives. The Sheen discover that a city can grow like a forest if its people accept patience as power."
-  },
-  "root-network": {
-    beforeBattle: "Dowan expands botanical science into roads, shields, greenhouses, and trade routes. The Ash Serpent burns the nodes, proving that connection also creates vulnerability.",
-    afterBattle: "The network bends instead of breaking. The Sheen learn that defense is not a wall, but a living system."
-  },
-  "blooming-age": {
-    beforeBattle: "Shelters, retreats, springs, and greenhouses bring abundance, but prosperity attracts enemies from dry borders. The Drought King comes to prove growth can be starved.",
-    afterBattle: "The Blooming Age endures. The Sheen understand prosperity as preparation, not comfort."
-  },
-  "court-of-blossoms": {
-    beforeBattle: "As Beli blooms, politics rot quietly inside the court. Den watches nobles and ministers turn harmony into influence.",
-    afterBattle: "Den preserves stability for now. But the court has revealed a dangerous truth: a peaceful kingdom can still decay."
-  },
-  "the-reformer": {
-    beforeBattle: "Tang rises against inequality and noble stagnation, promising reforms that return life to the poor. His cause is just, but justice can grow thorns.",
-    afterBattle: "Tang wins the people's faith. Reform becomes power, and power begins asking for obedience."
-  },
-  "thorned-crown": {
-    beforeBattle: "Tang creates the Thornblades and centralizes authority to protect reform from corruption. Ringan sees the danger: a cure becoming a crown.",
-    afterBattle: "Tang defeats his critics, but the kingdom is no longer merely healing. It is being commanded."
-  },
-  "war-of-roots": {
-    beforeBattle: "Civil war spreads through the forest. Shelters become forts, roads carry armies, and the Root Network becomes a battlefield.",
-    afterBattle: "The old harmony burns. The Sheen learn that even living systems can be weaponized when fear takes root."
-  },
-  "fall-of-thorn-mang": {
-    beforeBattle: "Tang stands as healer, reformer, ruler, and living thorn avatar. He finally sees the pain caused in the name of survival, but too late to step aside peacefully.",
-    afterBattle: "Tang falls. The Sheen mourn both the tyrant he became and the reformer he once was."
-  },
-  "green-era": {
-    beforeBattle: "Dowan inherits a wounded kingdom. The Root Network must be restored, not as a tool of control, but as a promise of balance.",
-    afterBattle: "The Green Era begins. The Sheen choose renewal over revenge, and remember that growth without harmony becomes overgrowth."
-  },
-  "tax-of-tides": {
-    beforeBattle: "King Ludvik's tribute fleets bleed Ristus dry while royal collectors seize treasure from captains and families. Lafayette sees a kingdom drowning in its own greed.",
-    afterBattle: "The tax fleet is broken. The Frumo learn that the sea does not belong only to crowns."
-  },
-  "voices-of-revolution": {
-    beforeBattle: "Taverns, pirate dens, and hidden harbors fill with reformers. Mirabeau, Danton, Marat, Robespier, and Lafayette speak different visions of freedom.",
-    afterBattle: "The voices become a movement. The monarchy still stands, but the Frumo have learned to imagine life without it."
-  },
-  "fall-of-silver-shoals": {
-    beforeBattle: "Silver Shoals guards Ludvik's treasure and the myth of royal invincibility. Danton leads common captains against trained formations and fortress guns.",
-    afterBattle: "Silver Shoals falls. The revolution proves that courage, tide, and timing can defeat inherited power."
-  },
-  "sunken-fortress": {
-    beforeBattle: "The capital floods with unrest. Ludvik believes treasure can buy loyalty, but Lafayette knows fear and gold cannot hold a kingdom forever.",
-    afterBattle: "The monarchy breaks. Ludvik discovers too late that a crown is heavy only while people agree to carry it."
-  },
-  "trial-of-king": {
-    beforeBattle: "The Frumo must decide whether Ludvik should be spared, imprisoned, or executed. Justice and vengeance begin wearing the same face.",
-    afterBattle: "The king's fate divides the revolution. Freedom has won its first victory and immediately faces its first moral wound."
-  },
-  "reign-of-revolution": {
-    beforeBattle: "Robespier hunts enemies of freedom until suspicion becomes government. Marat sees the revolution turning its blade inward.",
-    afterBattle: "The terror consumes itself. The Frumo learn that a revolution can drown in the name of purity."
-  },
-  "hero-of-republic": {
-    beforeBattle: "Coalition fleets gather while the republic trembles. Polea wins impossible battles and gives the Frumo a hero when they most need one.",
-    afterBattle: "Polea saves the republic. In doing so, he becomes the one person the republic fears it cannot survive without."
-  },
-  "lord-commander": {
-    beforeBattle: "The Council grants Polea more command with every crisis. Each emergency passes, but his authority remains.",
-    afterBattle: "The Council yields piece by piece. Polea has not seized the republic all at once; he has taught it to depend on him."
-  },
-  "frumo-empire": {
-    beforeBattle: "Polea crowns himself Lord Commander of All Frumo. He claims unity, order, and survival; his shadow whispers another word: ambition.",
-    afterBattle: "The republic becomes an empire. The Frumo are strong, victorious, and no longer free in the way they once demanded."
-  },
-  "hundred-fleets": {
-    beforeBattle: "Rival sea powers unite against Polea's endless victories. The oceans themselves seem to ask whether one commander can own every tide.",
-    afterBattle: "Polea dominates the seas. But each victory makes his empire wider, colder, and harder to hold."
-  },
-  "frozen-sea": {
-    beforeBattle: "Polea sails north to conquer what no fleet has held. Ice, hunger, storms, and silence await the navy that believed itself invincible.",
-    afterBattle: "The fleet shatters. Polea survives, but his myth is cracked by a sea that refuses command."
-  },
-  "last-tide": {
-    beforeBattle: "Former allies and rival fleets gather for one final reckoning. Polea insists history will understand him; Lafayette insists the living cannot wait for history.",
-    afterBattle: "Polea falls. The Council is restored, but the Frumo remember how easily freedom can become command when fear asks for a hero."
-  },
-  "kharons-vision": {
-    beforeBattle: "Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings. Maxor stands in the way with older claims to power.",
-    afterBattle: "Maxor falls at Iron River. Constanti is founded, and the Bizi begin believing the future can be engineered."
-  },
-  "first-titan": {
-    beforeBattle: "Machina sleeps beneath Constanti, dividing thinkers over whether the Titan is creator, guide, or dangerous machine. Faith and reason meet over the same engine.",
-    afterBattle: "The debate does not end. Instead, it becomes the foundation of Bizi identity: progress powered by doubt."
-  },
-  "golden-empire": {
-    beforeBattle: "Centuries later, Justine, Theo, and Beli try to restore the old empire at its dazzling height. The Vandal Engine threatens to prove that splendor cannot stop collapse.",
-    afterBattle: "The empire shines again. Yet beneath the gold, every repair reveals how much machinery is already wearing thin."
-  },
-  "riot-of-sparks": {
-    beforeBattle: "Constanti burns in rebellion, and Justine nearly flees from the city he was meant to rule. Theo forces him to choose between command and disappearance.",
-    afterBattle: "Order returns, but trust does not. The Bizi learn that machines can restart faster than societies can forgive."
-  },
-  "last-victories": {
-    beforeBattle: "Beli reclaims territory from desert coalitions, iron tribes, and sea raiders. Each triumph looks impossible, and each one stretches the empire thinner.",
-    afterBattle: "Beli wins again, but victory becomes exhaustion. The empire is not dying from defeat, but from the cost of refusing to shrink."
-  },
-  "age-of-focus": {
-    beforeBattle: "After decline and paralysis, Focus seizes power with a promise of absolute efficiency. Compassion is treated as waste; progress becomes command.",
-    afterBattle: "Focus takes control. The empire runs cleaner, faster, and colder, proving that efficiency without mercy can become its own kind of ruin."
-  },
-  "great-invasion": {
-    beforeBattle: "Khosar the Conqueror breaks the eastern empire, destroying factories, shrines, and old defenses. The Bizi face extinction as systems fail one after another.",
-    afterBattle: "The Bizi survive the first collapse. Not because their machines never fail, but because they know how to restart."
-  },
-  "heras-counterattack": {
-    beforeBattle: "Hera rises when defeat seems certain, marching into enemy territory with determination stronger than the machines around her. One victory must become many.",
-    afterBattle: "Hera turns the war. The Bizi remember that progress is not only invention; sometimes it is refusal."
-  },
-  "three-titans": {
-    beforeBattle: "Followers of Machina, Melech, and Meca argue over creation, guidance, and control. Faith becomes circuitry for civil danger.",
-    afterBattle: "The Titan faith fractures. The Bizi gain a deeper mythology, but lose the unity that once made it powerful."
-  },
-  "the-schism": {
-    beforeBattle: "The empire weakens as certainty hardens into doctrine. Old allies become enemies, each claiming the true meaning of the Titans.",
-    afterBattle: "The schism becomes permanent. The Bizi discover that ideas can preserve an empire or split it from the inside."
-  },
-  "the-restoration": {
-    beforeBattle: "Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and borders under pressure. Repair must become revolution.",
-    afterBattle: "Xios restores the empire's engine. The Bizi prove that decline is not destiny while knowledge, discipline, and courage remain."
-  },
-  "last-gear": {
-    beforeBattle: "Constanti stands under final siege. The Titans are silent, engines fail, and divided Bizi fight together so their knowledge will outlive the city.",
-    afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
-  },
-  "longest-night": {
-    beforeBattle: "An eclipse opens over Reath like a beautiful mistake. Elias Varen records the weather, the ruins, and the sudden silence, then notices the impossible: the stars are moving in daylight.",
-    afterBattle: "The terrified villager falls quiet. Elias survives his first fight, but the warning remains: do not look at the sky."
-  },
-  "silent-village": {
-    beforeBattle: "Elias follows the eclipse road to a village that smiles too carefully. The people are healthy, polite, and synchronized in ways no living town should be.",
-    afterBattle: "The Elder's calm breaks, revealing the first Thrall beneath the human mask. Elias leaves with a map that no longer matches the road behind him."
-  },
-  "dreams-that-remember": {
-    beforeBattle: "Sleep becomes a second battlefield. Elias hears yesterday's words repeated by Syllith, the Echoing Child, but each memory returns altered by a single poisonous detail.",
-    afterBattle: "Elias escapes the dream without defeating it. Syllith remains somewhere behind his thoughts, patiently editing the shape of what he remembers."
-  },
-  "beneath-observatory": {
-    beforeBattle: "Ancient observatories beneath Reath show the same eclipse carved in incompatible civilizations. Before Rumin stone, Sheen ink, or Bizi brass, someone drew the XenDra glyph.",
-    afterBattle: "The Thrallmaker dies or perhaps only changes shape. Elias now knows the eclipse is not an event, but a recurrence."
-  },
-  "deep-currents": {
-    beforeBattle: "Reality begins to buckle. Mountains remember being oceans, maps contradict themselves, and Nulth asks questions designed to survive longer than answers.",
-    afterBattle: "There is no corpse, no trophy, and no proof that Elias won. Only the terrible feeling that Nulth allowed the conversation to end."
-  },
-  "the-enlightened": {
-    beforeBattle: "A hidden settlement welcomes Elias with peace instead of panic. Arel Voss claims the XenDra do not steal minds; they wait for exhausted souls to stop defending loneliness.",
-    afterBattle: "Arel falls back smiling, not beaten so much as confirmed. Elias begins to wonder whether terror and mercy can wear the same face."
-  },
-  "the-eclipse": {
-    beforeBattle: "The pattern closes. Every ruin Elias entered, every glyph he activated, and every Harbinger he followed has strengthened the connection he meant to sever.",
-    afterBattle: "Krauth, the Crown of Static, is driven away, but the ritual is complete. Elias did not uncover the door. He built it."
-  },
-  "witness-oblivion": {
-    beforeBattle: "Cities drift apart beneath a sky full of watching stars. The last defenders of Reath raise weapons against Elias, who still believes he is bringing peace.",
-    afterBattle: "The eclipse returns exactly as it began. A tall, faceless Sovereign extends one silent hand. Elias smiles, takes it, and somewhere far away another child asks why stars are out during the day."
-  }
-};
-
-function getCampaignNarration(chapterId) {
-  return CAMPAIGN_NARRATION[chapterId] || {};
+function getCampaignChapterList(campaigns, factionId) {
+  return campaigns?.[factionId]?.chapters || [];
 }
 
-function getCampaignChapterList(factionId) {
-  return CAMPAIGN_CHAPTERS[factionId]?.chapters || [];
-}
-
-function getNextCampaignChapter(factionId, chapterId) {
-  const chapters = getCampaignChapterList(factionId);
+function getNextCampaignChapter(campaigns, factionId, chapterId) {
+  const chapters = getCampaignChapterList(campaigns, factionId);
   const currentIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
   return currentIndex >= 0 ? chapters[currentIndex + 1] || null : null;
 }
 
 function buildCampaignEndDialogue(campaign = {}) {
-  if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) {
-    return campaign.endDialogue;
-  }
+  if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) return campaign.endDialogue;
   const lines = [];
   const playableName = campaign.playableName || "Commander";
   const opponentName = campaign.opponentName || "Opponent";
@@ -723,7 +413,8 @@ function clearReconnectInfo() {
 
 function getSuitSymbol(suit) {
   if (!suit) return "";
-  if (["♠", "♣", "♥", "♦"].includes(suit)) return suit;
+  const normalizedSuit = normalizeCardDisplayText(suit);
+  if (["♠", "♣", "♥", "♦"].includes(normalizedSuit)) return normalizedSuit;
 
   const map = {
     S: "♠",
@@ -736,8 +427,8 @@ function getSuitSymbol(suit) {
     diamonds: "♦"
   };
 
-  const key = String(suit);
-  return map[key] || map[key.toLowerCase()] || suit;
+  const key = String(normalizedSuit);
+  return map[key] || map[key.toLowerCase()] || normalizedSuit;
 }
 
 function isRedSuit(suit) {
@@ -779,27 +470,28 @@ function resolveAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview }) {
+function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview, onActivate, interactionLabel, interactionPressed, interactionDisabled = false, artFactionId }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
+  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
   const cardSurface = bg === "white"
     ? "linear-gradient(180deg, #f8ecd5 0%, #e5c9a6 58%, #caa47a 100%)"
     : `linear-gradient(180deg, ${bg}, #ead6b8)`;
 
   return (
     <div
-      className="card-box"
+      className={`card-box${playingCardArt ? " card-box-art" : ""}`}
       onMouseEnter={onPreview && card ? () => onPreview(card) : undefined}
       onFocus={onPreview && card ? () => onPreview(card) : undefined}
       style={{
         border: selected ? `2px solid ${accent}` : "1px solid rgba(82, 50, 26, 0.86)",
         borderRadius: 6,
-        padding: 6,
+        padding: playingCardArt ? 3 : 6,
         width: 108,
         minWidth: 108,
         minHeight: 164,
-        background: cardSurface,
+        background: playingCardArt ? "#090704" : cardSurface,
         boxShadow: selected
           ? `0 0 0 3px ${accent}55, 0 12px 24px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,255,255,0.42)`
           : "0 9px 18px rgba(0,0,0,0.32), inset 0 0 0 1px rgba(255,255,255,0.38)",
@@ -809,6 +501,24 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         justifyContent: "space-between"
       }}
     >
+      {playingCardArt ? (
+        <button
+          type="button"
+          className="card-face-art-button"
+          onClick={(onActivate || onInspect) ? (event) => {
+            event.stopPropagation();
+            if (onPreview) onPreview(card);
+            if (onActivate) onActivate(card);
+            else onInspect(card);
+          } : undefined}
+          disabled={interactionDisabled || (!onActivate && !onInspect) || !card}
+          title={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+          aria-label={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+          aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
+        >
+          <img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" />
+        </button>
+      ) : <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
           <div style={{ fontSize: 18 }}>{rank}</div>
@@ -822,14 +532,17 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
 
       <button
         type="button"
-        onClick={onInspect ? (event) => {
+        onClick={(onActivate || onInspect) ? (event) => {
           event.stopPropagation();
           if (onPreview) onPreview(card);
-          onInspect(card);
+          if (onActivate) onActivate(card);
+          else onInspect(card);
         } : undefined}
-        disabled={!onInspect || !card}
-        title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
-        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
+        disabled={interactionDisabled || (!onActivate && !onInspect) || !card}
+        title={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        aria-label={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
+        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onActivate ? "pointer" : onInspect && card ? "zoom-in" : "default" }}
       >
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -862,15 +575,45 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <div style={{ fontSize: 13 }}>{suit}</div>
       </div>
 
+      </>}
+
+      {onActivate && onInspect && card && (
+        <button
+          type="button"
+          className="card-inspect-trigger"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (onPreview) onPreview(card);
+            onInspect(card);
+          }}
+          title={`Inspect ${card.name || getCardShortLabel(card)}`}
+          aria-label={`Inspect ${card.name || getCardShortLabel(card)}`}
+        >
+          i
+        </button>
+      )}
+
       {children}
     </div>
   );
 }
 
-function CardInspectModal({ card, onClose }) {
+function CardInspectModal({ card, onClose, artFactionId }) {
   if (!card) return null;
   const suit = getSuitSymbol(card.suit);
   const suitColor = isRedSuit(card.suit) ? "#b91c1c" : "#111827";
+  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
+
+  if (playingCardArt) {
+    return (
+      <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.82)", display: "grid", placeItems: "center", padding: 18 }}>
+        <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "hidden", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
+          <img src={resolveAssetPath(playingCardArt)} alt={`${getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "90dvh", objectFit: "contain", display: "block" }} />
+          <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: "1px solid rgba(255,255,255,0.45)", borderRadius: 4, background: "rgba(7,16,26,0.9)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
@@ -958,31 +701,33 @@ function DiscardPileModal({ game, playerNumbers, onClose, onInspect, onPreview }
 function SectionCard({ title, children, borderColor = "#333", background = "white", style = {}, headingStyle = {}, className }) {
   const combinedClassName = ["section-card-shell", className].filter(Boolean).join(" ");
   return (
-    <div className={combinedClassName} style={{ border: `2px solid ${borderColor}`, borderRadius: 8, padding: 16, marginBottom: 18, background, ...style }}>
-      {title && <h3 style={{ marginTop: 0, marginBottom: 12, ...headingStyle }}>{title}</h3>}
+    <div className={combinedClassName} style={{ border: `1px solid ${borderColor}`, borderRadius: 6, padding: 14, marginBottom: 12, background, ...style }}>
+      {title && <h3 style={{ marginTop: 0, marginBottom: 10, ...headingStyle }}>{title}</h3>}
       {children}
     </div>
   );
 }
 
-function MenuCard({ title, children }) {
+function MenuCard({ title, children, className = "" }) {
   return (
     <SectionCard
+      className={["menu-card", className].filter(Boolean).join(" ")}
       title={title}
-      borderColor="rgba(125, 211, 252, 0.42)"
-      background="linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.9))"
+      borderColor="rgba(132, 181, 201, 0.34)"
+      background="linear-gradient(180deg, rgba(17, 35, 51, 0.92), rgba(10, 22, 36, 0.94))"
       style={MENU_THEME.cardStyle}
-      headingStyle={{ color: "#facc15", letterSpacing: 0.4, textTransform: "uppercase", fontSize: 18 }}
+      headingStyle={{ color: "#f1c779", letterSpacing: 0, textTransform: "uppercase", fontSize: 16 }}
     >
       {children}
     </SectionCard>
   );
 }
 
-function MenuButton({ children, variant = "primary", disabled = false, onClick, style = {} }) {
+function MenuButton({ children, variant = "primary", disabled = false, onClick, style = {}, type = "button" }) {
   const base = variant === "secondary" ? MENU_THEME.secondaryButton : MENU_THEME.button;
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -1151,7 +896,7 @@ function startMusicTrack(trackKey, volume) {
 function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
+    <div className="home-music-control" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
       {account && <MenuButton variant="secondary" onClick={() => onSoundMutedChange(!soundMuted)}>{soundMuted ? "Unmute All" : "Mute All"}</MenuButton>}
       <MenuButton variant="secondary" onClick={onToggle} disabled={soundMuted}>{enabled ? "Pause Music" : "Play Music"}</MenuButton>
       <span>{track.label}</span>
@@ -1180,7 +925,7 @@ function DonateButton({ onUnavailable }) {
     onUnavailable();
   }
 
-  return <MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton>;
+  return <span className="home-support-action"><MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton></span>;
 }
 
 function HotkeyWindow({ visible, onClose }) {
@@ -1217,15 +962,6 @@ function HotkeyWindow({ visible, onClose }) {
   );
 }
 
-function CollapseHeader({ title, collapsed, onToggle, color = "#111827" }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: collapsed ? 0 : 8 }}>
-      <h3 style={{ margin: 0, color, fontSize: 15 }}>{title}</h3>
-      <button onClick={onToggle} style={{ padding: "3px 7px", fontSize: 12 }}>{collapsed ? "Show" : "Hide"}</button>
-    </div>
-  );
-}
-
 function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
   if (account) {
     return (
@@ -1238,7 +974,18 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
 
   return (
     <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
-      <div style={{ display: "grid", gap: 10 }}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.target.tagName !== "INPUT") return;
+          event.preventDefault();
+          onSubmit();
+        }}
+        style={{ display: "grid", gap: 10 }}
+      >
         <input
           value={form.name}
           onChange={(e) => onFormChange({ ...form, name: e.target.value })}
@@ -1256,17 +1003,17 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
         />
         {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
         <div>
-          <MenuButton onClick={onSubmit} style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
+          <MenuButton type="submit" style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
           <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
             {mode === "register" ? "Use Existing Account" : "Make Account"}
           </MenuButton>
         </div>
-      </div>
+      </form>
     </MenuCard>
   );
 }
 
-function ProgressionPanel({ account, onSelectCosmetic }) {
+function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   if (!account) {
     return (
       <MenuCard title="Progression">
@@ -1279,7 +1026,6 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
   const definitions = progression.definitions || {};
   const cosmetics = progression.cosmetics || {};
   const achievements = Object.values(progression.achievements || {}).sort((a, b) => String(b.unlockedAt || "").localeCompare(String(a.unlockedAt || "")));
-  const matchHistory = progression.matchHistory || [];
   const campaign = progression.campaign || {};
 
   const renderOptions = (ids, bucket, selected, field) => (
@@ -1332,7 +1078,7 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
         <div>
           <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Campaign Progress</h4>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
-            {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, entry]) => {
+            {Object.entries(campaigns).map(([factionId, entry]) => {
               const completed = campaign[factionId]?.length || 0;
               return (
                 <div key={factionId} style={{ border: "1px solid rgba(125,211,252,0.25)", borderRadius: 6, padding: 8, color: "#dbeafe" }}>
@@ -1344,22 +1090,6 @@ function ProgressionPanel({ account, onSelectCosmetic }) {
           </div>
         </div>
 
-        <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Recent Matches</h4>
-          {matchHistory.length === 0 ? (
-            <p style={{ margin: 0, color: "#bfdbfe", fontSize: 13 }}>No match history yet.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 5, maxHeight: 180, overflowY: "auto" }}>
-              {matchHistory.slice(0, 10).map((match) => (
-                <div key={match.id} style={{ display: "grid", gridTemplateColumns: "80px 1fr auto", gap: 8, alignItems: "center", color: "#e5e7eb", fontSize: 12, borderBottom: "1px solid rgba(148,163,184,0.16)", paddingBottom: 5 }}>
-                  <strong style={{ color: match.result === "win" ? "#86efac" : match.result === "loss" ? "#fca5a5" : "#fde68a" }}>{match.result.toUpperCase()}</strong>
-                  <span>{match.campaign?.title || `${match.factionName || "Basic"} vs ${match.opponentName || "Opponent"}`}</span>
-                  <span>{match.life != null ? `${match.life} life` : ""}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </MenuCard>
   );
@@ -1415,10 +1145,6 @@ function getBattlefieldTexture(factionId) {
   return textures[factionId] || textures.rumin;
 }
 
-const BASE_PLAYING_DECK_SIZE = 52;
-const PLAYING_DECK_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
-const MAX_REPLACEMENTS_PER_VALUE = 4;
-const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
 const REPLACEMENT_SUITS = [
   { id: "spades", label: "♠" },
   { id: "hearts", label: "♥" },
@@ -1426,9 +1152,9 @@ const REPLACEMENT_SUITS = [
   { id: "clubs", label: "♣" }
 ];
 
-function getReplacementValue(card) {
+function getReplacementValue(card, playingDeckValues) {
   const value = Number(card?.value);
-  return PLAYING_DECK_VALUES.includes(value) ? value : null;
+  return playingDeckValues.includes(value) ? value : null;
 }
 
 function normalizeReplacementSuitId(suit) {
@@ -1452,6 +1178,7 @@ function normalizeReplacementSuitId(suit) {
 
 function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
+  const factionArt = resolveAssetPath(`/assets/gauntlet/${booster.factionId}-card.webp`);
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
     counts[slot] = (counts[slot] || 0) + 1;
     return counts;
@@ -1475,7 +1202,7 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
       <span className="booster-pack-set">Foundation Booster</span>
       <strong>{theme.name}</strong>
       <span className="booster-pack-subtitle">{theme.subtitle}</span>
-      <span className="booster-pack-art" style={{ background: theme.art }}>
+      <span className="booster-pack-art" style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.06), rgba(2,6,23,0.58)), url(${factionArt})` }}>
         <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>
       </span>
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} digital cards</span>
@@ -1511,8 +1238,26 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   );
 }
 
-function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck }) {
-  const savedConstructedDeck = account?.stats?.savedConstructedDeck || null;
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
+  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
+  const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
+  const MAX_CONSTRUCTED_DECK_SIZE = deckRules.maxConstructedDeckSize;
+  const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
+  const [selectedConstructedDeckId, setSelectedConstructedDeckId] = useState(deckLibrary.activeConstructedDeckId || "");
+  const selectedConstructedRecord = (deckLibrary.decks || []).find((deck) => deck.id === selectedConstructedDeckId && deck.format === "constructed") || null;
+  const selectedConstructedVersion = selectedConstructedRecord?.versions?.find((version) => version.id === selectedConstructedRecord.currentVersionId)
+    || selectedConstructedRecord?.versions?.[selectedConstructedRecord.versions.length - 1]
+    || null;
+  const savedConstructedDeck = selectedConstructedVersion ? {
+    ...selectedConstructedVersion,
+    name: selectedConstructedRecord.name,
+    factionId: selectedConstructedRecord.factionId,
+    factionName: selectedConstructedRecord.factionName,
+    deckId: selectedConstructedRecord.id,
+    versionId: selectedConstructedVersion.id
+  } : account?.stats?.savedConstructedDeck || null;
+  const [constructedDeckName, setConstructedDeckName] = useState(savedConstructedDeck?.name || "Rumin Constructed Deck");
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
@@ -1521,13 +1266,21 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
+  const [collectionView, setCollectionView] = useState("packs");
 
   useEffect(() => {
+    const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
+    const selectedStillExists = account?.stats?.deckLibrary?.decks?.some((deck) => deck.id === selectedConstructedDeckId && !deck.archived);
+    if (!selectedStillExists && activeId !== selectedConstructedDeckId) setSelectedConstructedDeckId(activeId);
+  }, [account?.id, account?.stats?.deckLibrary?.activeConstructedDeckId, account?.stats?.deckLibrary?.decks, selectedConstructedDeckId]);
+
+  useEffect(() => {
+    setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedSaveMessage("");
-  }, [account?.id, savedConstructedDeck?.savedAt, savedConstructedDeck?.factionId, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
 
   if (!account) {
     return (
@@ -1569,13 +1322,13 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
   const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
-    const value = getReplacementValue(constructedCardsById[cardId]);
+    const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
     if (value == null) return counts;
     counts[value] = (counts[value] || 0) + Math.max(0, Number(count || 0));
     return counts;
   }, {});
   const constructedSlotCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
-    const value = getReplacementValue(constructedCardsById[cardId]);
+    const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
     if (value == null) return counts;
     const suits = Array.isArray(constructedSuitChoices[cardId]) ? constructedSuitChoices[cardId] : [];
     Array.from({ length: Math.max(0, Number(count || 0)) }, (_, index) => normalizeReplacementSuitId(suits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => {
@@ -1591,10 +1344,10 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   function setConstructedCardQuantity(cardId, nextQuantity) {
     const owned = Number(cardsOwned[cardId] || 0);
     const card = constructedCardsById[cardId];
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     const sameValueCurrent = value == null ? 0 : Object.entries(constructedQuantities).reduce((sum, [otherCardId, count]) => {
       if (otherCardId === cardId) return sum;
-      return getReplacementValue(constructedCardsById[otherCardId]) === value ? sum + Math.max(0, Number(count || 0)) : sum;
+      return getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) === value ? sum + Math.max(0, Number(count || 0)) : sum;
     }, 0);
     const maxForValue = value == null ? 0 : Math.max(0, MAX_REPLACEMENTS_PER_VALUE - sameValueCurrent);
     const quantity = Math.max(0, Math.min(owned, maxForValue, Math.floor(Number(nextQuantity || 0))));
@@ -1610,7 +1363,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
       const usedSuits = new Set();
       if (value != null) {
         for (const [otherCardId, otherCount] of Object.entries(constructedQuantities)) {
-          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId]) !== value) continue;
+          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) !== value) continue;
           const otherSuits = Array.isArray(current[otherCardId]) ? current[otherCardId] : [];
           Array.from({ length: Math.max(0, Number(otherCount || 0)) }, (_, index) => normalizeReplacementSuitId(otherSuits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => usedSuits.add(suit));
         }
@@ -1649,11 +1402,14 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
   async function saveConstructedDeck() {
     setConstructedSaveMessage("");
     try {
-      await onSaveConstructedDeck({
+      const saved = await onSaveConstructedDeck({
+        deckId: selectedConstructedDeckId || undefined,
+        name: constructedDeckName,
         factionId: constructedFactionId,
         cardQuantities: constructedQuantities,
         cardSuitChoices: constructedSuitChoices
       });
+      if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
     } catch (saveError) {
       setConstructedSaveMessage(saveError.message || "Could not save constructed deck.");
@@ -1674,8 +1430,29 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
     setConstructedSaveMessage("Base 52-card deck selected. Save to clear constructed swaps.");
   }
 
+  function startNewConstructedDeck() {
+    setSelectedConstructedDeckId("");
+    setConstructedDeckName("Rumin Constructed Deck");
+    setConstructedFactionId("rumin");
+    setConstructedQuantities({});
+    setConstructedSuitChoices({});
+    setConstructedSaveMessage("");
+  }
+
+  async function runDeckAction(deckId, action) {
+    setConstructedSaveMessage("");
+    try {
+      const deck = await onDeckAction(deckId, action);
+      if (action === "duplicate" && deck?.format === "constructed") setSelectedConstructedDeckId(deck.id);
+      if (action === "archive" && selectedConstructedDeckId === deckId) setSelectedConstructedDeckId("");
+      setConstructedSaveMessage(action === "activate" ? "Active deck updated." : `Deck ${action} complete.`);
+    } catch (actionError) {
+      setConstructedSaveMessage(actionError.message || "Could not update deck.");
+    }
+  }
+
   return (
-    <MenuCard title="Faction Collection">
+    <MenuCard className="collection-workspace" title="Collection Workshop">
       <style>{`
         @keyframes packPulse {
           0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
@@ -1692,6 +1469,20 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(206px, 1fr));
           gap: 14px;
+        }
+        @media (max-width: 700px) {
+          .booster-pack-grid {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 0 0 8px;
+            scroll-snap-type: x mandatory;
+          }
+          .booster-pack-tile {
+            min-width: 0;
+            flex: 0 0 min(270px, calc(100vw - 88px));
+            scroll-snap-align: start;
+          }
         }
         .booster-pack-tile {
           position: relative;
@@ -1785,6 +1576,8 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           margin: 2px 8px;
           position: relative;
           overflow: hidden;
+          background-position: center 24%;
+          background-size: cover;
         }
         .booster-pack-art::before {
           content: "";
@@ -1878,13 +1671,153 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
           animation: cardReveal 520ms ease-out both;
           transform-origin: center bottom;
         }
+        .collection-view-tabs {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 4px;
+          padding: 4px;
+          border: 1px solid rgba(101,168,126,0.36);
+          border-radius: 6px;
+          background: rgba(2,6,23,0.38);
+        }
+        .collection-view-tabs button {
+          min-height: 38px;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          background: transparent;
+          color: #aebfca;
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .collection-view-tabs button[aria-selected="true"] {
+          border-color: rgba(101,168,126,0.68);
+          background: rgba(101,168,126,0.2);
+          color: #f3eee3;
+          box-shadow: inset 0 -2px #65a87e;
+        }
+        .collection-summary-bar {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(96px, auto)) minmax(260px, 1fr);
+          border: 1px solid rgba(101,168,126,0.3);
+          background: rgba(2,8,14,0.52);
+        }
+        .collection-summary-stat {
+          display: grid;
+          gap: 2px;
+          padding: 9px 11px;
+          border-right: 1px solid rgba(101,168,126,0.22);
+        }
+        .collection-summary-stat span,
+        .collection-summary-note span {
+          color: #9db8aa;
+          font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .collection-summary-stat strong {
+          color: #fff4d7;
+          font-family: Georgia, serif;
+          font-size: 20px;
+          line-height: 1;
+        }
+        .collection-summary-note {
+          display: grid;
+          align-content: center;
+          gap: 3px;
+          padding: 9px 12px;
+          color: #d8c990;
+          font-size: 10px;
+          line-height: 1.35;
+        }
+        .deck-faction-picker {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .deck-faction-picker button {
+          display: grid;
+          grid-template-columns: 46px minmax(0, 1fr);
+          gap: 7px;
+          align-items: center;
+          min-width: 0;
+          min-height: 54px;
+          padding: 5px;
+          border: 1px solid rgba(148,163,184,0.34);
+          border-bottom: 3px solid var(--faction-accent);
+          border-radius: 4px;
+          background: rgba(8,16,25,0.76);
+          color: #bfdbfe;
+          cursor: pointer;
+          text-align: left;
+        }
+        .deck-faction-picker button[aria-pressed="true"] {
+          border-color: var(--faction-accent);
+          background: linear-gradient(90deg, color-mix(in srgb, var(--faction-accent) 22%, #07101a), rgba(8,16,25,0.88));
+          color: #fff4d7;
+          box-shadow: inset 0 0 0 1px var(--faction-accent);
+        }
+        .deck-faction-picker span {
+          width: 44px;
+          height: 44px;
+          border: 1px solid var(--faction-accent);
+          background-position: center 24%;
+          background-size: cover;
+        }
+        .deck-faction-picker strong {
+          overflow: hidden;
+          font-family: Georgia, serif;
+          font-size: 15px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        @media (max-width: 700px) {
+          .collection-summary-bar {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+          .collection-summary-note {
+            grid-column: 1 / -1;
+            border-top: 1px solid rgba(101,168,126,0.22);
+          }
+          .deck-faction-picker {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        .collection-view-heading {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: end;
+          flex-wrap: wrap;
+        }
+        .collection-view-heading h3 {
+          margin: 0 0 3px;
+          color: #facc15;
+          font-family: Georgia, serif;
+          font-size: 20px;
+        }
+        .collection-view-heading p {
+          margin: 0;
+          color: #bfdbfe;
+          font-size: 12px;
+        }
       `}</style>
-      <div style={{ display: "grid", gap: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ color: "#bfdbfe", fontSize: 13 }}>
-            {ownedTotal} cards owned - {collection.openedPacks || 0} packs opened - {packCredits} pack credit{packCredits === 1 ? "" : "s"}
-          </div>
-          <div style={{ color: "#fde68a", fontSize: 12 }}>Earn 1 pack credit the first time you clear each campaign chapter. Paid packs use your configured $1 checkout link.</div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
+        <div className="collection-summary-bar">
+          <div className="collection-summary-stat"><span>Cards owned</span><strong>{ownedTotal}</strong></div>
+          <div className="collection-summary-stat"><span>Packs opened</span><strong>{collection.openedPacks || 0}</strong></div>
+          <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
+          <div className="collection-summary-note"><span>Earned rewards</span>First-time campaign chapter clears award pack credits. Paid packs use the configured $1 checkout link.</div>
+        </div>
+        <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
+          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
+            <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
+          ))}
+        </div>
+        {collectionView === "packs" && <>
+        <div className="collection-view-heading">
+          <div><h3>Faction Packs</h3><p>Open earned rewards or browse each faction set.</p></div>
+          <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         {boosters.length > 0 && (
           <div className="booster-pack-grid">
@@ -1916,6 +1849,20 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             </div>
           </div>
         )}
+        </>}
+        {collectionView === "decks" && <>
+        <div className="collection-view-heading">
+          <div><h3>Deck Workshop</h3><p>Choose a saved deck, map replacements, and create its next version.</p></div>
+          <strong style={{ color: "#86efac" }}>{(deckLibrary.decks || []).filter((deck) => !deck.archived).length} active</strong>
+        </div>
+        <DeckLibraryPanel
+          library={deckLibrary}
+          selectedDeckId={selectedConstructedDeckId}
+          onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
+          onNew={startNewConstructedDeck}
+          onAction={runDeckAction}
+          onOpenMatch={onOpenMatch}
+        />
         <div style={{ border: "1px solid rgba(125,211,252,0.24)", borderRadius: 8, padding: 12, background: "rgba(2,6,23,0.36)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <div>
@@ -1926,7 +1873,19 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
               {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+          <label style={{ display: "grid", gap: 4, maxWidth: 420, marginBottom: 10, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
+            Deck name
+            <input
+              value={constructedDeckName}
+              onChange={(event) => {
+                setConstructedDeckName(event.target.value);
+                setConstructedSaveMessage("");
+              }}
+              maxLength={80}
+              style={{ border: "1px solid rgba(125,211,252,0.34)", borderRadius: 5, padding: "8px 9px", background: "rgba(15,23,42,0.72)", color: "#f8fafc" }}
+            />
+          </label>
+          <div className="deck-faction-picker" aria-label="Deck faction">
             {Object.values(PACK_THEMES).map((theme) => {
               const factionId = theme.name.toLowerCase();
               const active = constructedFactionId === factionId;
@@ -1934,18 +1893,37 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
                 <button
                   key={factionId}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => {
                     setConstructedFactionId(factionId);
                     setConstructedQuantities({});
                     setConstructedSuitChoices({});
                     setConstructedSaveMessage("");
                   }}
-                  style={{ border: `1px solid ${active ? theme.accent : "rgba(148,163,184,0.34)"}`, borderRadius: 6, padding: "7px 10px", background: active ? "rgba(250,204,21,0.16)" : "rgba(15,23,42,0.55)", color: active ? "#fde68a" : "#bfdbfe", fontWeight: 900, cursor: "pointer" }}
+                  style={{ "--faction-accent": theme.accent }}
                 >
-                  {theme.name}
+                  <span aria-hidden="true" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  <strong>{theme.name}</strong>
                 </button>
               );
             })}
+          </div>
+          <div className="replacement-map-wrap" aria-label="52-card replacement map">
+            <div className="replacement-map">
+              <div className="replacement-map-cell">Suit</div>
+              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => <div className="replacement-map-cell" key={`head-${value}`}>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</div>)}
+              {REPLACEMENT_SUITS.flatMap((suit) => [
+                <div className="replacement-map-cell" key={`label-${suit.id}`}>{suit.label}</div>,
+                ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => {
+                  const replaced = !!constructedSlotCounts[`${value}:${suit.id}`];
+                  return <div className={`replacement-map-cell ${replaced ? "replaced" : ""}`} title={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} key={`${suit.id}-${value}`}>{replaced ? "Swap" : "Base"}</div>;
+                })
+              ])}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 10, color: "#bfdbfe", fontSize: 12 }}>
+            <span><strong style={{ color: "#f8fafc" }}>Value curve:</strong> {Object.entries(constructedValueCounts).map(([value, count]) => `${value}:${count}`).join(" ") || "No swaps"}</span>
+            <span><strong style={{ color: "#f8fafc" }}>Suit swaps:</strong> {REPLACEMENT_SUITS.map((suit) => `${suit.label}:${Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length}`).join(" ")}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
             {ownedConstructedCards.length === 0 ? (
@@ -1954,7 +1932,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = Number(constructedQuantities[card.id] || 0);
               const owned = Number(cardsOwned[card.id] || 0);
-              const value = getReplacementValue(card);
+              const value = getReplacementValue(card, PLAYING_DECK_VALUES);
               const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
               const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
               return (
@@ -1992,7 +1970,7 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             })}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={!!constructedCurveWarning || !!constructedSlotWarning}>Save Constructed Deck</MenuButton>
+            <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
             <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Clear Swaps</MenuButton>
             {savedConstructedDeck && <MenuButton variant="secondary" onClick={loadSavedConstructedDeck}>Load Saved Deck</MenuButton>}
             {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
@@ -2001,10 +1979,11 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             {constructedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Two cards are replacing the same {constructedSlotWarning[0].replace(":", " of ")}.</span>}
           </div>
         </div>
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "end", flexWrap: "wrap", marginBottom: 8 }}>
+        </>}
+        {collectionView === "catalog" && <div>
+          <div className="collection-view-heading" style={{ marginBottom: 8 }}>
             <div>
-              <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Card Catalog</h4>
+              <h3>Card Catalog</h3>
               <div style={{ color: "#bfdbfe", fontSize: 12 }}>Owned: {ownedUniqueCount}/{allCatalogCards.length} unique cards ({ownedPercent}%)</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -2048,23 +2027,25 @@ function CollectionPanel({ account, lastOpenedPack, openingPackId, onOpenPack, o
             })}
           </div>
         </div>
+        }
       </div>
     </MenuCard>
   );
 }
 
-function CollectionScreen({ account, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onBack }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+    <div className="collection-page menu-page" style={MENU_THEME.page}>
+      <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
+        <header className="collection-header">
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Vault Terminal</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Collection</h1>
+            <div className="collection-kicker">Vault Terminal</div>
+            <h1>Build</h1>
+            <p>Open rewards, survey your collection, and shape decks for the table.</p>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-        </div>
-        <CollectionPanel account={account} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} />
+        </header>
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
       </div>
     </div>
   );
@@ -2100,7 +2081,10 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
   );
 }
 
-function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSetDeckCardSuit, onSaveDraftDeck }) {
+function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSetDeckCardSuit, onSaveDraftDeck }) {
+  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
+  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
+  const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const myPack = draft?.myCurrentPack?.cards || [];
   const myPool = draft?.myPool || [];
   const myDeckAdditions = draft?.myDeckAdditions || [];
@@ -2109,13 +2093,13 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   const selectedFactionId = selectedFactionIds[0] || "";
   const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
   const selectedValueCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     if (value == null) return counts;
     counts[value] = (counts[value] || 0) + 1;
     return counts;
   }, {});
   const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card);
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
     if (value == null) return counts;
     const suit = normalizeReplacementSuitId(card.replacementSuit || card.suit);
     const key = `${value}:${suit}`;
@@ -2230,8 +2214,8 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
                     <DraftCardTile
                       card={card}
                       selected={selected}
-                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
-                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
+                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || ((selectedValueCounts[getReplacementValue(card, PLAYING_DECK_VALUES)] || 0) >= MAX_REPLACEMENTS_PER_VALUE))}
+                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : (selectedValueCounts[getReplacementValue(card, PLAYING_DECK_VALUES)] || 0) >= MAX_REPLACEMENTS_PER_VALUE ? "Value full" : "Swap In"}
                       onClick={() => onToggleDeckCard(card.draftCopyId)}
                     />
                     {selected && (
@@ -2269,7 +2253,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, draftPickPend
   );
 }
 
-function LeaderboardPanel({ leaderboard, error }) {
+function LeaderboardPanel({ leaderboard, error, onOpenProfile }) {
   return (
     <MenuCard title="Leaderboard">
       {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
@@ -2288,7 +2272,11 @@ function LeaderboardPanel({ leaderboard, error }) {
             <tbody>
               {leaderboard.slice(0, 8).map((entry, index) => (
                 <tr key={entry.name} style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.16)" }}>
-                  <td style={{ padding: "6px 4px" }}>{index + 1}. {entry.name}</td>
+                  <td style={{ padding: "6px 4px" }}>
+                    <button type="button" onClick={() => onOpenProfile(entry.accountId)} disabled={!entry.accountId} style={{ border: 0, padding: 0, background: "transparent", color: "#dbeafe", cursor: entry.accountId ? "pointer" : "default", fontWeight: 800 }}>
+                      {index + 1}. {entry.name}
+                    </button>
+                  </td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.wins}</td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.losses}</td>
                   <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.winRate}%</td>
@@ -2344,6 +2332,9 @@ function FriendsPanel({
   onAddFriend,
   onRemoveFriend,
   onSendMessage,
+  onChallengeFriend,
+  onJoinChallenge,
+  onUpdateChallenge,
   onRefresh,
   unreadCounts = {},
   unreadTotal = 0
@@ -2358,61 +2349,115 @@ function FriendsPanel({
 
   const friends = friendsData.friends || [];
   const messages = friendsData.messages || [];
+  const challenges = friendsData.challenges || [];
+  const incomingChallenges = challenges.filter((challenge) => challenge.toId === account.id && challenge.status === "pending");
+  const outgoingChallenges = challenges.filter((challenge) => challenge.fromId === account.id && challenge.status === "pending");
   const selectedFriend = friends.find((friend) => friend.id === selectedFriendId) || null;
   const selectedMessages = selectedFriend
     ? messages.filter((message) => message.fromId === selectedFriend.id || message.toId === selectedFriend.id)
     : [];
 
   return (
-    <MenuCard title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
+    <MenuCard className="friends-panel" title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
       {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+      {incomingChallenges.map((challenge) => (
+        <div key={challenge.id} className="friend-challenge-alert">
+          <strong>{challenge.fromName} challenged you</strong>
+          <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0 8px" }}>Faction Duel · room {challenge.roomCode}</div>
+          <MenuButton onClick={() => onJoinChallenge(challenge)} style={{ marginRight: 7 }}>Join Table</MenuButton>
+          <MenuButton variant="secondary" onClick={() => onUpdateChallenge(challenge.id, "decline")}>Decline</MenuButton>
+        </div>
+      ))}
+      {outgoingChallenges.length > 0 && (
+        <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 10 }}>
+          Waiting on {outgoingChallenges.map((challenge) => challenge.toName).join(", ")}.
+        </div>
+      )}
+      <form
+        className="friend-add-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (friendName.trim()) onAddFriend();
+        }}
+      >
         <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
-        <MenuButton onClick={onAddFriend}>Add</MenuButton>
+        <MenuButton type="submit" disabled={!friendName.trim()}>Add</MenuButton>
         <MenuButton variant="secondary" onClick={onRefresh}>Refresh</MenuButton>
-      </div>
+      </form>
       {friends.length === 0 ? (
-        <p style={{ color: "#bfdbfe", margin: 0 }}>No friends yet.</p>
+        <div className="friends-empty-state">
+          <strong>Your table is quiet.</strong>
+          <span>Add a player by account name to start a conversation or challenge.</span>
+        </div>
       ) : (
-        <div style={{ display: "grid", gap: 8 }}>
-          {friends.map((friend) => {
-            const expanded = selectedFriend?.id === friend.id;
-            const unreadCount = unreadCounts[friend.id] || 0;
-            return (
-              <div key={friend.id} style={{ border: expanded ? "1px solid #f59e0b" : "1px solid rgba(125,211,252,0.35)", borderRadius: 6, background: expanded ? "rgba(245,158,11,0.14)" : "rgba(15,23,42,0.64)", overflow: "hidden" }}>
-                <button onClick={() => onSelectFriend(expanded ? "" : friend.id)} style={{ width: "100%", textAlign: "left", padding: 8, border: 0, background: "transparent", color: "#dbeafe", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <strong>{friend.name}</strong>
-                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                    {unreadCount > 0 && <span style={{ color: "#0f172a", background: "#facc15", borderRadius: 999, padding: "2px 7px", fontWeight: "bold", fontSize: 12 }}>{unreadCount}</span>}
-                    <span>{expanded ? "Close" : "Open"}</span>
-                  </span>
+        <div className="friends-workspace">
+          <nav className="friend-contact-list" aria-label="Friends">
+            {friends.map((friend) => {
+              const selected = selectedFriend?.id === friend.id;
+              const unreadCount = unreadCounts[friend.id] || 0;
+              return (
+                <button
+                  key={friend.id}
+                  type="button"
+                  className={selected ? "is-selected" : ""}
+                  aria-current={selected ? "true" : undefined}
+                  onClick={() => onSelectFriend(friend.id)}
+                >
+                  <span className="friend-avatar" aria-hidden="true">{friend.name.slice(0, 1).toUpperCase()}</span>
+                  <span className="friend-contact-copy"><strong>{friend.name}</strong><small>{selected ? "Conversation open" : "View conversation"}</small></span>
+                  {unreadCount > 0 && <span className="friend-unread-count">{unreadCount}</span>}
                 </button>
-                {expanded && (
-                  <div style={{ padding: 8, borderTop: "1px solid rgba(125,211,252,0.25)", background: "rgba(2,6,23,0.34)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                      <strong>{friend.name}</strong>
-                      <button onClick={() => onRemoveFriend(friend.id)} style={{ padding: "5px 8px", color: "#fecaca", background: "#7f1d1d", border: "1px solid #ef4444", borderRadius: 4, cursor: "pointer" }}>Remove</button>
-                    </div>
-                    <div style={{ height: 130, overflowY: "auto", border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: 8, marginBottom: 8, background: "rgba(2,6,23,0.42)" }}>
-                      {selectedMessages.length === 0 && <p style={{ margin: 0, color: "#93c5fd" }}>No messages yet.</p>}
-                      {selectedMessages.map((message) => (
-                        <div key={message.id} style={{ marginBottom: 8, textAlign: message.fromId === account.id ? "right" : "left" }}>
-                          <div style={{ display: "inline-block", maxWidth: "88%", padding: "6px 8px", borderRadius: 6, background: message.fromId === account.id ? "rgba(245,158,11,0.22)" : "rgba(59,130,246,0.18)", color: "#f8fafc" }}>
-                            <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 2 }}>{message.fromName}</div>
-                            <div>{message.text}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input value={messageText} onChange={(e) => onMessageTextChange(e.target.value)} placeholder="Message" maxLength={500} style={{ ...MENU_THEME.input, flex: 1 }} />
-                      <MenuButton onClick={() => onSendMessage(friend.id)}>Send</MenuButton>
-                    </div>
+              );
+            })}
+          </nav>
+          <section className="friend-conversation" aria-label={selectedFriend ? `Conversation with ${selectedFriend.name}` : "Friend conversation"}>
+            {selectedFriend ? (
+              <>
+                <div className="friend-conversation-header">
+                  <div><span>At the table with</span><strong>{selectedFriend.name}</strong></div>
+                  <div className="friend-conversation-actions">
+                    <MenuButton onClick={() => onChallengeFriend(selectedFriend.id)}>Challenge</MenuButton>
+                    <button type="button" onClick={() => onRemoveFriend(selectedFriend.id)} className="friend-remove-button">Remove</button>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+                <div className="friend-message-history" aria-live="polite">
+                  {selectedMessages.length === 0 && <div className="friend-message-empty"><strong>No messages yet.</strong><span>Say hello or send a challenge to begin.</span></div>}
+                  {selectedMessages.map((message) => {
+                    const sentByMe = message.fromId === account.id;
+                    return (
+                      <div key={message.id} className={`friend-message${sentByMe ? " is-mine" : ""}`}>
+                        <div><span>{message.fromName}</span><p>{message.text}</p></div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <form
+                  className="friend-message-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (messageText.trim()) onSendMessage(selectedFriend.id);
+                  }}
+                >
+                  <input
+                    value={messageText}
+                    onChange={(e) => onMessageTextChange(e.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" || !messageText.trim()) return;
+                      event.preventDefault();
+                      onSendMessage(selectedFriend.id);
+                    }}
+                    placeholder={`Message ${selectedFriend.name}`}
+                    aria-label={`Message ${selectedFriend.name}`}
+                    maxLength={500}
+                    style={MENU_THEME.input}
+                  />
+                  <MenuButton type="submit" disabled={!messageText.trim()}>Send</MenuButton>
+                </form>
+              </>
+            ) : (
+              <div className="friend-conversation-placeholder"><strong>Choose a friend</strong><span>Their messages and challenge controls will appear here.</span></div>
+            )}
+          </section>
         </div>
       )}
     </MenuCard>
@@ -2529,27 +2574,43 @@ function formatCombatCards(cards) {
   return cards.map(getCardShortLabel).join(", ");
 }
 
-function CombatStrip({ game }) {
+function CombatStrip({ game, perspectivePlayer, onInspect }) {
   const summaries = getCombatSummaries(game);
   if (summaries.length === 0) return null;
 
   return (
-    <div style={{ border: "2px solid #f59e0b", borderRadius: 8, background: "rgba(15,23,42,0.92)", color: "#f8fafc", padding: 8, display: "grid", gap: 8 }}>
-      {summaries.map((summary) => (
-        <div key={summary.id} style={{ display: "grid", gap: 5, fontSize: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(68px, auto) 1fr repeat(3, auto)", gap: 8, alignItems: "center" }}>
-            <strong style={{ color: "#facc15" }}>{summary.laneLabel}</strong>
-            <span>P{summary.attacker}{" -> "}P{summary.defender}: <strong>{getCardShortLabel(summary.card)}</strong></span>
-            <span>ATK {summary.attackValue}</span>
-            <span>BLK {summary.blockValue}</span>
-            <strong style={{ color: summary.projectedDamage > 0 ? "#fecaca" : "#bbf7d0" }}>DMG {summary.projectedDamage}</strong>
+    <div className="combat-tableau" aria-label="Unresolved combat">
+      {summaries.map((summary) => {
+        const incoming = Number(summary.defender) === Number(perspectivePlayer);
+        const attackerName = getGamePlayerName(game, summary.attacker);
+        const defenderName = getGamePlayerName(game, summary.defender);
+        const attackerFactionId = game.players?.[summary.attacker]?.faction?.id;
+        const cardArt = getPlayingCardArtPath(summary.card, attackerFactionId);
+        return (
+          <div key={summary.id} className={`combat-scene${incoming ? " is-incoming" : ""}`}>
+            <button type="button" className="combat-card" onClick={() => onInspect?.(summary.card)} title={`Inspect ${getCardShortLabel(summary.card)}`}>
+              {cardArt ? (
+                <img src={resolveAssetPath(cardArt)} alt={getCardShortLabel(summary.card)} />
+              ) : (
+                <span className="combat-card-fallback"><strong>{getCardRank(summary.card)}</strong>{getSuitSymbol(summary.card?.suit)}</span>
+              )}
+            </button>
+            <div className="combat-story">
+              <span className="combat-kicker">{incoming ? "Defend yourself" : "Attack committed"}</span>
+              <strong>{incoming ? `${attackerName} is attacking you` : `${attackerName} attacks ${defenderName}`}</strong>
+              <span>{summary.laneLabel} / {getCardShortLabel(summary.card)} / power {summary.attackValue}</span>
+              <small>{summary.payment?.cards?.length ? `Fueled by ${formatCombatCards(summary.payment.cards)}` : "No payment cards revealed"}</small>
+            </div>
+            <div className="combat-arrow" aria-hidden="true"><span>{"\u2694"}</span><i /></div>
+            <div className="combat-impact">
+              <span>{summary.blocks.length > 0 ? "Defense committed" : "No defense yet"}</span>
+              <strong>{summary.projectedDamage}</strong>
+              <small>{summary.projectedDamage === 0 ? "damage stopped" : `life at risk${incoming ? " for you" : ""}`}</small>
+              {summary.blocks.length > 0 && <em>{summary.blocks.map((block) => getCardShortLabel(block.card)).join(" + ")} blocks {summary.blockValue}</em>}
+            </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 6, color: "#cbd5e1" }}>
-            <span>Attack paid: {summary.payment ? `${summary.payment.total}/${summary.payment.required} with ${formatCombatCards(summary.payment.cards)}` : "none"}</span>
-            <span>Blocks: {summary.blocks.length > 0 ? summary.blocks.map((block) => `P${block.player} ${getCardShortLabel(block.card)}${block.payment ? ` paid ${block.payment.total}/${block.payment.required}` : ""}`).join("; ") : "none"}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -2875,50 +2936,55 @@ function ShareGameQrCard() {
 function FactionFeature({ title, feature, theme }) {
   if (!feature) return null;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "78px minmax(0, 1fr)", gap: 10, alignItems: "start", marginBottom: 12 }}>
+    <div className="faction-feature" style={{ borderColor: theme.border }}>
       {feature?.image ? (
-        <img src={resolveAssetPath(feature.image)} alt="" style={{ width: 78, height: 78, objectFit: "cover", borderRadius: 10, border: `2px solid ${theme.border}` }} />
+        <img src={resolveAssetPath(feature.image)} alt="" className="faction-feature-image" style={{ borderColor: theme.border }} />
       ) : (
-        <div style={{ width: 78, height: 78, borderRadius: 10, border: `2px solid ${theme.border}`, background: theme.light }} />
+        <div className="faction-feature-image" style={{ borderColor: theme.border, background: theme.light }} />
       )}
-      <div>
-        <p style={{ margin: "0 0 4px 0" }}><strong>{title}:</strong> {feature.name}</p>
-        <p style={{ color: "#555", margin: 0 }}>{feature.text}</p>
+      <div className="faction-feature-copy">
+        <span>{title}</span>
+        <strong>{feature.name}</strong>
+        <p>{feature.text}</p>
       </div>
     </div>
   );
 }
 
-function CompactPowerCard({ title, feature, theme, expanded, onToggle }) {
+function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions = [] }) {
   return (
-    <button
+    <div
       className={`compact-power-card${expanded ? " compact-power-card-active" : ""}`}
-      onClick={onToggle}
       style={{
         display: "grid",
-        gridTemplateColumns: "62px minmax(0, 1fr)",
-        gap: 10,
-        alignItems: "stretch",
-        textAlign: "left",
-        padding: 7,
         border: `2px solid ${expanded ? theme.primary : theme.border}`,
         borderRadius: 10,
         background: expanded
           ? `linear-gradient(135deg, ${theme.primary}33, rgba(255,247,220,0.96))`
           : "linear-gradient(135deg, rgba(255,247,220,0.96), rgba(93,58,29,0.2))",
-        cursor: "pointer",
         minWidth: 0,
         boxShadow: expanded ? `0 0 18px ${theme.primary}55, inset 0 0 0 1px rgba(255,255,255,0.28)` : undefined
       }}
     >
-      <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
-        {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
-      </span>
-      <span style={{ minWidth: 0, alignSelf: "center" }}>
-        <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
-        <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
-      </span>
-    </button>
+      <button type="button" className="compact-power-select" onClick={onToggle}>
+        <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
+          {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
+        </span>
+        <span style={{ minWidth: 0, alignSelf: "center" }}>
+          <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
+          <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
+        </span>
+      </button>
+      {actions.length > 0 && (
+        <div className="compact-power-actions">
+          {actions.map((action) => (
+            <button key={action.label} type="button" onClick={action.onClick} disabled={action.disabled} title={action.reason || action.label}>
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2972,7 +3038,7 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
       <div className="player-frame-stats">
         <span title="Life total"><span className="player-stat-icon">♥</span>{infoPlayer.life}</span>
         <span title="Cards in hand"><span className="player-stat-icon">▰</span>{handCount}</span>
-        <span title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
+        <span className="player-ccg-summary" title={`CCG: ${ccgText}`}><span className="player-stat-icon">◆</span>{ccgText}</span>
       </div>
     </div>
   );
@@ -3055,14 +3121,23 @@ function getGamePlayerName(game, playerNum) {
 
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
+  const factionArt = resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`);
 
   return (
-    <div style={{ border: selected ? `3px solid ${theme.primary}` : "1px solid rgba(125, 211, 252, 0.38)", borderRadius: 8, padding: 14, background: selected ? theme.light : "rgba(255,255,255,0.94)", color: "#111827" }}>
-      <h3 style={{ marginTop: 0, color: theme.primary }}>{faction.name}</h3>
-      <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
-      <FactionFeature title="City" feature={faction.city} theme={theme} />
-      <FactionFeature title="General" feature={faction.general} theme={theme} />
-      <button onClick={() => onSelect(faction.id)}>{selected ? "Selected" : "Choose Faction"}</button>
+    <div className={`faction-choice-card faction-${faction.id}${selected ? " is-selected" : ""}`} style={{ borderColor: selected ? theme.primary : theme.border, "--faction-accent": theme.primary }}>
+      <div className="faction-choice-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(5,8,12,0.12), rgba(5,8,12,0.86)), url(${factionArt})` }}>
+        <div>
+          <span>Choose Your Command</span>
+          <h3>{faction.name}</h3>
+        </div>
+        {selected && <strong className="faction-selected-mark">Selected</strong>}
+      </div>
+      <div className="faction-feature-grid">
+        <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
+        <FactionFeature title="City" feature={faction.city} theme={theme} />
+        <FactionFeature title="General" feature={faction.general} theme={theme} />
+      </div>
+      <button className="faction-choice-action" onClick={() => onSelect(faction.id)}>{selected ? "Faction Selected" : `Choose ${faction.name}`}</button>
     </div>
   );
 }
@@ -3121,33 +3196,27 @@ function RulebookPanel() {
   ];
 
   return (
-    <section
-      style={{
-        marginTop: 22,
-        padding: 18,
-        border: "2px solid #7c2d12",
-        borderRadius: 12,
-        background: "linear-gradient(180deg, #fff7ed 0%, #f8e7c9 100%)",
-        boxShadow: "0 10px 24px rgba(68, 32, 9, 0.16)",
-        color: "#281407",
-        fontFamily: "Georgia, 'Times New Roman', serif"
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, borderBottom: "1px solid rgba(124, 45, 18, 0.35)", paddingBottom: 10, marginBottom: 14 }}>
-        <h2 style={{ margin: 0, color: "#7c2d12", letterSpacing: 0, fontSize: 28 }}>Field Rulebook</h2>
-        <div style={{ fontSize: 13, color: "#854d0e", fontStyle: "italic" }}>Gauntlet Online</div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
-        {ruleSections.map((section) => (
-          <div key={section.title} style={{ borderLeft: "4px solid #b45309", paddingLeft: 12 }}>
-            <h3 style={{ margin: "0 0 8px 0", color: "#431407", fontSize: 18 }}>{section.title}</h3>
-            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.45, fontSize: 14 }}>
-              {section.rules.map((rule) => <li key={rule} style={{ marginBottom: 6 }}>{rule}</li>)}
-            </ul>
-          </div>
-        ))}
-      </div>
+    <section className="field-rulebook-panel">
+      <img
+        className="field-rulebook-art"
+        src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}
+        alt="Gauntlet Online Field Rulebook covering setup, priority, attacking, blocking, end turn, and victory rules."
+        loading="lazy"
+        decoding="async"
+      />
+      <details className="field-rulebook-transcript">
+        <summary>Read text version</summary>
+        <div className="field-rulebook-grid">
+          {ruleSections.map((section) => (
+            <div key={section.title}>
+              <h3>{section.title}</h3>
+              <ul>
+                {section.rules.map((rule) => <li key={rule}>{rule}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }
@@ -3185,29 +3254,47 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   ];
 
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
+    <div className="tutorial-page menu-page" style={MENU_THEME.page}>
+      <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
+        <header className="tutorial-header">
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Training Protocol</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Learn Gauntlet</h1>
+            <div className="tutorial-kicker">Training Protocol</div>
+            <h1>Learn Gauntlet</h1>
+            <p>Follow the rhythm of one complete turn, then practice it against Training AI.</p>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+        </header>
+        <div className="tutorial-layout">
+          <section className="tutorial-sequence" aria-labelledby="tutorial-sequence-heading">
+            <div className="tutorial-section-heading">
+              <span>Core match loop</span>
+              <h2 id="tutorial-sequence-heading">One turn, seven decisions</h2>
+            </div>
+            <div className="tutorial-step-grid">
+              {lessons.map((lesson, index) => (
+                <article className="tutorial-step" key={lesson.title}>
+                  <span className="tutorial-step-number">{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{lesson.title.replace(/^\d+\.\s*/, "")}</h3>
+                    <p>{lesson.text}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+          <aside className="tutorial-practice-panel">
+            <div className="tutorial-card-fan" aria-hidden="true">
+              {["rumin-7-hearts.webp", "sheen-q-spades.webp", "frumo-a-clubs.webp"].map((cardName) => (
+                <span key={cardName} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/playing-cards/${cardName}`)})` }} />
+              ))}
+            </div>
+            <span className="tutorial-practice-kicker">Recommended first match</span>
+            <h2>Practice the core loop</h2>
+            <p>Basic Mode keeps the focus on priority, payment, blocking, damage, and lanes.</p>
             <MenuButton onClick={onPlayBasicAi} disabled={!canPlayAsPlayer}>Play Basic vs AI</MenuButton>
             <MenuButton variant="secondary" onClick={onPlayFactionAi} disabled={!canPlayAsPlayer}>Play Factions vs AI</MenuButton>
-            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-          </div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-          {lessons.map((lesson) => (
-            <MenuCard key={lesson.title} title={lesson.title}>
-              <p style={{ margin: 0, color: "#dbeafe", lineHeight: 1.45 }}>{lesson.text}</p>
-            </MenuCard>
-          ))}
-        </div>
-        <div style={{ marginTop: 18, padding: 14, borderRadius: 8, background: "rgba(2,6,23,0.42)", border: "1px solid rgba(125,211,252,0.28)", color: "#bfdbfe" }}>
-          Best first game: play Basic Mode against Training AI to practice attack, block, pass, damage, and lanes. Choose Factions vs AI when you want commander, city, and general powers in the same training flow.
-          {!canPlayAsPlayer && <div style={{ marginTop: 8, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start the playable tutorial.</div>}
+            {!canPlayAsPlayer && <small>Choose an account or guest identity on the main menu to begin.</small>}
+          </aside>
         </div>
       </div>
     </div>
@@ -3251,131 +3338,105 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function ModeGuidePanel({ accountName, onStartBasicAi, onOpenCampaign, onOpenCollection, onEnableHints, onDismiss }) {
-  const modePath = [
-    {
-      title: "1. Basic vs AI",
-      tag: "Best first match",
-      text: "Learn priority, payment, blocking, passing, and lane placement without faction text fighting for attention."
-    },
-    {
-      title: "2. Faction Campaign",
-      tag: "Learn flavor and powers",
-      text: "Pick a faction story once the core loop makes sense. Campaign rewards packs as you clear chapters."
-    },
-    {
-      title: "3. Collection",
-      tag: "Build your pool",
-      text: "Open earned packs, browse cards, and save a constructed deck when you know which faction you like."
-    },
-    {
-      title: "4. Duel or Matchmaking",
-      tag: "Play people",
-      text: "Use normal rooms for friends, matchmaking for similar records, and best-of-three when you want a longer set."
-    },
-    {
-      title: "5. Draft",
-      tag: "Advanced mode",
-      text: "Try bot draft first, then player draft once card choices and one-faction deckbuilding feel natural."
-    }
-  ];
-
-  return (
-    <div style={{ border: "1px solid rgba(125,211,252,0.42)", borderRadius: 10, padding: 16, marginBottom: 18, background: "linear-gradient(135deg, rgba(12,18,32,0.95), rgba(21,44,60,0.88)), radial-gradient(circle at 86% 18%, rgba(56,189,248,0.22), transparent 30%)", boxShadow: "0 18px 42px rgba(0,0,0,0.28)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 12 }}>
-        <div>
-          <div style={{ color: "#67e8f9", fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>First Login Guide</div>
-          <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 28 }}>Welcome{accountName ? `, ${accountName}` : ""}. Here is the cleanest path through Gauntlet.</h2>
-          <p style={{ margin: "8px 0 0", color: "#bfdbfe", lineHeight: 1.45, maxWidth: 820 }}>
-            You do not have to follow this order, but it is the smoothest route from learning the rules to playing real matches.
-          </p>
-        </div>
-        <button type="button" onClick={onDismiss} style={{ flex: "0 0 auto", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.52)", color: "#dbeafe", fontWeight: 900 }}>Got It</button>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10, marginBottom: 14 }}>
-        {modePath.map((mode) => (
-          <div key={mode.title} style={{ border: "1px solid rgba(125,211,252,0.2)", borderRadius: 8, padding: 10, background: "rgba(2,6,23,0.34)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 5 }}>
-              <strong style={{ color: "#f8fafc" }}>{mode.title}</strong>
-              <span style={{ color: "#fde68a", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{mode.tag}</span>
-            </div>
-            <div style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{mode.text}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <MenuButton onClick={onStartBasicAi}>Start Basic vs AI</MenuButton>
-        <MenuButton variant="secondary" onClick={onOpenCampaign}>Open Campaign</MenuButton>
-        <MenuButton variant="secondary" onClick={onOpenCollection}>Open Collection</MenuButton>
-        <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
-      </div>
-    </div>
-  );
-}
-
-function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account }) {
+function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns }) {
   const campaignProgress = account?.progression?.campaign || {};
+  const campaignEntries = Object.entries(campaigns || {});
+  const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
+  const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
+  const activeTheme = getFactionTheme(activeFactionId);
+  const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
+  const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
+  const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
+  const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
 
   return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 20 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Commander Archives</div>
-            <h1 style={{ margin: 0, fontSize: 42, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Faction Campaigns</h1>
+    <div className="campaign-page menu-page" style={MENU_THEME.page}>
+      <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
+        <div className="campaign-header">
+          <div className="campaign-heading">
+            <div className="campaign-kicker">Commander Archives</div>
+            <h1>Faction Campaigns</h1>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
         {!canPlayAsPlayer && <div style={{ marginBottom: 14, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start a campaign battle.</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          {Object.entries(CAMPAIGN_CHAPTERS).map(([factionId, campaign]) => {
+        <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
+          {campaignEntries.map(([factionId, campaign]) => {
+            const selected = factionId === activeFactionId;
             const theme = getFactionTheme(factionId);
-            const completedChapters = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId] : [];
+            const factionClears = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId].length : 0;
             return (
-              <MenuCard key={factionId} title={`${campaign.factionName}: ${campaign.commanderName}`}>
-                <p style={{ marginTop: 0, color: "#bfdbfe", lineHeight: 1.45 }}>{campaign.pitch}</p>
-                <div style={{ display: "grid", gap: 10 }}>
-                  {campaign.chapters.map((chapter, index) => (
-                    (() => {
-                      const difficulty = getCampaignDifficulty(factionId, index);
-                      const narration = getCampaignNarration(chapter.id);
-                      const complexity = getCampaignComplexityPreview(factionId, index, chapter.opponentName);
-                      const unlocked = index === 0 || completedChapters.includes(campaign.chapters[index - 1]?.id);
-                      const completed = completedChapters.includes(chapter.id);
-                      return (
-                        <div key={chapter.id} style={{ padding: 10, borderRadius: 8, border: `1px solid ${unlocked ? theme.primary : "rgba(148,163,184,0.26)"}`, background: unlocked ? "rgba(2,6,23,0.36)" : "rgba(15,23,42,0.44)", opacity: unlocked ? 1 : 0.72 }}>
-                          <div style={{ color: completed ? "#86efac" : "#facc15", fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>Chapter {index + 1}{completed ? " - Cleared" : unlocked ? " - Pack Reward" : " - Locked"}</div>
-                          <h3 style={{ margin: "3px 0", color: "#f8fafc" }}>{chapter.title}</h3>
-                          {chapter.playableName && <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 4 }}>Playable: {chapter.playableName}</div>}
-                          <div style={{ color: theme.light, fontSize: 13, fontWeight: "bold", marginBottom: 6 }}>Opponent: {chapter.opponentName}</div>
-                          <div style={{ color: "#fde68a", fontSize: 12, marginBottom: 6 }}>Boss: {difficulty.bossLife} life, {difficulty.attacksPerTurn} attacks/turn, values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
-                          {complexity.length > 0 && (
-                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(2,6,23,0.38)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong style={{ color: "#fde68a" }}>Advanced rules:</strong> {complexity.join(" ")}
-                            </div>
-                          )}
-                          <p style={{ margin: "0 0 10px 0", color: "#dbeafe", lineHeight: 1.4 }}>{chapter.story}</p>
-                          {narration.beforeBattle && (
-                            <div style={{ margin: "0 0 8px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.58)", border: "1px solid rgba(253,230,138,0.2)", color: "#fde68a", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong>Before Battle:</strong> {narration.beforeBattle}
-                            </div>
-                          )}
-                          {narration.afterBattle && (
-                            <div style={{ margin: "0 0 10px 0", padding: 8, borderRadius: 6, background: "rgba(15,23,42,0.44)", border: "1px solid rgba(125,211,252,0.18)", color: "#bfdbfe", fontSize: 12, lineHeight: 1.35 }}>
-                              <strong>After Battle:</strong> {narration.afterBattle}
-                            </div>
-                          )}
-                          {chapter.dialogue?.length > 0 && <div style={{ margin: "0 0 10px 0", color: "#e0f2fe", fontSize: 12, display: "grid", gap: 3 }}>{chapter.dialogue.slice(0, 3).map((line) => <div key={line}>{line}</div>)}</div>}
-                          <MenuButton onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
-                        </div>
-                      );
-                    })()
-                  ))}
-                </div>
-              </MenuCard>
+              <button
+                key={factionId}
+                role="tab"
+                aria-selected={selected}
+                className={`campaign-faction-tab${selected ? " is-active" : ""}`}
+                onClick={() => setSelectedFactionId(factionId)}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+              >
+                <span>{campaign.factionName}</span>
+                <strong>{factionClears}/{campaign.chapters.length}</strong>
+              </button>
             );
           })}
         </div>
+        {activeCampaign && (
+          <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
+            <header className="campaign-archive-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveAssetPath(`/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+              <div className="campaign-archive-copy">
+                <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
+                <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
+                <p>{activeCampaign.pitch}</p>
+              </div>
+              {nextChapter ? (
+                <div className="campaign-next-battle">
+                  <span>Next Battle / Chapter {nextChapterIndex + 1}</span>
+                  <strong>{nextChapter.title}</strong>
+                  <small>Face {nextChapter.opponentName} at {nextDifficulty.bossLife} life.</small>
+                  <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                </div>
+              ) : (
+                <div className="campaign-next-battle is-complete">
+                  <span>Campaign complete</span>
+                  <strong>Archive Cleared</strong>
+                  <small>Every chapter in this faction story has been completed.</small>
+                </div>
+              )}
+            </header>
+            <div className="campaign-map-heading">
+              <div><span>Campaign archive</span><h3>Chapter Map</h3></div>
+              <small>Clear chapters in order. Each first clear awards a faction pack.</small>
+            </div>
+            <div className="campaign-chapter-grid">
+              {activeCampaign.chapters.map((chapter, index) => {
+                const difficulty = getCampaignDifficulty(activeFactionId, index);
+                const complexity = getCampaignComplexityPreview(activeFactionId, index, chapter.opponentName);
+                const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
+                const completed = completedChapters.includes(chapter.id);
+                return (
+                  <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
+                    <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
+                    <h3>{chapter.title}</h3>
+                    <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
+                    <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
+                    <p>{chapter.story}</p>
+                    {(complexity.length > 0 || chapter.beforeBattle || chapter.afterBattle || chapter.dialogue?.length > 0) && (
+                      <details className="campaign-story-details">
+                        <summary>Story & encounter notes</summary>
+                        {chapter.playableName && <div><strong>Playable:</strong> {chapter.playableName}</div>}
+                        {complexity.length > 0 && <div><strong>Advanced rules:</strong> {complexity.join(" ")}</div>}
+                        {chapter.beforeBattle && <div><strong>Before Battle:</strong> {chapter.beforeBattle}</div>}
+                        {chapter.afterBattle && <div><strong>After Battle:</strong> {chapter.afterBattle}</div>}
+                        {chapter.dialogue?.slice(0, 3).map((line) => <div key={line}>{line}</div>)}
+                      </details>
+                    )}
+                    <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -3393,8 +3454,6 @@ export default function App() {
   const [roomCodeInput, setRoomCodeInput] = useState(INITIAL_JOIN_ROOM_CODE);
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
-  const [incomingAttackAlert, setIncomingAttackAlert] = useState(null);
-  const [incomingAttackMinimized, setIncomingAttackMinimized] = useState(false);
   const [account, setAccount] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
@@ -3405,18 +3464,27 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: false, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [gameContent, setGameContent] = useState(null);
+  const [gameContentError, setGameContentError] = useState("");
+  const [competitiveProfile, setCompetitiveProfile] = useState(null);
+  const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
+  const [competitiveProfileError, setCompetitiveProfileError] = useState("");
+  const [publicView, setPublicView] = useState(getPublicViewFromLocation);
+  const [publicViewData, setPublicViewData] = useState(null);
+  const [publicViewLoading, setPublicViewLoading] = useState(false);
+  const [publicViewError, setPublicViewError] = useState("");
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
+  const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
   const [draftPickPending, setDraftPickPending] = useState(false);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
-  const [friendsData, setFriendsData] = useState({ friends: [], messages: [] });
+  const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
   const [friendNameInput, setFriendNameInput] = useState("");
   const [friendMessageInput, setFriendMessageInput] = useState("");
@@ -3431,19 +3499,35 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
+  const [homeArea, setHomeArea] = useState("journey");
+  const [playView, setPlayView] = useState("tables");
+  const [identityView, setIdentityView] = useState("profile");
+  const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
+  const [tutorialCompletions, setTutorialCompletions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
+    } catch {
+      return {};
+    }
+  });
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(STORAGE_KEYS.onboardingDismissed) !== "true");
-  const [showModeGuide, setShowModeGuide] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
   const [showDiscardViewer, setShowDiscardViewer] = useState(false);
+  const [matchDrawer, setMatchDrawer] = useState(null);
+  const [handSelectionRole, setHandSelectionRole] = useState("primary");
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
-  const seenIncomingAttackIdsRef = useRef(new Set());
   const hotkeyActionsRef = useRef({});
+  const currentIdentityKey = account?.id
+    ? `account:${account.id}`
+    : playAsGuest && guestName.trim()
+      ? `guest:${guestName.trim().toLowerCase()}`
+      : "";
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -3456,19 +3540,38 @@ export default function App() {
   const [selectedPlacementCardIndex, setSelectedPlacementCardIndex] = useState(null);
   const [payments, setPayments] = useState([]);
   const [expandedPower, setExpandedPower] = useState("commander");
+  const PLAYING_DECK_VALUES = gameContent?.deckRules?.playingDeckValues || [];
+  const MAX_REPLACEMENTS_PER_VALUE = gameContent?.deckRules?.maxReplacementsPerValue || 0;
 
   useEffect(() => {
-    if (!account?.id) {
-      setShowModeGuide(false);
-      return;
-    }
+    if (!matchDrawer) return undefined;
+
+    const closeDrawer = (event) => {
+      if (event.key === "Escape") setMatchDrawer(null);
+    };
+
+    window.addEventListener("keydown", closeDrawer);
+    return () => window.removeEventListener("keydown", closeDrawer);
+  }, [matchDrawer]);
+
+  const loadGameContent = useCallback(async () => {
+    setGameContentError("");
     try {
-      const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
-      setShowModeGuide(!seenByAccount[account.id]);
-    } catch {
-      setShowModeGuide(true);
+      const response = await fetch(`${SOCKET_URL}/api/game-content`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load game content.");
+      if (!data.content?.contentVersion || !data.content?.campaigns || !data.content?.deckRules) {
+        throw new Error("The server returned an unsupported game-content manifest.");
+      }
+      setGameContent(data.content);
+    } catch (contentError) {
+      setGameContentError(contentError.message);
     }
-  }, [account?.id]);
+  }, []);
+
+  useEffect(() => {
+    loadGameContent();
+  }, [loadGameContent]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3565,9 +3668,63 @@ export default function App() {
     return () => window.clearInterval(intervalId);
   }, [loadLeaderboard]);
 
+  const loadCompetitiveProfile = useCallback(async () => {
+    if (!account?.id) {
+      setCompetitiveProfile(null);
+      setCompetitiveProfileError("");
+      return;
+    }
+    setCompetitiveProfileLoading(true);
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load competitive profile.");
+      setCompetitiveProfile(data.profile);
+      setCompetitiveProfileError("");
+    } catch (profileError) {
+      setCompetitiveProfileError(profileError.message);
+    } finally {
+      setCompetitiveProfileLoading(false);
+    }
+  }, [account?.id]);
+
+  useEffect(() => {
+    loadCompetitiveProfile();
+  }, [loadCompetitiveProfile]);
+
+  useEffect(() => {
+    const handlePopState = () => setPublicView(getPublicViewFromLocation());
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!publicView) {
+      setPublicViewData(null);
+      setPublicViewError("");
+      return;
+    }
+    let active = true;
+    setPublicViewLoading(true);
+    setPublicViewData(null);
+    setPublicViewError("");
+    const path = publicView.type === "match"
+      ? `/api/matches/${encodeURIComponent(publicView.id)}`
+      : `/api/profiles/${encodeURIComponent(publicView.id)}`;
+    fetch(`${SOCKET_URL}${path}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load public record.");
+        if (active) setPublicViewData(publicView.type === "match" ? data.match : data.profile);
+      })
+      .catch((viewError) => active && setPublicViewError(viewError.message))
+      .finally(() => active && setPublicViewLoading(false));
+    return () => { active = false; };
+  }, [publicView]);
+
   const loadFriends = useCallback(async () => {
     if (!authToken) {
-      setFriendsData({ friends: [], messages: [] });
+      setFriendsData({ friends: [], messages: [], challenges: [] });
       setSelectedFriendId("");
       return;
     }
@@ -3577,8 +3734,13 @@ export default function App() {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await response.json();
+      if (response.status === 401) {
+        localStorage.removeItem(STORAGE_KEYS.authToken);
+        setAuthToken("");
+        setAccount(null);
+      }
       if (!response.ok) throw new Error(data.error || "Could not load friends.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
@@ -3651,6 +3813,19 @@ export default function App() {
     const onState = (newGame) => {
       setError("");
       setGame(newGame);
+      if (
+        currentIdentityKey &&
+        newGame?.phase === "gameOver" &&
+        newGame?.gameMode === "basic" &&
+        newGame?.players?.[2]?.accountName === "Training AI"
+      ) {
+        setTutorialCompletions((previous) => {
+          if (previous[currentIdentityKey]) return previous;
+          const next = { ...previous, [currentIdentityKey]: new Date().toISOString() };
+          localStorage.setItem(STORAGE_KEYS.tutorialCompletions, JSON.stringify(next));
+          return next;
+        });
+      }
     };
     const onLobbyState = (newLobby) => {
       setError("");
@@ -3675,7 +3850,17 @@ export default function App() {
     const onDraftLeagueStatus = (status) => setDraftLeagueStatus(status);
     const onAccountUpdated = (updatedAccount) => setAccount(updatedAccount);
     const onDraftDeckSaved = (payload) => setDraftSaveMessage(payload?.message || "Draft deck saved.");
-    const onGameEnded = () => loadLeaderboard();
+    const onGameEnded = () => {
+      loadLeaderboard();
+      loadCompetitiveProfile();
+    };
+    const onRematchStatus = (status) => setRematchStatus(status || { requestedBy: null, message: "" });
+    const onRematchStarted = () => {
+      resetSelections();
+      setGame(null);
+      setRematchStatus({ requestedBy: null, message: "" });
+      setActionLog([]);
+    };
     const attemptReconnect = () => {
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
       const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
@@ -3699,6 +3884,8 @@ export default function App() {
     socket.on("accountUpdated", onAccountUpdated);
     socket.on("draftDeckSaved", onDraftDeckSaved);
     socket.on("gameEnded", onGameEnded);
+    socket.on("rematchStatus", onRematchStatus);
+    socket.on("rematchStarted", onRematchStarted);
     attemptReconnect();
 
     return () => {
@@ -3715,8 +3902,10 @@ export default function App() {
       socket.off("accountUpdated", onAccountUpdated);
       socket.off("draftDeckSaved", onDraftDeckSaved);
       socket.off("gameEnded", onGameEnded);
+      socket.off("rematchStatus", onRematchStatus);
+      socket.off("rematchStarted", onRematchStarted);
     };
-  }, [loadLeaderboard]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -3726,48 +3915,6 @@ export default function App() {
     if (!game?.message) return;
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
-
-  useEffect(() => {
-    if (!game || role !== "player" || !player) {
-      seenIncomingAttackIdsRef.current = new Set();
-      setIncomingAttackAlert(null);
-      return;
-    }
-
-    const opponentNumber = game.gameMode === "freeForAll" ? null : player === 1 ? 2 : 1;
-    const incomingAttacks = [
-      ...(game.handAttacks || [])
-        .filter((attack) => game.gameMode === "freeForAll" ? attack.targetPlayer === player : attack.player === opponentNumber)
-        .map((attack) => ({
-          id: attack.id,
-          label: `${getCardShortLabel(attack.card)} from hand`,
-          value: attack.effectiveValue
-        })),
-      ...(game.lanes || [])
-        .map((lane, laneIndex) => ({ lane, laneIndex }))
-        .filter(({ lane }) => game.gameMode === "freeForAll" ? lane.attack?.targetPlayer === player : lane.attack?.player === opponentNumber)
-        .map(({ lane, laneIndex }) => ({
-          id: lane.attack.id || `lane-${laneIndex}-${lane.attack.card?.id || lane.attack.card?.name || "attack"}`,
-          label: `${getCardShortLabel(lane.attack.card)} from lane ${laneIndex + 1}`,
-          value: lane.attack.effectiveValue
-        }))
-    ];
-
-    const currentIds = new Set(incomingAttacks.map((attack) => attack.id));
-    seenIncomingAttackIdsRef.current.forEach((id) => {
-      if (!currentIds.has(id)) seenIncomingAttackIdsRef.current.delete(id);
-    });
-
-    const newestAttack = incomingAttacks.find((attack) => !seenIncomingAttackIdsRef.current.has(attack.id));
-    if (!newestAttack) return;
-
-    seenIncomingAttackIdsRef.current.add(newestAttack.id);
-    setIncomingAttackAlert({
-      id: newestAttack.id,
-      text: `Incoming attack: ${newestAttack.label} (effective ${newestAttack.value}). Block it or take damage.`
-    });
-    setIncomingAttackMinimized(false);
-  }, [game, role, player]);
 
   const speakFactionQuote = useCallback((factionId, quote) => {
     if (voiceAudioRef.current) {
@@ -3815,6 +3962,7 @@ export default function App() {
 
     if (incomingHandAttacks.length === 1 && game.priority === player) {
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttacks[0].id });
+      setHandSelectionRole("blocker");
     }
   }, [game, role, player, blockMode, attackMode, placementMode, abilityMode]);
 
@@ -3892,6 +4040,7 @@ export default function App() {
     setSelectedBlockCardIndex(null);
     setSelectedBlockCardIndexes([]);
     setSelectedPlacementCardIndex(null);
+    setHandSelectionRole("primary");
     setUseHeraBonus(false);
     setPeekResult("");
   }
@@ -3987,13 +4136,27 @@ export default function App() {
     return data.savedConstructedDeck;
   }
 
+  async function updateDeck(deckId, action, patch = {}) {
+    if (!authToken) throw new Error("Sign in to update a deck.");
+    const response = await fetch(`${SOCKET_URL}/api/decks/${encodeURIComponent(deckId)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ action, ...patch })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not update deck.");
+    setAccount(data.account);
+    loadCompetitiveProfile();
+    return data.deck;
+  }
+
   function signOut() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
     setLastOpenedPack([]);
     setOpeningPackId("");
-    setFriendsData({ friends: [], messages: [] });
+    setFriendsData({ friends: [], messages: [], challenges: [] });
     setSelectedFriendId("");
     setFriendNameInput("");
     setFriendMessageInput("");
@@ -4006,6 +4169,28 @@ export default function App() {
     const normalizedGuestName = guestName.trim() || "Guest";
     localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
     return { guestName: normalizedGuestName, reconnectToken };
+  }
+
+  function openPublicView(type, id) {
+    if (!id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("match");
+    url.searchParams.delete("profile");
+    url.searchParams.set(type, id);
+    window.history.pushState({ gauntletPublicView: true }, "", url);
+    setPublicView({ type, id });
+  }
+
+  function closePublicView() {
+    if (window.history.state?.gauntletPublicView) {
+      window.history.back();
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("match");
+    url.searchParams.delete("profile");
+    window.history.pushState({}, "", url);
+    setPublicView(null);
   }
 
   function createRoom() {
@@ -4078,8 +4263,8 @@ export default function App() {
       return;
     }
     if (chosenCard && !currentIds.has(cardCopyId)) {
-      const chosenValue = getReplacementValue(chosenCard);
-      const sameValueCount = (draftState.myDeckAdditions || []).filter((card) => getReplacementValue(card) === chosenValue).length;
+      const chosenValue = getReplacementValue(chosenCard, PLAYING_DECK_VALUES);
+      const sameValueCount = (draftState.myDeckAdditions || []).filter((card) => getReplacementValue(card, PLAYING_DECK_VALUES) === chosenValue).length;
       if (chosenValue == null || sameValueCount >= MAX_REPLACEMENTS_PER_VALUE) {
         setError(`Draft decks can only swap up to ${MAX_REPLACEMENTS_PER_VALUE} cards of the same value.`);
         return;
@@ -4092,7 +4277,7 @@ export default function App() {
       .filter((card) => currentIds.has(card.draftCopyId))
       .reduce((selected, card) => {
         const existing = (draftState.myDeckAdditions || []).find((selectedCard) => selectedCard.draftCopyId === card.draftCopyId);
-        const value = getReplacementValue(card);
+        const value = getReplacementValue(card, PLAYING_DECK_VALUES);
         const usedSuits = new Set(selected.filter((selection) => selection.value === value).map((selection) => selection.suit));
         const preferred = normalizeReplacementSuitId(existing?.replacementSuit || existing?.suit || card.replacementSuit || card.suit);
         const suit = preferred && !usedSuits.has(preferred)
@@ -4115,9 +4300,9 @@ export default function App() {
   function setDraftDeckCardSuit(cardCopyId, suit) {
     if (!draftState?.myDeckAdditions) return;
     const targetCard = draftState.myDeckAdditions.find((card) => card.draftCopyId === cardCopyId);
-    const targetValue = getReplacementValue(targetCard);
+    const targetValue = getReplacementValue(targetCard, PLAYING_DECK_VALUES);
     const targetSuit = normalizeReplacementSuitId(suit);
-    if (draftState.myDeckAdditions.some((card) => card.draftCopyId !== cardCopyId && getReplacementValue(card) === targetValue && normalizeReplacementSuitId(card.replacementSuit || card.suit) === targetSuit)) {
+    if (draftState.myDeckAdditions.some((card) => card.draftCopyId !== cardCopyId && getReplacementValue(card, PLAYING_DECK_VALUES) === targetValue && normalizeReplacementSuitId(card.replacementSuit || card.suit) === targetSuit)) {
       setError(`Another value ${targetValue} card is already replacing ${targetSuit}. Choose a different suit first.`);
       return;
     }
@@ -4141,6 +4326,20 @@ export default function App() {
     socket.emit("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
   }
 
+  function resumeSavedRoom() {
+    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
+    const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
+    const savedRole = localStorage.getItem(STORAGE_KEYS.role);
+    if (!roomCode) return;
+    setError("");
+    socket.emit("reconnectToRoom", {
+      roomCode,
+      reconnectToken,
+      role: savedRole,
+      authToken: localStorage.getItem(STORAGE_KEYS.authToken)
+    });
+  }
+
   function dismissOnboarding() {
     localStorage.setItem(STORAGE_KEYS.onboardingDismissed, "true");
     setShowOnboarding(false);
@@ -4148,7 +4347,6 @@ export default function App() {
 
   function reopenOnboardingTips() {
     localStorage.removeItem(STORAGE_KEYS.onboardingDismissed);
-    setShowModeGuide(false);
     setShowOnboarding(true);
     setError("");
   }
@@ -4169,38 +4367,6 @@ export default function App() {
     dismissOnboarding();
   }
 
-  function dismissModeGuide() {
-    if (account?.id) {
-      try {
-        const seenByAccount = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountModeGuideSeen) || "{}");
-        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ ...seenByAccount, [account.id]: true }));
-      } catch {
-        localStorage.setItem(STORAGE_KEYS.accountModeGuideSeen, JSON.stringify({ [account.id]: true }));
-      }
-    }
-    setShowModeGuide(false);
-  }
-
-  function startModeGuideBasicAi() {
-    dismissModeGuide();
-    startTutorialVsAi("basic");
-  }
-
-  function openModeGuideCampaign() {
-    dismissModeGuide();
-    setShowCampaign(true);
-  }
-
-  function openModeGuideCollection() {
-    dismissModeGuide();
-    setShowCollection(true);
-  }
-
-  function enableModeGuideHints() {
-    setShowHelperLabels(true);
-    dismissModeGuide();
-  }
-
   function startCampaignChapter(factionId, chapterId) {
     clearReconnectInfo();
     setShowCampaign(false);
@@ -4216,7 +4382,6 @@ export default function App() {
     setRole(null);
     setPlayer(null);
     setActionLog([]);
-    setIncomingAttackAlert(null);
     startCampaignChapter(factionId, chapterId);
   }
 
@@ -4262,6 +4427,14 @@ export default function App() {
     socket.emit("startGame");
   }
 
+  function requestRematch() {
+    socket.emit("requestRematch");
+  }
+
+  function declineRematch() {
+    socket.emit("declineRematch");
+  }
+
   async function submitFriendRequest() {
     setFriendsError("");
     try {
@@ -4272,7 +4445,7 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not add friend.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(data.friends?.find((friend) => friend.name.toLowerCase() === friendNameInput.trim().toLowerCase())?.id || selectedFriendId || data.friends?.[0]?.id || "");
       setFriendNameInput("");
     } catch (friendAddError) {
@@ -4289,7 +4462,7 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not remove friend.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(data.friends?.[0]?.id || "");
       setFriendMessageInput("");
     } catch (friendRemoveError) {
@@ -4307,11 +4480,49 @@ export default function App() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not send message.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [] });
+      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
       setSelectedFriendId(friendId);
       setFriendMessageInput("");
     } catch (friendMessageError) {
       setFriendsError(friendMessageError.message);
+    }
+  }
+
+  function challengeFriend(friendId) {
+    setFriendsError("");
+    clearReconnectInfo();
+    socket.emit("createFriendChallenge", { authToken, friendId }, (response) => {
+      if (!response?.ok) {
+        setFriendsError(response?.error || "Could not create friend challenge.");
+        return;
+      }
+      loadFriends();
+    });
+  }
+
+  function joinFriendChallenge(challenge) {
+    setFriendsError("");
+    clearReconnectInfo();
+    socket.emit("joinRoom", {
+      roomCode: challenge.roomCode,
+      asSpectator: false,
+      ...playerIdentityPayload()
+    });
+  }
+
+  async function updateFriendChallenge(challengeId, action) {
+    setFriendsError("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/friend-challenges/${encodeURIComponent(challengeId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ action })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update challenge.");
+      await loadFriends();
+    } catch (challengeError) {
+      setFriendsError(challengeError.message);
     }
   }
 
@@ -4326,12 +4537,11 @@ export default function App() {
     setPlayer(null);
     setRoomCodeInput("");
     setActionLog([]);
+    setRematchStatus({ requestedBy: null, message: "" });
     setError("");
     setFactionVoice(null);
-    setIncomingAttackAlert(null);
     setShowCampaign(false);
     setShowTutorial(false);
-    seenIncomingAttackIdsRef.current = new Set();
     setMatchmakingStatus({ inQueue: false, message: "" });
     setDraftLeagueStatus({ inQueue: false, message: "" });
   }
@@ -4345,16 +4555,13 @@ export default function App() {
   function selectAttackCard(i) {
     setSelectedAttackCardIndex(i);
     setPayments((prev) => prev.filter((x) => x !== i));
+    setHandSelectionRole("payment");
   }
 
   function selectBlockCard(i) {
     setSelectedBlockCardIndex(i);
     setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
     setPayments((prev) => prev.filter((x) => x !== i));
-  }
-
-  function togglePanel(panel) {
-    setCollapsedPanels((prev) => ({ ...prev, [panel]: !prev[panel] }));
   }
 
   hotkeyActionsRef.current = {};
@@ -4383,6 +4590,118 @@ export default function App() {
   }
 
   const canPlayAsPlayer = !!account || playAsGuest;
+  const savedRoomCode = localStorage.getItem(STORAGE_KEYS.roomCode) || "";
+  const savedReconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
+  const savedRole = localStorage.getItem(STORAGE_KEYS.role) || "";
+  const hasSavedRoom = !!savedRoomCode && (!!savedReconnectToken || savedRole === "spectator");
+  const completedCampaignChapters = Object.values(account?.progression?.campaign || {})
+    .reduce((total, chapters) => total + (Array.isArray(chapters) ? chapters.length : 0), 0);
+  const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
+  const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
+  const packCredits = Number(account?.collection?.packCredits || 0);
+  const ownedCardCount = Object.values(account?.collection?.cards || {}).reduce((total, count) => total + Number(count || 0), 0);
+  const openedPackCount = Number(account?.collection?.openedPacks || 0);
+  const deckLibrary = account?.stats?.deckLibrary || { decks: [] };
+  const activeDecks = (deckLibrary.decks || []).filter((deck) => !deck.archived);
+  const constructedDecks = activeDecks.filter((deck) => deck.format === "constructed");
+  const activeConstructedDeck = constructedDecks.find((deck) => deck.id === deckLibrary.activeConstructedDeckId)
+    || constructedDecks[0]
+    || account?.stats?.savedConstructedDeck
+    || null;
+  const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
+  const featuredDecks = activeDecks.filter((deck) => deck.featured);
+  const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
+  let journeyNextStep;
+
+  if (hasSavedRoom) {
+    journeyNextStep = {
+      title: `Resume room ${savedRoomCode}`,
+      description: "Return to your saved player seat or spectator view.",
+      actionLabel: "Resume Match",
+      onClick: resumeSavedRoom
+    };
+  } else if (!canPlayAsPlayer) {
+    journeyNextStep = {
+      title: "Choose your player identity",
+      description: "Sign in for progression or enter a named guest identity to begin.",
+      actionLabel: "Open Identity",
+      onClick: () => setHomeArea("identity")
+    };
+  } else if (!tutorialComplete) {
+    journeyNextStep = {
+      title: "Learn the core game",
+      description: "Start with Basic Gauntlet before adding faction powers.",
+      actionLabel: "Learn Gauntlet",
+      onClick: () => setShowTutorial(true)
+    };
+  } else if (completedCampaignChapters === 0) {
+    journeyNextStep = {
+      title: "Choose a faction",
+      description: "Meet the four factions and begin your first campaign chapter.",
+      actionLabel: "Choose Campaign",
+      onClick: () => setShowCampaign(true)
+    };
+  } else if (packCredits > 0) {
+    journeyNextStep = {
+      title: `Open ${packCredits} earned pack${packCredits === 1 ? "" : "s"}`,
+      description: "Claim faction cards earned from campaign victories.",
+      actionLabel: "Open Collection",
+      onClick: () => setShowCollection(true)
+    };
+  } else if (!hasSavedDeck) {
+    journeyNextStep = {
+      title: "Personalize your 52-card deck",
+      description: "Replace ordinary playing cards with faction cards from your collection.",
+      actionLabel: "Build a Deck",
+      onClick: () => setShowCollection(true)
+    };
+  } else {
+    journeyNextStep = {
+      title: "Take your deck to the table",
+      description: "Create a room, invite another player, or enter matchmaking.",
+      actionLabel: "Find a Game",
+      onClick: () => setHomeArea("play")
+    };
+  }
+
+  if (publicView?.type === "match") {
+    return (
+      <MatchRecordScreen
+        match={publicViewData}
+        loading={publicViewLoading}
+        error={publicViewError}
+        serverUrl={SOCKET_URL}
+        onBack={closePublicView}
+        onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+      />
+    );
+  }
+
+  if (publicView?.type === "profile") {
+    return (
+      <PublicProfileScreen
+        profile={publicViewData}
+        loading={publicViewLoading}
+        error={publicViewError}
+        onBack={closePublicView}
+        onOpenMatch={(matchId) => openPublicView("match", matchId)}
+      />
+    );
+  }
+
+  if (!gameContent) {
+    return (
+      <main style={MENU_THEME.page}>
+        <div style={{ ...MENU_THEME.frame, maxWidth: 620, margin: "10vh auto" }}>
+          <h1 style={{ marginTop: 0 }}>Loading Gauntlet</h1>
+          <p style={{ color: gameContentError ? "#fca5a5" : "#bfdbfe" }}>
+            {gameContentError || "Checking the server's game-content version..."}
+          </p>
+          {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
+        </div>
+      </main>
+    );
+  }
 
   if (showCampaign) {
     return (
@@ -4391,6 +4710,7 @@ export default function App() {
         onStartChapter={startCampaignChapter}
         canPlayAsPlayer={canPlayAsPlayer}
         account={account}
+        campaigns={gameContent.campaigns}
       />
     );
   }
@@ -4399,11 +4719,14 @@ export default function App() {
     return (
       <CollectionScreen
         account={account}
+        deckRules={gameContent.deckRules}
         lastOpenedPack={lastOpenedPack}
         openingPackId={openingPackId}
         onOpenPack={openBoosterPack}
         onBuyPack={buyBoosterPack}
         onSaveConstructedDeck={saveConstructedDeck}
+        onDeckAction={updateDeck}
+        onOpenMatch={(matchId) => openPublicView("match", matchId)}
         onBack={() => setShowCollection(false)}
       />
     );
@@ -4428,6 +4751,7 @@ export default function App() {
         player={player}
         isSpectator={role === "spectator"}
         account={account}
+        deckRules={gameContent.deckRules}
         draftPickPending={draftPickPending}
         draftSaveMessage={draftSaveMessage}
         onBack={returnToMainMenu}
@@ -4443,15 +4767,34 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div style={MENU_THEME.page}>
-        <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 18, marginBottom: 20 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Battle Net Terminal</div>
-            <h1 style={{ margin: 0, fontSize: 46, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
+      <div className="menu-page" style={MENU_THEME.page}>
+        <div className="menu-frame" style={MENU_THEME.frame}>
+        <div className="home-command-header">
+          <div className="home-brand">
+            <div className="home-brand-copy">
+              <div className="home-brand-kicker">Battle Net Terminal</div>
+              <h1>Gauntlet Online</h1>
+              <div className="home-brand-subtitle">Two-player card command</div>
+            </div>
+            <div className="home-faction-ribbon" aria-label="The four Gauntlet factions">
+              {[
+                ["rumin", "Rumin"],
+                ["bizi", "Bizi"],
+                ["sheen", "Sheen"],
+                ["frumo", "Frumo"]
+              ].map(([factionId, factionName]) => (
+                <span
+                  key={factionId}
+                  className={`home-faction-portrait faction-${factionId}`}
+                  style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+                  title={factionName}
+                  aria-label={factionName}
+                  role="img"
+                />
+              ))}
+            </div>
           </div>
-          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
-            <div style={{ color: "#93c5fd", fontSize: 13, textAlign: "right" }}>Two-player card command</div>
+          <div className="home-command-tools">
             <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <MusicControl
               trackKey={activeMusicTrack}
@@ -4468,134 +4811,282 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        {account && showModeGuide && (
-          <ModeGuidePanel
-            accountName={account.name}
-            onStartBasicAi={startModeGuideBasicAi}
-            onOpenCampaign={openModeGuideCampaign}
-            onOpenCollection={openModeGuideCollection}
-            onEnableHints={enableModeGuideHints}
-            onDismiss={dismissModeGuide}
-          />
-        )}
-        {showOnboarding && (
-          <OnboardingPanel
-            canPlayAsPlayer={canPlayAsPlayer}
-            onStartTutorial={openOnboardingTutorial}
-            onStartBasicAi={startOnboardingBasicAi}
-            onEnableHints={enableOnboardingHints}
-            onDismiss={dismissOnboarding}
-          />
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          <MenuCard title="Tutorial">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Learn the priority, attack, block, damage, and lane flow before your first match.</p>
-            <MenuButton onClick={() => setShowTutorial(true)} style={{ marginRight: 8, marginBottom: 8 }}>Start Tutorial</MenuButton>
-            <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Onboarding Tips</MenuButton>
-          </MenuCard>
-          <MenuCard title="Campaign">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Play as each faction commander through story battles against figures from their own history.</p>
-            <MenuButton onClick={() => setShowCampaign(true)}>Choose Campaign</MenuButton>
-          </MenuCard>
-          <MenuCard title="Collection">
-            <p style={{ marginTop: 0, color: "#bfdbfe" }}>Open earned campaign packs, view your cards, and buy $1 faction packs once checkout is configured.</p>
-            <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection</MenuButton>
-            {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to use your collection.</p>}
-          </MenuCard>
-          <AccountPanel
-            account={account}
-            mode={authMode}
-            form={authForm}
-            error={authError}
-            onModeChange={setAuthMode}
-            onFormChange={setAuthForm}
-            onSubmit={submitAuth}
-            onSignOut={signOut}
-          />
-          <ProgressionPanel account={account} onSelectCosmetic={selectAccountCosmetic} />
-          <MenuCard title="Create Room">
-            <MenuButton onClick={createRoom} disabled={!canPlayAsPlayer} style={{ marginRight: 8, marginBottom: 8 }}>Create Duel Room</MenuButton>
-            <MenuButton variant="secondary" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}>Create Free-For-All</MenuButton>
-            <MenuButton variant="secondary" onClick={createDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Create Draft Room</MenuButton>
-            <MenuButton variant="secondary" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer} style={{ marginLeft: 8, marginBottom: 8 }}>Bot Draft</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13, marginBottom: 0 }}>Duel is 2 players. Free-for-all supports 2-4 players. Draft supports up to 8 players. Bot Draft seats you with 7 automated drafters.</p>
-            <HelperText enabled={showHelperLabels}>Choose Duel for the tuned two-player table, Free-for-All for 2-4 seated players, Draft Room for live drafters, or Bot Draft for an Arena-style solo draft table.</HelperText>
-            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in or play as a guest to create a room.</p>}
-          </MenuCard>
-          <MenuCard title="Join Room">
-            <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" style={{ ...MENU_THEME.input, marginRight: 10, marginBottom: 10 }} />
-            <div>
-              <MenuButton onClick={() => joinRoom(false)} disabled={!canPlayAsPlayer} style={{ marginRight: 8 }}>Join as Player</MenuButton>
-              <MenuButton variant="secondary" onClick={() => joinRoom(true)}>Join as Spectator</MenuButton>
+        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep}>
+          {homeArea === "play" && (
+            <div className="play-hub">
+              <div className="play-view-tabs" role="tablist" aria-label="Play formats">
+                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["draft", "Draft"]].map(([viewId, label]) => (
+                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => setPlayView(viewId)}>{label}</button>
+                ))}
+              </div>
+
+              {playView === "practice" && (
+                <MenuCard className="play-focus-panel" title="Training Grounds">
+                  <div className="play-format-heading">
+                    <div><strong>Practice privately</strong><span>Choose core rules or the complete faction game.</span></div>
+                    {!canPlayAsPlayer && <small>Choose an account or guest identity first.</small>}
+                  </div>
+                  <div className="play-choice-grid">
+                    <button type="button" onClick={() => startTutorialVsAi("basic")} disabled={!canPlayAsPlayer}><span>Core Game</span><strong>Basic vs AI</strong><small>Priority, payment, blocking, and lanes.</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("factions")} disabled={!canPlayAsPlayer}><span>Full Game</span><strong>Factions vs AI</strong><small>Commanders, cities, generals, and faction powers.</small></button>
+                  </div>
+                </MenuCard>
+              )}
+
+              {playView === "tables" && (
+                <div className="play-table-grid">
+                  <MenuCard className="play-focus-panel" title="Create Table">
+                    <div className="play-choice-grid">
+                      <button type="button" onClick={createRoom} disabled={!canPlayAsPlayer}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
+                      <button type="button" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
+                    </div>
+                    <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
+                  </MenuCard>
+                  <MenuCard className="play-join-panel" title="Join Table">
+                    <form
+                      className="play-join-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (roomCodeInput.trim() && canPlayAsPlayer) joinRoom(false);
+                      }}
+                    >
+                      <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" aria-label="Room code" style={MENU_THEME.input} />
+                      <MenuButton type="submit" disabled={!canPlayAsPlayer || !roomCodeInput.trim()}>Join as Player</MenuButton>
+                      <MenuButton variant="secondary" onClick={() => joinRoom(true)} disabled={!roomCodeInput.trim()}>Spectate</MenuButton>
+                    </form>
+                  </MenuCard>
+                  <div className="play-share-panel"><ShareGameQrCard /></div>
+                </div>
+              )}
+
+              {playView === "ranked" && (
+                <div className="play-ranked-grid">
+                  <MatchmakingPanel
+                    account={account}
+                    status={matchmakingStatus}
+                    onJoin={() => joinMatchmaking(1)}
+                    onLeave={leaveMatchmaking}
+                    title="Ranked Duel"
+                    description="Find an account opponent with a similar win/loss ratio."
+                    joinLabel="Find Ranked Match"
+                    extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
+                  />
+                </div>
+              )}
+
+              {playView === "draft" && (
+                <div className="play-draft-grid">
+                  <MenuCard className="play-focus-panel" title="Draft a Deck">
+                    <div className="play-choice-grid">
+                      <button type="button" onClick={createDraftRoom} disabled={!canPlayAsPlayer}><span>Eight Seats</span><strong>Live Draft</strong><small>Draft with players, then save your deck.</small></button>
+                      <button type="button" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer}><span>Solo Table</span><strong>Bot Draft</strong><small>Draft against seven automated seats.</small></button>
+                    </div>
+                  </MenuCard>
+                  <MatchmakingPanel
+                    account={account}
+                    status={draftLeagueStatus}
+                    onJoin={() => joinDraftLeague("player", 1)}
+                    onLeave={leaveDraftLeague}
+                    title="Draft League"
+                    description="Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."
+                    joinLabel="Player Draft"
+                    cancelLabel="Leave Draft Queue"
+                    signedOutText="Sign in and save a draft deck to enter Draft League."
+                    extraActions={(
+                      <>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
+                      </>
+                    )}
+                  />
+                </div>
+              )}
             </div>
-            {!canPlayAsPlayer && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Player seats need an account or guest name. Spectating is open.</p>}
-          </MenuCard>
-          <ShareGameQrCard />
-          <MatchmakingPanel
-            account={account}
-            status={matchmakingStatus}
-            onJoin={() => joinMatchmaking(1)}
-            onLeave={leaveMatchmaking}
-            extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find BO3 Match</MenuButton>}
-          />
-          <MatchmakingPanel
-            account={account}
-            status={draftLeagueStatus}
-            onJoin={() => joinDraftLeague("player", 1)}
-            onLeave={leaveDraftLeague}
-            title="Draft League"
-            description="Queue with your saved one-faction draft deck against an account opponent with a similar draft league record. Player Draft and Bot Draft decks use separate queues."
-            joinLabel="Player Draft"
-            cancelLabel="Leave Draft Queue"
-            signedOutText="Sign in and save a draft deck to use draft league matchmaking."
-            extraActions={(
-              <>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
-                <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
-              </>
-            )}
-          />
-          <FriendsPanel
-            account={account}
-            friendsData={friendsData}
-            selectedFriendId={selectedFriendId}
-            friendName={friendNameInput}
-            messageText={friendMessageInput}
-            error={friendsError}
-            onSelectFriend={selectFriendWithReadReceipt}
-            onFriendNameChange={setFriendNameInput}
-            onMessageTextChange={setFriendMessageInput}
-            onAddFriend={submitFriendRequest}
-            onRemoveFriend={removeFriend}
-            onSendMessage={sendFriendMessage}
-            onRefresh={loadFriends}
-            unreadCounts={friendUnreadCounts}
-            unreadTotal={friendUnreadTotal}
-          />
-          <MenuCard title="Guest Play">
-            <label style={{ display: "block", marginBottom: 10 }}>
-              <input
-                type="checkbox"
-                checked={playAsGuest}
-                onChange={(e) => setPlayAsGuest(e.target.checked)}
-                disabled={!!account}
-                style={{ marginRight: 8 }}
+          )}
+
+          {homeArea === "journey" && (
+            <div className="journey-hub">
+              {showOnboarding && (
+                <OnboardingPanel
+                  canPlayAsPlayer={canPlayAsPlayer}
+                  onStartTutorial={openOnboardingTutorial}
+                  onStartBasicAi={startOnboardingBasicAi}
+                  onEnableHints={enableOnboardingHints}
+                  onDismiss={dismissOnboarding}
+                />
+              )}
+              <div className="journey-route">
+                <section className="journey-learning-panel">
+                  <div className="journey-panel-copy">
+                    <span>Phase One / The Table</span>
+                    <h3>Learn the rhythm of a turn</h3>
+                    <p>Priority moves the match. Learn when to attack, how to pay, when to defend, and how lanes close the turn.</p>
+                  </div>
+                  <div className="journey-turn-flow" aria-label="Core turn sequence">
+                    {["Priority", "Attack", "Defend", "Resolve", "Lanes", "Draw"].map((step, index) => (
+                      <span key={step}><small>{index + 1}</small>{step}</span>
+                    ))}
+                  </div>
+                  <div className="journey-panel-actions">
+                    <MenuButton onClick={() => setShowTutorial(true)}>Open Tutorial</MenuButton>
+                    <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
+                  </div>
+                </section>
+                <section className="journey-campaign-panel">
+                  <div className="journey-faction-strip" aria-label="Choose from four faction campaigns">
+                    {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
+                      <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                    ))}
+                  </div>
+                  <div className="journey-panel-copy">
+                    <span>Phase Two / Choose a Faction</span>
+                    <h3>Enter the commander archives</h3>
+                    <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Four factions, four commanders, and four twelve-chapter campaigns await."}</p>
+                  </div>
+                  <div className="journey-campaign-progress">
+                    <span>Campaign progress</span>
+                    <strong>{completedCampaignChapters}</strong>
+                    <small>chapters cleared</small>
+                  </div>
+                  <MenuButton onClick={() => setShowCampaign(true)}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
+                </section>
+              </div>
+              <details className="journey-rulebook">
+                <summary><span>Field Rulebook</span><small>Open the complete rules reference</small></summary>
+                <div className="journey-rulebook-content"><RulebookPanel /></div>
+              </details>
+            </div>
+          )}
+
+          {homeArea === "build" && (
+            <div className="build-hub">
+              <section className="build-vault-panel">
+                <div className="build-faction-strip" aria-label="Faction collections">
+                  {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
+                    <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  ))}
+                </div>
+                <div className="build-panel-copy">
+                  <span>The Vault</span>
+                  <h3>Turn campaign rewards into a personal deck</h3>
+                  <p>{account ? "Open faction packs, inspect every card, and decide which ordinary playing cards become something more." : "Sign in to keep a collection, open rewards, and save constructed decks."}</p>
+                </div>
+                <div className="build-vault-stats">
+                  <span><small>Cards owned</small><strong>{ownedCardCount}</strong></span>
+                  <span><small>Packs opened</small><strong>{openedPackCount}</strong></span>
+                  <span><small>Credits ready</small><strong>{packCredits}</strong></span>
+                </div>
+                <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection Workshop</MenuButton>
+              </section>
+              <div className="build-deck-stack">
+                <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
+                  <span className="build-deck-cover" aria-hidden="true" style={{ backgroundImage: `linear-gradient(rgba(3,8,13,0.08), rgba(3,8,13,0.72)), url(${resolveAssetPath(`/assets/gauntlet/${buildDeckFactionId}-card.webp`)})` }} />
+                  <div>
+                    <span>Constructed / {constructedDecks.length} saved</span>
+                    <h3>{activeConstructedDeck?.name || "Build your first deck"}</h3>
+                    <p>{activeConstructedDeck ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} faction-card replacements.` : "Begin with the standard 52-card deck, then map owned faction cards into matching values."}</p>
+                    <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{activeConstructedDeck ? "Edit Active Deck" : "Build First Deck"}</MenuButton>
+                  </div>
+                </section>
+                <section className="build-draft-entry">
+                  <div>
+                    <span>Draft Library</span>
+                    <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
+                    <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
+                  </div>
+                  <MenuButton variant="secondary" onClick={() => setHomeArea("play")}>Open Draft Modes</MenuButton>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {homeArea === "identity" && (
+            <div className="identity-hub">
+              <div className="identity-view-tabs" role="tablist" aria-label="Identity views">
+                {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"]].map(([viewId, label]) => (
+                  <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => setIdentityView(viewId)}>{label}</button>
+                ))}
+              </div>
+              {identityView === "profile" && <div className="identity-profile-grid">
+              <AccountPanel
+                account={account}
+                mode={authMode}
+                form={authForm}
+                error={authError}
+                onModeChange={setAuthMode}
+                onFormChange={setAuthForm}
+                onSubmit={submitAuth}
+                onSignOut={signOut}
               />
-              Play as guest
-            </label>
-            <input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest name"
-              disabled={!!account || !playAsGuest}
-              style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
-            />
-            {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>You are already signed in, so your account name will be used.</p>}
-          </MenuCard>
-          <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} />
-        </div>
-        <RulebookPanel />
+              <MenuCard title="Guest Identity">
+                <label style={{ display: "block", marginBottom: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={playAsGuest}
+                    onChange={(e) => setPlayAsGuest(e.target.checked)}
+                    disabled={!!account}
+                    style={{ marginRight: 8 }}
+                  />
+                  Play as guest
+                </label>
+                <input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Guest name"
+                  disabled={!!account || !playAsGuest}
+                  style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
+                />
+                {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
+              </MenuCard>
+              <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
+              </div>}
+              {identityView === "record" && (
+              <CompetitiveIdentityPanel
+                profile={competitiveProfile}
+                loading={competitiveProfileLoading}
+                error={competitiveProfileError}
+                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+                onOpenMatch={(matchId) => openPublicView("match", matchId)}
+              />
+              )}
+              {identityView === "profile" && (
+              <MenuCard title="Featured Decks">
+                {featuredDecks.length > 0 ? featuredDecks.map((deck) => (
+                  <div key={deck.id} style={{ borderBottom: "1px solid rgba(125, 211, 252, 0.18)", padding: "7px 0", color: "#dbeafe" }}>
+                    <strong>{deck.name}</strong>
+                    <div style={{ color: "#93c5fd", fontSize: 12 }}>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"} · {deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</div>
+                  </div>
+                )) : <p style={{ marginTop: 0, color: "#bfdbfe" }}>Feature up to three decks from Build to make them part of your identity.</p>}
+                <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account} style={{ marginTop: 8 }}>Manage Decks</MenuButton>
+              </MenuCard>
+              )}
+              {identityView === "community" && <div className="identity-community-grid">
+              <FriendsPanel
+                account={account}
+                friendsData={friendsData}
+                selectedFriendId={selectedFriendId}
+                friendName={friendNameInput}
+                messageText={friendMessageInput}
+                error={friendsError}
+                onSelectFriend={selectFriendWithReadReceipt}
+                onFriendNameChange={setFriendNameInput}
+                onMessageTextChange={setFriendMessageInput}
+                onAddFriend={submitFriendRequest}
+                onRemoveFriend={removeFriend}
+                onSendMessage={sendFriendMessage}
+                onChallengeFriend={challengeFriend}
+                onJoinChallenge={joinFriendChallenge}
+                onUpdateChallenge={updateFriendChallenge}
+                onRefresh={loadFriends}
+                unreadCounts={friendUnreadCounts}
+                unreadTotal={friendUnreadTotal}
+              />
+              <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} onOpenProfile={(accountId) => openPublicView("profile", accountId)} />
+              </div>}
+            </div>
+          )}
+        </HomeNavigation>
         </div>
       </div>
     );
@@ -4607,16 +5098,30 @@ export default function App() {
     const isFreeForAllMode = lobby?.gameMode === "freeForAll";
     const lobbyPlayerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
     const connectedLobbyPlayers = lobbyPlayerNumbers.filter((p) => lobby?.players?.[p]?.connected);
+    const lobbyFactions = lobby?.factions || [];
+    const lobbyPreviewFaction = lobbyFactions.find((faction) => faction.id === lobbyFactionPreviewId)
+      || lobbyFactions.find((faction) => faction.id === myFactionId)
+      || lobbyFactions[0]
+      || null;
     const bothReady = isFreeForAllMode
       ? connectedLobbyPlayers.length >= 2 && connectedLobbyPlayers.every((p) => !!lobby?.players?.[p]?.factionId)
       : isBasicMode
         ? lobby?.players?.[1]?.connected && lobby?.players?.[2]?.connected
         : lobby?.players?.[1]?.factionId && lobby?.players?.[2]?.factionId;
     const myStartConfirmed = role === "player" ? !!lobby?.players?.[player]?.readyToStart : false;
+    const lobbyReadyBar = (
+      <div className="lobby-ready-bar">
+        <div>
+          <span>{myStartConfirmed ? "Ready confirmed" : "Final decision"}</span>
+          <strong>{isFreeForAllMode ? "All seated players choose a faction and confirm." : "Both players must confirm before the match begins."}</strong>
+        </div>
+        <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
+      </div>
+    );
 
     return (
-      <div style={MENU_THEME.page}>
-        <div style={MENU_THEME.frame}>
+      <div className="lobby-page menu-page" style={MENU_THEME.page}>
+        <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Faction Command</div>
@@ -4636,32 +5141,73 @@ export default function App() {
         {copyNotice && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{copyNotice}</div>}
         {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <MenuCard title="Lobby">
-          <p><strong>Mode:</strong> {isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</p>
+        <MenuCard className="lobby-command-panel" title="Table Command">
+          <div className="lobby-command-meta">
+            <span><small>Format</small><strong>{isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</strong></span>
+            <span><small>Spectators</small><strong>{lobby?.spectatorCount || 0}</strong></span>
+          </div>
           <LobbySeatGrid lobby={lobby} />
-          <HelperText enabled={showHelperLabels}>{isFreeForAllMode ? "Each connected seat must choose a faction and confirm. Empty seats can stay open." : "Both player seats need to be ready before the match begins."}</HelperText>
-          <p><strong>Spectators:</strong> {lobby?.spectatorCount || 0}</p>
-        </MenuCard>
-        {role === "player" && (
-          <>
-            {!isFreeForAllMode && <MenuCard title="Game Mode">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {role === "player" && !isFreeForAllMode && (
+            <div className="lobby-mode-row">
+              <div><span>Room rules</span><small>{player === 1 ? "Choose before both players confirm." : "Player 1 controls the room mode."}</small></div>
+              <div>
                 <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
                 <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode}>Basic Mode</MenuButton>
               </div>
-              <p style={{ marginBottom: 0, color: "#bfdbfe", fontSize: 13 }}>{player === 1 ? "Player 1 chooses the room mode before the game starts." : "Waiting for Player 1 to choose the room mode."}</p>
-            </MenuCard>}
-            {!isBasicMode && (
-              <>
-                <h2 style={{ color: "#f8fafc" }}>Select Your Faction</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
-                  {(lobby?.factions || []).map((faction) => <FactionChoiceCard key={faction.id} faction={faction} selected={myFactionId === faction.id} onSelect={chooseFaction} />)}
+            </div>
+          )}
+          <HelperText enabled={showHelperLabels}>{isFreeForAllMode ? "Each connected seat must choose a faction and confirm. Empty seats can stay open." : "Both player seats need to be ready before the match begins."}</HelperText>
+        </MenuCard>
+        {role === "player" && (
+          <>
+            {!isBasicMode && lobbyPreviewFaction && (
+              <section className="lobby-faction-command" aria-labelledby="lobby-faction-heading">
+                <div className="lobby-section-heading">
+                  <div><span>Choose Your Command</span><h2 id="lobby-faction-heading">Select Your Faction</h2></div>
+                  <small>{myFactionId ? `${lobbyFactions.find((faction) => faction.id === myFactionId)?.name || "Faction"} selected` : "No faction selected"}</small>
                 </div>
+                <div className="lobby-faction-tabs" role="tablist" aria-label="Factions">
+                  {lobbyFactions.map((faction) => {
+                    const previewed = lobbyPreviewFaction.id === faction.id;
+                    const selected = myFactionId === faction.id;
+                    const factionTheme = getFactionTheme(faction.id);
+                    return (
+                      <button
+                        key={faction.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={previewed}
+                        className={`faction-${faction.id}`}
+                        onClick={() => setLobbyFactionPreviewId(faction.id)}
+                        style={{ "--faction-accent": factionTheme.primary }}
+                      >
+                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`)})` }} />
+                        <span><strong>{faction.name}</strong><small>{selected ? "Selected" : previewed ? "Viewing" : "Inspect"}</small></span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {lobbyReadyBar}
+                <div className="lobby-faction-detail">
+                  <FactionChoiceCard
+                    faction={lobbyPreviewFaction}
+                    selected={myFactionId === lobbyPreviewFaction.id}
+                    onSelect={(factionId) => {
+                      setLobbyFactionPreviewId(factionId);
+                      chooseFaction(factionId);
+                    }}
+                  />
+                </div>
+              </section>
+            )}
+            {isBasicMode && (
+              <>
+                <MenuCard title="Basic Mode">
+                  <p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p>
+                </MenuCard>
+                {lobbyReadyBar}
               </>
             )}
-            {isBasicMode && <MenuCard title="Basic Mode"><p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p></MenuCard>}
-            <MenuButton onClick={startGame} disabled={!bothReady}>{myStartConfirmed ? "Waiting for Other Player" : "Confirm Start"}</MenuButton>
-            <p style={{ color: "#bfdbfe", fontSize: 13 }}>{isFreeForAllMode ? "All connected seated players must pick a faction and confirm. You can start with 2-4 players." : "Both players must confirm before the match begins."}</p>
           </>
         )}
         {role === "spectator" && <MenuCard title="Watching Lobby"><p>Waiting for the players to start the game.</p></MenuCard>}
@@ -4701,8 +5247,19 @@ export default function App() {
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
     const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
     const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
-    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(game.campaign.factionId, game.campaign.chapterId) : null;
+    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(gameContent.campaigns, game.campaign.factionId, game.campaign.chapterId) : null;
     const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
+    const canRematch = !isSpectator
+      && !game.campaign
+      && game.gameMode !== "freeForAll"
+      && lobby?.gameMode !== "draft"
+      && !lobby?.players?.[1]?.isAI
+      && !lobby?.players?.[2]?.isAI
+      && !game.players?.[1]?.isAI
+      && !game.players?.[2]?.isAI
+      && game.players?.[2]?.accountName !== "Training AI";
+    const rematchRequestedByMe = rematchStatus.requestedBy === player;
+    const rematchRequestedByOpponent = !!rematchStatus.requestedBy && rematchStatus.requestedBy !== player;
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 18, display: "grid", placeItems: "center", background: `${getBattlefieldTexture(me?.faction?.id || "rumin")}, ${boardBackground}`, fontFamily: "Arial, sans-serif" }}>
@@ -4782,8 +5339,15 @@ export default function App() {
                 Campaign
               </MenuButton>
             )}
+            {canRematch && (
+              <MenuButton onClick={requestRematch} disabled={rematchRequestedByMe}>
+                {rematchRequestedByOpponent ? "Accept Rematch" : rematchRequestedByMe ? "Rematch Requested" : "Request Rematch"}
+              </MenuButton>
+            )}
+            {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
             <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
+          {canRematch && rematchStatus.message && <p style={{ margin: "12px 0 0", color: "#4b2d16", fontSize: 13 }}>{rematchStatus.message}</p>}
         </div>
       </div>
     );
@@ -4976,7 +5540,7 @@ export default function App() {
 
     return (
       <div style={{ minHeight: "100dvh", boxSizing: "border-box", padding: 10, background: boardBackground, fontFamily: "Arial, sans-serif", color: "#111827" }}>
-        <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+        <CardInspectModal card={inspectedCard} artFactionId={me?.faction?.id} onClose={() => setInspectedCard(null)} />
         {showDiscardViewer && (
           <DiscardPileModal
             game={game}
@@ -5088,7 +5652,7 @@ export default function App() {
                       const selected = payments.includes(i) || selectedAttackCardIndex === i || selectedBlockCardIndexes.includes(i) || selectedPlacementCardIndex === i;
                       return (
                         <div key={card.id || i} className="ffa-card">
-                          <CardBox card={card} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
+                          <CardBox card={card} artFactionId={me?.faction?.id} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                             {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
                               <div className="card-action-rail">
                                 {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
@@ -5270,10 +5834,10 @@ export default function App() {
         focusHandAttacks: game.handAttacks.filter((a) => a.player === player)
       };
 
-  function startAttackFromHand() { resetSelections(); setAttackMode({ from: "hand" }); }
-  function startAttackFromLane(lane) { resetSelections(); setAttackMode({ lane, from: "lane" }); }
-  function startBlockLaneAttack(lane) { resetSelections(); setBlockMode({ type: "laneAttack", lane }); }
-  function startPlacement(lane) { resetSelections(); setPlacementMode({ lane }); }
+  function startAttackFromHand() { resetSelections(); setAttackMode({ from: "hand" }); setHandSelectionRole("attacker"); }
+  function startAttackFromLane(lane) { resetSelections(); setAttackMode({ lane, from: "lane" }); setHandSelectionRole("payment"); }
+  function startBlockLaneAttack(lane) { resetSelections(); setBlockMode({ type: "laneAttack", lane }); setHandSelectionRole("payment"); }
+  function startPlacement(lane) { resetSelections(); setPlacementMode({ lane }); setHandSelectionRole("placement"); }
 
   function startPolea() {
     resetSelections();
@@ -5282,6 +5846,49 @@ export default function App() {
 
   function startLafayette() { resetSelections(); setAbilityMode({ type: "lafayette", lane: "", handIndex: "" }); }
   function startFocus() { resetSelections(); setAbilityMode({ type: "focus", targetType: "", lane: "", handAttackId: "" }); }
+
+  function activateStandardHandCard(index) {
+    const card = me?.hand?.[index];
+    if (!card) return;
+    setPreviewedCard(card);
+
+    if (placementMode) {
+      setSelectedPlacementCardIndex(index);
+      return;
+    }
+    if (attackMode?.from === "hand") {
+      if (handSelectionRole === "attacker" || selectedAttackCardIndex == null) selectAttackCard(index);
+      else togglePayment(index);
+      return;
+    }
+    if (attackMode?.from === "lane") {
+      togglePayment(index);
+      return;
+    }
+    if (blockMode?.type === "handAttack") {
+      if (handSelectionRole === "blocker") selectBlockCard(index);
+      else togglePayment(index);
+      return;
+    }
+    if (blockMode?.type === "laneAttack") {
+      togglePayment(index);
+      return;
+    }
+    if (canDeclareAttack) {
+      startAttackFromHand();
+      setSelectedAttackCardIndex(index);
+      setHandSelectionRole("payment");
+    }
+  }
+
+  function handCardInteractionLabel(index) {
+    if (placementMode) return `Select ${getCardShortLabel(me.hand[index])} for lane ${placementMode.lane + 1}`;
+    if (attackMode?.from === "hand" && (handSelectionRole === "attacker" || selectedAttackCardIndex == null)) return `Choose ${getCardShortLabel(me.hand[index])} as attacker`;
+    if (blockMode?.type === "handAttack" && handSelectionRole === "blocker") return `Toggle ${getCardShortLabel(me.hand[index])} as blocker`;
+    if (attackMode || blockMode) return `Toggle ${getCardShortLabel(me.hand[index])} as payment`;
+    if (canDeclareAttack) return `Attack with ${getCardShortLabel(me.hand[index])}`;
+    return `Inspect ${getCardShortLabel(me.hand[index])}`;
+  }
 
   function confirmAttack() {
     if (!attackMode) return;
@@ -5425,6 +6032,7 @@ export default function App() {
     if (incomingHandAttack) {
       resetSelections();
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id });
+      setHandSelectionRole("blocker");
       return;
     }
     if (incomingLaneAttack) {
@@ -5523,9 +6131,6 @@ export default function App() {
     <div className="action-icon-dock">
       <ActionIconButton icon="↶" label="Request Undo" onClick={requestUndo} iconOnly />
       <ActionIconButton icon="☰" label="Main Menu" onClick={returnToMainMenu} iconOnly />
-      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startPolea} disabled={me.turnData.poleaUsed}>Use Polea</button>}
-      {!isBasicGame && me.faction.id === "frumo" && game.phase === "priority" && isMyPriority && <button onClick={startLafayette} disabled={me.turnData.lafayetteUsed}>Use Lafayette</button>}
-      {!isBasicGame && me.faction.id === "bizi" && game.phase === "priority" && isMyPriority && <button onClick={startFocus} disabled={me.turnData.focusBuffUsed || me.accelerationCounters <= 0}>Use Focus Buff</button>}
       <ActionIconButton icon="½" label={drawActionLabel} onClick={offerDraw} disabled={game.drawOfferBy === player} iconOnly />
       <ActionIconButton icon="×" label="Concede" onClick={concedeGame} danger iconOnly />
     </div>
@@ -5543,14 +6148,26 @@ export default function App() {
         alignContent: "start",
         gap: 6,
         minWidth: 0,
-        maxHeight: attackMode || blockMode || placementMode ? 190 : 124,
-        overflowY: "auto"
+        maxHeight: "none",
+        overflow: "visible"
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
+      <div className="context-action-title">Current Action</div>
       {(attackMode || blockMode) && (
-        <div style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
+        <div className="context-payment-total" style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
           Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
+        </div>
+      )}
+      {attackMode?.from === "hand" && (
+        <div className="selection-role-switch" aria-label="Attack card selection mode">
+          <button type="button" className={handSelectionRole === "attacker" ? "is-active" : ""} onClick={() => setHandSelectionRole("attacker")}>Attacker</button>
+          <button type="button" className={handSelectionRole === "payment" ? "is-active" : ""} onClick={() => setHandSelectionRole("payment")} disabled={selectedAttackCardIndex == null}>Payment</button>
+        </div>
+      )}
+      {blockMode?.type === "handAttack" && (
+        <div className="selection-role-switch" aria-label="Block card selection mode">
+          <button type="button" className={handSelectionRole === "blocker" ? "is-active" : ""} onClick={() => setHandSelectionRole("blocker")}>Blockers</button>
+          <button type="button" className={handSelectionRole === "payment" ? "is-active" : ""} onClick={() => setHandSelectionRole("payment")} disabled={activeBlockCards.length === 0}>Payment</button>
         </div>
       )}
       {attackMode && (
@@ -5713,11 +6330,11 @@ export default function App() {
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</QuickActionButton>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={startIncomingBlock}>Block with Cards</QuickActionButton>}
           {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</QuickActionButton>}
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</QuickActionButton>}
-          {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</QuickActionButton>}
+          {canDeclareAttack && <div className="direct-card-prompt">Select a card in your hand to attack.</div>}
           {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
           {game.phase === "end" && isMyEndPlacementTurn && !game.lanes[currentEndLane]?.facedown?.[player] && <QuickActionButton className="quick-action-primary" onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</QuickActionButton>}
           {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
@@ -5727,20 +6344,52 @@ export default function App() {
         <div style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
       )}
       {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
-      <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
-        {quickActionHelpText()}
-      </div>
+      {(attackMode || blockMode || placementMode || abilityMode || (game.phase === "damage" && game.message && /waiting/i.test(game.message))) && (
+        <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
+          {normalizeCardDisplayText(quickActionHelpText())}
+        </div>
+      )}
     </div>
   ) : null;
   const sidePreviewCard = previewedCard || inspectedCard;
   const deckCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.deckCount ?? game.players?.[p]?.deck?.length ?? 0}`).join(" / ");
   const discardCountSummary = matchPlayerNumbers.map((p) => `P${p} ${game.players?.[p]?.discardCount ?? game.players?.[p]?.discard?.length ?? 0}`).join(" / ");
 
+  const factionActionUnavailableReason = game.phase !== "priority"
+    ? "Faction actions are available during priority."
+    : !isMyPriority
+      ? "Wait until you have priority."
+      : "";
   const powerCards = !isSpectator && !isBasicGame
     ? [
-        { id: "commander", title: "Commander", feature: me.faction.commander },
+        {
+          id: "commander",
+          title: "Commander",
+          feature: me.faction.commander,
+          actions: me.faction.id === "frumo" ? [{
+            label: "Use Polea",
+            onClick: startPolea,
+            disabled: !!factionActionUnavailableReason || me.turnData.poleaUsed,
+            reason: factionActionUnavailableReason || (me.turnData.poleaUsed ? "Polea has already been used this turn." : "Choose a Polea action.")
+          }] : me.faction.id === "bizi" ? [{
+            label: "Use Focus",
+            onClick: startFocus,
+            disabled: !!factionActionUnavailableReason || me.turnData.focusBuffUsed || me.accelerationCounters <= 0,
+            reason: factionActionUnavailableReason || (me.turnData.focusBuffUsed ? "Focus has already been used this turn." : me.accelerationCounters <= 0 ? "Gain an acceleration counter before using Focus." : "Spend an acceleration counter.")
+          }] : []
+        },
         { id: "city", title: "City", feature: me.faction.city },
-        { id: "general", title: "General", feature: me.faction.general }
+        {
+          id: "general",
+          title: "General",
+          feature: me.faction.general,
+          actions: me.faction.id === "frumo" ? [{
+            label: "Use Lafayette",
+            onClick: startLafayette,
+            disabled: !!factionActionUnavailableReason || me.turnData.lafayetteUsed,
+            reason: factionActionUnavailableReason || (me.turnData.lafayetteUsed ? "Lafayette has already been used this turn." : "Swap a lane card with a hand card.")
+          }] : []
+        }
       ]
     : [];
   const selectedPower = powerCards.find((power) => power.id === expandedPower) || powerCards[0];
@@ -5755,13 +6404,11 @@ export default function App() {
     });
   const recentTurnFloor = Math.max(1, (game.turn || 1) - 1);
   const currentTurnEvents = normalizedEvents.filter((entry) => (entry.turn || 1) >= recentTurnFloor);
-  const olderEvents = normalizedEvents.filter((entry) => (entry.turn || 1) < recentTurnFloor);
-
   function renderEventEntry(entry, idx, compact = false) {
     return (
       <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>Turn {entry.turn || 1} - {entry.phase || "game"}</div>
-        <div>{entry.text}</div>
+        <div>{normalizeCardDisplayText(entry.text)}</div>
       </div>
     );
   }
@@ -5872,8 +6519,8 @@ export default function App() {
   }
 
   return (
-    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
-      <CardInspectModal card={inspectedCard} onClose={() => setInspectedCard(null)} />
+    <div className={`game-root focused-match-screen phase-${game.phase}${hasIncomingAttack ? " state-incoming" : ""}${attackMode ? " state-attack" : ""}${blockMode ? " state-block" : ""}${placementMode ? " state-placement" : ""}`} style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text, "--focus-faction": myTheme.primary, "--focus-faction-border": myTheme.border }}>
+      <CardInspectModal card={inspectedCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onClose={() => setInspectedCard(null)} />
       {showDiscardViewer && (
         <DiscardPileModal
           game={game}
@@ -5962,6 +6609,53 @@ export default function App() {
         .compact-power-card {
           position: relative;
           overflow: hidden;
+          padding: 0 !important;
+        }
+        .compact-power-select {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: 46px minmax(0, 1fr);
+          gap: 6px;
+          width: 100%;
+          min-width: 0;
+          padding: 4px;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+          text-align: left;
+          cursor: pointer;
+        }
+        .compact-power-select:hover,
+        .compact-power-select:focus-visible {
+          background: rgba(255,255,255,0.16);
+          box-shadow: none;
+          transform: none;
+        }
+        .compact-power-actions {
+          position: relative;
+          z-index: 2;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+          gap: 3px;
+          padding: 0 4px 4px;
+        }
+        .compact-power-actions button {
+          min-height: 22px;
+          padding: 3px 5px;
+          border: 1px solid ${myTheme.border};
+          border-radius: 3px;
+          background: rgba(22,12,6,0.88);
+          color: #fff4d6;
+          font-size: 9px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .compact-power-actions button:disabled {
+          border-color: rgba(82,50,26,0.45);
+          background: rgba(42,31,22,0.5);
+          color: #806f59;
+          cursor: not-allowed;
         }
         .compact-power-card::after {
           content: "";
@@ -5977,8 +6671,8 @@ export default function App() {
           transform: translateX(120%);
         }
         .compact-power-portrait {
-          width: 62px;
-          height: 70px;
+          width: 46px;
+          height: 52px;
           border-radius: 9px;
           overflow: hidden;
           background: radial-gradient(circle at 50% 28%, rgba(247,217,158,0.3), transparent 38%), #111;
@@ -5990,7 +6684,7 @@ export default function App() {
         }
         .match-top-frame {
           display: grid;
-          grid-template-columns: 210px minmax(0, 1fr) 292px;
+          grid-template-columns: 186px minmax(0, 1fr) 270px;
           gap: 8px;
           align-items: stretch;
           min-height: 92px;
@@ -6005,8 +6699,7 @@ export default function App() {
           border-radius: 6px;
           background: ${TABLETOP_THEME.panel};
           box-shadow: ${TABLETOP_THEME.shadow};
-          outline: 1px solid rgba(43,25,12,0.92);
-          outline-offset: -5px;
+          outline: none;
         }
         .gauntlet-logo-panel {
           display: grid;
@@ -6027,6 +6720,55 @@ export default function App() {
           align-items: stretch;
           padding: 8px;
         }
+        .top-opponent-panel.has-story {
+          grid-template-columns: minmax(250px, 0.95fr) minmax(250px, 0.78fr) auto;
+        }
+        .top-story-brief {
+          position: relative;
+          min-width: 0;
+          padding: 7px 10px;
+          overflow: visible;
+          border-left: 3px solid ${myTheme.primary};
+          background: linear-gradient(90deg, rgba(8,13,18,0.86), rgba(18,12,8,0.42));
+          color: ${TABLETOP_THEME.text};
+        }
+        .top-story-brief > strong {
+          display: block;
+          margin-top: 1px;
+          overflow: hidden;
+          color: #fff4d6;
+          font-family: Georgia, serif;
+          font-size: 14px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .top-story-brief > p {
+          display: -webkit-box;
+          margin: 2px 0 0;
+          overflow: hidden;
+          color: ${TABLETOP_THEME.muted};
+          font-size: 10px;
+          line-height: 1.2;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+        .top-story-brief .match-story-dialogue {
+          margin-top: 3px;
+        }
+        .top-story-brief .match-story-dialogue[open] {
+          position: absolute;
+          z-index: 40;
+          top: calc(100% - 3px);
+          left: 7px;
+          width: min(430px, 60vw);
+          max-height: 260px;
+          padding: 9px;
+          overflow: auto;
+          border: 1px solid rgba(205,154,86,0.62);
+          border-radius: 5px;
+          background: rgba(10,7,5,0.98);
+          box-shadow: 0 14px 32px rgba(0,0,0,0.52);
+        }
         .top-state-pills {
           display: flex;
           flex-wrap: wrap;
@@ -6034,6 +6776,10 @@ export default function App() {
           align-content: center;
           justify-content: flex-end;
           width: min(360px, 31vw);
+        }
+        .top-opponent-panel.has-story .top-state-pills {
+          width: auto;
+          flex-wrap: nowrap;
         }
         .deck-slot {
           min-height: 0;
@@ -6066,15 +6812,6 @@ export default function App() {
         .deck-slot-live {
           border-color: rgba(34,197,94,0.48);
           box-shadow: inset 0 0 0 1px rgba(34,197,94,0.16), 0 4px 12px rgba(0,0,0,0.24);
-        }
-        .command-slot {
-          min-width: 104px;
-          border-color: rgba(247,217,158,0.54);
-        }
-        .command-slot .deck-slot-card {
-          width: 58px;
-          height: 34px;
-          font-size: 10px;
         }
         .deck-slot.compact {
           grid-template-rows: 1fr;
@@ -6150,7 +6887,7 @@ export default function App() {
         .match-table-frame {
           min-height: 0;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(270px, 300px);
+          grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
           grid-template-rows: minmax(0, 1fr);
           gap: 10px;
           overflow: hidden;
@@ -6162,51 +6899,96 @@ export default function App() {
           gap: 6px;
           overflow: hidden;
         }
-        .current-play-panel {
-          justify-self: center;
-          width: min(420px, 72%);
-          border: 1px solid rgba(205,154,86,0.4);
-          border-radius: 5px;
-          background: rgba(14,9,6,0.82);
-          color: ${TABLETOP_THEME.text};
-          padding: 6px 10px;
-          text-align: center;
-          box-shadow: ${TABLETOP_THEME.shadow};
-          max-height: 132px;
-          overflow: auto;
+        .match-command-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+          gap: 6px;
+          align-items: stretch;
+          min-height: 0;
         }
+        .current-play-panel {
+          justify-self: stretch;
+          width: 100%;
+          border: 1px solid rgba(132,181,201,0.42);
+          border-left: 4px solid #6fa8c8;
+          border-radius: 5px;
+          background: linear-gradient(100deg, rgba(11,28,42,0.96), rgba(20,15,11,0.92));
+          color: ${TABLETOP_THEME.text};
+          padding: 8px 12px;
+          text-align: left;
+          box-shadow: 0 8px 22px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.05);
+          min-height: 0;
+          max-height: none;
+          overflow: hidden;
+        }
+        .match-command-actions {
+          min-width: 0;
+          display: grid;
+        }
+        .match-command-actions .near-hand-actions {
+          height: 100%;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          align-content: center !important;
+          overflow: hidden !important;
+        }
+        .match-command-actions .near-hand-actions > div:first-child,
+        .match-command-actions .near-hand-actions > div:not(.mobile-action-detail) {
+          grid-column: 1 / -1;
+        }
+        .match-command-actions .near-hand-actions > .mobile-action-detail {
+          grid-column: 1 / -1;
+        }
+        .current-play-panel.is-my-decision {
+          border-left-color: #e9bd61;
+          background: linear-gradient(100deg, rgba(50,37,20,0.96), rgba(11,28,42,0.94) 64%);
+        }
+        .current-play-panel.is-incoming {
+          border-color: rgba(239,68,68,0.74);
+          border-left-color: #ef4444;
+          background: linear-gradient(100deg, rgba(78,20,20,0.96), rgba(23,15,13,0.94) 62%);
+        }
+        .decision-kicker {
+          display: block;
+          margin-bottom: 2px;
+          color: #9fc6d8;
+          font-size: 10px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .current-play-panel.is-my-decision .decision-kicker { color: #f7d99e; }
+        .current-play-panel.is-incoming .decision-kicker { color: #fecaca; }
         .current-play-panel strong {
           color: #f7d99e;
           font-family: Georgia, serif;
         }
         .bottom-player-panel {
           display: grid;
-          grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+          grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
           gap: 8px;
           align-items: stretch;
           padding: 7px;
           min-height: 0;
-          max-height: 270px;
+          max-height: 220px;
           overflow: hidden;
         }
         .bottom-left-actions {
           min-height: 0;
           display: grid;
-          grid-template-rows: auto minmax(0, 1fr);
+          grid-template-rows: minmax(0, 1fr);
           gap: 7px;
           overflow: hidden;
         }
         .table-side-panel {
           min-height: 0;
           display: grid;
-          grid-template-rows: minmax(0, 0.9fr) minmax(0, 0.72fr) minmax(178px, 0.74fr);
+          grid-template-rows: auto minmax(0, 1fr) minmax(160px, 0.58fr);
           gap: 8px;
           padding: 8px;
           overflow: hidden;
         }
         .table-side-panel > .section-card-shell {
           min-height: 0;
-          overflow: auto;
+          overflow: hidden;
           margin-bottom: 0 !important;
         }
         .passive-status-actions button,
@@ -6263,20 +7045,14 @@ export default function App() {
           color: ${TABLETOP_THEME.text};
           border-radius: 7px !important;
           box-shadow: ${TABLETOP_THEME.shadow};
-          outline: 1px solid rgba(43,25,12,0.92);
-          outline-offset: -5px;
+          outline: none;
         }
         .game-root .board-lanes::before,
         .game-root .power-section::before,
         .game-root .response-strip::before,
         .game-root .recent-events-section::before,
         .game-root .game-side > .section-card-shell::before {
-          content: "";
-          position: absolute;
-          inset: 5px;
-          pointer-events: none;
-          border: 1px solid rgba(205,154,86,0.28);
-          border-radius: 4px;
+          content: none;
         }
         .game-root h2,
         .game-root h3 {
@@ -6290,15 +7066,15 @@ export default function App() {
           scrollbar-color: rgba(205,154,86,0.66) rgba(16,10,7,0.7);
         }
         .game-root .lane-card {
-          background: radial-gradient(circle at 50% 25%, rgba(247,217,158,0.2), transparent 36%), linear-gradient(180deg, rgba(43,27,16,0.94), rgba(10,7,5,0.94)) !important;
-          border-color: rgba(247,217,158,0.78) !important;
+          background: linear-gradient(180deg, rgba(40,28,20,0.94), rgba(11,14,16,0.95)) !important;
+          border-color: rgba(205,174,112,0.56) !important;
           border-radius: 6px !important;
           color: ${TABLETOP_THEME.text};
           min-height: clamp(118px, 22dvh, 158px) !important;
           padding: 6px !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           justify-content: flex-start !important;
-          gap: 5px !important;
+          gap: 3px !important;
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 -24px 48px rgba(0,0,0,0.34), 0 10px 24px rgba(0,0,0,0.36), 0 0 0 1px rgba(0,0,0,0.8) !important;
         }
         .game-root .lane-card > p {
@@ -6314,7 +7090,7 @@ export default function App() {
           justify-content: space-between;
           gap: 8px;
           align-items: baseline;
-          padding: 3px 4px;
+          padding: 2px 4px;
           border-bottom: 1px solid rgba(247,217,158,0.18);
           background: rgba(255,239,207,0.05);
           border-radius: 4px;
@@ -6359,6 +7135,38 @@ export default function App() {
           font-weight: 900;
           border-radius: 4px;
           cursor: pointer;
+        }
+        .game-root .card-face-art-button {
+          position: absolute;
+          inset: 3px;
+          z-index: 1;
+          width: calc(100% - 6px);
+          height: calc(100% - 6px);
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          border: 0;
+          border-radius: 4px;
+          background: #090704;
+          box-shadow: none;
+          cursor: zoom-in;
+        }
+        .game-root .card-face-art-button:not(:disabled):hover,
+        .game-root .card-face-art-button:not(:disabled):active {
+          transform: none;
+          filter: brightness(1.04);
+          box-shadow: none;
+        }
+        .game-root .card-face-art {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: contain;
+        }
+        .game-root .card-box-art .card-action-rail {
+          top: 7px;
+          background: rgba(7,16,26,0.92);
+          border-color: rgba(241,199,121,0.64);
         }
         .game-root .hand-section {
           background: transparent !important;
@@ -6447,9 +7255,15 @@ export default function App() {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .player-frame-stats > span[title^="CCG"] {
+        .player-frame-stats > .player-ccg-summary {
           flex: 1 1 240px;
           max-width: 100%;
+          display: -webkit-box;
+          line-height: 1.15;
+          text-overflow: clip;
+          white-space: normal;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
         }
         .player-stat-icon {
           color: #f7d99e;
@@ -6559,7 +7373,7 @@ export default function App() {
         }
         .game-main {
           display: grid;
-          grid-template-rows: minmax(98px, 0.5fr) auto minmax(238px, 1.12fr);
+          grid-template-rows: minmax(112px, 0.64fr) auto minmax(190px, 1fr);
           gap: 5px;
           overflow: hidden !important;
           padding-right: 0 !important;
@@ -6576,31 +7390,32 @@ export default function App() {
           align-items: stretch;
         }
         .hand-card-row {
-          display: flex;
-          flex-wrap: nowrap;
-          gap: 7px;
-          overflow-x: auto;
+          display: grid;
+          grid-template-columns: repeat(8, minmax(0, 1fr));
+          gap: 5px;
+          overflow-x: hidden;
           overflow-y: hidden;
           padding-bottom: 5px;
-          -webkit-overflow-scrolling: touch;
-          touch-action: pan-x;
         }
         .game-root .bottom-player-panel .card-box {
-          width: 104px !important;
-          min-width: 104px !important;
-          height: 214px !important;
-          min-height: 214px !important;
-          padding-bottom: 62px !important;
+          width: 100% !important;
+          min-width: 0 !important;
+          height: 150px !important;
+          min-height: 150px !important;
+          padding-bottom: 46px !important;
           overflow: hidden;
         }
-        .game-root .bottom-player-panel .card-box button[title] {
+        .game-root .bottom-player-panel .card-box:not(.card-box-art) button[title] {
           height: 44px !important;
+        }
+        .game-root .bottom-player-panel .card-box-art {
+          padding-bottom: 3px !important;
         }
         .game-root .bottom-player-panel .card-actions {
           margin-top: auto;
           display: grid !important;
           gap: 3px !important;
-          min-height: 52px;
+          min-height: 44px;
           position: absolute;
           left: 6px;
           right: 6px;
@@ -6618,9 +7433,54 @@ export default function App() {
           font-weight: 800;
         }
         .game-root .power-section {
-          max-height: 116px;
-          overflow: auto;
+          max-height: none;
+          overflow: hidden;
           margin-bottom: 0 !important;
+        }
+        .power-detail-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 7px;
+          margin-top: 7px;
+          align-items: stretch;
+        }
+        .power-story {
+          min-width: 0;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          gap: 6px;
+          align-items: baseline;
+          padding: 4px 6px;
+          border: 1px solid;
+          border-radius: 5px;
+          background: rgba(255,247,220,0.92);
+          color: #29170d;
+          font-size: 11px;
+        }
+        .power-story span {
+          color: #513621;
+        }
+        .power-turn-stats {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(46px, auto));
+          gap: 4px;
+        }
+        .power-turn-stats > span {
+          display: grid;
+          align-content: center;
+          justify-items: center;
+          min-width: 48px;
+          padding: 3px 4px;
+          border: 1px solid rgba(205,154,86,0.32);
+          border-radius: 4px;
+          background: rgba(8,5,3,0.32);
+          color: #fff4d6;
+          font-size: 11px;
+        }
+        .power-turn-stats strong {
+          color: ${TABLETOP_THEME.muted};
+          font-size: 8px;
+          text-transform: uppercase;
         }
         .game-root .response-strip {
           display: none !important;
@@ -6680,6 +7540,342 @@ export default function App() {
         .quick-action-danger {
           background: linear-gradient(180deg, #dc2626, #7f1d1d);
         }
+        .top-action-icons {
+          display: flex;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+          overflow: hidden;
+        }
+        .action-icon-dock {
+          display: flex;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+        }
+        .game-root .icon-action-only {
+          width: 34px;
+          min-width: 34px;
+          height: 34px;
+          min-height: 34px;
+          padding: 3px;
+        }
+        .game-root .icon-action-only .icon-action-mark {
+          width: 24px;
+          height: 24px;
+          border: 0;
+          background: transparent;
+        }
+        .story-kicker {
+          display: block;
+          color: ${myTheme.primary};
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .match-story-dialogue {
+          margin-top: 5px;
+          color: #f7d99e;
+          font-size: 9px;
+        }
+        .match-story-dialogue summary {
+          cursor: pointer;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .combat-tableau {
+          display: grid;
+          gap: 5px;
+          margin-top: 6px;
+        }
+        .combat-scene {
+          display: grid;
+          grid-template-columns: 44px minmax(120px, 1fr) 34px minmax(92px, auto);
+          gap: 7px;
+          align-items: center;
+          padding: 5px 7px;
+          border: 1px solid rgba(241,199,121,0.48);
+          border-radius: 5px;
+          background: linear-gradient(90deg, rgba(42,24,13,0.92), rgba(7,16,26,0.94));
+          color: #fff4d6;
+        }
+        .combat-scene.is-incoming {
+          border-color: rgba(248,113,113,0.82);
+          background: linear-gradient(90deg, rgba(72,20,16,0.94), rgba(18,15,13,0.96));
+          box-shadow: inset 3px 0 0 #ef4444;
+        }
+        .combat-card {
+          width: 40px;
+          height: 56px;
+          padding: 0 !important;
+          overflow: hidden;
+          border: 0 !important;
+          border-radius: 3px !important;
+          background: #090704 !important;
+          box-shadow: 0 5px 12px rgba(0,0,0,0.42) !important;
+          cursor: zoom-in;
+        }
+        .combat-card img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: contain;
+        }
+        .combat-card-fallback {
+          display: grid;
+          height: 100%;
+          place-content: center;
+          color: #29170d;
+          background: #f7dfb9;
+          font-size: 16px;
+        }
+        .combat-story {
+          display: grid;
+          min-width: 0;
+          gap: 1px;
+        }
+        .combat-kicker {
+          color: #f1c779;
+          font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .combat-story > strong {
+          overflow: hidden;
+          color: #fff;
+          font-size: 12px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .combat-story > span:not(.combat-kicker),
+        .combat-story small {
+          color: #c7d6dc;
+          font-size: 9px;
+        }
+        .combat-arrow {
+          display: grid;
+          justify-items: center;
+          color: #f1c779;
+        }
+        .combat-arrow span {
+          font-size: 20px;
+          line-height: 1;
+        }
+        .combat-arrow i {
+          width: 100%;
+          height: 1px;
+          margin-top: 3px;
+          background: currentColor;
+        }
+        .combat-impact {
+          display: grid;
+          justify-items: center;
+          color: #fecaca;
+          text-align: center;
+        }
+        .combat-impact span,
+        .combat-impact small,
+        .combat-impact em {
+          font-size: 8px;
+          font-style: normal;
+        }
+        .combat-impact strong {
+          color: #fff;
+          font-size: 24px;
+          line-height: 0.95;
+        }
+        .table-side-panel {
+          grid-template-rows: minmax(150px, 0.42fr) auto minmax(0, 1fr);
+        }
+        .card-preview-panel {
+          align-content: start;
+          padding: 6px;
+        }
+        .card-preview-panel h3 {
+          font-size: 12px;
+        }
+        .card-preview-panel .card-box {
+          width: min(108px, 100%) !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          height: 142px !important;
+          padding: 0 !important;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .card-preview-panel .card-face-art-button {
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        .hand-card-item {
+          display: grid;
+          width: 100%;
+          max-width: 88px;
+          min-width: 0;
+          grid-template-rows: minmax(0, 1fr) auto;
+          align-items: end;
+          justify-self: center;
+          gap: 4px;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box {
+          width: 100% !important;
+          min-width: 0 !important;
+          height: 142px !important;
+          min-height: 142px !important;
+          padding-bottom: 3px !important;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box-art {
+          padding: 0 !important;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .game-root .bottom-player-panel .hand-card-item > .card-box-art .card-face-art-button {
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background: transparent;
+          border-radius: 4px;
+        }
+        .game-root .bottom-player-panel .hand-card-item.has-actions > .card-box {
+          height: 118px !important;
+          min-height: 118px !important;
+        }
+        .hand-card-item.is-selected > .card-box-art {
+          filter: drop-shadow(0 0 5px ${myTheme.primary});
+        }
+        .hand-card-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 3px;
+        }
+        .hand-card-actions button {
+          min-width: 0;
+          min-height: 24px;
+          padding: 3px 2px !important;
+          overflow: hidden;
+          border-radius: 3px !important;
+          font-size: 9px !important;
+          font-weight: 900;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .hand-card-actions button.is-active {
+          color: #fff4d6 !important;
+          border-color: ${myTheme.primary} !important;
+          background: ${myTheme.primary} !important;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3) !important;
+        }
+        @media (max-width: 1500px) and (min-width: 761px) {
+          .table-side-panel {
+            grid-template-rows: minmax(138px, 0.34fr) auto minmax(0, 1fr) !important;
+          }
+        }
+        @media (min-width: 1501px) and (min-height: 800px) {
+          .game-main {
+            grid-template-rows: minmax(116px, 0.58fr) auto minmax(252px, 1fr);
+          }
+          .bottom-player-panel {
+            max-height: none;
+          }
+          .hand-card-row {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 12px;
+          }
+          .hand-card-item {
+            flex: 0 0 116px;
+            width: 116px;
+            max-width: 116px;
+          }
+          .game-root .bottom-player-panel .hand-card-item > .card-box {
+            width: 116px !important;
+            height: 184px !important;
+            min-height: 184px !important;
+          }
+          .game-root .bottom-player-panel .hand-card-item.has-actions > .card-box {
+            height: 168px !important;
+            min-height: 168px !important;
+          }
+          .table-side-panel {
+            grid-template-rows: minmax(270px, 0.5fr) auto minmax(0, 1fr);
+          }
+          .card-preview-panel {
+            padding: 10px;
+            gap: 10px;
+          }
+          .card-preview-panel h3 {
+            font-size: 14px;
+          }
+          .card-preview-panel .card-box {
+            width: 136px !important;
+            height: 212px !important;
+          }
+        }
+        @media (max-height: 760px) and (min-width: 761px) {
+          .game-main {
+            grid-template-rows: minmax(96px, 0.5fr) auto minmax(186px, 1fr);
+          }
+          .game-root .lane-card {
+            min-height: 72px !important;
+          }
+          .game-root .board-lanes {
+            padding: 4px 7px !important;
+          }
+          .game-root .board-lanes h3 {
+            margin-bottom: 2px !important;
+          }
+          .bottom-player-panel {
+            gap: 4px;
+            padding: 4px;
+          }
+          .game-root .hand-card-row {
+            padding-bottom: 1px;
+          }
+          .match-command-actions .near-hand-actions {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            align-content: start !important;
+            gap: 4px !important;
+          }
+          .match-command-actions .near-hand-actions > div:first-child {
+            display: none;
+          }
+          .match-command-actions .quick-action-button {
+            min-height: 30px;
+            padding: 5px 6px;
+            font-size: 11px;
+          }
+          .game-root .power-section {
+            min-height: 78px;
+            padding: 4px !important;
+          }
+          .power-section .compact-power-select {
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 4px;
+            padding: 2px 4px;
+          }
+          .power-section .compact-power-portrait {
+            width: 34px;
+            height: 34px;
+            border-radius: 5px;
+          }
+          .power-section .compact-power-actions {
+            padding: 0 3px 3px;
+          }
+          .power-section .compact-power-actions button {
+            min-height: 18px;
+            padding: 2px 3px;
+            font-size: 8px;
+          }
+          .power-section .power-detail-row {
+            display: none;
+          }
+        }
         @media (max-width: 760px) {
           .game-root {
             height: 100dvh !important;
@@ -6688,14 +7884,17 @@ export default function App() {
             padding: 4px !important;
             display: flex !important;
             flex-direction: column !important;
+            grid-template-rows: 82px auto minmax(0, 1fr) !important;
             gap: 4px !important;
           }
           .match-top-frame {
             grid-template-columns: minmax(0, 1fr) auto !important;
             min-height: 0 !important;
             max-height: 82px !important;
+            height: 82px !important;
             gap: 4px !important;
             margin-bottom: 0 !important;
+            overflow: hidden !important;
           }
           .mobile-life-hud {
             display: grid !important;
@@ -6745,10 +7944,19 @@ export default function App() {
             grid-template-columns: minmax(0, 1fr) auto !important;
             gap: 4px !important;
             padding: 4px !important;
+            height: 82px !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+          }
+          .top-story-brief {
+            display: none !important;
           }
           .top-action-panel {
             padding: 4px !important;
             align-content: start !important;
+            height: 82px !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
           }
           .top-action-icons {
             grid-template-columns: 36px 36px !important;
@@ -6795,7 +8003,7 @@ export default function App() {
             font-size: 10px !important;
             gap: 3px 6px !important;
           }
-          .player-frame-stats > span[title^="CCG"] {
+          .player-frame-stats > .player-ccg-summary {
             flex-basis: 100% !important;
           }
           .match-table-frame {
@@ -6813,12 +8021,19 @@ export default function App() {
             gap: 4px !important;
             overflow: hidden !important;
           }
+          .match-command-row {
+            grid-template-columns: minmax(0, 1.12fr) minmax(142px, 0.88fr) !important;
+            gap: 3px !important;
+          }
           .current-play-panel {
             width: 100% !important;
             max-height: none !important;
             padding: 5px 6px !important;
             font-size: 10px !important;
             line-height: 1.18 !important;
+          }
+          .decision-kicker {
+            font-size: 8px !important;
           }
           .current-play-panel > div {
             font-size: 9px !important;
@@ -6828,9 +8043,39 @@ export default function App() {
           .current-play-panel [style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
           }
+          .combat-tableau {
+            margin-top: 3px;
+          }
+          .combat-scene {
+            grid-template-columns: 30px minmax(0, 1fr) 42px !important;
+            gap: 4px;
+            padding: 3px 4px;
+          }
+          .combat-card {
+            width: 28px;
+            height: 40px;
+          }
+          .combat-arrow {
+            display: none;
+          }
+          .combat-story > strong {
+            font-size: 9px;
+          }
+          .combat-story > span:not(.combat-kicker),
+          .combat-story small,
+          .combat-impact em {
+            display: none;
+          }
+          .combat-impact strong {
+            font-size: 18px;
+          }
+          .combat-impact span,
+          .combat-impact small {
+            font-size: 7px;
+          }
           .game-main {
             display: grid !important;
-            grid-template-rows: minmax(98px, 0.58fr) auto minmax(262px, 1.38fr) !important;
+            grid-template-rows: minmax(108px, 0.66fr) auto minmax(262px, 1.38fr) !important;
             gap: 4px !important;
             overflow: hidden !important;
             padding-right: 0 !important;
@@ -6844,10 +8089,10 @@ export default function App() {
           }
           .power-section {
             order: 2 !important;
-            max-height: 88px !important;
+            max-height: none !important;
             min-height: 0 !important;
             padding: 3px 4px !important;
-            overflow: auto !important;
+            overflow: hidden !important;
             margin-bottom: 0 !important;
           }
           .power-section h3,
@@ -6893,6 +8138,13 @@ export default function App() {
             gap: 3px !important;
             overflow: hidden !important;
           }
+          .match-command-actions .near-hand-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            align-content: start !important;
+          }
+          .match-command-actions .near-hand-actions > div:not(:first-child) {
+            grid-column: 1 / -1 !important;
+          }
           .near-hand-actions > div:first-child {
             display: none !important;
           }
@@ -6907,8 +8159,8 @@ export default function App() {
             grid-column: span 3;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 3px 5px;
-            max-height: 86px;
-            overflow: auto;
+            max-height: none;
+            overflow: hidden;
             border: 1px solid rgba(247,217,158,0.28);
             border-radius: 6px;
             background: rgba(255,239,207,0.08);
@@ -6959,17 +8211,35 @@ export default function App() {
             overflow-y: hidden !important;
             padding: 1px 2px 6px !important;
             touch-action: pan-x !important;
-            min-height: 174px !important;
-            max-height: 184px !important;
+            min-height: 160px !important;
+            max-height: 170px !important;
             scroll-snap-type: x proximity;
             scrollbar-width: thin;
           }
-          .card-box {
-            flex: 0 0 88px !important;
+          .hand-card-item {
+            flex: 0 0 88px;
+            width: 88px;
+            max-width: 88px;
+          }
+          .game-root .bottom-player-panel .hand-card-item > .card-box {
             width: 88px !important;
-            min-width: 88px !important;
+            height: 142px !important;
+            min-height: 142px !important;
+          }
+          .hand-card-actions {
+            gap: 2px;
+          }
+          .hand-card-actions button {
+            min-height: 19px !important;
+            padding: 2px 1px !important;
+            font-size: 8px !important;
+          }
+          .card-box {
+            flex: 0 0 96px !important;
+            width: 96px !important;
+            min-width: 96px !important;
             min-height: 0 !important;
-            height: 172px !important;
+            height: 158px !important;
             padding: 2px !important;
             font-size: 8px !important;
             border-radius: 5px !important;
@@ -6982,9 +8252,32 @@ export default function App() {
           .card-box > div:first-child div:nth-child(2) {
             font-size: 10px !important;
           }
-          .card-box > button[title] {
+          .card-box:not(.card-box-art) > button[title] {
             height: 22px !important;
             margin: 1px 0 !important;
+          }
+          .power-detail-row {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 3px !important;
+            margin-top: 3px !important;
+          }
+          .power-story {
+            grid-template-columns: 1fr !important;
+            gap: 1px !important;
+            padding: 3px 4px !important;
+            font-size: 8px !important;
+          }
+          .power-turn-stats {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 2px !important;
+          }
+          .power-turn-stats > span {
+            min-width: 0 !important;
+            padding: 2px !important;
+            font-size: 8px !important;
+          }
+          .power-turn-stats strong {
+            font-size: 7px !important;
           }
           .card-box > button[title] + div {
             margin-bottom: 0 !important;
@@ -7057,39 +8350,26 @@ export default function App() {
       <div className="match-top-frame">
         <div className="gauntlet-logo-panel">
           <h2>Gauntlet<br />Online</h2>
-          <div style={{ color: TABLETOP_THEME.muted, fontSize: 12, marginTop: 8 }}>
-            <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
-          </div>
+          <div className={`focus-priority-chip${isMyPriority ? " is-active" : ""}`}>Turn {game.turn} / {isMyPriority ? "Your priority" : `${getGamePlayerName(game, game.priority)} acting`}</div>
         </div>
-        <div className="top-opponent-panel">
+        <div className={`top-opponent-panel${game.campaign ? " has-story" : ""}`}>
           <PlayerFrameRow game={game} player={player} placement="opponents" />
+          {game.campaign && (
+            <aside className="top-story-brief" aria-label="Campaign story">
+              <span className="story-kicker">Current Chapter</span>
+              <strong>{game.campaign.title}</strong>
+              <button type="button" onClick={() => setMatchDrawer("chapter")}>Read Chapter</button>
+            </aside>
+          )}
           <div className="top-state-pills">
             <div className="deck-slot deck-slot-live" title={`Cards in deck: ${deckCountSummary}`}><span>Decks</span><span className="deck-slot-card">D</span><span className="deck-slot-count">{deckCountSummary}</span></div>
             <button type="button" className="deck-slot deck-slot-live" onClick={() => setShowDiscardViewer(true)} title="View discard piles"><span>Discard</span><span className="deck-slot-card empty">View</span><span className="deck-slot-count">{discardCountSummary}</span></button>
-            <div className="deck-slot command-slot" title={`Turn ${game.turn}. Priority Player ${game.priority}. ${game.phase === "gameOver" ? "Game over" : "Live game"}.`}>
-              <span>Command</span>
-              <span className="deck-slot-card status-card">{phaseDisplayName()}</span>
-              <span className="deck-slot-count">T{game.turn} / P{game.priority} / {game.phase === "gameOver" ? "Over" : "Live"}</span>
-            </div>
           </div>
         </div>
         <div className="top-action-panel">
-          <div className="music-control">
-            <MusicControl
-              trackKey={activeMusicTrack}
-              enabled={musicEnabled}
-              volume={musicVolume}
-              onToggle={() => setMusicEnabled((value) => !value)}
-              onVolumeChange={setMusicVolume}
-              account={account}
-              soundMuted={accountSoundMuted}
-              onSoundMutedChange={setSignedInSoundMuted}
-            />
-          </div>
           <div className="top-action-icons">
-            {actionControls}
+            <ActionIconButton icon={"\u2630"} label="Match Menu" onClick={() => setMatchDrawer("menu")} iconOnly />
             <ActionIconButton icon="?" label="Shortcuts" onClick={() => setShowHotkeys((value) => !value)} iconOnly />
-            <ActionIconButton icon="i" label={showHelperLabels ? "Hide Hints" : "Show Hints"} onClick={() => setShowHelperLabels((value) => !value)} iconOnly />
           </div>
         </div>
       </div>
@@ -7102,18 +8382,6 @@ export default function App() {
           <span><strong>You</strong> {me.life} life</span>
           <span>{me.hand?.length || 0} hand</span>
           <span><strong>{opponent ? getGamePlayerName(game, opponent === game.players[1] ? 1 : 2) : "Opp"}</strong> {opponent?.life ?? "-"} life</span>
-        </div>
-      )}
-      {incomingAttackAlert && !incomingAttackMinimized && (
-        <div className="incoming-attack-banner" role="alert">
-          <span>{incomingAttackAlert.text}</span>
-          <button onClick={() => setIncomingAttackMinimized(true)} style={{ flex: "0 0 auto" }}>Minimize</button>
-        </div>
-      )}
-      {incomingAttackAlert && incomingAttackMinimized && (
-        <div className="incoming-attack-pill" role="status">
-          <span>Incoming attack</span>
-          <button onClick={() => setIncomingAttackMinimized(false)}>Show</button>
         </div>
       )}
       {factionVoice && (
@@ -7136,27 +8404,33 @@ export default function App() {
 
       <div className="match-table-frame">
         <div className="table-main-panel">
-          <div className="current-play-panel">
-            <strong>{(incomingAttackAlert && !incomingAttackMinimized) ? incomingAttackAlert.text : game.campaign?.title || phaseDisplayName()}</strong>
+          <div className="match-command-row">
+            <div
+              className={`current-play-panel${isMyPriority ? " is-my-decision" : ""}${hasIncomingAttack ? " is-incoming" : ""}`}
+              role={hasIncomingAttack ? "alert" : "status"}
+            >
+            <span className="decision-kicker">
+              {hasIncomingAttack
+                ? "Incoming attack"
+                : isSpectator
+                  ? "Match status"
+                  : isMyPriority
+                    ? "Your decision"
+                    : `${getGamePlayerName(game, game.priority)} has priority`}
+            </span>
+            <strong>{hasIncomingAttack ? "Defend Yourself" : game.phase === "priority" ? (isMyPriority ? "Choose Your Action" : "Opponent Acting") : phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
-              {(incomingAttackAlert && !incomingAttackMinimized) ? "Respond in the status rail before taking another action." : game.campaign ? (game.campaign.beforeBattle || game.campaign.story) : phaseHelpText()}
+              {phaseHelpText()}
             </div>
-            {game.campaign?.story && game.campaign?.beforeBattle && game.campaign.beforeBattle !== game.campaign.story && (
-              <div style={{ fontSize: 11, marginTop: 4, color: "#c7d2fe" }}>
-                {game.campaign.story}
-              </div>
-            )}
-            {game.campaign && (
-              <CampaignDialogueBlock
-                title="Opening Dialogue"
-                lines={game.campaign.startDialogue || game.campaign.dialogue}
-                audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
-                autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
-                compact
-              />
-            )}
-            <div style={{ marginTop: 4 }}><CombatStrip game={game} /></div>
+              <CombatStrip game={game} perspectivePlayer={player} onInspect={setInspectedCard} />
+            </div>
+            {!isSpectator && <div className="match-command-actions">{nearHandActionPad}</div>}
           </div>
+          <button type="button" className="focus-event-ticker" onClick={() => setMatchDrawer("events")}>
+            <span>Latest</span>
+            <strong>{normalizedEvents[0] ? normalizeCardDisplayText(normalizedEvents[0].text) : "The match is ready."}</strong>
+            <em>Open Log</em>
+          </button>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
@@ -7166,8 +8440,11 @@ export default function App() {
           {!isSpectator && (
             <>
               {!isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
-                <CollapseHeader title={`${me.faction.name} Powers`} collapsed={collapsedPanels.powers} onToggle={() => togglePanel("powers")} color={myTheme.primary} />
-                {!collapsedPanels.powers && <><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                <div className="focus-faction-header">
+                  <strong>{me.faction.name}</strong>
+                  <button type="button" onClick={() => setMatchDrawer("faction")}>Faction Details</button>
+                </div>
+                <div className="focus-power-strip" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                   {powerCards.map((power) => (
                     <CompactPowerCard
                       key={power.id}
@@ -7175,24 +8452,11 @@ export default function App() {
                       feature={power.feature}
                       theme={myTheme}
                       expanded={selectedPower?.id === power.id}
-                      onToggle={() => handlePowerClick(power)}
+                      onToggle={() => { handlePowerClick(power); setMatchDrawer("faction"); }}
+                      actions={power.actions}
                     />
                   ))}
                 </div>
-                {selectedPower && (
-                  <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "#fff", border: `1px solid ${myTheme.border}`, fontSize: 12 }}>
-                    <strong>{selectedPower.title}: {selectedPower.feature.name}</strong>
-                    <span style={{ color: "#555" }}> - {selectedPower.feature.text}</span>
-                  </div>
-                )}
-                <div style={{ marginTop: 8, fontSize: 12, display: "flex", flexWrap: "wrap", gap: "6px 12px" }}>
-                  <span><strong>Attacks:</strong> {me.turnData.attacksDeclaredThisTurn}</span>
-                  <span><strong>Blocks:</strong> {me.turnData.blocksDeclaredThisTurn}</span>
-                  <span><strong>Prev suit:</strong> {me.turnData.previousAttackSuit || "None"}</span>
-                  <span><strong>Prev value:</strong> {me.turnData.previousPlayedValue ?? "None"}</span>
-                  <span><strong>Acceleration:</strong> {me.accelerationCounters}</span>
-                </div>
-                </>}
               </SectionCard>}
               {isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
@@ -7200,7 +8464,6 @@ export default function App() {
 
               <div className="bottom-player-panel">
                 <div className="bottom-left-actions">
-                  {nearHandActionPad}
                   <PlayerFrameRow game={game} player={player} placement="self" />
                 </div>
                 <SectionCard title={`Your Hand (${me.hand.length})`} borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 0, marginBottom: 0 }} className="hand-section">
@@ -7217,21 +8480,39 @@ export default function App() {
                       else if (isSelectedPlacement) bg = "#f3e8ff";
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
+                      const directInteractionActive = !!(placementMode || attackMode || blockMode || canDeclareAttack);
+                      const unavailableForRole = (attackMode?.from === "hand" && handSelectionRole === "payment" && isSelectedAttack)
+                        || (blockMode?.type === "handAttack" && handSelectionRole === "payment" && isSelectedBlock)
+                        || (blockMode?.type === "handAttack" && handSelectionRole === "blocker" && isSelectedPayment);
+                      const interactionState = isSelectedAttack
+                        ? " selected-attacker"
+                        : isSelectedBlock
+                          ? " selected-blocker"
+                          : isSelectedPayment
+                            ? " selected-payment"
+                            : isSelectedPlacement
+                              ? " selected-placement"
+                              : unavailableForRole
+                                ? " is-unavailable"
+                                : directInteractionActive
+                                  ? " is-available"
+                                  : "";
                       return (
-                        <CardBox key={card.id || i} card={card} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
-                          {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
-                            <div className="card-action-rail">
-                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Attack</button>}
-                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>{isSelectedBlock ? "Remove" : "Block"}</button>}
-                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Facedown</button>}
-                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ display: "block", width: "100%", fontSize: 10, padding: 3 }}>Pay</button>}
-                            </div>
-                          )}
-                          <div className="card-actions" style={{ display: "grid", gap: 4 }}>
-                            <div style={{ fontSize: 9, color: "#666" }}>Index: {i}</div>
-                            <HelperText enabled={showHelperLabels}>{attackMode || blockMode ? "Pay cards cover the cost; the attacking/blocking card cannot also pay." : "Tap the art to inspect."}</HelperText>
-                          </div>
-                        </CardBox>
+                        <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${interactionState}`}>
+                          <CardBox
+                            card={card}
+                            artFactionId={!isBasicGame ? me.faction.id : null}
+                            bg={bg}
+                            selected={selected}
+                            accent={myTheme.primary}
+                            onInspect={setInspectedCard}
+                            onPreview={setPreviewedCard}
+                            onActivate={directInteractionActive ? () => activateStandardHandCard(i) : undefined}
+                            interactionLabel={handCardInteractionLabel(i)}
+                            interactionPressed={selected}
+                            interactionDisabled={unavailableForRole}
+                          />
+                        </div>
                       );
                     })}
                   </div>
@@ -7249,7 +8530,7 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} className="lane-card" style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                <div key={i} className={`lane-card${lane.attack ? " has-combat" : ""}${game.phase === "end" && i === currentEndLane ? " is-active-lane" : ""}${game.phase === "end" && i !== currentEndLane ? " is-dimmed-lane" : ""}${canDeclareAttack && lane.facedown[player] && !lane.attack ? " is-legal-lane" : ""}`} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
                   <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
                     <div style={{ display: "grid", gap: 5 }}>
@@ -7279,92 +8560,99 @@ export default function App() {
             </div>
           </SectionCard>
 
-          {!isSpectator && hasIncomingAttack && (
-            <SectionCard className="response-strip" borderColor="#991b1b" background="#fff1f2" style={{ padding: 10, marginBottom: 6 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: "bold", color: "#7f1d1d", fontSize: 16 }}>
-                    Incoming Attack: {incomingHandAttack
-                      ? `${getCardShortLabel(incomingHandAttack.card)} from hand (effective ${incomingHandAttack.effectiveValue})`
-                      : incomingLaneAttack
-                        ? `${getCardShortLabel(incomingLaneAttack.lane.attack.card)} from lane ${incomingLaneAttack.laneIndex + 1} (effective ${incomingLaneAttack.lane.attack.effectiveValue})`
-                        : "Resolve combat"}
-                  </div>
-                  <div style={{ color: "#7f1d1d", fontSize: 12, marginTop: 2 }}>Respond here before taking another action.</div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
-                  {!defenderMayBlock && <button onClick={passPriority} disabled={!isMyPriority}>Pass / Continue</button>}
-                </div>
-              </div>
-            </SectionCard>
-          )}
         </div>
         </div>
 
-        <div className="game-side table-side-panel" style={{ minHeight: 0 }}>
-          <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
-            <CollapseHeader title="Status" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
-            {!collapsedPanels.actions && <>
-              <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
-                <div><strong>Mode:</strong> {phaseDisplayName()}</div>
-                <div><strong>Turn:</strong> {game.turn}</div>
-                <div><strong>Priority:</strong> Player {game.priority}</div>
-                <div style={{ color: TABLETOP_THEME.muted }}>{phaseHelpText()}</div>
-              </div>
-              {undoRequest && (
-                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
-                  <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
-                  {undoNeedsMyApproval && <div style={{ display: "flex", gap: 8, marginTop: 8 }}><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
+        <nav className="focus-utility-dock" aria-label="Match information">
+          <button type="button" onClick={() => sidePreviewCard && setInspectedCard(sidePreviewCard)} disabled={!sidePreviewCard} title="Inspect previewed card">Card</button>
+          <button type="button" onClick={() => setMatchDrawer("events")}>Log</button>
+          {!isBasicGame && !isSpectator && <button type="button" onClick={() => setMatchDrawer("faction")}>Powers</button>}
+          <button type="button" onClick={() => setMatchDrawer("details")}>Details</button>
+        </nav>
+        {sidePreviewCard && !inspectedCard && (
+          <aside className="focus-card-preview" aria-label={`Card preview: ${getCardShortLabel(sidePreviewCard)}`}>
+            <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
+          </aside>
+        )}
+        {matchDrawer && (
+          <div className="focus-drawer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMatchDrawer(null); }}>
+            <aside className="focus-match-drawer" role="dialog" aria-modal="true" aria-label={`${matchDrawer} drawer`}>
+              <header>
+                <div>
+                  <span>Gauntlet Match</span>
+                  <h2>{matchDrawer === "events" ? "Combat Log" : matchDrawer === "faction" ? `${me?.faction?.name || "Faction"} Powers` : matchDrawer === "chapter" ? game.campaign?.title || "Chapter" : matchDrawer === "menu" ? "Match Menu" : "Match Details"}</h2>
+                </div>
+                <button type="button" onClick={() => setMatchDrawer(null)} aria-label="Close drawer">Close</button>
+              </header>
+
+              {matchDrawer === "events" && (
+                <div className="focus-drawer-scroll recent-events-list">
+                  {normalizedEvents.length === 0 ? <p>No events yet.</p> : normalizedEvents.map((entry, idx) => renderEventEntry(entry, idx, idx > currentTurnEvents.length - 1))}
                 </div>
               )}
-              {game.drawOfferBy && game.phase !== "gameOver" && (
-                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: myTheme.light, border: `1px solid ${myTheme.border}` }}>
-                  {game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}
-                </div>
-              )}
-              {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
-              <div className="passive-status-actions">{rightPanel}</div>
-              {!isSpectator && (
-                <OpponentIntelPanel
-                  game={game}
-                  player={player}
-                  showAbilities={showOpponentAbilities}
-                  onToggleAbilities={() => setShowOpponentAbilities((value) => !value)}
-                />
-              )}
-              <PaymentLogPanel game={game} /></>}
-          </SectionCard>
-          <SectionCard className="recent-events-section" borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
-            <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
-            {!collapsedPanels.events && (
-              normalizedEvents.length === 0 ? (
-                <p>No events yet.</p>
-              ) : (
-                <div className="recent-events-list">
-                  {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
-                  {olderEvents.length > 0 && (
-                    <div style={{ display: "grid", gap: 6 }}>
-                      <div style={{ fontSize: 12, fontWeight: "bold", color: "#555", marginBottom: 6 }}>Older Turns</div>
-                      {olderEvents.map((entry, idx) => renderEventEntry(entry, idx, true))}
+
+              {matchDrawer === "details" && (
+                <div className="focus-drawer-scroll focus-match-details">
+                  <div className="focus-detail-summary">
+                    <span><strong>Mode</strong>{phaseDisplayName()}</span>
+                    <span><strong>Turn</strong>{game.turn}</span>
+                    <span><strong>Priority</strong>{getGamePlayerName(game, game.priority)}</span>
+                  </div>
+                  <p>{phaseHelpText()}</p>
+                  {undoRequest && (
+                    <div className="focus-notice">
+                      <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
+                      {undoNeedsMyApproval && <div><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
                     </div>
                   )}
+                  {game.drawOfferBy && game.phase !== "gameOver" && <div className="focus-notice">{game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}</div>}
+                  <div className="passive-status-actions">{rightPanel}</div>
+                  {!isSpectator && <OpponentIntelPanel game={game} player={player} showAbilities={showOpponentAbilities} onToggleAbilities={() => setShowOpponentAbilities((value) => !value)} />}
+                  <PaymentLogPanel game={game} />
                 </div>
-              )
-            )}
-          </SectionCard>
-          <div className="card-preview-panel">
-            <h3>Card Preview</h3>
-            {sidePreviewCard ? (
-              <CardBox card={sidePreviewCard} onInspect={setInspectedCard} />
-            ) : (
-              <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Select card art to preview.</div>
-            )}
+              )}
+
+              {matchDrawer === "faction" && !isBasicGame && !isSpectator && (
+                <div className="focus-drawer-scroll focus-faction-details">
+                  {powerCards.map((power) => (
+                    <article key={power.id} style={{ borderColor: myTheme.border }}>
+                      {power.feature?.image && <img src={resolveAssetPath(power.feature.image)} alt="" />}
+                      <div><span>{power.title}</span><h3>{power.feature?.name}</h3><p>{power.feature?.text}</p></div>
+                      {power.actions.map((action) => <button key={action.label} type="button" onClick={action.onClick} disabled={action.disabled} title={action.reason || action.label}>{action.label}</button>)}
+                    </article>
+                  ))}
+                  <div className="power-turn-stats">
+                    <span><strong>Attacks</strong>{me.turnData.attacksDeclaredThisTurn}</span>
+                    <span><strong>Blocks</strong>{me.turnData.blocksDeclaredThisTurn}</span>
+                    <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
+                    <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
+                    <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
+                  </div>
+                </div>
+              )}
+
+              {matchDrawer === "chapter" && game.campaign && (
+                <div className="focus-drawer-scroll focus-chapter-drawer">
+                  <p>{game.campaign.story}</p>
+                  <CampaignDialogueBlock title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""} compact />
+                </div>
+              )}
+
+              {matchDrawer === "menu" && (
+                <div className="focus-drawer-scroll focus-match-menu">
+                  <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
+                  <MusicControl trackKey={activeMusicTrack} enabled={musicEnabled} volume={musicVolume} onToggle={() => setMusicEnabled((value) => !value)} onVolumeChange={setMusicVolume} account={account} soundMuted={accountSoundMuted} onSoundMutedChange={setSignedInSoundMuted} />
+                  <div className="focus-menu-actions">{actionControls}</div>
+                  <button type="button" onClick={() => setShowHotkeys((value) => !value)}>Keyboard Shortcuts</button>
+                  <button type="button" onClick={() => setShowHelperLabels((value) => !value)}>{showHelperLabels ? "Hide Hints" : "Show Hints"}</button>
+                  {game.campaign && <button type="button" onClick={() => setMatchDrawer("chapter")}>Current Chapter</button>}
+                  <button type="button" onClick={() => setMatchDrawer("details")}>Match Details</button>
+                  <button type="button" onClick={() => setMatchDrawer("events")}>Combat Log</button>
+                </div>
+              )}
+            </aside>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -28,4 +28,6 @@ The server currently reports whether Supabase credentials are configured at:
 GET /api/storage-status
 ```
 
-When `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present, the backend stores accounts, friends, messages, leaderboard data, and account stats in Supabase. If either value is missing, it falls back to local JSON storage for development.
+When `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present, the backend stores accounts, friends, messages, leaderboard data, account stats, and durable match records in Supabase. If either value is missing, it falls back to local JSON storage for development.
+
+The match tables are accessed only by the backend service role. They are not granted to `anon` or `authenticated`; public match pages must use the privacy-filtered server API. Current Supabase projects may require the explicit `service_role` grants in `supabase-schema.sql` because newly created tables are no longer automatically exposed to the Data API.
