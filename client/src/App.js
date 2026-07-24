@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
+import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
@@ -469,7 +470,7 @@ function resolveAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview, artFactionId }) {
+function CardBox({ card, children, bg = "white", selected = false, accent = "#2563eb", onInspect, onPreview, onActivate, interactionLabel, interactionPressed, interactionDisabled = false, artFactionId }) {
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
@@ -504,13 +505,16 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         <button
           type="button"
           className="card-face-art-button"
-          onClick={onInspect ? (event) => {
+          onClick={(onActivate || onInspect) ? (event) => {
             event.stopPropagation();
             if (onPreview) onPreview(card);
-            onInspect(card);
+            if (onActivate) onActivate(card);
+            else onInspect(card);
           } : undefined}
-          disabled={!onInspect || !card}
-          title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+          disabled={interactionDisabled || (!onActivate && !onInspect) || !card}
+          title={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+          aria-label={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+          aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
         >
           <img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" />
         </button>
@@ -528,14 +532,17 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
 
       <button
         type="button"
-        onClick={onInspect ? (event) => {
+        onClick={(onActivate || onInspect) ? (event) => {
           event.stopPropagation();
           if (onPreview) onPreview(card);
-          onInspect(card);
+          if (onActivate) onActivate(card);
+          else onInspect(card);
         } : undefined}
-        disabled={!onInspect || !card}
-        title={card ? `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
-        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onInspect && card ? "zoom-in" : "default" }}
+        disabled={interactionDisabled || (!onActivate && !onInspect) || !card}
+        title={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        aria-label={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
+        aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
+        style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onActivate ? "pointer" : onInspect && card ? "zoom-in" : "default" }}
       >
         {card?.image ? (
           <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -569,6 +576,22 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
       </div>
 
       </>}
+
+      {onActivate && onInspect && card && (
+        <button
+          type="button"
+          className="card-inspect-trigger"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (onPreview) onPreview(card);
+            onInspect(card);
+          }}
+          title={`Inspect ${card.name || getCardShortLabel(card)}`}
+          aria-label={`Inspect ${card.name || getCardShortLabel(card)}`}
+        >
+          i
+        </button>
+      )}
 
       {children}
     </div>
@@ -935,15 +958,6 @@ function HotkeyWindow({ visible, onClose }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function CollapseHeader({ title, collapsed, onToggle, color = "#111827" }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: collapsed ? 0 : 8 }}>
-      <h3 style={{ margin: 0, color, fontSize: 15 }}>{title}</h3>
-      <button onClick={onToggle} style={{ padding: "3px 7px", fontSize: 12 }}>{collapsed ? "Show" : "Hide"}</button>
     </div>
   );
 }
@@ -3450,7 +3464,6 @@ export default function App() {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
-  const [collapsedPanels, setCollapsedPanels] = useState({ powers: false, actions: true, events: false, attacks: true });
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -3504,6 +3517,8 @@ export default function App() {
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
   const [showDiscardViewer, setShowDiscardViewer] = useState(false);
+  const [matchDrawer, setMatchDrawer] = useState(null);
+  const [handSelectionRole, setHandSelectionRole] = useState("primary");
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
@@ -3527,6 +3542,17 @@ export default function App() {
   const [expandedPower, setExpandedPower] = useState("commander");
   const PLAYING_DECK_VALUES = gameContent?.deckRules?.playingDeckValues || [];
   const MAX_REPLACEMENTS_PER_VALUE = gameContent?.deckRules?.maxReplacementsPerValue || 0;
+
+  useEffect(() => {
+    if (!matchDrawer) return undefined;
+
+    const closeDrawer = (event) => {
+      if (event.key === "Escape") setMatchDrawer(null);
+    };
+
+    window.addEventListener("keydown", closeDrawer);
+    return () => window.removeEventListener("keydown", closeDrawer);
+  }, [matchDrawer]);
 
   const loadGameContent = useCallback(async () => {
     setGameContentError("");
@@ -3936,6 +3962,7 @@ export default function App() {
 
     if (incomingHandAttacks.length === 1 && game.priority === player) {
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttacks[0].id });
+      setHandSelectionRole("blocker");
     }
   }, [game, role, player, blockMode, attackMode, placementMode, abilityMode]);
 
@@ -4013,6 +4040,7 @@ export default function App() {
     setSelectedBlockCardIndex(null);
     setSelectedBlockCardIndexes([]);
     setSelectedPlacementCardIndex(null);
+    setHandSelectionRole("primary");
     setUseHeraBonus(false);
     setPeekResult("");
   }
@@ -4527,16 +4555,13 @@ export default function App() {
   function selectAttackCard(i) {
     setSelectedAttackCardIndex(i);
     setPayments((prev) => prev.filter((x) => x !== i));
+    setHandSelectionRole("payment");
   }
 
   function selectBlockCard(i) {
     setSelectedBlockCardIndex(i);
     setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
     setPayments((prev) => prev.filter((x) => x !== i));
-  }
-
-  function togglePanel(panel) {
-    setCollapsedPanels((prev) => ({ ...prev, [panel]: !prev[panel] }));
   }
 
   hotkeyActionsRef.current = {};
@@ -5809,10 +5834,10 @@ export default function App() {
         focusHandAttacks: game.handAttacks.filter((a) => a.player === player)
       };
 
-  function startAttackFromHand() { resetSelections(); setAttackMode({ from: "hand" }); }
-  function startAttackFromLane(lane) { resetSelections(); setAttackMode({ lane, from: "lane" }); }
-  function startBlockLaneAttack(lane) { resetSelections(); setBlockMode({ type: "laneAttack", lane }); }
-  function startPlacement(lane) { resetSelections(); setPlacementMode({ lane }); }
+  function startAttackFromHand() { resetSelections(); setAttackMode({ from: "hand" }); setHandSelectionRole("attacker"); }
+  function startAttackFromLane(lane) { resetSelections(); setAttackMode({ lane, from: "lane" }); setHandSelectionRole("payment"); }
+  function startBlockLaneAttack(lane) { resetSelections(); setBlockMode({ type: "laneAttack", lane }); setHandSelectionRole("payment"); }
+  function startPlacement(lane) { resetSelections(); setPlacementMode({ lane }); setHandSelectionRole("placement"); }
 
   function startPolea() {
     resetSelections();
@@ -5821,6 +5846,49 @@ export default function App() {
 
   function startLafayette() { resetSelections(); setAbilityMode({ type: "lafayette", lane: "", handIndex: "" }); }
   function startFocus() { resetSelections(); setAbilityMode({ type: "focus", targetType: "", lane: "", handAttackId: "" }); }
+
+  function activateStandardHandCard(index) {
+    const card = me?.hand?.[index];
+    if (!card) return;
+    setPreviewedCard(card);
+
+    if (placementMode) {
+      setSelectedPlacementCardIndex(index);
+      return;
+    }
+    if (attackMode?.from === "hand") {
+      if (handSelectionRole === "attacker" || selectedAttackCardIndex == null) selectAttackCard(index);
+      else togglePayment(index);
+      return;
+    }
+    if (attackMode?.from === "lane") {
+      togglePayment(index);
+      return;
+    }
+    if (blockMode?.type === "handAttack") {
+      if (handSelectionRole === "blocker") selectBlockCard(index);
+      else togglePayment(index);
+      return;
+    }
+    if (blockMode?.type === "laneAttack") {
+      togglePayment(index);
+      return;
+    }
+    if (canDeclareAttack) {
+      startAttackFromHand();
+      setSelectedAttackCardIndex(index);
+      setHandSelectionRole("payment");
+    }
+  }
+
+  function handCardInteractionLabel(index) {
+    if (placementMode) return `Select ${getCardShortLabel(me.hand[index])} for lane ${placementMode.lane + 1}`;
+    if (attackMode?.from === "hand" && (handSelectionRole === "attacker" || selectedAttackCardIndex == null)) return `Choose ${getCardShortLabel(me.hand[index])} as attacker`;
+    if (blockMode?.type === "handAttack" && handSelectionRole === "blocker") return `Toggle ${getCardShortLabel(me.hand[index])} as blocker`;
+    if (attackMode || blockMode) return `Toggle ${getCardShortLabel(me.hand[index])} as payment`;
+    if (canDeclareAttack) return `Attack with ${getCardShortLabel(me.hand[index])}`;
+    return `Inspect ${getCardShortLabel(me.hand[index])}`;
+  }
 
   function confirmAttack() {
     if (!attackMode) return;
@@ -5964,6 +6032,7 @@ export default function App() {
     if (incomingHandAttack) {
       resetSelections();
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id });
+      setHandSelectionRole("blocker");
       return;
     }
     if (incomingLaneAttack) {
@@ -6083,10 +6152,22 @@ export default function App() {
         overflow: "visible"
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: "bold", color: "#f7d99e", textTransform: "uppercase" }}>Quick Actions</div>
+      <div className="context-action-title">Current Action</div>
       {(attackMode || blockMode) && (
-        <div style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
+        <div className="context-payment-total" style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
           Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
+        </div>
+      )}
+      {attackMode?.from === "hand" && (
+        <div className="selection-role-switch" aria-label="Attack card selection mode">
+          <button type="button" className={handSelectionRole === "attacker" ? "is-active" : ""} onClick={() => setHandSelectionRole("attacker")}>Attacker</button>
+          <button type="button" className={handSelectionRole === "payment" ? "is-active" : ""} onClick={() => setHandSelectionRole("payment")} disabled={selectedAttackCardIndex == null}>Payment</button>
+        </div>
+      )}
+      {blockMode?.type === "handAttack" && (
+        <div className="selection-role-switch" aria-label="Block card selection mode">
+          <button type="button" className={handSelectionRole === "blocker" ? "is-active" : ""} onClick={() => setHandSelectionRole("blocker")}>Blockers</button>
+          <button type="button" className={handSelectionRole === "payment" ? "is-active" : ""} onClick={() => setHandSelectionRole("payment")} disabled={activeBlockCards.length === 0}>Payment</button>
         </div>
       )}
       {attackMode && (
@@ -6249,11 +6330,11 @@ export default function App() {
       )}
       {!attackMode && !blockMode && !placementMode && !abilityMode && (
         <>
-          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</QuickActionButton>}
+          {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={startIncomingBlock}>Block with Cards</QuickActionButton>}
           {hasIncomingAttack && incomingHandAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passHandAttack(incomingHandAttack.id)}>Take {incomingHandAttack.effectiveValue} Damage</QuickActionButton>}
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-primary" onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</QuickActionButton>}
           {hasIncomingAttack && incomingLaneAttack && defenderMayBlock && <QuickActionButton className="quick-action-danger" onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)}>Take Damage</QuickActionButton>}
-          {canDeclareAttack && <QuickActionButton className="quick-action-primary" onClick={startAttackFromHand}>Attack from Hand</QuickActionButton>}
+          {canDeclareAttack && <div className="direct-card-prompt">Select a card in your hand to attack.</div>}
           {game.phase === "priority" && isMyPriority && <QuickActionButton className="quick-action-primary" onClick={passPriority}>Pass / Continue</QuickActionButton>}
           {game.phase === "end" && isMyEndPlacementTurn && !game.lanes[currentEndLane]?.facedown?.[player] && <QuickActionButton className="quick-action-primary" onClick={() => startPlacement(currentEndLane)}>Place Lane {currentEndLane + 1}</QuickActionButton>}
           {game.phase === "end" && isMyEndPlacementTurn && <QuickActionButton className="quick-action-secondary" onClick={() => skipPlacement(currentEndLane)}>Skip Lane {currentEndLane + 1}</QuickActionButton>}
@@ -6323,8 +6404,6 @@ export default function App() {
     });
   const recentTurnFloor = Math.max(1, (game.turn || 1) - 1);
   const currentTurnEvents = normalizedEvents.filter((entry) => (entry.turn || 1) >= recentTurnFloor);
-  const olderEvents = normalizedEvents.filter((entry) => (entry.turn || 1) < recentTurnFloor);
-
   function renderEventEntry(entry, idx, compact = false) {
     return (
       <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
@@ -6440,7 +6519,7 @@ export default function App() {
   }
 
   return (
-    <div className="game-root" style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text }}>
+    <div className={`game-root focused-match-screen phase-${game.phase}${hasIncomingAttack ? " state-incoming" : ""}${attackMode ? " state-attack" : ""}${blockMode ? " state-block" : ""}${placementMode ? " state-placement" : ""}`} style={{ padding: 8, fontFamily: "Arial, sans-serif", height: "100dvh", boxSizing: "border-box", overflow: "hidden", display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr)", background: tabletopBoardBackground, backgroundAttachment: "fixed", color: TABLETOP_THEME.text, "--focus-faction": myTheme.primary, "--focus-faction-border": myTheme.border }}>
       <CardInspectModal card={inspectedCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onClose={() => setInspectedCard(null)} />
       {showDiscardViewer && (
         <DiscardPileModal
@@ -8271,9 +8350,7 @@ export default function App() {
       <div className="match-top-frame">
         <div className="gauntlet-logo-panel">
           <h2>Gauntlet<br />Online</h2>
-          <div style={{ color: TABLETOP_THEME.muted, fontSize: 12, marginTop: 8 }}>
-            <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
-          </div>
+          <div className={`focus-priority-chip${isMyPriority ? " is-active" : ""}`}>Turn {game.turn} / {isMyPriority ? "Your priority" : `${getGamePlayerName(game, game.priority)} acting`}</div>
         </div>
         <div className={`top-opponent-panel${game.campaign ? " has-story" : ""}`}>
           <PlayerFrameRow game={game} player={player} placement="opponents" />
@@ -8281,19 +8358,7 @@ export default function App() {
             <aside className="top-story-brief" aria-label="Campaign story">
               <span className="story-kicker">Current Chapter</span>
               <strong>{game.campaign.title}</strong>
-              <p>{game.campaign.story}</p>
-              {(game.campaign.startDialogue || game.campaign.dialogue)?.length > 0 && (
-                <details className="match-story-dialogue">
-                  <summary>Opening dialogue</summary>
-                  <CampaignDialogueBlock
-                    title="Voices from the chapter"
-                    lines={game.campaign.startDialogue || game.campaign.dialogue}
-                    audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
-                    autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""}
-                    compact
-                  />
-                </details>
-              )}
+              <button type="button" onClick={() => setMatchDrawer("chapter")}>Read Chapter</button>
             </aside>
           )}
           <div className="top-state-pills">
@@ -8302,22 +8367,9 @@ export default function App() {
           </div>
         </div>
         <div className="top-action-panel">
-          <div className="music-control">
-            <MusicControl
-              trackKey={activeMusicTrack}
-              enabled={musicEnabled}
-              volume={musicVolume}
-              onToggle={() => setMusicEnabled((value) => !value)}
-              onVolumeChange={setMusicVolume}
-              account={account}
-              soundMuted={accountSoundMuted}
-              onSoundMutedChange={setSignedInSoundMuted}
-            />
-          </div>
           <div className="top-action-icons">
-            {actionControls}
+            <ActionIconButton icon={"\u2630"} label="Match Menu" onClick={() => setMatchDrawer("menu")} iconOnly />
             <ActionIconButton icon="?" label="Shortcuts" onClick={() => setShowHotkeys((value) => !value)} iconOnly />
-            <ActionIconButton icon="i" label={showHelperLabels ? "Hide Hints" : "Show Hints"} onClick={() => setShowHelperLabels((value) => !value)} iconOnly />
           </div>
         </div>
       </div>
@@ -8366,7 +8418,7 @@ export default function App() {
                     ? "Your decision"
                     : `${getGamePlayerName(game, game.priority)} has priority`}
             </span>
-            <strong>{hasIncomingAttack ? "Defend Yourself" : phaseDisplayName()}</strong>
+            <strong>{hasIncomingAttack ? "Defend Yourself" : game.phase === "priority" ? (isMyPriority ? "Choose Your Action" : "Opponent Acting") : phaseDisplayName()}</strong>
             <div style={{ fontSize: 12, marginTop: 3, color: TABLETOP_THEME.muted }}>
               {phaseHelpText()}
             </div>
@@ -8374,6 +8426,11 @@ export default function App() {
             </div>
             {!isSpectator && <div className="match-command-actions">{nearHandActionPad}</div>}
           </div>
+          <button type="button" className="focus-event-ticker" onClick={() => setMatchDrawer("events")}>
+            <span>Latest</span>
+            <strong>{normalizedEvents[0] ? normalizeCardDisplayText(normalizedEvents[0].text) : "The match is ready."}</strong>
+            <em>Open Log</em>
+          </button>
         <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
           <div style={{ display: "none" }}>
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
@@ -8383,8 +8440,11 @@ export default function App() {
           {!isSpectator && (
             <>
               {!isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background={myTheme.light} style={{ padding: 8, marginBottom: 6 }}>
-                <CollapseHeader title={`${me.faction.name} Powers`} collapsed={collapsedPanels.powers} onToggle={() => togglePanel("powers")} color={myTheme.primary} />
-                {!collapsedPanels.powers && <><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                <div className="focus-faction-header">
+                  <strong>{me.faction.name}</strong>
+                  <button type="button" onClick={() => setMatchDrawer("faction")}>Faction Details</button>
+                </div>
+                <div className="focus-power-strip" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                   {powerCards.map((power) => (
                     <CompactPowerCard
                       key={power.id}
@@ -8392,27 +8452,11 @@ export default function App() {
                       feature={power.feature}
                       theme={myTheme}
                       expanded={selectedPower?.id === power.id}
-                      onToggle={() => handlePowerClick(power)}
+                      onToggle={() => { handlePowerClick(power); setMatchDrawer("faction"); }}
                       actions={power.actions}
                     />
                   ))}
                 </div>
-                <div className="power-detail-row">
-                  {selectedPower && (
-                    <div className="power-story" style={{ borderColor: myTheme.border }}>
-                      <strong>{selectedPower.title}: {selectedPower.feature.name}</strong>
-                      <span>{selectedPower.feature.text}</span>
-                    </div>
-                  )}
-                  <div className="power-turn-stats">
-                    <span><strong>Attacks</strong>{me.turnData.attacksDeclaredThisTurn}</span>
-                    <span><strong>Blocks</strong>{me.turnData.blocksDeclaredThisTurn}</span>
-                    <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
-                    <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
-                    <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
-                  </div>
-                </div>
-                </>}
               </SectionCard>}
               {isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
                 <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
@@ -8436,18 +8480,38 @@ export default function App() {
                       else if (isSelectedPlacement) bg = "#f3e8ff";
                       else if (isSelectedPayment) bg = "#fee2e2";
                       const selected = isSelectedAttack || isSelectedBlock || isSelectedPlacement || isSelectedPayment;
-                      const showCardActions = attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode;
+                      const directInteractionActive = !!(placementMode || attackMode || blockMode || canDeclareAttack);
+                      const unavailableForRole = (attackMode?.from === "hand" && handSelectionRole === "payment" && isSelectedAttack)
+                        || (blockMode?.type === "handAttack" && handSelectionRole === "payment" && isSelectedBlock)
+                        || (blockMode?.type === "handAttack" && handSelectionRole === "blocker" && isSelectedPayment);
+                      const interactionState = isSelectedAttack
+                        ? " selected-attacker"
+                        : isSelectedBlock
+                          ? " selected-blocker"
+                          : isSelectedPayment
+                            ? " selected-payment"
+                            : isSelectedPlacement
+                              ? " selected-placement"
+                              : unavailableForRole
+                                ? " is-unavailable"
+                                : directInteractionActive
+                                  ? " is-available"
+                                  : "";
                       return (
-                        <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${showCardActions ? " has-actions" : ""}`}>
-                          <CardBox card={card} artFactionId={!isBasicGame ? me.faction.id : null} bg={bg} selected={selected} accent={myTheme.primary} onInspect={setInspectedCard} onPreview={setPreviewedCard} />
-                          {showCardActions && (
-                            <div className="hand-card-actions">
-                              {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} className={isSelectedAttack ? "is-active" : ""}>{isSelectedAttack ? "Attacker" : "Attack"}</button>}
-                              {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} className={isSelectedBlock ? "is-active" : ""}>{isSelectedBlock ? "Blocking" : "Block"}</button>}
-                              {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} className={isSelectedPlacement ? "is-active" : ""}>{isSelectedPlacement ? "Selected" : "Place"}</button>}
-                              {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} className={isSelectedPayment ? "is-active" : ""}>{isSelectedPayment ? "Paying" : "Pay"}</button>}
-                            </div>
-                          )}
+                        <div key={card.id || i} className={`hand-card-item${selected ? " is-selected" : ""}${interactionState}`}>
+                          <CardBox
+                            card={card}
+                            artFactionId={!isBasicGame ? me.faction.id : null}
+                            bg={bg}
+                            selected={selected}
+                            accent={myTheme.primary}
+                            onInspect={setInspectedCard}
+                            onPreview={setPreviewedCard}
+                            onActivate={directInteractionActive ? () => activateStandardHandCard(i) : undefined}
+                            interactionLabel={handCardInteractionLabel(i)}
+                            interactionPressed={selected}
+                            interactionDisabled={unavailableForRole}
+                          />
                         </div>
                       );
                     })}
@@ -8466,7 +8530,7 @@ export default function App() {
               const iAmDefender = !isSpectator && defender === player;
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
-                <div key={i} className="lane-card" style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
+                <div key={i} className={`lane-card${lane.attack ? " has-combat" : ""}${game.phase === "end" && i === currentEndLane ? " is-active-lane" : ""}${game.phase === "end" && i !== currentEndLane ? " is-dimmed-lane" : ""}${canDeclareAttack && lane.facedown[player] && !lane.attack ? " is-legal-lane" : ""}`} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
                   <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
                     <div style={{ display: "grid", gap: 5 }}>
@@ -8496,92 +8560,99 @@ export default function App() {
             </div>
           </SectionCard>
 
-          {!isSpectator && hasIncomingAttack && (
-            <SectionCard className="response-strip" borderColor="#991b1b" background="#fff1f2" style={{ padding: 10, marginBottom: 6 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: "bold", color: "#7f1d1d", fontSize: 16 }}>
-                    Incoming Attack: {incomingHandAttack
-                      ? `${getCardShortLabel(incomingHandAttack.card)} from hand (effective ${incomingHandAttack.effectiveValue})`
-                      : incomingLaneAttack
-                        ? `${getCardShortLabel(incomingLaneAttack.lane.attack.card)} from lane ${incomingLaneAttack.laneIndex + 1} (effective ${incomingLaneAttack.lane.attack.effectiveValue})`
-                        : "Resolve combat"}
-                  </div>
-                  <div style={{ color: "#7f1d1d", fontSize: 12, marginTop: 2 }}>Respond here before taking another action.</div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => setBlockMode({ type: "handAttack", handAttackId: incomingHandAttack.id })}>Block with Cards</button>}
-                  {incomingHandAttack && defenderMayBlock && <button onClick={() => passHandAttack(incomingHandAttack.id)} style={{ color: "#991b1b" }}>Take {incomingHandAttack.effectiveValue} Damage</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => startBlockLaneAttack(incomingLaneAttack.laneIndex)}>Block Lane</button>}
-                  {incomingLaneAttack && defenderMayBlock && <button onClick={() => passLaneAttack(incomingLaneAttack.laneIndex)} style={{ color: "#991b1b" }}>Take Damage</button>}
-                  {!defenderMayBlock && <button onClick={passPriority} disabled={!isMyPriority}>Pass / Continue</button>}
-                </div>
-              </div>
-            </SectionCard>
-          )}
         </div>
         </div>
 
-        <div className="game-side table-side-panel" style={{ minHeight: 0 }}>
-          <div className="card-preview-panel">
-            <h3>Card Preview</h3>
-            {sidePreviewCard ? (
-              <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
-            ) : (
-              <div style={{ color: TABLETOP_THEME.muted, fontSize: 13, textAlign: "center", padding: "18px 8px" }}>Point to a card to preview it.</div>
-            )}
-          </div>
-          <SectionCard borderColor={myTheme.border} background="rgba(250,250,250,0.96)" style={{ padding: 8, marginBottom: 6 }}>
-            <CollapseHeader title="Match Details" collapsed={collapsedPanels.actions} onToggle={() => togglePanel("actions")} color={myTheme.primary} />
-            {!collapsedPanels.actions && <>
-              <div style={{ display: "grid", gap: 6, marginBottom: 10, fontSize: 13 }}>
-                <div><strong>Mode:</strong> {phaseDisplayName()}</div>
-                <div><strong>Turn:</strong> {game.turn}</div>
-                <div><strong>Priority:</strong> Player {game.priority}</div>
-                <div style={{ color: TABLETOP_THEME.muted }}>{phaseHelpText()}</div>
-              </div>
-              {undoRequest && (
-                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
-                  <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
-                  {undoNeedsMyApproval && <div style={{ display: "flex", gap: 8, marginTop: 8 }}><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
+        <nav className="focus-utility-dock" aria-label="Match information">
+          <button type="button" onClick={() => sidePreviewCard && setInspectedCard(sidePreviewCard)} disabled={!sidePreviewCard} title="Inspect previewed card">Card</button>
+          <button type="button" onClick={() => setMatchDrawer("events")}>Log</button>
+          {!isBasicGame && !isSpectator && <button type="button" onClick={() => setMatchDrawer("faction")}>Powers</button>}
+          <button type="button" onClick={() => setMatchDrawer("details")}>Details</button>
+        </nav>
+        {sidePreviewCard && !inspectedCard && (
+          <aside className="focus-card-preview" aria-label={`Card preview: ${getCardShortLabel(sidePreviewCard)}`}>
+            <CardBox card={sidePreviewCard} artFactionId={!isBasicGame ? me?.faction?.id : null} onInspect={setInspectedCard} />
+          </aside>
+        )}
+        {matchDrawer && (
+          <div className="focus-drawer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMatchDrawer(null); }}>
+            <aside className="focus-match-drawer" role="dialog" aria-modal="true" aria-label={`${matchDrawer} drawer`}>
+              <header>
+                <div>
+                  <span>Gauntlet Match</span>
+                  <h2>{matchDrawer === "events" ? "Combat Log" : matchDrawer === "faction" ? `${me?.faction?.name || "Faction"} Powers` : matchDrawer === "chapter" ? game.campaign?.title || "Chapter" : matchDrawer === "menu" ? "Match Menu" : "Match Details"}</h2>
+                </div>
+                <button type="button" onClick={() => setMatchDrawer(null)} aria-label="Close drawer">Close</button>
+              </header>
+
+              {matchDrawer === "events" && (
+                <div className="focus-drawer-scroll recent-events-list">
+                  {normalizedEvents.length === 0 ? <p>No events yet.</p> : normalizedEvents.map((entry, idx) => renderEventEntry(entry, idx, idx > currentTurnEvents.length - 1))}
                 </div>
               )}
-              {game.drawOfferBy && game.phase !== "gameOver" && (
-                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: myTheme.light, border: `1px solid ${myTheme.border}` }}>
-                  {game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}
-                </div>
-              )}
-              {hasAnyUnresolvedAttack && game.phase === "priority" && <p style={{ marginTop: 0, color: "#b91c1c" }}>Resolve current combat before declaring another attack.</p>}
-              <div className="passive-status-actions">{rightPanel}</div>
-              {!isSpectator && (
-                <OpponentIntelPanel
-                  game={game}
-                  player={player}
-                  showAbilities={showOpponentAbilities}
-                  onToggleAbilities={() => setShowOpponentAbilities((value) => !value)}
-                />
-              )}
-              <PaymentLogPanel game={game} /></>}
-          </SectionCard>
-          <SectionCard className="recent-events-section" borderColor="#444" background="rgba(255,255,255,0.96)" style={{ padding: 8 }}>
-            <CollapseHeader title="Recent Events" collapsed={collapsedPanels.events} onToggle={() => togglePanel("events")} />
-            {!collapsedPanels.events && (
-              normalizedEvents.length === 0 ? (
-                <p>No events yet.</p>
-              ) : (
-                <div className="recent-events-list">
-                  {currentTurnEvents.map((entry, idx) => renderEventEntry(entry, idx))}
-                  {olderEvents.length > 0 && (
-                    <div style={{ display: "grid", gap: 6 }}>
-                      <div style={{ fontSize: 12, fontWeight: "bold", color: "#555", marginBottom: 6 }}>Older Turns</div>
-                      {olderEvents.map((entry, idx) => renderEventEntry(entry, idx, true))}
+
+              {matchDrawer === "details" && (
+                <div className="focus-drawer-scroll focus-match-details">
+                  <div className="focus-detail-summary">
+                    <span><strong>Mode</strong>{phaseDisplayName()}</span>
+                    <span><strong>Turn</strong>{game.turn}</span>
+                    <span><strong>Priority</strong>{getGamePlayerName(game, game.priority)}</span>
+                  </div>
+                  <p>{phaseHelpText()}</p>
+                  {undoRequest && (
+                    <div className="focus-notice">
+                      <strong>Undo requested:</strong> Player {undoRequest.requester} wants to undo {undoRequest.label}.
+                      {undoNeedsMyApproval && <div><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
                     </div>
                   )}
+                  {game.drawOfferBy && game.phase !== "gameOver" && <div className="focus-notice">{game.drawOfferBy === player ? "You offered an intentional draw." : `Player ${game.drawOfferBy} offered an intentional draw.`}</div>}
+                  <div className="passive-status-actions">{rightPanel}</div>
+                  {!isSpectator && <OpponentIntelPanel game={game} player={player} showAbilities={showOpponentAbilities} onToggleAbilities={() => setShowOpponentAbilities((value) => !value)} />}
+                  <PaymentLogPanel game={game} />
                 </div>
-              )
-            )}
-          </SectionCard>
-        </div>
+              )}
+
+              {matchDrawer === "faction" && !isBasicGame && !isSpectator && (
+                <div className="focus-drawer-scroll focus-faction-details">
+                  {powerCards.map((power) => (
+                    <article key={power.id} style={{ borderColor: myTheme.border }}>
+                      {power.feature?.image && <img src={resolveAssetPath(power.feature.image)} alt="" />}
+                      <div><span>{power.title}</span><h3>{power.feature?.name}</h3><p>{power.feature?.text}</p></div>
+                      {power.actions.map((action) => <button key={action.label} type="button" onClick={action.onClick} disabled={action.disabled} title={action.reason || action.label}>{action.label}</button>)}
+                    </article>
+                  ))}
+                  <div className="power-turn-stats">
+                    <span><strong>Attacks</strong>{me.turnData.attacksDeclaredThisTurn}</span>
+                    <span><strong>Blocks</strong>{me.turnData.blocksDeclaredThisTurn}</span>
+                    <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
+                    <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
+                    <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
+                  </div>
+                </div>
+              )}
+
+              {matchDrawer === "chapter" && game.campaign && (
+                <div className="focus-drawer-scroll focus-chapter-drawer">
+                  <p>{game.campaign.story}</p>
+                  <CampaignDialogueBlock title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""} compact />
+                </div>
+              )}
+
+              {matchDrawer === "menu" && (
+                <div className="focus-drawer-scroll focus-match-menu">
+                  <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
+                  <MusicControl trackKey={activeMusicTrack} enabled={musicEnabled} volume={musicVolume} onToggle={() => setMusicEnabled((value) => !value)} onVolumeChange={setMusicVolume} account={account} soundMuted={accountSoundMuted} onSoundMutedChange={setSignedInSoundMuted} />
+                  <div className="focus-menu-actions">{actionControls}</div>
+                  <button type="button" onClick={() => setShowHotkeys((value) => !value)}>Keyboard Shortcuts</button>
+                  <button type="button" onClick={() => setShowHelperLabels((value) => !value)}>{showHelperLabels ? "Hide Hints" : "Show Hints"}</button>
+                  {game.campaign && <button type="button" onClick={() => setMatchDrawer("chapter")}>Current Chapter</button>}
+                  <button type="button" onClick={() => setMatchDrawer("details")}>Match Details</button>
+                  <button type="button" onClick={() => setMatchDrawer("events")}>Combat Log</button>
+                </div>
+              )}
+            </aside>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,1091 @@
+.focused-match-screen {
+  --focus-bg: #06090d;
+  --focus-table: #0a1119;
+  --focus-panel: rgba(11, 17, 24, 0.96);
+  --focus-panel-raised: rgba(18, 25, 34, 0.98);
+  --focus-line: rgba(154, 169, 181, 0.24);
+  --focus-gold: #c79a51;
+  --focus-gold-bright: #f0d08d;
+  --focus-blue: #65b6e8;
+  --focus-text: #f2f4f5;
+  --focus-muted: #a5b0ba;
+  --focus-danger: #dc5459;
+  --focus-good: #66c99a;
+  padding: 7px !important;
+  gap: 6px !important;
+  grid-template-rows: 76px minmax(0, 1fr) !important;
+  color: var(--focus-text) !important;
+  background-color: var(--focus-bg) !important;
+  isolation: isolate;
+}
+
+.focused-match-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 9, 14, 0.95), rgba(10, 18, 27, 0.82) 48%, rgba(5, 9, 14, 0.96)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 13px);
+}
+
+.focused-match-screen button:focus-visible,
+.focused-match-screen input:focus-visible,
+.focused-match-screen select:focus-visible,
+.focused-match-screen summary:focus-visible {
+  outline: 2px solid var(--focus-blue) !important;
+  outline-offset: 2px;
+}
+
+.focused-match-screen .match-top-frame {
+  min-height: 0 !important;
+  height: 76px !important;
+  grid-template-columns: 164px minmax(0, 1fr) 72px !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+.focused-match-screen .gauntlet-logo-panel,
+.focused-match-screen .top-opponent-panel,
+.focused-match-screen .top-action-panel,
+.focused-match-screen .bottom-player-panel {
+  border: 1px solid var(--focus-line) !important;
+  border-radius: 4px !important;
+  color: var(--focus-text) !important;
+  background: linear-gradient(180deg, rgba(15, 22, 30, 0.98), rgba(6, 10, 15, 0.98)) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 255, 255, 0.035) !important;
+}
+
+.focused-match-screen .gauntlet-logo-panel {
+  padding: 8px 11px !important;
+  border-left: 3px solid var(--focus-gold) !important;
+}
+
+.focused-match-screen .gauntlet-logo-panel h2 {
+  margin: 0 !important;
+  color: var(--focus-text) !important;
+  font: 700 20px/0.88 Georgia, serif !important;
+}
+
+.focused-match-screen .focus-priority-chip {
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--focus-muted);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.focused-match-screen .focus-priority-chip.is-active {
+  color: var(--focus-gold-bright);
+}
+
+.focused-match-screen .top-opponent-panel {
+  padding: 5px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+}
+
+.focused-match-screen .top-opponent-panel.has-story {
+  grid-template-columns: minmax(250px, 1fr) minmax(170px, 0.45fr) auto !important;
+}
+
+.focused-match-screen .player-frame-row,
+.focused-match-screen .player-frame {
+  width: 100%;
+  min-width: 0;
+}
+
+.focused-match-screen .player-frame {
+  padding: 6px 9px !important;
+  border-width: 1px !important;
+  border-radius: 3px !important;
+  background: linear-gradient(100deg, rgba(7, 11, 17, 0.98), rgba(17, 24, 33, 0.92)) !important;
+  box-shadow: inset 3px 0 var(--focus-faction), inset 0 1px rgba(255, 255, 255, 0.04) !important;
+}
+
+.focused-match-screen .player-frame strong {
+  color: var(--focus-text) !important;
+}
+
+.focused-match-screen .player-frame-stats {
+  color: var(--focus-text) !important;
+}
+
+.focused-match-screen .player-frame-stats > span:first-child {
+  font: 700 18px/1 Georgia, serif;
+}
+
+.focused-match-screen .player-stat-icon {
+  color: var(--focus-gold-bright) !important;
+}
+
+.focused-match-screen .top-story-brief {
+  min-height: 0 !important;
+  padding: 5px 8px !important;
+  border-left: 1px solid rgba(199, 154, 81, 0.42) !important;
+  background: rgba(4, 9, 14, 0.36) !important;
+}
+
+.focused-match-screen .top-story-brief > strong {
+  color: var(--focus-text) !important;
+  font-size: 12px !important;
+}
+
+.focused-match-screen .top-story-brief > button {
+  margin-top: 4px;
+  padding: 2px 6px !important;
+  border-color: var(--focus-line) !important;
+  color: var(--focus-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 9px;
+}
+
+.focused-match-screen .top-state-pills {
+  width: auto !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+}
+
+.focused-match-screen .deck-slot {
+  min-width: 58px !important;
+  padding: 3px 5px !important;
+  border-color: var(--focus-line) !important;
+  border-radius: 3px !important;
+  color: var(--focus-muted) !important;
+  background: rgba(3, 7, 11, 0.58) !important;
+  box-shadow: none !important;
+}
+
+.focused-match-screen .deck-slot-card {
+  width: 26px !important;
+  height: 34px !important;
+  border-radius: 2px !important;
+  background: linear-gradient(145deg, #162232, #05080d) !important;
+}
+
+.focused-match-screen .top-action-panel {
+  display: grid !important;
+  place-items: center !important;
+  padding: 5px !important;
+}
+
+.focused-match-screen .top-action-icons {
+  display: grid !important;
+  grid-template-columns: repeat(2, 28px) !important;
+  gap: 5px !important;
+}
+
+.focused-match-screen .top-action-icons .icon-action-button {
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border-color: var(--focus-line) !important;
+  border-radius: 3px !important;
+  background: #101a25 !important;
+  box-shadow: none !important;
+}
+
+.focused-match-screen .match-table-frame {
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.focused-match-screen .table-main-panel {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto 28px minmax(0, 1fr) !important;
+  gap: 5px !important;
+  overflow: hidden !important;
+}
+
+.focused-match-screen .match-command-row {
+  min-height: 96px !important;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.5fr) !important;
+  gap: 6px !important;
+}
+
+.focused-match-screen .current-play-panel,
+.focused-match-screen .match-command-actions .near-hand-actions {
+  min-height: 0 !important;
+  padding: 8px 11px !important;
+  border: 1px solid rgba(91, 145, 180, 0.34) !important;
+  border-radius: 4px !important;
+  color: var(--focus-text) !important;
+  background: linear-gradient(105deg, rgba(10, 26, 40, 0.98), rgba(7, 12, 18, 0.98)) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.focused-match-screen .current-play-panel {
+  border-left: 4px solid #5ba4d3 !important;
+}
+
+.focused-match-screen .current-play-panel.is-my-decision {
+  border-color: rgba(229, 185, 94, 0.48) !important;
+  border-left-color: var(--focus-gold-bright) !important;
+  background: linear-gradient(105deg, rgba(38, 29, 16, 0.98), rgba(8, 18, 27, 0.98) 70%) !important;
+}
+
+.focused-match-screen .current-play-panel.is-incoming {
+  border-color: rgba(220, 84, 89, 0.7) !important;
+  border-left-color: var(--focus-danger) !important;
+  background: linear-gradient(105deg, rgba(62, 18, 22, 0.98), rgba(9, 14, 20, 0.98) 72%) !important;
+  animation: focus-warning-in 260ms ease-out;
+}
+
+.focused-match-screen .decision-kicker,
+.focused-match-screen .context-action-title {
+  color: var(--focus-gold-bright) !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .current-play-panel > strong {
+  display: block;
+  color: var(--focus-text) !important;
+  font: 700 19px/1.05 Georgia, serif !important;
+}
+
+.focused-match-screen .match-command-actions .near-hand-actions {
+  height: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-content: center !important;
+  gap: 4px !important;
+}
+
+.focused-match-screen .context-action-title,
+.focused-match-screen .context-payment-total,
+.focused-match-screen .selection-role-switch,
+.focused-match-screen .direct-card-prompt,
+.focused-match-screen .match-command-actions .near-hand-actions > div:not(.mobile-action-detail) {
+  grid-column: 1 / -1 !important;
+}
+
+.focused-match-screen .selection-role-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.focused-match-screen .selection-role-switch button {
+  min-height: 25px !important;
+  padding: 3px 6px !important;
+  border-color: var(--focus-line) !important;
+  color: var(--focus-muted) !important;
+  background: #101922 !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+}
+
+.focused-match-screen .selection-role-switch button.is-active {
+  border-color: var(--focus-blue) !important;
+  color: #e4f5ff !important;
+  background: #16364d !important;
+}
+
+.focused-match-screen .direct-card-prompt {
+  color: var(--focus-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.focused-match-screen .quick-action-button {
+  min-height: 31px !important;
+  padding: 5px 7px !important;
+  border-radius: 3px !important;
+  font-size: 11px !important;
+}
+
+.focused-match-screen .quick-action-primary {
+  background: linear-gradient(180deg, #90602c, #493018) !important;
+}
+
+.focused-match-screen .quick-action-secondary {
+  background: linear-gradient(180deg, #263442, #111923) !important;
+}
+
+.focused-match-screen .quick-action-danger {
+  background: linear-gradient(180deg, #a13c42, #571e23) !important;
+}
+
+.focused-match-screen .focus-event-ticker {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 9px !important;
+  border: 0 !important;
+  border-left: 2px solid var(--focus-gold) !important;
+  border-radius: 2px !important;
+  color: var(--focus-muted) !important;
+  background: rgba(7, 12, 18, 0.9) !important;
+  box-shadow: none !important;
+  text-align: left;
+}
+
+.focused-match-screen .focus-event-ticker span,
+.focused-match-screen .focus-event-ticker em {
+  color: var(--focus-gold-bright);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .focus-event-ticker strong {
+  overflow: hidden;
+  color: var(--focus-text);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focused-match-screen .game-main {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: minmax(132px, 0.9fr) auto minmax(198px, 1.1fr) !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.focused-match-screen .board-lanes {
+  order: 1 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 6px 8px 8px !important;
+  border: 1px solid var(--focus-line) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(180deg, rgba(10, 17, 25, 0.96), rgba(5, 10, 15, 0.98)) !important;
+}
+
+.focused-match-screen .board-lanes h3 {
+  margin: 0 0 5px !important;
+  color: var(--focus-muted) !important;
+  font: 900 9px/1 Arial, sans-serif !important;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .lane-grid {
+  min-height: 0;
+  height: 100%;
+  gap: 7px !important;
+}
+
+.focused-match-screen .lane-card {
+  position: relative;
+  min-height: 112px !important;
+  height: 100% !important;
+  padding: 7px !important;
+  border: 1px solid rgba(144, 160, 172, 0.28) !important;
+  border-radius: 3px !important;
+  color: var(--focus-text) !important;
+  background: radial-gradient(circle at 50% 45%, rgba(48, 111, 151, 0.09), transparent 58%), rgba(7, 13, 19, 0.94) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035) !important;
+  transition: opacity 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.focused-match-screen .lane-card > p {
+  margin: 0 0 4px !important;
+  color: var(--focus-gold-bright) !important;
+  text-align: center;
+}
+
+.focused-match-screen .lane-card-line {
+  min-height: 28px;
+  padding: 4px 6px !important;
+  border: 1px solid rgba(142, 158, 170, 0.15) !important;
+  border-radius: 2px !important;
+  color: var(--focus-text) !important;
+  background: rgba(2, 6, 10, 0.42) !important;
+}
+
+.focused-match-screen .lane-card-line span {
+  color: var(--focus-muted) !important;
+}
+
+.focused-match-screen .lane-card-line strong {
+  color: var(--focus-text) !important;
+}
+
+.focused-match-screen .lane-card.has-combat {
+  border-color: rgba(220, 84, 89, 0.7) !important;
+  box-shadow: 0 0 22px rgba(220, 84, 89, 0.13), inset 0 1px rgba(255, 255, 255, 0.04) !important;
+}
+
+.focused-match-screen .lane-card.is-active-lane,
+.focused-match-screen .lane-card.is-legal-lane {
+  border-color: rgba(102, 201, 154, 0.72) !important;
+  box-shadow: 0 0 20px rgba(102, 201, 154, 0.13) !important;
+}
+
+.focused-match-screen .lane-card.is-dimmed-lane {
+  opacity: 0.45;
+}
+
+.focused-match-screen .power-section {
+  order: 2 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 5px 7px !important;
+  border: 1px solid var(--focus-line) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(90deg, rgba(11, 17, 24, 0.98), rgba(17, 22, 29, 0.96)) !important;
+}
+
+.focused-match-screen .focus-faction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.focused-match-screen .focus-faction-header strong {
+  color: var(--focus-text) !important;
+  font: 700 12px/1 Georgia, serif;
+}
+
+.focused-match-screen .focus-faction-header button {
+  padding: 2px 6px !important;
+  border: 0 !important;
+  color: var(--focus-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 9px;
+}
+
+.focused-match-screen .focus-power-strip {
+  gap: 5px !important;
+}
+
+.focused-match-screen .compact-power-card {
+  min-height: 44px;
+  border-width: 1px !important;
+  border-radius: 3px !important;
+  background: linear-gradient(100deg, rgba(7, 12, 18, 0.98), rgba(22, 29, 37, 0.94)) !important;
+  box-shadow: none !important;
+}
+
+.focused-match-screen .compact-power-select {
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+  padding: 3px 5px !important;
+  color: var(--focus-text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.focused-match-screen .compact-power-portrait {
+  width: 34px !important;
+  height: 38px !important;
+  border-width: 1px !important;
+  border-radius: 3px !important;
+}
+
+.focused-match-screen .compact-power-select span span:first-child {
+  color: var(--focus-muted) !important;
+  font-size: 8px !important;
+}
+
+.focused-match-screen .compact-power-select span span:last-child {
+  color: var(--focus-text) !important;
+  font-size: 11px !important;
+}
+
+.focused-match-screen .compact-power-actions {
+  padding: 0 3px 3px !important;
+}
+
+.focused-match-screen .bottom-player-panel {
+  order: 3 !important;
+  max-height: none !important;
+  grid-template-columns: 170px minmax(0, 1fr) !important;
+  gap: 7px !important;
+  padding: 6px 8px !important;
+  border-top: 2px solid var(--focus-faction-border) !important;
+}
+
+.focused-match-screen .bottom-left-actions {
+  align-self: end;
+}
+
+.focused-match-screen .hand-section {
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.focused-match-screen .hand-section h3 {
+  margin: 0 0 4px !important;
+  color: var(--focus-text) !important;
+  font: 700 14px/1 Georgia, serif !important;
+  text-align: center;
+}
+
+.focused-match-screen .hand-content,
+.focused-match-screen .hand-card-row {
+  min-height: 0 !important;
+  overflow-y: visible !important;
+}
+
+.focused-match-screen .hand-card-row {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: center;
+  gap: clamp(4px, 0.65vw, 10px) !important;
+  padding: 4px 5px 5px !important;
+  overflow-x: auto !important;
+}
+
+.focused-match-screen .hand-card-item {
+  flex: 0 1 102px;
+  width: 102px !important;
+  max-width: 102px !important;
+  transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
+}
+
+.focused-match-screen .bottom-player-panel .hand-card-item > .card-box {
+  width: 100% !important;
+  height: 160px !important;
+  min-height: 160px !important;
+  padding: 3px !important;
+  overflow: visible !important;
+  border-radius: 3px !important;
+}
+
+.focused-match-screen .card-face-art-button {
+  cursor: pointer !important;
+}
+
+.focused-match-screen .hand-card-item.is-available:hover,
+.focused-match-screen .hand-card-item.is-available:focus-within {
+  z-index: 5;
+  transform: translateY(-7px) scale(1.025);
+}
+
+.focused-match-screen .hand-card-item.is-available > .card-box {
+  filter: drop-shadow(0 0 5px rgba(101, 182, 232, 0.32));
+}
+
+.focused-match-screen .hand-card-item.is-unavailable {
+  opacity: 0.38;
+  filter: grayscale(0.6);
+}
+
+.focused-match-screen .hand-card-item.is-selected {
+  z-index: 6;
+  transform: translateY(-9px);
+}
+
+.focused-match-screen .hand-card-item.is-selected > .card-box {
+  outline: 2px solid var(--focus-blue) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #e2f5ff, 0 0 18px rgba(67, 169, 232, 0.68) !important;
+}
+
+.focused-match-screen .hand-card-item.selected-blocker > .card-box {
+  outline-color: var(--focus-good) !important;
+  box-shadow: 0 0 0 1px #d7ffed, 0 0 18px rgba(80, 197, 151, 0.62) !important;
+}
+
+.focused-match-screen .hand-card-item.selected-payment > .card-box {
+  outline-color: var(--focus-gold-bright) !important;
+  box-shadow: 0 0 0 1px #fff1c9, 0 0 18px rgba(218, 167, 78, 0.62) !important;
+}
+
+.focused-match-screen .hand-card-item.selected-placement > .card-box {
+  outline-color: #bca1ef !important;
+  box-shadow: 0 0 0 1px #eee5ff, 0 0 18px rgba(142, 108, 210, 0.6) !important;
+}
+
+.focused-match-screen .card-inspect-trigger {
+  position: absolute !important;
+  z-index: 8;
+  top: 5px;
+  right: 5px;
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.36) !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  background: rgba(5, 10, 16, 0.84) !important;
+  box-shadow: none !important;
+  font: 800 10px/1 Arial, sans-serif;
+  opacity: 0;
+}
+
+.focused-match-screen .hand-card-item:hover .card-inspect-trigger,
+.focused-match-screen .hand-card-item:focus-within .card-inspect-trigger {
+  opacity: 1;
+}
+
+.focused-match-screen.phase-damage .hand-card-row,
+.focused-match-screen.phase-damage .lane-grid,
+.focused-match-screen.phase-damage .focus-power-strip {
+  pointer-events: none;
+  opacity: 0.56;
+}
+
+.focused-match-screen .combat-scene {
+  border-color: rgba(220, 84, 89, 0.5) !important;
+  background: rgba(26, 10, 14, 0.72) !important;
+}
+
+.focused-match-screen .state-incoming .combat-scene {
+  animation: focus-combat-in 260ms ease-out;
+}
+
+.focused-match-screen .focus-utility-dock {
+  position: fixed;
+  z-index: 32;
+  right: 7px;
+  top: 50%;
+  display: grid;
+  gap: 4px;
+  transform: translateY(-50%);
+}
+
+.focused-match-screen .focus-utility-dock button {
+  width: 48px;
+  min-height: 31px;
+  padding: 4px !important;
+  border-color: var(--focus-line) !important;
+  border-radius: 3px !important;
+  color: var(--focus-muted) !important;
+  background: rgba(8, 14, 21, 0.94) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  font-size: 9px;
+}
+
+.focused-match-screen .focus-card-preview {
+  position: fixed;
+  z-index: 31;
+  right: 62px;
+  bottom: 10px;
+  width: 126px;
+  padding: 6px;
+  border: 1px solid var(--focus-line);
+  border-radius: 4px;
+  background: rgba(5, 9, 14, 0.96);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.58);
+  pointer-events: none;
+  animation: focus-preview-in 130ms ease-out;
+}
+
+.focused-match-screen .focus-card-preview .card-box {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 184px !important;
+  height: 184px !important;
+}
+
+.focused-match-screen .focus-drawer-backdrop {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  justify-items: end;
+  background: rgba(1, 4, 8, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.focused-match-screen .focus-match-drawer {
+  width: min(440px, 94vw);
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border-left: 1px solid rgba(199, 154, 81, 0.48);
+  color: var(--focus-text);
+  background: linear-gradient(180deg, #111923, #05090e);
+  box-shadow: -20px 0 48px rgba(0, 0, 0, 0.54);
+  animation: focus-drawer-in 180ms ease-out;
+}
+
+.focused-match-screen .focus-match-drawer > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--focus-line);
+}
+
+.focused-match-screen .focus-match-drawer > header span {
+  color: var(--focus-gold-bright);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .focus-match-drawer > header h2 {
+  margin: 2px 0 0;
+  color: var(--focus-text);
+  font: 700 22px/1 Georgia, serif;
+}
+
+.focused-match-screen .focus-match-drawer > header button {
+  padding: 6px 9px !important;
+  border-color: var(--focus-line) !important;
+  background: #172330 !important;
+  box-shadow: none !important;
+}
+
+.focused-match-screen .focus-drawer-scroll {
+  min-height: 0;
+  padding: 14px 16px 22px;
+  overflow-y: auto;
+}
+
+.focused-match-screen .focus-drawer-scroll .section-card-shell,
+.focused-match-screen .focus-drawer-scroll > div {
+  color: var(--focus-text) !important;
+}
+
+.focused-match-screen .focus-drawer-scroll .recent-events-list > div,
+.focused-match-screen .focus-drawer-scroll.recent-events-list > div {
+  margin-bottom: 6px;
+  padding: 9px !important;
+  border: 0 !important;
+  border-left: 2px solid rgba(199, 154, 81, 0.55) !important;
+  border-radius: 2px !important;
+  color: var(--focus-text) !important;
+  background: #111a24 !important;
+}
+
+.focused-match-screen .focus-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.focused-match-screen .focus-detail-summary span {
+  padding: 9px;
+  border: 1px solid var(--focus-line);
+  background: #0d151e;
+}
+
+.focused-match-screen .focus-detail-summary strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--focus-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .focus-notice {
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid var(--focus-line);
+  background: #111a24;
+}
+
+.focused-match-screen .focus-faction-details {
+  display: grid;
+  gap: 8px;
+}
+
+.focused-match-screen .focus-faction-details article {
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid;
+  border-radius: 4px;
+  background: #101821;
+}
+
+.focused-match-screen .focus-faction-details article img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.focused-match-screen .focus-faction-details article span {
+  color: var(--focus-muted);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.focused-match-screen .focus-faction-details article h3 {
+  margin: 2px 0 4px;
+  color: var(--focus-text);
+}
+
+.focused-match-screen .focus-faction-details article p {
+  margin: 0;
+  color: var(--focus-muted);
+  line-height: 1.35;
+}
+
+.focused-match-screen .focus-match-menu {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.focused-match-screen .focus-match-menu > button {
+  min-height: 36px;
+}
+
+.focused-match-screen .focus-menu-actions .action-icon-dock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.focused-match-screen .focus-menu-actions .icon-action-button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+}
+
+@keyframes focus-drawer-in {
+  from { transform: translateX(36px); opacity: 0.7; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes focus-preview-in {
+  from { transform: translateY(5px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes focus-warning-in {
+  from { transform: translateY(-4px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes focus-combat-in {
+  from { transform: scale(0.98); opacity: 0.5; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (min-width: 1500px) and (min-height: 800px) {
+  .focused-match-screen {
+    grid-template-rows: 86px minmax(0, 1fr) !important;
+  }
+
+  .focused-match-screen .match-top-frame {
+    height: 86px !important;
+    grid-template-columns: 178px minmax(0, 1fr) 78px !important;
+  }
+
+  .focused-match-screen .game-main {
+    grid-template-rows: minmax(170px, 0.95fr) auto minmax(255px, 1.12fr) !important;
+  }
+
+  .focused-match-screen .hand-card-item {
+    flex-basis: 118px;
+    width: 118px !important;
+    max-width: 118px !important;
+  }
+
+  .focused-match-screen .bottom-player-panel .hand-card-item > .card-box {
+    height: 190px !important;
+    min-height: 190px !important;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 761px) {
+  .focused-match-screen {
+    grid-template-rows: 70px minmax(0, 1fr) !important;
+    padding: 5px !important;
+    gap: 4px !important;
+  }
+
+  .focused-match-screen .match-top-frame {
+    height: 70px !important;
+  }
+
+  .focused-match-screen .match-command-row {
+    min-height: 88px !important;
+  }
+
+  .focused-match-screen .game-main {
+    grid-template-rows: minmax(112px, 0.88fr) auto minmax(178px, 1.12fr) !important;
+  }
+
+  .focused-match-screen .lane-card {
+    min-height: 98px !important;
+  }
+
+  .focused-match-screen .bottom-player-panel .hand-card-item > .card-box {
+    height: 142px !important;
+    min-height: 142px !important;
+  }
+}
+
+@media (max-width: 1080px) and (min-width: 761px) {
+  .focused-match-screen .match-top-frame {
+    grid-template-columns: 142px minmax(0, 1fr) 66px !important;
+  }
+
+  .focused-match-screen .top-opponent-panel.has-story {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .focused-match-screen .top-story-brief {
+    display: none !important;
+  }
+
+  .focused-match-screen .match-command-row {
+    grid-template-columns: minmax(0, 1fr) 280px !important;
+  }
+
+  .focused-match-screen .bottom-player-panel {
+    grid-template-columns: 145px minmax(0, 1fr) !important;
+  }
+
+  .focused-match-screen .hand-card-item {
+    flex-basis: 84px;
+    width: 84px !important;
+    max-width: 84px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .focused-match-screen {
+    height: auto !important;
+    min-height: 100dvh !important;
+    display: block !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .focused-match-screen .match-top-frame {
+    height: 68px !important;
+    grid-template-columns: minmax(0, 1fr) 62px !important;
+  }
+
+  .focused-match-screen .gauntlet-logo-panel {
+    display: none !important;
+  }
+
+  .focused-match-screen .top-opponent-panel {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .focused-match-screen .top-story-brief {
+    display: none !important;
+  }
+
+  .focused-match-screen .match-table-frame,
+  .focused-match-screen .table-main-panel,
+  .focused-match-screen .game-main {
+    display: flex !important;
+    flex-direction: column;
+    overflow: visible !important;
+  }
+
+  .focused-match-screen .match-command-row {
+    position: sticky;
+    z-index: 24;
+    top: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(142px, 0.72fr) !important;
+  }
+
+  .focused-match-screen .focus-event-ticker {
+    margin: 4px 0;
+  }
+
+  .focused-match-screen .board-lanes {
+    min-height: 218px !important;
+  }
+
+  .focused-match-screen .lane-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+  }
+
+  .focused-match-screen .lane-card {
+    min-width: min(80vw, 310px);
+    min-height: 194px !important;
+    scroll-snap-align: center;
+  }
+
+  .focused-match-screen .focus-power-strip {
+    display: flex !important;
+    overflow-x: auto;
+  }
+
+  .focused-match-screen .compact-power-card {
+    min-width: 210px;
+  }
+
+  .focused-match-screen .bottom-player-panel {
+    grid-template-columns: 1fr !important;
+    max-height: none !important;
+  }
+
+  .focused-match-screen .bottom-left-actions {
+    display: none !important;
+  }
+
+  .focused-match-screen .hand-card-row {
+    justify-content: flex-start;
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity;
+  }
+
+  .focused-match-screen .hand-card-item {
+    flex: 0 0 104px;
+    width: 104px !important;
+    max-width: 104px !important;
+    scroll-snap-align: center;
+  }
+
+  .focused-match-screen .bottom-player-panel .hand-card-item > .card-box {
+    height: 166px !important;
+    min-height: 166px !important;
+  }
+
+  .focused-match-screen .focus-utility-dock {
+    right: 5px;
+    top: auto;
+    bottom: 5px;
+    grid-template-columns: repeat(4, 42px);
+    transform: none;
+  }
+
+  .focused-match-screen .focus-utility-dock button {
+    width: 42px;
+  }
+
+  .focused-match-screen .focus-card-preview {
+    display: none;
+  }
+
+  .focused-match-screen .focus-match-drawer {
+    width: 100vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focused-match-screen *,
+  .focused-match-screen *::before,
+  .focused-match-screen *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
