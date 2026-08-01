@@ -5721,6 +5721,7 @@ io.on("connection", (socket) => {
       dialogueAudio: chapter.dialogueAudio || [],
       startDialogueAudio: chapter.dialogueAudio || [],
       endDialogue: buildCampaignEndDialogue(chapter, faction),
+      endDialogueAudio: chapter.endDialogueAudio || [],
       playerCampaignCardCount: playerCampaignCards.length,
       bossCampaignCardCount: bossCampaignCards.length,
       bossAbility,

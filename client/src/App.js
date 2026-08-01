@@ -5305,7 +5305,13 @@ export default function App() {
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
-          <CampaignDialogueBlock title="Ending Dialogue" lines={campaignEndDialogue} light />
+          <CampaignDialogueBlock
+            title="Ending Dialogue"
+            lines={campaignEndDialogue}
+            audio={game.campaign?.endDialogueAudio}
+            autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
+            light
+          />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
             {Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => {
               const theme = getFactionTheme(game.players[p].faction.id);
