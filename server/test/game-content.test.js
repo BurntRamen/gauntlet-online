@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const {
   COLLECTION_CARDS,
@@ -32,6 +34,32 @@ test("validates the authoritative versioned game content registry", () => {
 test("keeps the legacy faction adapter on the canonical registry", () => {
   const publicFactions = getPublicGameContent().factions;
   assert.deepEqual(Object.values(FACTIONS), publicFactions);
+});
+
+test("maps every catalog constructed card into the shared deterministic rules", () => {
+  const sharedRulesSource = fs.readFileSync(
+    path.join(__dirname, "..", "..", "shared", "duel-rules", "index.js"),
+    "utf8"
+  );
+  const missing = COLLECTION_CARDS
+    .map((card) => card.id)
+    .filter((cardId) => !sharedRulesSource.includes(`"${cardId}"`));
+
+  assert.equal(COLLECTION_CARDS.length, 72);
+  assert.deepEqual(missing, []);
+});
+
+test("requires card-specific constructed behavior coverage for the full catalog", () => {
+  const behaviorSources = [
+    path.join(__dirname, "..", "..", "client", "src", "babylon", "basicGauntletRules.test.js"),
+    path.join(__dirname, "..", "..", "client", "src", "babylon", "matchAdapters.test.js")
+  ].map((testPath) => fs.readFileSync(testPath, "utf8")).join("\n");
+  const missing = COLLECTION_CARDS
+    .map((card) => card.id)
+    .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
+
+  assert.equal(COLLECTION_CARDS.length, 72);
+  assert.deepEqual(missing, []);
 });
 
 test("serves the validated public content manifest", async () => {

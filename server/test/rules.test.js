@@ -2,6 +2,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { server, __test } = require("../index");
+const {
+  RULES_VERSION,
+  SCHEMA_VERSION,
+  applyCommand: applySharedDuelCommand
+} = require("../../shared/duel-rules");
+const { COLLECTION_CARDS } = require("../gameContent");
 
 const {
   applyBlockBonuses,
@@ -14,6 +20,7 @@ const {
   getBaseCardValue,
   getPaymentTotal,
   resolveDamage,
+  sanitizeGameForViewer,
   startEndPhase,
   advanceEndPlacement,
   validateConstructedDeckPayload,
@@ -222,6 +229,202 @@ test("creates a standard two-player game with 52-card decks", () => {
   assert.equal(roomState.game.players[2].hand.length, 8);
   assert.equal(roomState.game.players[2].deck.length, 44);
   assert.ok([1, 2].includes(roomState.game.priority));
+  assert.equal(roomState.game.rulesVersion, RULES_VERSION);
+  assert.equal(roomState.game.schemaVersion, SCHEMA_VERSION);
+  assert.equal(roomState.game.revision, 0);
+});
+
+test("preserves constructed definition identity on unique match card instances", () => {
+  const definitionId = "rumin-forum-ledger-runner";
+  const roomState = {
+    roomCode: "CARDID",
+    lobby: {
+      gameMode: "factions",
+      players: {
+        1: {
+          factionId: "rumin",
+          accountName: "Builder",
+          savedConstructedDeck: {
+            cards: [{
+              id: definitionId,
+              factionId: "rumin",
+              name: "Forum Ledger Runner",
+              type: "unit",
+              rarity: "common",
+              value: 2,
+              suit: "spades",
+              replacementSuit: "spades",
+              text: "If this is your first attack this turn, you may treat one payment card as +1 value."
+            }]
+          }
+        },
+        2: { factionId: "sheen", accountName: "Opponent" }
+      }
+    }
+  };
+
+  createGameFromLobby(roomState);
+
+  const constructed = [
+    ...roomState.game.players[1].hand,
+    ...roomState.game.players[1].deck
+  ].find((card) => card.definitionId === definitionId);
+  assert.ok(constructed);
+  assert.notEqual(constructed.id, definitionId);
+  assert.equal(
+    constructed.id,
+    `${roomState.game.matchId}-p1-replacement-0-${definitionId}`
+  );
+});
+
+test("server-authored matches reconstruct every catalog card with stable private instance identity", () => {
+  for (const card of COLLECTION_CARDS) {
+    const makeRoom = () => ({
+      roomCode: `CAT-${card.id}`,
+      lobby: {
+        gameMode: "factions",
+        players: {
+          1: {
+            factionId: card.factionId,
+            accountName: "Catalog Builder",
+            savedConstructedDeck: {
+              cards: [{
+                ...card,
+                suit: "spades",
+                replacementSuit: "spades"
+              }]
+            }
+          },
+          2: { factionId: card.factionId, accountName: "Catalog Opponent" }
+        }
+      }
+    });
+    const options = {
+      seed: `catalog-seed-${card.id}`,
+      matchMetadata: { matchId: `catalog-match-${card.id}` }
+    };
+    const first = makeRoom();
+    const replay = makeRoom();
+    createGameFromLobby(first, options);
+    createGameFromLobby(replay, options);
+
+    const firstCards = [...first.game.players[1].hand, ...first.game.players[1].deck];
+    const replayCards = [...replay.game.players[1].hand, ...replay.game.players[1].deck];
+    const instance = firstCards.find((entry) => entry.definitionId === card.id);
+    const replayInstance = replayCards.find((entry) => entry.definitionId === card.id);
+
+    assert.ok(instance, `${card.id} was not inserted into the server-authored deck`);
+    assert.equal(instance.id, `catalog-match-${card.id}-p1-replacement-0-${card.id}`);
+    assert.equal(instance.definitionId, card.id);
+    assert.equal(instance.factionId, card.factionId);
+    assert.equal(instance.rulesText, card.text);
+    assert.deepEqual(replayCards.map((entry) => entry.id), firstCards.map((entry) => entry.id));
+    assert.deepEqual(replayInstance, instance);
+  }
+});
+
+test("server-authored constructed state accepts the shared semantic choice contract", () => {
+  const definitionId = "rumin-forum-ledger-runner";
+  const roomState = {
+    roomCode: "SHARED",
+    lobby: {
+      gameMode: "factions",
+      players: {
+        1: {
+          factionId: "rumin",
+          accountName: "Builder",
+          savedConstructedDeck: {
+            cards: [{
+              id: definitionId,
+              factionId: "rumin",
+              name: "Forum Ledger Runner",
+              type: "unit",
+              rarity: "common",
+              value: 2,
+              suit: "spades",
+              replacementSuit: "spades",
+              text: "If this is your first attack this turn, you may treat one payment card as +1 value."
+            }]
+          }
+        },
+        2: { factionId: "sheen", accountName: "Opponent" }
+      }
+    }
+  };
+  createGameFromLobby(roomState);
+  const game = roomState.game;
+  const player = game.players[1];
+  const zones = [player.hand, player.deck];
+  const sourceZone = zones.find((zone) => zone.some((card) => card.definitionId === definitionId));
+  const sourceIndex = sourceZone.findIndex((card) => card.definitionId === definitionId);
+  const [runner] = sourceZone.splice(sourceIndex, 1);
+  if (!player.hand.includes(runner)) player.hand.push(runner);
+  const payment = player.hand.find((card) => card.id !== runner.id && getBaseCardValue(card) >= 2);
+  game.phase = "priority";
+  game.priority = 1;
+  game.priorityPassed = { 1: false, 2: false };
+  game.handAttacks = [];
+  game.lanes.forEach((lane) => {
+    lane.attack = null;
+    lane.block = [];
+  });
+
+  const result = applySharedDuelCommand(game, {
+    commandId: "constructed-shared-command",
+    baseRevision: game.revision,
+    actorPlayerId: 1,
+    command: {
+      type: "declareHandAttack",
+      cardId: runner.id,
+      paymentCardIds: [payment.id],
+      forumLedgerPaymentCardId: payment.id
+    }
+  });
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.state.handAttacks[0].card.definitionId, definitionId);
+  assert.match(result.state.handAttacks[0].notes.join(" "), /Forum Ledger Runner payment \+1/);
+  assert.equal(result.revision, 1);
+});
+
+test("never includes hidden hand, deck, or lane-card fronts in sanitized snapshots", () => {
+  const game = makeGame();
+  game.players[1].hand = [{ id: "p1-hand", value: 4, rank: "4", suit: "clubs" }];
+  game.players[2].hand = [{ id: "p2-hand", value: 9, rank: "9", suit: "hearts" }];
+  game.players[1].deck = [{ id: "p1-deck", value: 7 }];
+  game.players[2].deck = [{ id: "p2-deck", value: 8 }];
+  game.lanes[0].facedown[1] = { id: "p1-lane", value: 5, rank: "5", suit: "spades" };
+  game.lanes[0].facedown[2] = { id: "p2-lane", value: 10, rank: "10", suit: "diamonds" };
+  game.lastEvents = [
+    { id: "draw", sequence: 1, revision: 2, type: "cards.drawn", player: 2, cardIds: ["p2-hand"] },
+    { id: "placed", sequence: 2, revision: 2, type: "card.placedFacedown", player: 2, cardId: "p2-lane", laneIndex: 0 },
+    { id: "peek", sequence: 3, revision: 2, type: "card.peeked", player: 2, viewer: 2, card: { id: "p1-lane", rank: "5" } }
+  ];
+
+  const playerOne = sanitizeGameForViewer(game, 1, 0);
+  assert.equal(playerOne.players[1].hand[0].id, "p1-hand");
+  assert.deepEqual(playerOne.players[2].hand, []);
+  assert.deepEqual(playerOne.players[1].deck, []);
+  assert.deepEqual(playerOne.players[2].deck, []);
+  assert.equal(playerOne.lanes[0].facedown[1].id, "p1-lane");
+  assert.deepEqual(playerOne.lanes[0].facedown[2], {
+    id: "hidden-lane-0-p2",
+    hidden: true
+  });
+  assert.equal(playerOne.lastEvents[0].count, 1);
+  assert.equal(playerOne.lastEvents[0].cardIds, undefined);
+  assert.equal(playerOne.lastEvents[1].cardId, undefined);
+  assert.equal(playerOne.lastEvents[2].type, "card.peeked");
+  assert.equal(playerOne.lastEvents[2].card, undefined);
+  assert.equal(playerOne.commandSchemaVersion > 0, true);
+  assert.equal(playerOne.eventSchemaVersion > 0, true);
+
+  const spectator = sanitizeGameForViewer(game, null, 1);
+  assert.deepEqual(spectator.players[1].hand, []);
+  assert.deepEqual(spectator.players[2].hand, []);
+  assert.equal(spectator.lanes[0].facedown[1].hidden, true);
+  assert.equal(spectator.lanes[0].facedown[2].hidden, true);
+  assert.equal(spectator.lastEvents.some((event) => event.card || event.cardId || event.cardIds), false);
 });
 
 test("creates and completes a free-for-all game around active seats", () => {

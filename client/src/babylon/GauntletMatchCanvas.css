@@ -1,0 +1,146 @@
+.babylon-match-shell {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 520px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(31, 69, 92, 0.28), transparent 58%),
+    #03070b;
+  color: #e7edf2;
+}
+
+.babylon-match-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+
+.babylon-accessible-controls {
+  position: absolute;
+  z-index: 26;
+  left: 50%;
+  bottom: 126px;
+  width: 1px;
+  height: 1px;
+  max-width: min(420px, calc(100% - 24px));
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(199, 154, 81, 0.65);
+  border-radius: 10px;
+  color: #e7edf2;
+  background: rgba(5, 10, 15, 0.97);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.56);
+  clip-path: inset(50%);
+  font: 12px/1.35 Arial, sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.babylon-accessible-controls:focus-within {
+  width: min(420px, calc(100% - 24px));
+  height: auto;
+  max-height: min(48vh, 420px);
+  overflow: auto;
+  padding: 10px;
+  clip-path: none;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.babylon-keyboard-control-title {
+  display: block;
+  color: #f0d08d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.babylon-accessible-control-body p {
+  margin: 8px 0;
+}
+
+.babylon-accessible-reasons {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 8px 8px 8px 24px;
+  border-left: 2px solid #657587;
+  color: #c7d0d8;
+  background: rgba(18, 29, 40, 0.72);
+}
+
+.babylon-accessible-reasons li {
+  padding-left: 2px;
+}
+
+.babylon-accessible-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.babylon-accessible-control-row button {
+  min-width: 45px;
+  min-height: 45px;
+  padding: 6px 9px;
+  border: 1px solid #40566a;
+  border-radius: 3px;
+  color: #e7edf2;
+  background: #162534;
+  cursor: pointer;
+}
+
+.babylon-accessible-control-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.babylon-accessible-control-row button:focus-visible {
+  outline: 2px solid #65b6e8;
+  outline-offset: 2px;
+}
+
+.babylon-renderer-error {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: #e7edf2;
+  background: #05090e;
+  font: 14px/1.4 Arial, sans-serif;
+  text-align: center;
+}
+
+@media (forced-colors: active) {
+  .babylon-accessible-controls {
+    border: 2px solid CanvasText;
+    color: CanvasText;
+    background: Canvas;
+  }
+
+  .babylon-keyboard-control-title,
+  .babylon-accessible-control-body p,
+  .babylon-accessible-reasons {
+    color: CanvasText;
+  }
+
+  .babylon-accessible-control-row button {
+    border: 2px solid ButtonText;
+    color: ButtonText;
+    background: ButtonFace;
+  }
+
+  .babylon-accessible-control-row button:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+}

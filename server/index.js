@@ -43,6 +43,21 @@ const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const {
+  CARD_CONTENT_VERSION: DUEL_CARD_CONTENT_VERSION,
+  COMMAND_SCHEMA_VERSION: DUEL_COMMAND_SCHEMA_VERSION,
+  EVENT_SCHEMA_VERSION: DUEL_EVENT_SCHEMA_VERSION,
+  HAND_SIZE: BASIC_HAND_SIZE,
+  RULES_VERSION: DUEL_RULES_VERSION,
+  SCHEMA_VERSION: DUEL_SCHEMA_VERSION,
+  STARTING_LIFE: BASIC_STARTING_LIFE,
+  applyCommand: applySharedDuelCommand,
+  cardValue: getSharedBasicCardValue,
+  createSeededRandom: createSharedSeededRandom,
+  getActionAvailability: getSharedActionAvailability,
+  getLegalActions: getSharedLegalActions,
+  projectForPerspective: projectSharedDuelForPerspective
+} = require("../shared/duel-rules");
+const {
   buildParaMatchExport,
   buildMatchRecord,
   captureAuditEvent,
@@ -2632,7 +2647,13 @@ function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
     bizi: [
       { id: "final-push", title: "Prototype Surge", text: "The boss's final scripted attack each turn gets +1 value." },
       { id: "late-pressure", title: "Overclock Directive", text: "The boss's last two scripted attacks each turn get +1 value." },
-      { id: "first-and-final", title: "Machine Logic", text: tier >= 3 ? "The boss's first and final scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +1 value." }
+      {
+        id: tier >= 3 ? "first-and-final" : "final-push",
+        title: "Machine Logic",
+        text: tier >= 3
+          ? "The boss's first and final scripted attacks each turn get +1 value."
+          : "The boss's final scripted attack each turn gets +1 value."
+      }
     ],
     xendra: [
       { id: "first-strike", title: "Unreliable Perception", text: "The boss's first scripted attack each turn gets +1 value." },
@@ -2709,6 +2730,14 @@ function getLobbyGameMode(roomState) {
   return roomState.lobby.gameMode === "basic" ? "basic" : "factions";
 }
 
+function normalizeDuelPlayerIds(game) {
+  if (!game || !["basic", "factions"].includes(game.gameMode)) return game;
+  for (const playerNum of [1, 2]) {
+    if (game.players?.[playerNum]) game.players[playerNum].id = playerNum;
+  }
+  return game;
+}
+
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
 let roomStatePersistTimer = null;
@@ -2745,6 +2774,7 @@ function initializeRoomRecovery(now = Date.now()) {
   roomRecoveryInitialized = true;
   const recoveredRooms = roomStateStore.loadRooms(now);
   for (const roomState of recoveredRooms) {
+    normalizeDuelPlayerIds(roomState.game);
     if (!rooms.has(roomState.roomCode)) rooms.set(roomState.roomCode, roomState);
   }
   return { enabled: roomStateStore.enabled, restored: recoveredRooms.length, alreadyInitialized: false };
@@ -3246,7 +3276,7 @@ function emitDraftState(roomState) {
 }
 
 function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
-  const visibleGame = JSON.parse(JSON.stringify(game));
+  const visibleGame = projectSharedDuelForPerspective(game, viewerPlayerNum);
   delete visibleGame.serverAuditEvents;
   delete visibleGame.serverCombatStats;
   for (const [rawPlayerNum, playerState] of Object.entries(visibleGame.players || {})) {
@@ -3258,12 +3288,53 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
     if (viewerPlayerNum !== playerNum) playerState.hand = [];
     playerState.deck = [];
   }
+  for (const [laneIndex, lane] of (visibleGame.lanes || []).entries()) {
+    for (const playerNum of [1, 2]) {
+      if (viewerPlayerNum !== playerNum && lane.facedown?.[playerNum]) {
+        lane.facedown[playerNum] = {
+          id: `hidden-lane-${laneIndex}-p${playerNum}`,
+          hidden: true
+        };
+      }
+    }
+  }
+  visibleGame.legalActions = viewerPlayerNum
+    ? getSharedLegalActions(game, viewerPlayerNum)
+    : [];
+  visibleGame.actionAvailability = viewerPlayerNum
+    ? getSharedActionAvailability(game, viewerPlayerNum)
+    : { laneAttacks: [], factionAbilities: [], handAttack: { available: false, unavailableReason: "Spectators cannot act." } };
+  visibleGame.snapshotSchemaVersion = Number(game.snapshotSchemaVersion || game.schemaVersion || DUEL_SCHEMA_VERSION);
+  visibleGame.commandSchemaVersion = Number(game.commandSchemaVersion || DUEL_COMMAND_SCHEMA_VERSION);
+  visibleGame.eventSchemaVersion = Number(game.eventSchemaVersion || DUEL_EVENT_SCHEMA_VERSION);
+  visibleGame.rulesVersion = game.rulesVersion || DUEL_RULES_VERSION;
+  visibleGame.cardContentVersion = game.cardContentVersion || DUEL_CARD_CONTENT_VERSION;
   visibleGame.spectatorCount = spectatorCount;
   return visibleGame;
 }
 
-function emitState(roomState) {
+function acknowledgeMatchControl(ack, roomState, {
+  accepted = true,
+  code = null,
+  message = "Match control accepted."
+} = {}) {
+  if (typeof ack !== "function") return;
+  const result = {
+    accepted,
+    revision: Number(roomState?.game?.revision || 0),
+    snapshotSequence: Number(roomState?.game?.snapshotSequence || 0),
+    message
+  };
+  if (!accepted) result.rejection = { code: code || "CONTROL_REJECTED", message };
+  ack(result);
+}
+
+function emitState(roomState, { incrementRevision = true } = {}) {
   if (!roomState.game) return;
+  if (incrementRevision) {
+    roomState.game.revision = Number(roomState.game.revision || 0) + 1;
+  }
+  roomState.game.snapshotSequence = Number(roomState.game.snapshotSequence || 0) + 1;
   touchRoom(roomState);
   captureGameEvent(roomState.game);
   scheduleRoomStatePersist();
@@ -3368,7 +3439,7 @@ function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
     emitDraftState(roomState);
     return;
   }
-  if (roomState.game) emitState(roomState);
+  if (roomState.game) emitState(roomState, { incrementRevision: false });
   else emitLobbyState(roomState);
 }
 
@@ -3686,7 +3757,11 @@ function restoreUndoSnapshot(roomState, requester) {
   const snapshots = getUndoSnapshots(roomState);
   const snapshot = snapshots[requester];
   if (!snapshot) return false;
-  roomState.game = clonePlain(snapshot.game);
+  const currentRevision = Number(roomState.game?.revision || 0);
+  const currentSnapshotSequence = Number(roomState.game?.snapshotSequence || 0);
+  roomState.game = normalizeDuelPlayerIds(clonePlain(snapshot.game));
+  roomState.game.revision = currentRevision;
+  roomState.game.snapshotSequence = currentSnapshotSequence;
   roomState.damageConfirmed = clonePlain(snapshot.damageConfirmed || {});
   roomState.game.message = `Undo approved. Reverted Player ${snapshot.requester}'s most recent move: ${snapshot.label}.`;
   roomState.game.undoRequest = null;
@@ -3826,7 +3901,7 @@ function getCardCurrentValue(card) {
 }
 
 function cardIs(card, id) {
-  return card?.id === id;
+  return card?.definitionId === id || card?.id === id;
 }
 
 function cardHasType(card, type) {
@@ -4532,13 +4607,7 @@ function canUsePriorityAbility(socket, game, playerNum, expectedFaction) {
 }
 
 function getBaseCardValue(card) {
-  if (!card) return 0;
-  const value = card.value;
-  if (value === "A" || value === 14 || value === "14") return 14;
-  if (value === "K" || value === 13 || value === "13") return 13;
-  if (value === "Q" || value === 12 || value === "12") return 12;
-  if (value === "J" || value === 11 || value === "11") return 11;
-  return Number(value) || 0;
+  return getSharedBasicCardValue(card);
 }
 
 function applyGameOverState(game) {
@@ -4854,7 +4923,7 @@ async function advanceEndPlacement(roomState) {
         const drawn = drawCards(player, player.turnData.biziEndTurnDraws);
         if (drawn > 0) endTurnMessages.push(`Player ${p} drew ${drawn} extra card${drawn === 1 ? "" : "s"} from Bizi draft cards.`);
       }
-      while (player.hand.length < 8 && player.deck.length > 0) {
+      while (player.hand.length < BASIC_HAND_SIZE && player.deck.length > 0) {
         player.hand.push(player.deck.pop());
       }
     }
@@ -4912,7 +4981,7 @@ function findAiPaymentIndexes(hand, required, excludedIndexes = []) {
   return null;
 }
 
-function declareAiHandAttack(roomState) {
+function legacyDeclareAiHandAttack(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
   const options = ai.hand
@@ -4958,7 +5027,7 @@ function declareAiHandAttack(roomState) {
   return false;
 }
 
-function declareCampaignBossAttack(roomState) {
+function legacyDeclareCampaignBossAttack(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
   const campaign = game.campaign;
@@ -5006,6 +5075,139 @@ function declareCampaignBossAttack(roomState) {
   return true;
 }
 
+function findSemanticAiPaymentCardIds(hand, required, excludedCardIds = []) {
+  const excluded = new Set(excludedCardIds);
+  const candidates = (hand || [])
+    .filter((card) => !excluded.has(card.id))
+    .map((card) => ({ card, value: getSharedBasicCardValue(card) }))
+    .sort((left, right) => left.value - right.value);
+  const cardIds = [];
+  let total = 0;
+  for (const candidate of candidates) {
+    if (total >= Number(required || 0)) break;
+    cardIds.push(candidate.card.id);
+    total += candidate.value;
+  }
+  return total >= Number(required || 0) ? cardIds : null;
+}
+
+function chooseSemanticTrainingAiCommand(game) {
+  const legalActions = getSharedLegalActions(game, 2);
+  if (legalActions.length === 0) return null;
+  const ai = game.players[2];
+  const pending = getPendingAttackList(game)[0] || null;
+
+  if (game.phase === "end") {
+    const placement = legalActions.find((action) => action.type === "placeFacedown");
+    return placement
+      ? { type: "placeFacedown", laneIndex: placement.laneIndex, cardId: placement.cardId }
+      : { type: "skipPlacement", laneIndex: game.endPlacementLaneIndex };
+  }
+
+  if (pending?.targetPlayer === 2) {
+    const laneBlock = legalActions.find((action) => action.type === "declareLaneBlock");
+    if (laneBlock) {
+      const blocker = game.lanes[laneBlock.laneIndex]?.facedown?.[2];
+      const paymentCardIds = blocker
+        ? findSemanticAiPaymentCardIds(ai.hand, getSharedBasicCardValue(blocker))
+        : null;
+      if (paymentCardIds) {
+        return {
+          type: "declareLaneBlock",
+          laneIndex: laneBlock.laneIndex,
+          paymentCardIds
+        };
+      }
+    }
+    const handBlock = legalActions.find((action) => action.type === "declareHandBlock");
+    if (handBlock) {
+      const blockers = [...ai.hand]
+        .sort((left, right) => getSharedBasicCardValue(left) - getSharedBasicCardValue(right));
+      for (const blocker of blockers) {
+        const paymentCardIds = findSemanticAiPaymentCardIds(
+          ai.hand,
+          getSharedBasicCardValue(blocker),
+          [blocker.id]
+        );
+        if (paymentCardIds) {
+          return {
+            type: "declareHandBlock",
+            attackId: pending.id,
+            blockerCardIds: [blocker.id],
+            paymentCardIds
+          };
+        }
+      }
+    }
+    return { type: "declineBlock", attackId: pending.id };
+  }
+
+  if (pending) {
+    return legalActions.some((action) => action.type === "passPriority")
+      ? { type: "passPriority" }
+      : null;
+  }
+
+  if (
+    game.campaign
+    && Number(game.campaign.bossAttacksThisTurn || 0) < Number(game.campaign.attacksPerTurn || 0)
+  ) {
+    return { type: "declareCampaignBossAttack", system: true };
+  }
+
+  if (aiNeedsLaneSetup(game)) return { type: "passPriority" };
+
+  const attacks = legalActions
+    .filter((action) => ["declareLaneAttack", "declareHandAttack"].includes(action.type))
+    .sort((left, right) => {
+      if (left.type !== right.type) return left.type === "declareLaneAttack" ? -1 : 1;
+      return Number(left.requiredPayment || 0) - Number(right.requiredPayment || 0);
+    });
+  for (const action of attacks) {
+    const excludedCardIds = action.type === "declareHandAttack" ? [action.cardId] : [];
+    const paymentCardIds = findSemanticAiPaymentCardIds(
+      ai.hand,
+      action.requiredPayment,
+      excludedCardIds
+    );
+    if (!paymentCardIds) continue;
+    return action.type === "declareLaneAttack"
+      ? { type: "declareLaneAttack", laneIndex: action.laneIndex, paymentCardIds }
+      : {
+          type: "declareHandAttack",
+          cardId: action.cardId,
+          attackerCardId: action.cardId,
+          paymentCardIds
+        };
+  }
+  return { type: "passPriority" };
+}
+
+async function applySemanticAutomatedCommand(roomState, selectedCommand) {
+  const game = roomState.game;
+  const isSystem = selectedCommand.system === true;
+  const source = isSystem ? "campaign" : "training-ai";
+  const command = { ...selectedCommand };
+  delete command.system;
+  const result = await executeSemanticDuelCommand(roomState, 2, {
+    commandId: `${game.matchId}-${source}-${Number(game.revision || 0) + 1}`,
+    baseRevision: Number(game.revision || 0),
+    commandSchemaVersion: DUEL_COMMAND_SCHEMA_VERSION,
+    eventSchemaVersion: DUEL_EVENT_SCHEMA_VERSION,
+    rulesVersion: game.rulesVersion || DUEL_RULES_VERSION,
+    command
+  }, {
+    system: isSystem,
+    authority: "server",
+    saveUndo: false
+  });
+  if (!result.accepted) {
+    console.error(`[${source}] Shared command rejected: ${result.rejection?.message || command.type}`);
+    return null;
+  }
+  return result;
+}
+
 async function aiResolveDamageIfReady(roomState) {
   const game = roomState.game;
   if (game.phase !== "damage") return false;
@@ -5013,7 +5215,7 @@ async function aiResolveDamageIfReady(roomState) {
   return true;
 }
 
-async function aiPassPriority(roomState) {
+async function legacyAiPassPriority(roomState) {
   const game = roomState.game;
   const aiName = game.campaign?.opponentName || "Training AI";
   game.priorityPassed[2] = true;
@@ -5045,7 +5247,7 @@ function aiNeedsLaneSetup(game) {
   return ai.hand.length > 0 && game.lanes.some((lane) => !lane.facedown[2]);
 }
 
-async function aiEndPlacement(roomState) {
+async function legacyAiEndPlacement(roomState) {
   const game = roomState.game;
   const ai = game.players[2];
   const aiName = game.campaign?.opponentName || "Training AI";
@@ -5068,46 +5270,14 @@ async function aiEndPlacement(roomState) {
 
 async function runTrainingAi(roomState) {
   if (!isTrainingAiRoom(roomState) || !roomState.game || roomState.game.phase === "gameOver") return;
-  const game = roomState.game;
-  let acted = false;
+  if (
+    roomState.game.phase !== "end"
+    && (roomState.game.phase !== "priority" || roomState.game.priority !== 2)
+  ) return;
 
-  if (game.phase === "damage") {
-    acted = await aiResolveDamageIfReady(roomState);
-  } else if (game.phase === "end") {
-    acted = await aiEndPlacement(roomState);
-  } else if (game.phase === "priority" && game.priority === 2) {
-    const pendingAttacks = getPendingAttackList(game);
-    const humanStillDefendingAiAttack = pendingAttacks.some((attack) => attack.player === 2 && !(game.priorityPassed?.[1]) && (!attack.block || attack.block.length === 0));
-    if (humanStillDefendingAiAttack) {
-      game.priority = 1;
-      game.message = "Player 1 can block or pass.";
-      acted = true;
-    } else if (game.campaign) {
-      if (pendingAttacks.length > 0) {
-        await aiPassPriority(roomState);
-        acted = true;
-      } else if ((game.campaign.bossAttacksThisTurn || 0) < game.campaign.attacksPerTurn) {
-        acted = declareCampaignBossAttack(roomState);
-      } else {
-        await aiPassPriority(roomState);
-        acted = true;
-      }
-    } else if (pendingAttacks.length > 0 || aiNeedsLaneSetup(game)) {
-      await aiPassPriority(roomState);
-      acted = true;
-    } else {
-      acted = declareAiHandAttack(roomState);
-      if (!acted) {
-        await aiPassPriority(roomState);
-        acted = true;
-      }
-    }
-  }
-
-  if (acted) {
-    emitState(roomState);
-    scheduleTrainingAi(roomState);
-  }
+  const selectedCommand = chooseSemanticTrainingAiCommand(roomState.game);
+  if (!selectedCommand) return;
+  await applySemanticAutomatedCommand(roomState, selectedCommand);
 }
 
 function scheduleTrainingAi(roomState) {
@@ -5118,29 +5288,233 @@ function scheduleTrainingAi(roomState) {
   }, 650);
 }
 
-function createGameFromLobby(roomState) {
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function duelCommandFingerprint(playerNum, envelope, authority = "player") {
+  const command = clonePlain(envelope.command || {});
+  if (command.targets && typeof command.targets === "object") {
+    for (const [key, value] of Object.entries(command.targets)) {
+      if (command[key] != null && stableJson(command[key]) === stableJson(value)) delete command.targets[key];
+    }
+    if (Object.keys(command.targets).length === 0) delete command.targets;
+  }
+  return crypto.createHash("sha256").update(stableJson({
+    actorPlayerId: Number(playerNum),
+    baseRevision: Number(envelope.baseRevision),
+    commandSchemaVersion: Number(envelope.commandSchemaVersion || DUEL_COMMAND_SCHEMA_VERSION),
+    rulesVersion: envelope.rulesVersion || DUEL_RULES_VERSION,
+    authority,
+    command
+  })).digest("hex");
+}
+
+function getCachedDuelCommand(roomState, commandId) {
+  const cached = commandId ? roomState.duelCommandResults?.[commandId] : null;
+  if (!cached) return null;
+  if (cached.result) return cached;
+  return { fingerprint: null, result: cached };
+}
+
+function cacheDuelCommand(roomState, commandId, fingerprint, result) {
+  if (!commandId) return;
+  roomState.duelCommandResults = roomState.duelCommandResults || {};
+  roomState.duelCommandResults[commandId] = { fingerprint, result };
+  const cachedIds = Object.keys(roomState.duelCommandResults);
+  if (cachedIds.length > 100) {
+    cachedIds.slice(0, cachedIds.length - 100)
+      .forEach((cachedCommandId) => delete roomState.duelCommandResults[cachedCommandId]);
+  }
+}
+
+function rejectDuelCommand(roomState, envelope, code, message) {
+  return {
+    commandId: envelope.commandId || null,
+    accepted: false,
+    revision: Number(roomState?.game?.revision || 0),
+    snapshotSequence: Number(roomState?.game?.snapshotSequence || 0),
+    rejection: { code, message }
+  };
+}
+
+async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, internal = {}) {
+  if (!roomState?.game || !playerNum) {
+    return rejectDuelCommand(roomState, envelope, "MATCH_UNAVAILABLE", "The match is not available.");
+  }
+  if (!["basic", "factions"].includes(roomState.game.gameMode)) {
+    return rejectDuelCommand(
+      roomState,
+      envelope,
+      "COMPATIBILITY_REQUIRED",
+      "This match mode still uses the compatibility socket adapter."
+    );
+  }
+  if (!envelope.command || typeof envelope.command.type !== "string") {
+    return rejectDuelCommand(roomState, envelope, "INVALID_COMMAND", "A semantic duel command is required.");
+  }
+  if (
+    envelope.commandSchemaVersion != null
+    && Number(envelope.commandSchemaVersion) !== DUEL_COMMAND_SCHEMA_VERSION
+  ) {
+    return rejectDuelCommand(roomState, envelope, "COMMAND_SCHEMA_MISMATCH", "Reload before submitting another match action.");
+  }
+  if (envelope.rulesVersion && envelope.rulesVersion !== roomState.game.rulesVersion) {
+    return rejectDuelCommand(roomState, envelope, "RULES_VERSION_MISMATCH", "This match uses a different rules version. Reload to continue.");
+  }
+
+  const commandId = envelope.commandId || `${roomState.game.matchId}-server-${crypto.randomUUID()}`;
+  const normalizedEnvelope = { ...envelope, commandId };
+  const authority = internal.authority === "server" ? "server" : "player";
+  const cacheKey = authority === "server" ? `server:${commandId}` : commandId;
+  const fingerprint = duelCommandFingerprint(playerNum, normalizedEnvelope, authority);
+  const cached = getCachedDuelCommand(roomState, cacheKey);
+  if (cached) {
+    if (cached.fingerprint && cached.fingerprint !== fingerprint) {
+      return rejectDuelCommand(
+        roomState,
+        normalizedEnvelope,
+        "COMMAND_ID_CONFLICT",
+        "That command identifier was already used for a different action."
+      );
+    }
+    return cached.result;
+  }
+
+  const applied = applySharedDuelCommand(roomState.game, {
+    commandId,
+    baseRevision: Number(envelope.baseRevision),
+    actorPlayerId: playerNum,
+    system: internal.system === true,
+    command: envelope.command
+  });
+  if (!applied.accepted) {
+    const rejected = {
+      commandId: applied.commandId,
+      accepted: false,
+      revision: applied.revision,
+      snapshotSequence: Number(roomState.game.snapshotSequence || 0),
+      rejection: applied.rejection
+    };
+    cacheDuelCommand(roomState, cacheKey, fingerprint, rejected);
+    scheduleRoomStatePersist();
+    return rejected;
+  }
+
+  if (internal.saveUndo !== false) {
+    saveUndoSnapshot(roomState, playerNum, applied.actionLogEntry?.label || envelope.command.type);
+  }
+  roomState.game = applied.state;
+  if (roomState.game.phase === "gameOver") {
+    await recordFinalGameStats(roomState, {
+      completionReason: envelope.command.type === "concede" ? "concession" : "life"
+    });
+    if (!continueBestOf3Series(roomState)) {
+      io.to(roomState.roomCode).emit("gameEnded", {
+        winner: roomState.game.winner,
+        tie: roomState.game.winner == null,
+        concededBy: envelope.command.type === "concede" ? playerNum : null
+      });
+    }
+  }
+
+  const accepted = {
+    commandId,
+    accepted: true,
+    revision: Number(roomState.game.revision || 0),
+    snapshotSequence: Number(roomState.game.snapshotSequence || 0) + 1
+  };
+  cacheDuelCommand(roomState, cacheKey, fingerprint, accepted);
+  emitState(roomState, { incrementRevision: false });
+  accepted.snapshotSequence = Number(roomState.game.snapshotSequence || accepted.snapshotSequence);
+  const stored = getCachedDuelCommand(roomState, cacheKey);
+  if (stored) stored.result.snapshotSequence = accepted.snapshotSequence;
+  scheduleTrainingAi(roomState);
+  return accepted;
+}
+
+const LEGACY_SEMANTIC_CHOICE_FIELDS = [
+  "forumLedgerPaymentCardId",
+  "useJewelBankBonus",
+  "armWeaponCardIds",
+  "useBeliAwakenedBonus",
+  "useSandstormProcessor",
+  "sunforgeAccelerationToSpend",
+  "useVoltaricUltimatum",
+  "primeSignalBonus",
+  "accelerationBlockerCardIds",
+  "useDeckhandDiverPeek",
+  "lastGambleChoice",
+  "useMeerusFreeAttack"
+];
+
+function copyLegacySemanticChoices(payload = {}) {
+  return Object.fromEntries(
+    LEGACY_SEMANTIC_CHOICE_FIELDS
+      .filter((field) => payload[field] !== undefined)
+      .map((field) => [field, clonePlain(payload[field])])
+  );
+}
+
+function legacyHandCardIds(player, indexes = [], field = "payment") {
+  return (Array.isArray(indexes) ? indexes : [])
+    .map((index) => {
+      const normalized = Number(index);
+      return player?.hand?.[normalized]?.id || `invalid-${field}-index-${index}`;
+    });
+}
+
+async function executeLegacySemanticDuelCommand(roomState, socket, playerNum, command, label) {
+  const result = await executeSemanticDuelCommand(roomState, playerNum, {
+    commandId: `${roomState.game.matchId}-legacy-${label}-${crypto.randomUUID()}`,
+    baseRevision: Number(roomState.game.revision || 0),
+    commandSchemaVersion: DUEL_COMMAND_SCHEMA_VERSION,
+    eventSchemaVersion: DUEL_EVENT_SCHEMA_VERSION,
+    rulesVersion: roomState.game.rulesVersion || DUEL_RULES_VERSION,
+    command
+  });
+  if (!result.accepted) {
+    socket.emit("errorMessage", result.rejection?.message || "That action is unavailable.");
+  }
+  return result;
+}
+
+function createGameFromLobby(roomState, options = {}) {
   if (isFreeForAllRoom(roomState)) {
     createFreeForAllGameFromLobby(roomState);
     return;
   }
-  roomState.matchMetadata = createMatchMetadata({
-    seriesId: roomState.seriesId || null,
-    gameNumber: roomState.bestOf3Series?.gameNumber || 1
-  });
+  roomState.matchMetadata = options.matchMetadata
+    ? clonePlain(options.matchMetadata)
+    : createMatchMetadata({
+        seriesId: roomState.seriesId || null,
+        gameNumber: roomState.bestOf3Series?.gameNumber || 1
+      });
   const gameMode = getLobbyGameMode(roomState);
   const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId);
   const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId);
-  const startingPriority = Math.random() < 0.5 ? 1 : 2;
+  const matchId = roomState.matchMetadata?.matchId || `room-${roomState.roomCode}`;
+  const seed = String(options.seed || `${matchId}:game:${roomState.bestOf3Series?.gameNumber || 1}`);
+  const random = createSharedSeededRandom(seed);
+  const startingPriority = random() < 0.5 ? 1 : 2;
   
   const suits = ["♠", "♥", "♦", "♣"];
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
-  function createDraftCardForDeck(card, faction) {
+  function createDraftCardForDeck(card, faction, playerNum, replacementIndex) {
+    const definitionId = card.definitionId || card.id || card.draftCopyId || `replacement-${replacementIndex}`;
     return {
-      id: `draft-${card.id || card.draftCopyId}-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+      id: `${matchId}-p${playerNum}-replacement-${replacementIndex}-${definitionId}`,
+      definitionId,
       value: Number(card.value),
-      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      suit: DRAFT_CARD_SUITS.includes(card.suit)
+        ? card.suit
+        : DRAFT_CARD_SUITS[Math.floor(random() * DRAFT_CARD_SUITS.length)],
       name: card.name,
       rank: String(card.value),
       faction: faction.name,
@@ -5154,12 +5528,13 @@ function createGameFromLobby(roomState) {
     };
   }
 
-  function createDeck(faction, replacementCards = []) {
+  function createDeck(playerNum, faction, replacementCards = []) {
     const deck = [];
-    for (const suit of suits) {
+    for (let suitIndex = 0; suitIndex < suits.length; suitIndex += 1) {
+      const suit = suits[suitIndex];
       for (const value of values) {
         deck.push({
-          id: `card-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+          id: `${matchId}-p${playerNum}-${suitIndex}-${rankNames[value] || value}`,
           value: value,
           suit: suit,
           name: `${rankNames[value] || value} of ${suit}`,
@@ -5170,9 +5545,20 @@ function createGameFromLobby(roomState) {
         });
       }
     }
-    applyDeckReplacements(deck, replacementCards, faction, createDraftCardForDeck);
+    let replacementIndex = 0;
+    applyDeckReplacements(
+      deck,
+      replacementCards,
+      faction,
+      (card, replacementFaction) => createDraftCardForDeck(
+        card,
+        replacementFaction,
+        playerNum,
+        replacementIndex++
+      )
+    );
     for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
     return deck;
@@ -5188,6 +5574,20 @@ function createGameFromLobby(roomState) {
   }
   
   const game = {
+    schemaVersion: DUEL_SCHEMA_VERSION,
+    snapshotSchemaVersion: DUEL_SCHEMA_VERSION,
+    commandSchemaVersion: DUEL_COMMAND_SCHEMA_VERSION,
+    eventSchemaVersion: DUEL_EVENT_SCHEMA_VERSION,
+    rulesVersion: DUEL_RULES_VERSION,
+    cardContentVersion: DUEL_CARD_CONTENT_VERSION,
+    matchId,
+    seed,
+    revision: 0,
+    snapshotSequence: 0,
+    lastCommandId: null,
+    lastEvents: [],
+    eventSequence: 0,
+    actionHistory: [],
     roomCode: roomState.roomCode,
     gameMode,
     phase: "priority",
@@ -5199,11 +5599,12 @@ function createGameFromLobby(roomState) {
     priorityPassed: { 1: false, 2: false },
     players: {
       1: {
+        id: 1,
         accountName: roomState.lobby.players[1].accountName || null,
         faction: faction1,
-        life: 42,
+        life: BASIC_STARTING_LIFE,
         hand: [],
-        deck: createDeck(faction1, getLobbyDeckReplacements(1)),
+        deck: createDeck(1, faction1, getLobbyDeckReplacements(1)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -5211,11 +5612,12 @@ function createGameFromLobby(roomState) {
         accelerationCounters: 0
       },
       2: {
+        id: 2,
         accountName: roomState.lobby.players[2].accountName || null,
         faction: faction2,
-        life: 42,
+        life: BASIC_STARTING_LIFE,
         hand: [],
-        deck: createDeck(faction2, getLobbyDeckReplacements(2)),
+        deck: createDeck(2, faction2, getLobbyDeckReplacements(2)),
         discard: [],
         lanes: [null, null, null],
         connected: true,
@@ -5242,7 +5644,7 @@ function createGameFromLobby(roomState) {
   };
   
   for (const p of [1, 2]) {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < BASIC_HAND_SIZE; i++) {
       if (game.players[p].deck.length > 0) {
         game.players[p].hand.push(game.players[p].deck.pop());
       }
@@ -5264,6 +5666,7 @@ function createFreeForAllGameFromLobby(roomState) {
   function createAddedCardForDeck(card, faction) {
     return {
       id: `constructed-${card.id || card.draftCopyId}-${Math.random().toString(36).slice(2)}-${Date.now()}`,
+      definitionId: card.definitionId || card.id || null,
       value: Number(card.value),
       suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
       name: card.name,
@@ -5792,7 +6195,7 @@ io.on("connection", (socket) => {
         emitDraftState(roomState);
         return;
       }
-      if (roomState.game) emitState(roomState);
+      if (roomState.game) emitState(roomState, { incrementRevision: false });
       else emitLobbyState(roomState);
       return;
     }
@@ -5808,7 +6211,7 @@ io.on("connection", (socket) => {
         return;
       }
       if (roomState.game) {
-        emitState(roomState);
+        emitState(roomState, { incrementRevision: false });
         scheduleTrainingAi(roomState);
       } else emitLobbyState(roomState);
       return;
@@ -5868,7 +6271,7 @@ io.on("connection", (socket) => {
         return;
       }
       if (roomState.game) {
-        emitState(roomState);
+        emitState(roomState, { incrementRevision: false });
         scheduleTrainingAi(roomState);
       } else emitLobbyState(roomState);
       return;
@@ -5886,7 +6289,7 @@ io.on("connection", (socket) => {
         emitDraftState(roomState);
         return;
       }
-      if (roomState.game) emitState(roomState);
+      if (roomState.game) emitState(roomState, { incrementRevision: false });
       else emitLobbyState(roomState);
       return;
     }
@@ -5894,29 +6297,46 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Could not reconnect to that player seat.");
   });
 
-  socket.on("requestRematch", () => {
+  socket.on("requestRematch", (ack) => {
     const roomState = getRoomForSocket(socket);
-    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
     if (!roomState || !playerNum || !canOfferRematch(roomState)) {
-      socket.emit("errorMessage", "Rematch is available after a completed two-player duel.");
+      const message = "Rematch is available after a completed two-player duel.";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "REMATCH_UNAVAILABLE", message });
       return;
     }
     if (!roomState.rematch) {
       roomState.rematch = { requestedBy: playerNum, requestedAt: new Date().toISOString() };
-      emitRematchStatus(roomState, `${roomState.lobby.players[playerNum].accountName} requested a rematch.`);
+      const message = `${roomState.lobby.players[playerNum].accountName} requested a rematch.`;
+      emitRematchStatus(roomState, message);
+      acknowledgeMatchControl(ack, roomState, { message });
       return;
     }
-    if (roomState.rematch.requestedBy === playerNum) return;
+    if (roomState.rematch.requestedBy === playerNum) {
+      acknowledgeMatchControl(ack, roomState, { message: "Rematch already requested." });
+      return;
+    }
+    acknowledgeMatchControl(ack, roomState, { message: "Rematch accepted." });
     resetRoomForRematch(roomState);
   });
 
-  socket.on("declineRematch", () => {
+  socket.on("declineRematch", (ack) => {
     const roomState = getRoomForSocket(socket);
-    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!roomState || !playerNum || !roomState.rematch || roomState.rematch.requestedBy === playerNum) return;
+    const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
+    if (!roomState || !playerNum || !roomState.rematch || roomState.rematch.requestedBy === playerNum) {
+      acknowledgeMatchControl(ack, roomState, {
+        accepted: false,
+        code: "REMATCH_RESPONSE_UNAVAILABLE",
+        message: "There is no opponent rematch request to decline."
+      });
+      return;
+    }
     const playerName = roomState.lobby.players[playerNum].accountName || `Player ${playerNum}`;
     roomState.rematch = null;
-    emitRematchStatus(roomState, `${playerName} declined the rematch.`);
+    const message = `${playerName} declined the rematch.`;
+    emitRematchStatus(roomState, message);
+    acknowledgeMatchControl(ack, roomState, { message });
   });
 
   socket.on("selectFaction", async ({ factionId }) => {
@@ -6116,6 +6536,41 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
+  socket.on("duelCommand", async (envelope = {}, ack) => {
+    const roomState = getRoomForSocket(socket);
+    const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
+    const result = await executeSemanticDuelCommand(roomState, playerNum, envelope);
+    if (typeof ack === "function") ack(result);
+  });
+
+  socket.on("requestMatchState", ({ commandId = null } = {}, ack) => {
+    const roomState = getRoomForSocket(socket);
+    const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
+    const spectator = roomState?.lobby?.spectators?.includes(socket.id);
+    if (!roomState?.game || (!playerNum && !spectator)) {
+      if (typeof ack === "function") {
+        ack({ accepted: false, rejection: { code: "MATCH_UNAVAILABLE", message: "The match is not available." } });
+      }
+      return;
+    }
+    const snapshot = sanitizeGameForViewer(
+      roomState.game,
+      playerNum || null,
+      roomState.lobby.spectators.length
+    );
+    socket.emit("state", snapshot);
+    const cached = getCachedDuelCommand(roomState, commandId);
+    if (typeof ack === "function") {
+      ack({
+        accepted: true,
+        snapshot,
+        commandResult: cached?.result || null,
+        revision: Number(snapshot.revision || 0),
+        snapshotSequence: Number(snapshot.snapshotSequence || 0)
+      });
+    }
+  });
+
   socket.on("passPriority", async () => {
     console.log(`[Socket] passPriority`);
     const roomState = getRoomForSocket(socket);
@@ -6123,6 +6578,18 @@ io.on("connection", (socket) => {
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const game = roomState.game;
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      const result = await executeSemanticDuelCommand(roomState, playerNum, {
+        commandId: `${game.matchId}-legacy-pass-${crypto.randomUUID()}`,
+        baseRevision: Number(game.revision || 0),
+        commandSchemaVersion: DUEL_COMMAND_SCHEMA_VERSION,
+        rulesVersion: game.rulesVersion || DUEL_RULES_VERSION,
+        command: { type: "passPriority" }
+      });
+      if (!result.accepted) socket.emit("errorMessage", result.rejection?.message || "Unable to pass priority.");
+      return;
+    }
     
     if (game.phase !== "priority") {
       socket.emit("errorMessage", "Not in priority phase");
@@ -6218,16 +6685,36 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("concedeGame", async () => {
+  socket.on("concedeGame", async (ack) => {
     console.log("[Socket] concedeGame");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.game) return;
+    if (!roomState?.game) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_UNAVAILABLE", message: "The match is not available." });
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "PLAYER_REQUIRED", message: "Spectators cannot concede a match." });
+      return;
+    }
     const game = roomState.game;
 
     if (game.phase === "gameOver") {
-      socket.emit("errorMessage", "Game is already over");
+      const message = "Game is already over";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_COMPLETE", message });
+      return;
+    }
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      const result = await executeLegacySemanticDuelCommand(
+        roomState,
+        socket,
+        playerNum,
+        { type: "concede" },
+        "concede"
+      );
+      if (typeof ack === "function") ack(result);
       return;
     }
 
@@ -6249,6 +6736,7 @@ io.on("connection", (socket) => {
       }
       emitState(roomState);
       scheduleTrainingAi(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Concession accepted." });
       return;
     }
 
@@ -6261,28 +6749,40 @@ io.on("connection", (socket) => {
     if (continueBestOf3Series(roomState)) {
       emitState(roomState);
       scheduleTrainingAi(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Concession accepted. The next series game is ready." });
       return;
     }
     io.to(roomState.roomCode).emit("gameEnded", { winner, tie: false, concededBy: playerNum });
     emitState(roomState);
     scheduleTrainingAi(roomState);
+    acknowledgeMatchControl(ack, roomState, { message: "Concession accepted." });
   });
 
-  socket.on("offerDraw", async () => {
+  socket.on("offerDraw", async (ack) => {
     console.log("[Socket] offerDraw");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.game) return;
+    if (!roomState?.game) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_UNAVAILABLE", message: "The match is not available." });
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "PLAYER_REQUIRED", message: "Spectators cannot offer a draw." });
+      return;
+    }
     const game = roomState.game;
 
     if (game.phase === "gameOver") {
-      socket.emit("errorMessage", "Game is already over");
+      const message = "Game is already over";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_COMPLETE", message });
       return;
     }
 
     if (game.gameMode === "freeForAll") {
-      socket.emit("errorMessage", "Intentional draws are only available in two-player games.");
+      const message = "Intentional draws are only available in two-player games.";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "DRAW_UNAVAILABLE", message });
       return;
     }
 
@@ -6294,15 +6794,19 @@ io.on("connection", (socket) => {
       await recordFinalGameStats(roomState, { completionReason: "intentional_draw" });
       if (continueBestOf3Series(roomState)) {
         emitState(roomState);
+        acknowledgeMatchControl(ack, roomState, { message: "Draw accepted. The next series game is ready." });
         return;
       }
       io.to(roomState.roomCode).emit("gameEnded", { winner: null, tie: true, intentionalDraw: true });
       emitState(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Draw accepted." });
       return;
     }
 
     if (game.drawOfferBy === playerNum) {
-      socket.emit("errorMessage", "You already offered an intentional draw");
+      const message = "You already offered an intentional draw";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "DRAW_ALREADY_OFFERED", message });
       return;
     }
 
@@ -6310,17 +6814,67 @@ io.on("connection", (socket) => {
     game.message = `Player ${playerNum} offered an intentional draw. Player ${getOtherPlayer(playerNum)} may accept.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
+    acknowledgeMatchControl(ack, roomState, { message: "Draw offer sent." });
   });
 
-  socket.on("requestUndo", () => {
+  socket.on("respondDraw", async ({ accept } = {}, ack) => {
+    console.log("[Socket] respondDraw");
+    const roomState = getRoomForSocket(socket);
+    if (!roomState?.game) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_UNAVAILABLE", message: "The match is not available." });
+      return;
+    }
+    const playerNum = getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "PLAYER_REQUIRED", message: "Spectators cannot answer a draw offer." });
+      return;
+    }
+    const game = roomState.game;
+    if (!game.drawOfferBy || game.drawOfferBy === playerNum) {
+      const message = "There is no opponent draw offer to answer.";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "DRAW_RESPONSE_UNAVAILABLE", message });
+      return;
+    }
+    if (!accept) {
+      const offerPlayer = game.drawOfferBy;
+      game.drawOfferBy = null;
+      game.message = `Player ${playerNum} declined Player ${offerPlayer}'s draw offer.`;
+      emitState(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Draw offer declined." });
+      return;
+    }
+    game.phase = "gameOver";
+    game.winner = null;
+    game.drawOfferBy = null;
+    game.message = "Players agreed to an intentional draw.";
+    await recordFinalGameStats(roomState, { completionReason: "intentional_draw" });
+    io.to(roomState.roomCode).emit("gameEnded", {
+      winner: null,
+      tie: true,
+      intentionalDraw: true
+    });
+    emitState(roomState);
+    acknowledgeMatchControl(ack, roomState, { message: "Draw accepted." });
+  });
+
+  socket.on("requestUndo", (ack) => {
     console.log("[Socket] requestUndo");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.game) return;
+    if (!roomState?.game) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_UNAVAILABLE", message: "The match is not available." });
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "PLAYER_REQUIRED", message: "Spectators cannot request an undo." });
+      return;
+    }
     const snapshot = getUndoSnapshots(roomState)[playerNum];
     if (!snapshot || snapshot.requester !== playerNum) {
-      socket.emit("errorMessage", "No recent move available to undo.");
+      const message = "No recent move available to undo.";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "UNDO_UNAVAILABLE", message });
       return;
     }
 
@@ -6328,6 +6882,7 @@ io.on("connection", (socket) => {
     if (approvalPlayers.length === 0) {
       if (restoreUndoSnapshot(roomState, playerNum)) emitState(roomState);
       scheduleTrainingAi(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Undo completed." });
       return;
     }
 
@@ -6340,17 +6895,26 @@ io.on("connection", (socket) => {
     };
     roomState.game.message = `Player ${playerNum} requested undo: ${snapshot.label}. Waiting for ${approvalPlayers.map((p) => `Player ${p}`).join(", ")} to approve.`;
     emitState(roomState);
+    acknowledgeMatchControl(ack, roomState, { message: "Undo request sent." });
   });
 
-  socket.on("respondUndo", ({ approve } = {}) => {
+  socket.on("respondUndo", ({ approve } = {}, ack) => {
     console.log("[Socket] respondUndo");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.game?.undoRequest) return;
+    if (!roomState?.game?.undoRequest) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "UNDO_RESPONSE_UNAVAILABLE", message: "There is no undo request to answer." });
+      return;
+    }
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) {
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "PLAYER_REQUIRED", message: "Spectators cannot answer an undo request." });
+      return;
+    }
     const request = roomState.game.undoRequest;
     if (!request.approvalsNeeded?.includes(playerNum)) {
-      socket.emit("errorMessage", "You are not the player who can approve this undo.");
+      const message = "You are not the player who can approve this undo.";
+      socket.emit("errorMessage", message);
+      acknowledgeMatchControl(ack, roomState, { accepted: false, code: "UNDO_RESPONSE_FORBIDDEN", message });
       return;
     }
 
@@ -6358,6 +6922,7 @@ io.on("connection", (socket) => {
       roomState.game.message = `Player ${playerNum} declined Player ${request.requester}'s undo request.`;
       roomState.game.undoRequest = null;
       emitState(roomState);
+      acknowledgeMatchControl(ack, roomState, { message: "Undo request declined." });
       return;
     }
 
@@ -6370,9 +6935,11 @@ io.on("connection", (socket) => {
     }
     emitState(roomState);
     scheduleTrainingAi(roomState);
+    acknowledgeMatchControl(ack, roomState, { message: allApproved ? "Undo completed." : "Undo approved." });
   });
 
-  socket.on("confirmAttack", ({ from, lane, attackCardIndex, paymentIndexes, useHeraBonus, targetPlayer }) => {
+  socket.on("confirmAttack", async (payload = {}) => {
+    const { from, lane, attackCardIndex, paymentIndexes, useHeraBonus, targetPlayer } = payload;
     console.log(`[Socket] confirmAttack: from=${from}, lane=${lane}, idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -6380,6 +6947,31 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      const laneIndex = Number(lane);
+      const selectedAttackIndex = Number(attackCardIndex);
+      const targetPlayerId = Number(targetPlayer) || getOtherPlayer(playerNum);
+      const command = from === "lane"
+        ? {
+            type: "declareLaneAttack",
+            laneIndex,
+            paymentCardIds: legacyHandCardIds(player, paymentIndexes),
+            targetPlayerId,
+            useHeraBonus: !!useHeraBonus,
+            ...copyLegacySemanticChoices(payload)
+          }
+        : {
+            type: "declareHandAttack",
+            cardId: player.hand[selectedAttackIndex]?.id || `invalid-attacker-index-${attackCardIndex}`,
+            paymentCardIds: legacyHandCardIds(player, paymentIndexes),
+            targetPlayerId,
+            useHeraBonus: !!useHeraBonus,
+            ...copyLegacySemanticChoices(payload)
+          };
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, command, "attack");
+      return;
+    }
     
     if (game.phase !== "priority") {
       socket.emit("errorMessage", "Not in priority phase");
@@ -6507,7 +7099,8 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("confirmBlock", async ({ lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus }) => {
+  socket.on("confirmBlock", async (payload = {}) => {
+    const { lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus } = payload;
     console.log(`[Socket] confirmBlock: lane=${lane}, attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -6515,6 +7108,44 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      const laneIndex = lane === undefined || lane === null ? null : Number(lane);
+      const laneAttack = Number.isInteger(laneIndex) ? game.lanes?.[laneIndex]?.attack : null;
+      const pendingAttackId = laneAttack?.id || handAttackId || null;
+      const selectedBlockIndexes = Array.isArray(blockCardIndexes)
+        ? blockCardIndexes
+        : blockCardIndex === undefined || blockCardIndex === null
+          ? []
+          : [blockCardIndex];
+      const explicitlyDeclined = Number(blockCardIndex) === -1
+        && selectedBlockIndexes.filter((index) => Number(index) >= 0).length === 0;
+      let command;
+      if (explicitlyDeclined) {
+        command = { type: "declineBlock", attackId: pendingAttackId };
+      } else if (Number.isInteger(laneIndex)) {
+        command = {
+          type: "declareLaneBlock",
+          laneIndex,
+          paymentCardIds: legacyHandCardIds(player, paymentIndexes),
+          useHeraBonus: !!useHeraBonus,
+          ...copyLegacySemanticChoices(payload)
+        };
+      } else if (selectedBlockIndexes.length === 0) {
+        command = { type: "declineBlock", attackId: pendingAttackId };
+      } else {
+        command = {
+          type: "declareHandBlock",
+          attackId: pendingAttackId,
+          blockerCardIds: legacyHandCardIds(player, selectedBlockIndexes, "blocker"),
+          paymentCardIds: legacyHandCardIds(player, paymentIndexes),
+          useHeraBonus: !!useHeraBonus,
+          ...copyLegacySemanticChoices(payload)
+        };
+      }
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, command, "block");
+      return;
+    }
     
     if (game.phase !== "priority") {
       socket.emit("errorMessage", "Not in priority phase");
@@ -6749,7 +7380,8 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("usePolea", ({ mode, handIndex, lane, laneA, laneB, targetPlayer, targetType, handAttackId }) => {
+  socket.on("usePolea", async (payload = {}) => {
+    const { mode, handIndex, lane, laneA, laneB, targetPlayer, targetType, handAttackId } = payload;
     console.log(`[Socket] usePolea: mode=${mode}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -6757,6 +7389,41 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (game.gameMode === "factions") {
+      const selectedMode = Number(mode);
+      const laneIndex = Number(lane);
+      const abilityId = {
+        1: "polea-place",
+        2: "polea-swap",
+        3: "polea-peek",
+        4: "polea-buff"
+      }[selectedMode] || "polea-invalid";
+      const cardId = player.hand?.[Number(handIndex)]?.id || null;
+      const command = {
+        type: "useFactionAbility",
+        abilityId,
+        cardId,
+        laneIndex,
+        laneA: Number(laneA),
+        laneB: Number(laneB),
+        targetPlayerId: Number(targetPlayer),
+        targetType: targetType || "laneCard",
+        attackId: handAttackId || null,
+        targets: {
+          cardId,
+          laneIndex,
+          laneA: Number(laneA),
+          laneB: Number(laneB),
+          targetPlayerId: Number(targetPlayer),
+          targetType: targetType || "laneCard",
+          attackId: handAttackId || null
+        },
+        ...copyLegacySemanticChoices(payload)
+      };
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, command, "polea");
+      return;
+    }
 
     if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
     if (player.turnData.poleaUsed) {
@@ -6898,7 +7565,8 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Invalid Polea mode");
   });
 
-  socket.on("useLafayette", ({ lane, handIndex }) => {
+  socket.on("useLafayette", async (payload = {}) => {
+    const { lane, handIndex } = payload;
     console.log(`[Socket] useLafayette: lane=${lane}, handIndex=${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -6906,6 +7574,20 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (game.gameMode === "factions") {
+      const laneIndex = Number(lane);
+      const cardId = player.hand?.[Number(handIndex)]?.id || null;
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, {
+        type: "useFactionAbility",
+        abilityId: "lafayette-swap",
+        cardId,
+        laneIndex,
+        targets: { cardId, laneIndex },
+        ...copyLegacySemanticChoices(payload)
+      }, "lafayette");
+      return;
+    }
 
     if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
     if (player.turnData.lafayetteUsed) {
@@ -6950,7 +7632,8 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("useFocusBuff", ({ targetType, lane, handAttackId }) => {
+  socket.on("useFocusBuff", async (payload = {}) => {
+    const { targetType, lane, handAttackId } = payload;
     console.log(`[Socket] useFocusBuff: targetType=${targetType}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -6958,6 +7641,24 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (game.gameMode === "factions") {
+      const laneIndex = Number(lane);
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, {
+        type: "useFactionAbility",
+        abilityId: "focus-buff",
+        laneIndex,
+        targetType: targetType || "laneCard",
+        attackId: handAttackId || null,
+        targets: {
+          laneIndex,
+          targetType: targetType || "laneCard",
+          attackId: handAttackId || null
+        },
+        ...copyLegacySemanticChoices(payload)
+      }, "focus");
+      return;
+    }
 
     if (!canUsePriorityAbility(socket, game, playerNum, "bizi")) return;
     if (player.turnData.focusBuffUsed) {
@@ -6993,7 +7694,8 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("placeFacedown", async ({ lane, handIndex }) => {
+  socket.on("placeFacedown", async (payload = {}) => {
+    const { lane, handIndex } = payload;
     console.log(`[Socket] placeFacedown: lane ${lane}, handIndex ${handIndex}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -7001,6 +7703,17 @@ io.on("connection", (socket) => {
     if (!playerNum) return;
     const game = roomState.game;
     const player = game.players[playerNum];
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      const laneIndex = Number(lane);
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, {
+        type: "placeFacedown",
+        laneIndex,
+        cardId: player.hand?.[Number(handIndex)]?.id || `invalid-placement-index-${handIndex}`,
+        ...copyLegacySemanticChoices(payload)
+      }, "placement");
+      return;
+    }
     
     if (game.phase !== "end") {
       socket.emit("errorMessage", "Not in end phase");
@@ -7047,6 +7760,14 @@ io.on("connection", (socket) => {
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (!playerNum) return;
     const game = roomState.game;
+
+    if (["basic", "factions"].includes(game.gameMode)) {
+      await executeLegacySemanticDuelCommand(roomState, socket, playerNum, {
+        type: "skipPlacement",
+        laneIndex: Number(lane)
+      }, "skip-placement");
+      return;
+    }
     
     if (game.phase !== "end") {
       socket.emit("errorMessage", "Not in end phase");
@@ -7141,8 +7862,16 @@ module.exports = {
     abandonActiveRoom,
     createFreeForAllGameFromLobby,
     createGameFromLobby,
+    createDraftLeagueRoom,
+    continueBestOf3Series,
     createRoom,
     createTurnData,
+    chooseSemanticTrainingAiCommand,
+    applySemanticAutomatedCommand,
+    executeSemanticDuelCommand,
+    getCampaignDeckAdditions,
+    getCampaignBossAbility,
+    getCampaignDifficulty,
     getBaseCardValue,
     getPaymentTotal,
     issueAccountSession,
