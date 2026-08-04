@@ -147,6 +147,167 @@ function useEventAudio(events, enabled) {
   return playTone;
 }
 
+function resolveMatchAssetPath(path) {
+  if (!path || /^([a-z]+:)?\/\//i.test(path) || path.startsWith("data:")) return path;
+  if (!path.startsWith("/")) return path;
+  return `${process.env.PUBLIC_URL || ""}${path}`;
+}
+
+function dialogueLineParts(line) {
+  const text = String(line || "");
+  const separatorIndex = text.indexOf(":");
+  if (separatorIndex <= 0) return { speaker: "Narrator", text };
+  return {
+    speaker: text.slice(0, separatorIndex).trim() || "Narrator",
+    text: text.slice(separatorIndex + 1).trim()
+  };
+}
+
+function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
+  const visibleLines = useMemo(() => (Array.isArray(lines) ? lines.filter(Boolean) : []), [lines]);
+  const audioLines = useMemo(() => (Array.isArray(audio) ? audio : []), [audio]);
+  const audioRef = useRef(null);
+  const playbackRunRef = useRef(0);
+  const [playingIndex, setPlayingIndex] = useState(null);
+  const [status, setStatus] = useState("");
+
+  const stopPlayback = useCallback((message = "Playback stopped.") => {
+    playbackRunRef.current += 1;
+    const clip = audioRef.current;
+    audioRef.current = null;
+    if (clip) {
+      clip.onended = null;
+      clip.onerror = null;
+      clip.pause?.();
+      try {
+        clip.currentTime = 0;
+      } catch (_error) {
+        // Some browsers do not allow seeking until media metadata has loaded.
+      }
+    }
+    setPlayingIndex(null);
+    setStatus(message);
+  }, []);
+
+  const playFrom = useCallback((startIndex, continueSequence) => {
+    if (!audioEnabled) {
+      setStatus("Enable sound from the Match menu to play dialogue.");
+      return;
+    }
+    if (typeof window === "undefined" || typeof window.Audio !== "function") {
+      setStatus("Dialogue audio is unavailable in this browser.");
+      return;
+    }
+    const firstIndex = audioLines.findIndex((source, index) => index >= startIndex && Boolean(source));
+    if (firstIndex < 0) {
+      setStatus("No recorded dialogue is available for this passage.");
+      return;
+    }
+
+    stopPlayback("");
+    const runId = playbackRunRef.current;
+    const playIndex = (index) => {
+      if (runId !== playbackRunRef.current) return;
+      const nextIndex = audioLines.findIndex((source, candidate) => candidate >= index && Boolean(source));
+      if (nextIndex < 0) {
+        audioRef.current = null;
+        setPlayingIndex(null);
+        setStatus("Dialogue finished.");
+        return;
+      }
+      const clip = new window.Audio(resolveMatchAssetPath(audioLines[nextIndex]));
+      const speaker = dialogueLineParts(visibleLines[nextIndex]).speaker;
+      audioRef.current = clip;
+      clip.volume = 1;
+      clip.onended = () => {
+        if (runId !== playbackRunRef.current) return;
+        if (continueSequence) {
+          playIndex(nextIndex + 1);
+        } else {
+          audioRef.current = null;
+          setPlayingIndex(null);
+          setStatus("Dialogue line finished.");
+        }
+      };
+      clip.onerror = () => {
+        if (runId !== playbackRunRef.current) return;
+        audioRef.current = null;
+        setPlayingIndex(null);
+        setStatus(`Unable to play ${speaker}'s recorded line.`);
+      };
+      setPlayingIndex(nextIndex);
+      setStatus(`Playing ${speaker}.`);
+      Promise.resolve(clip.play()).catch(() => {
+        if (runId !== playbackRunRef.current) return;
+        audioRef.current = null;
+        setPlayingIndex(null);
+        setStatus("Playback was blocked. Select Play again to allow dialogue audio.");
+      });
+    };
+    playIndex(firstIndex);
+  }, [audioEnabled, audioLines, stopPlayback, visibleLines]);
+
+  useEffect(() => () => stopPlayback(""), [stopPlayback]);
+  useEffect(() => {
+    if (!audioEnabled && audioRef.current) stopPlayback("Sound muted. Dialogue playback stopped.");
+  }, [audioEnabled, stopPlayback]);
+
+  if (visibleLines.length === 0) return null;
+  const hasAnyAudio = audioLines.some(Boolean);
+  return (
+    <section className="production-campaign-dialogue" aria-label={title}>
+      <header>
+        <strong>{title}</strong>
+        <div>
+          {hasAnyAudio && (
+                    <button
+              type="button"
+              onClick={() => playFrom(0, true)}
+              disabled={!audioEnabled}
+            >
+              Play dialogue
+            </button>
+          )}
+          {playingIndex != null && (
+            <button type="button" onClick={() => stopPlayback()}>
+              Stop
+            </button>
+          )}
+        </div>
+      </header>
+      <div className="production-campaign-dialogue-lines">
+        {visibleLines.map((line, index) => {
+          const parts = dialogueLineParts(line);
+          const hasAudio = Boolean(audioLines[index]);
+          const isPlaying = playingIndex === index;
+          return (
+            <blockquote className={isPlaying ? "is-playing" : ""} key={`${parts.speaker}-${index}`}>
+              <div>
+                <strong>{parts.speaker}</strong>
+                {hasAudio && (
+                  <button
+                    type="button"
+                    aria-label={`Play ${parts.speaker} voice`}
+                    aria-pressed={isPlaying}
+                    disabled={!audioEnabled}
+                    onClick={() => playFrom(index, false)}
+                  >
+                    {isPlaying ? "Playing" : "Play voice"}
+                  </button>
+                )}
+              </div>
+              <p>{parts.text}</p>
+            </blockquote>
+          );
+        })}
+      </div>
+      {!hasAnyAudio && <p className="production-dialogue-status">Recorded voice is not available for this chapter.</p>}
+      {!audioEnabled && hasAnyAudio && <p className="production-dialogue-status">Enable sound from the Match menu to hear dialogue.</p>}
+      {status && <p className="production-dialogue-status" role="status">{status}</p>}
+    </section>
+  );
+}
+
 function PlayerPlate({
   player,
   priority,
@@ -319,12 +480,17 @@ function MatchUtilities({
   onOpenReference
 }) {
   const [confirmingConcede, setConfirmingConcede] = useState(false);
+  const utilitiesRef = useRef(null);
   const localPlayer = viewModel?.perspective?.player;
   const spectator = viewModel?.perspective?.spectator;
   const undoNeedsResponse = controls.undoRequest?.approvalsNeeded?.includes(localPlayer);
   const incomingDraw = controls.drawOfferBy && controls.drawOfferBy !== localPlayer;
   const rematch = controls.rematchStatus;
   const controlPending = !!controls.pendingControlType;
+  const openReference = (kind) => {
+    if (kind === "factions" && utilitiesRef.current) utilitiesRef.current.open = false;
+    onOpenReference(kind);
+  };
 
   return (
     <>
@@ -348,17 +514,17 @@ function MatchUtilities({
           )}
         </div>
       )}
-      <details className="production-match-utilities">
+      <details className="production-match-utilities" ref={utilitiesRef}>
       <summary>Match</summary>
       <div className="production-match-utilities-panel">
         {controls.roomCode && <span>Room {controls.roomCode}</span>}
         <div className="production-utility-shortcuts" aria-label="Match information">
-          <button type="button" onClick={() => onOpenReference("discard")}>Discard piles</button>
-          <button type="button" onClick={() => onOpenReference("log")}>Match log</button>
+          <button type="button" onClick={() => openReference("discard")}>Discard piles</button>
+          <button type="button" onClick={() => openReference("log")}>Match log</button>
           {descriptor?.ruleset === "factions" && (
-            <button type="button" onClick={() => onOpenReference("factions")}>Faction details</button>
+            <button type="button" onClick={() => openReference("factions")}>Faction abilities</button>
           )}
-          <button type="button" onClick={() => onOpenReference("keyboard")}>Keyboard help</button>
+          <button type="button" onClick={() => openReference("keyboard")}>Keyboard help</button>
           <button type="button" aria-pressed={!audioEnabled} onClick={() => onAudioEnabledChange(!audioEnabled)}>
             {audioEnabled ? "Mute sound" : "Enable sound"}
           </button>
@@ -432,7 +598,17 @@ function cardDisplayName(card) {
   return card.name || `${card.rank || card.value || "?"}${card.suit || ""}`;
 }
 
-function MatchReferencePanel({ kind, snapshot, commands, onClose }) {
+function factionProfile(value, fallbackName) {
+  if (!value) return null;
+  if (typeof value === "string") return { name: value, text: "", image: "" };
+  return {
+    name: value.name || fallbackName,
+    text: value.text || "",
+    image: value.image || ""
+  };
+}
+
+function MatchReferencePanel({ kind, snapshot, viewModel, commands, onClose }) {
   if (!kind) return null;
   const players = Object.entries(snapshot?.players || {})
     .map(([playerId, player]) => ({ id: Number(playerId), ...player }))
@@ -441,7 +617,7 @@ function MatchReferencePanel({ kind, snapshot, commands, onClose }) {
   const titles = {
     discard: "Discard piles",
     log: "Match log",
-    factions: "Faction details",
+    factions: "Faction abilities",
     keyboard: "Keyboard help"
   };
   return (
@@ -488,12 +664,49 @@ function MatchReferencePanel({ kind, snapshot, commands, onClose }) {
         {kind === "factions" && (
           <div className="production-faction-reference">
             {players.map((player) => (
-              <section key={player.id}>
+              <section key={player.id} className={player.id === viewModel?.perspective?.player ? "is-local" : ""}>
                 <span>Player {player.id}</span>
                 <h3>{player.faction?.name || "Basic Gauntlet"}</h3>
-                {player.faction?.commander && <p><strong>Commander:</strong> {player.faction.commander}</p>}
-                {player.faction?.general && <p><strong>General:</strong> {player.faction.general}</p>}
-                {player.faction?.city && <p><strong>City:</strong> {player.faction.city}</p>}
+                {[
+                  ["Commander", factionProfile(player.faction?.commander, "Commander")],
+                  ["General", factionProfile(player.faction?.general, "General")],
+                  ["City", factionProfile(player.faction?.city, "City")]
+                ].map(([role, profile]) => profile && (
+                  <article className="production-faction-profile" key={role}>
+                    {profile.image && <img src={resolveMatchAssetPath(profile.image)} alt="" />}
+                    <div>
+                      <span>{role}</span>
+                      <strong>{profile.name}</strong>
+                      {profile.text && <p>{profile.text}</p>}
+                    </div>
+                  </article>
+                ))}
+                {player.id === viewModel?.perspective?.player && !viewModel?.perspective?.spectator && (
+                  <div className="production-faction-reference-actions" aria-label="Available faction actions">
+                    <h4>Available actions now</h4>
+                    {(viewModel?.interactions?.abilities || []).length === 0 ? (
+                      <p>No activated faction actions are available in the current state.</p>
+                    ) : (viewModel.interactions.abilities.map((ability) => (
+                      <button
+                        type="button"
+                        key={ability.id}
+                        className={ability.active ? "is-active" : ""}
+                        disabled={ability.available === false}
+                        aria-pressed={ability.active}
+                        title={ability.reason || ability.intent || "Unavailable in the current match state."}
+                        onClick={() => {
+                          commands.activateAbility?.(ability.id);
+                          onClose();
+                        }}
+                      >
+                        <strong>{ability.active ? `Continue ${ability.label}` : ability.label}</strong>
+                        <span>{ability.available === false
+                          ? ability.reason || "Unavailable in the current match state."
+                          : ability.intent || "Begin this faction action."}</span>
+                      </button>
+                    )))}
+                  </div>
+                )}
               </section>
             ))}
           </div>
@@ -531,7 +744,7 @@ function PrivacyCurtain({ privacy }) {
   );
 }
 
-function MatchResult({ viewModel, controls = {}, commands }) {
+function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnabled }) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
   const winner = viewModel?.winner;
@@ -548,6 +761,13 @@ function MatchResult({ viewModel, controls = {}, commands }) {
       <span>Gauntlet Match Complete</span>
       <h1>{title}</h1>
       <p>{viewModel.message}</p>
+      {campaign?.afterBattle && <p className="production-campaign-aftermath">{campaign.afterBattle}</p>}
+      <CampaignDialogue
+        title="Ending dialogue"
+        lines={campaign?.endDialogue}
+        audio={campaign?.endDialogueAudio}
+        audioEnabled={audioEnabled}
+      />
       <div className="production-result-actions">
         {commands.newMatch && (
           <button type="button" onClick={() => commands.newMatch()}>
@@ -590,12 +810,12 @@ function MatchModeMarker({ descriptor }) {
   );
 }
 
-function CampaignEncounter({ campaign }) {
+function CampaignEncounter({ campaign, audioEnabled }) {
   if (!campaign) return null;
   const ability = campaign.bossAbility;
   const dialogue = campaign.startDialogue || campaign.dialogue || [];
   return (
-    <details className="production-campaign-encounter">
+    <details className="production-campaign-encounter" open>
       <summary>
         <span>{campaign.opponentName || "Campaign boss"}</span>
         <strong>{ability?.name || campaign.title || "Scripted encounter"}</strong>
@@ -604,9 +824,12 @@ function CampaignEncounter({ campaign }) {
         {campaign.title && <h2>{campaign.title}</h2>}
         {ability?.text && <p><strong>Boss ability:</strong> {ability.text}</p>}
         {campaign.beforeBattle && <p>{campaign.beforeBattle}</p>}
-        {dialogue.slice(0, 2).map((line, index) => (
-          <blockquote key={`${campaign.chapterId || "campaign"}-${index}`}>{line}</blockquote>
-        ))}
+        <CampaignDialogue
+          title="Opening dialogue"
+          lines={dialogue}
+          audio={campaign.startDialogueAudio || campaign.dialogueAudio}
+          audioEnabled={audioEnabled}
+        />
       </div>
     </details>
   );
@@ -1078,7 +1301,7 @@ export default function ProductionMatchExperience({
           <strong>{viewModel.phaseLabel}</strong>
         </div>
         <MatchModeMarker descriptor={update?.descriptor} />
-        <CampaignEncounter campaign={update?.snapshot?.campaign} />
+        <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
 
         {update?.connected === false && (
           <div className="production-connection-banner" role="status">
@@ -1093,10 +1316,17 @@ export default function ProductionMatchExperience({
         <MatchReferencePanel
           kind={referencePanel}
           snapshot={update?.snapshot}
+          viewModel={presentedViewModel}
           commands={interactionCommands}
           onClose={() => setReferencePanel(null)}
         />
-        <MatchResult viewModel={viewModel} controls={update?.controls} commands={interactionCommands} />
+        <MatchResult
+          viewModel={viewModel}
+          controls={update?.controls}
+          commands={interactionCommands}
+          campaign={update?.snapshot?.campaign}
+          audioEnabled={audioEnabled}
+        />
 
         <div className="production-portrait-guard" role="status">
           <span aria-hidden="true">↻</span>

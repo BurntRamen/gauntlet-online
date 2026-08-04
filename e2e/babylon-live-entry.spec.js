@@ -377,9 +377,14 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
   const revisionBeforePolea = Number(
     await priorityPage.getByTestId("production-babylon-match").getAttribute("data-revision")
   );
-  await priorityPage.locator(".production-faction-actions")
-    .getByRole("button", { name: /Polea.*place a hand card/i })
-    .click();
+  await priorityPage.getByText("Match", { exact: true }).click();
+  await priorityPage.getByRole("button", { name: "Faction abilities" }).click();
+  const factionAbilities = priorityPage.getByRole("dialog", { name: "Faction abilities" });
+  await expect(factionAbilities).toBeVisible();
+  await expect(factionAbilities).toContainText(/Lord Commander Polea/i);
+  await factionAbilities.getByRole("button", { name: /Polea.*place a hand card/i }).click();
+  await expect(factionAbilities).not.toBeVisible();
+  await expect(currentAction(priorityPage)).toContainText(/hand card.*empty lane/i);
   await priorityPage.locator('[data-match-zone="hand"]:not(:disabled)').first().focus();
   await priorityPage.locator('[data-match-zone="hand"]:not(:disabled)').first().press("Enter");
   await activateLaneButton(priorityPage, "Lane 1");
@@ -476,6 +481,30 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(match).toHaveAttribute("data-deck-format", "campaign");
   await expect(match).toHaveAttribute("data-opponent-kind", "campaignBoss");
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+
+  await page.evaluate(() => {
+    window.__campaignDialogueSources = [];
+    window.Audio = class CampaignDialogueAudioStub {
+      constructor(source) {
+        this.source = source;
+        this.currentTime = 0;
+        this.volume = 1;
+        window.__campaignDialogueSources.push(source);
+      }
+      play() { return Promise.resolve(); }
+      pause() {}
+    };
+  });
+  const encounter = page.locator(".production-campaign-encounter");
+  if (!await encounter.evaluate((element) => element.open)) {
+    await encounter.locator("summary").click();
+  }
+  const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
+  await expect(openingDialogue.getByRole("button", { name: "Play dialogue" })).toBeEnabled();
+  await openingDialogue.getByRole("button", { name: /Play Narrator voice/i }).click();
+  await expect(openingDialogue).toContainText(/Playing Narrator/i);
+  await expect.poll(() => page.evaluate(() => window.__campaignDialogueSources?.[0] || ""))
+    .toContain("/assets/gauntlet/voices/");
 
   await expect.poll(async () => Number(
     await page.getByTestId("production-babylon-match").getAttribute("data-revision")
