@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "",
+  "rulesVersion": "gauntlet-duel-v2",
+  "visualStates": [
+    { "id": "neutral-battlefield", "reviewer": "", "date": "", "categories": {} },
+    { "id": "local-priority", "reviewer": "", "date": "", "categories": {} },
+    { "id": "attack-selection", "reviewer": "", "date": "", "categories": {} },
+    { "id": "payment-selection", "reviewer": "", "date": "", "categories": {} },
+    { "id": "hand-attack", "reviewer": "", "date": "", "categories": {} },
+    { "id": "lane-attack", "reviewer": "", "date": "", "categories": {} },
+    { "id": "multiple-hand-blockers", "reviewer": "", "date": "", "categories": {} },
+    { "id": "same-lane-block", "reviewer": "", "date": "", "categories": {} },
+    { "id": "damage", "reviewer": "", "date": "", "categories": {} },
+    { "id": "placement", "reviewer": "", "date": "", "categories": {} },
+    { "id": "draw", "reviewer": "", "date": "", "categories": {} },
+    { "id": "priority-transfer", "reviewer": "", "date": "", "categories": {} },
+    { "id": "faction-ability", "reviewer": "", "date": "", "categories": {} },
+    { "id": "disconnect", "reviewer": "", "date": "", "categories": {} },
+    { "id": "reconnect-restored", "reviewer": "", "date": "", "categories": {} },
+    { "id": "victory", "reviewer": "", "date": "", "categories": {} },
+    { "id": "defeat", "reviewer": "", "date": "", "categories": {} },
+    { "id": "draw-result", "reviewer": "", "date": "", "categories": {} }
+  ],
+  "playtests": [],
+  "manualZoom": [
+    { "percent": 80, "passed": false, "reviewer": "", "date": "" },
+    { "percent": 100, "passed": false, "reviewer": "", "date": "" },
+    { "percent": 125, "passed": false, "reviewer": "", "date": "" },
+    { "percent": 150, "passed": false, "reviewer": "", "date": "" },
+    { "percent": 175, "passed": false, "reviewer": "", "date": "" },
+    { "percent": 200, "passed": false, "reviewer": "", "date": "" }
+  ],
+  "targetDevices": []
+}
