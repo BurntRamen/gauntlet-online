@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import ProductionMatchExperience, { eventCalloutContent } from "./ProductionMatchExperience";
 
 jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, commands }) {
@@ -180,10 +180,104 @@ test("presents campaign identity and canonical boss ability inside the productio
   );
 
   const encounter = await screen.findByText("Remex: Fortified Claim");
-  fireEvent.click(encounter.closest("summary"));
+  encounter.closest("details").open = true;
   expect(screen.getByRole("heading", { name: "The First Gate" })).toBeVisible();
   expect(screen.getByText(/first scripted attack each turn gets \+1 value/i)).toBeVisible();
-  expect(screen.getByText("Remex: Hold the line.")).toBeVisible();
+  expect(screen.getAllByText("Remex").length).toBeGreaterThan(0);
+  expect(screen.getByText("Hold the line.")).toBeVisible();
+});
+
+test("plays and stops campaign opening dialogue from the production shell", async () => {
+  const originalAudio = window.Audio;
+  const clip = {
+    play: jest.fn(() => Promise.resolve()),
+    pause: jest.fn(),
+    currentTime: 0,
+    onended: null,
+    onerror: null,
+    volume: 0
+  };
+  window.Audio = jest.fn(() => clip);
+
+  try {
+    render(
+      <ProductionMatchExperience
+        adapter={adapterFor({
+          descriptor: {
+            ruleset: "factions",
+            deckFormat: "campaign",
+            opponentKind: "campaignBoss",
+            series: { kind: "single", gameNumber: 1, playerWins: { 1: 0, 2: 0 } }
+          },
+          snapshot: {
+            campaign: {
+              chapterId: "chapter-one",
+              title: "The First Gate",
+              opponentName: "Remex",
+              startDialogue: ["Narrator: The gate closes.", "Remex: Hold the line."],
+              startDialogueAudio: ["/voices/narrator.mp3", "/voices/remex.mp3"]
+            }
+          }
+        })}
+        options={{ audioEnabled: true }}
+      />
+    );
+
+    await screen.findByTestId("production-babylon-match");
+    document.querySelector(".production-campaign-encounter").open = true;
+    fireEvent.click(screen.getByRole("button", { name: "Play dialogue" }));
+    expect(window.Audio).toHaveBeenCalledWith("/voices/narrator.mp3");
+    expect(clip.play).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Playing Narrator.")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(clip.pause).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Playback stopped.")).toBeVisible();
+  } finally {
+    window.Audio = originalAudio;
+  }
+});
+
+test("keeps campaign aftermath and ending voice playback in the match result", async () => {
+  const originalAudio = window.Audio;
+  const clip = {
+    play: jest.fn(() => Promise.resolve()),
+    pause: jest.fn(),
+    currentTime: 0,
+    onended: null,
+    onerror: null,
+    volume: 0
+  };
+  window.Audio = jest.fn(() => clip);
+  const viewModel = createViewModel();
+  viewModel.phase = "gameOver";
+  viewModel.winner = 1;
+  viewModel.message = "Local wins.";
+
+  try {
+    render(
+      <ProductionMatchExperience
+        adapter={adapterFor({
+          viewModel,
+          snapshot: {
+            campaign: {
+              afterBattle: "The gate opens again.",
+              endDialogue: ["Remex: You have earned passage."],
+              endDialogueAudio: ["/voices/remex-ending.mp3"]
+            }
+          }
+        })}
+        options={{ audioEnabled: true }}
+      />
+    );
+
+    expect(await screen.findByText("The gate opens again.")).toBeVisible();
+    expect(screen.getByLabelText("Ending dialogue")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Play Remex voice" }));
+    expect(window.Audio).toHaveBeenCalledWith("/voices/remex-ending.mp3");
+    expect(clip.play).toHaveBeenCalledTimes(1);
+  } finally {
+    window.Audio = originalAudio;
+  }
 });
 
 test("surfaces draft format and best-of-three continuity without developer chrome", async () => {
@@ -280,12 +374,31 @@ test("keeps live undo, draw, concession, and navigation controls around the Baby
   expect(leaveMatch).toHaveBeenCalledTimes(1);
 });
 
-test("keeps discard, match log, keyboard help, faction details, and sound in the production shell", async () => {
+test("keeps discard, match log, keyboard help, faction abilities, and sound in the production shell", async () => {
   const inspectCard = jest.fn();
+  const activateAbility = jest.fn();
   const onAudioEnabledChange = jest.fn();
+  const viewModel = createViewModel();
+  viewModel.interactions.abilities = [
+    {
+      id: "polea-place",
+      label: "Polea: place a hand card",
+      available: true,
+      active: false,
+      intent: "Choose a hand card, then an empty lane."
+    },
+    {
+      id: "focus-boost",
+      label: "Focus: spend acceleration",
+      available: false,
+      active: false,
+      reason: "No acceleration counter is available."
+    }
+  ];
   render(
     <ProductionMatchExperience
       adapter={adapterFor({
+        viewModel,
         descriptor: {
           ruleset: "factions",
           deckFormat: "constructed",
@@ -296,7 +409,12 @@ test("keeps discard, match log, keyboard help, faction details, and sound in the
           players: {
             1: {
               accountName: "Local",
-              faction: { name: "Rumin", commander: "Kaiser", general: "Meerus", city: "Rumie" },
+              faction: {
+                name: "Rumin",
+                commander: { name: "Kaiser", text: "Your fourth attack gets +3 value." },
+                general: "Meerus",
+                city: "Rumie"
+              },
               discard: [{ id: "discard-one", name: "Seven of Hearts", value: 7, rank: "7", suit: "Hearts" }]
             },
             2: {
@@ -308,7 +426,7 @@ test("keeps discard, match log, keyboard help, faction details, and sound in the
           actionHistory: [{ id: "history-one", turn: 2, label: "Player 1 declared a lane attack." }]
         },
         controls: { canConcede: true },
-        commands: { inspectCard }
+        commands: { inspectCard, activateAbility }
       })}
       options={{ audioEnabled: true, onAudioEnabledChange }}
     />
@@ -324,9 +442,17 @@ test("keeps discard, match log, keyboard help, faction details, and sound in the
   fireEvent.click(screen.getByRole("button", { name: "Match log" }));
   expect(screen.getByText("Player 1 declared a lane attack.")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  fireEvent.click(screen.getByRole("button", { name: "Faction details" }));
+  fireEvent.click(screen.getByRole("button", { name: "Faction abilities" }));
+  expect(screen.getByRole("dialog", { name: "Faction abilities" })).toBeVisible();
   expect(screen.getByText("Kaiser")).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.getByText("Your fourth attack gets +3 value.")).toBeVisible();
+  const factionDialog = screen.getByRole("dialog", { name: "Faction abilities" });
+  expect(within(factionDialog).getByRole("button", { name: /Focus: spend acceleration/ })).toBeDisabled();
+  expect(within(factionDialog).getByText("No acceleration counter is available.")).toBeVisible();
+  fireEvent.click(within(factionDialog).getByRole("button", { name: /Polea: place a hand card/ }));
+  expect(activateAbility).toHaveBeenCalledWith("polea-place");
+  expect(screen.queryByRole("dialog", { name: "Faction abilities" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByText("Match"));
   fireEvent.click(screen.getByRole("button", { name: "Keyboard help" }));
   expect(screen.getByText(/Move focus to hand/)).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
