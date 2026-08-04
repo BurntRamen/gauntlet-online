@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
@@ -6,6 +6,11 @@ import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
+import { createLiveMatchSession } from "./match/LiveMatchSession";
+import MatchRendererBoundary from "./match/MatchRendererBoundary";
+
+const BabylonMatchTestScreen = lazy(() => import("./babylon/BabylonMatchTestScreen"));
+const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -28,6 +33,30 @@ function getPublicViewFromLocation() {
   if (matchId) return { type: "match", id: matchId };
   if (profileId) return { type: "profile", id: profileId };
   return null;
+}
+
+function shouldUseProductionMatchRenderer() {
+  if (typeof window === "undefined") return false;
+  const requested = new URLSearchParams(window.location.search).get("renderer");
+  if (requested === "react") return false;
+  return process.env.REACT_APP_MATCH_RENDERER !== "react";
+}
+
+function isBabylonTestRequested() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("babylon-test") === "1";
+}
+
+const BABYLON_FAILED_MATCH_KEY = "gauntlet_babylon_failed_match";
+
+function hasBabylonSessionFailure(matchId) {
+  if (typeof window === "undefined" || !matchId) return false;
+  return sessionStorage.getItem(BABYLON_FAILED_MATCH_KEY) === String(matchId);
+}
+
+function rememberBabylonSessionFailure(matchId) {
+  if (typeof window === "undefined" || !matchId) return;
+  sessionStorage.setItem(BABYLON_FAILED_MATCH_KEY, String(matchId));
 }
 
 const socket = io(SOCKET_URL, {
@@ -3443,6 +3472,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
 }
 
 export default function App() {
+  const babylonTestMode = isBabylonTestRequested();
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
@@ -3518,16 +3548,102 @@ export default function App() {
   const [previewedCard, setPreviewedCard] = useState(null);
   const [showDiscardViewer, setShowDiscardViewer] = useState(false);
   const [matchDrawer, setMatchDrawer] = useState(null);
+  const [babylonRendererFailed, setBabylonRendererFailed] = useState(false);
+  const [transportConnected, setTransportConnected] = useState(socket.connected);
+  const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
   const hotkeyActionsRef = useRef({});
+  const liveMatchSessionRef = useRef(null);
+  const babylonFallbackPromiseRef = useRef(null);
+  if (!liveMatchSessionRef.current) {
+    liveMatchSessionRef.current = createLiveMatchSession({ socket });
+  }
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
     : playAsGuest && guestName.trim()
       ? `guest:${guestName.trim().toLowerCase()}`
       : "";
+  const liveMatchControlState = useMemo(() => ({
+    roomCode: lobby?.roomCode || game?.roomCode || "",
+    rematchStatus,
+    lobby,
+    trainingAi: Boolean(lobby?.players?.[2]?.isAI),
+    draftLeague: Boolean(game?.draftLeague || lobby?.draftLeague),
+    bestOf3Series: game?.bestOf3Series || null,
+    canRematch: Boolean(
+      game
+      && (game.phase === "gameOver" || game.winner != null)
+      && !game.campaign
+      && game.gameMode !== "freeForAll"
+      && lobby?.gameMode !== "draft"
+      && !lobby?.players?.[1]?.isAI
+      && !lobby?.players?.[2]?.isAI
+      && !game.players?.[1]?.isAI
+      && !game.players?.[2]?.isAI
+      && game.players?.[2]?.accountName !== "Training AI"
+      && rematchStatus.available !== false
+    )
+  }), [game, lobby, rematchStatus]);
+  const babylonGameplayActive = Boolean(
+    game
+    && ["basic", "factions"].includes(game.gameMode)
+    && shouldUseProductionMatchRenderer()
+    && !babylonRendererFailed
+    && !hasBabylonSessionFailure(game.matchId)
+  );
+
+  useEffect(() => {
+    liveMatchSessionRef.current.update({
+      game,
+      player,
+      role,
+      connected: !matchReconnectPending
+        && transportConnected
+        && (role === "spectator" || game?.players?.[player]?.connected !== false),
+      controlState: liveMatchControlState
+    });
+  }, [game, liveMatchControlState, matchReconnectPending, player, role, transportConnected]);
+
+  useEffect(() => () => liveMatchSessionRef.current?.dispose(), []);
+
+  useEffect(() => {
+    setBabylonRendererFailed(false);
+    babylonFallbackPromiseRef.current = null;
+    setMatchReconnectPending(false);
+    liveMatchSessionRef.current?.unfreezeCommands();
+  }, [game?.matchId]);
+
+  const activateReactMatchFallback = useCallback(async (rendererError) => {
+    if (babylonFallbackPromiseRef.current) return babylonFallbackPromiseRef.current;
+    const activeMatchId = liveMatchSessionRef.current?.getCurrent()?.game?.matchId || game?.matchId;
+    console.error("[MatchRendererFallback] Activating the legacy React match renderer.", {
+      matchId: activeMatchId || null,
+      reason: rendererError?.message || "Babylon renderer failure"
+    });
+    const handoff = (async () => {
+      const result = await liveMatchSessionRef.current?.prepareRendererFallback(
+        rendererError?.message || "Babylon renderer failure"
+      );
+      const latestSnapshot = result?.snapshot || liveMatchSessionRef.current?.getCurrent()?.game;
+      if (latestSnapshot) setGame(latestSnapshot);
+      resetSelections();
+      rememberBabylonSessionFailure(activeMatchId);
+      setBabylonRendererFailed(true);
+      return result;
+    })();
+    babylonFallbackPromiseRef.current = handoff;
+    return handoff;
+  }, [game?.matchId]);
+
+  useEffect(() => {
+    if (!game?.matchId || !hasBabylonSessionFailure(game.matchId)) return;
+    console.warn("[MatchRendererFallback] Legacy React renderer retained for this match session.", {
+      matchId: game.matchId
+    });
+  }, [game?.matchId]);
 
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
@@ -3570,8 +3686,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (babylonTestMode) return undefined;
     loadGameContent();
-  }, [loadGameContent]);
+    return undefined;
+  }, [babylonTestMode, loadGameContent]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3652,6 +3770,7 @@ export default function App() {
   }, [authToken]);
 
   const loadLeaderboard = useCallback(() => {
+    if (babylonTestMode) return;
     fetch(`${SOCKET_URL}/api/leaderboard`)
       .then(async (response) => {
         const data = await response.json();
@@ -3660,7 +3779,7 @@ export default function App() {
         setLeaderboardError("");
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
-  }, []);
+  }, [babylonTestMode]);
 
   useEffect(() => {
     loadLeaderboard();
@@ -3798,6 +3917,7 @@ export default function App() {
       setError("");
       setRole(payload.role);
       setPlayer(payload.playerNum);
+      liveMatchSessionRef.current.update({ role: payload.role, player: payload.playerNum });
       setMatchmakingStatus({ inQueue: false, message: "" });
       setDraftLeagueStatus({ inQueue: false, message: "" });
       saveReconnectInfo({ roomCode: payload.roomCode, reconnectToken: payload.reconnectToken, role: payload.role });
@@ -3807,11 +3927,15 @@ export default function App() {
       setError("");
       setRole("spectator");
       setPlayer(null);
+      liveMatchSessionRef.current.update({ role: "spectator", player: null });
       saveReconnectInfo({ roomCode: payload.roomCode, role: "spectator" });
     };
 
     const onState = (newGame) => {
       setError("");
+      const accepted = liveMatchSessionRef.current.update({ game: newGame });
+      setMatchReconnectPending(false);
+      if (!accepted) return;
       setGame(newGame);
       if (
         currentIdentityKey &&
@@ -3862,16 +3986,33 @@ export default function App() {
       setActionLog([]);
     };
     const attemptReconnect = () => {
+      resetSelections();
       const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
       const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
       const savedRole = localStorage.getItem(STORAGE_KEYS.role);
       const savedAuthToken = localStorage.getItem(STORAGE_KEYS.authToken);
       if (roomCode && (reconnectToken || savedRole === "spectator")) {
+        setMatchReconnectPending(true);
+        liveMatchSessionRef.current.update({ connected: false });
         socket.emit("reconnectToRoom", { roomCode, reconnectToken, role: savedRole, authToken: savedAuthToken });
+        return true;
       }
+      setMatchReconnectPending(false);
+      return false;
+    };
+    const onConnect = () => {
+      setTransportConnected(true);
+      attemptReconnect();
+    };
+    const onDisconnect = () => {
+      setTransportConnected(false);
+      setMatchReconnectPending(true);
+      liveMatchSessionRef.current.update({ connected: false });
+      resetSelections();
     };
 
-    socket.on("connect", attemptReconnect);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
     socket.on("assign", onAssign);
     socket.on("assignSpectator", onAssignSpectator);
     socket.on("state", onState);
@@ -3889,7 +4030,8 @@ export default function App() {
     attemptReconnect();
 
     return () => {
-      socket.off("connect", attemptReconnect);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
       socket.off("assign", onAssign);
       socket.off("assignSpectator", onAssignSpectator);
       socket.off("state", onState);
@@ -3951,6 +4093,7 @@ export default function App() {
   }, [accountSoundMuted]);
 
   useEffect(() => {
+    if (babylonGameplayActive) return;
     if (!game || role === "spectator" || !player) return;
     if (game.phase !== "priority") return;
     if (blockMode || attackMode || placementMode || abilityMode) return;
@@ -3964,9 +4107,10 @@ export default function App() {
       setBlockMode({ type: "handAttack", handAttackId: incomingHandAttacks[0].id });
       setHandSelectionRole("blocker");
     }
-  }, [game, role, player, blockMode, attackMode, placementMode, abilityMode]);
+  }, [babylonGameplayActive, game, role, player, blockMode, attackMode, placementMode, abilityMode]);
 
   useEffect(() => {
+    if (babylonGameplayActive) return;
     if (!blockMode || !game) return;
     if (game.phase !== "priority") {
       resetSelections();
@@ -3979,9 +4123,10 @@ export default function App() {
     }
     const laneAttack = game.lanes?.[blockMode.lane]?.attack;
     if (!laneAttack || game.lanes?.[blockMode.lane]?.block?.length > 0 || game.priorityPassed?.[player]) resetSelections();
-  }, [blockMode, game, player]);
+  }, [babylonGameplayActive, blockMode, game, player]);
 
   useEffect(() => {
+    if (babylonGameplayActive) return undefined;
     function handleAdvanceHotkey(event) {
       if (event.code !== "Space" || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
       const tagName = event.target?.tagName;
@@ -4664,6 +4809,14 @@ export default function App() {
     };
   }
 
+  if (babylonTestMode) {
+    return (
+      <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
+        <BabylonMatchTestScreen />
+      </Suspense>
+    );
+  }
+
   if (publicView?.type === "match") {
     return (
       <MatchRecordScreen
@@ -5221,6 +5374,7 @@ export default function App() {
   const isFreeForAllGame = game.gameMode === "freeForAll";
   const opponent = !isSpectator && !isFreeForAllGame ? game.players[player === 1 ? 2 : 1] : null;
   const isBasicGame = game.gameMode === "basic";
+  const useBabylonMatchRenderer = babylonGameplayActive;
   const isMyPriority = !isSpectator && game.priority === player;
   const myTheme = !isSpectator && me ? getFactionTheme(me.faction.id) : FACTION_COLORS.default;
   const oppTheme = !isSpectator && opponent ? getFactionTheme(opponent.faction.id) : FACTION_COLORS.default;
@@ -5236,6 +5390,27 @@ export default function App() {
   `;
   const gameIsOver = game.phase === "gameOver" || game.winner != null;
   const matchPlayerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
+
+  if (useBabylonMatchRenderer) {
+    return (
+      <MatchRendererBoundary resetKey={game.matchId} onFailure={activateReactMatchFallback}>
+        <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
+          <LiveBabylonMatchExperience
+            session={liveMatchSessionRef.current}
+            options={{
+              audioEnabled: !accountSoundMuted,
+              onAudioEnabledChange: (enabled) => {
+                if (account?.id) setSignedInSoundMuted(!enabled);
+                else setAccountSoundMuted(!enabled);
+              }
+            }}
+            onLeaveMatch={returnToMainMenu}
+            onRendererFailure={activateReactMatchFallback}
+          />
+        </Suspense>
+      </MatchRendererBoundary>
+    );
+  }
 
   if (gameIsOver) {
     const isDraw = game.winner == null;
@@ -5858,6 +6033,14 @@ export default function App() {
     if (!card) return;
     setPreviewedCard(card);
 
+    if (abilityMode?.type === "polea" && String(abilityMode.mode) === "1") {
+      setAbilityMode((previous) => ({ ...previous, handIndex: index }));
+      return;
+    }
+    if (abilityMode?.type === "lafayette") {
+      setAbilityMode((previous) => ({ ...previous, handIndex: index }));
+      return;
+    }
     if (placementMode) {
       setSelectedPlacementCardIndex(index);
       return;
