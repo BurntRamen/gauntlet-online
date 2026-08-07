@@ -62,6 +62,7 @@ const {
   buildParaMatchExport,
   buildMatchRecord,
   captureAuditEvent,
+  captureLeagueEvidence,
   createLocalMatchStore,
   createMatchMetadata,
   publicMatchRecord,
@@ -2217,8 +2218,16 @@ app.get("/api/matches/:matchId/export/para", async (req, res) => {
       res.status(404).json({ error: "Match not found." });
       return;
     }
+    const version = req.query.version == null ? "1" : String(req.query.version).toLowerCase();
+    if (!["1", "2", "v1", "v2"].includes(version)) {
+      res.status(400).json({ error: "Unsupported Para export version." });
+      return;
+    }
     const matchUrl = `${CLIENT_URL.replace(/\/$/, "")}/?match=${encodeURIComponent(matchId)}`;
-    res.json(buildParaMatchExport(record, matchUrl));
+    res.json(buildParaMatchExport(record, matchUrl, new Date().toISOString(), {
+      version,
+      storage: publicMatchStorageStatus()
+    }));
   } catch (error) {
     console.error("[Matches] Failed to export match", error);
     res.status(503).json({ error: "Match export is temporarily unavailable." });
@@ -4893,9 +4902,22 @@ async function recordFinalGameStats(roomState, options = {}) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
-  captureGameEvent(game);
   const completedAt = options.completedAt || new Date().toISOString();
   const completionReason = options.completionReason || "life_total";
+  if (!(game.serverLeagueEvidence || []).some((entry) => ["match.ended", "match.abandoned"].includes(entry.eventType))) {
+    captureLeagueEvidence(game, {
+      command: { type: "finalizeMatch" },
+      events: [{
+        id: `${game.matchId}:final:${completionReason}`,
+        type: completionReason === "abandoned" ? "match.abandoned" : "match.ended",
+        winner: game.winner ?? null,
+        completionReason,
+        abandonmentReason: options.abandonmentReason || null
+      }],
+      timestamp: completedAt
+    });
+  }
+  captureGameEvent(game);
   const matchRecord = buildMatchRecord(roomState, {
     completedAt,
     completionReason,
@@ -5594,6 +5616,13 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
     saveUndoSnapshot(roomState, playerNum, applied.actionLogEntry?.label || envelope.command.type);
   }
   roomState.game = applied.state;
+  captureLeagueEvidence(roomState.game, {
+    commandId,
+    actorPlayerNum: playerNum,
+    command: envelope.command,
+    events: applied.animationEvents,
+    timestamp: new Date().toISOString()
+  });
   if (roomState.game.phase === "gameOver") {
     await recordFinalGameStats(roomState, {
       completionReason: envelope.command.type === "concede" ? "concession" : "life"
@@ -5837,6 +5866,16 @@ function createGameFromLobby(roomState, options = {}) {
   }
   
   roomState.game = game;
+  captureLeagueEvidence(game, {
+    command: { type: "matchStarted" },
+    events: [
+      { id: `${matchId}:match-started`, type: "match.started" },
+      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: BASIC_HAND_SIZE },
+      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: BASIC_HAND_SIZE },
+      { id: `${matchId}:initial-priority`, type: "priority.granted", player: startingPriority }
+    ],
+    timestamp: roomState.matchMetadata?.startedAt || new Date().toISOString()
+  });
   roomState.damageConfirmed = { 1: false, 2: false };
 }
 

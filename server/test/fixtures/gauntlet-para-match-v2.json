@@ -1,0 +1,582 @@
+{
+  "schemaVersion": "gauntlet.para-match.v2",
+  "exportedAt": "2026-08-07T18:01:00.000Z",
+  "contract": {
+    "producer": "Gauntlet Online",
+    "recordVersion": 2,
+    "rulesVersion": "gauntlet-duel-v2",
+    "contentVersion": "gauntlet-content-v1",
+    "evidenceSchemaVersion": "gauntlet.league-evidence.v1"
+  },
+  "source": {
+    "product": "Gauntlet Online",
+    "producerId": "gauntlet-online",
+    "serverAuthored": true,
+    "authoritativeMatchId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "seriesId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "matchUrl": "https://gauntletonline.com/?match=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "storage": {
+      "mode": "account-only",
+      "completeRecordV2": "process-local",
+      "fullRecordDurable": false,
+      "publicRecordAfterProcessReplacement": false,
+      "evidenceAfterProcessReplacement": false
+    }
+  },
+  "match": {
+    "matchId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "seriesId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "mode": "factions",
+    "ranked": true,
+    "startedAt": "2026-08-07T17:45:00.000Z",
+    "completedAt": "2026-08-07T18:00:00.000Z",
+    "completionReason": "life_total",
+    "abandonmentReason": null,
+    "turnCount": 6,
+    "campaign": null,
+    "series": {
+      "seriesId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "bestOf": 3,
+      "targetWins": 2,
+      "gameNumber": 2,
+      "scoreAfter": {
+        "1": 2,
+        "2": 0
+      }
+    },
+    "draft": null
+  },
+  "participants": [
+    {
+      "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+      "playerNum": 1,
+      "identityType": "account",
+      "gauntletAccountId": "11111111-1111-4111-8111-111111111111",
+      "displayName": "Fixture Alpha",
+      "faction": {
+        "id": "rumin",
+        "name": "Rumin"
+      },
+      "deck": {
+        "deckId": "deck-alpha",
+        "deckVersionId": "deck-alpha-v3",
+        "source": "constructed",
+        "format": "constructed"
+      },
+      "finalLife": 11,
+      "result": "win"
+    },
+    {
+      "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p2",
+      "playerNum": 2,
+      "identityType": "account",
+      "gauntletAccountId": "22222222-2222-4222-8222-222222222222",
+      "displayName": "Fixture Beta",
+      "faction": {
+        "id": "sheen",
+        "name": "Sheen"
+      },
+      "deck": {
+        "deckId": "deck-beta",
+        "deckVersionId": "deck-beta-v2",
+        "source": "constructed",
+        "format": "constructed"
+      },
+      "finalLife": 0,
+      "result": "loss"
+    }
+  ],
+  "evidence": {
+    "schemaVersion": "gauntlet.league-evidence.v1",
+    "coverage": "complete",
+    "ordered": true,
+    "entries": [
+      {
+        "sequence": 1,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:1",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:1",
+        "commandType": "declareHandAttack",
+        "eventSequence": 1,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "command.accepted",
+        "actorPlayerNum": 1,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "command": {
+            "type": "declareHandAttack",
+            "attackerCardId": "rumin-ace-spades",
+            "paymentCardIds": [
+              "rumin-seven-hearts"
+            ]
+          }
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 2,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:2",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:1",
+        "commandType": "declareHandAttack",
+        "eventSequence": 2,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "payment.discarded",
+        "actorPlayerNum": 1,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 1,
+          "cardIds": [
+            "rumin-seven-hearts"
+          ],
+          "total": 7,
+          "required": 7
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 3,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:3",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:1",
+        "commandType": "declareHandAttack",
+        "eventSequence": 3,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "attack.declared",
+        "actorPlayerNum": 1,
+        "targetPlayerNum": 2,
+        "sourceType": "hand",
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 1,
+          "targetPlayer": 2,
+          "cardId": "rumin-ace-spades",
+          "effectiveValue": 14
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 4,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:4",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:2",
+        "commandType": "declareHandBlock",
+        "eventSequence": 4,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "command.accepted",
+        "actorPlayerNum": 2,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "command": {
+            "type": "declareHandBlock",
+            "blockerCardIds": [
+              "sheen-five-clubs"
+            ],
+            "paymentCardIds": [
+              "sheen-five-diamonds"
+            ]
+          }
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 5,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:5",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:2",
+        "commandType": "declareHandBlock",
+        "eventSequence": 5,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "block.declared",
+        "actorPlayerNum": 2,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 2,
+          "cardIds": [
+            "sheen-five-clubs"
+          ]
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 6,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:6",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:2",
+        "commandType": "passPriority",
+        "eventSequence": 6,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "priority.passed",
+        "actorPlayerNum": 1,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 1
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 7,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:7",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:3",
+        "commandType": "passPriority",
+        "eventSequence": 7,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "damage.calculated",
+        "actorPlayerNum": 2,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 2,
+          "attackValue": 14,
+          "blockValue": 5,
+          "prevented": 1,
+          "damage": 8
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 8,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:8",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:3",
+        "commandType": "passPriority",
+        "eventSequence": 8,
+        "turn": 6,
+        "phase": "priority",
+        "eventType": "damage.dealt",
+        "actorPlayerNum": 2,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "player": 2,
+          "amount": 8,
+          "from": 8,
+          "to": 0
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      },
+      {
+        "sequence": 9,
+        "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:league:9",
+        "commandId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:command:3",
+        "commandType": "passPriority",
+        "eventSequence": 9,
+        "turn": 6,
+        "phase": "gameOver",
+        "eventType": "match.ended",
+        "actorPlayerNum": null,
+        "targetPlayerNum": null,
+        "sourceType": null,
+        "laneIndex": null,
+        "publicPayload": {
+          "winner": 1
+        },
+        "serverTimestamp": "2026-08-07T18:00:00.000Z",
+        "resultingStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe"
+      }
+    ]
+  },
+  "results": {
+    "winnerPlayerNum": 1,
+    "winnerParticipantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+    "completionReason": "life_total",
+    "participants": [
+      {
+        "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+        "playerNum": 1,
+        "result": "win",
+        "finalLife": 11
+      },
+      {
+        "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p2",
+        "playerNum": 2,
+        "result": "loss",
+        "finalLife": 0
+      }
+    ]
+  },
+  "recapEvidence": {
+    "perspectives": [
+      {
+        "projectionVersion": "gauntlet.match-perspective.v1",
+        "recordVersion": 2,
+        "matchId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "seriesId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "mode": "factions",
+        "ranked": true,
+        "startedAt": "2026-08-07T17:45:00.000Z",
+        "completedAt": "2026-08-07T18:00:00.000Z",
+        "completionReason": "life_total",
+        "winnerPlayerNum": 1,
+        "turnCount": 6,
+        "player": {
+          "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+          "playerNum": 1,
+          "identityType": "account",
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "displayName": "Fixture Alpha",
+          "faction": {
+            "id": "rumin",
+            "name": "Rumin"
+          },
+          "deck": {
+            "deckId": "deck-alpha",
+            "deckVersionId": "deck-alpha-v3",
+            "source": "constructed",
+            "format": "constructed"
+          },
+          "finalLife": 11,
+          "result": "win"
+        },
+        "opponent": {
+          "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p2",
+          "playerNum": 2,
+          "identityType": "account",
+          "accountId": "22222222-2222-4222-8222-222222222222",
+          "displayName": "Fixture Beta",
+          "faction": {
+            "id": "sheen",
+            "name": "Sheen"
+          },
+          "deck": {
+            "deckId": "deck-beta",
+            "deckVersionId": "deck-beta-v2",
+            "source": "constructed",
+            "format": "constructed"
+          },
+          "finalLife": 0,
+          "result": "loss"
+        },
+        "opponents": [
+          {
+            "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p2",
+            "playerNum": 2,
+            "identityType": "account",
+            "accountId": "22222222-2222-4222-8222-222222222222",
+            "displayName": "Fixture Beta",
+            "faction": {
+              "id": "sheen",
+              "name": "Sheen"
+            },
+            "deck": {
+              "deckId": "deck-beta",
+              "deckVersionId": "deck-beta-v2",
+              "source": "constructed",
+              "format": "constructed"
+            },
+            "finalLife": 0,
+            "result": "loss"
+          }
+        ],
+        "outcome": "win",
+        "campaign": null,
+        "combat": {
+          "attacksResolved": 2,
+          "attackValue": 24,
+          "blockValue": 4,
+          "damagePrevented": 4,
+          "damageDealt": 14,
+          "damageTaken": 7
+        },
+        "notableMoments": {
+          "largestAttack": {
+            "playerNum": 1,
+            "targetPlayerNum": 2,
+            "value": 14,
+            "damage": 8,
+            "blockValue": 5,
+            "preventionValue": 1,
+            "turn": 6
+          },
+          "finalLifeGap": 11,
+          "decisiveTurn": 6
+        },
+        "finalMessage": "Player 1 wins!"
+      },
+      {
+        "projectionVersion": "gauntlet.match-perspective.v1",
+        "recordVersion": 2,
+        "matchId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "seriesId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "mode": "factions",
+        "ranked": true,
+        "startedAt": "2026-08-07T17:45:00.000Z",
+        "completedAt": "2026-08-07T18:00:00.000Z",
+        "completionReason": "life_total",
+        "winnerPlayerNum": 1,
+        "turnCount": 6,
+        "player": {
+          "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p2",
+          "playerNum": 2,
+          "identityType": "account",
+          "accountId": "22222222-2222-4222-8222-222222222222",
+          "displayName": "Fixture Beta",
+          "faction": {
+            "id": "sheen",
+            "name": "Sheen"
+          },
+          "deck": {
+            "deckId": "deck-beta",
+            "deckVersionId": "deck-beta-v2",
+            "source": "constructed",
+            "format": "constructed"
+          },
+          "finalLife": 0,
+          "result": "loss"
+        },
+        "opponent": {
+          "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+          "playerNum": 1,
+          "identityType": "account",
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "displayName": "Fixture Alpha",
+          "faction": {
+            "id": "rumin",
+            "name": "Rumin"
+          },
+          "deck": {
+            "deckId": "deck-alpha",
+            "deckVersionId": "deck-alpha-v3",
+            "source": "constructed",
+            "format": "constructed"
+          },
+          "finalLife": 11,
+          "result": "win"
+        },
+        "opponents": [
+          {
+            "participantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:p1",
+            "playerNum": 1,
+            "identityType": "account",
+            "accountId": "11111111-1111-4111-8111-111111111111",
+            "displayName": "Fixture Alpha",
+            "faction": {
+              "id": "rumin",
+              "name": "Rumin"
+            },
+            "deck": {
+              "deckId": "deck-alpha",
+              "deckVersionId": "deck-alpha-v3",
+              "source": "constructed",
+              "format": "constructed"
+            },
+            "finalLife": 11,
+            "result": "win"
+          }
+        ],
+        "outcome": "loss",
+        "campaign": null,
+        "combat": {
+          "attacksResolved": 1,
+          "attackValue": 7,
+          "blockValue": 5,
+          "damagePrevented": 6,
+          "damageDealt": 7,
+          "damageTaken": 14
+        },
+        "notableMoments": {
+          "largestAttack": {
+            "playerNum": 1,
+            "targetPlayerNum": 2,
+            "value": 14,
+            "damage": 8,
+            "blockValue": 5,
+            "preventionValue": 1,
+            "turn": 6
+          },
+          "finalLifeGap": 11,
+          "decisiveTurn": 6
+        },
+        "finalMessage": "Player 1 wins!"
+      }
+    ],
+    "combatStats": {
+      "attacksResolved": 3,
+      "totalAttackValue": 31,
+      "totalBlockValue": 9,
+      "totalDamagePrevented": 10,
+      "totalDamageDealt": 21,
+      "largestAttack": {
+        "playerNum": 1,
+        "targetPlayerNum": 2,
+        "value": 14,
+        "damage": 8,
+        "blockValue": 5,
+        "preventionValue": 1,
+        "turn": 6
+      },
+      "byPlayer": {
+        "1": {
+          "attacksResolved": 2,
+          "attackValue": 24,
+          "blockValue": 4,
+          "damagePrevented": 4,
+          "damageDealt": 14,
+          "damageTaken": 7
+        },
+        "2": {
+          "attacksResolved": 1,
+          "attackValue": 7,
+          "blockValue": 5,
+          "damagePrevented": 6,
+          "damageDealt": 7,
+          "damageTaken": 14
+        }
+      }
+    },
+    "largestAttack": {
+      "playerNum": 1,
+      "targetPlayerNum": 2,
+      "value": 14,
+      "damage": 8,
+      "blockValue": 5,
+      "preventionValue": 1,
+      "turn": 6
+    },
+    "damageDealt": 21,
+    "damagePrevented": 10,
+    "decisiveTurn": 6,
+    "finalPublicMessage": "Player 1 wins!",
+    "notableMoments": {
+      "largestAttack": {
+        "playerNum": 1,
+        "targetPlayerNum": 2,
+        "value": 14,
+        "damage": 8,
+        "blockValue": 5,
+        "preventionValue": 1,
+        "turn": 6
+      },
+      "finalLifeGap": 11,
+      "decisiveTurn": 6
+    },
+    "campaignEncounter": null
+  },
+  "verification": {
+    "matchRecordVersion": 2,
+    "evidenceEventCount": 9,
+    "auditEventCount": 1,
+    "finalStateChecksum": "9d3d12c9d8f743ba429e74e5bfd1f6c17ae645451e2798d8269c41e5ac73cafe",
+    "contentHash": "5fa9ae82d7ff17d854aff70d693aa77ea83ef18fa1739b74f09b7fc0569e088e"
+  }
+}

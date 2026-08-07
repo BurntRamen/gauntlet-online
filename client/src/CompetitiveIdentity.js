@@ -145,7 +145,7 @@ export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, on
           <>
             <div className="competitive-profile-header">
               <div><span className="competitive-kicker">Verified Match</span><h1>{match.mode}</h1><p>{formatDate(match.completedAt)} / {match.completionReason} / {match.turnCount} turns</p></div>
-              <a className="competitive-export" href={`${serverUrl}/api/matches/${encodeURIComponent(match.matchId)}/export/para`} target="_blank" rel="noreferrer">Para Export</a>
+              <a className="competitive-export" href={`${serverUrl}/api/matches/${encodeURIComponent(match.matchId)}/export/para?version=2`} target="_blank" rel="noreferrer">Para Export</a>
             </div>
             <section className="competitive-participants">
               {(match.participants || []).map((participant) => (

@@ -5,13 +5,28 @@ const path = require("path");
 const { CONTENT_VERSION, RULES_VERSION } = require("./gameContent");
 
 const MATCH_RECORD_VERSION = 2;
+const LEAGUE_EVIDENCE_VERSION = "gauntlet.league-evidence.v1";
+const PARA_MATCH_V1 = "gauntlet.para-match.v1";
+const PARA_MATCH_V2 = "gauntlet.para-match.v2";
 
 function clonePlain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function canonicalValue(value) {
+  if (Array.isArray(value)) return value.map(canonicalValue);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalValue(value[key])]));
+  }
+  return value;
+}
+
+function canonicalJson(value) {
+  return JSON.stringify(canonicalValue(value));
+}
+
 function stableHash(value) {
-  return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  return crypto.createHash("sha256").update(canonicalJson(value)).digest("hex");
 }
 
 function createMatchMetadata(options = {}) {
@@ -74,6 +89,101 @@ function getPublicStateForChecksum(game) {
       blockValues: (attack.block || []).map((block) => Number(block.effectiveValue || 0))
     }))
   };
+}
+
+function sanitizeLeagueCommand(command = {}) {
+  const type = String(command.type || "unknown");
+  const safe = { type };
+  const copyScalar = (field) => {
+    if (["string", "number", "boolean"].includes(typeof command[field])) safe[field] = command[field];
+  };
+  for (const field of [
+    "abilityId", "laneIndex", "laneA", "laneB", "targetPlayerId", "source",
+    "useMeerusFreeAttack", "useJewelBankBonus", "useBeliAwakenedBonus",
+    "useSandstormProcessor", "sunforgeAccelerationToSpend", "useVoltaricUltimatum",
+    "primeSignalBonus", "lastGambleChoice"
+  ]) copyScalar(field);
+  if (["declareHandAttack", "declareLaneAttack"].includes(type)) {
+    safe.attackerCardId = command.attackerCardId || command.cardId || null;
+    safe.paymentCardIds = [...(command.paymentCardIds || [])];
+    safe.armWeaponCardIds = [...(command.armWeaponCardIds || [])];
+  }
+  if (["declareHandBlock", "declareLaneBlock"].includes(type)) {
+    safe.blockerCardIds = [...(command.blockerCardIds || [])];
+    safe.paymentCardIds = [...(command.paymentCardIds || [])];
+    safe.accelerationBlockerCardIds = [...(command.accelerationBlockerCardIds || [])];
+  }
+  return safe;
+}
+
+function sanitizeLeagueEvent(event = {}) {
+  const type = String(event.type || "unknown");
+  const { id: _id, sequence: _sequence, revision: _revision, type: _type, ...detail } = clonePlain(event);
+  if (type === "cards.drawn") {
+    return {
+      player: detail.player ?? null,
+      count: Array.isArray(detail.cardIds) ? detail.cardIds.length : Number(detail.count || 0),
+      ...(detail.source ? { source: detail.source } : {})
+    };
+  }
+  if (type === "card.peeked") {
+    return {
+      player: detail.player ?? null,
+      viewer: detail.viewer ?? null,
+      targetPlayer: detail.targetPlayer ?? null,
+      laneIndex: detail.laneIndex ?? null
+    };
+  }
+  if (type === "card.placedFacedown") {
+    return {
+      player: detail.player ?? null,
+      laneIndex: detail.laneIndex ?? null,
+      ...(detail.source ? { source: detail.source } : {})
+    };
+  }
+  return detail;
+}
+
+function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, command = {}, events = [], timestamp } = {}) {
+  if (!game) return [];
+  const serverTimestamp = timestamp || new Date().toISOString();
+  const stateChecksum = stableHash(getPublicStateForChecksum(game));
+  game.serverLeagueEvidence = Array.isArray(game.serverLeagueEvidence) ? game.serverLeagueEvidence : [];
+  const normalizedCommand = sanitizeLeagueCommand(command);
+  const sourceEvents = [
+    {
+      id: commandId ? `${commandId}:accepted` : `${game.matchId}:command:${game.serverLeagueEvidence.length + 1}`,
+      sequence: null,
+      type: "command.accepted",
+      player: actorPlayerNum,
+      command: normalizedCommand
+    },
+    ...(Array.isArray(events) ? events : [])
+  ];
+  return sourceEvents.map((event) => {
+    const payload = event.type === "command.accepted"
+      ? { command: clonePlain(event.command) }
+      : sanitizeLeagueEvent(event);
+    const entry = {
+      sequence: game.serverLeagueEvidence.length + 1,
+      eventId: event.id || `${game.matchId}:league:${game.serverLeagueEvidence.length + 1}`,
+      commandId,
+      commandType: normalizedCommand.type,
+      eventSequence: event.sequence != null && Number.isFinite(Number(event.sequence)) ? Number(event.sequence) : null,
+      turn: Number(game.turn || 1),
+      phase: game.phase || "setup",
+      eventType: String(event.type || "unknown"),
+      actorPlayerNum: event.player == null ? (actorPlayerNum == null ? null : Number(actorPlayerNum)) : Number(event.player),
+      targetPlayerNum: event.targetPlayer == null ? null : Number(event.targetPlayer),
+      sourceType: event.source || normalizedCommand.source || null,
+      laneIndex: event.laneIndex == null ? null : Number(event.laneIndex),
+      publicPayload: payload,
+      serverTimestamp,
+      resultingStateChecksum: stateChecksum
+    };
+    game.serverLeagueEvidence.push(entry);
+    return entry;
+  });
 }
 
 function captureAuditEvent(game, timestamp = new Date().toISOString()) {
@@ -304,7 +414,11 @@ function buildMatchRecord(roomState, options = {}) {
       finalLifeGap: lifeValues.length === 2 ? Math.abs(lifeValues[0] - lifeValues[1]) : null,
       decisiveTurn: Number(game.turn || 1)
     },
-    auditEvents
+    auditEvents,
+    leagueEvidence: clonePlain(game.serverLeagueEvidence || []),
+    leagueEvidenceCoverage: (game.serverLeagueEvidence || []).some((entry) => entry.eventType === "match.started")
+      ? "complete"
+      : (game.serverLeagueEvidence || []).length > 0 ? "partial" : "unavailable"
   };
 }
 
@@ -378,18 +492,19 @@ function buildAccountMatchIndexEntry(record, options = {}) {
 
 function publicMatchSummary(record, perspectiveOptions = null) {
   if (!record) return null;
-  const { auditEvents, ...summary } = publicMatchRecord(record);
+  const { auditEvents, leagueEvidence, ...summary } = publicMatchRecord(record);
   return clonePlain({
     ...summary,
     auditEventCount: Array.isArray(auditEvents) ? auditEvents.length : 0,
+    leagueEvidenceCount: Array.isArray(leagueEvidence) ? leagueEvidence.length : 0,
     ...(perspectiveOptions ? { perspective: projectMatchPerspective(record, perspectiveOptions) } : {})
   });
 }
 
-function buildParaMatchExport(record, matchUrl = null, exportedAt = new Date().toISOString()) {
+function buildParaMatchExportV1(record, matchUrl, exportedAt) {
   if (!record) return null;
   return {
-    schemaVersion: "gauntlet.para-match.v1",
+    schemaVersion: PARA_MATCH_V1,
     exportedAt,
     source: {
       product: "Gauntlet Online",
@@ -426,6 +541,124 @@ function buildParaMatchExport(record, matchUrl = null, exportedAt = new Date().t
       finalStateChecksum: record.auditEvents?.[record.auditEvents.length - 1]?.stateChecksum || null
     }
   };
+}
+
+function buildParaMatchExportV2(record, matchUrl, exportedAt, storage = null) {
+  if (!record) return null;
+  const participants = [...(record.participants || [])]
+    .sort((left, right) => Number(left.playerNum) - Number(right.playerNum))
+    .map((participant) => ({
+      participantId: participant.participantId || `${record.matchId}:p${participant.playerNum}`,
+      playerNum: Number(participant.playerNum),
+      identityType: participant.identityType,
+      gauntletAccountId: participant.identityType === "account" ? participant.accountId || null : null,
+      displayName: participant.displayName,
+      faction: clonePlain(participant.faction || { id: "basic", name: "Basic" }),
+      deck: {
+        deckId: participant.deck?.deckId || null,
+        deckVersionId: participant.deck?.deckVersionId || null,
+        source: participant.deck?.source || "standard",
+        format: participant.deck?.format || "constructed"
+      },
+      finalLife: Number(participant.finalLife || 0),
+      result: participant.result
+    }));
+  const evidence = [...(record.leagueEvidence || [])]
+    .sort((left, right) => Number(left.sequence) - Number(right.sequence))
+    .map((entry) => clonePlain(entry));
+  const resolvedStorage = storage || {
+    mode: "unknown",
+    capabilities: {
+      completeRecordV2: "unknown",
+      publicRecordAfterProcessReplacement: false,
+      auditHistoryAfterProcessReplacement: false
+    }
+  };
+  const payload = {
+    schemaVersion: PARA_MATCH_V2,
+    exportedAt,
+    contract: {
+      producer: "Gauntlet Online",
+      recordVersion: Number(record.recordVersion),
+      rulesVersion: record.rulesVersion,
+      contentVersion: record.contentVersion,
+      evidenceSchemaVersion: LEAGUE_EVIDENCE_VERSION
+    },
+    source: {
+      product: "Gauntlet Online",
+      producerId: "gauntlet-online",
+      serverAuthored: true,
+      authoritativeMatchId: record.matchId,
+      seriesId: record.seriesId || null,
+      matchUrl,
+      storage: {
+        mode: resolvedStorage.mode || "unknown",
+        completeRecordV2: resolvedStorage.capabilities?.completeRecordV2 || "unknown",
+        fullRecordDurable: resolvedStorage.capabilities?.completeRecordV2 === "durable",
+        publicRecordAfterProcessReplacement: !!resolvedStorage.capabilities?.publicRecordAfterProcessReplacement,
+        evidenceAfterProcessReplacement: !!resolvedStorage.capabilities?.auditHistoryAfterProcessReplacement
+      }
+    },
+    match: {
+      matchId: record.matchId,
+      seriesId: record.seriesId || null,
+      mode: record.mode,
+      ranked: !!record.ranked,
+      startedAt: record.startedAt,
+      completedAt: record.completedAt,
+      completionReason: record.completionReason,
+      abandonmentReason: record.abandonmentReason || null,
+      turnCount: Number(record.turnCount || 0),
+      campaign: clonePlain(record.campaign || null),
+      series: clonePlain(record.series || null),
+      draft: clonePlain(record.draft || null)
+    },
+    participants,
+    evidence: {
+      schemaVersion: LEAGUE_EVIDENCE_VERSION,
+      coverage: record.leagueEvidenceCoverage || (evidence.length > 0 ? "complete" : "unavailable"),
+      ordered: true,
+      entries: evidence
+    },
+    results: {
+      winnerPlayerNum: record.winnerPlayerNum == null ? null : Number(record.winnerPlayerNum),
+      winnerParticipantId: record.winnerPlayerNum == null
+        ? null
+        : participants.find((participant) => participant.playerNum === Number(record.winnerPlayerNum))?.participantId || null,
+      completionReason: record.completionReason,
+      participants: participants.map(({ participantId, playerNum, result, finalLife }) => ({ participantId, playerNum, result, finalLife }))
+    },
+    recapEvidence: {
+      perspectives: participants.map((participant) => projectMatchPerspective(record, { playerNum: participant.playerNum })),
+      combatStats: clonePlain(record.combatStats || null),
+      largestAttack: clonePlain(record.notableMoments?.largestAttack || null),
+      damageDealt: Number(record.combatStats?.totalDamageDealt || 0),
+      damagePrevented: Number(record.combatStats?.totalDamagePrevented || 0),
+      decisiveTurn: Number(record.notableMoments?.decisiveTurn || record.turnCount || 0),
+      finalPublicMessage: finalPublicMessage(record),
+      notableMoments: clonePlain(record.notableMoments || null),
+      campaignEncounter: clonePlain(record.campaign || null)
+    },
+    verification: {
+      matchRecordVersion: Number(record.recordVersion),
+      evidenceEventCount: evidence.length,
+      auditEventCount: Array.isArray(record.auditEvents) ? record.auditEvents.length : 0,
+      finalStateChecksum: evidence[evidence.length - 1]?.resultingStateChecksum
+        || record.auditEvents?.[record.auditEvents.length - 1]?.stateChecksum
+        || null
+    }
+  };
+  const hashPayload = clonePlain(payload);
+  hashPayload.exportedAt = null;
+  payload.verification.contentHash = stableHash(hashPayload);
+  return payload;
+}
+
+function buildParaMatchExport(record, matchUrl = null, exportedAt = new Date().toISOString(), options = {}) {
+  const version = String(options.version || "1").replace(/^v/i, "");
+  if (version === "1") return buildParaMatchExportV1(record, matchUrl, exportedAt);
+  if (version === "2") return buildParaMatchExportV2(record, matchUrl, exportedAt, options.storage || null);
+  throw new RangeError(`Unsupported Para export version: ${options.version}`);
 }
 
 function createLocalMatchStore(dataFile) {
@@ -470,11 +703,15 @@ function createLocalMatchStore(dataFile) {
 
 module.exports = {
   MATCH_RECORD_VERSION,
+  LEAGUE_EVIDENCE_VERSION,
+  PARA_MATCH_V1,
+  PARA_MATCH_V2,
   RULES_VERSION,
   CONTENT_VERSION,
   buildMatchRecord,
   buildAccountMatchIndexEntry,
   buildParaMatchExport,
+  captureLeagueEvidence,
   captureAuditEvent,
   createLocalMatchStore,
   createMatchMetadata,

@@ -49,7 +49,7 @@ test("match record links participants and the Para export", () => {
   };
   render(<MatchRecordScreen match={match} loading={false} error="" serverUrl="http://localhost:4000" onBack={() => {}} onOpenProfile={onOpenProfile} />);
 
-  expect(screen.getByRole("link", { name: "Para Export" })).toHaveAttribute("href", "http://localhost:4000/api/matches/match-1/export/para");
+  expect(screen.getByRole("link", { name: "Para Export" })).toHaveAttribute("href", "http://localhost:4000/api/matches/match-1/export/para?version=2");
   fireEvent.click(screen.getByRole("button", { name: /WIN Alpha/ }));
   expect(onOpenProfile).toHaveBeenCalledWith("account-1");
 });
