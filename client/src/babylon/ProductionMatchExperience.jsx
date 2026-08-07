@@ -868,12 +868,12 @@ function BroadcastMarker({ broadcast, viewModel }) {
         {participants.slice(0, 2).map((participant) => (
           <span key={participant.playerNum || participant.participantId}>
             <strong>{participant.displayName || `Player ${participant.playerNum}`}</strong>
-            <small>{participant.faction?.name || "Basic"} Â· {viewModel?.players?.[participant.playerNum]?.life ?? "?"} life</small>
+            <small>{participant.faction?.name || "Basic"} / {viewModel?.players?.[participant.playerNum]?.life ?? "?"} life</small>
           </span>
         ))}
       </div>
       <div className="production-broadcast-meta">
-        {score && <span>Series {Number(score[1] || 0)}â€“{Number(score[2] || 0)}</span>}
+        {score && <span>Series {Number(score[1] || 0)}-{Number(score[2] || 0)}</span>}
         <span>Turn {viewModel?.turn || 0}</span>
         {broadcast.spectatorCount != null && <span>{broadcast.spectatorCount} watching</span>}
         <span>{broadcast.matchId || viewModel?.matchId}</span>

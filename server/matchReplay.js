@@ -225,7 +225,13 @@ function validateFrames(record, evidence) {
 
 function eventLabel(entry) {
   const payload = entry.publicPayload || {};
-  if (entry.eventType === "command.accepted") return `Player ${entry.actorPlayerNum || "?"}: ${payload.command?.type || entry.commandType || "command"}`;
+  if (entry.eventType === "command.accepted") {
+    const commandType = payload.command?.type || entry.commandType || "command";
+    if (entry.actorPlayerNum != null) return `Player ${entry.actorPlayerNum}: ${commandType}`;
+    if (commandType === "matchStarted") return "Match started";
+    if (commandType === "finalizeMatch") return "Match finalized";
+    return String(commandType).replace(/([a-z])([A-Z])/g, "$1 $2");
+  }
   if (entry.eventType === "damage.dealt") return `${payload.amount || 0} damage to Player ${payload.player || entry.targetPlayerNum || "?"}`;
   if (entry.eventType === "damage.calculated") return `Combat: ${payload.attackValue || 0} attack, ${payload.blockValue || 0} block, ${payload.damage || 0} damage`;
   if (entry.eventType === "attack.declared") return `Player ${payload.player || entry.actorPlayerNum || "?"} declared an attack`;

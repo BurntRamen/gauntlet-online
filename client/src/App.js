@@ -4902,7 +4902,7 @@ export default function App() {
 
   if (publicView?.type === "replay") {
     return (
-      <Suspense fallback={<div className="loading">Loading replayâ€¦</div>}>
+      <Suspense fallback={<div className="loading">Loading replay...</div>}>
         <MatchReplayScreen
           matchId={publicView.id}
           serverUrl={SOCKET_URL}

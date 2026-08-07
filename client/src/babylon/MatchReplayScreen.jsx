@@ -52,7 +52,7 @@ function ReplayControls({ update, adapter }) {
             key={speed}
             onClick={() => controls.setSpeed(speed)}
           >
-            {speed}Ã—
+            {speed}x
           </button>
         ))}
       </div>
@@ -66,7 +66,7 @@ function ReplayControls({ update, adapter }) {
           ))}
         </div>
       )}
-      <p className="replay-event-meta">T{step?.turn || 0} Â· {step?.phase || "unknown"} Â· evidence #{step?.evidenceSequence || 0}</p>
+      <p className="replay-event-meta">T{step?.turn || 0} / {step?.phase || "unknown"} / evidence #{step?.evidenceSequence || 0}</p>
       {shareStatus && <p role="status" className="replay-share-status">{shareStatus}</p>}
     </aside>
   );
@@ -129,7 +129,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, onBack, audioEna
     : null, [replay]);
   useEffect(() => () => adapter?.dispose(), [adapter]);
 
-  if (loading) return <main className="replay-status"><strong>Loading authoritative replayâ€¦</strong></main>;
+  if (loading) return <main className="replay-status"><strong>Loading authoritative replay...</strong></main>;
   if (error) return <main className="replay-status"><strong>Replay unavailable</strong><p>{error}</p><button type="button" onClick={onBack}>Back to Match Record</button></main>;
   if (!replay?.availability?.available || !adapter) {
     return <main className="replay-status"><strong>Replay unavailable</strong><p>{replay?.availability?.unavailableReason || "The complete record is no longer available."}</p><button type="button" onClick={onBack}>Back to Match Record</button></main>;
