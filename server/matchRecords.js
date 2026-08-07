@@ -4,7 +4,7 @@ const path = require("path");
 
 const { CONTENT_VERSION, RULES_VERSION } = require("./gameContent");
 
-const MATCH_RECORD_VERSION = 1;
+const MATCH_RECORD_VERSION = 2;
 
 function clonePlain(value) {
   return JSON.parse(JSON.stringify(value));
@@ -310,12 +310,24 @@ function buildMatchRecord(roomState, options = {}) {
 
 function publicMatchRecord(record) {
   if (!record) return null;
-  return clonePlain(record);
+  const publicRecord = clonePlain(record);
+  if (publicRecord.completion) {
+    publicRecord.completion = {
+      status: publicRecord.completion.status,
+      envelopeVersion: publicRecord.completion.envelopeVersion,
+      finalizedAt: publicRecord.completion.finalizedAt || null,
+      consequences: (publicRecord.completion.consequences || []).map((consequence) => {
+        const { accountId, receiptKey: _receiptKey, ...publicConsequence } = consequence;
+        return publicConsequence;
+      })
+    };
+  }
+  return publicRecord;
 }
 
 function publicMatchSummary(record) {
   if (!record) return null;
-  const { auditEvents, ...summary } = record;
+  const { auditEvents, ...summary } = publicMatchRecord(record);
   return clonePlain({ ...summary, auditEventCount: Array.isArray(auditEvents) ? auditEvents.length : 0 });
 }
 

@@ -3,6 +3,7 @@ import GauntletMatchCanvas from "./GauntletMatchCanvas";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import "./ProductionMatchExperience.css";
+import "./CompletionResult.css";
 
 const EVENT_TONES = {
   "payment.discarded": [230, 0.09],
@@ -744,13 +745,17 @@ function PrivacyCurtain({ privacy }) {
   );
 }
 
-function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnabled }) {
+function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnabled, completion }) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
-  const winner = viewModel?.winner;
-  const title = winner == null
+  const winner = completion?.result?.winnerPlayerNum ?? viewModel?.winner;
+  const completionOutcome = Number(completion?.result?.playerNum) === Number(localPlayer)
+    ? completion?.result?.outcome
+    : null;
+  const outcome = completionOutcome || (winner == null ? "draw" : winner === localPlayer ? "win" : "loss");
+  const title = outcome === "draw"
     ? "Match Drawn"
-    : winner === localPlayer
+    : outcome === "win"
       ? "Victory"
       : "Defeat";
   const rematchRequestedByMe = controls.rematchStatus?.requestedBy === localPlayer;
@@ -760,7 +765,18 @@ function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnable
     <section className="production-match-result" role="dialog" aria-modal="true">
       <span>Gauntlet Match Complete</span>
       <h1>{title}</h1>
-      <p>{viewModel.message}</p>
+      <p>{completion?.recap?.finalMessage || viewModel.message}</p>
+      <dl className="production-result-facts">
+        <div><dt>Match ID</dt><dd>{completion?.matchId || viewModel.matchId || "Pending"}</dd></div>
+        {completion?.campaign && <div><dt>Chapter</dt><dd>{completion.campaign.firstClear ? "First clear" : completion.campaign.repeatClear ? "Repeat clear" : "Not cleared"}</dd></div>}
+        {completion && <div><dt>Booster credits</dt><dd>{Number(completion.rewards?.boosterCreditDelta || 0) > 0 ? `+${completion.rewards.boosterCreditDelta}` : Number(completion.rewards?.boosterCreditDelta || 0)}</dd></div>}
+        {completion?.campaign?.nextMission?.status === "available" && <div><dt>Next mission</dt><dd>{completion.campaign.nextMission.title}</dd></div>}
+      </dl>
+      {(completion?.rewards?.achievementsUnlocked?.length > 0 || completion?.rewards?.cosmeticsUnlocked?.length > 0) && (
+        <p className="production-result-unlocks">
+          Newly unlocked: {[...(completion.rewards.achievementsUnlocked || []), ...(completion.rewards.cosmeticsUnlocked || [])].map((entry) => entry.name || entry.id).join(", ")}
+        </p>
+      )}
       {campaign?.afterBattle && <p className="production-campaign-aftermath">{campaign.afterBattle}</p>}
       <CampaignDialogue
         title="Ending dialogue"
@@ -1024,6 +1040,7 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
+  const [completion, setCompletion] = useState(null);
   const adapterRef = useRef(adapter);
   const inspectionReturnFocusRef = useRef(null);
   adapterRef.current = adapter;
@@ -1057,6 +1074,34 @@ export default function ProductionMatchExperience({
     && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
   );
   const playUiTone = useEventAudio(viewModel?.events, audioEnabled);
+  useEffect(() => {
+    const matchId = viewModel?.matchId;
+    if (viewModel?.phase !== "gameOver" || !matchId) {
+      setCompletion(null);
+      return undefined;
+    }
+    let cancelled = false;
+    let attempts = 0;
+    const loadCompletion = async () => {
+      try {
+        const baseUrl = process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
+        const token = typeof window !== "undefined" ? window.localStorage.getItem("gauntlet_auth_token") : "";
+        const response = await fetch(`${baseUrl}/api/matches/${encodeURIComponent(matchId)}/completion`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Completion unavailable");
+        if (!cancelled) setCompletion(data.completion || null);
+      } catch (_error) {
+        if (!cancelled && attempts < 3) {
+          attempts += 1;
+          window.setTimeout(loadCompletion, attempts * 400);
+        }
+      }
+    };
+    loadCompletion();
+    return () => { cancelled = true; };
+  }, [viewModel?.matchId, viewModel?.phase]);
   useEffect(() => {
     if (options.audioEnabled != null) setAudioEnabled(Boolean(options.audioEnabled));
   }, [options.audioEnabled]);
@@ -1326,6 +1371,7 @@ export default function ProductionMatchExperience({
           commands={interactionCommands}
           campaign={update?.snapshot?.campaign}
           audioEnabled={audioEnabled}
+          completion={completion}
         />
 
         <div className="production-portrait-guard" role="status">

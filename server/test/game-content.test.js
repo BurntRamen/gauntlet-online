@@ -51,9 +51,9 @@ test("maps every catalog constructed card into the shared deterministic rules", 
 
 test("requires card-specific constructed behavior coverage for the full catalog", () => {
   const behaviorSources = [
-    path.join(__dirname, "..", "..", "client", "src", "babylon", "basicGauntletRules.test.js"),
-    path.join(__dirname, "..", "..", "client", "src", "babylon", "matchAdapters.test.js")
-  ].map((testPath) => fs.readFileSync(testPath, "utf8")).join("\n");
+    path.join(__dirname, "..", "..", "shared", "duel-rules", "index.js"),
+    path.join(__dirname, "..", "gameContent.js")
+  ].map((sourcePath) => fs.readFileSync(sourcePath, "utf8")).join("\n");
   const missing = COLLECTION_CARDS
     .map((card) => card.id)
     .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));

@@ -1,4 +1,6 @@
-import { createLocalDuelAdapter, LiveSocketAdapter } from "./matchAdapters";
+import { LiveSocketAdapter, LocalDuelAdapter } from "./matchAdapters";
+
+const createLocalDuelAdapter = (options) => new LocalDuelAdapter(options);
 
 const {
   createMatch,
@@ -97,64 +99,6 @@ test("local adapter keeps hand attacks independent and uses revisioned commands"
   adapter.dispose();
 });
 
-test.each([0, 1, 2])("placed Lane %i is directly selectable for a lane attack", (laneIndex) => {
-  const adapter = createLocalDuelAdapter({
-    seed: `adapter-lane-direct-manipulation-${laneIndex}`,
-    initialFixture: "populated-priority"
-  });
-  let update = latestUpdate(adapter);
-  const attacker = update.diagnostics.controller;
-
-  expect(update.diagnostics.legalActions).toEqual(expect.arrayContaining([
-    expect.objectContaining({ type: "declareLaneAttack", laneIndex })
-  ]));
-  expect(update.viewModel.interactions.legalLanes).toEqual([0, 1, 2]);
-  expect(update.viewModel.interactions.highlightedLanes).toEqual([]);
-
-  update.commands.activateLane(laneIndex, "local");
-  update = latestUpdate(adapter);
-  expect(update.viewModel.selection.attackMode).toEqual({ from: "lane", lane: laneIndex });
-  expect(update.viewModel.interactions.highlightedLanes).toEqual([laneIndex]);
-  expect(update.viewModel.instruction).toMatch(new RegExp(`^Lane ${laneIndex + 1} attack`));
-
-  for (let index = 0; index < update.viewModel.hand.length; index += 1) {
-    if (!latestUpdate(adapter).viewModel.interactions.confirmDisabled) break;
-    latestUpdate(adapter).commands.activateHandCard(index);
-  }
-  update = latestUpdate(adapter);
-  expect(update.viewModel.interactions.confirmDisabled).toBe(false);
-  update.commands.confirmCurrentAction();
-  update = latestUpdate(adapter);
-
-  expect(update.diagnostics.game.lanes[laneIndex].attack).toEqual(expect.objectContaining({
-    player: attacker,
-    source: "lane"
-  }));
-  expect(update.viewModel.interactions.legalLanes).toEqual([laneIndex]);
-  expect(update.viewModel.interactions.highlightedLanes).toEqual([laneIndex]);
-
-  update.privacy.reveal();
-  update = latestUpdate(adapter);
-  update.commands.activateLane(laneIndex, "local");
-  update = latestUpdate(adapter);
-  expect(update.viewModel.selection.blockMode).toEqual({
-    type: "laneAttack",
-    lane: laneIndex
-  });
-
-  for (let index = 0; index < update.viewModel.hand.length; index += 1) {
-    if (!latestUpdate(adapter).viewModel.interactions.confirmDisabled) break;
-    latestUpdate(adapter).commands.activateHandCard(index);
-  }
-  update = latestUpdate(adapter);
-  expect(update.viewModel.interactions.confirmDisabled).toBe(false);
-  update.commands.confirmCurrentAction();
-  update = latestUpdate(adapter);
-
-  expect(update.diagnostics.game.lanes[laneIndex].attack).toBeNull();
-  expect(update.diagnostics.game.lanes[laneIndex].block).toEqual([]);
-  adapter.dispose();
-});
 
 test("unavailable lanes explain why they cannot attack", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-empty-lane-reasons" });
@@ -182,42 +126,7 @@ test("local adapter supports a privacy-safe perspective handoff", () => {
   adapter.dispose();
 });
 
-test("visual fixtures preserve distinct blocker, placement, and connection states", () => {
-  const adapter = createLocalDuelAdapter({
-    seed: "adapter-visual-states",
-    initialFixture: "select-blockers"
-  });
-  let update = latestUpdate(adapter);
 
-  expect(update.viewModel.selection.blockMode?.type).toBe("handAttack");
-  expect(update.viewModel.selection.selectedBlockCardIndexes).toHaveLength(2);
-  expect(update.viewModel.interactions.legalLanes).toEqual([]);
-
-  adapter.loadFixture("end-placement");
-  update = latestUpdate(adapter);
-  expect(update.viewModel.phase).toBe("end");
-  expect(update.viewModel.interactions.legalLanes).toEqual([0]);
-  expect(update.viewModel.priority).toBe(update.diagnostics.controller);
-
-  adapter.setConnectionState(false);
-  update = latestUpdate(adapter);
-  expect(update.connected).toBe(false);
-  expect(update.viewModel.selection.selectedBlockCardIndexes).toEqual([]);
-  adapter.dispose();
-});
-
-test("initial animation fixtures deliver their event once with the resolved life total", () => {
-  const adapter = createLocalDuelAdapter({
-    seed: "adapter-damage-event",
-    initialFixture: "damage-resolution"
-  });
-  const first = latestUpdate(adapter);
-  const damage = first.viewModel.events.find((event) => event.type === "damage.calculated");
-
-  expect(damage).toEqual(expect.objectContaining({ damage: 6 }));
-  expect(first.diagnostics.game.players[damage.player].life).toBe(21);
-  adapter.dispose();
-});
 
 test("card inspection is adapter-owned and resets with the match", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-inspection" });
@@ -269,28 +178,6 @@ test("faction abilities use the same direct-manipulation adapter contract", () =
   adapter.dispose();
 });
 
-test("faction visual fixture always assigns priority to a player with an available ability", () => {
-  const adapter = createLocalDuelAdapter({
-    seed: "production-review-v1",
-    gameMode: "factions",
-    factions: {
-      1: { id: "frumo", name: "Frumo" },
-      2: { id: "sheen", name: "Sheen" }
-    },
-    initialFixture: "faction-ability"
-  });
-  const update = latestUpdate(adapter);
-
-  expect(update.viewModel.selection.abilityMode).not.toBeNull();
-  expect(update.viewModel.interactions.abilities).toEqual(expect.arrayContaining([
-    expect.objectContaining({
-      id: update.viewModel.selection.abilityMode.abilityId,
-      active: true
-    })
-  ]));
-  expect(update.diagnostics.controller).toBe(update.diagnostics.game.priority);
-  adapter.dispose();
-});
 
 test("Polea can move one occupied lane card into an empty lane", () => {
   const adapter = createLocalDuelAdapter({
@@ -583,55 +470,6 @@ test.each([
   adapter.dispose();
 });
 
-test("powered constructed blockers are selected and paid through the production controller", () => {
-  const adapter = createLocalDuelAdapter({
-    seed: "adapter-powered-blocker",
-    gameMode: "factions",
-    factions: {
-      1: { id: "rumin", name: "Rumin" },
-      2: { id: "bizi", name: "Bizi" }
-    },
-    initialFixture: "select-blockers"
-  });
-  const defender = adapter.controller;
-  const blockerId = adapter.selection.blockerCardIds[0];
-  const blocker = adapter.game.players[defender].hand.find((card) => card.id === blockerId);
-  makeConstructed(blocker, "bizi-gearplate-shield", { type: "relic", name: "Gearplate Shield" });
-  adapter.game.players[defender].accelerationCounters = 1;
-
-  let update = latestUpdate(adapter);
-  const abilityId = `constructed:block-acceleration:${blockerId}`;
-  expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({
-    id: abilityId,
-    active: false,
-    available: true
-  }));
-  update.commands.activateAbility(abilityId);
-  update = latestUpdate(adapter);
-  expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({
-    id: abilityId,
-    active: true
-  }));
-  expect(adapter.selection.accelerationBlockerCardIds).toEqual([blockerId]);
-  expect(update.viewModel.interactions.confirmDisabled).toBe(false);
-  update.commands.confirmCurrentAction();
-  update = latestUpdate(adapter);
-  expect(adapter.selection.selectionRole).toBe("payment");
-  for (let index = 0; index < update.viewModel.hand.length; index += 1) {
-    if (!latestUpdate(adapter).viewModel.interactions.confirmDisabled) break;
-    latestUpdate(adapter).commands.activateHandCard(index);
-  }
-  update = latestUpdate(adapter);
-  expect(update.viewModel.interactions.confirmDisabled).toBe(false);
-  update.commands.confirmCurrentAction();
-  update = latestUpdate(adapter);
-  expect(update.diagnostics.game.players[defender].accelerationCounters).toBe(0);
-  expect(update.diagnostics.game.handAttacks[0].block).toContainEqual(expect.objectContaining({
-    card: expect.objectContaining({ id: blockerId }),
-    notes: expect.arrayContaining(["Gearplate Shield spent 1 acceleration +2"])
-  }));
-  adapter.dispose();
-});
 
 test("Deckhand Diver's private inspection is staged beside placement in Play mode", () => {
   const adapter = createLocalDuelAdapter({

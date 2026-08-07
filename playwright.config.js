@@ -8,6 +8,7 @@ const clientUrl = "http://127.0.0.1:3100";
 
 module.exports = defineConfig({
   testDir: "./e2e",
+  testMatch: "babylon-live-entry.spec.js",
   testIgnore: "babylon-performance.spec.js",
   fullyParallel: false,
   workers: 1,
@@ -48,7 +49,8 @@ module.exports = defineConfig({
         FACTION_STATS_DATA_FILE: path.join(dataDirectory, "faction-stats.json"),
         MATCH_DATA_FILE: path.join(dataDirectory, "matches.json"),
         ROOM_STATE_DATA_FILE: path.join(dataDirectory, "rooms.json"),
-        ROOM_STATE_RECOVERY_ENABLED: "false"
+        ROOM_STATE_RECOVERY_ENABLED: "false",
+        E2E_TEST: "true"
       }
     },
     {

@@ -1,9 +1,7 @@
 # Official Babylon match experience
 
-This directory contains one production-oriented match experience shared by the
-local simulator, named visual fixtures, and explicitly flagged live matches.
-The sandbox is a host for the real player-facing component; it is not a second
-renderer.
+This directory contains the production match experience used by supported live,
+training, and campaign matches.
 
 ## Boundaries
 
@@ -13,30 +11,20 @@ owns one Babylon engine and scene. `createGauntletScene` owns stable meshes,
 materials, camera fitting, animation targets, pointer handling, and disposal.
 
 The renderer consumes a view model and semantic callbacks only. It never imports
-the simulator, fixture controls, Socket.IO, room state, or server functions.
+Socket.IO, room state, or server functions.
 
-Adapters:
-
-- `LocalDuelAdapter` runs deterministic Basic and two-player faction matches.
-- `FixtureMatchAdapter` hosts static review snapshots.
-- `LiveSocketAdapter` presents sanitized live snapshots and exposes the
-  revisioned semantic-command bridge.
+`LiveSocketAdapter` presents sanitized live snapshots and exposes the revisioned
+semantic-command bridge. `LocalDuelAdapter` is the shared engine-backed base used
+for local match behavior and unit coverage; it is not exposed through a browser
+test route.
 
 ## Entry points
 
-- `?babylon-test=1` opens Play mode at a deterministic opening deal. It exposes
-  no fixture or developer controls and can progress through the complete rules
-  engine to a result and a fresh match.
-- `?babylon-test=1&babylon-dev=1` adds the optional seed, faction, fixture,
-  perspective, rewind, legal-action, history, and state tools.
-- `?babylon-test=1&review=1&fixture=<name>` opens a named review state with
-  developer chrome hidden. `mode=factions&p1=frumo` selects a faction rules
-  profile for faction-ability review.
-- Supported two-player Basic and faction matches use this experience by default.
+- Supported Basic, faction, training, campaign, ranked, and draft matches use
+  this experience through their normal application entry points.
 - `?renderer=babylon` remains an explicit diagnostic override for the production experience.
 - `?renderer=react` activates the temporary emergency compatibility renderer.
-  duel. The standard React match screen remains the default and automatic
-  fallback.
+  The standard React match screen remains the automatic emergency fallback.
 
 ## Player-facing guidance
 
@@ -54,11 +42,9 @@ Adapters:
 - The collapsed Match menu exposes confirmed concession in the local simulator
   and the supported room controls in live matches.
 
-`npm run test:e2e:usability` exercises the production Play-mode sequence without
-developer controls: opening deal, independent attack, payment, hand block,
-block payment, pass-pass closure, all six placement opportunities, next turn,
-confirmed concession, result, and new match. This is automated interaction
-evidence and does not replace the ordinary-player gate.
+`npm run test:e2e` exercises the normal lobby, training, campaign, ranked, and
+draft entry paths without production fixture routes. This automated interaction
+evidence does not replace the ordinary-player gate.
 
 ## Spatial and orientation invariants
 

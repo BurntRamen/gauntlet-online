@@ -9,7 +9,6 @@ import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
 
-const BabylonMatchTestScreen = lazy(() => import("./babylon/BabylonMatchTestScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 
 const SOCKET_URL =
@@ -40,11 +39,6 @@ function shouldUseProductionMatchRenderer() {
   const requested = new URLSearchParams(window.location.search).get("renderer");
   if (requested === "react") return false;
   return process.env.REACT_APP_MATCH_RENDERER !== "react";
-}
-
-function isBabylonTestRequested() {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("babylon-test") === "1";
 }
 
 const BABYLON_FAILED_MATCH_KEY = "gauntlet_babylon_failed_match";
@@ -266,16 +260,6 @@ const FACTION_VOICE_LINES = {
     "The sky has not agreed."
   ]
 };
-
-function getCampaignChapterList(campaigns, factionId) {
-  return campaigns?.[factionId]?.chapters || [];
-}
-
-function getNextCampaignChapter(campaigns, factionId, chapterId) {
-  const chapters = getCampaignChapterList(campaigns, factionId);
-  const currentIndex = chapters.findIndex((chapter) => chapter.id === chapterId);
-  return currentIndex >= 0 ? chapters[currentIndex + 1] || null : null;
-}
 
 function buildCampaignEndDialogue(campaign = {}) {
   if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) return campaign.endDialogue;
@@ -3472,10 +3456,10 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
 }
 
 export default function App() {
-  const babylonTestMode = isBabylonTestRequested();
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
+  const [completionEnvelope, setCompletionEnvelope] = useState(null);
   const [lobby, setLobby] = useState(null);
   const [draftState, setDraftState] = useState(null);
   const [error, setError] = useState("");
@@ -3619,10 +3603,6 @@ export default function App() {
   const activateReactMatchFallback = useCallback(async (rendererError) => {
     if (babylonFallbackPromiseRef.current) return babylonFallbackPromiseRef.current;
     const activeMatchId = liveMatchSessionRef.current?.getCurrent()?.game?.matchId || game?.matchId;
-    console.error("[MatchRendererFallback] Activating the legacy React match renderer.", {
-      matchId: activeMatchId || null,
-      reason: rendererError?.message || "Babylon renderer failure"
-    });
     const handoff = (async () => {
       const result = await liveMatchSessionRef.current?.prepareRendererFallback(
         rendererError?.message || "Babylon renderer failure"
@@ -3637,14 +3617,6 @@ export default function App() {
     babylonFallbackPromiseRef.current = handoff;
     return handoff;
   }, [game?.matchId]);
-
-  useEffect(() => {
-    if (!game?.matchId || !hasBabylonSessionFailure(game.matchId)) return;
-    console.warn("[MatchRendererFallback] Legacy React renderer retained for this match session.", {
-      matchId: game.matchId
-    });
-  }, [game?.matchId]);
-
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
   const [placementMode, setPlacementMode] = useState(null);
@@ -3686,10 +3658,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (babylonTestMode) return undefined;
     loadGameContent();
     return undefined;
-  }, [babylonTestMode, loadGameContent]);
+  }, [loadGameContent]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3769,8 +3740,35 @@ export default function App() {
       });
   }, [authToken]);
 
+  useEffect(() => {
+    const matchId = game?.matchId;
+    const completed = game?.phase === "gameOver" || game?.winner != null;
+    if (!matchId || !completed) {
+      setCompletionEnvelope(null);
+      return undefined;
+    }
+    let cancelled = false;
+    let attempt = 0;
+    const loadCompletion = async () => {
+      try {
+        const response = await fetch(`${SOCKET_URL}/api/matches/${encodeURIComponent(matchId)}/completion`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load match completion.");
+        if (!cancelled) setCompletionEnvelope(data.completion || null);
+      } catch (completionError) {
+        if (!cancelled && attempt < 3) {
+          attempt += 1;
+          window.setTimeout(loadCompletion, 400 * attempt);
+        }
+      }
+    };
+    loadCompletion();
+    return () => { cancelled = true; };
+  }, [authToken, game?.matchId, game?.phase, game?.winner]);
+
   const loadLeaderboard = useCallback(() => {
-    if (babylonTestMode) return;
     fetch(`${SOCKET_URL}/api/leaderboard`)
       .then(async (response) => {
         const data = await response.json();
@@ -3779,7 +3777,7 @@ export default function App() {
         setLeaderboardError("");
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
-  }, [babylonTestMode]);
+  }, []);
 
   useEffect(() => {
     loadLeaderboard();
@@ -4299,6 +4297,7 @@ export default function App() {
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
+    setCompletionEnvelope(null);
     setLastOpenedPack([]);
     setOpeningPackId("");
     setFriendsData({ friends: [], messages: [], challenges: [] });
@@ -4807,14 +4806,6 @@ export default function App() {
       actionLabel: "Find a Game",
       onClick: () => setHomeArea("play")
     };
-  }
-
-  if (babylonTestMode) {
-    return (
-      <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
-        <BabylonMatchTestScreen />
-      </Suspense>
-    );
   }
 
   if (publicView?.type === "match") {
@@ -5414,15 +5405,24 @@ export default function App() {
 
   if (gameIsOver) {
     const isDraw = game.winner == null;
-    const didWin = !isSpectator && game.winner === player;
-    const didLose = !isSpectator && game.winner != null && game.winner !== player;
+    const authoritativeOutcome = Number(completionEnvelope?.result?.playerNum) === Number(player)
+      ? completionEnvelope?.result?.outcome || null
+      : null;
+    const didWin = !isSpectator && (authoritativeOutcome ? authoritativeOutcome === "win" : game.winner === player);
+    const didLose = !isSpectator && (authoritativeOutcome ? authoritativeOutcome === "loss" : game.winner != null && game.winner !== player);
     const resultTitle = isDraw ? "Draw" : didWin ? "Victory" : didLose ? "Defeat" : `Player ${game.winner} Wins`;
-    const resultDetail = game.message || (isDraw ? "The game ended in a draw." : `Player ${game.winner} wins.`);
+    const resultDetail = completionEnvelope?.recap?.finalMessage || game.message || (isDraw ? "The game ended in a draw." : `Player ${game.winner} wins.`);
     const resultColor = isDraw ? "#dbeafe" : didWin ? "#dcfce7" : didLose ? "#fee2e2" : "#f3f4f6";
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
     const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
     const confettiPieces = Array.from({ length: 18 }, (_, index) => index);
-    const nextCampaignChapter = didWin && game.campaign ? getNextCampaignChapter(gameContent.campaigns, game.campaign.factionId, game.campaign.chapterId) : null;
+    const nextCampaignChapter = completionEnvelope?.campaign?.nextMission?.status === "available"
+      ? completionEnvelope.campaign.nextMission
+      : null;
+    const campaignClearType = completionEnvelope?.campaign?.firstClear ? "First clear" : completionEnvelope?.campaign?.repeatClear ? "Repeat clear" : null;
+    const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
+    const unlockedAchievements = completionEnvelope?.rewards?.achievementsUnlocked || [];
+    const unlockedCosmetics = completionEnvelope?.rewards?.cosmeticsUnlocked || [];
     const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
     const canRematch = !isSpectator
       && !game.campaign
@@ -5475,6 +5475,13 @@ export default function App() {
           <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>After Battle</div>
           <h1 style={{ margin: "0 0 10px 0", fontFamily: "Georgia, serif", fontSize: "clamp(36px, 7vw, 58px)", color: "#2a160b", textShadow: "0 2px 0 rgba(255,255,255,0.48)" }}>{resultTitle}</h1>
           <p style={{ margin: "0 auto 20px auto", maxWidth: 560, fontSize: 18, color: "#2f1c10" }}>{resultDetail}</p>
+          <div style={{ margin: "0 auto 18px", maxWidth: 620, display: "grid", gap: 8, textAlign: "left", fontSize: 14, color: "#2f1c10" }}>
+            <div><strong>Match ID:</strong> {completionEnvelope?.matchId || game.matchId || "Pending"}</div>
+            {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
+            {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
+            {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}
+          </div>
           {game.campaign?.afterBattle && (
             <div style={{ margin: "0 auto 20px auto", maxWidth: 620, padding: 14, borderRadius: 10, background: "rgba(15,23,42,0.08)", border: `1px solid ${resultBorder}`, textAlign: "left", lineHeight: 1.45, color: "#2f1c10" }}>
               <strong>After Battle:</strong> {game.campaign.afterBattle}

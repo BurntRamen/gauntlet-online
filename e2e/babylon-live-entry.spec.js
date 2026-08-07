@@ -1,6 +1,37 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
+const { io } = require("socket.io-client");
+
+const SERVER_URL = "http://127.0.0.1:4100";
+
+function waitForEvent(socket, eventName, predicate = () => true, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      socket.off(eventName, onEvent);
+      reject(new Error(`Timed out waiting for ${eventName}.`));
+    }, timeoutMs);
+    function onEvent(payload) {
+      if (!predicate(payload)) return;
+      clearTimeout(timeout);
+      socket.off(eventName, onEvent);
+      resolve(payload);
+    }
+    socket.on(eventName, onEvent);
+  });
+}
+
+async function connectSeedClient() {
+  const socket = io(SERVER_URL, {
+    autoConnect: false,
+    forceNew: true,
+    transports: ["websocket"]
+  });
+  const connected = waitForEvent(socket, "connect");
+  socket.connect();
+  await connected;
+  return socket;
+}
 
 async function prepareGuest(page, baseURL, name, playTab = "Tables") {
   await page.goto(baseURL);
@@ -84,7 +115,7 @@ async function localLife(page) {
 }
 
 async function registerTestAccount(request, name) {
-  const response = await request.post("http://127.0.0.1:4100/api/auth/register", {
+  const response = await request.post(`${SERVER_URL}/api/auth/register`, {
     data: { name, password: "Babylon-Test-Password-42" }
   });
   expect(response.ok()).toBeTruthy();
@@ -501,8 +532,8 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   }
   const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
   await expect(openingDialogue.getByRole("button", { name: "Play dialogue" })).toBeEnabled();
-  await openingDialogue.getByRole("button", { name: /Play Narrator voice/i }).click();
-  await expect(openingDialogue).toContainText(/Playing Narrator/i);
+  await openingDialogue.getByRole("button", { name: /Play .* voice/i }).first().click();
+  await expect(openingDialogue).toContainText(/Playing .*\./i);
   await expect.poll(() => page.evaluate(() => window.__campaignDialogueSources?.[0] || ""))
     .toContain("/assets/gauntlet/voices/");
 
@@ -515,6 +546,91 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(currentAction)
     .toContainText(/launched scripted attack/i);
   await expect(currentAction.getByRole("button", { name: "Take Damage" })).toBeVisible();
+});
+
+test("signed-in campaign completion persists the envelope and restores after refresh and sign-in", async ({ page, request, baseURL }) => {
+  test.setTimeout(90000);
+  const unique = `${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+  const accountName = `Cmp${unique}`;
+  const password = "Babylon-Test-Password-42";
+  const account = await registerTestAccount(request, accountName);
+
+  await page.addInitScript((authToken) => {
+    window.localStorage.setItem("gauntlet_auth_token", authToken);
+  }, account.token);
+  await page.goto(baseURL);
+  await page.locator('button[data-area="journey"]').click();
+  await page.getByRole("button", { name: "Choose a Faction" }).click();
+  await expect(page.getByRole("heading", { name: "Faction Campaigns" })).toBeVisible();
+  await page.getByRole("button", { name: "Begin Battle" }).first().click();
+
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toBeVisible();
+  const session = await page.evaluate(() => ({
+    roomCode: window.localStorage.getItem("gauntlet_room_code"),
+    reconnectToken: window.localStorage.getItem("gauntlet_reconnect_token")
+  }));
+
+  const setupSocket = await connectSeedClient();
+  try {
+    const statePromise = waitForEvent(setupSocket, "state", (state) => state.phase === "priority");
+    setupSocket.emit("reconnectToRoom", {
+      roomCode: session.roomCode,
+      role: "spectator"
+    });
+    await statePromise;
+    const prepared = await new Promise((resolve, reject) => {
+      setupSocket.timeout(5000).emit("e2ePrepareCampaignCompletion", (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      });
+    });
+    expect(prepared.ok).toBeTruthy();
+  } finally {
+    setupSocket.disconnect();
+  }
+
+  await expect(page.getByRole("region", { name: "Current match action" }).getByRole("button", { name: "Pass Priority" })).toBeEnabled();
+  await page.getByRole("region", { name: "Current match action" }).getByRole("button", { name: "Pass Priority" }).click();
+  await expect(page.getByRole("heading", { name: "Victory" })).toBeVisible();
+  await expect(page.getByText("First clear", { exact: true })).toBeVisible();
+  await expect(page.getByText("+1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Next mission", { exact: true })).toBeVisible();
+
+  const matchId = await match.getAttribute("data-match-id");
+  expect(matchId).toMatch(/^[0-9a-f-]{36}$/i);
+  const authHeaders = { Authorization: `Bearer ${account.token}` };
+  const completionResponse = await request.get(`${SERVER_URL}/api/matches/${matchId}/completion`, { headers: authHeaders });
+  expect(completionResponse.ok()).toBeTruthy();
+  const completion = (await completionResponse.json()).completion;
+  expect(completion.matchId).toBe(matchId);
+  expect(completion.result.outcome).toBe("win");
+  expect(completion.campaign.firstClear).toBe(true);
+  expect(completion.rewards.boosterCreditDelta).toBe(1);
+  expect(completion.campaign.nextMission?.chapterId).toBeTruthy();
+
+  const matchesResponse = await request.get(`${SERVER_URL}/api/account/matches`, { headers: authHeaders });
+  const matches = (await matchesResponse.json()).matches;
+  expect(matches.filter((entry) => entry.matchId === matchId)).toHaveLength(1);
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Victory" })).toBeVisible();
+  await expect(page.getByText(matchId, { exact: true })).toBeVisible();
+  await expect(page.getByText("First clear", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Main Menu" }).click();
+  await page.locator('button[data-area="identity"]').click();
+  await page.getByRole("button", { name: "Sign Out" }).click();
+  await page.getByPlaceholder("Account name").fill(accountName);
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign In" }).click();
+  await expect(page.getByText(`Signed in as ${accountName}`)).toBeVisible();
+
+  const restored = await request.get(`${SERVER_URL}/api/auth/me`, { headers: authHeaders });
+  const restoredAccount = (await restored.json()).account;
+  expect(restoredAccount.stats.gamesWon).toBe(1);
+  expect(restoredAccount.stats.collection.packCredits).toBe(1);
+  expect(restoredAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
 });
 
 test("normal ranked best-of-three entry advances to game two inside the same Babylon experience", async ({

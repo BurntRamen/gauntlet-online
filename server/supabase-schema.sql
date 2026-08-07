@@ -72,10 +72,149 @@ create table if not exists gauntlet_match_events (
   primary key (match_id, sequence)
 );
 
+-- One receipt per authoritative match/account pair. The pair is the durable
+-- idempotency key for account statistics, deck records, campaign progress,
+-- history, achievements, cosmetics, and earned booster credits.
+create table if not exists gauntlet_match_consequence_receipts (
+  match_id uuid not null references gauntlet_match_records(id) on delete cascade,
+  account_id uuid not null references gauntlet_accounts(id) on delete cascade,
+  result text not null check (result in ('win', 'loss', 'draw')),
+  consequence jsonb not null default '{}'::jsonb,
+  applied_at timestamptz not null default now(),
+  primary key (match_id, account_id)
+);
+
+create index if not exists gauntlet_match_consequence_receipts_account_idx
+  on gauntlet_match_consequence_receipts (account_id, applied_at desc);
+
+-- Supabase deployments should call this RPC for the final commit. The
+-- application supplies the authoritative match, event rows, consequence
+-- deltas, and prepared account projections. They are committed together;
+-- the unique receipt insert makes retries and concurrent calls no-op.
+drop function if exists finalize_gauntlet_match(jsonb, jsonb, jsonb);
+
+create or replace function finalize_gauntlet_match(
+  p_record jsonb,
+  p_events jsonb default '[]'::jsonb,
+  p_consequences jsonb default '[]'::jsonb,
+  p_account_applications jsonb default '[]'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_match_id uuid := (p_record->>'matchId')::uuid;
+  v_consequence jsonb;
+  v_application jsonb;
+  v_account_id uuid;
+  v_next_stats jsonb;
+begin
+  insert into gauntlet_match_records (
+    id, series_id, mode, rules_version, content_version, ranked,
+    started_at, completed_at, completion_reason, winner_player_num,
+    participant_account_ids, record
+  ) values (
+    v_match_id,
+    nullif(p_record->>'seriesId', '')::uuid,
+    p_record->>'mode',
+    p_record->>'rulesVersion',
+    p_record->>'contentVersion',
+    coalesce((p_record->>'ranked')::boolean, false),
+    (p_record->>'startedAt')::timestamptz,
+    (p_record->>'completedAt')::timestamptz,
+    p_record->>'completionReason',
+    nullif(p_record->>'winnerPlayerNum', '')::integer,
+    coalesce(array(
+      select (participant->>'accountId')::uuid
+      from jsonb_array_elements(p_record->'participants') as participant
+      where nullif(participant->>'accountId', '') is not null
+    ), '{}'::uuid[]),
+    p_record
+  ) on conflict (id) do update set record = excluded.record;
+
+  insert into gauntlet_match_events (
+    match_id, sequence, turn, phase, actor_player_num, event_type,
+    public_payload, server_timestamp, state_checksum
+  )
+  select v_match_id, sequence, turn, phase, actor_player_num, event_type,
+         public_payload, server_timestamp, state_checksum
+  from jsonb_to_recordset(coalesce(p_events, '[]'::jsonb)) as event(
+    sequence integer,
+    turn integer,
+    phase text,
+    actor_player_num integer,
+    event_type text,
+    public_payload jsonb,
+    server_timestamp timestamptz,
+    state_checksum text
+  ) on conflict (match_id, sequence) do nothing;
+
+  for v_application in select * from jsonb_array_elements(coalesce(p_account_applications, '[]'::jsonb)) loop
+    v_account_id := (v_application->>'accountId')::uuid;
+    v_consequence := coalesce(v_application->'consequence', '{}'::jsonb);
+    v_next_stats := v_application->'nextStats';
+    insert into gauntlet_match_consequence_receipts (match_id, account_id, result, consequence)
+    values (v_match_id, v_account_id, v_application->>'result', v_consequence)
+    on conflict (match_id, account_id) do nothing;
+    if found and v_next_stats is not null then
+      update gauntlet_accounts
+      set stats = v_next_stats, last_seen_at = now()
+      where id = v_account_id;
+    end if;
+  end loop;
+
+  -- Keep this loop for compatibility with callers that already persisted
+  -- receipt facts separately; account applications above are the atomic path.
+  for v_consequence in select * from jsonb_array_elements(coalesce(p_consequences, '[]'::jsonb)) loop
+    v_account_id := (v_consequence->>'accountId')::uuid;
+    insert into gauntlet_match_consequence_receipts (match_id, account_id, result, consequence)
+    values (v_match_id, v_account_id, v_consequence->>'result', v_consequence)
+    on conflict (match_id, account_id) do nothing;
+  end loop;
+
+  return jsonb_build_object('matchId', v_match_id, 'status', 'finalized');
+end;
+$$;
+
+create or replace function apply_gauntlet_account_consequence(
+  p_match_id uuid,
+  p_account_id uuid,
+  p_result text,
+  p_consequence jsonb,
+  p_next_stats jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into gauntlet_match_consequence_receipts (match_id, account_id, result, consequence)
+  values (p_match_id, p_account_id, p_result, p_consequence)
+  on conflict (match_id, account_id) do nothing;
+  if not found then
+    return jsonb_build_object('alreadyApplied', true);
+  end if;
+  update gauntlet_accounts
+  set stats = p_next_stats, last_seen_at = now()
+  where id = p_account_id;
+  return jsonb_build_object('alreadyApplied', false);
+end;
+$$;
+
 alter table gauntlet_match_records enable row level security;
 alter table gauntlet_match_events enable row level security;
+alter table gauntlet_match_consequence_receipts enable row level security;
 
 revoke all on gauntlet_match_records from anon, authenticated;
 revoke all on gauntlet_match_events from anon, authenticated;
+revoke all on gauntlet_match_consequence_receipts from anon, authenticated;
 grant select, insert, update, delete on gauntlet_match_records to service_role;
 grant select, insert, update, delete on gauntlet_match_events to service_role;
+grant select, insert, update, delete on gauntlet_match_consequence_receipts to service_role;
+revoke execute on function finalize_gauntlet_match(jsonb, jsonb, jsonb, jsonb) from public, anon, authenticated;
+revoke execute on function apply_gauntlet_account_consequence(uuid, uuid, text, jsonb, jsonb) from public, anon, authenticated;
+grant execute on function finalize_gauntlet_match(jsonb, jsonb, jsonb, jsonb) to service_role;
+grant execute on function apply_gauntlet_account_consequence(uuid, uuid, text, jsonb, jsonb) to service_role;

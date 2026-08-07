@@ -1,0 +1,30 @@
+.production-result-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+  text-align: left;
+}
+
+.production-result-facts div {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.production-result-facts dt {
+  color: #9eabb6;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.production-result-facts dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.production-result-unlocks {
+  color: #f8d48a;
+}

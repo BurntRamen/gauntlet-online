@@ -51,10 +51,11 @@ Record reviewer and date for each level.
 Use at least one target desktop and one physical target mobile device. For each
 device:
 
-1. Run cold page loads of `?babylon-test=1` and record usable-scene time. Use at
-   least ten desktop and five mobile samples, then record p95.
-2. Open `?babylon-test=1&babylon-dev=1` and record the minimum settled FPS during
-   attack, block, damage, placement, priority transfer, and victory.
+1. Enter a normal campaign battle through the Journey screen and record usable-
+   scene time on cold page loads. Use at least ten desktop and five mobile
+   samples, then record p95.
+2. Record the minimum settled FPS during attack, block, damage, placement,
+   priority transfer, and victory in the normal production match.
 3. Complete five consecutive matches or ten resets and verify memory settles
    instead of growing continuously.
 4. Record device/browser details and the evidence location alongside the

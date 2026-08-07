@@ -68,6 +68,11 @@ const {
   recordCombatResolution
 } = require("./matchRecords");
 const {
+  buildCompletionEnvelope,
+  createFinalizeCompletedMatch,
+  receiptKey
+} = require("./matchCompletion");
+const {
   createRoomLifecycle,
   getRoomLifecycleAction,
   getRoomLifecycleConfig,
@@ -1301,8 +1306,25 @@ function matchRecordToSupabaseRow(record) {
   };
 }
 
-async function persistMatchRecord(record) {
+async function persistMatchRecord(record, options = {}) {
   if (!useSupabaseStore()) return localMatchStore.upsert(record);
+  if (record.completion?.status === "finalized") {
+    await supabaseRequest("rpc/finalize_gauntlet_match", {
+      method: "POST",
+      body: JSON.stringify({
+        p_record: record,
+        p_events: record.auditEvents || [],
+        p_consequences: (record.completion.consequences || []).map((consequence) => ({
+          accountId: consequence.accountId,
+          playerNum: consequence.playerNum,
+          result: consequence.result,
+          ...consequence
+        })),
+        p_account_applications: options.accountApplications || []
+      })
+    });
+    return record;
+  }
   await supabaseRequest("gauntlet_match_records?on_conflict=id", {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
@@ -1336,12 +1358,48 @@ async function findMatchRecordById(matchId) {
 
 async function listMatchRecordsByAccount(accountId, limit = 30) {
   const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100));
-  if (!useSupabaseStore()) return localMatchStore.listByAccount(accountId, safeLimit);
+  if (!useSupabaseStore()) return localMatchStore.listByAccount(accountId, safeLimit).filter((record) => !record.completion || record.completion.status === "finalized");
   const rows = await supabaseRequest(
     `gauntlet_match_records?participant_account_ids=cs.{${encodeURIComponent(accountId)}}&select=record&order=completed_at.desc&limit=${safeLimit}`
   );
-  return rows.map((row) => row.record).filter(Boolean);
+  return rows.map((row) => row.record).filter((record) => record && (!record.completion || record.completion.status === "finalized"));
 }
+
+function getNextCampaignMission(account, factionId, chapterId, result) {
+  if (result !== "win" || !factionId || !chapterId) return null;
+  const chapters = campaignChapters[factionId] || [];
+  const completed = account?.progression?.campaign?.[factionId]
+    || normalizeProgression(account?.stats || {}).campaign[factionId]
+    || [];
+  const next = chapters.find((chapter) => !completed.includes(chapter.id));
+  if (!next) return { status: "complete", factionId, chapterId: null, title: "Campaign complete" };
+  const enriched = getCampaignChapter(factionId, next.id);
+  return {
+    status: "available",
+    factionId,
+    chapterId: next.id,
+    title: enriched?.title || next.title,
+    opponentName: enriched?.opponentName || next.opponentName,
+    chapterNumber: chapters.findIndex((entry) => entry.id === next.id) + 1
+  };
+}
+
+const finalizeCompletedMatch = createFinalizeCompletedMatch({
+  findMatchRecord: findMatchRecordById,
+  persistMatchRecord,
+  applyAccountConsequence: async (consequence) => recordAccountGameResult(
+    consequence.accountId,
+    consequence.result,
+    {
+      ...consequence.context,
+      // Supabase commits the prepared account application with the final
+      // match record RPC. Local persistence remains synchronous and durable.
+      deferPersistence: useSupabaseStore()
+    }
+  ),
+  buildEnvelope: buildCompletionEnvelope,
+  buildNextMission: async ({ account, factionId, chapterId, result }) => getNextCampaignMission(account, factionId, chapterId, result)
+});
 
 async function loadFactionStatsStore() {
   if (!useSupabaseStore()) return loadLocalFactionStatsStore();
@@ -1625,6 +1683,12 @@ function applyProgressionForResult(stats, result, context = {}) {
   const factionName = context.factionName || (factionId === "basic" ? "Basic" : factionId);
   const opponentName = context.opponentName || "Opponent";
 
+  // Legacy account projection only: authoritative history is served from
+  // gauntlet_match_records. Keep this compatibility list keyed by matchId so
+  // older clients cannot create a second history entry on a retry.
+  if (context.matchId) {
+    progression.matchHistory = progression.matchHistory.filter((entry) => entry.matchId !== context.matchId);
+  }
   progression.matchHistory.unshift({
     id: context.matchId || crypto.randomUUID(),
     matchId: context.matchId || null,
@@ -1679,12 +1743,64 @@ function applyProgressionForResult(stats, result, context = {}) {
   stats.progression = progression;
 }
 
+function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) {
+  const beforeProgression = normalizeProgression(beforeStats);
+  const afterProgression = normalizeProgression(afterStats);
+  const beforeCollection = normalizeCollection(beforeStats);
+  const afterCollection = normalizeCollection(afterStats);
+  const achievementsUnlocked = Object.keys(afterProgression.achievements)
+    .filter((id) => !beforeProgression.achievements[id])
+    .map((id) => afterProgression.achievements[id]);
+  const cosmeticsUnlocked = [
+    ["titles", afterProgression.cosmetics.unlockedTitles, beforeProgression.cosmetics.unlockedTitles],
+    ["cardBacks", afterProgression.cosmetics.unlockedCardBacks, beforeProgression.cosmetics.unlockedCardBacks],
+    ["factionBadges", afterProgression.cosmetics.unlockedFactionBadges, beforeProgression.cosmetics.unlockedFactionBadges]
+  ].flatMap(([bucket, after, before]) => after.filter((id) => !before.includes(id)).map((id) => ({ bucket, id })));
+  const firstClear = Boolean(
+    context.campaign
+    && result === "win"
+    && !((beforeProgression.campaign[context.campaign.factionId] || []).includes(context.campaign.chapterId))
+  );
+  return {
+    result,
+    boosterCreditDelta: afterCollection.packCredits - beforeCollection.packCredits,
+    boosterCreditReason: firstClear ? "campaign_first_clear" : null,
+    achievementsUnlocked,
+    cosmeticsUnlocked,
+    campaign: context.campaign ? {
+      factionId: context.campaign.factionId,
+      chapterId: context.campaign.chapterId,
+      title: context.campaign.title,
+      outcome: result === "win" ? "cleared" : "not-cleared",
+      clearType: result === "win" ? (firstClear ? "first-clear" : "repeat-clear") : null,
+      firstClear
+    } : null,
+    progression: { campaign: afterProgression.campaign }
+  };
+}
+
+function publicAccountProjection(account) {
+  if (!account) return null;
+  return {
+    id: account.id,
+    name: account.name,
+    stats: account.stats || {},
+    progression: progressionSummary(account.stats || {}),
+    collection: collectionSummary(account.stats || {})
+  };
+}
+
 async function recordAccountGameResult(accountId, result, context = {}) {
-  if (!accountId || !["win", "loss", "draw"].includes(result)) return;
+  if (!accountId || !["win", "loss", "draw"].includes(result)) return null;
+  const matchId = context.matchId || null;
+  const key = matchId ? receiptKey(matchId, accountId) : null;
   if (useSupabaseStore()) {
     const account = await findSupabaseAccountById(accountId);
-    if (!account) return;
+    if (!account) return null;
     const stats = account.stats || {};
+    const receipts = stats.matchConsequenceReceipts || {};
+    if (key && receipts[key]) return { alreadyApplied: true, account: publicAccountProjection(account), ...receipts[key] };
+    const beforeStats = JSON.parse(JSON.stringify(stats));
     stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
     if (result === "win") stats.gamesWon = (stats.gamesWon || 0) + 1;
     if (result === "loss") stats.gamesLost = (stats.gamesLost || 0) + 1;
@@ -1703,15 +1819,43 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     }
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
-    await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
-    return;
+    const facts = accountConsequenceFacts(beforeStats, stats, result, context);
+    if (key && !context.deferPersistence) {
+      stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
+      const rpcResult = await supabaseRequest("rpc/apply_gauntlet_account_consequence", {
+        method: "POST",
+        body: JSON.stringify({
+          p_match_id: matchId,
+          p_account_id: accountId,
+          p_result: result,
+          p_consequence: facts,
+          p_next_stats: stats
+        })
+      });
+      if (rpcResult?.alreadyApplied) {
+        const receiptRows = await supabaseRequest(`gauntlet_match_consequence_receipts?match_id=eq.${encodeURIComponent(matchId)}&account_id=eq.${encodeURIComponent(accountId)}&select=consequence`);
+        const currentAccount = await findSupabaseAccountById(accountId);
+        return { alreadyApplied: true, account: publicAccountProjection(currentAccount), ...(receiptRows?.[0]?.consequence || facts) };
+      }
+    } else if (!context.deferPersistence) {
+      await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
+    }
+    return {
+      alreadyApplied: false,
+      account: publicAccountProjection({ ...account, stats }),
+      ...(context.deferPersistence ? { nextStats: stats } : {}),
+      ...facts
+    };
   }
 
   const store = loadAccountStore();
   const account = store.accounts.find((entry) => entry.id === accountId);
-  if (!account) return;
+  if (!account) return null;
 
   account.stats = account.stats || {};
+  const receipts = account.stats.matchConsequenceReceipts || {};
+  if (key && receipts[key]) return { alreadyApplied: true, account: publicAccountProjection(account), ...receipts[key] };
+  const beforeStats = JSON.parse(JSON.stringify(account.stats));
   account.stats.gamesPlayed = (account.stats.gamesPlayed || 0) + 1;
   if (result === "win") account.stats.gamesWon = (account.stats.gamesWon || 0) + 1;
   if (result === "loss") account.stats.gamesLost = (account.stats.gamesLost || 0) + 1;
@@ -1730,8 +1874,11 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   }
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
+  const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
+  if (key) account.stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
+  return { alreadyApplied: false, account: publicAccountProjection(account), ...facts };
 }
 
 async function saveAccountDraftDeck(accountId, draftDeck) {
@@ -1990,7 +2137,7 @@ app.get("/api/matches/:matchId", async (req, res) => {
   }
   try {
     const record = await findMatchRecordById(matchId);
-    if (!record) {
+    if (!record || record.completion?.status === "pending") {
       res.status(404).json({ error: "Match not found." });
       return;
     }
@@ -1998,6 +2145,41 @@ app.get("/api/matches/:matchId", async (req, res) => {
   } catch (error) {
     console.error("[Matches] Failed to load public match", error);
     res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
+
+app.get("/api/matches/:matchId/completion", async (req, res) => {
+  const matchId = String(req.params.matchId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
+    res.status(400).json({ error: "Invalid match ID." });
+    return;
+  }
+  try {
+    const record = await findMatchRecordById(matchId);
+    if (!record?.completion || record.completion.status !== "finalized") {
+      res.status(404).json({ error: "Completed match not found." });
+      return;
+    }
+    const authHeader = req.get("authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const account = token ? await getAccountFromToken(token) : null;
+    const accountConsequence = account
+      ? record.completion.consequences?.find((entry) => entry.accountId === account.id) || null
+      : record.completion.consequences?.[0] || null;
+    const participant = account
+      ? record.participants?.find((entry) => entry.accountId === account.id)
+      : record.participants?.[0];
+    const envelope = buildCompletionEnvelope({
+      record,
+      playerNum: participant?.playerNum || accountConsequence?.playerNum || 1,
+      consequence: accountConsequence,
+      account: account ? publicAccountProjection(account) : null,
+      nextMission: accountConsequence?.nextMission || null
+    });
+    res.json({ completion: envelope });
+  } catch (error) {
+    console.error("[Matches] Failed to load completion envelope", error);
+    res.status(503).json({ error: "Match completion is temporarily unavailable." });
   }
 });
 
@@ -2013,7 +2195,7 @@ app.get("/api/matches/:matchId/export/para", async (req, res) => {
   }
   try {
     const record = await findMatchRecordById(matchId);
-    if (!record) {
+    if (!record || record.completion?.status === "pending") {
       res.status(404).json({ error: "Match not found." });
       return;
     }
@@ -4689,80 +4871,62 @@ async function recordFinalGameStats(roomState, options = {}) {
   captureGameEvent(game);
   const completedAt = options.completedAt || new Date().toISOString();
   const completionReason = options.completionReason || "life_total";
-  let matchRecord = null;
-  try {
-    matchRecord = buildMatchRecord(roomState, {
-      completedAt,
-      completionReason,
-      abandonmentReason: options.abandonmentReason || null
-    });
-    await persistMatchRecord(matchRecord);
-    roomState.matchMetadata.recordedMatchId = matchRecord.matchId;
-  } catch (error) {
-    console.error("[Matches] Failed to persist completed match", error);
-  }
-  markRoomCompleted(roomState, completedAt, options.abandonmentReason || completionReason);
-  if (completionReason === "abandoned") {
-    game.statsRecorded = true;
-    return;
-  }
-  if (isTrainingAiRoom(roomState)) {
-    if (game.campaign && game.winner === 1) {
-      await recordAccountGameResult(roomState.lobby.players[1].accountId, "win", {
-        ranked: false,
-        matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
-        completedAt,
-        deckVersionId: roomState.lobby.players[1].savedConstructedDeck?.versionId || null,
-        mode: "campaign",
-        factionId: game.players[1]?.faction?.id,
-        factionName: game.players[1]?.faction?.name,
-        opponentName: game.campaign.opponentName,
-        life: game.players[1]?.life,
-        opponentLife: game.players[2]?.life,
-        campaign: {
-          factionId: game.campaign.factionId,
-          chapterId: game.campaign.chapterId,
-          title: game.campaign.title
-        }
-      });
-    }
-    game.statsRecorded = true;
-    return;
-  }
-
-  await recordFactionGameStats(game);
-
+  const matchRecord = buildMatchRecord(roomState, {
+    completedAt,
+    completionReason,
+    abandonmentReason: options.abandonmentReason || null
+  });
   const buildContext = (playerNum, result) => {
     const opponentNums = getLobbyPlayerNumbers(roomState).filter((entry) => entry !== playerNum);
     const primaryOpponent = opponentNums[0];
     return {
-      ranked: true,
+      ranked: completionReason === "abandoned" ? false : !game.campaign,
       draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
-      matchId: matchRecord?.matchId || roomState.matchMetadata?.matchId || null,
+      matchId: matchRecord.matchId,
       deckVersionId: roomState.lobby.players[playerNum].savedDraftDeck?.versionId || roomState.lobby.players[playerNum].savedConstructedDeck?.versionId || null,
       completedAt,
-      mode: game.gameMode || "duel",
+      mode: game.campaign ? "campaign" : game.gameMode || "duel",
       factionId: game.players[playerNum]?.faction?.id,
       factionName: game.players[playerNum]?.faction?.name,
       opponentName: primaryOpponent ? (game.players[primaryOpponent]?.accountName || `Player ${primaryOpponent}`) : "Opponent",
       life: game.players[playerNum]?.life,
       opponentLife: primaryOpponent ? game.players[primaryOpponent]?.life : null,
-      result
+      campaign: game.campaign ? {
+        factionId: game.campaign.factionId,
+        chapterId: game.campaign.chapterId,
+        title: game.campaign.title
+      } : null
     };
   };
 
-  if (game.winner == null) {
+  const consequences = [];
+  const shouldApplyAccountConsequences = completionReason !== "abandoned" && (!isTrainingAiRoom(roomState) || !!game.campaign);
+  if (shouldApplyAccountConsequences) {
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {
-      await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "draw", buildContext(playerNum, "draw"));
-    }
-  } else {
-    await recordAccountGameResult(roomState.lobby.players[game.winner].accountId, "win", buildContext(game.winner, "win"));
-    for (const playerNum of getLobbyPlayerNumbers(roomState)) {
-      if (playerNum !== game.winner) await recordAccountGameResult(roomState.lobby.players[playerNum].accountId, "loss", buildContext(playerNum, "loss"));
+      const accountId = roomState.lobby.players[playerNum].accountId;
+      if (!accountId) continue;
+      const result = game.winner == null ? "draw" : Number(game.winner) === playerNum ? "win" : "loss";
+      consequences.push({
+        accountId,
+        playerNum,
+        result,
+        context: buildContext(playerNum, result)
+      });
     }
   }
 
+  const finalized = await finalizeCompletedMatch.finalizeCompletedMatch({
+    record: matchRecord,
+    consequences,
+    playerNum: 1
+  });
+  roomState.matchMetadata.recordedMatchId = finalized.record.matchId;
+  markRoomCompleted(roomState, completedAt, options.abandonmentReason || completionReason);
+  if (!finalized.alreadyFinalized && completionReason !== "abandoned" && !isTrainingAiRoom(roomState)) {
+    await recordFactionGameStats(game);
+  }
   game.statsRecorded = true;
+  return finalized.envelope;
 }
 
 function resolveDamage(game, roomState) {
@@ -5777,6 +5941,35 @@ function createFreeForAllGameFromLobby(roomState) {
 // ============ SOCKET HANDLERS ============
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
+
+  // Deterministic browser qualification setup. This hook is unavailable in
+  // normal server runs and only moves an already-started campaign to the
+  // final authoritative life check; the browser still submits passPriority.
+  if (process.env.E2E_TEST === "true") {
+    socket.on("e2ePrepareCampaignCompletion", (ack) => {
+      const roomState = getRoomForSocket(socket);
+      if (!roomState?.game?.campaign) {
+        if (typeof ack === "function") ack({ ok: false, error: "Campaign test state unavailable." });
+        return;
+      }
+      if (roomState.aiMoveTimer) {
+        clearTimeout(roomState.aiMoveTimer);
+        roomState.aiMoveTimer = null;
+      }
+      roomState.game.players[2].life = 0;
+      roomState.game.priority = 1;
+      roomState.game.priorityPassed = { 1: false, 2: true };
+      roomState.game.handAttacks = [];
+      roomState.game.lanes.forEach((lane) => {
+        lane.attack = null;
+        lane.block = [];
+      });
+      roomState.damageConfirmed = { 1: false, 2: false };
+      roomState.game.message = "Qualification state prepared. Player 1 must pass priority to finish.";
+      emitState(roomState);
+      if (typeof ack === "function") ack({ ok: true });
+    });
+  }
 
   socket.on("joinMatchmaking", async ({ authToken, bestOf = 1 } = {}) => {
     console.log("[Socket] joinMatchmaking");
@@ -7874,6 +8067,8 @@ module.exports = {
     getCampaignDifficulty,
     getBaseCardValue,
     getPaymentTotal,
+    buildCompletionEnvelope,
+    finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,
     getSavedConstructedDeck,

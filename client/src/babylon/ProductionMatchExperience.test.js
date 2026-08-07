@@ -545,6 +545,27 @@ test("presents rematch acceptance and decline as explicit post-match actions", a
   expect(declineRematch).toHaveBeenCalledTimes(1);
 });
 
+test("ignores a completion outcome for a different player perspective", async () => {
+  const viewModel = createViewModel();
+  viewModel.phase = "gameOver";
+  viewModel.winner = 2;
+  viewModel.message = "Player 2 wins.";
+  render(
+    <ProductionMatchExperience
+      adapter={adapterFor({
+        viewModel,
+        completion: {
+          result: { playerNum: 2, outcome: "win", winnerPlayerNum: 2 }
+        }
+      })}
+      options={{ audioEnabled: false }}
+    />
+  );
+
+  expect(await screen.findByRole("heading", { name: "Defeat" })).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "Victory" })).not.toBeInTheDocument();
+});
+
 test("plays accepted event IDs once and disposes its audio context", async () => {
   const oscillator = {
     connect: jest.fn(),
