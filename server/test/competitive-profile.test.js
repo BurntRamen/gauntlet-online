@@ -19,6 +19,14 @@ test("builds a public competitive profile without private account data", () => {
       gamesLost: 2,
       rankedGamesWon: 3,
       rankedGamesLost: 1,
+      seasons: {
+        "season-zero": {
+          seasonId: "season-zero", seasonCode: "S0", displayName: "Season Zero",
+          gamesPlayed: 2, wins: 2, losses: 0, draws: 0,
+          seriesPlayed: 2, seriesWins: 2, seriesLosses: 0, seriesDraws: 0,
+          points: 6, recentMatches: [{ matchId: "season-match", result: "win", pointsDelta: 3 }]
+        }
+      },
       progression: {
         achievements: {
           first: { id: "first", name: "First Win", description: "Win once.", unlockedAt: "2026-07-02T12:00:00.000Z" }
@@ -80,9 +88,13 @@ test("builds a public competitive profile without private account data", () => {
     auditEvents: []
   };
 
-  const profile = buildPublicPlayerProfile(account, [match]);
+  const profile = buildPublicPlayerProfile(account, [match], { seasonStanding: { rank: 2 } });
   const serialized = JSON.stringify(profile);
   assert.equal(profile.competitiveRecord.ranked.winRate, 75);
+  assert.equal(profile.competitiveRecord.activeSeason.season.displayName, "Season Zero");
+  assert.equal(profile.competitiveRecord.activeSeason.rank, 2);
+  assert.equal(profile.competitiveRecord.activeSeason.record.points, 6);
+  assert.equal(profile.competitiveRecord.activeSeason.recentMatchReferences[0].matchId, "season-match");
   assert.equal(profile.factionRecords[0].wins, 1);
   assert.equal(profile.featuredDecks[0].currentVersionId, "version-1");
   assert.equal(profile.notableStats.largestAttack.value, 12);

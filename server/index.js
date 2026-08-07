@@ -86,6 +86,16 @@ const {
 } = require("./roomLifecycle");
 const { createRoomStateStore, isRoomRecoveryEnabled } = require("./roomStateStore");
 const {
+  ACTIVE_SEASON,
+  applySeasonResult,
+  buildSeasonMatchIdentity,
+  buildSeasonProfile,
+  buildSeasonStandings,
+  getActiveSeason,
+  normalizeSeasonStats,
+  publicSeasonDefinition
+} = require("./seasons");
+const {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   CAMPAIGN_NARRATION,
@@ -1374,7 +1384,7 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
-function buildPublicPlayerProfile(account, matchRecords = []) {
+function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   const stats = account?.stats || {};
   const library = normalizeDeckLibrary(stats, account?.id);
   const ranked = {
@@ -1431,7 +1441,11 @@ function buildPublicPlayerProfile(account, matchRecords = []) {
       selectedFactionBadge: cosmetics.selectedFactionBadge || "none",
       selectedCardBack: cosmetics.selectedCardBack || "classic"
     },
-    competitiveRecord: { ranked, all },
+    competitiveRecord: {
+      ranked,
+      all,
+      activeSeason: buildSeasonProfile(stats, options.seasonStanding || null, options.season || ACTIVE_SEASON)
+    },
     verifiedMatchCount: matchRecords.length,
     factionRecords: Object.values(factionRecords).sort((a, b) => b.wins - a.wins || a.factionName.localeCompare(b.factionName)),
     notableStats: { largestAttack, totalDamageDealt, totalDamagePrevented },
@@ -1954,6 +1968,11 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
     && result === "win"
     && !((beforeProgression.campaign[context.campaign.factionId] || []).includes(context.campaign.chapterId))
   );
+  const beforeSeason = context.season ? normalizeSeasonStats(beforeStats, context.season) : null;
+  const afterSeason = context.season ? normalizeSeasonStats(afterStats, context.season) : null;
+  const seasonMatch = context.matchId
+    ? afterSeason?.recentMatches?.find((entry) => entry.matchId === context.matchId) || null
+    : null;
   return {
     result,
     boosterCreditDelta: afterCollection.packCredits - beforeCollection.packCredits,
@@ -1967,6 +1986,13 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
       outcome: result === "win" ? "cleared" : "not-cleared",
       clearType: result === "win" ? (firstClear ? "first-clear" : "repeat-clear") : null,
       firstClear
+    } : null,
+    season: context.season ? {
+      season: clonePlain(context.season),
+      result,
+      seriesResult: seasonMatch?.seriesResult || null,
+      pointsDelta: Number(afterSeason?.points || 0) - Number(beforeSeason?.points || 0),
+      record: buildSeasonProfile(afterStats, null, context.season).record
     } : null,
     progression: { campaign: afterProgression.campaign }
   };
@@ -2010,6 +2036,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
       if (result === "loss") stats.draftLeagueGamesLost = (stats.draftLeagueGamesLost || 0) + 1;
       if (result === "draw") stats.draftLeagueGamesDrawn = (stats.draftLeagueGamesDrawn || 0) + 1;
     }
+    applySeasonResult(stats, result, context);
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
     const facts = accountConsequenceFacts(beforeStats, stats, result, context);
@@ -2068,6 +2095,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     if (result === "loss") account.stats.draftLeagueGamesLost = (account.stats.draftLeagueGamesLost || 0) + 1;
     if (result === "draw") account.stats.draftLeagueGamesDrawn = (account.stats.draftLeagueGamesDrawn || 0) + 1;
   }
+  applySeasonResult(account.stats, result, context);
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
   const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
@@ -2452,9 +2480,19 @@ app.get("/api/matches/:matchId/completion", async (req, res) => {
     const authHeader = req.get("authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     const account = token ? await getAccountFromToken(token) : null;
-    const accountConsequence = account
+    let accountConsequence = account
       ? record.completion.consequences?.find((entry) => entry.accountId === account.id) || null
       : record.completion.consequences?.[0] || null;
+    if (account && record.season && accountConsequence?.season) {
+      const accounts = useSupabaseStore()
+        ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
+        : loadAccountStore().accounts;
+      const standing = buildSeasonStandings(accounts, record.season).find((entry) => entry.accountId === account.id) || null;
+      accountConsequence = {
+        ...accountConsequence,
+        season: { ...accountConsequence.season, rank: standing?.rank || null }
+      };
+    }
     const participant = account
       ? record.participants?.find((entry) => entry.accountId === account.id)
       : record.participants?.[0];
@@ -2538,7 +2576,15 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       return;
     }
     const records = await listMatchRecordsByAccount(account.id, 100);
-    res.json({ profile: buildPublicPlayerProfile(account, records), storage: publicMatchStorageStatus() });
+    const season = getActiveSeason() || ACTIVE_SEASON;
+    const accounts = useSupabaseStore()
+      ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
+      : loadAccountStore().accounts;
+    const seasonStanding = buildSeasonStandings(accounts, season).find((entry) => entry.accountId === account.id) || null;
+    res.json({
+      profile: buildPublicPlayerProfile(account, records, { season, seasonStanding }),
+      storage: publicMatchStorageStatus()
+    });
   } catch (error) {
     console.error("[Profiles] Failed to load public profile", error);
     res.status(503).json({ error: "Player profiles are temporarily unavailable." });
@@ -2978,11 +3024,11 @@ app.get("/api/admin/faction-stats", async (req, res) => {
   }
 });
 
-app.get("/api/leaderboard", async (_req, res) => {
+app.get("/api/leaderboard", async (req, res) => {
   const accounts = useSupabaseStore()
     ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
     : loadAccountStore().accounts;
-  const leaderboard = accounts
+  const lifetimeLeaderboard = accounts
     .map((account) => {
       const hasRankedStats =
         (account.stats?.rankedGamesPlayed || 0) > 0 ||
@@ -2992,8 +3038,9 @@ app.get("/api/leaderboard", async (_req, res) => {
       const wins = hasRankedStats ? account.stats?.rankedGamesWon || 0 : account.stats?.gamesWon || 0;
       const losses = hasRankedStats ? account.stats?.rankedGamesLost || 0 : account.stats?.gamesLost || 0;
       const draws = hasRankedStats ? account.stats?.rankedGamesDrawn || 0 : account.stats?.gamesDrawn || 0;
-      const gamesPlayed = wins + losses;
-      const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 1000) / 10 : 0;
+      const gamesPlayed = wins + losses + draws;
+      const decidedGames = wins + losses;
+      const winRate = decidedGames > 0 ? Math.round((wins / decidedGames) * 1000) / 10 : 0;
       return {
         accountId: account.id,
         name: account.name,
@@ -3008,7 +3055,18 @@ app.get("/api/leaderboard", async (_req, res) => {
     .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses || a.name.localeCompare(b.name))
     .slice(0, 25);
 
-  res.json({ leaderboard });
+  const season = getActiveSeason() || ACTIVE_SEASON;
+  const standings = buildSeasonStandings(accounts, season);
+  const authHeader = req.get("authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const viewer = token ? await getAccountFromToken(token) : null;
+  res.json({
+    season: publicSeasonDefinition(season),
+    standings: standings.slice(0, 25),
+    playerStanding: viewer ? standings.find((entry) => entry.accountId === viewer.id) || null : null,
+    leaderboard: standings.slice(0, 25),
+    lifetimeLeaderboard
+  });
 });
 
 function getCampaignNarration(chapterId) {
@@ -3239,6 +3297,61 @@ const draftLeagueQueues = {
   bot: []
 };
 
+function listSpectatableSeasonMatches(season = getActiveSeason()) {
+  if (!season) return [];
+  return [...rooms.values()]
+    .filter((roomState) => roomState.ranked
+      && !roomState.draftLeague
+      && roomState.season?.seasonId === season.seasonId
+      && roomState.game
+      && roomState.game.phase !== "gameOver"
+      && roomState.lifecycle?.status !== "completed")
+    .map((roomState) => {
+      const game = roomState.game;
+      const series = roomState.bestOf3Series || game.bestOf3Series || null;
+      return {
+        roomCode: roomState.roomCode,
+        matchId: game.matchId || roomState.matchMetadata?.matchId || null,
+        season: clonePlain(roomState.season),
+        mode: game.gameMode || roomState.lobby.gameMode || "factions",
+        format: roomState.season.format,
+        bestOf: Number(series?.bestOf || 1),
+        seriesScore: series ? clonePlain(series.scores || {}) : null,
+        turn: Number(game.turn || 1),
+        spectatorCount: roomState.lobby.spectators.length,
+        players: [1, 2].map((playerNum) => ({
+          playerNum,
+          displayName: game.players?.[playerNum]?.accountName
+            || roomState.lobby.players?.[playerNum]?.accountName
+            || `Player ${playerNum}`,
+          factionId: game.players?.[playerNum]?.faction?.id
+            || roomState.lobby.players?.[playerNum]?.factionId
+            || null,
+          factionName: game.players?.[playerNum]?.faction?.name || null
+        }))
+      };
+    })
+    .sort((a, b) => a.roomCode.localeCompare(b.roomCode));
+}
+
+app.get("/api/seasons/active", (_req, res) => {
+  const season = getActiveSeason();
+  if (!season) {
+    res.status(404).json({ error: "No competitive season is active." });
+    return;
+  }
+  res.json({ season: publicSeasonDefinition(season) });
+});
+
+app.get("/api/seasons/active/matches", (_req, res) => {
+  const season = getActiveSeason();
+  if (!season) {
+    res.json({ season: null, matches: [] });
+    return;
+  }
+  res.json({ season: publicSeasonDefinition(season), matches: listSpectatableSeasonMatches(season) });
+});
+
 function persistRoomsNow(now = Date.now()) {
   if (roomStatePersistTimer) {
     clearTimeout(roomStatePersistTimer);
@@ -3435,6 +3548,7 @@ function findDraftLeagueMatchForEntry(entry) {
 function createMatchedRoom(entryA, entryB) {
   const roomState = createRoom();
   roomState.ranked = true;
+  roomState.season = buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1);
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
@@ -3463,7 +3577,12 @@ function createMatchedRoom(entryA, entryB) {
     const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
     if (playerSocket) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
-      playerSocket.emit("matchmakingStatus", { inQueue: false, message: `${entryA.bestOf === 3 ? "Best-of-3 m" : "M"}atch found. Room ${roomState.roomCode}.` });
+      playerSocket.emit("matchmakingStatus", {
+        inQueue: false,
+        message: `${roomState.season?.displayName || "Ranked"} ${entryA.bestOf === 3 ? "best-of-3 m" : "m"}atch found. Room ${roomState.roomCode}.`,
+        bestOf: entryA.bestOf || 1,
+        season: clonePlain(roomState.season)
+      });
     }
   }
 
@@ -5166,11 +5285,34 @@ function continueBestOf3Series(roomState) {
 
   const priorMessage = completedGame.message;
   series.gameNumber = (series.gameNumber || 1) + 1;
+  roomState.lifecycle = createRoomLifecycle();
   createGameFromLobby(roomState);
   if (isDraftLeagueSeries) roomState.game.draftLeague = true;
   roomState.game.bestOf3Series = clonePlain(series);
   roomState.game.message = `${priorMessage} Best-of-3 score is ${p1Score}-${p2Score}. Starting game ${series.gameNumber}. Player ${roomState.game.priority} has priority.`;
   return true;
+}
+
+function buildAccountResultContext(roomState, matchRecord, playerNum) {
+  const perspective = projectMatchPerspective(matchRecord, { playerNum });
+  return {
+    ranked: matchRecord.ranked,
+    draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
+    matchId: matchRecord.matchId,
+    deckVersionId: perspective?.player?.deck?.deckVersionId || null,
+    completedAt: matchRecord.completedAt,
+    mode: matchRecord.mode,
+    factionId: perspective?.player?.faction?.id || "basic",
+    factionName: perspective?.player?.faction?.name || "Basic",
+    opponentName: perspective?.opponent?.displayName || "Opponent",
+    life: perspective?.player?.finalLife ?? null,
+    opponentLife: perspective?.opponent?.finalLife ?? null,
+    campaign: matchRecord.campaign ? clonePlain(matchRecord.campaign) : null,
+    season: matchRecord.season ? clonePlain(matchRecord.season) : null,
+    series: matchRecord.series ? clonePlain(matchRecord.series) : null,
+    playerNum,
+    matchIndex: buildAccountMatchIndexEntry(matchRecord, { playerNum })
+  };
 }
 
 async function recordFinalGameStats(roomState, options = {}) {
@@ -5198,24 +5340,6 @@ async function recordFinalGameStats(roomState, options = {}) {
     completionReason,
     abandonmentReason: options.abandonmentReason || null
   });
-  const buildContext = (playerNum, result) => {
-    const perspective = projectMatchPerspective(matchRecord, { playerNum });
-    return {
-      ranked: matchRecord.ranked,
-      draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
-      matchId: matchRecord.matchId,
-      deckVersionId: perspective?.player?.deck?.deckVersionId || null,
-      completedAt: matchRecord.completedAt,
-      mode: matchRecord.mode,
-      factionId: perspective?.player?.faction?.id || "basic",
-      factionName: perspective?.player?.faction?.name || "Basic",
-      opponentName: perspective?.opponent?.displayName || "Opponent",
-      life: perspective?.player?.finalLife ?? null,
-      opponentLife: perspective?.opponent?.finalLife ?? null,
-      campaign: matchRecord.campaign ? clonePlain(matchRecord.campaign) : null,
-      matchIndex: buildAccountMatchIndexEntry(matchRecord, { playerNum })
-    };
-  };
 
   const consequences = [];
   const shouldApplyAccountConsequences = completionReason !== "abandoned" && (!isTrainingAiRoom(roomState) || !!game.campaign);
@@ -5228,7 +5352,7 @@ async function recordFinalGameStats(roomState, options = {}) {
         accountId,
         playerNum,
         result,
-        context: buildContext(playerNum, result)
+        context: buildAccountResultContext(roomState, matchRecord, playerNum)
       });
     }
   }
@@ -6360,9 +6484,10 @@ io.on("connection", (socket) => {
     const queueSize = matchmakingQueue.filter((candidate) => (candidate.bestOf || 1) === requestedBestOf).length;
     socket.emit("matchmakingStatus", {
       inQueue: true,
-      message: `Searching for a similar record${requestedBestOf === 3 ? " best-of-3" : ""} opponent... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
+      message: `Searching ${ACTIVE_SEASON.displayName} for a similar record${requestedBestOf === 3 ? " best-of-3" : ""} opponent... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
       queueSize,
-      bestOf: requestedBestOf
+      bestOf: requestedBestOf,
+      season: buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf)
     });
   });
 
@@ -8401,11 +8526,14 @@ module.exports = {
     addFriendChallenge,
     applyProgressionForResult,
     buildPublicPlayerProfile,
+    buildAccountResultContext,
+    listSpectatableSeasonMatches,
     calculateAttackBonuses,
     canOfferRematch,
     abandonActiveRoom,
     createFreeForAllGameFromLobby,
     createGameFromLobby,
+    createMatchedRoom,
     createDraftLeagueRoom,
     continueBestOf3Series,
     createRoom,

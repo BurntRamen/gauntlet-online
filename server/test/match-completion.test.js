@@ -92,6 +92,30 @@ test("concurrent finalization shares one operation and cannot duplicate conseque
   assert.equal(new Set(results.map((result) => result.envelope.matchId)).size, 1);
 });
 
+test("completion envelope projects seasonal consequence without replacing match facts", () => {
+  const record = makeRecord("match-season");
+  record.ranked = true;
+  record.season = { seasonId: "season-zero", seasonCode: "S0", displayName: "Season Zero", format: "ranked-bo1" };
+  const envelope = buildCompletionEnvelope({
+    record,
+    playerNum: 1,
+    consequence: {
+      season: {
+        result: "win",
+        seriesResult: "win",
+        pointsDelta: 3,
+        rank: 2,
+        record: { gamesPlayed: 2, wins: 2, losses: 0, draws: 0, points: 6 }
+      }
+    }
+  });
+  assert.equal(envelope.match.season.seasonId, "season-zero");
+  assert.equal(envelope.perspective.outcome, "win");
+  assert.equal(envelope.season.pointsDelta, 3);
+  assert.equal(envelope.season.record.points, 6);
+  assert.equal(envelope.season.rank, 2);
+});
+
 test("a loss has no campaign clear or booster reward", async () => {
   const harness = makeHarness();
   const record = makeRecord("match-loss");

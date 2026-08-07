@@ -33,7 +33,7 @@ function MatchRows({ profile, matches, onOpenMatch }) {
             <span className={`competitive-result ${resultClass(participant?.result)}`}>{String(participant?.result || "record").toUpperCase()}</span>
             <span>
               <strong>{participant?.faction?.name || "Basic"} vs {opponent?.displayName || "Opponent"}</strong>
-              <small>{match.ranked ? "Ranked" : match.mode} / {formatDate(match.completedAt)}</small>
+              <small>{match.season?.displayName || (match.ranked ? "Ranked" : match.mode)} / {formatDate(match.completedAt)}</small>
             </span>
             <span className="competitive-match-meta">T{match.turnCount || 1}</span>
           </button>
@@ -46,6 +46,8 @@ function MatchRows({ profile, matches, onOpenMatch }) {
 function ProfileBody({ profile, onOpenMatch }) {
   const ranked = profile.competitiveRecord?.ranked || {};
   const all = profile.competitiveRecord?.all || {};
+  const activeSeason = profile.competitiveRecord?.activeSeason || null;
+  const seasonRecord = activeSeason?.record || {};
   const identityFactionId = profile.factionRecords?.[0]?.factionId;
   return (
     <>
@@ -67,6 +69,16 @@ function ProfileBody({ profile, onOpenMatch }) {
         <div><span>Damage Dealt</span><strong>{profile.notableStats?.totalDamageDealt || 0}</strong></div>
         <div><span>Damage Prevented</span><strong>{profile.notableStats?.totalDamagePrevented || 0}</strong></div>
       </section>
+
+      {activeSeason && (
+        <section className="competitive-season" aria-label={`${activeSeason.season?.displayName || "Season"} record`}>
+          <div><span>Current season</span><h2>{activeSeason.season?.displayName}</h2></div>
+          <div><span>Rank</span><strong>{activeSeason.rank ? `#${activeSeason.rank}` : "Unranked"}</strong></div>
+          <div><span>Points</span><strong>{seasonRecord.points || 0}</strong></div>
+          <div><span>Game record</span><strong>{seasonRecord.wins || 0}W {seasonRecord.losses || 0}L {seasonRecord.draws || 0}D</strong></div>
+          <div><span>Series record</span><strong>{seasonRecord.seriesWins || 0}W {seasonRecord.seriesLosses || 0}L {seasonRecord.seriesDraws || 0}D</strong></div>
+        </section>
+      )}
 
       <div className="competitive-columns">
         <section>
@@ -93,6 +105,17 @@ function ProfileBody({ profile, onOpenMatch }) {
         <h2>Verified Match History</h2>
         <MatchRows profile={profile} matches={profile.recentMatches || []} onOpenMatch={onOpenMatch} />
       </section>
+      {activeSeason?.recentMatchReferences?.length > 0 && (
+        <section className="competitive-history">
+          <h2>{activeSeason.season?.displayName} Account References</h2>
+          <p className="competitive-empty">Compact account references remain durable even when full record-v2 history is unavailable.</p>
+          <div className="competitive-events">
+            {activeSeason.recentMatchReferences.slice(0, 12).map((reference) => (
+              <div key={reference.matchId}><strong>{String(reference.result || "match").toUpperCase()} · {reference.pointsDelta > 0 ? "+" : ""}{reference.pointsDelta || 0} pts</strong><span>{reference.format} · {formatDate(reference.completedAt)} · {reference.matchId}</span></div>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }
@@ -110,6 +133,7 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
       {profile && !loading && (
         <>
           <section className="competitive-panel-stats">
+            <div><span>{profile.competitiveRecord?.activeSeason?.season?.displayName || "Season"}</span><strong>{profile.competitiveRecord?.activeSeason?.record?.points || 0} pts{profile.competitiveRecord?.activeSeason?.rank ? ` · #${profile.competitiveRecord.activeSeason.rank}` : ""}</strong></div>
             <div><span>Ranked</span><strong>{profile.competitiveRecord?.ranked?.wins || 0}W {profile.competitiveRecord?.ranked?.losses || 0}L</strong></div>
             <div><span>Verified</span><strong>{profile.verifiedMatchCount || 0}</strong></div>
             <div><span>Best Attack</span><strong>{profile.notableStats?.largestAttack?.value || 0}</strong></div>
@@ -144,7 +168,7 @@ export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, on
         {match && (
           <>
             <div className="competitive-profile-header">
-              <div><span className="competitive-kicker">Verified Match</span><h1>{match.mode}</h1><p>{formatDate(match.completedAt)} / {match.completionReason} / {match.turnCount} turns</p></div>
+              <div><span className="competitive-kicker">Verified Match</span><h1>{match.mode}</h1><p>{match.season?.displayName ? `${match.season.displayName} / ` : ""}{formatDate(match.completedAt)} / {match.completionReason} / {match.turnCount} turns</p></div>
               <a className="competitive-export" href={`${serverUrl}/api/matches/${encodeURIComponent(match.matchId)}/export/para?version=2`} target="_blank" rel="noreferrer">Para Export</a>
             </div>
             <section className="competitive-participants">

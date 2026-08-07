@@ -1,0 +1,22 @@
+.season-surface { border: 1px solid rgba(125,211,252,.25); border-radius: 14px; padding: 16px; background: linear-gradient(145deg,rgba(6,18,34,.94),rgba(14,39,63,.86)); color: #dbeafe; }
+.season-surface-heading span,.season-queue-summary span { color: #facc15; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.season-surface-heading h3 { margin: 3px 0 12px; color: #fff; }
+.season-queue-summary { display: grid; gap: 3px; margin-bottom: 12px; padding: 12px; border: 1px solid rgba(250,204,21,.28); border-radius: 10px; background: rgba(15,23,42,.5); color: #dbeafe; }
+.season-queue-summary strong { color: #fff; font-size: 20px; }
+.season-queue-summary small,.season-match-row small { color: #93c5fd; }
+.season-table-wrap { overflow-x: auto; }
+.season-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.season-table th,.season-table td { padding: 7px 5px; border-bottom: 1px solid rgba(148,163,184,.16); text-align: right; }
+.season-table th:first-child,.season-table td:first-child { text-align: left; }
+.season-table button { border: 0; padding: 0; background: transparent; color: #dbeafe; font-weight: 800; cursor: pointer; }
+.season-table button:disabled { cursor: default; }
+.season-empty,.season-error { margin: 0; color: #bfdbfe; }
+.season-error { color: #fca5a5; }
+.season-own-standing { display: grid; gap: 3px; margin-top: 12px; padding: 10px; border: 1px solid rgba(250,204,21,.28); border-radius: 8px; }
+.season-own-standing span { color: #facc15; font-size: 11px; text-transform: uppercase; }
+.season-lifetime { margin-top: 12px; }
+.season-lifetime summary { cursor: pointer; color: #93c5fd; }
+.season-match-list { display: grid; gap: 8px; }
+.season-match-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid rgba(125,211,252,.18); border-radius: 9px; background: rgba(2,6,23,.32); }
+.season-match-row span { display: grid; gap: 2px; }
+.season-match-row button { border: 1px solid #facc15; border-radius: 7px; padding: 7px 11px; background: #713f12; color: #fef3c7; font-weight: 800; cursor: pointer; }

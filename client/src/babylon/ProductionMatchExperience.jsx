@@ -4,6 +4,7 @@ import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
+import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 
 const EVENT_TONES = {
@@ -779,6 +780,7 @@ function MatchResult({
         {completion?.campaign && <div><dt>Chapter</dt><dd>{completion.campaign.firstClear ? "First clear" : completion.campaign.repeatClear ? "Repeat clear" : "Not cleared"}</dd></div>}
         {completion && <div><dt>Booster credits</dt><dd>{Number(completion.rewards?.boosterCreditDelta || 0) > 0 ? `+${completion.rewards.boosterCreditDelta}` : Number(completion.rewards?.boosterCreditDelta || 0)}</dd></div>}
         {completion?.campaign?.nextMission?.status === "available" && <div><dt>Next mission</dt><dd>{completion.campaign.nextMission.title}</dd></div>}
+        <SeasonResultFacts seasonResult={completion?.season} />
       </dl>
       {(completion?.rewards?.achievementsUnlocked?.length > 0 || completion?.rewards?.cosmeticsUnlocked?.length > 0) && (
         <p className="production-result-unlocks">

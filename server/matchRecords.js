@@ -402,6 +402,7 @@ function buildMatchRecord(roomState, options = {}) {
     rulesVersion: RULES_VERSION,
     contentVersion: CONTENT_VERSION,
     ranked: !!roomState.ranked,
+    season: roomState.season ? clonePlain(roomState.season) : null,
     startedAt: metadata.startedAt,
     completedAt: options.completedAt || new Date().toISOString(),
     completionReason,
@@ -479,6 +480,7 @@ function projectMatchPerspective(record, options = {}) {
     seriesId: record.seriesId || null,
     mode: record.mode,
     ranked: !!record.ranked,
+    season: clonePlain(record.season || null),
     startedAt: record.startedAt,
     completedAt: record.completedAt,
     completionReason: record.completionReason,
@@ -590,6 +592,13 @@ function buildParaMatchExportV2(record, matchUrl, exportedAt, storage = null) {
       auditHistoryAfterProcessReplacement: false
     }
   };
+  const paraPerspectives = participants.map((participant) => {
+    const perspective = projectMatchPerspective(record, { playerNum: participant.playerNum });
+    // Season identity is additive Gauntlet product state, not part of the
+    // established cross-repository Para v2 contract.
+    delete perspective.season;
+    return perspective;
+  });
   const payload = {
     schemaVersion: PARA_MATCH_V2,
     exportedAt,
@@ -645,7 +654,7 @@ function buildParaMatchExportV2(record, matchUrl, exportedAt, storage = null) {
       participants: participants.map(({ participantId, playerNum, result, finalLife }) => ({ participantId, playerNum, result, finalLife }))
     },
     recapEvidence: {
-      perspectives: participants.map((participant) => projectMatchPerspective(record, { playerNum: participant.playerNum })),
+      perspectives: paraPerspectives,
       combatStats: clonePlain(record.combatStats || null),
       largestAttack: clonePlain(record.notableMoments?.largestAttack || null),
       damageDealt: Number(record.combatStats?.totalDamageDealt || 0),

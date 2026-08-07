@@ -56,6 +56,14 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
       repeatClear: consequence?.campaign?.firstClear === false,
       nextMission
     } : null,
+    season: record?.season ? {
+      ...clone(record.season),
+      result: consequence?.season?.result || perspective?.outcome || "unknown",
+      seriesResult: consequence?.season?.seriesResult || null,
+      pointsDelta: Number(consequence?.season?.pointsDelta || 0),
+      record: clone(consequence?.season?.record || null),
+      rank: consequence?.season?.rank || null
+    } : null,
     rewards: {
       boosterCreditDelta: Number(consequence?.boosterCreditDelta || 0),
       reason: consequence?.boosterCreditReason || null,
@@ -146,6 +154,7 @@ function createFinalizeCompletedMatch({
           boosterCreditDelta: Number(applied?.boosterCreditDelta || consequence.boosterCreditDelta || 0),
           boosterCreditReason: applied?.boosterCreditReason || consequence.boosterCreditReason || null,
           campaign: applied?.campaign || campaign,
+          season: clone(applied?.season || null),
           achievementsUnlocked: clone(applied?.achievementsUnlocked || []),
           cosmeticsUnlocked: clone(applied?.cosmeticsUnlocked || []),
           progression: clone(applied?.progression || null),

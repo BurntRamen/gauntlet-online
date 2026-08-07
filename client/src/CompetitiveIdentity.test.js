@@ -4,7 +4,11 @@ import { CompetitiveIdentityPanel, MatchRecordScreen } from "./CompetitiveIdenti
 const profile = {
   accountId: "account-1",
   displayName: "Alpha",
-  competitiveRecord: { ranked: { wins: 3, losses: 1, draws: 0, winRate: 75 }, all: { wins: 4, losses: 2, draws: 0 } },
+  competitiveRecord: {
+    ranked: { wins: 3, losses: 1, draws: 0, winRate: 75 },
+    all: { wins: 4, losses: 2, draws: 0 },
+    activeSeason: { season: { displayName: "Season Zero" }, rank: 2, record: { points: 6, wins: 2, losses: 1, draws: 0 } }
+  },
   verifiedMatchCount: 1,
   notableStats: { largestAttack: { value: 12 }, totalDamageDealt: 8, totalDamagePrevented: 3 },
   recentMatches: [{
@@ -25,6 +29,8 @@ test("opens a public profile and verified match from Identity", () => {
   const onOpenMatch = jest.fn();
   render(<CompetitiveIdentityPanel profile={profile} loading={false} error="" onOpenProfile={onOpenProfile} onOpenMatch={onOpenMatch} />);
 
+  expect(screen.getByText("Season Zero")).toBeInTheDocument();
+  expect(screen.getByText("6 pts · #2")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Public Profile" }));
   expect(onOpenProfile).toHaveBeenCalledWith("account-1");
   fireEvent.click(screen.getByRole("button", { name: /WIN Rumin vs Beta/ }));

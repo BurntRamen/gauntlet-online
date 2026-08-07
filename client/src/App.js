@@ -5,6 +5,7 @@ import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
+import { ActiveSeasonMatches, SeasonQueueSummary, SeasonStandings } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
@@ -2309,43 +2310,6 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
   );
 }
 
-function LeaderboardPanel({ leaderboard, error, onOpenProfile }) {
-  return (
-    <MenuCard title="Leaderboard">
-      {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
-      {!error && leaderboard.length === 0 && <p style={{ margin: 0, color: "#bfdbfe" }}>No completed account games yet.</p>}
-      {leaderboard.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ color: "#facc15", textAlign: "left", borderBottom: "1px solid rgba(125, 211, 252, 0.28)" }}>
-                <th style={{ padding: "6px 4px" }}>Player</th>
-                <th style={{ padding: "6px 4px", textAlign: "right" }}>W</th>
-                <th style={{ padding: "6px 4px", textAlign: "right" }}>L</th>
-                <th style={{ padding: "6px 4px", textAlign: "right" }}>Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.slice(0, 8).map((entry, index) => (
-                <tr key={entry.name} style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.16)" }}>
-                  <td style={{ padding: "6px 4px" }}>
-                    <button type="button" onClick={() => onOpenProfile(entry.accountId)} disabled={!entry.accountId} style={{ border: 0, padding: 0, background: "transparent", color: "#dbeafe", cursor: entry.accountId ? "pointer" : "default", fontWeight: 800 }}>
-                      {index + 1}. {entry.name}
-                    </button>
-                  </td>
-                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.wins}</td>
-                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.losses}</td>
-                  <td style={{ padding: "6px 4px", textAlign: "right" }}>{entry.winRate}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </MenuCard>
-  );
-}
-
 function MatchmakingPanel({
   account,
   status,
@@ -3526,6 +3490,11 @@ export default function App() {
   const [copyNotice, setCopyNotice] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardError, setLeaderboardError] = useState("");
+  const [activeSeason, setActiveSeason] = useState(null);
+  const [playerSeasonStanding, setPlayerSeasonStanding] = useState(null);
+  const [lifetimeLeaderboard, setLifetimeLeaderboard] = useState([]);
+  const [activeSeasonMatches, setActiveSeasonMatches] = useState([]);
+  const [activeSeasonMatchesError, setActiveSeasonMatchesError] = useState("");
   const [gameContent, setGameContent] = useState(null);
   const [gameContentError, setGameContentError] = useState("");
   const [competitiveProfile, setCompetitiveProfile] = useState(null);
@@ -3831,21 +3800,43 @@ export default function App() {
   }, [authToken, game?.matchId, game?.phase, game?.winner, loadAuthoritativeAccount]);
 
   const loadLeaderboard = useCallback(() => {
-    fetch(`${SOCKET_URL}/api/leaderboard`)
+    fetch(`${SOCKET_URL}/api/leaderboard`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load leaderboard.");
         setLeaderboard(data.leaderboard || []);
+        setActiveSeason(data.season || null);
+        setPlayerSeasonStanding(data.playerStanding || null);
+        setLifetimeLeaderboard(data.lifetimeLeaderboard || []);
         setLeaderboardError("");
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
+  }, [authToken]);
+
+  const loadActiveSeasonMatches = useCallback(() => {
+    fetch(`${SOCKET_URL}/api/seasons/active/matches`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load active seasonal matches.");
+        setActiveSeason((current) => data.season || current);
+        setActiveSeasonMatches(data.matches || []);
+        setActiveSeasonMatchesError("");
+      })
+      .catch((seasonError) => setActiveSeasonMatchesError(seasonError.message));
   }, []);
 
   useEffect(() => {
     loadLeaderboard();
+    loadActiveSeasonMatches();
     const intervalId = window.setInterval(loadLeaderboard, 10000);
-    return () => window.clearInterval(intervalId);
-  }, [loadLeaderboard]);
+    const matchesIntervalId = window.setInterval(loadActiveSeasonMatches, 10000);
+    return () => {
+      window.clearInterval(intervalId);
+      window.clearInterval(matchesIntervalId);
+    };
+  }, [loadActiveSeasonMatches, loadLeaderboard]);
 
   const loadCompetitiveProfile = useCallback(async () => {
     if (!account?.id) {
@@ -4594,7 +4585,13 @@ export default function App() {
   function joinRoom(asSpectator = false) {
     clearReconnectInfo();
     setError("");
-    socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? {} : playerIdentityPayload()) });
+    socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? { authToken } : playerIdentityPayload()) });
+  }
+
+  function spectateSeasonMatch(roomCode) {
+    clearReconnectInfo();
+    setError("");
+    socket.emit("joinRoom", { roomCode, asSpectator: true, authToken });
   }
 
   function joinMatchmaking(bestOf = 1) {
@@ -5067,15 +5064,22 @@ export default function App() {
 
               {playView === "ranked" && (
                 <div className="play-ranked-grid">
+                  <SeasonQueueSummary season={activeSeason} bestOf={matchmakingStatus.bestOf || 1} />
                   <MatchmakingPanel
                     account={account}
                     status={matchmakingStatus}
                     onJoin={() => joinMatchmaking(1)}
                     onLeave={leaveMatchmaking}
-                    title="Ranked Duel"
-                    description="Find an account opponent with a similar win/loss ratio."
+                    title={`${activeSeason?.displayName || "Season"} Ranked Duel`}
+                    description="Enter the active seasonal queue. BO1 scores each match; BO3 scores the completed series while retaining every game result."
                     joinLabel="Find Ranked Match"
                     extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
+                  />
+                  <ActiveSeasonMatches
+                    season={activeSeason}
+                    matches={activeSeasonMatches}
+                    error={activeSeasonMatchesError}
+                    onSpectate={spectateSeasonMatch}
                   />
                 </div>
               )}
@@ -5288,7 +5292,14 @@ export default function App() {
                 unreadCounts={friendUnreadCounts}
                 unreadTotal={friendUnreadTotal}
               />
-              <LeaderboardPanel leaderboard={leaderboard} error={leaderboardError} onOpenProfile={(accountId) => openPublicView("profile", accountId)} />
+              <SeasonStandings
+                season={activeSeason}
+                standings={leaderboard}
+                playerStanding={playerSeasonStanding}
+                lifetimeStandings={lifetimeLeaderboard}
+                error={leaderboardError}
+                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+              />
               </div>}
             </div>
           )}
@@ -5542,6 +5553,7 @@ export default function App() {
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {completionEnvelope?.season && <div><strong>{completionEnvelope.season.displayName}:</strong> {String(completionEnvelope.season.seriesResult || completionEnvelope.season.result).toUpperCase()} · {completionEnvelope.season.pointsDelta > 0 ? "+" : ""}{completionEnvelope.season.pointsDelta} points · {completionEnvelope.season.record?.points || 0} total{completionEnvelope.season.rank ? ` · rank #${completionEnvelope.season.rank}` : ""}</div>}
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
             {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}
           </div>

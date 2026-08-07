@@ -170,3 +170,7 @@
   .competitive-match-meta { display: none; }
   .competitive-events div { grid-template-columns: 1fr; gap: 3px; }
 }
+.competitive-season { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 10px; margin: 18px 0; padding: 16px; border: 1px solid rgba(250,204,21,.28); border-radius: 12px; background: rgba(15,23,42,.66); }
+.competitive-season > div { display: grid; gap: 3px; }
+.competitive-season span { color: #93c5fd; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.competitive-season h2,.competitive-season strong { margin: 0; color: #fff; }
