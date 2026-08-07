@@ -89,7 +89,7 @@ Server variables:
 | `OWNER_STATS_TOKEN` | Token for owner-only statistics endpoints | Empty |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service key | Empty; never expose to the client |
-| `PACK_PURCHASE_URL` | Optional checkout base URL for pack purchases | Empty |
+| `PACK_PURCHASE_URL` | Optional checkout base URL for cosmetic collector-variant packs; paid packs never grant gameplay cards or competitive power | Empty |
 
 Safe templates are available in `client/.env.example` and `server/.env.example`. Real `.env` files are ignored.
 

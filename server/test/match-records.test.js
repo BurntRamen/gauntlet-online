@@ -180,6 +180,11 @@ test("builds a server-authored public record with combat and audit data", () => 
   assert.equal(record.participants[0].displayName, "Alpha");
   assert.equal(record.participants[0].deck.source, "constructed");
   assert.match(record.participants[0].deck.deckVersionId, /^legacy-[0-9a-f]{24}$/);
+  assert.deepEqual(record.participants[0].deck.gameplayCards, [{ gameplayCardId: "rumin-one", value: 8, suit: "hearts" }]);
+  assert.deepEqual(record.participants[0].deck.snapshot.cards, [{ id: "rumin-one", gameplayCardId: "rumin-one", value: 8, suit: "hearts" }]);
+  assert.deepEqual(record.participants[0].deck.collectorVariants, []);
+  assert.match(record.participants[0].deck.gameplayConfigurationHash, /^[0-9a-f]{64}$/);
+  assert.match(record.participants[0].deck.collectorConfigurationHash, /^[0-9a-f]{64}$/);
   assert.equal(record.combatStats.totalDamageDealt, 5);
   assert.equal(record.combatStats.totalDamagePrevented, 7);
   assert.equal(record.auditEvents[0].eventType, "game_completed");

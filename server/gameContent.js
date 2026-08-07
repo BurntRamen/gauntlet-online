@@ -2,6 +2,9 @@
 
 const RULES_VERSION = "gauntlet-rules-v1";
 const CONTENT_VERSION = "gauntlet-content-v1";
+const FREE_GAMEPLAY_ACQUISITION = "earned-gameplay-pack";
+const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
+const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
 
 const RUMIN_COLLECTION_CARDS = [
   {
@@ -664,6 +667,56 @@ const BIZI_COLLECTION_CARDS = [
 ];
 
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+for (const card of COLLECTION_CARDS) {
+  card.gameplayCardId = card.id;
+  card.freeAcquisition = FREE_GAMEPLAY_ACQUISITION;
+  card.defaultVariantId = `${card.id}:standard`;
+}
+
+const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
+  {
+    schemaVersion: COLLECTOR_VARIANT_SCHEMA_VERSION,
+    variantId: card.defaultVariantId,
+    gameplayCardId: card.gameplayCardId,
+    name: `${card.name} Standard`,
+    edition: "foundation",
+    finish: "standard",
+    frame: "faction-standard",
+    border: "standard",
+    art: null,
+    collectorRarity: card.rarity,
+    acquisition: FREE_GAMEPLAY_ACQUISITION,
+    paid: false
+  },
+  {
+    schemaVersion: COLLECTOR_VARIANT_SCHEMA_VERSION,
+    variantId: `${card.id}:collector-foil`,
+    gameplayCardId: card.gameplayCardId,
+    name: `${card.name} Collector Foil`,
+    edition: "foundation-collector",
+    finish: "foil",
+    frame: "collector-gilded",
+    border: "collector",
+    art: null,
+    collectorRarity: card.rarity,
+    acquisition: PAID_COLLECTOR_ACQUISITION,
+    paid: true
+  }
+]));
+const COLLECTOR_VARIANT_MECHANICAL_FIELDS = Object.freeze([
+  "ability",
+  "cardValue",
+  "copyLimit",
+  "factionAbility",
+  "factionId",
+  "legality",
+  "maxReplacements",
+  "replacementLimit",
+  "rulesText",
+  "text",
+  "type",
+  "value"
+]);
 const DRAFT_CARD_SUITS = ["spades", "hearts", "diamonds", "clubs"];
 
 const BASE_PLAYING_DECK_SIZE = 52;
@@ -1043,6 +1096,33 @@ function requireText(value, pathName) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`Invalid game content: ${pathName} must be text.`);
 }
 
+function getGameplayCardById(gameplayCardId) {
+  return COLLECTION_CARDS.find((card) => card.gameplayCardId === gameplayCardId) || null;
+}
+
+function getCollectorVariantById(variantId) {
+  return COLLECTOR_VARIANTS.find((variant) => variant.variantId === variantId) || null;
+}
+
+function validateCollectorVariant(variant, gameplayCards = COLLECTION_CARDS) {
+  if (!variant || typeof variant !== "object") throw new Error("Invalid collector variant: a variant object is required.");
+  requireText(variant.variantId, "collectorVariants.variantId");
+  requireText(variant.gameplayCardId, `collectorVariants.${variant.variantId}.gameplayCardId`);
+  if (!gameplayCards.some((card) => card.gameplayCardId === variant.gameplayCardId)) {
+    throw new Error(`Invalid collector variant: ${variant.variantId} references unknown gameplay content ${variant.gameplayCardId}.`);
+  }
+  for (const field of COLLECTOR_VARIANT_MECHANICAL_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(variant, field)) {
+      throw new Error(`Invalid collector variant: ${variant.variantId} cannot override mechanical field ${field}.`);
+    }
+  }
+  requireText(variant.edition, `collectorVariants.${variant.variantId}.edition`);
+  requireText(variant.finish, `collectorVariants.${variant.variantId}.finish`);
+  requireText(variant.frame, `collectorVariants.${variant.variantId}.frame`);
+  requireText(variant.acquisition, `collectorVariants.${variant.variantId}.acquisition`);
+  return true;
+}
+
 function validateGameContent() {
   requireText(RULES_VERSION, "rulesVersion");
   requireText(CONTENT_VERSION, "contentVersion");
@@ -1088,7 +1168,27 @@ function validateGameContent() {
     if (!factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);
     if (!PLAYING_DECK_VALUES.includes(card.value)) throw new Error(`Invalid game content: card ${card.id} has an invalid value.`);
+    if (card.gameplayCardId !== card.id) throw new Error(`Invalid game content: card ${card.id} has an unstable gameplay identity.`);
+    if (card.freeAcquisition !== FREE_GAMEPLAY_ACQUISITION) {
+      throw new Error(`Invalid game content: competitive card ${card.id} must have a non-paid acquisition path.`);
+    }
     cardIds.add(card.id);
+  }
+
+  const variantIds = new Set();
+  for (const variant of COLLECTOR_VARIANTS) {
+    validateCollectorVariant(variant);
+    if (variantIds.has(variant.variantId)) throw new Error(`Invalid game content: duplicate collector variant ${variant.variantId}.`);
+    if (variant.paid && variant.acquisition !== PAID_COLLECTOR_ACQUISITION) {
+      throw new Error(`Invalid game content: paid variant ${variant.variantId} has invalid acquisition semantics.`);
+    }
+    variantIds.add(variant.variantId);
+  }
+  for (const card of COLLECTION_CARDS) {
+    const defaultVariant = getCollectorVariantById(card.defaultVariantId);
+    if (!defaultVariant || defaultVariant.gameplayCardId !== card.gameplayCardId || defaultVariant.paid) {
+      throw new Error(`Invalid game content: card ${card.id} is missing its free default presentation.`);
+    }
   }
 
   if (BASE_PLAYING_DECK_SIZE !== DRAFT_CARD_SUITS.length * PLAYING_DECK_VALUES.length) {
@@ -1111,12 +1211,13 @@ function getPublicGameContent() {
     }
   ]));
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     rulesVersion: RULES_VERSION,
     contentVersion: CONTENT_VERSION,
     factions: listFactions(),
     campaigns,
     cards: COLLECTION_CARDS,
+    collectorVariants: COLLECTOR_VARIANTS,
     deckRules: DECK_RULES
   };
 }
@@ -1127,23 +1228,31 @@ module.exports = {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   CAMPAIGN_NARRATION,
+  COLLECTOR_VARIANT_MECHANICAL_FIELDS,
+  COLLECTOR_VARIANT_SCHEMA_VERSION,
+  COLLECTOR_VARIANTS,
   COLLECTION_CARDS,
   CONTENT_VERSION,
   DECK_RULES,
   DRAFT_CARD_SUITS,
+  FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
   MAX_REPLACEMENTS_PER_VALUE,
   PLAYING_DECK_VALUES,
+  PAID_COLLECTOR_ACQUISITION,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,
   campaignChapters,
   factionsData,
+  getCollectorVariantById,
   getFactionById,
+  getGameplayCardById,
   getPublicGameContent,
   listFactions,
+  validateCollectorVariant,
   validateGameContent
 };

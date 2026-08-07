@@ -1194,7 +1194,7 @@ function normalizeReplacementSuitId(suit) {
   return map[key] || (REPLACEMENT_SUITS.some((entry) => entry.id === key) ? key : "spades");
 }
 
-function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
+function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onBuyPack }) {
   const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
   const factionArt = resolveAssetPath(`/assets/gauntlet/${booster.factionId}-card.webp`);
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
@@ -1203,13 +1203,8 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
   }, {});
 
   return (
-    <button
-      type="button"
+    <article
       className={`booster-pack-tile ${opening ? "opening" : ""}`}
-      onClick={() => {
-        if (canOpen) onOpen(booster.id);
-      }}
-      disabled={opening}
       style={{ "--pack-accent": theme.accent, "--pack-glow": theme.glow, background: theme.background, opacity: canOpen ? 1 : 0.86 }}
     >
       <span className="booster-pack-shine" />
@@ -1217,42 +1212,41 @@ function BoosterPackTile({ booster, opening, canOpen, onOpen, onBuyPack }) {
       <span className="booster-pack-crimp booster-pack-crimp-bottom" />
       <span className="booster-pack-hanger" />
       <span className="booster-pack-topline">Gauntlet Online</span>
-      <span className="booster-pack-set">Foundation Booster</span>
+      <span className="booster-pack-set">Earned Gameplay Pack</span>
       <strong>{theme.name}</strong>
       <span className="booster-pack-subtitle">{theme.subtitle}</span>
       <span className="booster-pack-art" style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.06), rgba(2,6,23,0.58)), url(${factionArt})` }}>
         <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>
       </span>
-      <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} digital cards</span>
+      <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
           <span key={rarity}>{count} {RARITY_STYLES[rarity]?.label || rarity}</span>
         ))}
       </span>
-      <span className="booster-pack-open">{opening ? "Opening..." : canOpen ? "Open Pack" : "Earn a Pack Credit"}</span>
+      <button
+        type="button"
+        className="booster-pack-open"
+        onClick={() => onOpen(booster.id)}
+        disabled={opening || !canOpen}
+        style={{ zIndex: 2, border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "7px 9px", background: "rgba(2,6,23,0.48)", cursor: canOpen ? "pointer" : "not-allowed" }}
+      >
+        {opening ? "Opening..." : canOpen ? "Open Earned Pack" : "Earn a Campaign Credit"}
+      </button>
       <span className="booster-pack-retail">
-        <span>GAUNTLET</span>
+        <span>COLLECTOR VARIANTS ONLY</span>
         <span>$1.00</span>
       </span>
-      <span
-        role="button"
-        tabIndex={0}
-        onClick={(event) => {
-          event.stopPropagation();
-          onBuyPack(booster.id);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            event.stopPropagation();
-            onBuyPack(booster.id);
-          }
-        }}
+      <button
+        type="button"
+        onClick={() => onBuyPack(collectorPack?.id)}
+        disabled={!collectorPack}
         style={{ zIndex: 2, justifySelf: "start", border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.48)", color: "#fff7dc", fontWeight: 900, fontSize: 12 }}
       >
-        Buy $1 Pack
-      </span>
-    </button>
+        Buy $1 Collector Pack
+      </button>
+      <small style={{ zIndex: 2, color: "#fde68a", lineHeight: 1.25 }}>Cosmetic finishes and provenance only. No cards, copies, values, or abilities.</small>
+    </article>
   );
 }
 
@@ -1277,8 +1271,9 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   } : account?.stats?.savedConstructedDeck || null;
   const [constructedDeckName, setConstructedDeckName] = useState(savedConstructedDeck?.name || "Rumin Constructed Deck");
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
-  const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.cardQuantities || {});
+  const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
+  const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
   const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
@@ -1295,10 +1290,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
-    setConstructedQuantities(savedConstructedDeck?.cardQuantities || {});
+    setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
+    setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
     setConstructedSaveMessage("");
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections]);
 
   if (!account) {
     return (
@@ -1309,10 +1305,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   }
 
   const collection = account.collection || {};
-  const cardsOwned = collection.cards || {};
+  const gameplayEntitlements = collection.gameplayEntitlements || collection.cards || {};
+  const cardsOwned = gameplayEntitlements;
+  const collectorOwnership = collection.collectorVariants || {};
+  const collectorCatalog = collection.collectorCatalog || [];
+  const collectorPacks = Object.values(collection.collectorPacks || {});
   const catalog = collection.catalog || {};
   const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
+  const collectorVariantTotal = Object.values(collectorOwnership).reduce((sum, count) => sum + Number(count || 0), 0);
   const packCredits = Number(collection.packCredits || 0);
   const allCatalogCards = Object.entries(catalog).flatMap(([factionId, cards]) => (
     ["mythic", "rare", "uncommon", "common"].flatMap((rarity) => (cards || []).filter((card) => card.rarity === rarity).map((card) => ({ ...card, factionId })))
@@ -1337,6 +1338,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
       const rarityOrder = { mythic: 0, rare: 1, uncommon: 2, common: 3 };
       return (rarityOrder[a.rarity] ?? 9) - (rarityOrder[b.rarity] ?? 9) || a.name.localeCompare(b.name);
     });
+  const availableVariantsByGameplayCard = collectorCatalog.reduce((byCard, variant) => {
+    if (!variant?.gameplayCardId) return byCard;
+    if (variant.paid && Number(collectorOwnership[variant.variantId] || 0) <= 0) return byCard;
+    if (!byCard[variant.gameplayCardId]) byCard[variant.gameplayCardId] = [];
+    byCard[variant.gameplayCardId].push(variant);
+    return byCard;
+  }, {});
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
   const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
@@ -1424,8 +1432,9 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         deckId: selectedConstructedDeckId || undefined,
         name: constructedDeckName,
         factionId: constructedFactionId,
-        cardQuantities: constructedQuantities,
-        cardSuitChoices: constructedSuitChoices
+        gameplayCardQuantities: constructedQuantities,
+        cardSuitChoices: constructedSuitChoices,
+        collectorVariantSelections: constructedVariantSelections
       });
       if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
@@ -1437,14 +1446,16 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   function loadSavedConstructedDeck() {
     if (!savedConstructedDeck) return;
     setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
-    setConstructedQuantities(savedConstructedDeck.cardQuantities || {});
+    setConstructedQuantities(savedConstructedDeck.gameplayCardQuantities || savedConstructedDeck.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
+    setConstructedVariantSelections(savedConstructedDeck.collectorVariantSelections || {});
     setConstructedSaveMessage("Saved deck loaded into editor.");
   }
 
   function clearConstructedDeck() {
     setConstructedQuantities({});
     setConstructedSuitChoices({});
+    setConstructedVariantSelections({});
     setConstructedSaveMessage("Base 52-card deck selected. Save to clear constructed swaps.");
   }
 
@@ -1454,6 +1465,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedFactionId("rumin");
     setConstructedQuantities({});
     setConstructedSuitChoices({});
+    setConstructedVariantSelections({});
     setConstructedSaveMessage("");
   }
 
@@ -1822,10 +1834,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
       `}</style>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
         <div className="collection-summary-bar">
-          <div className="collection-summary-stat"><span>Cards owned</span><strong>{ownedTotal}</strong></div>
-          <div className="collection-summary-stat"><span>Packs opened</span><strong>{collection.openedPacks || 0}</strong></div>
+          <div className="collection-summary-stat"><span>Gameplay copies earned</span><strong>{ownedTotal}</strong></div>
+          <div className="collection-summary-stat"><span>Collector variants</span><strong>{collectorVariantTotal}</strong></div>
           <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
-          <div className="collection-summary-note"><span>Earned rewards</span>First-time campaign chapter clears award pack credits. Paid packs use the configured $1 checkout link.</div>
+          <div className="collection-summary-note"><span>Fair-play split</span>Campaign credits unlock gameplay. Paid collector packs add presentation choices only—never cards, copies, values, or abilities.</div>
         </div>
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
           {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
@@ -1834,7 +1846,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div>
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
-          <div><h3>Faction Packs</h3><p>Open earned rewards or browse each faction set.</p></div>
+          <div><h3>Gameplay & Collector Packs</h3><p>Open free-play rewards for mechanics, or browse cosmetic collector variants.</p></div>
           <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         {boosters.length > 0 && (
@@ -1843,6 +1855,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               <BoosterPackTile
                 key={booster.id}
                 booster={booster}
+                collectorPack={collectorPacks.find((pack) => pack.factionId === booster.factionId)}
                 opening={openingPackId === booster.id}
                 canOpen={packCredits > 0}
                 onOpen={onOpenPack}
@@ -1853,7 +1866,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         )}
         {lastOpenedPack?.length > 0 && (
           <div>
-            <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Last Pack</h4>
+            <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Last Earned Gameplay Pack</h4>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
               {lastOpenedPack.map((card, index) => {
                 const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
@@ -1885,7 +1898,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <div>
               <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Constructed Deck</h4>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap owned faction cards into matching values while keeping exactly 4 cards of each value. Faction games load your saved deck when you select that same faction.</div>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap earned gameplay cards into matching values while keeping exactly 4 cards of each value. An owned collector variant can change presentation, never mechanics.</div>
             </div>
             <div style={{ color: constructedCurveWarning ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
               {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
@@ -1916,6 +1929,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                     setConstructedFactionId(factionId);
                     setConstructedQuantities({});
                     setConstructedSuitChoices({});
+                    setConstructedVariantSelections({});
                     setConstructedSaveMessage("");
                   }}
                   style={{ "--faction-accent": theme.accent }}
@@ -1945,11 +1959,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
             {ownedConstructedCards.length === 0 ? (
-              <div style={{ color: "#bfdbfe", fontSize: 13 }}>Open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} packs to collect cards for this faction.</div>
+              <div style={{ color: "#bfdbfe", fontSize: 13 }}>Earn and open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} gameplay packs to unlock cards for this faction.</div>
             ) : ownedConstructedCards.map((card) => {
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = Number(constructedQuantities[card.id] || 0);
               const owned = Number(cardsOwned[card.id] || 0);
+              const availableVariants = availableVariantsByGameplayCard[card.id] || [];
+              const selectedVariantId = constructedVariantSelections[card.id] || card.defaultVariantId || availableVariants[0]?.variantId || "";
               const value = getReplacementValue(card, PLAYING_DECK_VALUES);
               const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
               const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
@@ -1961,6 +1977,24 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                   </div>
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value} ({valueCount}/{MAX_REPLACEMENTS_PER_VALUE} at this value)</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35, minHeight: 32 }}>{card.text}</div>
+                  <label style={{ display: "grid", gap: 4, marginTop: 8, color: "#fde68a", fontSize: 11, fontWeight: 900 }}>
+                    Collector presentation
+                    <select
+                      value={selectedVariantId}
+                      onChange={(event) => {
+                        setConstructedVariantSelections((current) => ({ ...current, [card.id]: event.target.value }));
+                        setConstructedSaveMessage("");
+                      }}
+                      style={{ border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 6px", background: "rgba(2,6,23,0.62)", color: "#e5e7eb" }}
+                    >
+                      {availableVariants.map((variant) => (
+                        <option key={variant.variantId} value={variant.variantId}>
+                          {variant.paid ? `${variant.edition} ${variant.finish}` : "Standard earned presentation"}
+                        </option>
+                      ))}
+                    </select>
+                    <span style={{ color: "#bfdbfe", fontWeight: 500 }}>Presentation only; deck legality and card rules use {card.gameplayCardId || card.id}.</span>
+                  </label>
                   <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                     <button type="button" onClick={() => setConstructedCardQuantity(card.id, count - 1)} disabled={count <= 0} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: count <= 0 ? "not-allowed" : "pointer" }}>-</button>
                     <button type="button" onClick={() => setConstructedCardQuantity(card.id, count + 1)} disabled={!canAdd} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: canAdd ? "pointer" : "not-allowed" }}>+</button>
@@ -2002,7 +2036,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-view-heading" style={{ marginBottom: 8 }}>
             <div>
               <h3>Card Catalog</h3>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>Owned: {ownedUniqueCount}/{allCatalogCards.length} unique cards ({ownedPercent}%)</div>
+              <div style={{ color: "#bfdbfe", fontSize: 12 }}>Gameplay earned: {ownedUniqueCount}/{allCatalogCards.length} definitions ({ownedPercent}%). Collector variants are tracked separately.</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <input
@@ -2021,7 +2055,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               </select>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
                 <input type="checkbox" checked={catalogOwnedOnly} onChange={(event) => setCatalogOwnedOnly(event.target.checked)} />
-                Owned only
+                Earned only
               </label>
             </div>
           </div>
@@ -2032,14 +2066,18 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             {filteredCatalogCards.map((card) => {
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = cardsOwned[card.id] || 0;
+              const collectorCount = (collectorCatalog || [])
+                .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
+                .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
               return (
                 <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.7)" : "rgba(15,23,42,0.36)", opacity: count > 0 ? 1 : 0.72 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
-                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>x{count}</span>
+                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
                   </div>
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
+                  <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
                 </div>
               );
             })}
@@ -4273,17 +4311,17 @@ export default function App() {
 
   async function buyBoosterPack(packId) {
     if (!authToken) {
-      setError("Sign in to buy packs.");
+      setError("Sign in to buy collector variants.");
       return;
     }
     try {
-      const response = await fetch(`${SOCKET_URL}/api/collection/pack-purchase-link`, {
+      const response = await fetch(`${SOCKET_URL}/api/collection/collector-pack-purchase-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ packId })
+        body: JSON.stringify({ productId: packId })
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Pack purchases are not configured yet.");
+      if (!response.ok) throw new Error(data.error || "Collector purchases are not configured yet.");
       window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
     } catch (purchaseError) {
       setError(purchaseError.message);
@@ -4767,8 +4805,8 @@ export default function App() {
   const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
   const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
   const packCredits = Number(account?.collection?.packCredits || 0);
-  const ownedCardCount = Object.values(account?.collection?.cards || {}).reduce((total, count) => total + Number(count || 0), 0);
-  const openedPackCount = Number(account?.collection?.openedPacks || 0);
+  const ownedCardCount = Object.values(account?.collection?.gameplayEntitlements || account?.collection?.cards || {}).reduce((total, count) => total + Number(count || 0), 0);
+  const openedPackCount = Number(account?.collection?.openedGameplayPacks ?? account?.collection?.openedPacks ?? 0);
   const deckLibrary = account?.stats?.deckLibrary || { decks: [] };
   const activeDecks = (deckLibrary.decks || []).filter((deck) => !deck.archived);
   const constructedDecks = activeDecks.filter((deck) => deck.format === "constructed");
@@ -5137,12 +5175,12 @@ export default function App() {
                 </div>
                 <div className="build-panel-copy">
                   <span>The Vault</span>
-                  <h3>Turn campaign rewards into a personal deck</h3>
-                  <p>{account ? "Open faction packs, inspect every card, and decide which ordinary playing cards become something more." : "Sign in to keep a collection, open rewards, and save constructed decks."}</p>
+                  <h3>Turn free-play rewards into a personal deck</h3>
+                  <p>{account ? "Earn gameplay cards through campaign packs, then choose owned collector presentation without changing competitive power." : "Sign in to keep earned gameplay progression, collector variants, and saved decks."}</p>
                 </div>
                 <div className="build-vault-stats">
-                  <span><small>Cards owned</small><strong>{ownedCardCount}</strong></span>
-                  <span><small>Packs opened</small><strong>{openedPackCount}</strong></span>
+                  <span><small>Gameplay earned</small><strong>{ownedCardCount}</strong></span>
+                  <span><small>Earned packs</small><strong>{openedPackCount}</strong></span>
                   <span><small>Credits ready</small><strong>{packCredits}</strong></span>
                 </div>
                 <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection Workshop</MenuButton>
@@ -5153,7 +5191,7 @@ export default function App() {
                   <div>
                     <span>Constructed / {constructedDecks.length} saved</span>
                     <h3>{activeConstructedDeck?.name || "Build your first deck"}</h3>
-                    <p>{activeConstructedDeck ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} faction-card replacements.` : "Begin with the standard 52-card deck, then map owned faction cards into matching values."}</p>
+                    <p>{activeConstructedDeck ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} gameplay-card replacements.` : "Begin with the standard 52-card deck, then map freely earned faction cards into matching values."}</p>
                     <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{activeConstructedDeck ? "Edit Active Deck" : "Build First Deck"}</MenuButton>
                   </div>
                 </section>

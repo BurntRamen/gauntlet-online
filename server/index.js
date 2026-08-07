@@ -89,19 +89,24 @@ const {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   CAMPAIGN_NARRATION,
+  COLLECTOR_VARIANTS,
   COLLECTION_CARDS,
   DRAFT_CARD_SUITS,
+  FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
   MAX_REPLACEMENTS_PER_VALUE,
   PLAYING_DECK_VALUES,
+  PAID_COLLECTOR_ACQUISITION,
   RUMIN_COLLECTION_CARDS,
   SHEEN_COLLECTION_CARDS,
   campaignChapters,
   factionsData,
+  getCollectorVariantById,
   getFactionById,
+  getGameplayCardById,
   getPublicGameContent,
   listFactions
 } = require("./gameContent");
@@ -362,36 +367,54 @@ const BOOSTER_PRODUCTS = {
   "rumin-foundation": {
     id: "rumin-foundation",
     name: "Rumin Foundation Pack",
+    productType: "earned-gameplay-pack",
     factionId: "rumin",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   },
   "sheen-foundation": {
     id: "sheen-foundation",
     name: "Sheen Foundation Pack",
+    productType: "earned-gameplay-pack",
     factionId: "sheen",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   },
   "frumo-foundation": {
     id: "frumo-foundation",
     name: "Frumo Foundation Pack",
+    productType: "earned-gameplay-pack",
     factionId: "frumo",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   },
   "bizi-foundation": {
     id: "bizi-foundation",
     name: "Bizi Foundation Pack",
+    productType: "earned-gameplay-pack",
     factionId: "bizi",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "Contains 4 commons, 2 uncommons, 1 rare, and 1 wild slot. The wild slot is usually rare and can upgrade to mythic."
+    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   }
 };
+
+const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).map((pack) => {
+  const id = `${pack.factionId}-collector`;
+  return [id, {
+    id,
+    legacyPackId: pack.id,
+    name: `${getFactionById(pack.factionId)?.name || pack.factionId} Collector Pack`,
+    productType: PAID_COLLECTOR_ACQUISITION,
+    factionId: pack.factionId,
+    variantCount: pack.cardCount,
+    priceUsd: 1,
+    description: "Collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
+  }];
+}));
 
 function emptyProgression() {
   return {
@@ -411,25 +434,85 @@ function emptyProgression() {
 
 function emptyCollection() {
   return {
+    schemaVersion: 2,
     cards: {},
+    gameplayEntitlements: {},
+    collectorVariants: {},
+    selectedVariants: {},
     packCredits: 0,
     earnedPackCredits: 0,
     purchasedPacks: 0,
+    purchasedCollectorPacks: 0,
     openedPacks: 0,
-    lastPack: null
+    openedGameplayPacks: 0,
+    openedCollectorPacks: 0,
+    lastPack: null,
+    lastGameplayPack: null,
+    lastCollectorPack: null
   };
+}
+
+function normalizeOwnershipCounts(value = {}) {
+  return Object.fromEntries(Object.entries(value || {})
+    .map(([id, count]) => [String(id), Math.max(0, Math.floor(Number(count || 0)))])
+    .filter(([, count]) => count > 0));
 }
 
 function normalizeCollection(stats = {}) {
   const base = emptyCollection();
   const collection = stats.collection || {};
+  const legacyCards = normalizeOwnershipCounts(collection.cards);
+  const gameplayEntitlements = normalizeOwnershipCounts(collection.gameplayEntitlements);
+  for (const [gameplayCardId, count] of Object.entries(legacyCards)) {
+    gameplayEntitlements[gameplayCardId] = Math.max(gameplayEntitlements[gameplayCardId] || 0, count);
+  }
+  const collectorVariants = normalizeOwnershipCounts(collection.collectorVariants);
+  for (const [gameplayCardId, count] of Object.entries(gameplayEntitlements)) {
+    const gameplayCard = getGameplayCardById(gameplayCardId);
+    if (!gameplayCard) continue;
+    collectorVariants[gameplayCard.defaultVariantId] = Math.max(
+      collectorVariants[gameplayCard.defaultVariantId] || 0,
+      count
+    );
+  }
+  const selectedVariants = {};
+  for (const [gameplayCardId, variantId] of Object.entries(collection.selectedVariants || {})) {
+    const variant = getCollectorVariantById(String(variantId));
+    if (!variant || variant.gameplayCardId !== gameplayCardId) continue;
+    if (variant.paid && !collectorVariants[variant.variantId]) continue;
+    selectedVariants[gameplayCardId] = variant.variantId;
+  }
+  const openedGameplayPacks = Math.max(0, Number(collection.openedGameplayPacks ?? collection.openedPacks ?? 0));
+  const purchasedCollectorPacks = Math.max(0, Number(collection.purchasedCollectorPacks ?? collection.purchasedPacks ?? 0));
+  const lastGameplayPack = collection.lastGameplayPack || collection.lastPack || null;
   return {
-    cards: { ...base.cards, ...(collection.cards || {}) },
+    schemaVersion: 2,
+    cards: { ...base.cards, ...gameplayEntitlements },
+    gameplayEntitlements,
+    collectorVariants,
+    selectedVariants,
     packCredits: Math.max(0, Number(collection.packCredits || 0)),
     earnedPackCredits: Math.max(0, Number(collection.earnedPackCredits || 0)),
-    purchasedPacks: Math.max(0, Number(collection.purchasedPacks || 0)),
-    openedPacks: Number(collection.openedPacks || 0),
-    lastPack: collection.lastPack || null
+    purchasedPacks: purchasedCollectorPacks,
+    purchasedCollectorPacks,
+    openedPacks: openedGameplayPacks,
+    openedGameplayPacks,
+    openedCollectorPacks: Math.max(0, Number(collection.openedCollectorPacks || 0)),
+    lastPack: lastGameplayPack,
+    lastGameplayPack,
+    lastCollectorPack: collection.lastCollectorPack || null
+  };
+}
+
+function publicCollectorVariant(variant) {
+  const gameplayCard = getGameplayCardById(variant.gameplayCardId);
+  return {
+    ...variant,
+    gameplay: gameplayCard ? {
+      gameplayCardId: gameplayCard.gameplayCardId,
+      name: gameplayCard.name,
+      factionId: gameplayCard.factionId
+    } : null
   };
 }
 
@@ -437,12 +520,14 @@ function collectionSummary(stats = {}) {
   return {
     ...normalizeCollection(stats),
     catalog: {
-      rumin: RUMIN_COLLECTION_CARDS.map(getPlayableCollectionCard),
-      sheen: SHEEN_COLLECTION_CARDS.map(getPlayableCollectionCard),
-      frumo: FRUMO_COLLECTION_CARDS.map(getPlayableCollectionCard),
-      bizi: BIZI_COLLECTION_CARDS.map(getPlayableCollectionCard)
+      rumin: COLLECTION_CARDS.filter((card) => card.factionId === "rumin").map(getPlayableCollectionCard),
+      sheen: COLLECTION_CARDS.filter((card) => card.factionId === "sheen").map(getPlayableCollectionCard),
+      frumo: COLLECTION_CARDS.filter((card) => card.factionId === "frumo").map(getPlayableCollectionCard),
+      bizi: COLLECTION_CARDS.filter((card) => card.factionId === "bizi").map(getPlayableCollectionCard)
     },
-    boosters: BOOSTER_PRODUCTS
+    collectorCatalog: COLLECTOR_VARIANTS.map(publicCollectorVariant),
+    boosters: BOOSTER_PRODUCTS,
+    collectorPacks: COLLECTOR_PACK_PRODUCTS
   };
 }
 
@@ -606,7 +691,7 @@ function applyDeckReplacements(deck, replacementCards, faction, createReplacemen
   }
 }
 
-const DECK_LIBRARY_SCHEMA_VERSION = 1;
+const DECK_LIBRARY_SCHEMA_VERSION = 2;
 
 function getLegacyDeckIdentity(deck, format) {
   const fingerprint = crypto.createHash("sha256").update(JSON.stringify({
@@ -614,13 +699,43 @@ function getLegacyDeckIdentity(deck, format) {
     factionId: deck?.factionId || null,
     draftType: deck?.draftType || null,
     savedAt: deck?.savedAt || null,
-    cardQuantities: deck?.cardQuantities || null,
+    gameplayCardQuantities: deck?.gameplayCardQuantities || deck?.cardQuantities || null,
     cardSuitChoices: deck?.cardSuitChoices || null,
+    collectorVariantSelections: deck?.collectorVariantSelections || null,
     cards: (deck?.cards || []).map((card) => ({ id: card.id, value: card.value, suit: card.suit }))
   })).digest("hex").slice(0, 24);
   return {
     deckId: `legacy-deck-${fingerprint}`,
     versionId: `legacy-version-${fingerprint}`
+  };
+}
+
+function normalizeDeckVersion(version = {}) {
+  const gameplayCardQuantities = normalizeOwnershipCounts(version.gameplayCardQuantities || version.cardQuantities);
+  const collectorVariantSelections = Object.fromEntries(Object.entries(version.collectorVariantSelections || {})
+    .map(([gameplayCardId, variantId]) => [String(gameplayCardId), String(variantId || "")])
+    .filter(([, variantId]) => !!variantId));
+  const normalized = {
+    ...version,
+    cardQuantities: gameplayCardQuantities,
+    gameplayCardQuantities,
+    collectorVariantSelections
+  };
+  if (Array.isArray(version.cards)) return normalized;
+  const mechanicalConfiguration = {
+    factionId: version.factionId || null,
+    gameplayCardQuantities,
+    cardSuitChoices: clonePlain(version.cardSuitChoices || {})
+  };
+  const presentationConfiguration = { collectorVariantSelections };
+  return {
+    ...normalized,
+    mechanicalConfiguration,
+    presentationConfiguration,
+    gameplayConfigurationHash: version.gameplayConfigurationHash
+      || crypto.createHash("sha256").update(stableJson(mechanicalConfiguration)).digest("hex"),
+    collectorConfigurationHash: version.collectorConfigurationHash
+      || crypto.createHash("sha256").update(stableJson(presentationConfiguration)).digest("hex")
   };
 }
 
@@ -647,19 +762,21 @@ function createDeckRecordFromLegacy(deck, format, ownerId = null) {
     createdAt,
     updatedAt: createdAt,
     currentVersionId: identity.versionId,
-    versions: [{
+    versions: [normalizeDeckVersion({
       ...clonePlain(deck),
       id: identity.versionId,
       createdAt,
       source: format === "draft" ? "draft" : "legacy-migration"
-    }],
+    })],
     record: { wins: 0, losses: 0, draws: 0, recentMatchIds: [] }
   };
 }
 
 function normalizeDeckRecord(record, ownerId = null) {
   if (!record?.id || !record.format) return null;
-  const versions = Array.isArray(record.versions) ? record.versions.filter((version) => version?.id) : [];
+  const versions = Array.isArray(record.versions)
+    ? record.versions.filter((version) => version?.id).map(normalizeDeckVersion)
+    : [];
   if (versions.length === 0) return null;
   const currentVersionId = versions.some((version) => version.id === record.currentVersionId)
     ? record.currentVersionId
@@ -770,24 +887,49 @@ function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
 }
 
 function getCollectionCatalogCard(cardId) {
-  return [
-    ...RUMIN_COLLECTION_CARDS,
-    ...SHEEN_COLLECTION_CARDS,
-    ...FRUMO_COLLECTION_CARDS,
-    ...BIZI_COLLECTION_CARDS
-  ].find((card) => card.id === cardId) || null;
+  return getGameplayCardById(cardId);
 }
 
-function expandConstructedCardQuantities(cardQuantities = {}, factionId, cardSuitChoices = {}) {
-  return Object.entries(cardQuantities)
+function resolveCollectorVariantSelections(collection, gameplayCardQuantities, requestedSelections = {}) {
+  const selections = {};
+  for (const gameplayCardId of Object.keys(gameplayCardQuantities || {})) {
+    const gameplayCard = getGameplayCardById(gameplayCardId);
+    if (!gameplayCard) continue;
+    const requestedVariantId = requestedSelections[gameplayCardId]
+      || collection.selectedVariants?.[gameplayCardId]
+      || gameplayCard.defaultVariantId;
+    const variant = getCollectorVariantById(requestedVariantId);
+    if (!variant || variant.gameplayCardId !== gameplayCardId) {
+      throw new Error(`Choose a collector variant made for ${gameplayCard.name}.`);
+    }
+    if (variant.paid && !collection.collectorVariants?.[variant.variantId]) {
+      throw new Error(`You do not own the ${variant.name} collector variant.`);
+    }
+    selections[gameplayCardId] = variant.variantId;
+  }
+  return selections;
+}
+
+function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId, cardSuitChoices = {}, collectorVariantSelections = {}) {
+  return Object.entries(gameplayCardQuantities)
     .flatMap(([cardId, quantity]) => {
       const count = Math.max(0, Math.floor(Number(quantity || 0)));
       const card = getCollectionCatalogCard(cardId);
       if (!card || card.factionId !== factionId || count <= 0) return [];
       const suitChoices = Array.isArray(cardSuitChoices?.[cardId]) ? cardSuitChoices[cardId] : [];
+      const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
       return Array.from({ length: count }, (_, index) => {
         const suit = normalizeDeckSuit(suitChoices[index]) || DRAFT_CARD_SUITS[index % DRAFT_CARD_SUITS.length];
         return getPlayableCollectionCard(card, {
+          gameplayCardId: card.gameplayCardId,
+          variantId: variant?.variantId || card.defaultVariantId,
+          collector: variant ? {
+            edition: variant.edition,
+            finish: variant.finish,
+            frame: variant.frame,
+            border: variant.border,
+            art: variant.art
+          } : null,
           suit,
           replacementSuit: suit
         });
@@ -806,8 +948,25 @@ function getSavedConstructedDeck(stats = {}) {
     deckId: libraryRecord.id,
     versionId: libraryVersion.id
   } : stats.savedConstructedDeck;
-  if (!deck || !deck.factionId || !deck.cardQuantities || typeof deck.cardQuantities !== "object") return null;
-  const cards = expandConstructedCardQuantities(deck.cardQuantities, deck.factionId, deck.cardSuitChoices);
+  const gameplayCardQuantities = deck?.gameplayCardQuantities || deck?.cardQuantities;
+  if (!deck || !deck.factionId || !gameplayCardQuantities || typeof gameplayCardQuantities !== "object") return null;
+  const collection = normalizeCollection(stats);
+  let collectorVariantSelections;
+  try {
+    collectorVariantSelections = resolveCollectorVariantSelections(
+      collection,
+      gameplayCardQuantities,
+      deck.collectorVariantSelections || {}
+    );
+  } catch (error) {
+    collectorVariantSelections = resolveCollectorVariantSelections(collection, gameplayCardQuantities, {});
+  }
+  const cards = expandConstructedCardQuantities(
+    gameplayCardQuantities,
+    deck.factionId,
+    deck.cardSuitChoices,
+    collectorVariantSelections
+  );
   try {
     validateReplacementCardSet(cards, { factionId: deck.factionId });
   } catch (error) {
@@ -825,8 +984,12 @@ function getSavedConstructedDeck(stats = {}) {
     replacementCount: cards.length,
     additionCount: cards.length,
     valueCounts: getReplacementValueCounts(cards),
-    cardQuantities: { ...deck.cardQuantities },
+    cardQuantities: { ...gameplayCardQuantities },
+    gameplayCardQuantities: { ...gameplayCardQuantities },
     cardSuitChoices: { ...(deck.cardSuitChoices || {}) },
+    collectorVariantSelections,
+    gameplayConfigurationHash: deck.gameplayConfigurationHash || null,
+    collectorConfigurationHash: deck.collectorConfigurationHash || null,
     savedAt: deck.savedAt || null,
     deckId: deck.deckId || null,
     versionId: deck.versionId || null,
@@ -838,8 +1001,12 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   const factionId = String(payload.factionId || "");
   const faction = getFactionById(factionId);
   if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
-  const requested = payload.cardQuantities && typeof payload.cardQuantities === "object" ? payload.cardQuantities : {};
+  const requestedQuantities = payload.gameplayCardQuantities || payload.cardQuantities;
+  const requested = requestedQuantities && typeof requestedQuantities === "object" ? requestedQuantities : {};
   const requestedSuitChoices = payload.cardSuitChoices && typeof payload.cardSuitChoices === "object" ? payload.cardSuitChoices : {};
+  const requestedVariantSelections = payload.collectorVariantSelections && typeof payload.collectorVariantSelections === "object"
+    ? payload.collectorVariantSelections
+    : {};
   const collection = normalizeCollection(stats);
   const sanitized = {};
   const sanitizedSuitChoices = {};
@@ -854,8 +1021,10 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
     const value = getReplacementCardValue(card);
     if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
-    const owned = Math.max(0, Math.floor(Number(collection.cards?.[cardId] || 0)));
-    if (quantity > owned) throw new Error(`You only own ${owned} cop${owned === 1 ? "y" : "ies"} of ${card.name}.`);
+    const entitled = Math.max(0, Math.floor(Number(collection.gameplayEntitlements?.[cardId] || 0)));
+    if (quantity > entitled) {
+      throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card.name}.`);
+    }
     valueCounts[value] = (valueCounts[value] || 0) + quantity;
     if (valueCounts[value] > MAX_REPLACEMENTS_PER_VALUE) {
       throw new Error(`Your 52-card deck can only have ${MAX_REPLACEMENTS_PER_VALUE} cards with value ${value}. Swap fewer cards at that value.`);
@@ -878,6 +1047,12 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     }
   }
 
+  const collectorVariantSelections = resolveCollectorVariantSelections(
+    collection,
+    sanitized,
+    requestedVariantSelections
+  );
+
   return {
     name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
     factionId,
@@ -896,20 +1071,22 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
       cardCount: BASE_PLAYING_DECK_SIZE
     },
     cardQuantities: sanitized,
+    gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
+    collectorVariantSelections,
     savedAt: new Date().toISOString()
   };
 }
 
 function makeDeckVersion(deck, source = "constructed-editor") {
   const createdAt = new Date().toISOString();
-  return {
+  return normalizeDeckVersion({
     ...clonePlain(deck),
     id: crypto.randomUUID(),
     createdAt,
     source,
     savedAt: createdAt
-  };
+  });
 }
 
 function syncLegacyDeckPointers(stats = {}) {
@@ -2118,34 +2295,127 @@ function resolveBoosterSlot(slot) {
 
 function openCollectionBooster(stats, packId) {
   const pack = BOOSTER_PRODUCTS[packId];
-  if (!pack) throw new Error("Unknown booster pack.");
+  if (!pack) throw new Error("Unknown earned gameplay pack.");
 
   const collection = normalizeCollection(stats);
   if (collection.packCredits <= 0) {
-    throw new Error("You need an earned pack credit. Clear a new campaign chapter or use the $1 purchase option.");
+    throw new Error("You need an earned gameplay-pack credit. Clear a new campaign chapter to earn one.");
   }
   const openedCards = pack.slots
     .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
     .filter(Boolean);
 
   openedCards.forEach((card) => {
-    collection.cards[card.id] = (collection.cards[card.id] || 0) + 1;
+    collection.gameplayEntitlements[card.gameplayCardId] = (collection.gameplayEntitlements[card.gameplayCardId] || 0) + 1;
+    collection.collectorVariants[card.defaultVariantId] = (collection.collectorVariants[card.defaultVariantId] || 0) + 1;
   });
 
   collection.packCredits -= 1;
-  collection.openedPacks += 1;
-  collection.lastPack = {
+  collection.openedGameplayPacks += 1;
+  collection.openedPacks = collection.openedGameplayPacks;
+  collection.cards = { ...collection.gameplayEntitlements };
+  collection.lastGameplayPack = {
     packId,
+    productType: FREE_GAMEPLAY_ACQUISITION,
     openedAt: new Date().toISOString(),
-    cardIds: openedCards.map((card) => card.id)
+    gameplayCardIds: openedCards.map((card) => card.gameplayCardId),
+    variantIds: openedCards.map((card) => card.defaultVariantId),
+    cardIds: openedCards.map((card) => card.gameplayCardId)
   };
+  collection.lastPack = collection.lastGameplayPack;
   stats.collection = collection;
 
   const progression = normalizeProgression(stats);
-  awardAchievement(progression, "first-booster", "First Pack", "Open your first faction booster pack.", collection.lastPack.openedAt);
+  awardAchievement(progression, "first-booster", "First Pack", "Open your first earned gameplay pack.", collection.lastGameplayPack.openedAt);
   stats.progression = progression;
 
-  return openedCards;
+  return openedCards.map((card) => ({
+    ...card,
+    variantId: card.defaultVariantId,
+    acquisition: FREE_GAMEPLAY_ACQUISITION
+  }));
+}
+
+function resolveCollectorPackProduct(productId) {
+  if (COLLECTOR_PACK_PRODUCTS[productId]) return COLLECTOR_PACK_PRODUCTS[productId];
+  const legacyPack = BOOSTER_PRODUCTS[productId];
+  return legacyPack ? COLLECTOR_PACK_PRODUCTS[`${legacyPack.factionId}-collector`] : null;
+}
+
+function grantPurchasedCollectorPack(stats, productId, options = {}) {
+  const product = resolveCollectorPackProduct(productId);
+  if (!product) throw new Error("Unknown collector pack.");
+  const eligibleVariants = COLLECTOR_VARIANTS.filter((variant) => (
+    variant.paid
+    && variant.acquisition === PAID_COLLECTOR_ACQUISITION
+    && getGameplayCardById(variant.gameplayCardId)?.factionId === product.factionId
+  ));
+  const requestedVariantIds = Array.isArray(options.variantIds) ? options.variantIds.map(String) : null;
+  if (requestedVariantIds && requestedVariantIds.length !== product.variantCount) {
+    throw new Error(`${product.name} must grant exactly ${product.variantCount} collector variants.`);
+  }
+  const grantedVariants = requestedVariantIds
+    ? requestedVariantIds.map((variantId) => {
+        const variant = getCollectorVariantById(variantId);
+        if (!variant || !eligibleVariants.some((candidate) => candidate.variantId === variant.variantId)) {
+          throw new Error(`Collector variant ${variantId} is not valid for ${product.name}.`);
+        }
+        return variant;
+      })
+    : Array.from({ length: product.variantCount }, () => eligibleVariants[crypto.randomInt(eligibleVariants.length)]);
+  const collection = normalizeCollection(stats);
+  for (const variant of grantedVariants) {
+    collection.collectorVariants[variant.variantId] = (collection.collectorVariants[variant.variantId] || 0) + 1;
+  }
+  collection.purchasedCollectorPacks += 1;
+  collection.purchasedPacks = collection.purchasedCollectorPacks;
+  collection.openedCollectorPacks += 1;
+  collection.lastCollectorPack = {
+    productId: product.id,
+    productType: PAID_COLLECTOR_ACQUISITION,
+    openedAt: options.openedAt || new Date().toISOString(),
+    variantIds: grantedVariants.map((variant) => variant.variantId),
+    provenance: options.provenance || "purchase-fulfillment"
+  };
+  collection.cards = { ...collection.gameplayEntitlements };
+  stats.collection = collection;
+  return grantedVariants.map(publicCollectorVariant);
+}
+
+function buildCompetitiveCapabilitySnapshot(stats = {}) {
+  const collection = normalizeCollection(stats);
+  return {
+    rulesVersion: DUEL_RULES_VERSION,
+    startingLife: BASIC_STARTING_LIFE,
+    deckLimits: {
+      basePlayingDeckSize: BASE_PLAYING_DECK_SIZE,
+      maxConstructedDeckSize: MAX_CONSTRUCTED_DECK_SIZE,
+      maxConstructedReplacements: MAX_CONSTRUCTED_REPLACEMENTS,
+      maxReplacementsPerValue: MAX_REPLACEMENTS_PER_VALUE
+    },
+    winConditions: {
+      lifeDepletion: "a player with zero or less life loses",
+      simultaneousLifeDepletion: "higher remaining life wins; equal life draws",
+      concession: "the conceding player loses"
+    },
+    gameplayPool: COLLECTION_CARDS
+      .filter((card) => Number(collection.gameplayEntitlements[card.gameplayCardId] || 0) > 0)
+      .map((card) => ({
+        gameplayCardId: card.gameplayCardId,
+        copies: Number(collection.gameplayEntitlements[card.gameplayCardId]),
+        factionId: card.factionId,
+        type: card.type,
+        value: card.value,
+        rulesText: card.text
+      }))
+      .sort((left, right) => left.gameplayCardId.localeCompare(right.gameplayCardId)),
+    factions: listFactions().map((faction) => ({
+      id: faction.id,
+      commander: faction.commander.text,
+      general: faction.general.text,
+      city: faction.city.text
+    }))
+  };
 }
 
 app.get("/api/matches/:matchId", async (req, res) => {
@@ -2447,25 +2717,30 @@ app.post("/api/collection/open-pack", async (req, res) => {
   }
 });
 
-app.post("/api/collection/pack-purchase-link", async (req, res) => {
+async function sendCollectorPackPurchaseLink(req, res) {
   const context = await requireAccountRecord(req, res);
   if (!context) return;
 
-  const packId = String(req.body?.packId || "rumin-foundation");
-  if (!BOOSTER_PRODUCTS[packId]) {
-    res.status(400).json({ error: "Unknown booster pack." });
+  const requestedProductId = String(req.body?.productId || req.body?.packId || "rumin-collector");
+  const product = resolveCollectorPackProduct(requestedProductId);
+  if (!product) {
+    res.status(400).json({ error: "Unknown collector pack." });
     return;
   }
   if (!PACK_PURCHASE_URL) {
-    res.status(400).json({ error: "Pack purchases are not configured yet. Add PACK_PURCHASE_URL on the server to connect a $1 checkout link." });
+    res.status(400).json({ error: "Collector-pack purchases are not configured yet. Add PACK_PURCHASE_URL on the server to connect the $1 collector checkout link." });
     return;
   }
 
   const separator = PACK_PURCHASE_URL.includes("?") ? "&" : "?";
   res.json({
-    checkoutUrl: `${PACK_PURCHASE_URL}${separator}pack=${encodeURIComponent(packId)}&account=${encodeURIComponent(context.account.id)}`
+    product,
+    checkoutUrl: `${PACK_PURCHASE_URL}${separator}pack=${encodeURIComponent(product.id)}&product=${encodeURIComponent(product.id)}&productType=${encodeURIComponent(PAID_COLLECTOR_ACQUISITION)}&account=${encodeURIComponent(context.account.id)}`
   });
-});
+}
+
+app.post("/api/collection/collector-pack-purchase-link", sendCollectorPackPurchaseLink);
+app.post("/api/collection/pack-purchase-link", sendCollectorPackPurchaseLink);
 
 app.post("/api/collection/save-constructed-deck", async (req, res) => {
   const context = await requireAccountRecord(req, res);
@@ -5721,10 +5996,13 @@ function createGameFromLobby(roomState, options = {}) {
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
   function createDraftCardForDeck(card, faction, playerNum, replacementIndex) {
-    const definitionId = card.definitionId || card.id || card.draftCopyId || `replacement-${replacementIndex}`;
+    const definitionId = card.gameplayCardId || card.definitionId || card.id || card.draftCopyId || `replacement-${replacementIndex}`;
     return {
       id: `${matchId}-p${playerNum}-replacement-${replacementIndex}-${definitionId}`,
       definitionId,
+      gameplayCardId: definitionId,
+      variantId: card.variantId || `${definitionId}:standard`,
+      collector: clonePlain(card.collector || null),
       value: Number(card.value),
       suit: DRAFT_CARD_SUITS.includes(card.suit)
         ? card.suit
@@ -5890,7 +6168,10 @@ function createFreeForAllGameFromLobby(roomState) {
   function createAddedCardForDeck(card, faction) {
     return {
       id: `constructed-${card.id || card.draftCopyId}-${Math.random().toString(36).slice(2)}-${Date.now()}`,
-      definitionId: card.definitionId || card.id || null,
+      definitionId: card.gameplayCardId || card.definitionId || card.id || null,
+      gameplayCardId: card.gameplayCardId || card.definitionId || card.id || null,
+      variantId: card.variantId || `${card.gameplayCardId || card.definitionId || card.id}:standard`,
+      collector: clonePlain(card.collector || null),
       value: Number(card.value),
       suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
       name: card.name,
@@ -8128,12 +8409,14 @@ module.exports = {
     getBaseCardValue,
     getPaymentTotal,
     buildCompletionEnvelope,
+    buildCompetitiveCapabilitySnapshot,
     finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,
     getSavedConstructedDeck,
     getSavedDraftDeck,
     normalizeDeckLibrary,
+    normalizeCollection,
     normalizeFriendChallenges,
     persistActiveRoomsForShutdown,
     persistRoomsNow,
@@ -8153,6 +8436,9 @@ module.exports = {
     advanceEndPlacement,
     validateAuthConfiguration,
     validateConstructedDeckPayload,
+    grantPurchasedCollectorPack,
+    openCollectionBooster,
+    resolveCollectorVariantSelections,
     verifyAuthToken,
     validateHandIndexes
   }

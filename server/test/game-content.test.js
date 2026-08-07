@@ -5,6 +5,7 @@ const path = require("node:path");
 
 const {
   COLLECTION_CARDS,
+  COLLECTOR_VARIANTS,
   CONTENT_VERSION,
   DECK_RULES,
   RULES_VERSION,
@@ -20,13 +21,14 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(validateGameContent(), true);
   const content = getPublicGameContent();
 
-  assert.equal(content.schemaVersion, 1);
+  assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
   assert.equal(content.factions.length, 4);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
   assert.equal(content.campaigns.xendra.chapters.length, 8);
   assert.equal(content.cards.length, COLLECTION_CARDS.length);
+  assert.equal(content.collectorVariants.length, COLLECTOR_VARIANTS.length);
   assert.equal(content.deckRules.basePlayingDeckSize, 52);
   assert.equal(content.deckRules.basePlayingDeckSize, DECK_RULES.replacementSuits.length * DECK_RULES.playingDeckValues.length);
 });

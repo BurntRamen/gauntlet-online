@@ -281,17 +281,25 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
       : campaignCards.length > 0
         ? "campaign"
         : "standard";
+  const cards = (deck?.cards || campaignCards).map((card) => ({
+    gameplayCardId: card.gameplayCardId || card.definitionId || card.id || card.cardId || null,
+    value: card.value ?? null,
+    suit: card.suit || null,
+    variantId: card.variantId || null
+  }));
+  const mechanicalCards = cards.map(({ gameplayCardId, value, suit }) => ({ gameplayCardId, value, suit }));
+  const collectorVariants = cards
+    .filter((card) => card.variantId)
+    .map(({ gameplayCardId, variantId }) => ({ gameplayCardId, variantId }));
   const snapshot = {
     source,
     name: deck?.name || null,
     factionId: deck?.factionId || gamePlayer?.faction?.id || "basic",
     savedAt: deck?.savedAt || null,
     replacementCount: Number(deck?.replacementCount || deck?.additionCount || campaignCards.length || 0),
-    cards: (deck?.cards || campaignCards).map((card) => ({
-      id: card.id || card.cardId || null,
-      value: card.value ?? null,
-      suit: card.suit || null
-    }))
+    cards: mechanicalCards.map((card) => ({ id: card.gameplayCardId, ...card })),
+    mechanicalCards,
+    collectorVariants
   };
   return {
     deckId: deck?.deckId || null,
@@ -299,7 +307,15 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
     format: source === "draft" ? "draft" : "constructed",
     source,
     factionId: snapshot.factionId,
-    replacementCount: snapshot.replacementCount
+    replacementCount: snapshot.replacementCount,
+    snapshot,
+    gameplayCards: mechanicalCards,
+    collectorVariants,
+    gameplayConfigurationHash: deck?.gameplayConfigurationHash || stableHash({
+      factionId: snapshot.factionId,
+      cards: mechanicalCards
+    }),
+    collectorConfigurationHash: deck?.collectorConfigurationHash || stableHash({ variants: collectorVariants })
   };
 }
 
