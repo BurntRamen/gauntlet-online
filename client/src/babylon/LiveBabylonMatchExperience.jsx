@@ -5,6 +5,9 @@ import { createLiveSocketAdapter } from "./matchAdapters";
 export default function LiveBabylonMatchExperience({
   session,
   options,
+  completion,
+  campaignContinuationReady,
+  onContinueCampaign,
   onRendererFailure,
   onLeaveMatch
 }) {
@@ -22,6 +25,9 @@ export default function LiveBabylonMatchExperience({
     <ProductionMatchExperience
       adapter={adapterRef.current}
       options={options}
+      completion={completion}
+      campaignContinuationReady={campaignContinuationReady}
+      onContinueCampaign={onContinueCampaign}
       onRendererFailure={onRendererFailure}
     />
   );

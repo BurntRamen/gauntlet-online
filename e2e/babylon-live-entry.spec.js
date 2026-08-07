@@ -159,6 +159,39 @@ function seedDraftDecks(accounts) {
   fs.writeFileSync(accountFile, JSON.stringify(store, null, 2));
 }
 
+async function prepareCampaignNearVictory(page) {
+  const session = await page.evaluate(() => ({
+    roomCode: window.localStorage.getItem("gauntlet_room_code")
+  }));
+  const setupSocket = await connectSeedClient();
+  try {
+    const statePromise = waitForEvent(setupSocket, "state", (state) => state.phase === "priority");
+    setupSocket.emit("reconnectToRoom", {
+      roomCode: session.roomCode,
+      role: "spectator"
+    });
+    await statePromise;
+    const prepared = await new Promise((resolve, reject) => {
+      setupSocket.timeout(5000).emit("e2ePrepareCampaignCompletion", (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      });
+    });
+    expect(prepared.ok).toBeTruthy();
+  } finally {
+    setupSocket.disconnect();
+  }
+}
+
+async function finishPreparedCampaign(page) {
+  await prepareCampaignNearVictory(page);
+  const passPriority = page.getByRole("region", { name: "Current match action" })
+    .getByRole("button", { name: "Pass Priority" });
+  await expect(passPriority).toBeEnabled();
+  await passPriority.click();
+  await expect(page.getByRole("heading", { name: "Victory" })).toBeVisible();
+}
+
 test("normal browser lobby flow starts and finishes a live Babylon Basic match", async ({ browser, baseURL }) => {
   test.setTimeout(90000);
   const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -548,8 +581,8 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(currentAction.getByRole("button", { name: "Take Damage" })).toBeVisible();
 });
 
-test("signed-in campaign completion persists the envelope and restores after refresh and sign-in", async ({ page, request, baseURL }) => {
-  test.setTimeout(90000);
+test("signed-in campaign victory refreshes account state, continues, persists, and does not duplicate rewards", async ({ page, request, baseURL }) => {
+  test.setTimeout(150000);
   const unique = `${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
   const accountName = `Cmp${unique}`;
   const password = "Babylon-Test-Password-42";
@@ -566,33 +599,19 @@ test("signed-in campaign completion persists the envelope and restores after ref
 
   const match = page.getByTestId("production-babylon-match");
   await expect(match).toBeVisible();
-  const session = await page.evaluate(() => ({
-    roomCode: window.localStorage.getItem("gauntlet_room_code"),
-    reconnectToken: window.localStorage.getItem("gauntlet_reconnect_token")
-  }));
-
-  const setupSocket = await connectSeedClient();
-  try {
-    const statePromise = waitForEvent(setupSocket, "state", (state) => state.phase === "priority");
-    setupSocket.emit("reconnectToRoom", {
-      roomCode: session.roomCode,
-      role: "spectator"
-    });
-    await statePromise;
-    const prepared = await new Promise((resolve, reject) => {
-      setupSocket.timeout(5000).emit("e2ePrepareCampaignCompletion", (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      });
-    });
-    expect(prepared.ok).toBeTruthy();
-  } finally {
-    setupSocket.disconnect();
-  }
-
-  await expect(page.getByRole("region", { name: "Current match action" }).getByRole("button", { name: "Pass Priority" })).toBeEnabled();
-  await page.getByRole("region", { name: "Current match action" }).getByRole("button", { name: "Pass Priority" }).click();
-  await expect(page.getByRole("heading", { name: "Victory" })).toBeVisible();
+  const completionResponsePromise = page.waitForResponse((response) => (
+    response.request().method() === "GET"
+    && /\/api\/matches\/[0-9a-f-]+\/completion$/i.test(response.url())
+    && response.ok()
+  ));
+  const accountRefreshPromise = page.waitForResponse((response) => (
+    response.request().method() === "GET"
+    && response.url().endsWith("/api/auth/me")
+    && response.ok()
+  ));
+  await finishPreparedCampaign(page);
+  const completion = (await (await completionResponsePromise).json()).completion;
+  const refreshedAccount = (await (await accountRefreshPromise).json()).account;
   await expect(page.getByText("First clear", { exact: true })).toBeVisible();
   await expect(page.getByText("+1", { exact: true })).toBeVisible();
   await expect(page.getByText("Next mission", { exact: true })).toBeVisible();
@@ -600,25 +619,45 @@ test("signed-in campaign completion persists the envelope and restores after ref
   const matchId = await match.getAttribute("data-match-id");
   expect(matchId).toMatch(/^[0-9a-f-]{36}$/i);
   const authHeaders = { Authorization: `Bearer ${account.token}` };
-  const completionResponse = await request.get(`${SERVER_URL}/api/matches/${matchId}/completion`, { headers: authHeaders });
-  expect(completionResponse.ok()).toBeTruthy();
-  const completion = (await completionResponse.json()).completion;
   expect(completion.matchId).toBe(matchId);
   expect(completion.result.outcome).toBe("win");
   expect(completion.campaign.firstClear).toBe(true);
   expect(completion.rewards.boosterCreditDelta).toBe(1);
   expect(completion.campaign.nextMission?.chapterId).toBeTruthy();
+  expect(refreshedAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
+  expect(refreshedAccount.stats.collection.packCredits).toBe(1);
 
   const matchesResponse = await request.get(`${SERVER_URL}/api/account/matches`, { headers: authHeaders });
   const matches = (await matchesResponse.json()).matches;
   expect(matches.filter((entry) => entry.matchId === matchId)).toHaveLength(1);
 
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Victory" })).toBeVisible();
-  await expect(page.getByText(matchId, { exact: true })).toBeVisible();
-  await expect(page.getByText("First clear", { exact: true })).toBeVisible();
+  const nextMissionButton = page.getByRole("button", { name: `Next Mission: ${completion.campaign.nextMission.title}` });
+  await expect(nextMissionButton).toBeEnabled();
+  await nextMissionButton.click();
+  await expect(page.getByTestId("production-babylon-match")).not.toHaveAttribute("data-match-id", matchId);
+  await expect(page.getByRole("heading", { name: completion.campaign.nextMission.title })).toBeVisible();
 
-  await page.getByRole("button", { name: "Main Menu" }).click();
+  await page.getByText("Match", { exact: true }).click();
+  await page.getByRole("button", { name: "Main menu" }).click();
+  await page.locator('button[data-area="journey"]').click();
+  await expect(page.locator(".journey-campaign-progress strong")).toHaveText("1");
+  await page.getByRole("button", { name: "Continue Campaign" }).click();
+  const completedChapter = page.locator(".campaign-chapter").filter({
+    has: page.getByRole("heading", { name: completion.campaign.title, exact: true })
+  });
+  const nextChapter = page.locator(".campaign-chapter").filter({
+    has: page.getByRole("heading", { name: completion.campaign.nextMission.title, exact: true })
+  });
+  await expect(completedChapter).toHaveClass(/is-complete/);
+  await expect(nextChapter).toHaveClass(/is-unlocked/);
+  await expect(nextChapter).toHaveClass(/is-current/);
+  for (const factionName of ["Bizi", "Sheen", "Frumo"]) {
+    await expect(page.getByRole("tab", { name: new RegExp(`${factionName}.*0/12`, "i") })).toBeVisible();
+  }
+
+  await page.reload();
+  await page.locator('button[data-area="journey"]').click();
+  await expect(page.locator(".journey-campaign-progress strong")).toHaveText("1");
   await page.locator('button[data-area="identity"]').click();
   await page.getByRole("button", { name: "Sign Out" }).click();
   await page.getByPlaceholder("Account name").fill(accountName);
@@ -631,6 +670,29 @@ test("signed-in campaign completion persists the envelope and restores after ref
   expect(restoredAccount.stats.gamesWon).toBe(1);
   expect(restoredAccount.stats.collection.packCredits).toBe(1);
   expect(restoredAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
+
+  await page.locator('button[data-area="journey"]').click();
+  await page.getByRole("button", { name: "Continue Campaign" }).click();
+  const replayChapter = page.locator(".campaign-chapter").filter({ hasText: completion.campaign.title });
+  await replayChapter.getByRole("button", { name: "Begin Battle" }).click();
+  await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+  const repeatCompletionPromise = page.waitForResponse((response) => (
+    response.request().method() === "GET"
+    && /\/api\/matches\/[0-9a-f-]+\/completion$/i.test(response.url())
+    && response.ok()
+  ));
+  const repeatAccountRefreshPromise = page.waitForResponse((response) => (
+    response.request().method() === "GET"
+    && response.url().endsWith("/api/auth/me")
+    && response.ok()
+  ));
+  await finishPreparedCampaign(page);
+  const repeatCompletion = (await (await repeatCompletionPromise).json()).completion;
+  const repeatAccount = (await (await repeatAccountRefreshPromise).json()).account;
+  await expect(page.getByText("Repeat clear", { exact: true })).toBeVisible();
+  expect(repeatCompletion.campaign.repeatClear).toBe(true);
+  expect(repeatCompletion.rewards.boosterCreditDelta).toBe(0);
+  expect(repeatAccount.stats.collection.packCredits).toBe(1);
 });
 
 test("normal ranked best-of-three entry advances to game two inside the same Babylon experience", async ({

@@ -151,6 +151,87 @@ test("keeps the post-match flow inside the production experience", async () => {
   expect(newMatch).toHaveBeenCalledTimes(1);
 });
 
+test("uses the App-owned completion and waits for account refresh before continuing campaign", async () => {
+  const onContinueCampaign = jest.fn();
+  const viewModel = createViewModel();
+  viewModel.phase = "gameOver";
+  viewModel.winner = 1;
+  viewModel.message = "Local wins.";
+  const adapter = adapterFor({
+    viewModel,
+    snapshot: { campaign: { factionId: "rumin", chapterId: "brothers-of-destiny" } }
+  });
+  const completion = {
+    matchId: "match-1",
+    result: { playerNum: 1, outcome: "win", winnerPlayerNum: 1 },
+    campaign: {
+      factionId: "rumin",
+      chapterId: "brothers-of-destiny",
+      firstClear: true,
+      nextMission: { status: "available", factionId: "rumin", chapterId: "the-republic", title: "The Republic" }
+    },
+    rewards: { boosterCreditDelta: 1 }
+  };
+  const rendered = render(
+    <ProductionMatchExperience
+      adapter={adapter}
+      completion={completion}
+      campaignContinuationReady={false}
+      onContinueCampaign={onContinueCampaign}
+      options={{ audioEnabled: false }}
+    />
+  );
+
+  const continueButton = await screen.findByRole("button", { name: "Next Mission: The Republic" });
+  expect(continueButton).toBeDisabled();
+  rendered.rerender(
+    <ProductionMatchExperience
+      adapter={adapter}
+      completion={completion}
+      campaignContinuationReady
+      onContinueCampaign={onContinueCampaign}
+      options={{ audioEnabled: false }}
+    />
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next Mission: The Republic" }));
+  expect(onContinueCampaign).toHaveBeenCalledWith("rumin", "the-republic");
+});
+
+test("does not fetch completion independently or offer continuation after defeat", async () => {
+  const originalFetch = global.fetch;
+  global.fetch = jest.fn();
+  const viewModel = createViewModel();
+  viewModel.phase = "gameOver";
+  viewModel.winner = 2;
+  viewModel.message = "Opponent wins.";
+  try {
+    render(
+      <ProductionMatchExperience
+        adapter={adapterFor({
+          viewModel,
+          snapshot: { campaign: { factionId: "rumin", chapterId: "brothers-of-destiny" } }
+        })}
+        completion={{
+          result: { playerNum: 1, outcome: "loss", winnerPlayerNum: 2 },
+          campaign: {
+            factionId: "rumin",
+            nextMission: { status: "available", chapterId: "the-republic", title: "The Republic" }
+          },
+          rewards: { boosterCreditDelta: 0 }
+        }}
+        onContinueCampaign={jest.fn()}
+        options={{ audioEnabled: false }}
+      />
+    );
+
+    expect(await screen.findByRole("heading", { name: "Defeat" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Next Mission:/ })).not.toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test("presents campaign identity and canonical boss ability inside the production shell", async () => {
   render(
     <ProductionMatchExperience

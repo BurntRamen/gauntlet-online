@@ -8,6 +8,10 @@ import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
+import {
+  createCompletionAccountRefreshCoordinator,
+  fetchAuthoritativeAccount
+} from "./completionAccountRefresh";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 
@@ -3460,6 +3464,7 @@ export default function App() {
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
   const [completionEnvelope, setCompletionEnvelope] = useState(null);
+  const [completionAccountReadyMatchId, setCompletionAccountReadyMatchId] = useState("");
   const [lobby, setLobby] = useState(null);
   const [draftState, setDraftState] = useState(null);
   const [error, setError] = useState("");
@@ -3542,8 +3547,12 @@ export default function App() {
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
   const babylonFallbackPromiseRef = useRef(null);
+  const completionAccountRefreshRef = useRef(null);
   if (!liveMatchSessionRef.current) {
     liveMatchSessionRef.current = createLiveMatchSession({ socket });
+  }
+  if (!completionAccountRefreshRef.current) {
+    completionAccountRefreshRef.current = createCompletionAccountRefreshCoordinator();
   }
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
@@ -3723,28 +3732,28 @@ export default function App() {
     }
   }
 
+  const loadAuthoritativeAccount = useCallback(() => fetchAuthoritativeAccount({
+    apiBaseUrl: SOCKET_URL,
+    authToken
+  }), [authToken]);
+
   useEffect(() => {
     if (!authToken) return;
-    fetch(`${SOCKET_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not restore sign-in.");
-        setAccount(data.account);
-      })
+    loadAuthoritativeAccount()
+      .then(setAccount)
       .catch(() => {
         localStorage.removeItem(STORAGE_KEYS.authToken);
         setAuthToken("");
         setAccount(null);
       });
-  }, [authToken]);
+  }, [authToken, loadAuthoritativeAccount]);
 
   useEffect(() => {
     const matchId = game?.matchId;
     const completed = game?.phase === "gameOver" || game?.winner != null;
     if (!matchId || !completed) {
       setCompletionEnvelope(null);
+      setCompletionAccountReadyMatchId("");
       return undefined;
     }
     let cancelled = false;
@@ -3756,7 +3765,21 @@ export default function App() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load match completion.");
-        if (!cancelled) setCompletionEnvelope(data.completion || null);
+        if (cancelled) return;
+        const completion = data.completion || null;
+        setCompletionEnvelope(completion);
+        if (!authToken || !completion?.matchId) {
+          setCompletionAccountReadyMatchId(matchId);
+          return;
+        }
+        const refreshed = await completionAccountRefreshRef.current.refresh(
+          matchId,
+          loadAuthoritativeAccount
+        );
+        if (!cancelled) {
+          setAccount(refreshed.account);
+          setCompletionAccountReadyMatchId(matchId);
+        }
       } catch (completionError) {
         if (!cancelled && attempt < 3) {
           attempt += 1;
@@ -3766,7 +3789,7 @@ export default function App() {
     };
     loadCompletion();
     return () => { cancelled = true; };
-  }, [authToken, game?.matchId, game?.phase, game?.winner]);
+  }, [authToken, game?.matchId, game?.phase, game?.winner, loadAuthoritativeAccount]);
 
   const loadLeaderboard = useCallback(() => {
     fetch(`${SOCKET_URL}/api/leaderboard`)
@@ -5388,6 +5411,9 @@ export default function App() {
         <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
           <LiveBabylonMatchExperience
             session={liveMatchSessionRef.current}
+            completion={completionEnvelope}
+            campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
+            onContinueCampaign={continueCampaignChapter}
             options={{
               audioEnabled: !accountSoundMuted,
               onAudioEnabledChange: (enabled) => {
@@ -5507,7 +5533,10 @@ export default function App() {
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
             {nextCampaignChapter && (
-              <MenuButton onClick={() => continueCampaignChapter(game.campaign.factionId, nextCampaignChapter.id)}>
+              <MenuButton
+                disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}
+                onClick={() => continueCampaignChapter(completionEnvelope.campaign.factionId, nextCampaignChapter.chapterId)}
+              >
                 Next Mission: {nextCampaignChapter.title}
               </MenuButton>
             )}

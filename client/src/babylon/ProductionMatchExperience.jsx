@@ -745,7 +745,16 @@ function PrivacyCurtain({ privacy }) {
   );
 }
 
-function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnabled, completion }) {
+function MatchResult({
+  viewModel,
+  controls = {},
+  commands,
+  campaign,
+  audioEnabled,
+  completion,
+  campaignContinuationReady,
+  onContinueCampaign
+}) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
   const winner = completion?.result?.winnerPlayerNum ?? viewModel?.winner;
@@ -761,6 +770,11 @@ function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnable
   const rematchRequestedByMe = controls.rematchStatus?.requestedBy === localPlayer;
   const rematchRequestedByOpponent = !!controls.rematchStatus?.requestedBy && !rematchRequestedByMe;
   const controlPending = !!controls.pendingControlType;
+  const nextMission = campaign
+    && outcome === "win"
+    && completion?.campaign?.nextMission?.status === "available"
+    ? completion.campaign.nextMission
+    : null;
   return (
     <section className="production-match-result" role="dialog" aria-modal="true">
       <span>Gauntlet Match Complete</span>
@@ -785,6 +799,15 @@ function MatchResult({ viewModel, controls = {}, commands, campaign, audioEnable
         audioEnabled={audioEnabled}
       />
       <div className="production-result-actions">
+        {nextMission && onContinueCampaign && (
+          <button
+            type="button"
+            disabled={!campaignContinuationReady}
+            onClick={() => onContinueCampaign(completion.campaign.factionId, nextMission.chapterId)}
+          >
+            Next Mission: {nextMission.title}
+          </button>
+        )}
         {commands.newMatch && (
           <button type="button" onClick={() => commands.newMatch()}>
             Start New Match
@@ -1032,6 +1055,9 @@ function EventCallout({ events }) {
 export default function ProductionMatchExperience({
   adapter,
   options = {},
+  completion = null,
+  campaignContinuationReady = true,
+  onContinueCampaign,
   onRendererFailure,
   onSceneMetrics
 }) {
@@ -1040,7 +1066,6 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
-  const [completion, setCompletion] = useState(null);
   const adapterRef = useRef(adapter);
   const inspectionReturnFocusRef = useRef(null);
   adapterRef.current = adapter;
@@ -1074,34 +1099,6 @@ export default function ProductionMatchExperience({
     && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
   );
   const playUiTone = useEventAudio(viewModel?.events, audioEnabled);
-  useEffect(() => {
-    const matchId = viewModel?.matchId;
-    if (viewModel?.phase !== "gameOver" || !matchId) {
-      setCompletion(null);
-      return undefined;
-    }
-    let cancelled = false;
-    let attempts = 0;
-    const loadCompletion = async () => {
-      try {
-        const baseUrl = process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
-        const token = typeof window !== "undefined" ? window.localStorage.getItem("gauntlet_auth_token") : "";
-        const response = await fetch(`${baseUrl}/api/matches/${encodeURIComponent(matchId)}/completion`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Completion unavailable");
-        if (!cancelled) setCompletion(data.completion || null);
-      } catch (_error) {
-        if (!cancelled && attempts < 3) {
-          attempts += 1;
-          window.setTimeout(loadCompletion, attempts * 400);
-        }
-      }
-    };
-    loadCompletion();
-    return () => { cancelled = true; };
-  }, [viewModel?.matchId, viewModel?.phase]);
   useEffect(() => {
     if (options.audioEnabled != null) setAudioEnabled(Boolean(options.audioEnabled));
   }, [options.audioEnabled]);
@@ -1372,6 +1369,8 @@ export default function ProductionMatchExperience({
           campaign={update?.snapshot?.campaign}
           audioEnabled={audioEnabled}
           completion={completion}
+          campaignContinuationReady={campaignContinuationReady}
+          onContinueCampaign={onContinueCampaign}
         />
 
         <div className="production-portrait-guard" role="status">
