@@ -58,6 +58,7 @@ const {
   projectForPerspective: projectSharedDuelForPerspective
 } = require("../shared/duel-rules");
 const {
+  buildAccountMatchIndexEntry,
   buildParaMatchExport,
   buildMatchRecord,
   captureAuditEvent,
@@ -65,6 +66,7 @@ const {
   createMatchMetadata,
   publicMatchRecord,
   publicMatchSummary,
+  projectMatchPerspective,
   recordCombatResolution
 } = require("./matchRecords");
 const {
@@ -195,9 +197,11 @@ app.get("/", (_req, res) => {
 app.get("/api/storage-status", async (_req, res) => {
   try {
     const matchStorage = await matchPersistence.getMode();
+    const matchStorageStatus = publicMatchStorageStatus();
     res.json({
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
       matchStorage,
+      matchStorageCapabilities: matchStorageStatus.capabilities,
       supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
     });
   } catch (error) {
@@ -1084,7 +1088,20 @@ function normalizeProgression(stats = {}) {
   return {
     achievements: { ...base.achievements, ...(progression.achievements || {}) },
     campaign: { ...base.campaign, ...(progression.campaign || {}) },
-    matchHistory: Array.isArray(progression.matchHistory) ? progression.matchHistory.slice(0, 30) : [],
+    // Durable compatibility index only. These references intentionally do not
+    // duplicate result, opponent, faction, life, or campaign facts from record v2.
+    matchHistory: [...new Map((Array.isArray(progression.matchHistory) ? progression.matchHistory : [])
+      .map((entry) => {
+        const matchId = entry?.matchId || entry?.id || null;
+        if (!matchId) return null;
+        return [matchId, {
+          matchId,
+          recordVersion: Number(entry.recordVersion || 2),
+          completedAt: entry.completedAt || null,
+          deckVersionId: entry.deckVersionId || null
+        }];
+      })
+      .filter(Boolean)).values()].slice(0, 30),
     cosmetics: {
       ...base.cosmetics,
       ...(progression.cosmetics || {}),
@@ -1258,7 +1275,10 @@ function buildPublicPlayerProfile(account, matchRecords = []) {
       updatedAt: deck.updatedAt,
       record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
     })),
-    recentMatches: matchRecords.slice(0, 12).map(publicMatchSummary)
+    recentMatches: matchRecords.slice(0, 12).map((record) => publicMatchSummary(record, { accountId: account.id })),
+    unavailableMatchReferences: normalizeProgression(stats).matchHistory
+      .filter((reference) => !matchRecords.some((record) => record.matchId === reference.matchId))
+      .slice(0, 12)
   };
 }
 
@@ -1362,6 +1382,11 @@ const matchPersistence = createMatchPersistence({
   toPreferredRow: matchRecordToSupabaseRow,
   commitCompatibilityApplications: commitCompatibilityAccountApplications
 });
+
+function publicMatchStorageStatus() {
+  const { mode, capabilities } = matchPersistence.status();
+  return { mode, capabilities };
+}
 
 function getNextCampaignMission(account, factionId, chapterId, result) {
   if (result !== "win" || !factionId || !chapterId) return null;
@@ -1684,31 +1709,18 @@ function applyProgressionForResult(stats, result, context = {}) {
   const progression = normalizeProgression(stats);
   const factionId = context.factionId || "basic";
   const factionName = context.factionName || (factionId === "basic" ? "Basic" : factionId);
-  const opponentName = context.opponentName || "Opponent";
 
-  // Legacy account projection only: authoritative history is served from
-  // gauntlet_match_records. Keep this compatibility list keyed by matchId so
-  // older clients cannot create a second history entry on a retry.
+  // Compatibility/account index only: immutable match facts remain in record
+  // v2. Keep the smallest useful durable reference, keyed by match ID.
   if (context.matchId) {
     progression.matchHistory = progression.matchHistory.filter((entry) => entry.matchId !== context.matchId);
+    progression.matchHistory.unshift({
+      matchId: context.matchId,
+      recordVersion: Number(context.matchIndex?.recordVersion || 2),
+      completedAt: context.matchIndex?.completedAt || now,
+      deckVersionId: context.matchIndex?.deckVersionId || context.deckVersionId || null
+    });
   }
-  progression.matchHistory.unshift({
-    id: context.matchId || crypto.randomUUID(),
-    matchId: context.matchId || null,
-    completedAt: now,
-    result,
-    mode: context.mode || "duel",
-    factionId,
-    factionName,
-    opponentName,
-    life: context.life ?? null,
-    opponentLife: context.opponentLife ?? null,
-    campaign: context.campaign ? {
-      factionId: context.campaign.factionId,
-      chapterId: context.campaign.chapterId,
-      title: context.campaign.title
-    } : null
-  });
   progression.matchHistory = progression.matchHistory.slice(0, 30);
 
   if (result === "win") {
@@ -2218,7 +2230,14 @@ app.get("/api/account/matches", async (req, res) => {
     const context = await requireAccountRecord(req, res);
     if (!context) return;
     const records = await listMatchRecordsByAccount(context.account.id, req.query.limit);
-    res.json({ matches: records.map(publicMatchSummary) });
+    const safeLimit = Math.max(1, Math.min(Number(req.query.limit) || 30, 100));
+    const references = normalizeProgression(context.account.stats || {}).matchHistory.slice(0, safeLimit);
+    const availableIds = new Set(records.map((record) => record.matchId));
+    res.json({
+      matches: records.map((record) => publicMatchSummary(record, { accountId: context.account.id })),
+      unavailableMatchReferences: references.filter((reference) => !availableIds.has(reference.matchId)),
+      storage: publicMatchStorageStatus()
+    });
   } catch (error) {
     console.error("[Matches] Failed to load account matches", error);
     res.status(503).json({ error: "Match records are temporarily unavailable." });
@@ -2240,7 +2259,7 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       return;
     }
     const records = await listMatchRecordsByAccount(account.id, 100);
-    res.json({ profile: buildPublicPlayerProfile(account, records) });
+    res.json({ profile: buildPublicPlayerProfile(account, records), storage: publicMatchStorageStatus() });
   } catch (error) {
     console.error("[Profiles] Failed to load public profile", error);
     res.status(503).json({ error: "Player profiles are temporarily unavailable." });
@@ -4883,25 +4902,21 @@ async function recordFinalGameStats(roomState, options = {}) {
     abandonmentReason: options.abandonmentReason || null
   });
   const buildContext = (playerNum, result) => {
-    const opponentNums = getLobbyPlayerNumbers(roomState).filter((entry) => entry !== playerNum);
-    const primaryOpponent = opponentNums[0];
+    const perspective = projectMatchPerspective(matchRecord, { playerNum });
     return {
-      ranked: completionReason === "abandoned" ? false : !game.campaign,
+      ranked: matchRecord.ranked,
       draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
       matchId: matchRecord.matchId,
-      deckVersionId: roomState.lobby.players[playerNum].savedDraftDeck?.versionId || roomState.lobby.players[playerNum].savedConstructedDeck?.versionId || null,
-      completedAt,
-      mode: game.campaign ? "campaign" : game.gameMode || "duel",
-      factionId: game.players[playerNum]?.faction?.id,
-      factionName: game.players[playerNum]?.faction?.name,
-      opponentName: primaryOpponent ? (game.players[primaryOpponent]?.accountName || `Player ${primaryOpponent}`) : "Opponent",
-      life: game.players[playerNum]?.life,
-      opponentLife: primaryOpponent ? game.players[primaryOpponent]?.life : null,
-      campaign: game.campaign ? {
-        factionId: game.campaign.factionId,
-        chapterId: game.campaign.chapterId,
-        title: game.campaign.title
-      } : null
+      deckVersionId: perspective?.player?.deck?.deckVersionId || null,
+      completedAt: matchRecord.completedAt,
+      mode: matchRecord.mode,
+      factionId: perspective?.player?.faction?.id || "basic",
+      factionName: perspective?.player?.faction?.name || "Basic",
+      opponentName: perspective?.opponent?.displayName || "Opponent",
+      life: perspective?.player?.finalLife ?? null,
+      opponentLife: perspective?.opponent?.finalLife ?? null,
+      campaign: matchRecord.campaign ? clonePlain(matchRecord.campaign) : null,
+      matchIndex: buildAccountMatchIndexEntry(matchRecord, { playerNum })
     };
   };
 
@@ -4911,7 +4926,7 @@ async function recordFinalGameStats(roomState, options = {}) {
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {
       const accountId = roomState.lobby.players[playerNum].accountId;
       if (!accountId) continue;
-      const result = game.winner == null ? "draw" : Number(game.winner) === playerNum ? "win" : "loss";
+      const result = projectMatchPerspective(matchRecord, { playerNum })?.outcome || "unknown";
       consequences.push({
         accountId,
         playerNum,

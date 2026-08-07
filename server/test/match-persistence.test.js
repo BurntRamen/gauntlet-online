@@ -185,3 +185,54 @@ test("falls back from a missing finalization RPC and commits prepared account ap
   assert.deepEqual(committed, [{ matchId: record.matchId, received: applications }]);
   assert.equal(rows.get(journalId(record.matchId)).data.record.completion.status, "finalized");
 });
+
+test("account-only mode reports complete records as process-local after process replacement", async () => {
+  const record = makeRecord("99999999-9999-4999-8999-999999999999");
+  const accountIndex = [{
+    matchId: record.matchId,
+    recordVersion: 2,
+    completedAt: record.completedAt,
+    deckVersionId: null
+  }];
+  const supabaseRequest = async (pathname) => {
+    if (pathname === "gauntlet_match_records?select=id&limit=1") throw capabilityError("PGRST205", "table not found");
+    if (pathname === "gauntlet_faction_stats?select=id&limit=1") throw capabilityError("PGRST205", "table not found");
+    throw new Error(`Unexpected request: ${pathname}`);
+  };
+  const firstProcess = createMatchPersistence({
+    useSupabaseStore: () => true,
+    supabaseRequest,
+    localStore: makeLocalStore(),
+    toPreferredRow: (value) => ({ id: value.matchId, record: value }),
+    logger: { warn() {} }
+  });
+
+  await firstProcess.persist(record);
+  assert.deepEqual(await firstProcess.findById(record.matchId), record);
+  assert.deepEqual(firstProcess.status().capabilities, {
+    accountConsequences: "durable",
+    accountMatchIndex: "durable",
+    completeRecordV2: "process-local",
+    publicRecordAfterProcessReplacement: false,
+    completionAfterProcessReplacement: false,
+    auditHistoryAfterProcessReplacement: false
+  });
+
+  const replacementProcess = createMatchPersistence({
+    useSupabaseStore: () => true,
+    supabaseRequest,
+    localStore: makeLocalStore(),
+    toPreferredRow: (value) => ({ id: value.matchId, record: value }),
+    logger: { warn() {} }
+  });
+
+  assert.equal(await replacementProcess.getMode(), "account-only");
+  assert.equal(await replacementProcess.findById(record.matchId), null);
+  assert.deepEqual(await replacementProcess.listByAccount("account-1", 30, accountIndex.map((entry) => entry.matchId)), []);
+  assert.deepEqual(accountIndex, [{
+    matchId: record.matchId,
+    recordVersion: 2,
+    completedAt: record.completedAt,
+    deckVersionId: null
+  }]);
+});

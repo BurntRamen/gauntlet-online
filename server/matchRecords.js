@@ -325,10 +325,65 @@ function publicMatchRecord(record) {
   return publicRecord;
 }
 
-function publicMatchSummary(record) {
+function finalPublicMessage(record) {
+  return [...(record?.auditEvents || [])]
+    .reverse()
+    .find((event) => event?.publicPayload?.message)?.publicPayload?.message || null;
+}
+
+function projectMatchPerspective(record, options = {}) {
+  if (!record) return null;
+  const requestedPlayerNum = options.playerNum == null ? null : Number(options.playerNum);
+  const participant = (record.participants || []).find((entry) => (
+    options.accountId ? entry.accountId === options.accountId : requestedPlayerNum != null && Number(entry.playerNum) === requestedPlayerNum
+  )) || (options.accountId || requestedPlayerNum != null ? null : record.participants?.[0]) || null;
+  const opponents = participant
+    ? (record.participants || []).filter((entry) => Number(entry.playerNum) !== Number(participant.playerNum))
+    : [];
+  const opponent = opponents[0] || null;
+  const playerCombat = participant ? record.combatStats?.byPlayer?.[String(participant.playerNum)] || null : null;
+  return {
+    projectionVersion: "gauntlet.match-perspective.v1",
+    recordVersion: record.recordVersion,
+    matchId: record.matchId,
+    seriesId: record.seriesId || null,
+    mode: record.mode,
+    ranked: !!record.ranked,
+    startedAt: record.startedAt,
+    completedAt: record.completedAt,
+    completionReason: record.completionReason,
+    winnerPlayerNum: record.winnerPlayerNum ?? null,
+    turnCount: record.turnCount,
+    player: clonePlain(participant),
+    opponent: clonePlain(opponent),
+    opponents: clonePlain(opponents),
+    outcome: participant?.result || "unknown",
+    campaign: clonePlain(record.campaign || null),
+    combat: clonePlain(playerCombat),
+    notableMoments: clonePlain(record.notableMoments || null),
+    finalMessage: finalPublicMessage(record)
+  };
+}
+
+function buildAccountMatchIndexEntry(record, options = {}) {
+  const perspective = projectMatchPerspective(record, options);
+  if (!perspective?.player) return null;
+  return {
+    matchId: record.matchId,
+    recordVersion: record.recordVersion,
+    completedAt: record.completedAt,
+    deckVersionId: perspective.player.deck?.deckVersionId || null
+  };
+}
+
+function publicMatchSummary(record, perspectiveOptions = null) {
   if (!record) return null;
   const { auditEvents, ...summary } = publicMatchRecord(record);
-  return clonePlain({ ...summary, auditEventCount: Array.isArray(auditEvents) ? auditEvents.length : 0 });
+  return clonePlain({
+    ...summary,
+    auditEventCount: Array.isArray(auditEvents) ? auditEvents.length : 0,
+    ...(perspectiveOptions ? { perspective: projectMatchPerspective(record, perspectiveOptions) } : {})
+  });
 }
 
 function buildParaMatchExport(record, matchUrl = null, exportedAt = new Date().toISOString()) {
@@ -418,11 +473,13 @@ module.exports = {
   RULES_VERSION,
   CONTENT_VERSION,
   buildMatchRecord,
+  buildAccountMatchIndexEntry,
   buildParaMatchExport,
   captureAuditEvent,
   createLocalMatchStore,
   createMatchMetadata,
   publicMatchRecord,
   publicMatchSummary,
+  projectMatchPerspective,
   recordCombatResolution
 };

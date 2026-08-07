@@ -8,6 +8,7 @@ import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
+import { projectPostMatchResult } from "./match/completionResultProjection";
 import {
   createCompletionAccountRefreshCoordinator,
   fetchAuthoritativeAccount
@@ -5430,14 +5431,12 @@ export default function App() {
   }
 
   if (gameIsOver) {
-    const isDraw = game.winner == null;
-    const authoritativeOutcome = Number(completionEnvelope?.result?.playerNum) === Number(player)
-      ? completionEnvelope?.result?.outcome || null
-      : null;
-    const didWin = !isSpectator && (authoritativeOutcome ? authoritativeOutcome === "win" : game.winner === player);
-    const didLose = !isSpectator && (authoritativeOutcome ? authoritativeOutcome === "loss" : game.winner != null && game.winner !== player);
-    const resultTitle = isDraw ? "Draw" : didWin ? "Victory" : didLose ? "Defeat" : `Player ${game.winner} Wins`;
-    const resultDetail = completionEnvelope?.recap?.finalMessage || game.message || (isDraw ? "The game ended in a draw." : `Player ${game.winner} wins.`);
+    const resultProjection = projectPostMatchResult({ completion: completionEnvelope, game, playerNum: player });
+    const isDraw = resultProjection.outcome === "draw";
+    const didWin = !isSpectator && resultProjection.outcome === "win";
+    const didLose = !isSpectator && resultProjection.outcome === "loss";
+    const resultTitle = resultProjection.title;
+    const resultDetail = resultProjection.finalMessage || (isDraw ? "The game ended in a draw." : `Player ${resultProjection.winnerPlayerNum} wins.`);
     const resultColor = isDraw ? "#dbeafe" : didWin ? "#dcfce7" : didLose ? "#fee2e2" : "#f3f4f6";
     const resultBorder = isDraw ? "#2563eb" : didWin ? "#16a34a" : didLose ? "#dc2626" : "#111827";
     const celebrationAccent = isDraw ? "#60a5fa" : didWin ? myTheme.primary : "#ef4444";
@@ -5502,7 +5501,7 @@ export default function App() {
           <h1 style={{ margin: "0 0 10px 0", fontFamily: "Georgia, serif", fontSize: "clamp(36px, 7vw, 58px)", color: "#2a160b", textShadow: "0 2px 0 rgba(255,255,255,0.48)" }}>{resultTitle}</h1>
           <p style={{ margin: "0 auto 20px auto", maxWidth: 560, fontSize: 18, color: "#2f1c10" }}>{resultDetail}</p>
           <div style={{ margin: "0 auto 18px", maxWidth: 620, display: "grid", gap: 8, textAlign: "left", fontSize: 14, color: "#2f1c10" }}>
-            <div><strong>Match ID:</strong> {completionEnvelope?.matchId || game.matchId || "Pending"}</div>
+            <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
@@ -5521,12 +5520,20 @@ export default function App() {
             light
           />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
-            {Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => {
-              const theme = getFactionTheme(game.players[p].faction.id);
+            {(resultProjection.canonicalAvailable
+              ? resultProjection.participants
+              : Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => ({
+                  playerNum: p,
+                  displayName: getGamePlayerName(game, p),
+                  faction: game.players[p].faction,
+                  finalLife: game.players[p].life
+                }))).map((participant) => {
+              const p = Number(participant.playerNum);
+              const theme = getFactionTheme(participant.faction?.id || "basic");
               return (
                 <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: "rgba(255,255,255,0.72)", padding: 12 }}>
-                  <div style={{ fontWeight: "bold", color: theme.primary }}>{getGamePlayerName(game, p)} <span style={{ color: "#555", fontWeight: "normal" }}>(Player {p})</span> - {game.players[p].faction.name}</div>
-                  <div>{game.players[p].life} life</div>
+                  <div style={{ fontWeight: "bold", color: theme.primary }}>{participant.displayName || `Player ${p}`} <span style={{ color: "#555", fontWeight: "normal" }}>(Player {p})</span> - {participant.faction?.name || "Basic"}</div>
+                  <div>{participant.finalLife} life</div>
                 </div>
               );
             })}

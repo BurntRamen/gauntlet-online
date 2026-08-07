@@ -23,7 +23,16 @@ test("builds a public competitive profile without private account data", () => {
         achievements: {
           first: { id: "first", name: "First Win", description: "Win once.", unlockedAt: "2026-07-02T12:00:00.000Z" }
         },
-        cosmetics: { selectedTitle: "veteran", selectedFactionBadge: "rumin", selectedCardBack: "classic" }
+        cosmetics: { selectedTitle: "veteran", selectedFactionBadge: "rumin", selectedCardBack: "classic" },
+        matchHistory: [{
+          matchId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          recordVersion: 1,
+          completedAt: "2026-07-15T11:00:00.000Z",
+          result: "loss",
+          factionId: "wrong-faction",
+          opponentName: "Wrong Opponent",
+          finalLife: 0
+        }]
       },
       deckLibrary: {
         schemaVersion: 1,
@@ -49,10 +58,14 @@ test("builds a public competitive profile without private account data", () => {
     }
   };
   const match = {
+    recordVersion: 2,
     matchId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     mode: "factions",
     ranked: true,
     completedAt: "2026-07-15T11:00:00.000Z",
+    winner: 1,
+    reason: "life-total",
+    turnCount: 9,
     participants: [{
       playerNum: 1,
       accountId: account.id,
@@ -73,6 +86,12 @@ test("builds a public competitive profile without private account data", () => {
   assert.equal(profile.factionRecords[0].wins, 1);
   assert.equal(profile.featuredDecks[0].currentVersionId, "version-1");
   assert.equal(profile.notableStats.largestAttack.value, 12);
+  assert.equal(profile.recentMatches[0].perspective.outcome, "win");
+  assert.equal(profile.recentMatches[0].perspective.player.faction.id, "rumin");
+  assert.equal(profile.recentMatches[0].perspective.player.finalLife, 5);
+  assert.deepEqual(profile.unavailableMatchReferences, []);
   assert.equal(serialized.includes("private-hash"), false);
   assert.equal(serialized.includes("privateCard"), false);
+  assert.equal(serialized.includes("wrong-faction"), false);
+  assert.equal(serialized.includes("Wrong Opponent"), false);
 });

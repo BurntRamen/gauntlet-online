@@ -1,6 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+const originalFetch = global.fetch;
+
 process.env.SUPABASE_URL = "https://gauntlet-test.supabase.co";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role";
 
@@ -36,7 +38,9 @@ global.fetch = async (url, options = {}) => {
   return Response.json({ code: "PGRST205", message: `Unexpected test endpoint: ${endpoint}` }, { status: 404 });
 };
 
-const { __test } = require("../index");
+const { app, server, __test } = require("../index");
+
+test.after(() => server.close());
 
 test("compatibility consequences persist updated stats and receipt together and retry exactly once", async () => {
   const matchId = "88888888-8888-4888-8888-888888888888";
@@ -64,4 +68,28 @@ test("compatibility consequences persist updated stats and receipt together and 
   assert.deepEqual(account.stats.progression.campaign.rumin, ["first-march"]);
   assert.equal(account.stats.matchConsequenceReceipts[receipt].campaign.firstClear, true);
   assert.equal(account.stats.matchConsequenceReceipts[receipt].boosterCreditDelta, 1);
+  assert.deepEqual(account.stats.progression.matchHistory, [{
+    matchId,
+    recordVersion: 2,
+    completedAt: context.completedAt,
+    deckVersionId: null
+  }]);
+});
+
+test("account match history exposes durable references honestly when complete records are unavailable", async () => {
+  const { token } = __test.issueAccountSession(account);
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  const response = await originalFetch(`http://127.0.0.1:${address.port}/api/account/matches`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.matches, []);
+  assert.deepEqual(body.unavailableMatchReferences, account.stats.progression.matchHistory);
+  assert.equal(body.storage.mode, "account-only");
+  assert.equal(body.storage.capabilities.completeRecordV2, "process-local");
+  assert.equal(body.storage.capabilities.publicRecordAfterProcessReplacement, false);
+  assert.equal(body.storage.capabilities.completionAfterProcessReplacement, false);
 });

@@ -1,4 +1,5 @@
 const MATCH_COMPLETION_ENVELOPE_VERSION = "gauntlet.match-completion.v1";
+const { projectMatchPerspective } = require("./matchRecords");
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -9,39 +10,41 @@ function receiptKey(matchId, accountId) {
 }
 
 function buildPlayerRecap(record, playerNum) {
-  const participant = record?.participants?.find((entry) => Number(entry.playerNum) === Number(playerNum));
-  const opponent = record?.participants?.find((entry) => Number(entry.playerNum) !== Number(playerNum));
-  const result = participant?.result || "unknown";
+  const perspective = projectMatchPerspective(record, { playerNum });
+  const result = perspective?.outcome || "unknown";
   const headline = result === "win" ? "Victory" : result === "loss" ? "Defeat" : result === "draw" ? "Draw" : "Match complete";
-  const finalMessage = [...(record?.auditEvents || [])]
-    .reverse()
-    .find((event) => event?.publicPayload?.message)?.publicPayload?.message || null;
   return {
     headline,
     result,
-    playerName: participant?.displayName || `Player ${playerNum}`,
-    opponentName: opponent?.displayName || "Opponent",
-    factionName: participant?.faction?.name || null,
-    finalLife: participant?.finalLife ?? null,
-    opponentLife: opponent?.finalLife ?? null,
-    turnCount: record?.turnCount ?? null,
-    finalMessage,
-    largestAttack: clone(record?.notableMoments?.largestAttack || null)
+    playerName: perspective?.player?.displayName || `Player ${playerNum}`,
+    opponentName: perspective?.opponent?.displayName || "Opponent",
+    factionName: perspective?.player?.faction?.name || null,
+    finalLife: perspective?.player?.finalLife ?? null,
+    opponentLife: perspective?.opponent?.finalLife ?? null,
+    turnCount: perspective?.turnCount ?? null,
+    finalMessage: perspective?.finalMessage || null,
+    largestAttack: clone(perspective?.notableMoments?.largestAttack || null)
   };
 }
 
 function buildCompletionEnvelope({ record, playerNum, consequence = null, account = null, nextMission = null }) {
   const publicMatch = clone(record);
   if (publicMatch) delete publicMatch.completion;
+  const perspective = projectMatchPerspective(record, { playerNum });
+  const perspectives = (record?.participants || [])
+    .map((participant) => projectMatchPerspective(record, { playerNum: participant.playerNum }))
+    .filter(Boolean);
   const progression = consequence?.progression || {};
   return {
     envelopeVersion: MATCH_COMPLETION_ENVELOPE_VERSION,
     matchId: record?.matchId || null,
     match: publicMatch,
+    perspective,
+    perspectives,
     result: {
       playerNum: playerNum == null ? null : Number(playerNum),
-      outcome: consequence?.result || record?.participants?.find((entry) => Number(entry.playerNum) === Number(playerNum))?.result || "unknown",
-      winnerPlayerNum: record?.winnerPlayerNum ?? null
+      outcome: perspective?.outcome || "unknown",
+      winnerPlayerNum: perspective?.winnerPlayerNum ?? null
     },
     campaign: record?.campaign ? {
       factionId: record.campaign.factionId,

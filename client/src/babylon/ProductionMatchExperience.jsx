@@ -3,6 +3,7 @@ import GauntletMatchCanvas from "./GauntletMatchCanvas";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import "./ProductionMatchExperience.css";
+import { projectPostMatchResult } from "../match/completionResultProjection";
 import "./CompletionResult.css";
 
 const EVENT_TONES = {
@@ -757,16 +758,9 @@ function MatchResult({
 }) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
-  const winner = completion?.result?.winnerPlayerNum ?? viewModel?.winner;
-  const completionOutcome = Number(completion?.result?.playerNum) === Number(localPlayer)
-    ? completion?.result?.outcome
-    : null;
-  const outcome = completionOutcome || (winner == null ? "draw" : winner === localPlayer ? "win" : "loss");
-  const title = outcome === "draw"
-    ? "Match Drawn"
-    : outcome === "win"
-      ? "Victory"
-      : "Defeat";
+  const resultProjection = projectPostMatchResult({ completion, viewModel, playerNum: localPlayer });
+  const outcome = resultProjection.outcome;
+  const title = outcome === "draw" ? "Match Drawn" : resultProjection.title;
   const rematchRequestedByMe = controls.rematchStatus?.requestedBy === localPlayer;
   const rematchRequestedByOpponent = !!controls.rematchStatus?.requestedBy && !rematchRequestedByMe;
   const controlPending = !!controls.pendingControlType;
@@ -779,9 +773,9 @@ function MatchResult({
     <section className="production-match-result" role="dialog" aria-modal="true">
       <span>Gauntlet Match Complete</span>
       <h1>{title}</h1>
-      <p>{completion?.recap?.finalMessage || viewModel.message}</p>
+      <p>{resultProjection.finalMessage || viewModel.message}</p>
       <dl className="production-result-facts">
-        <div><dt>Match ID</dt><dd>{completion?.matchId || viewModel.matchId || "Pending"}</dd></div>
+        <div><dt>Match ID</dt><dd>{resultProjection.matchId || "Pending"}</dd></div>
         {completion?.campaign && <div><dt>Chapter</dt><dd>{completion.campaign.firstClear ? "First clear" : completion.campaign.repeatClear ? "Repeat clear" : "Not cleared"}</dd></div>}
         {completion && <div><dt>Booster credits</dt><dd>{Number(completion.rewards?.boosterCreditDelta || 0) > 0 ? `+${completion.rewards.boosterCreditDelta}` : Number(completion.rewards?.boosterCreditDelta || 0)}</dd></div>}
         {completion?.campaign?.nextMission?.status === "available" && <div><dt>Next mission</dt><dd>{completion.campaign.nextMission.title}</dd></div>}

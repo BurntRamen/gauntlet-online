@@ -235,7 +235,19 @@ function createMatchPersistence({
   }
 
   function status() {
-    return { mode, fallbackReason: clone(fallbackReason) };
+    const durableRecordV2 = mode === "preferred" || mode === "compatibility" || mode === "local";
+    return {
+      mode,
+      capabilities: {
+        accountConsequences: mode === "local" ? "local-json" : "durable",
+        accountMatchIndex: mode === "local" ? "local-json" : "durable",
+        completeRecordV2: durableRecordV2 ? "durable" : "process-local",
+        publicRecordAfterProcessReplacement: durableRecordV2,
+        completionAfterProcessReplacement: durableRecordV2,
+        auditHistoryAfterProcessReplacement: durableRecordV2
+      },
+      fallbackReason: clone(fallbackReason)
+    };
   }
 
   return { findById, getMode, listByAccount, persist, status };

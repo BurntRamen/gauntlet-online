@@ -193,6 +193,7 @@ test("validates constructed replacements against ownership and card slots", () =
 test("awards a campaign pack only on the first clear", () => {
   const stats = {};
   const context = {
+    matchId: "11111111-1111-4111-8111-111111111111",
     completedAt: "2026-07-15T12:00:00.000Z",
     factionId: "rumin",
     factionName: "Rumin",
@@ -201,12 +202,24 @@ test("awards a campaign pack only on the first clear", () => {
   };
 
   applyProgressionForResult(stats, "win", context);
-  applyProgressionForResult(stats, "win", context);
+  applyProgressionForResult(stats, "win", {
+    ...context,
+    matchId: "22222222-2222-4222-8222-222222222222",
+    completedAt: "2026-07-15T12:10:00.000Z"
+  });
 
   assert.deepEqual(stats.progression.campaign.rumin, ["brothers-of-destiny"]);
   assert.equal(stats.collection.packCredits, 1);
   assert.equal(stats.collection.earnedPackCredits, 1);
   assert.equal(stats.progression.matchHistory.length, 2);
+  assert.deepEqual(Object.keys(stats.progression.matchHistory[0]).sort(), [
+    "completedAt",
+    "deckVersionId",
+    "matchId",
+    "recordVersion"
+  ]);
+  assert.equal("result" in stats.progression.matchHistory[0], false);
+  assert.equal("campaign" in stats.progression.matchHistory[0], false);
   assert.ok(stats.progression.achievements["first-campaign-clear"]);
 });
 
