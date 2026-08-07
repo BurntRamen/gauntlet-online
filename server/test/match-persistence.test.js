@@ -6,6 +6,7 @@ const {
   createMatchPersistence,
   journalId
 } = require("../matchPersistence");
+const { replayAvailability } = require("../matchReplay");
 
 function capabilityError(code, message = "schema capability unavailable") {
   const error = new Error(message);
@@ -188,6 +189,7 @@ test("falls back from a missing finalization RPC and commits prepared account ap
 
 test("account-only mode reports complete records as process-local after process replacement", async () => {
   const record = makeRecord("99999999-9999-4999-8999-999999999999");
+  record.leagueEvidence = [{ sequence: 1, eventId: `${record.matchId}:ended`, eventType: "match.ended" }];
   const accountIndex = [{
     matchId: record.matchId,
     recordVersion: 2,
@@ -209,6 +211,7 @@ test("account-only mode reports complete records as process-local after process 
 
   await firstProcess.persist(record);
   assert.deepEqual(await firstProcess.findById(record.matchId), record);
+  assert.equal(replayAvailability(await firstProcess.findById(record.matchId)).available, true);
   assert.deepEqual(firstProcess.status().capabilities, {
     accountConsequences: "durable",
     accountMatchIndex: "durable",
@@ -228,6 +231,7 @@ test("account-only mode reports complete records as process-local after process 
 
   assert.equal(await replacementProcess.getMode(), "account-only");
   assert.equal(await replacementProcess.findById(record.matchId), null);
+  assert.equal(replayAvailability(await replacementProcess.findById(record.matchId)).available, false);
   assert.deepEqual(await replacementProcess.listByAccount("account-1", 30, accountIndex.map((entry) => entry.matchId)), []);
   assert.deepEqual(accountIndex, [{
     matchId: record.matchId,

@@ -16,6 +16,7 @@ import {
 } from "./completionAccountRefresh";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
+const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -35,6 +36,7 @@ function getPublicViewFromLocation() {
   const params = new URLSearchParams(window.location.search);
   const matchId = params.get("match");
   const profileId = params.get("profile");
+  if (matchId && params.get("replay") === "1") return { type: "replay", id: matchId };
   if (matchId) return { type: "match", id: matchId };
   if (profileId) return { type: "profile", id: profileId };
   return null;
@@ -3574,6 +3576,7 @@ export default function App() {
     trainingAi: Boolean(lobby?.players?.[2]?.isAI),
     draftLeague: Boolean(game?.draftLeague || lobby?.draftLeague),
     bestOf3Series: game?.bestOf3Series || null,
+    season: game?.season || lobby?.season || ((game?.ranked || lobby?.ranked) ? activeSeason : null),
     canRematch: Boolean(
       game
       && (game.phase === "gameOver" || game.winner != null)
@@ -3587,7 +3590,7 @@ export default function App() {
       && game.players?.[2]?.accountName !== "Training AI"
       && rematchStatus.available !== false
     )
-  }), [game, lobby, rematchStatus]);
+  }), [activeSeason, game, lobby, rematchStatus]);
   const babylonGameplayActive = Boolean(
     game
     && ["basic", "factions"].includes(game.gameMode)
@@ -3878,6 +3881,10 @@ export default function App() {
     setPublicViewLoading(true);
     setPublicViewData(null);
     setPublicViewError("");
+    if (publicView.type === "replay") {
+      setPublicViewLoading(false);
+      return undefined;
+    }
     const path = publicView.type === "match"
       ? `/api/matches/${encodeURIComponent(publicView.id)}`
       : `/api/profiles/${encodeURIComponent(publicView.id)}`;
@@ -4373,9 +4380,20 @@ export default function App() {
     const url = new URL(window.location.href);
     url.searchParams.delete("match");
     url.searchParams.delete("profile");
+    url.searchParams.delete("replay");
     url.searchParams.set(type, id);
     window.history.pushState({ gauntletPublicView: true }, "", url);
     setPublicView({ type, id });
+  }
+
+  function openReplay(matchId) {
+    if (!matchId) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("profile");
+    url.searchParams.set("match", matchId);
+    url.searchParams.set("replay", "1");
+    window.history.pushState({ gauntletPublicView: true }, "", url);
+    setPublicView({ type: "replay", id: matchId });
   }
 
   function closePublicView() {
@@ -4386,6 +4404,7 @@ export default function App() {
     const url = new URL(window.location.href);
     url.searchParams.delete("match");
     url.searchParams.delete("profile");
+    url.searchParams.delete("replay");
     window.history.pushState({}, "", url);
     setPublicView(null);
   }
@@ -4876,7 +4895,21 @@ export default function App() {
         serverUrl={SOCKET_URL}
         onBack={closePublicView}
         onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+        onWatchReplay={(matchId) => openReplay(matchId)}
       />
+    );
+  }
+
+  if (publicView?.type === "replay") {
+    return (
+      <Suspense fallback={<div className="loading">Loading replayâ€¦</div>}>
+        <MatchReplayScreen
+          matchId={publicView.id}
+          serverUrl={SOCKET_URL}
+          audioEnabled={!accountSoundMuted}
+          onBack={() => openPublicView("match", publicView.id)}
+        />
+      </Suspense>
     );
   }
 
@@ -5464,6 +5497,7 @@ export default function App() {
             completion={completionEnvelope}
             campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
             onContinueCampaign={continueCampaignChapter}
+            onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             options={{
               audioEnabled: !accountSoundMuted,
               onAudioEnabledChange: (enabled) => {
@@ -5619,6 +5653,9 @@ export default function App() {
               <MenuButton onClick={requestRematch} disabled={rematchRequestedByMe}>
                 {rematchRequestedByOpponent ? "Accept Rematch" : rematchRequestedByMe ? "Rematch Requested" : "Request Rematch"}
               </MenuButton>
+            )}
+            {game.matchId && (
+              <MenuButton variant="secondary" onClick={() => openReplay(game.matchId)}>Watch Replay</MenuButton>
             )}
             {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
             <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>

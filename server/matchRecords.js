@@ -3,9 +3,13 @@ const fs = require("fs");
 const path = require("path");
 
 const { CONTENT_VERSION, RULES_VERSION } = require("./gameContent");
+const {
+  LEAGUE_EVIDENCE_VERSION,
+  PUBLIC_REPLAY_FRAME_VERSION,
+  capturePublicReplayFrame
+} = require("./matchReplay");
 
 const MATCH_RECORD_VERSION = 2;
-const LEAGUE_EVIDENCE_VERSION = "gauntlet.league-evidence.v1";
 const PARA_MATCH_V1 = "gauntlet.para-match.v1";
 const PARA_MATCH_V2 = "gauntlet.para-match.v2";
 
@@ -141,7 +145,14 @@ function sanitizeLeagueEvent(event = {}) {
       ...(detail.source ? { source: detail.source } : {})
     };
   }
-  return detail;
+  function stripPrivateFields(value) {
+    if (Array.isArray(value)) return value.map(stripPrivateFields);
+    if (!value || typeof value !== "object") return value;
+    return Object.fromEntries(Object.entries(value)
+      .filter(([key]) => !/(reconnect|session|token|secret|credential|deckOrder|internal|serverAudit|privateAudit)/i.test(key))
+      .map(([key, child]) => [key, stripPrivateFields(child)]));
+  }
+  return stripPrivateFields(detail);
 }
 
 function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, command = {}, events = [], timestamp } = {}) {
@@ -160,7 +171,7 @@ function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, 
     },
     ...(Array.isArray(events) ? events : [])
   ];
-  return sourceEvents.map((event) => {
+  const captured = sourceEvents.map((event) => {
     const payload = event.type === "command.accepted"
       ? { command: clonePlain(event.command) }
       : sanitizeLeagueEvent(event);
@@ -184,6 +195,8 @@ function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, 
     game.serverLeagueEvidence.push(entry);
     return entry;
   });
+  capturePublicReplayFrame(game, captured);
+  return captured;
 }
 
 function captureAuditEvent(game, timestamp = new Date().toISOString()) {
@@ -432,7 +445,10 @@ function buildMatchRecord(roomState, options = {}) {
       decisiveTurn: Number(game.turn || 1)
     },
     auditEvents,
+    leagueEvidenceVersion: LEAGUE_EVIDENCE_VERSION,
     leagueEvidence: clonePlain(game.serverLeagueEvidence || []),
+    publicReplayFrameVersion: PUBLIC_REPLAY_FRAME_VERSION,
+    publicReplayFrames: clonePlain(game.serverPublicReplayFrames || []),
     leagueEvidenceCoverage: (game.serverLeagueEvidence || []).some((entry) => entry.eventType === "match.started")
       ? "complete"
       : (game.serverLeagueEvidence || []).length > 0 ? "partial" : "unavailable"
@@ -442,6 +458,10 @@ function buildMatchRecord(roomState, options = {}) {
 function publicMatchRecord(record) {
   if (!record) return null;
   const publicRecord = clonePlain(record);
+  publicRecord.publicReplayFrameCount = Array.isArray(publicRecord.publicReplayFrames)
+    ? publicRecord.publicReplayFrames.length
+    : 0;
+  delete publicRecord.publicReplayFrames;
   if (publicRecord.completion) {
     publicRecord.completion = {
       status: publicRecord.completion.status,
@@ -729,6 +749,7 @@ function createLocalMatchStore(dataFile) {
 module.exports = {
   MATCH_RECORD_VERSION,
   LEAGUE_EVIDENCE_VERSION,
+  PUBLIC_REPLAY_FRAME_VERSION,
   PARA_MATCH_V1,
   PARA_MATCH_V2,
   RULES_VERSION,

@@ -35,6 +35,7 @@ function makeRoom(options = {}) {
     startedAt: "2026-07-15T12:00:00.000Z"
   });
   const game = {
+    matchId: matchMetadata.matchId,
     gameMode: options.gameMode || "factions",
     phase: "gameOver",
     turn: options.turn || 7,
@@ -375,6 +376,16 @@ test("serves a privacy-filtered public match record without leaking server-only 
   assert.equal(response.status, 200);
   assert.equal(body.match.matchId, record.matchId);
   assert.equal(JSON.stringify(body).includes("private-reconnect-token"), false);
+  assert.equal(body.match.publicReplayFrames, undefined);
+  assert.equal(body.match.replay.available, true);
+
+  const replayResponse = await fetch(`http://127.0.0.1:${address.port}/api/matches/${record.matchId}/replay`);
+  const replay = await replayResponse.json();
+  assert.equal(replayResponse.status, 200);
+  assert.equal(replay.replay.matchId, record.matchId);
+  assert.equal(replay.replay.availability.mode, "public-state-frames");
+  assert.ok(replay.replay.steps.length > 0);
+  assert.equal(JSON.stringify(replay).includes("private-reconnect-token"), false);
 
   const exportResponse = await fetch(`http://127.0.0.1:${address.port}/api/matches/${record.matchId}/export/para?version=2`);
   const exported = await exportResponse.json();

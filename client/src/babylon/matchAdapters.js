@@ -1677,6 +1677,22 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
         controlStatus: this.controlStatus,
         pendingControlType: this.pendingControl?.type || null
       },
+      broadcast: this.role === "spectator" ? {
+        kind: "live",
+        label: this.game.phase === "gameOver" ? "Live Result" : "Live Broadcast",
+        season: this.controlState?.season?.displayName || this.game?.season?.displayName || null,
+        series: this.controlState?.bestOf3Series || this.game?.bestOf3Series || null,
+        matchId: this.game.matchId,
+        spectatorCount: Number(this.game.spectatorCount || 0),
+        participants: Object.entries(this.game.players || {}).map(([playerNum, participant]) => ({
+          playerNum: Number(playerNum),
+          displayName: participant.accountName || `Player ${playerNum}`,
+          faction: {
+            id: participant.faction?.id || "basic",
+            name: participant.faction?.name || "Basic Gauntlet"
+          }
+        }))
+      } : null,
       diagnostics: {
         ...update.diagnostics,
         pendingCommandId: this.pendingCommand?.commandId || null,

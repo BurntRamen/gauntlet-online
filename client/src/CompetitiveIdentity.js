@@ -158,7 +158,7 @@ export function PublicProfileScreen({ profile, loading, error, onBack, onOpenMat
   );
 }
 
-export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, onOpenProfile }) {
+export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, onOpenProfile, onWatchReplay }) {
   return (
     <main className="competitive-page">
       <div className="competitive-page-inner">
@@ -169,8 +169,21 @@ export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, on
           <>
             <div className="competitive-profile-header">
               <div><span className="competitive-kicker">Verified Match</span><h1>{match.mode}</h1><p>{match.season?.displayName ? `${match.season.displayName} / ` : ""}{formatDate(match.completedAt)} / {match.completionReason} / {match.turnCount} turns</p></div>
-              <a className="competitive-export" href={`${serverUrl}/api/matches/${encodeURIComponent(match.matchId)}/export/para?version=2`} target="_blank" rel="noreferrer">Para Export</a>
+              <div className="competitive-record-actions">
+                {match.replay?.available && <button type="button" className="competitive-export" onClick={() => onWatchReplay(match.matchId)}>Watch Replay</button>}
+                <a className="competitive-export" href={`${serverUrl}/api/matches/${encodeURIComponent(match.matchId)}/export/para?version=2`} target="_blank" rel="noreferrer">Para Export</a>
+              </div>
             </div>
+            {match.replay && (
+              <p className="competitive-replay-status">
+                {match.replay.available
+                  ? match.replay.mode === "public-state-frames"
+                    ? "Replay available with exact public state after each authoritative command."
+                    : "Replay available as an authoritative event timeline; this match predates public battlefield frames."
+                  : match.replay.unavailableReason || "Replay unavailable after server replacement."}
+                {!match.replay.survivesProcessReplacement && " Full replay remains process-local in the current account-only storage mode."}
+              </p>
+            )}
             <section className="competitive-participants">
               {(match.participants || []).map((participant) => (
                 <button type="button" key={participant.participantId} disabled={!participant.accountId} onClick={() => participant.accountId && onOpenProfile(participant.accountId)}>

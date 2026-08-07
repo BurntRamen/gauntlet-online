@@ -39,6 +39,7 @@ test("opens a public profile and verified match from Identity", () => {
 
 test("match record links participants and the Para export", () => {
   const onOpenProfile = jest.fn();
+  const onWatchReplay = jest.fn();
   const match = {
     ...profile.recentMatches[0],
     completionReason: "life_total",
@@ -51,11 +52,15 @@ test("match record links participants and the Para export", () => {
     })),
     combatStats: { totalDamageDealt: 8, totalDamagePrevented: 3 },
     notableMoments: { largestAttack: { value: 12 } },
-    auditEvents: []
+    auditEvents: [],
+    replay: { available: true, mode: "event-only", survivesProcessReplacement: false }
   };
-  render(<MatchRecordScreen match={match} loading={false} error="" serverUrl="http://localhost:4000" onBack={() => {}} onOpenProfile={onOpenProfile} />);
+  render(<MatchRecordScreen match={match} loading={false} error="" serverUrl="http://localhost:4000" onBack={() => {}} onOpenProfile={onOpenProfile} onWatchReplay={onWatchReplay} />);
 
   expect(screen.getByRole("link", { name: "Para Export" })).toHaveAttribute("href", "http://localhost:4000/api/matches/match-1/export/para?version=2");
+  fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
+  expect(onWatchReplay).toHaveBeenCalledWith("match-1");
+  expect(screen.getByText(/predates public battlefield frames/i)).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /WIN Alpha/ }));
   expect(onOpenProfile).toHaveBeenCalledWith("account-1");
 });

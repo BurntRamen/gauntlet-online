@@ -755,7 +755,8 @@ function MatchResult({
   audioEnabled,
   completion,
   campaignContinuationReady,
-  onContinueCampaign
+  onContinueCampaign,
+  onOpenReplay
 }) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
@@ -795,6 +796,11 @@ function MatchResult({
         audioEnabled={audioEnabled}
       />
       <div className="production-result-actions">
+        {onOpenReplay && (
+          <button type="button" onClick={onOpenReplay}>
+            Watch Replay
+          </button>
+        )}
         {nextMission && onContinueCampaign && (
           <button
             type="button"
@@ -842,6 +848,37 @@ function MatchModeMarker({ descriptor }) {
       <span>{matchDescriptorLabel(descriptor)}</span>
       {seriesLabel && <strong>{seriesLabel}</strong>}
     </div>
+  );
+}
+
+function BroadcastMarker({ broadcast, viewModel }) {
+  if (!broadcast) return null;
+  const participants = broadcast.participants?.length
+    ? broadcast.participants
+    : Object.values(viewModel?.players || {}).map((player) => ({
+        playerNum: player.id,
+        displayName: player.name,
+        faction: { name: player.factionName }
+      }));
+  const score = broadcast.series?.scoreAfter || broadcast.series?.scores || broadcast.series?.playerWins || null;
+  return (
+    <section className={`production-broadcast-marker ${broadcast.kind || "live"}`} aria-label={`${broadcast.label || "Live broadcast"} match information`}>
+      <div><span>{broadcast.label || "Live Broadcast"}</span><strong>{broadcast.season || "Gauntlet Online"}</strong></div>
+      <div className="production-broadcast-players">
+        {participants.slice(0, 2).map((participant) => (
+          <span key={participant.playerNum || participant.participantId}>
+            <strong>{participant.displayName || `Player ${participant.playerNum}`}</strong>
+            <small>{participant.faction?.name || "Basic"} Â· {viewModel?.players?.[participant.playerNum]?.life ?? "?"} life</small>
+          </span>
+        ))}
+      </div>
+      <div className="production-broadcast-meta">
+        {score && <span>Series {Number(score[1] || 0)}â€“{Number(score[2] || 0)}</span>}
+        <span>Turn {viewModel?.turn || 0}</span>
+        {broadcast.spectatorCount != null && <span>{broadcast.spectatorCount} watching</span>}
+        <span>{broadcast.matchId || viewModel?.matchId}</span>
+      </div>
+    </section>
   );
 }
 
@@ -1054,6 +1091,7 @@ export default function ProductionMatchExperience({
   completion = null,
   campaignContinuationReady = true,
   onContinueCampaign,
+  onOpenReplay,
   onRendererFailure,
   onSceneMetrics
 }) {
@@ -1339,6 +1377,7 @@ export default function ProductionMatchExperience({
           <strong>{viewModel.phaseLabel}</strong>
         </div>
         <MatchModeMarker descriptor={update?.descriptor} />
+        <BroadcastMarker broadcast={update?.broadcast} viewModel={presentedViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
 
         {update?.connected === false && (
@@ -1367,6 +1406,7 @@ export default function ProductionMatchExperience({
           completion={completion}
           campaignContinuationReady={campaignContinuationReady}
           onContinueCampaign={onContinueCampaign}
+          onOpenReplay={onOpenReplay}
         />
 
         <div className="production-portrait-guard" role="status">

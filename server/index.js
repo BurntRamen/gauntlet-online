@@ -71,6 +71,10 @@ const {
   recordCombatResolution
 } = require("./matchRecords");
 const {
+  buildReplayTimeline,
+  replayAvailability
+} = require("./matchReplay");
+const {
   buildCompletionEnvelope,
   createFinalizeCompletedMatch,
   receiptKey
@@ -2458,10 +2462,40 @@ app.get("/api/matches/:matchId", async (req, res) => {
       res.status(404).json({ error: "Match not found." });
       return;
     }
-    res.json({ match: publicMatchRecord(record) });
+    res.json({
+      match: {
+        ...publicMatchRecord(record),
+        replay: replayAvailability(record, publicMatchStorageStatus())
+      }
+    });
   } catch (error) {
     console.error("[Matches] Failed to load public match", error);
     res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
+
+app.get("/api/matches/:matchId/replay", async (req, res) => {
+  const matchId = String(req.params.matchId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
+    res.status(400).json({ error: "Invalid match ID." });
+    return;
+  }
+  try {
+    const record = await findMatchRecordById(matchId);
+    if (!record || record.completion?.status === "pending") {
+      res.status(404).json({ error: "Match replay not found." });
+      return;
+    }
+    const replay = buildReplayTimeline(record, publicMatchStorageStatus());
+    res.json({ replay });
+  } catch (error) {
+    if (error?.name === "MatchReplayIntegrityError") {
+      console.error("[Replay] Authoritative evidence failed closed", { matchId, code: error.code, message: error.message });
+      res.status(422).json({ error: "Authoritative replay evidence failed integrity validation.", code: error.code });
+      return;
+    }
+    console.error("[Replay] Failed to load match replay", error);
+    res.status(503).json({ error: "Match replay is temporarily unavailable." });
   }
 });
 

@@ -174,3 +174,23 @@
 .competitive-season > div { display: grid; gap: 3px; }
 .competitive-season span { color: #93c5fd; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 .competitive-season h2,.competitive-season strong { margin: 0; color: #fff; }
+.competitive-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.competitive-record-actions button.competitive-export {
+  font: inherit;
+  cursor: pointer;
+}
+
+.competitive-replay-status {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 9px;
+  background: rgba(30, 58, 138, 0.12);
+  color: #bfdbfe;
+}
