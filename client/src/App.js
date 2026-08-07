@@ -2719,7 +2719,7 @@ function getCampaignSpeakerImage(speaker) {
   return "/assets/gauntlet/rumin-card.webp";
 }
 
-function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "" }) {
+function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false }) {
   const dialogueAudioRefs = useRef([]);
   const autoPlayedRef = useRef("");
   const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
@@ -2798,7 +2798,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
     };
   }, [autoPlayKey, audioKey]);
 
-  if (visibleLines.length === 0) return null;
+  if (audioOnly || visibleLines.length === 0) return null;
 
   return (
     <div
@@ -5486,7 +5486,7 @@ export default function App() {
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
     const unlockedAchievements = completionEnvelope?.rewards?.achievementsUnlocked || [];
     const unlockedCosmetics = completionEnvelope?.rewards?.cosmeticsUnlocked || [];
-    const campaignEndDialogue = game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
+    const campaignEndDialogue = didWin && game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
     const canRematch = !isSpectator
       && !game.campaign
       && game.gameMode !== "freeForAll"
@@ -5535,7 +5535,7 @@ export default function App() {
               ))}
             </div>
           )}
-          <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>After Battle</div>
+          <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>{didWin && game.campaign ? "After Battle" : "Match Result"}</div>
           <h1 style={{ margin: "0 0 10px 0", fontFamily: "Georgia, serif", fontSize: "clamp(36px, 7vw, 58px)", color: "#2a160b", textShadow: "0 2px 0 rgba(255,255,255,0.48)" }}>{resultTitle}</h1>
           <p style={{ margin: "0 auto 20px auto", maxWidth: 560, fontSize: 18, color: "#2f1c10" }}>{resultDetail}</p>
           <div style={{ margin: "0 auto 18px", maxWidth: 620, display: "grid", gap: 8, textAlign: "left", fontSize: 14, color: "#2f1c10" }}>
@@ -5545,18 +5545,20 @@ export default function App() {
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
             {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}
           </div>
-          {game.campaign?.afterBattle && (
+          {didWin && game.campaign?.afterBattle && (
             <div style={{ margin: "0 auto 20px auto", maxWidth: 620, padding: 14, borderRadius: 10, background: "rgba(15,23,42,0.08)", border: `1px solid ${resultBorder}`, textAlign: "left", lineHeight: 1.45, color: "#2f1c10" }}>
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
-          <CampaignDialogueBlock
-            title="Ending Dialogue"
-            lines={campaignEndDialogue}
-            audio={game.campaign?.endDialogueAudio}
-            autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
-            light
-          />
+          {didWin && (
+            <CampaignDialogueBlock
+              title="Ending Dialogue"
+              lines={campaignEndDialogue}
+              audio={game.campaign?.endDialogueAudio}
+              autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
+              light
+            />
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
             {(resultProjection.canonicalAvailable
               ? resultProjection.participants
@@ -8644,6 +8646,14 @@ export default function App() {
         </div>
       </div>
       <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
+      {game.campaign && (
+        <CampaignDialogueBlock
+          lines={game.campaign.startDialogue || game.campaign.dialogue}
+          audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+          autoPlayKey={game.campaign.chapterId ? `${game.matchId || "campaign"}-${game.campaign.chapterId}-opening` : ""}
+          audioOnly
+        />
+      )}
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
       {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
@@ -8664,7 +8674,7 @@ export default function App() {
       {(game.winner != null || game.phase === "gameOver") && (
         <div style={{ marginBottom: 16, padding: 16, borderRadius: 12, border: "2px solid #111", background: game.winner == null ? "#f3f4f6" : "#dcfce7", fontSize: 20, fontWeight: "bold" }}>
           {game.winner == null ? "Game Over — Draw" : `Game Over — Player ${game.winner} wins!`}
-          {game.campaign?.afterBattle && (
+          {game.winner === player && game.campaign?.afterBattle && (
             <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.45, fontWeight: "normal", color: "#14532d" }}>
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
@@ -8904,7 +8914,7 @@ export default function App() {
               {matchDrawer === "chapter" && game.campaign && (
                 <div className="focus-drawer-scroll focus-chapter-drawer">
                   <p>{game.campaign.story}</p>
-                  <CampaignDialogueBlock title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} autoPlayKey={game.campaign.chapterId ? `${game.campaign.chapterId}-opening` : ""} compact />
+                  <CampaignDialogueBlock title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
                 </div>
               )}
 

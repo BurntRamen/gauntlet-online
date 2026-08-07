@@ -108,6 +108,51 @@ test("Training AI chooses a semantic lane command from shared legal actions", ()
   assert.deepEqual(game, beforeSelection);
 });
 
+test("campaign boss only blocks with values available in its scripted attack range", () => {
+  const room = __test.createRoom();
+  room.lobby.gameMode = "factions";
+  room.lobby.players[1].factionId = "rumin";
+  room.lobby.players[2].factionId = "rumin";
+  __test.createGameFromLobby(room, {
+    matchMetadata: { matchId: "campaign-block-range", gameNumber: 1, seriesId: null },
+    seed: "campaign-block-range"
+  });
+  const game = room.game;
+  game.phase = "priority";
+  game.priority = 2;
+  game.campaign = {
+    chapterId: "block-range",
+    chapterNumber: 2,
+    opponentName: "Range Warden",
+    attacksPerTurn: 2,
+    bossAttacksThisTurn: 0,
+    minAttackValue: 5,
+    maxAttackValue: 8
+  };
+  game.players[2].hand = [
+    { id: "boss-ace", rank: "A", value: 14, suit: "S", name: "Out of Range Ace" },
+    { id: "boss-six", rank: "6", value: 6, suit: "H", name: "In Range Six" },
+    { id: "boss-payment", rank: "7", value: 7, suit: "D", name: "Payment Seven" }
+  ];
+  game.handAttacks = [{
+    id: "incoming-player-attack",
+    player: 1,
+    targetPlayer: 2,
+    card: { id: "player-nine", rank: "9", value: 9, suit: "C", name: "Player Nine" },
+    source: "hand",
+    sourceLane: null,
+    effectiveValue: 9,
+    block: []
+  }];
+
+  const selected = __test.chooseSemanticTrainingAiCommand(game);
+
+  assert.equal(selected.type, "declareHandBlock");
+  assert.deepEqual(selected.blockerCardIds, ["boss-six"]);
+  assert.deepEqual(selected.paymentCardIds, ["boss-payment"]);
+  __test.deleteRoom(room.roomCode);
+});
+
 test("Training AI executes through the acknowledged semantic-command lifecycle", async () => {
   const room = __test.createRoom();
   room.lobby.gameMode = "basic";

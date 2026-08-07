@@ -5573,6 +5573,14 @@ function findSemanticAiPaymentCardIds(hand, required, excludedCardIds = []) {
   return total >= Number(required || 0) ? cardIds : null;
 }
 
+function campaignBossCanUseBlockerValue(game, card) {
+  if (!game?.campaign || !card) return true;
+  const value = getSharedBasicCardValue(card);
+  const minValue = Number(game.campaign.minAttackValue || 1);
+  const maxValue = Number(game.campaign.maxAttackValue || 14);
+  return value >= minValue && value <= maxValue;
+}
+
 function chooseSemanticTrainingAiCommand(game) {
   const legalActions = getSharedLegalActions(game, 2);
   if (legalActions.length === 0) return null;
@@ -5591,6 +5599,7 @@ function chooseSemanticTrainingAiCommand(game) {
     if (laneBlock) {
       const blocker = game.lanes[laneBlock.laneIndex]?.facedown?.[2];
       const paymentCardIds = blocker
+        && campaignBossCanUseBlockerValue(game, blocker)
         ? findSemanticAiPaymentCardIds(ai.hand, getSharedBasicCardValue(blocker))
         : null;
       if (paymentCardIds) {
@@ -5604,6 +5613,7 @@ function chooseSemanticTrainingAiCommand(game) {
     const handBlock = legalActions.find((action) => action.type === "declareHandBlock");
     if (handBlock) {
       const blockers = [...ai.hand]
+        .filter((card) => campaignBossCanUseBlockerValue(game, card))
         .sort((left, right) => getSharedBasicCardValue(left) - getSharedBasicCardValue(right));
       for (const blocker of blockers) {
         const paymentCardIds = findSemanticAiPaymentCardIds(
