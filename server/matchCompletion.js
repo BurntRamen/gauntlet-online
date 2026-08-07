@@ -125,6 +125,7 @@ function createFinalizeCompletedMatch({
         accountApplications.push({
           accountId: consequence.accountId,
           result: consequence.result,
+          context: clone(consequence.context || {}),
           consequence: clone(consequenceFacts),
           nextStats: clone(applied?.nextStats || null)
         });

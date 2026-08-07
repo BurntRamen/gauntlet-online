@@ -72,6 +72,7 @@ const {
   createFinalizeCompletedMatch,
   receiptKey
 } = require("./matchCompletion");
+const { createMatchPersistence } = require("./matchPersistence");
 const {
   createRoomLifecycle,
   getRoomLifecycleAction,
@@ -191,11 +192,22 @@ app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
 });
 
-app.get("/api/storage-status", (_req, res) => {
-  res.json({
-    accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
-    supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
-  });
+app.get("/api/storage-status", async (_req, res) => {
+  try {
+    const matchStorage = await matchPersistence.getMode();
+    res.json({
+      accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
+      matchStorage,
+      supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
+    });
+  } catch (error) {
+    console.error("[Storage] Failed to determine match storage capability", error);
+    res.status(503).json({
+      accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
+      matchStorage: "unavailable",
+      supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
+    });
+  }
 });
 
 // ============ ACCOUNT AUTH ============
@@ -1155,7 +1167,14 @@ async function supabaseRequest(pathname, options = {}) {
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
     const message = data?.message || data?.error || `Supabase request failed (${response.status})`;
-    throw new Error(message);
+    const error = new Error(message);
+    error.name = "SupabaseRequestError";
+    error.status = response.status;
+    error.code = data?.code || null;
+    error.details = data?.details || null;
+    error.hint = data?.hint || null;
+    error.pathname = pathname;
+    throw error;
   }
   return data;
 }
@@ -1307,63 +1326,42 @@ function matchRecordToSupabaseRow(record) {
 }
 
 async function persistMatchRecord(record, options = {}) {
-  if (!useSupabaseStore()) return localMatchStore.upsert(record);
-  if (record.completion?.status === "finalized") {
-    await supabaseRequest("rpc/finalize_gauntlet_match", {
-      method: "POST",
-      body: JSON.stringify({
-        p_record: record,
-        p_events: record.auditEvents || [],
-        p_consequences: (record.completion.consequences || []).map((consequence) => ({
-          accountId: consequence.accountId,
-          playerNum: consequence.playerNum,
-          result: consequence.result,
-          ...consequence
-        })),
-        p_account_applications: options.accountApplications || []
-      })
-    });
-    return record;
-  }
-  await supabaseRequest("gauntlet_match_records?on_conflict=id", {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify([matchRecordToSupabaseRow(record)])
-  });
-  if (record.auditEvents.length > 0) {
-    await supabaseRequest("gauntlet_match_events?on_conflict=match_id,sequence", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify(record.auditEvents.map((event) => ({
-        match_id: record.matchId,
-        sequence: event.sequence,
-        turn: event.turn,
-        phase: event.phase,
-        actor_player_num: event.actorPlayerNum,
-        event_type: event.eventType,
-        public_payload: event.publicPayload,
-        server_timestamp: event.serverTimestamp,
-        state_checksum: event.stateChecksum
-      })))
-    });
-  }
-  return record;
+  return matchPersistence.persist(record, options);
 }
 
 async function findMatchRecordById(matchId) {
-  if (!useSupabaseStore()) return localMatchStore.findById(matchId);
-  const rows = await supabaseRequest(`gauntlet_match_records?id=eq.${encodeURIComponent(matchId)}&select=record`);
-  return rows?.[0]?.record || null;
+  return matchPersistence.findById(matchId);
 }
 
 async function listMatchRecordsByAccount(accountId, limit = 30) {
   const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100));
-  if (!useSupabaseStore()) return localMatchStore.listByAccount(accountId, safeLimit).filter((record) => !record.completion || record.completion.status === "finalized");
-  const rows = await supabaseRequest(
-    `gauntlet_match_records?participant_account_ids=cs.{${encodeURIComponent(accountId)}}&select=record&order=completed_at.desc&limit=${safeLimit}`
-  );
-  return rows.map((row) => row.record).filter((record) => record && (!record.completion || record.completion.status === "finalized"));
+  const mode = await matchPersistence.getMode();
+  let indexedMatchIds = [];
+  if (mode === "compatibility") {
+    const account = await findSupabaseAccountById(accountId);
+    indexedMatchIds = normalizeProgression(account?.stats || {}).matchHistory.map((entry) => entry.matchId || entry.id);
+  }
+  const records = await matchPersistence.listByAccount(accountId, safeLimit, indexedMatchIds);
+  return records.filter((record) => record && (!record.completion || record.completion.status === "finalized"));
 }
+
+async function commitCompatibilityAccountApplications(_matchId, accountApplications = []) {
+  for (const application of accountApplications) {
+    await recordAccountGameResult(application.accountId, application.result, {
+      ...(application.context || {}),
+      compatibilityPersistence: true,
+      deferPersistence: false
+    });
+  }
+}
+
+const matchPersistence = createMatchPersistence({
+  useSupabaseStore,
+  supabaseRequest,
+  localStore: localMatchStore,
+  toPreferredRow: matchRecordToSupabaseRow,
+  commitCompatibilityApplications: commitCompatibilityAccountApplications
+});
 
 function getNextCampaignMission(account, factionId, chapterId, result) {
   if (result !== "win" || !factionId || !chapterId) return null;
@@ -1387,16 +1385,21 @@ function getNextCampaignMission(account, factionId, chapterId, result) {
 const finalizeCompletedMatch = createFinalizeCompletedMatch({
   findMatchRecord: findMatchRecordById,
   persistMatchRecord,
-  applyAccountConsequence: async (consequence) => recordAccountGameResult(
-    consequence.accountId,
-    consequence.result,
-    {
-      ...consequence.context,
-      // Supabase commits the prepared account application with the final
-      // match record RPC. Local persistence remains synchronous and durable.
-      deferPersistence: useSupabaseStore()
-    }
-  ),
+  applyAccountConsequence: async (consequence) => {
+    const storageMode = await matchPersistence.getMode();
+    return recordAccountGameResult(
+      consequence.accountId,
+      consequence.result,
+      {
+        ...consequence.context,
+        // The preferred schema commits prepared account applications in the
+        // authoritative finalization RPC. Compatibility storage commits the
+        // updated account projection and embedded receipt in one PATCH.
+        deferPersistence: storageMode === "preferred",
+        compatibilityPersistence: useSupabaseStore() && storageMode !== "preferred"
+      }
+    );
+  },
   buildEnvelope: buildCompletionEnvelope,
   buildNextMission: async ({ account, factionId, chapterId, result }) => getNextCampaignMission(account, factionId, chapterId, result)
 });
@@ -1820,7 +1823,10 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
     const facts = accountConsequenceFacts(beforeStats, stats, result, context);
-    if (key && !context.deferPersistence) {
+    if (key && context.compatibilityPersistence) {
+      stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
+      await patchSupabaseAccount(accountId, { stats, last_seen_at: new Date().toISOString() });
+    } else if (key && !context.deferPersistence) {
       stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
       const rpcResult = await supabaseRequest("rpc/apply_gauntlet_account_consequence", {
         method: "POST",
@@ -8082,6 +8088,7 @@ module.exports = {
     saveDraftDeckToLibrary,
     setFriendChallengeStatus,
     updateDeckLibraryRecord,
+    recordAccountGameResult,
     recordFinalGameStats,
     resolveDamage,
     sanitizeGameForViewer,
