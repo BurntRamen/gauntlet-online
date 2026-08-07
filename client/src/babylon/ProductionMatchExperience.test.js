@@ -626,6 +626,28 @@ test("presents rematch acceptance and decline as explicit post-match actions", a
   expect(declineRematch).toHaveBeenCalledTimes(1);
 });
 
+test("renders a terminal replay frame when live match controls are absent", async () => {
+  const viewModel = createViewModel();
+  viewModel.phase = "gameOver";
+  viewModel.phaseLabel = "Match Complete";
+  viewModel.winner = 2;
+  viewModel.message = "Player 2 wins!";
+
+  render(
+    <ProductionMatchExperience
+      adapter={adapterFor({
+        source: "replay",
+        viewModel,
+        controls: null
+      })}
+      options={{ audioEnabled: false }}
+    />
+  );
+
+  expect(await screen.findByRole("heading", { name: "Defeat" })).toBeVisible();
+  expect(screen.getByText("Player 2 wins!")).toBeVisible();
+});
+
 test("ignores a completion outcome for a different player perspective", async () => {
   const viewModel = createViewModel();
   viewModel.phase = "gameOver";

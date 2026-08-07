@@ -1399,7 +1399,7 @@ export default function ProductionMatchExperience({
         />
         <MatchResult
           viewModel={viewModel}
-          controls={update?.controls}
+          controls={update?.controls || {}}
           commands={interactionCommands}
           campaign={update?.snapshot?.campaign}
           audioEnabled={audioEnabled}
