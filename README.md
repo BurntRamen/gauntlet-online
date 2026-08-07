@@ -87,6 +87,8 @@ Server variables:
 | `ACCOUNT_AUTH_SECRET` | HMAC secret for account sessions | Development fallback; required secret in production |
 | `ACCOUNT_SESSION_TTL_MS` | Lifetime of a signed account session | `604800000` (7 days) |
 | `OWNER_STATS_TOKEN` | Token for owner-only statistics endpoints | Empty |
+| `COLLECTOR_ENTITLEMENT_SECRET` | Dedicated HMAC secret for account-bound physical collector entitlements; keep server-only | Domain-separated key derived from `ACCOUNT_AUTH_SECRET` when omitted |
+| `PUBLIC_CLIENT_URL` | Public client origin used to construct personalized collector claim links | HTTPS `CLIENT_URL`, otherwise the production Vercel URL |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service key | Empty; never expose to the client |
 | `PACK_PURCHASE_URL` | Optional checkout base URL for cosmetic collector-variant packs; paid packs never grant gameplay cards or competitive power | Empty |
@@ -125,6 +127,8 @@ Production account, friend, message, progression, collection, and leaderboard da
 Completed matches use one canonical record-v2 representation, stored separately from active rooms when the selected match-storage capability is durable. Each server-authored record includes public participant and deck-version snapshots, completion metadata, combat aggregates, and a privacy-filtered audit stream. `GET /api/matches/:matchId` returns a public record, while authenticated accounts can list available recent records at `GET /api/account/matches`. In `account-only` mode, that account endpoint also returns compact unavailable match references after process-local records are lost; those references are indexes, never fabricated authoritative records. `GET /api/storage-status` reports which guarantees survive process replacement.
 
 Available completed records can be replayed at `/?match=:matchId&replay=1` through the official Babylon presentation. New records carry versioned, privacy-filtered public frames after authoritative commands; older record-v2 matches fall back to an explicitly partial typed-event timeline. See `docs/match-replay.md`.
+
+Account-bound physical collector fulfillment uses signed personalized claim links and stores the receipt with collector ownership in the existing account state. See `docs/account-bound-collector-entitlements.md` for the security model and fulfillment procedure.
 
 Active room state is authoritative in server memory and is also written to the private `ROOM_STATE_DATA_FILE` snapshot by default. The snapshot includes private hands, deck order, and reconnect tokens, so it must never be published or served by the client. On startup, the server restores non-completed lobbies, drafts, and games from that file, marks human seats disconnected, and starts a fresh reconnect grace period. Graceful shutdown preserves these rooms instead of recording them as abandoned.
 

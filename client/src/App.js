@@ -4,6 +4,7 @@ import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
+import CollectorClaimScreen from "./CollectorClaimScreen";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
 import { ActiveSeasonMatches, SeasonQueueSummary, SeasonStandings } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
@@ -40,6 +41,11 @@ function getPublicViewFromLocation() {
   if (matchId) return { type: "match", id: matchId };
   if (profileId) return { type: "profile", id: profileId };
   return null;
+}
+
+function getCollectorClaimFromLocation() {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("claim")?.trim() || "";
 }
 
 function shouldUseProductionMatchRenderer() {
@@ -3506,6 +3512,7 @@ export default function App() {
   const [publicViewData, setPublicViewData] = useState(null);
   const [publicViewLoading, setPublicViewLoading] = useState(false);
   const [publicViewError, setPublicViewError] = useState("");
+  const [collectorClaimToken, setCollectorClaimToken] = useState(getCollectorClaimFromLocation);
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
@@ -4386,6 +4393,17 @@ export default function App() {
     setPublicView({ type, id });
   }
 
+  function closeCollectorClaim(openCollection = false) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("claim");
+    window.history.replaceState({}, "", url);
+    setCollectorClaimToken("");
+    if (openCollection) {
+      setHomeArea("build");
+      setShowCollection(true);
+    }
+  }
+
   function openReplay(matchId) {
     if (!matchId) return;
     const url = new URL(window.location.href);
@@ -4884,6 +4902,27 @@ export default function App() {
       actionLabel: "Find a Game",
       onClick: () => setHomeArea("play")
     };
+  }
+
+  if (collectorClaimToken) {
+    return (
+      <CollectorClaimScreen
+        token={collectorClaimToken}
+        serverUrl={SOCKET_URL}
+        account={account}
+        authToken={authToken}
+        authMode={authMode}
+        authForm={authForm}
+        authError={authError}
+        onAuthModeChange={setAuthMode}
+        onAuthFormChange={setAuthForm}
+        onSubmitAuth={submitAuth}
+        onSignOut={signOut}
+        onAccountUpdated={setAccount}
+        onOpenCollection={() => closeCollectorClaim(true)}
+        onDismiss={() => closeCollectorClaim(false)}
+      />
+    );
   }
 
   if (publicView?.type === "match") {

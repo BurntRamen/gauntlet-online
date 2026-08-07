@@ -22,6 +22,7 @@ const {
   normalizeCollection,
   normalizeDeckLibrary,
   openCollectionBooster,
+  redeemCollectorEntitlementStats,
   saveConstructedDeckToLibrary,
   validateConstructedDeckPayload
 } = __test;
@@ -242,4 +243,32 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.deepEqual(collectorStats.collection.gameplayEntitlements, {});
   assert.equal(collectorStats.collection.packCredits, 1);
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
+});
+
+test("a physical collector entitlement changes presentation provenance but no competitive capability", () => {
+  const unpaidStats = makeStats();
+  const physicalStats = structuredClone(unpaidStats);
+  const before = buildCompetitiveCapabilitySnapshot(physicalStats);
+  const entitlement = {
+    entitlementId: "ce_payment_power_physical_test",
+    productId: "rumin-foundation-physical-box",
+    productType: "physical-collector-entitlement",
+    issuanceSource: "owner-manual-fulfillment",
+    externalReferenceHash: "a".repeat(64)
+  };
+
+  const redemption = redeemCollectorEntitlementStats(physicalStats, entitlement, {
+    redeemedAt: "2026-08-07T14:00:00.000Z"
+  });
+  const retry = redeemCollectorEntitlementStats(physicalStats, entitlement, {
+    redeemedAt: "2026-08-07T14:05:00.000Z"
+  });
+
+  assert.equal(redemption.alreadyRedeemed, false);
+  assert.equal(retry.alreadyRedeemed, true);
+  assert.equal(redemption.grantedVariants.length, 8);
+  assert.deepEqual(buildCompetitiveCapabilitySnapshot(physicalStats), before);
+  assert.deepEqual(physicalStats.collection.gameplayEntitlements, normalizeCollection(unpaidStats).gameplayEntitlements);
+  assert.equal(physicalStats.collection.collectorRedemptionReceipts[entitlement.entitlementId].issuanceSource, "owner-manual-fulfillment");
+  assert.equal(physicalStats.collection.collectorVariantProvenance[redemption.grantedVariants[0].variantId][0].entitlementId, entitlement.entitlementId);
 });

@@ -124,6 +124,19 @@ const {
   getPublicGameContent,
   listFactions
 } = require("./gameContent");
+const {
+  COLLECTOR_REDEMPTION_RECEIPT_VERSION,
+  PHYSICAL_COLLECTOR_PRODUCT_TYPE,
+  issueCollectorEntitlement,
+  publicCollectorEntitlementProduct,
+  resolveCollectorEntitlementProduct,
+  verifyCollectorEntitlement
+} = require("./collectorEntitlements");
+
+const COLLECTOR_ENTITLEMENT_SECRET = process.env.COLLECTOR_ENTITLEMENT_SECRET
+  || crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update("gauntlet.collector-entitlement.v1 signing key").digest("hex");
+const PUBLIC_CLIENT_URL = process.env.PUBLIC_CLIENT_URL
+  || (CLIENT_URL.startsWith("https://") ? CLIENT_URL : "https://gauntlet-online.vercel.app");
 
 const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
 const roomLifecycleConfig = getRoomLifecycleConfig();
@@ -460,10 +473,51 @@ function emptyCollection() {
     openedPacks: 0,
     openedGameplayPacks: 0,
     openedCollectorPacks: 0,
+    collectorRedemptionReceipts: {},
+    collectorVariantProvenance: {},
     lastPack: null,
     lastGameplayPack: null,
     lastCollectorPack: null
   };
+}
+
+function normalizeCollectorRedemptionReceipts(value = {}) {
+  const receipts = {};
+  for (const [entitlementId, receipt] of Object.entries(value || {})) {
+    if (!receipt || typeof receipt !== "object" || String(receipt.entitlementId || "") !== String(entitlementId)) continue;
+    const variantIds = Array.isArray(receipt.grantedVariantIds)
+      ? receipt.grantedVariantIds.map(String).filter((variantId) => !!getCollectorVariantById(variantId))
+      : [];
+    receipts[String(entitlementId)] = {
+      receiptVersion: Number(receipt.receiptVersion || COLLECTOR_REDEMPTION_RECEIPT_VERSION),
+      entitlementId: String(entitlementId),
+      productId: String(receipt.productId || ""),
+      productType: String(receipt.productType || PHYSICAL_COLLECTOR_PRODUCT_TYPE),
+      redeemedAt: receipt.redeemedAt || null,
+      grantedVariantIds: variantIds,
+      acquisition: String(receipt.acquisition || PHYSICAL_COLLECTOR_PRODUCT_TYPE),
+      issuanceSource: String(receipt.issuanceSource || "owner-manual-fulfillment"),
+      externalReferenceHash: String(receipt.externalReferenceHash || "")
+    };
+  }
+  return receipts;
+}
+
+function buildCollectorVariantProvenance(receipts = {}) {
+  const provenance = {};
+  for (const receipt of Object.values(receipts)) {
+    for (const variantId of receipt.grantedVariantIds || []) {
+      provenance[variantId] = provenance[variantId] || [];
+      provenance[variantId].push({
+        entitlementId: receipt.entitlementId,
+        productId: receipt.productId,
+        acquisition: receipt.acquisition,
+        issuanceSource: receipt.issuanceSource,
+        acquiredAt: receipt.redeemedAt
+      });
+    }
+  }
+  return provenance;
 }
 
 function normalizeOwnershipCounts(value = {}) {
@@ -499,6 +553,7 @@ function normalizeCollection(stats = {}) {
   const openedGameplayPacks = Math.max(0, Number(collection.openedGameplayPacks ?? collection.openedPacks ?? 0));
   const purchasedCollectorPacks = Math.max(0, Number(collection.purchasedCollectorPacks ?? collection.purchasedPacks ?? 0));
   const lastGameplayPack = collection.lastGameplayPack || collection.lastPack || null;
+  const collectorRedemptionReceipts = normalizeCollectorRedemptionReceipts(collection.collectorRedemptionReceipts);
   return {
     schemaVersion: 2,
     cards: { ...base.cards, ...gameplayEntitlements },
@@ -512,6 +567,8 @@ function normalizeCollection(stats = {}) {
     openedPacks: openedGameplayPacks,
     openedGameplayPacks,
     openedCollectorPacks: Math.max(0, Number(collection.openedCollectorPacks || 0)),
+    collectorRedemptionReceipts,
+    collectorVariantProvenance: buildCollectorVariantProvenance(collectorRedemptionReceipts),
     lastPack: lastGameplayPack,
     lastGameplayPack,
     lastCollectorPack: collection.lastCollectorPack || null
@@ -2414,6 +2471,58 @@ function grantPurchasedCollectorPack(stats, productId, options = {}) {
   return grantedVariants.map(publicCollectorVariant);
 }
 
+function redemptionVariants(receipt) {
+  return (receipt?.grantedVariantIds || [])
+    .map((variantId) => getCollectorVariantById(variantId))
+    .filter(Boolean)
+    .map(publicCollectorVariant);
+}
+
+function redeemCollectorEntitlementStats(stats, entitlement, options = {}) {
+  const collection = normalizeCollection(stats);
+  const existing = collection.collectorRedemptionReceipts?.[entitlement.entitlementId];
+  if (existing) {
+    stats.collection = collection;
+    return { alreadyRedeemed: true, receipt: existing, grantedVariants: redemptionVariants(existing) };
+  }
+
+  const product = resolveCollectorEntitlementProduct(entitlement.productId);
+  if (!product || product.productType !== entitlement.productType) throw new Error("Unknown physical collector product.");
+  const redeemedAt = options.redeemedAt || new Date().toISOString();
+  const grantedVariants = grantPurchasedCollectorPack(stats, product.collectorPackId, {
+    variantIds: [...product.variantIds],
+    openedAt: redeemedAt,
+    provenance: `${PHYSICAL_COLLECTOR_PRODUCT_TYPE}:${entitlement.issuanceSource}`
+  });
+  const nextCollection = normalizeCollection(stats);
+  const receipt = {
+    receiptVersion: COLLECTOR_REDEMPTION_RECEIPT_VERSION,
+    entitlementId: entitlement.entitlementId,
+    productId: product.id,
+    productType: product.productType,
+    redeemedAt,
+    grantedVariantIds: grantedVariants.map((variant) => variant.variantId),
+    acquisition: PHYSICAL_COLLECTOR_PRODUCT_TYPE,
+    issuanceSource: entitlement.issuanceSource,
+    externalReferenceHash: entitlement.externalReferenceHash
+  };
+  nextCollection.collectorRedemptionReceipts = {
+    ...nextCollection.collectorRedemptionReceipts,
+    [receipt.entitlementId]: receipt
+  };
+  nextCollection.collectorVariantProvenance = buildCollectorVariantProvenance(nextCollection.collectorRedemptionReceipts);
+  nextCollection.lastCollectorPack = {
+    ...nextCollection.lastCollectorPack,
+    physicalProductId: product.id,
+    entitlementId: entitlement.entitlementId,
+    productType: product.productType,
+    provenance: receipt.acquisition,
+    issuanceSource: receipt.issuanceSource
+  };
+  stats.collection = nextCollection;
+  return { alreadyRedeemed: false, receipt, grantedVariants };
+}
+
 function buildCompetitiveCapabilitySnapshot(stats = {}) {
   const collection = normalizeCollection(stats);
   return {
@@ -2821,6 +2930,180 @@ async function sendCollectorPackPurchaseLink(req, res) {
 
 app.post("/api/collection/collector-pack-purchase-link", sendCollectorPackPurchaseLink);
 app.post("/api/collection/pack-purchase-link", sendCollectorPackPurchaseLink);
+
+const collectorRedemptionQueues = new Map();
+
+function ownerTokenFromRequest(req) {
+  const authHeader = req.get("authorization") || "";
+  return authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
+}
+
+function requireOwnerAuthorization(req, res) {
+  if (!OWNER_STATS_TOKEN || ownerTokenFromRequest(req) !== OWNER_STATS_TOKEN) {
+    res.status(403).json({ error: "Owner authorization required." });
+    return false;
+  }
+  return true;
+}
+
+async function findCollectorFulfillmentAccount(input = {}) {
+  const accountId = String(input.accountId || "").trim();
+  const accountName = normalizeAccountName(input.accountName || input.account || "");
+  if (useSupabaseStore()) {
+    if (accountId) return findSupabaseAccountById(accountId);
+    if (accountName) return findSupabaseAccountByName(accountName);
+    return null;
+  }
+  const store = loadAccountStore();
+  if (accountId) return store.accounts.find((account) => account.id === accountId) || null;
+  return accountName ? findAccountByName(store, accountName) : null;
+}
+
+function verifyCollectorClaimToken(token, res) {
+  const verification = verifyCollectorEntitlement(token, COLLECTOR_ENTITLEMENT_SECRET);
+  if (!verification.valid) {
+    res.status(400).json({ code: verification.code, error: verification.message });
+    return null;
+  }
+  const product = resolveCollectorEntitlementProduct(verification.payload.productId);
+  if (!product || product.productType !== verification.payload.productType) {
+    res.status(400).json({ code: "UNKNOWN_COLLECTOR_PRODUCT", error: "Unknown physical collector product." });
+    return null;
+  }
+  return { entitlement: verification.payload, product };
+}
+
+function collectorClaimResponse(account, entitlement, product, receipt = null) {
+  return {
+    entitlement: {
+      schemaVersion: entitlement.schemaVersion,
+      entitlementId: entitlement.entitlementId,
+      productId: entitlement.productId,
+      productType: entitlement.productType,
+      issuanceSource: entitlement.issuanceSource,
+      issuedAt: entitlement.issuedAt,
+      expiresAt: entitlement.expiresAt
+    },
+    boundAccount: { id: account.id, name: account.name },
+    product: publicCollectorEntitlementProduct(product),
+    status: receipt ? "already-redeemed" : "available",
+    receipt
+  };
+}
+
+async function withCollectorAccountLock(accountId, task) {
+  const previous = collectorRedemptionQueues.get(accountId) || Promise.resolve();
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const tail = previous.catch(() => {}).then(() => gate);
+  collectorRedemptionQueues.set(accountId, tail);
+  await previous.catch(() => {});
+  try {
+    return await task();
+  } finally {
+    release();
+    if (collectorRedemptionQueues.get(accountId) === tail) collectorRedemptionQueues.delete(accountId);
+  }
+}
+
+async function persistCollectorEntitlementRedemption(accountId, entitlement, redeemedAt = new Date().toISOString()) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (useSupabaseStore()) {
+      const account = await findSupabaseAccountById(accountId);
+      if (!account) throw new Error("Gauntlet account was not found.");
+      const stats = account.stats || {};
+      const result = redeemCollectorEntitlementStats(stats, entitlement, { redeemedAt });
+      if (!result.alreadyRedeemed) {
+        await patchSupabaseAccount(accountId, { stats, last_seen_at: redeemedAt });
+      }
+      const updated = result.alreadyRedeemed ? account : await findSupabaseAccountById(accountId);
+      return { ...result, account: publicAccount(updated) };
+    }
+
+    const store = loadAccountStore();
+    const account = store.accounts.find((entry) => entry.id === accountId);
+    if (!account) throw new Error("Gauntlet account was not found.");
+    account.stats = account.stats || {};
+    const result = redeemCollectorEntitlementStats(account.stats, entitlement, { redeemedAt });
+    if (!result.alreadyRedeemed) {
+      account.lastSeenAt = redeemedAt;
+      saveAccountStore(store);
+    }
+    return { ...result, account: publicAccount(account) };
+  });
+}
+
+app.post("/api/admin/collector-entitlements/issue", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  try {
+    const account = await findCollectorFulfillmentAccount(req.body || {});
+    if (!account) {
+      res.status(404).json({ error: "Gauntlet account was not found." });
+      return;
+    }
+    const issued = issueCollectorEntitlement({
+      accountId: account.id,
+      productId: req.body?.productId,
+      issuanceSource: req.body?.issuanceSource || req.body?.source,
+      externalReference: req.body?.externalReference || req.body?.orderReference,
+      expiresAt: req.body?.expiresAt || null
+    }, COLLECTOR_ENTITLEMENT_SECRET);
+    res.json({
+      entitlement: collectorClaimResponse(account, issued.payload, resolveCollectorEntitlementProduct(issued.payload.productId)).entitlement,
+      product: publicCollectorEntitlementProduct(resolveCollectorEntitlementProduct(issued.payload.productId)),
+      token: issued.token,
+      claimUrl: `${PUBLIC_CLIENT_URL.replace(/\/$/, "")}/?claim=${encodeURIComponent(issued.token)}`,
+      nonTransferable: true
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not issue collector entitlement." });
+  }
+});
+
+app.post("/api/collection/collector-entitlement/preview", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const verified = verifyCollectorClaimToken(req.body?.token, res);
+  if (!verified) return;
+  if (verified.entitlement.accountId !== context.account.id) {
+    res.status(403).json({
+      code: "ENTITLEMENT_ACCOUNT_MISMATCH",
+      error: "This collector entitlement belongs to another Gauntlet account."
+    });
+    return;
+  }
+  const collection = normalizeCollection(context.account.stats || {});
+  const receipt = collection.collectorRedemptionReceipts?.[verified.entitlement.entitlementId] || null;
+  res.json(collectorClaimResponse(context.account, verified.entitlement, verified.product, receipt));
+});
+
+app.post("/api/collection/collector-entitlement/redeem", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const verified = verifyCollectorClaimToken(req.body?.token, res);
+  if (!verified) return;
+  if (verified.entitlement.accountId !== context.account.id) {
+    res.status(403).json({
+      code: "ENTITLEMENT_ACCOUNT_MISMATCH",
+      error: "This collector entitlement belongs to another Gauntlet account."
+    });
+    return;
+  }
+  try {
+    const result = await persistCollectorEntitlementRedemption(context.account.id, verified.entitlement);
+    res.json({
+      ...collectorClaimResponse(result.account, verified.entitlement, verified.product, result.receipt),
+      alreadyRedeemed: result.alreadyRedeemed,
+      grantedVariants: result.grantedVariants,
+      account: result.account
+    });
+  } catch (_error) {
+    res.status(500).json({ error: "Could not redeem collector entitlement." });
+  }
+});
 
 app.post("/api/collection/save-constructed-deck", async (req, res) => {
   const context = await requireAccountRecord(req, res);
@@ -8582,6 +8865,7 @@ module.exports = {
     getPaymentTotal,
     buildCompletionEnvelope,
     buildCompetitiveCapabilitySnapshot,
+    buildCollectorVariantProvenance,
     finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,
@@ -8609,6 +8893,10 @@ module.exports = {
     validateAuthConfiguration,
     validateConstructedDeckPayload,
     grantPurchasedCollectorPack,
+    normalizeCollectorRedemptionReceipts,
+    persistCollectorEntitlementRedemption,
+    redeemCollectorEntitlementStats,
+    resetCollectorEntitlementRuntimeState: () => collectorRedemptionQueues.clear(),
     openCollectionBooster,
     resolveCollectorVariantSelections,
     verifyAuthToken,
