@@ -120,6 +120,59 @@ function sanitizeLeagueCommand(command = {}) {
   return safe;
 }
 
+function replayPublicCard(card) {
+  if (!card) return null;
+  const allowed = [
+    "id", "definitionId", "gameplayCardId", "name", "rank", "value", "suit",
+    "factionId", "variantId", "type", "text"
+  ];
+  return Object.fromEntries(allowed.filter((key) => card[key] != null).map((key) => [key, clonePlain(card[key])]));
+}
+
+function findGameCard(game, cardId) {
+  if (!cardId) return null;
+  const cards = [];
+  const addCards = (entries) => cards.push(...(Array.isArray(entries) ? entries : []).filter(Boolean));
+  const addAttack = (attack) => {
+    if (!attack) return;
+    addCards([attack.card]);
+    addCards(attack.attachedCards);
+    addCards(Array.isArray(attack.payment) ? attack.payment : attack.payment?.cards);
+    for (const block of attack.block || []) {
+      addCards([block.card]);
+      addCards(block.payment?.cards);
+    }
+  };
+  for (const player of Object.values(game?.players || {})) {
+    addCards(player.hand);
+    addCards(player.deck);
+    addCards(player.discard);
+  }
+  for (const lane of game?.lanes || []) {
+    addCards(Object.values(lane.facedown || {}));
+    addAttack(lane.attack);
+    for (const block of lane.block || []) {
+      addCards([block.card]);
+      addCards(block.payment?.cards);
+    }
+  }
+  for (const attack of game?.handAttacks || []) addAttack(attack);
+  return cards.find((card) => card?.id === cardId) || null;
+}
+
+function enrichPublicEventCards(game, payload) {
+  const enriched = payload;
+  if (enriched.cardId) {
+    const card = replayPublicCard(findGameCard(game, enriched.cardId));
+    if (card) enriched.card = card;
+  }
+  if (Array.isArray(enriched.cardIds)) {
+    const cards = enriched.cardIds.map((cardId) => replayPublicCard(findGameCard(game, cardId))).filter(Boolean);
+    if (cards.length) enriched.cards = cards;
+  }
+  return enriched;
+}
+
 function sanitizeLeagueEvent(event = {}) {
   const type = String(event.type || "unknown");
   const { id: _id, sequence: _sequence, revision: _revision, type: _type, ...detail } = clonePlain(event);
@@ -174,7 +227,7 @@ function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, 
   const captured = sourceEvents.map((event) => {
     const payload = event.type === "command.accepted"
       ? { command: clonePlain(event.command) }
-      : sanitizeLeagueEvent(event);
+      : enrichPublicEventCards(game, sanitizeLeagueEvent(event));
     const entry = {
       sequence: game.serverLeagueEvidence.length + 1,
       eventId: event.id || `${game.matchId}:league:${game.serverLeagueEvidence.length + 1}`,

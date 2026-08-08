@@ -306,6 +306,14 @@ function exactEvidenceCard(cardId) {
   return gameplay ? resolveReplayCard({ ...gameplay, id: cardId, definitionId: gameplay.gameplayCardId }) : null;
 }
 
+function evidenceCards(entries, eventType) {
+  return entries
+    .filter((entry) => !eventType || entry.eventType === eventType)
+    .flatMap((entry) => [entry.publicPayload?.card, ...(entry.publicPayload?.cards || [])])
+    .map(resolveReplayCard)
+    .filter(Boolean);
+}
+
 function actionKind(entries) {
   const eventTypes = new Set(entries.map((entry) => entry.eventType));
   const commandType = entries.find((entry) => entry.commandType)?.commandType || "unknown";
@@ -378,21 +386,28 @@ function buildPresentationAction({ group, index, frames, participants }) {
   const damageEvent = entries.find((entry) => entry.eventType === "damage.calculated")?.publicPayload
     || entries.find((entry) => entry.eventType === "damage.dealt")?.publicPayload || null;
   const attackCard = resolveReplayCard(attack?.card) || exactEvidenceCard(evidenceCardIds[0]);
+  const recordedBlockers = evidenceCards(entries, "block.declared");
   const blockers = (attack?.block || []).map((block) => ({
     card: resolveReplayCard(block.card),
     effectiveValue: Number(block.effectiveValue || 0),
     preventDamage: Number(block.preventDamage || 0),
     payment: (block.payment?.cards || []).map(resolveReplayCard).filter(Boolean)
   }));
+  if (!blockers.length) {
+    blockers.push(...recordedBlockers.map((card) => ({ card, effectiveValue: 0, preventDamage: 0, payment: [] })));
+  }
   const payments = (attack?.payment || []).map(resolveReplayCard).filter(Boolean);
   const blockPayments = blockers.flatMap((block) => block.payment || []);
+  const recordedPayments = evidenceCards(entries, "payment.discarded");
   const attachments = (attack?.attachedCards || []).map(resolveReplayCard).filter(Boolean);
   const exactCards = evidenceCardIds.map(exactEvidenceCard).filter(Boolean);
   const cards = {
     primary: kind === "block" ? blockers[0]?.card || exactCards[0] || null : attackCard,
     payments: kind === "block"
-      ? (blockPayments.length ? blockPayments : exactCards.filter((card) => card.runtimeId !== blockers[0]?.card?.runtimeId))
-      : (payments.length ? payments : (kind === "payment" ? exactCards : [])),
+      ? (blockPayments.length ? blockPayments : recordedPayments)
+      : (kind === "resolution" && recordedBlockers.length
+        ? recordedPayments
+        : (payments.length ? payments : (kind === "payment" ? (recordedPayments.length ? recordedPayments : exactCards) : []))),
     blockers: blockers.map((block) => block.card).filter(Boolean),
     attachments
   };

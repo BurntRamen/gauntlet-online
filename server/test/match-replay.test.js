@@ -75,7 +75,7 @@ function capture(game, command, events) {
   });
 }
 
-function recordFixture() {
+function recordFixture(options = {}) {
   const game = gameFixture();
   capture(game, { type: "matchStarted" }, [
     { id: `${MATCH_ID}:started`, type: "match.started" },
@@ -115,22 +115,38 @@ function recordFixture() {
     payment: { player: 2, cards: [blockPayment], total: 2, required: 2 }
   }];
   game.message = "Player 2 blocked.";
-  capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: [blocker.id], paymentCardIds: [blockPayment.id] }, [
-    { id: `${MATCH_ID}:block-payment`, type: "payment.discarded", player: 2, cardIds: [blockPayment.id], total: 2, required: 2 },
-    { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: [blocker.id] }
-  ]);
+  if (options.immediateBlockResolution) {
+    game.players[2].life = 12;
+    game.players[1].discard = [attacker];
+    game.players[2].discard = [blocker, blockPayment];
+    game.handAttacks = [];
+    game.priority = 2;
+    game.turn = 2;
+    game.message = "8 damage resolved.";
+    capture(game, { type: "declareLaneBlock", actor: 2, blockerCardIds: [], paymentCardIds: [blockPayment.id] }, [
+      { id: `${MATCH_ID}:block-payment`, type: "payment.discarded", player: 2, cardIds: [blockPayment.id], total: 2, required: 2 },
+      { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: [blocker.id], laneIndex: 0 },
+      { id: `${MATCH_ID}:calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 4, damage: 8 },
+      { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
+    ]);
+  } else {
+    capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: [blocker.id], paymentCardIds: [blockPayment.id] }, [
+      { id: `${MATCH_ID}:block-payment`, type: "payment.discarded", player: 2, cardIds: [blockPayment.id], total: 2, required: 2 },
+      { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: [blocker.id] }
+    ]);
 
-  game.players[2].life = 12;
-  game.players[1].discard = [attacker];
-  game.players[2].discard = [blocker];
-  game.handAttacks = [];
-  game.priority = 2;
-  game.turn = 2;
-  game.message = "8 damage resolved.";
-  capture(game, { type: "passPriority", actor: 1 }, [
-    { id: `${MATCH_ID}:calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 4, damage: 8 },
-    { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
-  ]);
+    game.players[2].life = 12;
+    game.players[1].discard = [attacker];
+    game.players[2].discard = [blocker];
+    game.handAttacks = [];
+    game.priority = 2;
+    game.turn = 2;
+    game.message = "8 damage resolved.";
+    capture(game, { type: "passPriority", actor: 1 }, [
+      { id: `${MATCH_ID}:calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 4, damage: 8 },
+      { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
+    ]);
+  }
 
   game.players[2].life = 0;
   game.phase = "gameOver";
@@ -199,6 +215,17 @@ test("builds a deterministic public replay through attack, block, damage, and fi
   assert.equal(resolutionAction.values.damage, 8);
   assert.equal(first.notableMoments.find((entry) => entry.id === "largest-attack").evidenceSequence, attack.evidenceSequence);
   assert.equal(first.notableMoments.find((entry) => entry.id === "match-ending").evidenceSequence, first.steps.at(-1).evidenceSequence);
+});
+
+test("preserves exact blocker and payment cards when a lane block resolves immediately", () => {
+  const replay = buildReplayTimeline(recordFixture({ immediateBlockResolution: true }));
+  const resolution = replay.actions.find((action) => action.kind === "resolution");
+  assert.equal(resolution.cards.primary.name, "public-attacker");
+  assert.equal(resolution.cards.blockers[0].name, "public-blocker");
+  assert.equal(resolution.cards.payments[0].name, "public-block-payment");
+  assert.equal(resolution.values.attack, 12);
+  assert.equal(resolution.values.block, 4);
+  assert.equal(resolution.values.damage, 8);
 });
 
 test("public replay permanently removes private hands, deck order, facedown identity, peeks, tokens, and server fields", () => {
