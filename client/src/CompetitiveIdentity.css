@@ -82,25 +82,50 @@
 
 .competitive-match-list { display: grid; }
 .competitive-match-row {
-  display: grid;
-  grid-template-columns: 44px 58px minmax(0, 1fr) auto;
-  gap: 10px;
+  display: flex;
+  gap: 6px;
   align-items: center;
   width: 100%;
   margin-top: 5px;
-  padding: 6px;
   border: 1px solid rgba(125, 211, 252, 0.16);
   border-radius: 4px;
   background: rgba(3, 10, 17, 0.68);
   color: #e5e7eb;
-  cursor: pointer;
-  text-align: left;
 }
 
 .competitive-match-row:hover {
   border-color: rgba(241, 199, 121, 0.52);
   background: rgba(19, 30, 39, 0.92);
 }
+
+.competitive-match-main {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 44px 58px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.competitive-replay-direct {
+  margin-right: 7px;
+  border: 1px solid rgba(251, 191, 36, 0.52);
+  border-radius: 5px;
+  padding: 7px 10px;
+  background: rgba(120, 53, 15, 0.32);
+  color: #fde68a;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.competitive-replay-direct:hover,
+.competitive-replay-direct:focus-visible { border-color: #fbbf24; background: rgba(146, 64, 14, 0.52); }
 
 .competitive-faction-mark {
   width: 40px;
@@ -110,9 +135,9 @@
   background: #111 center 25% / cover no-repeat;
 }
 
-.competitive-match-row strong,
-.competitive-match-row small { display: block; letter-spacing: 0; }
-.competitive-match-row small { margin-top: 2px; color: #93c5fd; }
+.competitive-match-main strong,
+.competitive-match-main small { display: block; letter-spacing: 0; }
+.competitive-match-main small { margin-top: 2px; color: #93c5fd; }
 .competitive-result { justify-self: start; border: 1px solid currentColor; border-radius: 3px; padding: 3px 5px; font-size: 9px; font-weight: 900; }
 .competitive-result.win { color: #86efac; }
 .competitive-result.loss { color: #fca5a5; }
@@ -165,7 +190,7 @@
   .competitive-profile-header h1 { font-size: 34px; }
   .competitive-record-block { text-align: left; }
   .competitive-columns { grid-template-columns: 1fr; gap: 8px; }
-  .competitive-match-row { grid-template-columns: 58px minmax(0, 1fr); }
+  .competitive-match-main { grid-template-columns: 58px minmax(0, 1fr); }
   .competitive-faction-mark { display: none; }
   .competitive-match-meta { display: none; }
   .competitive-events div { grid-template-columns: 1fr; gap: 3px; }

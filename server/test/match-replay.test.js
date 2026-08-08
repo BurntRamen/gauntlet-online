@@ -83,6 +83,7 @@ function recordFixture() {
   ]);
 
   const attacker = card("public-attacker", 12);
+  const attackPayment = card("public-attack-payment", 3, "clubs");
   game.players[1].hand = [];
   game.handAttacks = [{
     id: "attack-1",
@@ -93,20 +94,29 @@ function recordFixture() {
     effectiveValue: 12,
     notes: [],
     attachedCards: [],
-    payment: [],
+    payment: { player: 1, cards: [attackPayment], total: 3, required: 3 },
     block: []
   }];
   game.priority = 2;
   game.message = "Player 1 attacked.";
-  capture(game, { type: "declareHandAttack", actor: 1, attackerCardId: attacker.id }, [
+  capture(game, { type: "declareHandAttack", actor: 1, attackerCardId: attacker.id, paymentCardIds: [attackPayment.id] }, [
+    { id: `${MATCH_ID}:attack-payment`, type: "payment.discarded", player: 1, cardIds: [attackPayment.id], total: 3, required: 3 },
     { id: `${MATCH_ID}:attack`, type: "attack.declared", player: 1, targetPlayer: 2, cardId: attacker.id, effectiveValue: 12 }
   ]);
 
   const blocker = card("public-blocker", 4, "â™¥");
+  const blockPayment = card("public-block-payment", 2, "diamonds");
   game.players[2].hand = [];
-  game.handAttacks[0].block = [{ id: "block-1", player: 2, card: blocker, effectiveValue: 4 }];
+  game.handAttacks[0].block = [{
+    id: "block-1",
+    player: 2,
+    card: blocker,
+    effectiveValue: 4,
+    payment: { player: 2, cards: [blockPayment], total: 2, required: 2 }
+  }];
   game.message = "Player 2 blocked.";
-  capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: [blocker.id] }, [
+  capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: [blocker.id], paymentCardIds: [blockPayment.id] }, [
+    { id: `${MATCH_ID}:block-payment`, type: "payment.discarded", player: 2, cardIds: [blockPayment.id], total: 2, required: 2 },
     { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: [blocker.id] }
   ]);
 
@@ -174,6 +184,19 @@ test("builds a deterministic public replay through attack, block, damage, and fi
   assert.equal(first.frames.at(-1).publicState.phase, "gameOver");
   assert.equal(first.frames.at(-1).publicState.winner, 1);
   assert.equal(first.result.winnerPlayerNum, 1);
+  assert.equal(first.actions.length, first.frames.length);
+  const attackAction = first.actions.find((action) => action.kind === "attack");
+  const blockAction = first.actions.find((action) => action.kind === "block");
+  const resolutionAction = first.actions.find((action) => action.kind === "resolution");
+  assert.equal(attackAction.cards.primary.name, "public-attacker");
+  assert.equal(attackAction.cards.payments[0].name, "public-attack-payment");
+  assert.equal(attackAction.values.paymentTotal, 3);
+  assert.ok(attackAction.evidenceSequenceEnd > attackAction.evidenceSequenceStart);
+  assert.equal(blockAction.cards.primary.name, "public-blocker");
+  assert.equal(blockAction.cards.blockers[0].name, "public-blocker");
+  assert.equal(resolutionAction.values.attack, 12);
+  assert.equal(resolutionAction.values.block, 4);
+  assert.equal(resolutionAction.values.damage, 8);
   assert.equal(first.notableMoments.find((entry) => entry.id === "largest-attack").evidenceSequence, attack.evidenceSequence);
   assert.equal(first.notableMoments.find((entry) => entry.id === "match-ending").evidenceSequence, first.steps.at(-1).evidenceSequence);
 });
@@ -188,6 +211,8 @@ test("public replay permanently removes private hands, deck order, facedown iden
   ]) assert.equal(serialized.includes(secret), false, secret);
   assert.equal(serialized.includes("public-attacker"), true);
   assert.equal(serialized.includes("public-blocker"), true);
+  assert.equal(serialized.includes("public-attack-payment"), true);
+  assert.equal(serialized.includes("public-block-payment"), true);
   assert.deepEqual(replay.frames[0].publicState.players[1].hand, []);
   assert.deepEqual(replay.frames[0].publicState.players[1].deck, []);
   assert.deepEqual(replay.frames[0].publicState.lanes[0].facedown[1], { id: "hidden-lane-0-p1", hidden: true });
@@ -202,6 +227,8 @@ test("older record-v2 evidence remains event-only without fabricated battlefield
   assert.equal(replay.availability.visualCoverage, "event-only");
   assert.deepEqual(replay.frames, []);
   assert.ok(replay.steps.every((step) => step.frameIndex === null && step.stateTiming === "event-only"));
+  assert.ok(replay.actions.length < replay.steps.length);
+  assert.ok(replay.actions.every((action) => action.frameAfterIndex === null));
 });
 
 test("corrupt or contradictory replay evidence fails closed", () => {

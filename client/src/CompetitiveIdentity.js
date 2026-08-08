@@ -17,7 +17,7 @@ function resultClass(result) {
   return result === "win" ? "win" : result === "loss" ? "loss" : "draw";
 }
 
-function MatchRows({ profile, matches, onOpenMatch }) {
+function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
   if (!matches?.length) return <p className="competitive-empty">No verified matches yet.</p>;
   return (
     <div className="competitive-match-list">
@@ -27,23 +27,29 @@ function MatchRows({ profile, matches, onOpenMatch }) {
           || match.participants?.find((entry) => entry.accountId !== profile.accountId)
           || null;
         const participantFactionId = participant?.faction?.id;
+        const matchLabel = `${String(participant?.result || "record").toUpperCase()} ${participant?.faction?.name || "Basic"} vs ${opponent?.displayName || "Opponent"}`;
         return (
-          <button type="button" className="competitive-match-row" onClick={() => onOpenMatch(match.matchId)} key={match.matchId}>
-            <span className="competitive-faction-mark" aria-hidden="true" style={participantFactionId ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.58)), url(${factionArt(participantFactionId)})` } : undefined} />
-            <span className={`competitive-result ${resultClass(participant?.result)}`}>{String(participant?.result || "record").toUpperCase()}</span>
-            <span>
-              <strong>{participant?.faction?.name || "Basic"} vs {opponent?.displayName || "Opponent"}</strong>
-              <small>{match.season?.displayName || (match.ranked ? "Ranked" : match.mode)} / {formatDate(match.completedAt)}</small>
-            </span>
-            <span className="competitive-match-meta">T{match.turnCount || 1}</span>
-          </button>
+          <div className="competitive-match-row" key={match.matchId}>
+            <button type="button" className="competitive-match-main" aria-label={matchLabel} onClick={() => onOpenMatch(match.matchId)}>
+              <span className="competitive-faction-mark" aria-hidden="true" style={participantFactionId ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.58)), url(${factionArt(participantFactionId)})` } : undefined} />
+              <span className={`competitive-result ${resultClass(participant?.result)}`}>{String(participant?.result || "record").toUpperCase()}</span>
+              <span>
+                <strong>{participant?.faction?.name || "Basic"} vs {opponent?.displayName || "Opponent"}</strong>
+                <small>{match.season?.displayName || (match.ranked ? "Ranked" : match.mode)} / {formatDate(match.completedAt)}</small>
+              </span>
+              <span className="competitive-match-meta">T{match.turnCount || 1}</span>
+            </button>
+            {match.replay?.available && (
+              <button type="button" className="competitive-replay-direct" aria-label={`Replay ${participant?.faction?.name || "Basic"} vs ${opponent?.displayName || "Opponent"}`} onClick={() => onOpenReplay?.(match.matchId)}>Replay</button>
+            )}
+          </div>
         );
       })}
     </div>
   );
 }
 
-function ProfileBody({ profile, onOpenMatch }) {
+function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
   const ranked = profile.competitiveRecord?.ranked || {};
   const all = profile.competitiveRecord?.all || {};
   const activeSeason = profile.competitiveRecord?.activeSeason || null;
@@ -103,7 +109,7 @@ function ProfileBody({ profile, onOpenMatch }) {
 
       <section className="competitive-history">
         <h2>Verified Match History</h2>
-        <MatchRows profile={profile} matches={profile.recentMatches || []} onOpenMatch={onOpenMatch} />
+        <MatchRows profile={profile} matches={profile.recentMatches || []} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />
       </section>
       {activeSeason?.recentMatchReferences?.length > 0 && (
         <section className="competitive-history">
@@ -120,7 +126,7 @@ function ProfileBody({ profile, onOpenMatch }) {
   );
 }
 
-export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfile, onOpenMatch }) {
+export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfile, onOpenMatch, onOpenReplay }) {
   const identityFactionId = profile?.factionRecords?.[0]?.factionId;
   return (
     <section className="competitive-panel" aria-labelledby="competitive-panel-title" style={identityFactionId ? { "--identity-art": `url(${factionArt(identityFactionId)})` } : undefined}>
@@ -138,21 +144,21 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
             <div><span>Verified</span><strong>{profile.verifiedMatchCount || 0}</strong></div>
             <div><span>Best Attack</span><strong>{profile.notableStats?.largestAttack?.value || 0}</strong></div>
           </section>
-          <MatchRows profile={profile} matches={(profile.recentMatches || []).slice(0, 5)} onOpenMatch={onOpenMatch} />
+          <MatchRows profile={profile} matches={(profile.recentMatches || []).slice(0, 5)} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />
         </>
       )}
     </section>
   );
 }
 
-export function PublicProfileScreen({ profile, loading, error, onBack, onOpenMatch }) {
+export function PublicProfileScreen({ profile, loading, error, onBack, onOpenMatch, onOpenReplay }) {
   return (
     <main className="competitive-page">
       <div className="competitive-page-inner">
         <button type="button" className="competitive-back" onClick={onBack}>Back</button>
         {loading && <p className="competitive-empty">Loading player profile...</p>}
         {error && <p className="competitive-error">{error}</p>}
-        {profile && <ProfileBody profile={profile} onOpenMatch={onOpenMatch} />}
+        {profile && <ProfileBody profile={profile} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />}
       </div>
     </main>
   );

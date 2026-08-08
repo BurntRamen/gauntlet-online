@@ -1,7 +1,9 @@
 const crypto = require("crypto");
+const { getCollectorVariantById, getGameplayCardById } = require("./gameContent");
 
 const PUBLIC_REPLAY_FRAME_VERSION = "gauntlet.public-replay-frame.v1";
 const REPLAY_TIMELINE_VERSION = "gauntlet.public-replay-timeline.v1";
+const REPLAY_PRESENTATION_ACTION_VERSION = "gauntlet.replay-presentation-action.v1";
 const LEAGUE_EVIDENCE_VERSION = "gauntlet.league-evidence.v1";
 
 const PRIVATE_KEY_PATTERN = /(reconnect|session|token|secret|credential|deckorder|audit|server)/i;
@@ -38,7 +40,13 @@ function publicBlock(block) {
     player: block.player == null ? null : Number(block.player),
     effectiveValue: Number(block.effectiveValue ?? block.value ?? 0),
     preventDamage: Number(block.preventDamage || 0),
-    card: publicCard(block.card)
+    notes: Array.isArray(block.notes) ? block.notes.map(String) : [],
+    card: publicCard(block.card),
+    payment: {
+      cards: (block.payment?.cards || []).map(publicCard).filter(Boolean),
+      total: Number(block.payment?.total || 0),
+      required: Number(block.payment?.required || 0)
+    }
   };
 }
 
@@ -54,6 +62,8 @@ function publicAttack(attack) {
     card: publicCard(attack.card),
     attachedCards: (attack.attachedCards || []).map(publicCard).filter(Boolean),
     payment: (Array.isArray(attack.payment) ? attack.payment : attack.payment?.cards || []).map(publicCard).filter(Boolean),
+    paymentTotal: Number(attack.payment?.total || 0),
+    paymentRequired: Number(attack.payment?.required || 0),
     block: (attack.block || []).map(publicBlock).filter(Boolean)
   };
 }
@@ -240,6 +250,240 @@ function eventLabel(entry) {
   return String(entry.eventType || "Match event").replace(/[._]/g, " ");
 }
 
+function participantName(participants, playerNum) {
+  return participants.find((participant) => Number(participant.playerNum) === Number(playerNum))?.displayName
+    || (playerNum == null ? "The match" : `Player ${playerNum}`);
+}
+
+function resolveReplayCard(card) {
+  if (!card || card.hidden) return null;
+  const gameplayCardId = card.gameplayCardId || card.definitionId || null;
+  const gameplay = gameplayCardId ? getGameplayCardById(gameplayCardId) : null;
+  const variant = card.variantId ? getCollectorVariantById(card.variantId) : null;
+  const validVariant = variant && (!gameplayCardId || variant.gameplayCardId === gameplayCardId) ? variant : null;
+  return {
+    runtimeId: card.id || null,
+    gameplayCardId: gameplay?.gameplayCardId || gameplayCardId,
+    variantId: validVariant?.variantId || null,
+    name: gameplay?.name || card.name || null,
+    rank: card.rank || null,
+    value: Number(card.value ?? gameplay?.value ?? 0),
+    suit: card.suit || null,
+    factionId: gameplay?.factionId || card.factionId || null,
+    type: gameplay?.type || card.type || null,
+    rulesText: gameplay?.text || card.text || null,
+    collector: validVariant ? {
+      name: validVariant.name,
+      edition: validVariant.edition,
+      finish: validVariant.finish,
+      frame: validVariant.frame,
+      art: validVariant.art || null
+    } : null
+  };
+}
+
+function publicAttacks(state) {
+  return [
+    ...(state?.handAttacks || []).map((attack) => ({ ...attack, laneIndex: null })),
+    ...(state?.lanes || []).flatMap((lane, laneIndex) => lane?.attack ? [{ ...lane.attack, laneIndex }] : [])
+  ];
+}
+
+function findAttack(state, entries) {
+  const payload = entries.find((entry) => entry.eventType === "attack.declared")?.publicPayload || {};
+  const command = entries.find((entry) => entry.eventType === "command.accepted")?.publicPayload?.command || {};
+  const cardId = payload.cardId || command.attackerCardId || null;
+  const actor = payload.player ?? entries.find((entry) => entry.actorPlayerNum != null)?.actorPlayerNum;
+  const laneIndex = payload.laneIndex ?? command.laneIndex;
+  return publicAttacks(state).find((attack) => (
+    (cardId && attack.card?.id === cardId)
+    || (Number(attack.player) === Number(actor) && (laneIndex == null || Number(attack.laneIndex) === Number(laneIndex)))
+  )) || publicAttacks(state)[0] || null;
+}
+
+function exactEvidenceCard(cardId) {
+  const gameplay = cardId ? getGameplayCardById(cardId) : null;
+  return gameplay ? resolveReplayCard({ ...gameplay, id: cardId, definitionId: gameplay.gameplayCardId }) : null;
+}
+
+function actionKind(entries) {
+  const eventTypes = new Set(entries.map((entry) => entry.eventType));
+  const commandType = entries.find((entry) => entry.commandType)?.commandType || "unknown";
+  if (eventTypes.has("match.ended") || eventTypes.has("match.abandoned") || commandType === "finalizeMatch") return "result";
+  if (eventTypes.has("damage.calculated") || eventTypes.has("damage.dealt")) return "resolution";
+  if (eventTypes.has("block.declared") || /Block$/.test(commandType)) return "block";
+  if (eventTypes.has("attack.declared") || /Attack$/.test(commandType)) return "attack";
+  if (commandType === "useFactionAbility" || [...eventTypes].some((type) => /(ability|buff|acceleration|swapped)/i.test(type))) return "ability";
+  if (eventTypes.has("card.placedFacedown") || commandType === "placeCard") return "placement";
+  if (eventTypes.has("turn.started") || /placement/i.test(commandType)) return "turn";
+  if (eventTypes.has("match.started") || commandType === "matchStarted") return "start";
+  if (eventTypes.has("payment.discarded")) return "payment";
+  return "housekeeping";
+}
+
+function groupEvidence(evidence, frames) {
+  if (frames.length) {
+    return frames.map((frame) => ({
+      entries: evidence.filter((entry) => Number(entry.sequence) >= Number(frame.evidenceSequenceStart)
+        && Number(entry.sequence) <= Number(frame.evidenceSequence)),
+      frame
+    })).filter((group) => group.entries.length);
+  }
+  const groups = [];
+  for (const entry of evidence) {
+    const key = entry.commandId || [entry.serverTimestamp, entry.resultingStateChecksum, entry.commandType, entry.turn, entry.phase].join(":");
+    const previous = groups.at(-1);
+    if (previous?.key === key) previous.entries.push(entry);
+    else groups.push({ key, entries: [entry], frame: null });
+  }
+  return groups;
+}
+
+function actionDuration(kind, entries) {
+  if (kind === "result") return 2800;
+  if (kind === "resolution") return entries.some((entry) => entry.eventType === "match.ended") ? 2800 : 2400;
+  if (["attack", "block", "ability"].includes(kind)) return 2200;
+  if (["placement", "payment"].includes(kind)) return 1400;
+  if (["turn", "start"].includes(kind)) return 1000;
+  return 700;
+}
+
+function humanizeIdentifier(value) {
+  return String(value || "")
+    .replace(/[-_.]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function buildPresentationAction({ group, index, frames, participants }) {
+  const entries = group.entries;
+  const kind = actionKind(entries);
+  const command = entries.find((entry) => entry.eventType === "command.accepted")?.publicPayload?.command || {};
+  const primaryEntry = [...entries].reverse().find((entry) => entry.eventType !== "command.accepted") || entries[0];
+  const actorPlayerNum = primaryEntry?.actorPlayerNum ?? entries.find((entry) => entry.actorPlayerNum != null)?.actorPlayerNum ?? null;
+  const actorName = participantName(participants, actorPlayerNum);
+  const frameAfterIndex = group.frame?.frameIndex || null;
+  const frameAfter = group.frame?.publicState || null;
+  const frameBeforeIndex = frameAfterIndex && Number(frameAfterIndex) > 1 ? Number(frameAfterIndex) - 1 : null;
+  const frameBefore = frameBeforeIndex ? frames.find((frame) => Number(frame.frameIndex) === frameBeforeIndex)?.publicState : null;
+  const attackState = kind === "resolution" ? (frameBefore || frameAfter) : frameAfter;
+  const attack = ["attack", "block", "resolution"].includes(kind) ? findAttack(attackState, entries) : null;
+  const evidenceCardIds = entries.flatMap((entry) => [
+    entry.publicPayload?.cardId,
+    ...(entry.publicPayload?.cardIds || []),
+    ...(entry.publicPayload?.command?.paymentCardIds || []),
+    ...(entry.publicPayload?.command?.armWeaponCardIds || [])
+  ]).filter(Boolean);
+  const paymentEvent = entries.find((entry) => entry.eventType === "payment.discarded")?.publicPayload || null;
+  const damageEvent = entries.find((entry) => entry.eventType === "damage.calculated")?.publicPayload
+    || entries.find((entry) => entry.eventType === "damage.dealt")?.publicPayload || null;
+  const attackCard = resolveReplayCard(attack?.card) || exactEvidenceCard(evidenceCardIds[0]);
+  const blockers = (attack?.block || []).map((block) => ({
+    card: resolveReplayCard(block.card),
+    effectiveValue: Number(block.effectiveValue || 0),
+    preventDamage: Number(block.preventDamage || 0),
+    payment: (block.payment?.cards || []).map(resolveReplayCard).filter(Boolean)
+  }));
+  const payments = (attack?.payment || []).map(resolveReplayCard).filter(Boolean);
+  const blockPayments = blockers.flatMap((block) => block.payment || []);
+  const attachments = (attack?.attachedCards || []).map(resolveReplayCard).filter(Boolean);
+  const exactCards = evidenceCardIds.map(exactEvidenceCard).filter(Boolean);
+  const cards = {
+    primary: kind === "block" ? blockers[0]?.card || exactCards[0] || null : attackCard,
+    payments: kind === "block"
+      ? (blockPayments.length ? blockPayments : exactCards.filter((card) => card.runtimeId !== blockers[0]?.card?.runtimeId))
+      : (payments.length ? payments : (kind === "payment" ? exactCards : [])),
+    blockers: blockers.map((block) => block.card).filter(Boolean),
+    attachments
+  };
+  const targetPlayerNum = primaryEntry?.targetPlayerNum ?? attack?.targetPlayer ?? null;
+  const laneIndex = primaryEntry?.laneIndex ?? attack?.laneIndex ?? command.laneIndex ?? null;
+  const attackValue = Number(damageEvent?.attackValue ?? attack?.effectiveValue ?? primaryEntry?.publicPayload?.effectiveValue ?? 0);
+  const blockValue = Number(damageEvent?.blockValue ?? blockers.reduce((total, block) => total + block.effectiveValue, 0));
+  const damage = Number(damageEvent?.damage ?? (primaryEntry?.eventType === "damage.dealt" ? primaryEntry.publicPayload?.amount : 0) ?? 0);
+  const abilityId = command.abilityId || null;
+  let label = eventLabel(primaryEntry);
+  let summary = label;
+  if (kind === "attack") {
+    label = `${actorName} attacks`;
+    summary = `${actorName} attacks${attackCard?.name ? ` with ${attackCard.name}` : ""}${attackValue ? ` for ${attackValue}` : ""}`;
+  } else if (kind === "block") {
+    label = `${actorName} blocks`;
+    const names = cards.blockers.map((card) => card.name || `${card.rank || ""}${card.suit || ""}`).filter(Boolean).join(", ");
+    summary = `${actorName} blocks${names ? ` with ${names}` : ""}${blockValue ? ` for ${blockValue}` : ""}`;
+  } else if (kind === "resolution") {
+    label = "Combat resolves";
+    summary = `${attackValue} attack − ${blockValue} block = ${damage} damage`;
+  } else if (kind === "ability") {
+    const abilityName = primaryEntry?.publicPayload?.source || humanizeIdentifier(abilityId) || "a faction ability";
+    label = `${actorName} uses an ability`;
+    summary = `${actorName} uses ${abilityName}`;
+  } else if (kind === "placement") {
+    label = `${actorName} places a card`;
+    summary = `${actorName} places a card${laneIndex == null ? "" : ` in Lane ${Number(laneIndex) + 1}`}`;
+  } else if (kind === "turn") {
+    label = `Turn ${Number(primaryEntry?.turn || 0)}`;
+    summary = `${label} begins`;
+  } else if (kind === "start") {
+    label = "Match started";
+    summary = `${participants.map((participant) => participant.displayName).join(" vs ")} begins`;
+  } else if (kind === "payment") {
+    label = `${actorName} pays`;
+    summary = `${actorName} pays ${Number(paymentEvent?.total || 0)} of ${Number(paymentEvent?.required || 0)}`;
+  } else if (kind === "result") {
+    const winnerNum = primaryEntry?.publicPayload?.winner ?? frameAfter?.winner;
+    label = "Match complete";
+    summary = winnerNum == null ? "The match ends" : `${participantName(participants, winnerNum)} wins`;
+  }
+  return {
+    schemaVersion: REPLAY_PRESENTATION_ACTION_VERSION,
+    id: `${group.frame ? `frame-${frameAfterIndex}` : `evidence-${entries[0].sequence}`}`,
+    index,
+    kind,
+    label,
+    summary,
+    actorPlayerNum: actorPlayerNum == null ? null : Number(actorPlayerNum),
+    actorName,
+    targetPlayerNum: targetPlayerNum == null ? null : Number(targetPlayerNum),
+    targetName: targetPlayerNum == null ? null : participantName(participants, targetPlayerNum),
+    laneIndex: laneIndex == null ? null : Number(laneIndex),
+    turn: Number(primaryEntry?.turn || 0),
+    phase: primaryEntry?.phase || "unknown",
+    commandId: entries[0]?.commandId || null,
+    commandType: entries[0]?.commandType || null,
+    evidenceSequenceStart: Number(entries[0].sequence),
+    evidenceSequenceEnd: Number(entries.at(-1).sequence),
+    evidenceIds: entries.map((entry) => entry.eventId),
+    frameBeforeIndex,
+    frameAfterIndex,
+    durationMs: actionDuration(kind, entries),
+    cards,
+    values: {
+      attack: attackValue,
+      block: blockValue,
+      damage,
+      paymentTotal: Number(paymentEvent?.total ?? attack?.paymentTotal ?? 0),
+      paymentRequired: Number(paymentEvent?.required ?? attack?.paymentRequired ?? 0)
+    },
+    primaryEvent: {
+      id: primaryEntry.eventId,
+      sequence: Number(primaryEntry.sequence),
+      type: primaryEntry.eventType,
+      player: primaryEntry.actorPlayerNum,
+      targetPlayer: primaryEntry.targetPlayerNum,
+      laneIndex: primaryEntry.laneIndex,
+      ...clonePlain(primaryEntry.publicPayload || {})
+    },
+    evidence: entries.map((entry) => ({
+      sequence: Number(entry.sequence),
+      eventId: entry.eventId,
+      eventType: entry.eventType,
+      label: eventLabel(entry),
+      publicPayload: clonePlain(entry.publicPayload || {})
+    }))
+  };
+}
+
 function findEvidenceSequence(evidence, predicate, fallbackTurn = null) {
   const exact = evidence.find(predicate);
   if (exact) return Number(exact.sequence);
@@ -304,6 +548,7 @@ function buildReplayTimeline(record, storage = null) {
       availability,
       frames: [],
       steps: [],
+      actions: [],
       notableMoments: []
     };
   }
@@ -333,6 +578,26 @@ function buildReplayTimeline(record, storage = null) {
       stateTiming: frame ? "after-authoritative-command" : "event-only"
     };
   });
+  const participants = (record.participants || []).map((participant) => ({
+    participantId: participant.participantId || `${record.matchId}:p${participant.playerNum}`,
+    playerNum: Number(participant.playerNum),
+    identityType: participant.identityType || "guest",
+    displayName: participant.displayName || `Player ${participant.playerNum}`,
+    faction: clonePlain(participant.faction || { id: "basic", name: "Basic Gauntlet" }),
+    finalLife: Number(participant.finalLife || 0),
+    result: participant.result || "unknown"
+  }));
+  const actions = groupEvidence(evidence, frames).map((group, index) => buildPresentationAction({
+    group,
+    index,
+    frames,
+    participants
+  }));
+  const notableMoments = buildNotableJumps(record, evidence).map((moment) => {
+    const action = actions.find((entry) => Number(moment.evidenceSequence) >= entry.evidenceSequenceStart
+      && Number(moment.evidenceSequence) <= entry.evidenceSequenceEnd);
+    return { ...moment, actionId: action?.id || null, actionIndex: action?.index ?? null };
+  });
   return {
     schemaVersion: REPLAY_TIMELINE_VERSION,
     evidenceSchemaVersion: record.leagueEvidenceVersion || LEAGUE_EVIDENCE_VERSION,
@@ -340,15 +605,8 @@ function buildReplayTimeline(record, storage = null) {
     matchId: record.matchId,
     recordVersion: Number(record.recordVersion),
     availability,
-    participants: (record.participants || []).map((participant) => ({
-      participantId: participant.participantId || `${record.matchId}:p${participant.playerNum}`,
-      playerNum: Number(participant.playerNum),
-      identityType: participant.identityType || "guest",
-      displayName: participant.displayName || `Player ${participant.playerNum}`,
-      faction: clonePlain(participant.faction || { id: "basic", name: "Basic Gauntlet" }),
-      finalLife: Number(participant.finalLife || 0),
-      result: participant.result || "unknown"
-    })),
+    presentationActionSchemaVersion: REPLAY_PRESENTATION_ACTION_VERSION,
+    participants,
     season: clonePlain(record.season || null),
     series: clonePlain(record.series || null),
     result: {
@@ -359,13 +617,15 @@ function buildReplayTimeline(record, storage = null) {
     },
     frames: clonePlain(frames),
     steps,
-    notableMoments: buildNotableJumps(record, evidence)
+    actions,
+    notableMoments
   };
 }
 
 module.exports = {
   LEAGUE_EVIDENCE_VERSION,
   PUBLIC_REPLAY_FRAME_VERSION,
+  REPLAY_PRESENTATION_ACTION_VERSION,
   REPLAY_TIMELINE_VERSION,
   buildPublicReplaySnapshot,
   buildReplayTimeline,

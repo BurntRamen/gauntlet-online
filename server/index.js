@@ -1528,7 +1528,10 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       updatedAt: deck.updatedAt,
       record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
     })),
-    recentMatches: matchRecords.slice(0, 12).map((record) => publicMatchSummary(record, { accountId: account.id })),
+    recentMatches: matchRecords.slice(0, 12).map((record) => ({
+      ...publicMatchSummary(record, { accountId: account.id }),
+      replay: replayAvailability(record, publicMatchStorageStatus())
+    })),
     unavailableMatchReferences: normalizeProgression(stats).matchHistory
       .filter((reference) => !matchRecords.some((record) => record.matchId === reference.matchId))
       .slice(0, 12)
@@ -2694,7 +2697,10 @@ app.get("/api/account/matches", async (req, res) => {
     const references = normalizeProgression(context.account.stats || {}).matchHistory.slice(0, safeLimit);
     const availableIds = new Set(records.map((record) => record.matchId));
     res.json({
-      matches: records.map((record) => publicMatchSummary(record, { accountId: context.account.id })),
+      matches: records.map((record) => ({
+        ...publicMatchSummary(record, { accountId: context.account.id }),
+        replay: replayAvailability(record, publicMatchStorageStatus())
+      })),
       unavailableMatchReferences: references.filter((reference) => !availableIds.has(reference.matchId)),
       storage: publicMatchStorageStatus()
     });

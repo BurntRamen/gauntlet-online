@@ -626,7 +626,7 @@ test("presents rematch acceptance and decline as explicit post-match actions", a
   expect(declineRematch).toHaveBeenCalledTimes(1);
 });
 
-test("renders a terminal replay frame when live match controls are absent", async () => {
+test("keeps a terminal replay frame visible without the live-player result modal", async () => {
   const viewModel = createViewModel();
   viewModel.phase = "gameOver";
   viewModel.phaseLabel = "Match Complete";
@@ -644,8 +644,9 @@ test("renders a terminal replay frame when live match controls are absent", asyn
     />
   );
 
-  expect(await screen.findByRole("heading", { name: "Defeat" })).toBeVisible();
-  expect(screen.getByText("Player 2 wins!")).toBeVisible();
+  expect(await screen.findByText("Match Complete")).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "Defeat" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
 test("ignores a completion outcome for a different player perspective", async () => {

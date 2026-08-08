@@ -4960,6 +4960,7 @@ export default function App() {
         error={publicViewError}
         onBack={closePublicView}
         onOpenMatch={(matchId) => openPublicView("match", matchId)}
+        onOpenReplay={(matchId) => openReplay(matchId)}
       />
     );
   }
@@ -5330,6 +5331,7 @@ export default function App() {
                 error={competitiveProfileError}
                 onOpenProfile={(accountId) => openPublicView("profile", accountId)}
                 onOpenMatch={(matchId) => openPublicView("match", matchId)}
+                onOpenReplay={(matchId) => openReplay(matchId)}
               />
               )}
               {identityView === "profile" && (

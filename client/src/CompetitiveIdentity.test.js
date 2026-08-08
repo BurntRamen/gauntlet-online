@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { CompetitiveIdentityPanel, MatchRecordScreen } from "./CompetitiveIdentity";
+import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
 
 const profile = {
   accountId: "account-1",
@@ -17,6 +17,7 @@ const profile = {
     mode: "factions",
     completedAt: "2026-07-15T12:00:00.000Z",
     turnCount: 5,
+    replay: { available: true, mode: "public-state-frames" },
     participants: [
       { accountId: "account-1", displayName: "Alpha", result: "win", faction: { name: "Rumin" } },
       { accountId: "account-2", displayName: "Beta", result: "loss", faction: { name: "Sheen" } }
@@ -27,7 +28,8 @@ const profile = {
 test("opens a public profile and verified match from Identity", () => {
   const onOpenProfile = jest.fn();
   const onOpenMatch = jest.fn();
-  render(<CompetitiveIdentityPanel profile={profile} loading={false} error="" onOpenProfile={onOpenProfile} onOpenMatch={onOpenMatch} />);
+  const onOpenReplay = jest.fn();
+  render(<CompetitiveIdentityPanel profile={profile} loading={false} error="" onOpenProfile={onOpenProfile} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />);
 
   expect(screen.getByText("Season Zero")).toBeInTheDocument();
   expect(screen.getByText("6 pts · #2")).toBeInTheDocument();
@@ -35,6 +37,15 @@ test("opens a public profile and verified match from Identity", () => {
   expect(onOpenProfile).toHaveBeenCalledWith("account-1");
   fireEvent.click(screen.getByRole("button", { name: /WIN Rumin vs Beta/ }));
   expect(onOpenMatch).toHaveBeenCalledWith("match-1");
+  fireEvent.click(screen.getByRole("button", { name: "Replay Rumin vs Beta" }));
+  expect(onOpenReplay).toHaveBeenCalledWith("match-1");
+});
+
+test("public profile exposes the same direct replay action", () => {
+  const onOpenReplay = jest.fn();
+  render(<PublicProfileScreen profile={profile} loading={false} error="" onBack={() => {}} onOpenMatch={() => {}} onOpenReplay={onOpenReplay} />);
+  fireEvent.click(screen.getByRole("button", { name: "Replay Rumin vs Beta" }));
+  expect(onOpenReplay).toHaveBeenCalledWith("match-1");
 });
 
 test("match record links participants and the Para export", () => {

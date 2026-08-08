@@ -1386,8 +1386,8 @@ export default function ProductionMatchExperience({
           </div>
         )}
 
-        <EventCallout events={viewModel.events} />
-        <CombatRecap events={viewModel.events} />
+        {update?.source !== "replay" && <EventCallout events={viewModel.events} />}
+        {update?.source !== "replay" && <CombatRecap events={viewModel.events} />}
         <CardPreview preview={previewCard} />
         <CardInspection inspection={update?.inspection} commands={interactionCommands} />
         <MatchReferencePanel
@@ -1397,17 +1397,19 @@ export default function ProductionMatchExperience({
           commands={interactionCommands}
           onClose={() => setReferencePanel(null)}
         />
-        <MatchResult
-          viewModel={viewModel}
-          controls={update?.controls || {}}
-          commands={interactionCommands}
-          campaign={update?.snapshot?.campaign}
-          audioEnabled={audioEnabled}
-          completion={completion}
-          campaignContinuationReady={campaignContinuationReady}
-          onContinueCampaign={onContinueCampaign}
-          onOpenReplay={onOpenReplay}
-        />
+        {update?.source !== "replay" && (
+          <MatchResult
+            viewModel={viewModel}
+            controls={update?.controls || {}}
+            commands={interactionCommands}
+            campaign={update?.snapshot?.campaign}
+            audioEnabled={audioEnabled}
+            completion={completion}
+            campaignContinuationReady={campaignContinuationReady}
+            onContinueCampaign={onContinueCampaign}
+            onOpenReplay={onOpenReplay}
+          />
+        )}
 
         <div className="production-portrait-guard" role="status">
           <span aria-hidden="true">↻</span>

@@ -89,3 +89,45 @@ test("replay adapter auto-play and speed use evidence order rather than timestam
   adapter.dispose();
   jest.useRealTimers();
 });
+
+test("semantic actions, not their component evidence rows, are the playback unit", () => {
+  const replay = replayFixture();
+  replay.actions = [{
+    id: "attack-action",
+    kind: "attack",
+    label: "Alpha attacks",
+    summary: "Alpha attacks with Triumphal Ram for 12",
+    turn: 1,
+    phase: "priority",
+    evidenceSequenceStart: 1,
+    evidenceSequenceEnd: 3,
+    frameAfterIndex: 2,
+    durationMs: 2200,
+    cards: { primary: { runtimeId: "public-attacker", name: "Triumphal Ram", value: 8 }, payments: [], blockers: [], attachments: [] },
+    values: { attack: 12 },
+    primaryEvent: { id: "attack", sequence: 2, type: "attack.declared", player: 1, effectiveValue: 12 },
+    evidence: replay.steps.slice(0, 3)
+  }, {
+    id: "result-action",
+    kind: "result",
+    label: "Match complete",
+    summary: "Alpha wins",
+    turn: 3,
+    phase: "gameOver",
+    evidenceSequenceStart: 4,
+    evidenceSequenceEnd: 4,
+    frameAfterIndex: 4,
+    durationMs: 2800,
+    cards: { primary: null, payments: [], blockers: [], attachments: [] },
+    values: {},
+    primaryEvent: { id: "end", sequence: 4, type: "match.ended", winner: 1 },
+    evidence: [replay.steps[3]]
+  }];
+  const adapter = createReplayMatchAdapter({ replay });
+  expect(adapter.createUpdate().replay.totalActions).toBe(2);
+  adapter.replayControls.jumpToEvidence(3);
+  expect(adapter.createUpdate().replay.currentIndex).toBe(0);
+  adapter.replayControls.next();
+  expect(adapter.createUpdate().replay.action.summary).toBe("Alpha wins");
+  adapter.dispose();
+});

@@ -18,6 +18,36 @@ function replayEvent(step) {
   };
 }
 
+function actionEvent(action) {
+  if (action?.primaryEvent) return clone(action.primaryEvent);
+  return action ? replayEvent(action) : null;
+}
+
+function fallbackAction(step) {
+  if (!step) return null;
+  return {
+    ...step,
+    id: `evidence-${step.evidenceSequence}`,
+    kind: "event",
+    summary: step.label,
+    evidenceSequenceStart: step.evidenceSequence,
+    evidenceSequenceEnd: step.evidenceSequence,
+    frameBeforeIndex: step.frameIndex > 1 ? step.frameIndex - 1 : null,
+    frameAfterIndex: step.frameIndex,
+    durationMs: null,
+    cards: { primary: null, payments: [], blockers: [], attachments: [] },
+    values: {},
+    primaryEvent: replayEvent(step),
+    evidence: [{
+      sequence: step.evidenceSequence,
+      eventId: step.evidenceId,
+      eventType: step.eventType,
+      label: step.label,
+      publicPayload: step.publicPayload || {}
+    }]
+  };
+}
+
 export class ReplayMatchAdapter {
   constructor({ replay, playbackIntervalMs = 1200 } = {}) {
     this.source = "replay";
@@ -56,25 +86,41 @@ export class ReplayMatchAdapter {
   }
 
   currentStep() {
+    const action = this.currentAction();
+    if (this.replay?.actions?.length) {
+      return this.replay?.steps?.find((step) => Number(step.evidenceSequence) === Number(action?.evidenceSequenceEnd)) || null;
+    }
     return this.replay?.steps?.[this.currentIndex] || null;
   }
 
-  frameForStep(step) {
-    if (!step?.frameIndex) return null;
-    return this.replay?.frames?.find((frame) => Number(frame.frameIndex) === Number(step.frameIndex)) || null;
+  actions() {
+    return this.replay?.actions?.length
+      ? this.replay.actions
+      : (this.replay?.steps || []).map(fallbackAction);
+  }
+
+  currentAction() {
+    return this.actions()[this.currentIndex] || null;
+  }
+
+  frameForAction(action) {
+    const frameIndex = action?.frameAfterIndex ?? action?.frameIndex;
+    if (!frameIndex) return null;
+    return this.replay?.frames?.find((frame) => Number(frame.frameIndex) === Number(frameIndex)) || null;
   }
 
   createUpdate() {
+    const action = this.currentAction();
     const step = this.currentStep();
-    const frame = this.frameForStep(step);
+    const frame = this.frameForAction(action);
     const snapshot = frame?.publicState ? clone(frame.publicState) : null;
-    const event = step ? replayEvent(step) : null;
+    const event = actionEvent(action);
     if (snapshot) snapshot.lastEvents = event ? [event] : [];
     const viewModel = snapshot ? createGauntletMatchViewModel({
       game: snapshot,
       player: null,
       role: "spectator",
-      instruction: step?.label || "Recorded match event.",
+      instruction: action?.summary || action?.label || "Recorded match action.",
       phaseLabel: snapshot.phase === "gameOver" ? "Match Complete" : String(snapshot.phase || "Replay"),
       currentTurnLabel: `Turn ${Number(snapshot.turn || step?.turn || 0)}`,
       activePlayer: snapshot.priority,
@@ -105,10 +151,14 @@ export class ReplayMatchAdapter {
         schemaVersion: this.replay?.schemaVersion || null,
         visualCoverage: this.replay?.availability?.visualCoverage || "event-only",
         currentIndex: this.currentIndex,
+        totalActions: this.actions().length,
         totalSteps: this.replay?.steps?.length || 0,
         playing: this.playing,
         speed: this.speed,
         step,
+        action,
+        result: clone(this.replay?.result || null),
+        participants: clone(this.replay?.participants || []),
         notableMoments: this.replay?.notableMoments || []
       },
       broadcast: {
@@ -117,7 +167,8 @@ export class ReplayMatchAdapter {
         season: this.replay?.season?.displayName || null,
         series: clone(this.replay?.series || null),
         matchId: this.replay?.matchId || null,
-        participants: clone(this.replay?.participants || [])
+        participants: clone(this.replay?.participants || []),
+        result: clone(this.replay?.result || null)
       },
       privacy: { required: false, player: null },
       inspection: null,
@@ -138,7 +189,7 @@ export class ReplayMatchAdapter {
     clearTimeout(this.timer);
     if (!this.playing) return;
     this.timer = setTimeout(() => {
-      const finalIndex = Math.max(0, (this.replay?.steps?.length || 1) - 1);
+      const finalIndex = Math.max(0, (this.actions().length || 1) - 1);
       if (this.currentIndex >= finalIndex) {
         this.playing = false;
         this.emit();
@@ -148,11 +199,11 @@ export class ReplayMatchAdapter {
       if (this.currentIndex >= finalIndex) this.playing = false;
       this.emit();
       if (this.playing) this.schedule();
-    }, Math.max(80, this.playbackIntervalMs / this.speed));
+    }, Math.max(80, Number(this.currentAction()?.durationMs || this.playbackIntervalMs) / this.speed));
   }
 
   play() {
-    if (this.currentIndex >= (this.replay?.steps?.length || 1) - 1) this.currentIndex = 0;
+    if (this.currentIndex >= (this.actions().length || 1) - 1) this.currentIndex = 0;
     this.playing = true;
     this.emit();
     this.schedule();
@@ -172,7 +223,7 @@ export class ReplayMatchAdapter {
 
   next() {
     this.pause();
-    this.currentIndex = Math.min(Math.max(0, (this.replay?.steps?.length || 1) - 1), this.currentIndex + 1);
+    this.currentIndex = Math.min(Math.max(0, (this.actions().length || 1) - 1), this.currentIndex + 1);
     this.emit();
   }
 
@@ -184,13 +235,14 @@ export class ReplayMatchAdapter {
 
   jump(index) {
     this.pause();
-    const finalIndex = Math.max(0, (this.replay?.steps?.length || 1) - 1);
+    const finalIndex = Math.max(0, (this.actions().length || 1) - 1);
     this.currentIndex = Math.max(0, Math.min(finalIndex, Number(index) || 0));
     this.emit();
   }
 
   jumpToEvidence(sequence) {
-    const index = this.replay?.steps?.findIndex((step) => Number(step.evidenceSequence) === Number(sequence));
+    const index = this.actions().findIndex((action) => Number(sequence) >= Number(action.evidenceSequenceStart)
+      && Number(sequence) <= Number(action.evidenceSequenceEnd));
     if (index >= 0) this.jump(index);
   }
 
