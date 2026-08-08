@@ -89,6 +89,15 @@
   pointer-events: none;
 }
 
+.replay-action-layer.is-tableau-primary {
+  width: min(430px, calc(100% - 9rem));
+  grid-template-columns: 1fr;
+}
+
+.replay-action-layer.is-tableau-primary .replay-action-cards {
+  display: none;
+}
+
 .replay-action-layer.kind-attack { border-left-color: #f59e0b; }
 .replay-action-layer.kind-block { border-left-color: #34d399; }
 .replay-action-layer.kind-defense-declined { border-left-color: #fb923c; }
@@ -308,6 +317,7 @@
   .replay-navigation button { padding: 0.28rem 0.4rem; font-size: 0.68rem; }
   .replay-navigation > span { margin-left: auto; order: 3; }
   .replay-action-layer { top: 3.35rem; right: 0.4rem; left: 0.4rem; width: auto; display: block; padding: 0.45rem; }
+  .replay-action-layer.is-tableau-primary { width: auto; }
   .replay-action-cards { justify-content: flex-start; max-width: 100%; margin-top: 0.35rem; overflow-x: auto; pointer-events: auto; }
   .replay-action-cards .replay-focus-card.primary { flex: 0 0 150px; width: 150px; grid-template-columns: 68px minmax(0, 1fr); }
   .replay-action-cards .replay-focus-card.primary .replay-focus-art { width: 68px; }

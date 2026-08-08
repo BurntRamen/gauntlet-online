@@ -442,6 +442,21 @@ function ContextActions({ viewModel, commands, connected }) {
           </>
         )}
       </div>
+      {!!interactions.abilities?.length && (
+        <div className="production-context-abilities" aria-label="Compact faction actions">
+          {interactions.abilities.map((ability) => (
+            <button
+              type="button"
+              key={ability.id}
+              disabled={!connected || ability.available === false}
+              aria-pressed={ability.active}
+              onClick={() => commands.activateAbility?.(ability.id)}
+            >
+              {ability.label}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -1340,15 +1355,17 @@ export default function ProductionMatchExperience({
         aria-hidden={update?.privacy?.required ? true : undefined}
         inert={update?.privacy?.required ? true : undefined}
       >
-        <GauntletMatchCanvas
-          viewModel={canvasViewModel}
-          commands={interactionCommands}
-          onSceneMetrics={onSceneMetrics}
-          onRendererError={(error) => {
-            setAdapterError(error?.message || "The Babylon renderer failed.");
-            onRendererFailure?.(error);
-          }}
-        />
+        <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
+          <GauntletMatchCanvas
+            viewModel={canvasViewModel}
+            commands={interactionCommands}
+            onSceneMetrics={onSceneMetrics}
+            onRendererError={(error) => {
+              setAdapterError(error?.message || "The Babylon renderer failed.");
+              onRendererFailure?.(error);
+            }}
+          />
+        </div>
 
         <div className="production-table-vignette" aria-hidden="true" />
         <PlayerPlate

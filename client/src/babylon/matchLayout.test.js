@@ -1,7 +1,11 @@
 import {
+  getBattlefieldSafeFrame,
   getFanPosition,
   getHandHoverPosition,
+  getHandCombatPosition,
+  getLaneCombatPosition,
   getLanePosition,
+  getTableCameraProjection,
   MATCH_LAYOUT,
   normalizeVisibleCardRotation
 } from "./matchLayout";
@@ -70,5 +74,48 @@ describe("production card orientation contract", () => {
   test("does not normalize hidden-card ownership rotations", () => {
     expect(getLanePosition(0, "player").rotationZ).toBe(0);
     expect(getLanePosition(0, "opponent").rotationZ).toBe(Math.PI);
+  });
+});
+
+describe("combat tableau geometry", () => {
+  test("keeps the hand attacker distinct while blockers fan in their own zone", () => {
+    const attacker = getHandCombatPosition("attacker", 0, 1, true);
+    const blockers = Array.from({ length: 3 }, (_, index) => (
+      getHandCombatPosition("blocker", index, 3, false)
+    ));
+
+    expect(blockers[1].x - attacker.x).toBeGreaterThan(4);
+    expect(new Set(blockers.map((position) => position.x)).size).toBe(3);
+    expect(blockers.every((position) => position.z === attacker.z)).toBe(true);
+  });
+
+  test("separates lane attackers and blockers within every lane", () => {
+    MATCH_LAYOUT.lanes.x.forEach((unused, laneIndex) => {
+      const attacker = getLaneCombatPosition(laneIndex, "attacker", 0, 1, true);
+      const blockers = [0, 1].map((index) => getLaneCombatPosition(laneIndex, "blocker", index, 2, false));
+      expect(blockers[0].x).toBeGreaterThan(attacker.x);
+      expect(blockers[0].x).not.toBe(blockers[1].x);
+    });
+  });
+});
+
+describe("battlefield safe frame", () => {
+  test.each([
+    [1440, 900],
+    [1024, 768],
+    [768, 1024],
+    [390, 844],
+    [844, 390]
+  ])("reserves non-overlapping HUD rails at %sx%s", (width, height) => {
+    const frame = getBattlefieldSafeFrame(width, height);
+    const camera = getTableCameraProjection(frame.battlefield.width, frame.battlefield.height);
+
+    expect(frame.battlefield.width).toBeGreaterThan(0);
+    expect(frame.battlefield.height).toBeGreaterThan(0);
+    expect(frame.topHud.y + frame.topHud.height).toBeLessThanOrEqual(frame.battlefield.y);
+    expect(frame.battlefield.y + frame.battlefield.height).toBeLessThanOrEqual(frame.bottomHud.y);
+    expect(camera.right).toBeGreaterThanOrEqual(10);
+    expect(camera.left).toBeLessThanOrEqual(-10);
+    expect(camera.top - camera.bottom).toBeGreaterThanOrEqual(MATCH_LAYOUT.table.depth);
   });
 });

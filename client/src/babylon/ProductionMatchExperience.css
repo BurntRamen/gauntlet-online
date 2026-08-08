@@ -29,6 +29,31 @@
   inset: 0;
 }
 
+.production-match-experience {
+  --battlefield-top-reserve: 96px;
+  --battlefield-bottom-reserve: 152px;
+  --battlefield-side-reserve: 8px;
+}
+
+.production-battlefield-safe-frame {
+  position: absolute;
+  z-index: 1;
+  top: var(--battlefield-top-reserve);
+  right: var(--battlefield-side-reserve);
+  bottom: var(--battlefield-bottom-reserve);
+  left: var(--battlefield-side-reserve);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.production-battlefield-safe-frame .babylon-match-shell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
 .production-match-loading,
 .production-match-experience-error {
   display: grid;
@@ -218,8 +243,8 @@
 .production-faction-actions {
   position: absolute;
   z-index: 7;
-  left: max(14px, env(safe-area-inset-left));
-  bottom: 104px;
+  left: calc(max(14px, env(safe-area-inset-left)) + clamp(250px, 24vw, 350px) + 12px);
+  bottom: max(14px, env(safe-area-inset-bottom));
   display: grid;
   max-width: min(430px, 45vw);
   gap: 5px;
@@ -1633,6 +1658,10 @@
   pointer-events: none;
 }
 
+.production-context-abilities {
+  display: none;
+}
+
 .production-broadcast-marker > div:first-child { display: grid; }
 .production-broadcast-marker > div:first-child span { color: #60a5fa; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .production-broadcast-marker > div:first-child strong { font-size: 0.78rem; }
@@ -1649,4 +1678,216 @@
     grid-template-columns: auto 1fr;
   }
   .production-broadcast-meta { display: none; }
+}
+
+/* The HTML rails reserve a stable rectangle before Babylon performs camera fit. */
+@media (max-width: 1024px) {
+  .production-match-experience {
+    --battlefield-top-reserve: 96px;
+    --battlefield-bottom-reserve: 158px;
+    --battlefield-side-reserve: 6px;
+  }
+
+  .production-faction-actions {
+    display: none;
+  }
+
+  .production-context-abilities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .production-context-abilities button {
+    min-height: 32px;
+    padding: 4px 8px;
+    border: 1px solid rgba(181, 137, 79, 0.68);
+    border-radius: 6px;
+    color: var(--gauntlet-parchment);
+    background: #2b241a;
+    font-size: 10px;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 900px) {
+  .production-match-experience {
+    --battlefield-top-reserve: 82px;
+  }
+}
+
+.source-replay {
+  --battlefield-top-reserve: 82px;
+  --battlefield-bottom-reserve: 12px;
+}
+
+.source-replay .production-player-plate,
+.source-replay .production-context-panel,
+.source-replay .production-faction-actions,
+.source-replay .production-turn-marker,
+.source-replay .production-mode-marker,
+.source-replay .production-campaign-encounter,
+.source-replay .production-match-utilities {
+  display: none;
+}
+
+.source-replay .production-broadcast-marker {
+  display: none;
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .production-match-experience,
+  .production-match-loading,
+  .production-match-experience-error {
+    min-height: 0;
+  }
+
+  .production-match-experience {
+    --battlefield-top-reserve: 64px;
+    --battlefield-bottom-reserve: 104px;
+    --battlefield-side-reserve: 4px;
+  }
+
+  .production-battlefield-safe-frame .babylon-match-shell {
+    min-height: 0;
+  }
+
+  .production-mode-marker,
+  .production-campaign-encounter,
+  .production-broadcast-marker,
+  .production-card-preview,
+  .production-combat-recap {
+    display: none;
+  }
+
+  .production-context-panel {
+    bottom: 4px;
+    min-height: 94px;
+  }
+
+  .production-context-copy strong,
+  .production-context-abilities {
+    display: none;
+  }
+
+  .source-replay {
+    --battlefield-top-reserve: 54px;
+    --battlefield-bottom-reserve: 4px;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .production-match-experience {
+    --battlefield-top-reserve: 64px;
+    --battlefield-bottom-reserve: 140px;
+    --battlefield-side-reserve: 4px;
+    min-height: 0;
+  }
+
+  .production-match-experience .babylon-match-canvas,
+  .production-player-plate,
+  .production-context-panel,
+  .production-turn-marker {
+    visibility: visible;
+  }
+
+  .production-portrait-guard {
+    display: none;
+  }
+
+  .production-player-plate-top {
+    top: 4px;
+    left: 4px;
+    width: calc(100% - 92px);
+    min-height: 56px;
+  }
+
+  .production-player-plate-bottom {
+    bottom: 4px;
+    left: 4px;
+    width: 132px;
+    min-height: 132px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: center;
+  }
+
+  .production-player-crest,
+  .production-player-copy span {
+    display: none;
+  }
+
+  .production-player-copy,
+  .production-life {
+    align-self: center;
+  }
+
+  .production-priority {
+    grid-column: 1 / -1;
+  }
+
+  .production-context-panel {
+    right: 4px;
+    bottom: 4px;
+    width: calc(100% - 144px);
+    min-height: 132px;
+    box-sizing: border-box;
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .production-context-copy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 10px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .production-context-kicker,
+  .production-action-reason {
+    font-size: 8px;
+  }
+
+  .production-action-buttons button {
+    min-height: 40px;
+  }
+
+  .production-context-abilities {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .production-context-abilities button {
+    flex: 0 0 auto;
+    min-height: 28px;
+  }
+
+  .production-turn-marker,
+  .production-mode-marker,
+  .production-campaign-encounter,
+  .production-broadcast-marker,
+  .production-card-preview,
+  .production-combat-recap {
+    display: none;
+  }
+
+  .production-match-utilities {
+    top: 6px;
+    right: 6px;
+  }
+
+  .production-match-utilities > summary {
+    min-width: 76px;
+    min-height: 52px;
+  }
+
+  .production-match-experience .babylon-accessible-controls {
+    z-index: 35;
+    bottom: var(--battlefield-bottom-reserve);
+  }
+
+  .source-replay {
+    --battlefield-top-reserve: 110px;
+    --battlefield-bottom-reserve: 4px;
+  }
 }

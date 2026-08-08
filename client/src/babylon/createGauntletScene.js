@@ -21,12 +21,21 @@ import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle.js";
 import { StackPanel } from "@babylonjs/gui/2D/controls/stackPanel.js";
 import { TextBlock, TextWrapping } from "@babylonjs/gui/2D/controls/textBlock.js";
 import {
+  getHandCombatPosition,
   getFanPosition,
   getHandHoverPosition,
+  getLaneCombatPosition,
   getLanePosition,
+  getTableCameraProjection,
   MATCH_LAYOUT,
   normalizeVisibleCardRotation
 } from "./matchLayout";
+import {
+  COMBAT_RESOLUTION_HOLD_MS,
+  createCardMotion,
+  sampleCardMotion,
+  shouldHoldCombatCard
+} from "./cardMotion";
 import { makeMaterial, MATCH_COLORS } from "./matchMaterials";
 
 const CARD_BACK_COLOR = "#102437";
@@ -394,19 +403,57 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   return root;
 }
 
-function setCardTarget(record, position, options = {}) {
-  record.target.position = new Vector3(position.x, position.y, position.z);
-  record.target.rotationX = position.rotationX || 0;
-  record.target.rotationY = position.rotationY || 0;
+function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion = false) {
+  const destination = {
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    rotationX: position.rotationX || 0,
+    rotationY: position.rotationY || 0,
+    rotationZ: normalizeVisibleCardRotation(position.rotationZ || 0),
+    scale: options.scale ?? position.scale ?? 1,
+    alpha: options.alpha ?? 1
+  };
+  const previous = record.target;
+  const changed = !previous
+    || Math.abs(previous.position.x - destination.x) > 0.0001
+    || Math.abs(previous.position.y - destination.y) > 0.0001
+    || Math.abs(previous.position.z - destination.z) > 0.0001
+    || Math.abs(previous.rotationX - destination.rotationX) > 0.0001
+    || Math.abs(previous.rotationY - destination.rotationY) > 0.0001
+    || Math.abs(previous.rotationZ - destination.rotationZ) > 0.0001
+    || Math.abs(previous.scale - destination.scale) > 0.0001
+    || Math.abs(previous.alpha - destination.alpha) > 0.0001;
+  record.target.position = new Vector3(destination.x, destination.y, destination.z);
+  record.target.rotationX = destination.rotationX;
+  record.target.rotationY = destination.rotationY;
   const requestedRotation = position.rotationZ || 0;
   // The official back includes upright lettering, so every rendered card
   // face—front or back—uses viewer-readable texture orientation. Ownership
   // remains clear through position, role markers, and player-zone framing.
   record.target.rotationZ = normalizeVisibleCardRotation(requestedRotation);
-  record.target.scale = options.scale ?? position.scale ?? 1;
-  record.target.alpha = options.alpha ?? 1;
+  record.target.scale = destination.scale;
+  record.target.alpha = destination.alpha;
   record.target.selected = !!options.selected;
   record.target.hovered = !!options.hovered;
+  if (!changed) return;
+  const start = {
+    x: record.mesh.position.x,
+    y: record.mesh.position.y,
+    z: record.mesh.position.z,
+    rotationX: record.mesh.rotation.x,
+    rotationY: record.mesh.rotation.y,
+    rotationZ: record.mesh.rotation.z,
+    scale: record.mesh.scaling.x,
+    alpha: record.mesh.visibility
+  };
+  record.motion = createCardMotion({
+    role: options.motionRole || "state-correction",
+    start,
+    destination,
+    startTimeMs: nowMs,
+    reducedMotion
+  });
 }
 
 export function createGauntletScene(engine, canvas, commands = {}) {
@@ -427,18 +474,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   function syncCamera() {
     const width = Math.max(1, engine.getRenderWidth());
     const height = Math.max(1, engine.getRenderHeight());
-    const aspect = width / height;
+    const projection = getTableCameraProjection(width, height);
+    const aspect = projection.aspect;
     if (Math.abs(aspect - lastAspect) < 0.0001) return false;
     lastAspect = aspect;
-    const requiredWidthHalf = MATCH_LAYOUT.table.width / 2 + MATCH_LAYOUT.viewport.padding;
-    const halfHeight = Math.max(
-      MATCH_LAYOUT.viewport.halfHeight,
-      requiredWidthHalf / Math.max(0.1, aspect)
-    );
-    camera.orthoTop = halfHeight;
-    camera.orthoBottom = -halfHeight;
-    camera.orthoLeft = -halfHeight * aspect;
-    camera.orthoRight = halfHeight * aspect;
+    camera.orthoTop = projection.top;
+    camera.orthoBottom = projection.bottom;
+    camera.orthoLeft = projection.left;
+    camera.orthoRight = projection.right;
     return true;
   }
   syncCamera();
@@ -843,6 +886,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let disposed = false;
   let currentViewModel = null;
   let elapsed = 0;
+  let motionClockMs = 0;
   let activeEventAnimation = null;
   let highestAnimationRevision = -1;
   let currentMatchId = null;
@@ -1096,8 +1140,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function updateCardRecord(id, label, position, options = {}) {
     let record = objects.get(id);
+    let created = false;
     const stableLabel = `${label || "CARD"}`;
     if (!record) {
+      created = true;
       const ownsFaceMaterial = !options.faceDown;
       const faceMaterial = options.faceDown
         ? materials.cardBack
@@ -1130,7 +1176,22 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
       objects.set(id, record);
     }
-    setCardTarget(record, position, options);
+    record.departingUntil = null;
+    record.holdUntilMs = null;
+    record.departureTarget = null;
+    record.departureStarted = false;
+    setCardTarget(record, position, options, motionClockMs, currentViewModel?.reducedMotion);
+    if (created && !options.initialPosition) {
+      record.mesh.position.copyFrom(record.target.position);
+      record.mesh.rotation.set(
+        record.target.rotationX,
+        record.target.rotationY,
+        record.target.rotationZ
+      );
+      record.mesh.scaling.setAll(record.target.scale);
+      record.mesh.visibility = record.target.alpha;
+      record.motion = null;
+    }
     record.mesh.metadata = { gauntlet: options.metadata || {} };
     record.mesh.gauntletHalo.material = selectionMaterial(options);
     record.mesh.gauntletHalo.isVisible = !!options.selected || !!options.hovered || !!options.legal;
@@ -1161,6 +1222,24 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   function removeMissing(ids) {
     for (const [id, record] of objects.entries()) {
       if (ids.has(id)) continue;
+      if (record.departingUntil) continue;
+      const type = record.mesh.metadata?.gauntlet?.type;
+      if (shouldHoldCombatCard(type)) {
+        const owner = record.mesh.metadata?.gauntlet?.owner;
+        const discard = owner === "opponent"
+          ? MATCH_LAYOUT.piles.opponentDiscard
+          : MATCH_LAYOUT.piles.localDiscard;
+        record.holdUntilMs = motionClockMs + COMBAT_RESOLUTION_HOLD_MS;
+        record.departingUntil = elapsed + (COMBAT_RESOLUTION_HOLD_MS + 520) / 1000;
+        record.departureTarget = {
+          x: discard.x,
+          y: 0.44,
+          z: discard.z,
+          rotationX: Math.PI / 2,
+          rotationZ: owner === "opponent" ? Math.PI : 0
+        };
+        continue;
+      }
       disposeCardRecord(record);
       objects.delete(id);
     }
@@ -1283,15 +1362,18 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         const record = objects.get(`player-hand-${cardId}`);
         if (!record) return;
         liveIds.add(record.id);
-        record.departingUntil = elapsed + 0.28 + index * 0.025;
-        record.target.position = new Vector3(
-          MATCH_LAYOUT.piles.localDiscard.x + index * 0.05,
-          0.42 + index * 0.02,
-          MATCH_LAYOUT.piles.localDiscard.z
-        );
-        record.target.rotationZ = index * -0.04;
-        record.target.scale = 0.42;
-        record.target.alpha = 0;
+        record.departingUntil = elapsed + 0.52 + index * 0.025;
+        setCardTarget(record, {
+          x: MATCH_LAYOUT.piles.localDiscard.x + index * 0.05,
+          y: 0.42 + index * 0.02,
+          z: MATCH_LAYOUT.piles.localDiscard.z,
+          rotationX: Math.PI / 2,
+          rotationZ: index * -0.04
+        }, {
+          scale: 0.42,
+          alpha: 0,
+          motionRole: "discard-exit"
+        }, motionClockMs, false);
       });
   }
 
@@ -1319,6 +1401,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       updateCardRecord(id, card.label || card.name, position, {
         artPath: card.artPath,
         initialPosition: options.initialPosition || source,
+        motionRole: options.motionRole || "replay-stage",
         selected: true,
         scale: options.scale || 0.64,
         selectionRole: options.selectionRole || "primary",
@@ -1327,6 +1410,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         badgeBackground: options.badgeBackground || "#07111cf2",
         metadata: {
           type: "replay-action",
+          owner: options.owner || (actorIsBottom ? "local" : "opponent"),
           preview: { ...card, stateLabel: options.stateLabel || action.label, stateIcon: options.stateIcon || action.kind }
         }
       });
@@ -1342,7 +1426,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         rotationX: Math.PI / 2,
         rotationZ
       },
-      { selectionRole: "payment", badgeText: "PAY", badgeColor: MATCH_COLORS.bronze, stateLabel: "Public payment", stateIcon: "payment", scale: 0.58 }
+      { selectionRole: "payment", motionRole: "payment-enter", badgeText: "PAY", badgeColor: MATCH_COLORS.bronze, stateLabel: "Public payment", stateIcon: "payment", scale: 0.58 }
     ));
     const battlefieldBlockerIds = new Set(viewModel.attacks.flatMap((attack) => (
       attack.blocks || []
@@ -1351,14 +1435,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     detachedBlockers.forEach((card, index, cards) => stageCard(
       card,
       `replay-${action.id}-block-${index}`,
-      {
-        x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX + (index - (cards.length - 1) / 2) * 1.28,
-        y: MATCH_LAYOUT.handCombat.y + 0.3,
-        z: MATCH_LAYOUT.handCombat.localBlockRow,
-        rotationX: Math.PI / 2,
-        rotationZ
-      },
-      { selectionRole: "blocker", badgeText: "BLOCK", badgeColor: MATCH_COLORS.good, stateLabel: "Public blocker", stateIcon: "block" }
+      getHandCombatPosition("blocker", index, cards.length, actorIsBottom),
+      { selectionRole: "blocker", motionRole: "block-enter", badgeText: "BLOCK", badgeColor: MATCH_COLORS.good, stateLabel: "Public blocker", stateIcon: "block" }
     ));
     (action.cards?.attachments || []).forEach((card, index, cards) => stageCard(
       card,
@@ -1375,19 +1453,17 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const existingAttack = viewModel.attacks.some((attack) => action.cards?.primary?.runtimeId && attack.card?.raw?.id === action.cards.primary.runtimeId);
     if (action.cards?.primary && !existingAttack && ["attack", "block", "defense-declined", "resolution", "ability"].includes(action.kind)) {
       const isDamagePresentation = ["defense-declined", "resolution"].includes(action.kind);
-      stageCard(action.cards.primary, `replay-${action.id}-primary`, {
-        x: action.laneIndex == null ? MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX : MATCH_LAYOUT.lanes.x[action.laneIndex],
-        y: MATCH_LAYOUT.handCombat.y + 0.36,
-        z: action.laneIndex == null ? MATCH_LAYOUT.handCombat.localRow : MATCH_LAYOUT.anchors.resolution,
-        rotationX: Math.PI / 2,
-        rotationZ
-      }, {
+      const combatPosition = action.laneIndex == null
+        ? getHandCombatPosition("attacker", 0, 1, actorIsBottom)
+        : getLaneCombatPosition(action.laneIndex, "attacker", 0, 1, actorIsBottom);
+      stageCard(action.cards.primary, `replay-${action.id}-primary`, combatPosition, {
         selectionRole: isDamagePresentation ? "danger" : "primary",
         badgeText: isDamagePresentation ? `${action.values?.damage || 0} DMG` : action.kind.toUpperCase(),
         badgeColor: isDamagePresentation ? MATCH_COLORS.danger : MATCH_COLORS.blue,
         stateLabel: action.summary,
         stateIcon: action.kind,
         scale: 0.72,
+        motionRole: "attack-enter",
         initialPosition: sourceForPlayer(action.primaryCardPlayerNum ?? action.actorPlayerNum)
       });
     }
@@ -1539,18 +1615,33 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const opponentId = `lane-opponent-${index}`;
       liveIds.add(localId);
       liveIds.add(opponentId);
-      const localLaneRecord = updateCardRecord(localId, "FACE-DOWN", stagedLaneAttack || stagedLaneBlock
-        ? {
-            x: MATCH_LAYOUT.lanes.x[index],
-            y: 0.46,
-            z: MATCH_LAYOUT.anchors.localAttack,
-            rotationX: Math.PI / 2,
-            rotationZ: 0
-          }
+      const localPlacementEntered = !viewModel.reducedMotion
+        && lastState.lanes
+        && !lastState.lanes[index]?.local
+        && lane.hasLocalCard;
+      const opponentPlacementEntered = !viewModel.reducedMotion
+        && lastState.lanes
+        && !lastState.lanes[index]?.opponent
+        && lane.hasOpponentCard;
+      const stagedLanePosition = stagedLaneAttack || stagedLaneBlock
+        ? getLaneCombatPosition(index, stagedLaneBlock ? "blocker" : "attacker", 0, 1, true)
+        : null;
+      updateCardRecord(localId, "FACE-DOWN", stagedLanePosition
+        ? stagedLanePosition
         : getLanePosition(index, "player"), {
         faceDown: true,
+        initialPosition: localPlacementEntered
+          ? new Vector3(MATCH_LAYOUT.playerHand.x, 1.25, MATCH_LAYOUT.playerHand.z)
+          : undefined,
+        motionRole: localPlacementEntered
+          ? "placement-enter"
+          : stagedLaneBlock
+            ? "block-enter"
+            : stagedLaneAttack
+              ? "attack-enter"
+              : "state-correction",
         alpha: lane.hasLocalCard ? 1 : 0.05,
-        scale: stagedLaneAttack || stagedLaneBlock ? 0.77 : 0.64,
+        scale: stagedLanePosition?.scale || 0.64,
         legal: legal && lane.hasLocalCard,
         metadata: {
           type: "lane",
@@ -1570,8 +1661,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         badgeText: stagedLaneAttack ? "ATTACK" : stagedLaneBlock ? "BLOCK" : "",
         badgeColor: stagedLaneBlock ? MATCH_COLORS.good : MATCH_COLORS.blue
       });
-      const opponentLaneRecord = updateCardRecord(opponentId, "FACE-DOWN", getLanePosition(index, "opponent"), {
+      updateCardRecord(opponentId, "FACE-DOWN", getLanePosition(index, "opponent"), {
         faceDown: true,
+        initialPosition: opponentPlacementEntered
+          ? new Vector3(MATCH_LAYOUT.opponentHand.x, 1.25, MATCH_LAYOUT.opponentHand.z)
+          : undefined,
+        motionRole: opponentPlacementEntered ? "placement-enter" : "state-correction",
         alpha: lane.hasOpponentCard ? 1 : 0.05,
         scale: 0.64,
         metadata: {
@@ -1590,32 +1685,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         selected: selectedAbilityLane && abilityTargetOwner === "opponent",
         selectionRole: "primary"
       });
-      if (!viewModel.reducedMotion && lastState.lanes) {
-        if (!lastState.lanes[index]?.local && lane.hasLocalCard) {
-          localLaneRecord.mesh.position.copyFrom(new Vector3(MATCH_LAYOUT.playerHand.x, 1.25, MATCH_LAYOUT.playerHand.z));
-          localLaneRecord.mesh.scaling.setAll(0.34);
-          localLaneRecord.mesh.visibility = 1;
-        }
-        if (!lastState.lanes[index]?.opponent && lane.hasOpponentCard) {
-          opponentLaneRecord.mesh.position.copyFrom(new Vector3(MATCH_LAYOUT.opponentHand.x, 1.25, MATCH_LAYOUT.opponentHand.z));
-          opponentLaneRecord.mesh.scaling.setAll(0.34);
-          opponentLaneRecord.mesh.visibility = 1;
-        }
-      }
-
       const blocks = lane.blocks || [];
+      const laneBlockTotal = blocks.reduce((total, block) => total + Number(block.value || 0), 0);
       blocks.forEach((block, blockIndex) => {
         const id = `block-${index}-${block.id || blockIndex}`;
+        const blockerIsLocal = block.owner === bottomPlayer;
+        const blockerPosition = getLaneCombatPosition(
+          index,
+          "blocker",
+          blockIndex,
+          blocks.length,
+          blockerIsLocal
+        );
         liveIds.add(id);
-        updateCardRecord(id, block.card.label, {
-          x: MATCH_LAYOUT.lanes.x[index] + blockIndex * 0.38,
-          y: 0.42,
-          z: block.owner === bottomPlayer
-            ? MATCH_LAYOUT.anchors.localAttack
-            : MATCH_LAYOUT.anchors.opponentAttack,
-          rotationX: Math.PI / 2,
-          rotationZ: block.owner === bottomPlayer ? 0 : Math.PI
-        }, {
+        updateCardRecord(id, block.card.label, blockerPosition, {
           artPath: block.card.artPath,
           initialPosition: viewModel.replayAction?.kind === "block"
             && viewModel.replayAction.cards?.blockers?.some((card) => card.runtimeId === block.card.raw?.id)
@@ -1625,14 +1708,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                 block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
               )
             : undefined,
-          scale: 0.77,
+          motionRole: "block-enter",
+          scale: blockerPosition.scale,
           selected: true,
           selectionRole: "blocker",
-          badgeText: `◆ ${block.value}`,
+          badgeText: blockIndex === 0 ? `BLOCK ${laneBlockTotal}` : `+${block.value}`,
           badgeColor: MATCH_COLORS.good,
           badgeBackground: "#103424f2",
           metadata: {
             type: "block",
+            owner: blockerIsLocal ? "local" : "opponent",
             laneIndex: index,
             preview: {
               ...block.card,
@@ -1727,12 +1812,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const selected = Object.values(card.selected || {}).some(Boolean);
       const position = getFanPosition(index, hand.length, "player", responsiveHand || undefined);
       const hovered = hoveredId === id;
+      const wasHovered = !!objects.get(id)?.target?.hovered;
       let targetPosition = { ...position };
       let scale = position.scale;
       let badgeText = "";
       let badgeColor = MATCH_COLORS.blue;
       let badgeBackground = "#07111cf2";
       let selectionRole = "primary";
+      let motionRole = hovered || wasHovered ? "hover" : "state-correction";
       let previewState = "In hand";
       let previewIcon = "inspect";
 
@@ -1740,21 +1827,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         const fromLane = viewModel.selection.attackMode?.from === "lane";
         const laneIndex = viewModel.selection.attackMode?.lane ?? 0;
         targetPosition = fromLane
-          ? {
-              x: MATCH_LAYOUT.lanes.x[laneIndex],
-              y: 0.48,
-              z: MATCH_LAYOUT.anchors.localAttack,
-              rotationX: Math.PI / 2,
-              rotationZ: 0
-            }
-          : {
-              x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
-              y: MATCH_LAYOUT.handCombat.y + 0.28,
-              z: MATCH_LAYOUT.handCombat.localRow,
-              rotationX: Math.PI / 2,
-              rotationZ: 0
-            };
+          ? getLaneCombatPosition(laneIndex, "attacker", 0, 1, true)
+          : getHandCombatPosition("attacker", 0, 1, true);
         scale = 0.68;
+        motionRole = "attack-enter";
         previewState = fromLane ? `Attacking in Lane ${laneIndex + 1}` : "Selected hand attacker";
         previewIcon = "attack";
         badgeText = `⚔ ${card.value}`;
@@ -1764,23 +1840,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         const blockerOrder = viewModel.selection.selectedBlockCardIndexes.indexOf(index);
         const blockerCount = Math.max(1, viewModel.selection.selectedBlockCardIndexes.length);
         targetPosition = laneBlock
-          ? {
-              x: MATCH_LAYOUT.lanes.x[laneIndex],
-              y: 0.48,
-              z: MATCH_LAYOUT.anchors.localAttack,
-              rotationX: Math.PI / 2,
-              rotationZ: 0
-            }
-          : {
-              x: MATCH_LAYOUT.handCombat.x
-                + MATCH_LAYOUT.handCombat.blockX
-                + (blockerOrder - (blockerCount - 1) / 2) * 1.4,
-              y: MATCH_LAYOUT.handCombat.y + 0.24,
-              z: MATCH_LAYOUT.handCombat.localBlockRow,
-              rotationX: Math.PI / 2,
-              rotationZ: 0
-            };
+          ? getLaneCombatPosition(laneIndex, "blocker", blockerOrder, blockerCount, true)
+          : getHandCombatPosition("blocker", blockerOrder, blockerCount, true);
         scale = 0.68;
+        motionRole = "block-enter";
         badgeText = `◆ ${card.value}`;
         badgeColor = MATCH_COLORS.good;
         badgeBackground = "#103424f2";
@@ -1797,6 +1860,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           rotationZ: 0
         };
         scale = 0.76;
+        motionRole = "placement-enter";
         badgeText = "SET";
         badgeColor = MATCH_COLORS.purple;
         selectionRole = "placement";
@@ -1815,6 +1879,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
             rotationZ: (paymentOrder - (paymentCount - 1) / 2) * -0.035
           };
           scale = 0.62;
+          motionRole = "payment-enter";
           badgeText = "PAY";
           badgeColor = MATCH_COLORS.bronze;
           badgeBackground = "#3d2b12f2";
@@ -1834,6 +1899,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         initialPosition: drawnCardIds.has(card.id)
           ? new Vector3(MATCH_LAYOUT.piles.localDeck.x, 0.42, MATCH_LAYOUT.piles.localDeck.z)
           : undefined,
+        motionRole: drawnCardIds.has(card.id) ? "draw-enter" : motionRole,
         selected,
         hovered,
         selectionRole,
@@ -1871,9 +1937,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const handAttackIndex = isHandAttack
         ? handAttacks.findIndex((entry) => entry.id === attack.id)
         : -1;
-      const handAttackX = MATCH_LAYOUT.handCombat.x
-        + MATCH_LAYOUT.handCombat.attackX
-        + (handAttackIndex - (handAttacks.length - 1) / 2) * MATCH_LAYOUT.handCombat.spread;
+      const attackPosition = isHandAttack
+        ? getHandCombatPosition("attacker", handAttackIndex, handAttacks.length, localAttack)
+        : getLaneCombatPosition(attack.laneIndex, "attacker", 0, 1, localAttack);
       const sourceRecord = localAttack
         ? (
             isHandAttack
@@ -1893,23 +1959,17 @@ export function createGauntletScene(engine, canvas, commands = {}) {
             localAttack ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
           )
         : undefined;
-      updateCardRecord(id, attack.card.label, {
-        x: isHandAttack ? handAttackX : MATCH_LAYOUT.lanes.x[attack.laneIndex],
-        y: isHandAttack ? MATCH_LAYOUT.handCombat.y + 0.3 : 0.44,
-        z: isHandAttack
-          ? (localAttack ? MATCH_LAYOUT.handCombat.localRow : MATCH_LAYOUT.handCombat.opponentRow)
-          : (localAttack ? MATCH_LAYOUT.anchors.localAttack : MATCH_LAYOUT.anchors.opponentAttack),
-        rotationX: Math.PI / 2,
-        rotationZ: localAttack ? 0 : Math.PI
-      }, {
+      updateCardRecord(id, attack.card.label, attackPosition, {
         artPath: attack.card.artPath,
         faceDown: false,
         initialPosition: sourceRecord?.mesh?.position?.clone() || replayAttackSource,
+        motionRole: "attack-enter",
         selected: true,
         selectionRole: selectedAbilityAttack ? "ability" : localAttack ? "primary" : "danger",
-        scale: isHandAttack ? 0.68 : 0.77,
+        scale: attackPosition.scale,
         metadata: {
           type: "attack",
+          owner: localAttack ? "local" : "opponent",
           attackId: attack.id,
           laneIndex: attack.laneIndex,
           source: isHandAttack ? "hand" : "lane",
@@ -1927,6 +1987,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       });
 
       if (isHandAttack) {
+        const handBlockTotal = (attack.blocks || []).reduce(
+          (total, block) => total + Number(block.value || 0),
+          0
+        );
         (attack.blocks || []).forEach((block, blockIndex) => {
           const blockId = `hand-attack-block-${attack.id}-${block.id || blockIndex}`;
           liveIds.add(blockId);
@@ -1942,25 +2006,26 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                 block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
               )
             : undefined;
-          updateCardRecord(blockId, block.card.label, {
-            x: MATCH_LAYOUT.handCombat.x
-              + MATCH_LAYOUT.handCombat.blockX
-              + (blockIndex - (blockCount - 1) / 2) * 1.28,
-            y: MATCH_LAYOUT.handCombat.y + 0.24,
-            z: MATCH_LAYOUT.handCombat.localBlockRow,
-            rotationX: Math.PI / 2,
-            rotationZ: block.owner === bottomPlayer ? 0 : Math.PI
-          }, {
+          const blockerIsLocal = block.owner === bottomPlayer;
+          const blockerPosition = getHandCombatPosition(
+            "blocker",
+            blockIndex,
+            blockCount,
+            blockerIsLocal
+          );
+          updateCardRecord(blockId, block.card.label, blockerPosition, {
             artPath: block.card.artPath,
             initialPosition: blockSource?.mesh?.position?.clone() || replayBlockSource,
+            motionRole: "block-enter",
             selected: true,
             selectionRole: "blocker",
-            scale: 0.62,
-            badgeText: `◆ ${block.value}`,
+            scale: blockerPosition.scale,
+            badgeText: blockIndex === 0 ? `BLOCK ${handBlockTotal}` : `+${block.value}`,
             badgeColor: MATCH_COLORS.good,
             badgeBackground: "#103424f2",
             metadata: {
               type: "block",
+              owner: blockerIsLocal ? "local" : "opponent",
               attackId: attack.id,
               source: "hand",
               preview: {
@@ -1984,6 +2049,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     if (cameraChanged && currentViewModel) update(currentViewModel);
     const deltaMs = babylonScene.getEngine().getDeltaTime();
     elapsed += deltaMs / 1000;
+    motionClockMs += deltaMs;
     if (!activeEventAnimation && animationQueue.length > 0) {
       activeEventAnimation = animationQueue.shift();
       activeEventAnimation.durationMs = currentViewModel?.reducedMotion
@@ -2036,20 +2102,35 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       turnSweep.visibility = 0;
       eventSprite.visibility = 0;
     }
-    const motionFactor = currentViewModel?.reducedMotion ? 1 : 0.2;
     for (const [id, record] of objects.entries()) {
-      const target = record.target;
-      record.mesh.position = Vector3.Lerp(record.mesh.position, target.position, motionFactor);
-      record.mesh.rotation.x += (target.rotationX - record.mesh.rotation.x) * motionFactor;
-      record.mesh.rotation.y += (target.rotationY - record.mesh.rotation.y) * motionFactor;
-      record.mesh.rotation.z += (target.rotationZ - record.mesh.rotation.z) * motionFactor;
-      const scale = target.scale || 1;
-      record.mesh.scaling = Vector3.Lerp(
-        record.mesh.scaling,
-        new Vector3(scale, scale, scale),
-        motionFactor
-      );
-      record.mesh.visibility += (target.alpha - record.mesh.visibility) * motionFactor;
+      if (record.holdUntilMs && motionClockMs >= record.holdUntilMs && !record.departureStarted) {
+        record.departureStarted = true;
+        setCardTarget(record, record.departureTarget, {
+          scale: 0.42,
+          alpha: 0,
+          motionRole: "discard-exit"
+        }, motionClockMs, currentViewModel?.reducedMotion);
+      }
+      const sampled = currentViewModel?.reducedMotion
+        ? {
+            x: record.target.position.x,
+            y: record.target.position.y,
+            z: record.target.position.z,
+            rotationX: record.target.rotationX,
+            rotationY: record.target.rotationY,
+            rotationZ: record.target.rotationZ,
+            scale: record.target.scale,
+            alpha: record.target.alpha,
+            complete: true
+          }
+        : sampleCardMotion(record.motion, motionClockMs);
+      if (sampled) {
+        record.mesh.position.set(sampled.x, sampled.y, sampled.z);
+        record.mesh.rotation.set(sampled.rotationX, sampled.rotationY, sampled.rotationZ);
+        record.mesh.scaling.setAll(sampled.scale);
+        record.mesh.visibility = sampled.alpha;
+        if (sampled.complete) record.motion = null;
+      }
       if (record.mesh.gauntletHalo.isVisible) {
         const haloPulse = currentViewModel?.reducedMotion
           ? 1

@@ -51,6 +51,7 @@ function SupportingCards({ label, cards }) {
 
 function ReplayActionLayer({ action }) {
   if (!action) return null;
+  const tableauPrimary = ["attack", "block", "defense-declined", "resolution"].includes(action.kind);
   const values = action.values || {};
   const supportingBlockers = (action.cards?.blockers || []).filter((card) => (
     card.runtimeId !== action.cards?.primary?.runtimeId
@@ -64,7 +65,7 @@ function ReplayActionLayer({ action }) {
     values.damage ? `${values.damage} damage` : null
   ].filter(Boolean);
   return (
-    <section className={`replay-action-layer kind-${action.kind}`} aria-live="polite" aria-atomic="true">
+    <section className={`replay-action-layer kind-${action.kind}${tableauPrimary ? " is-tableau-primary" : ""}`} aria-live="polite" aria-atomic="true">
       <div className="replay-action-copy">
         <span>{action.actorName || "Gauntlet broadcast"} · Turn {action.turn || 0}</span>
         <h2>{action.summary || action.label}</h2>

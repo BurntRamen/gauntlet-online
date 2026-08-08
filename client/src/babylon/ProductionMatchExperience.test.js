@@ -79,6 +79,9 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   render(<ProductionMatchExperience adapter={adapterFor()} options={{ audioEnabled: false }} />);
 
   expect(await screen.findByTestId("production-babylon-match")).toHaveAttribute("data-revision", "4");
+  expect(screen.getByTestId("battlefield-safe-frame")).toContainElement(
+    screen.getByTestId("mock-gauntlet-canvas")
+  );
   expect(screen.getByLabelText(/Local, 34 life, has priority/)).toBeInTheDocument();
   expect(screen.getByLabelText(/Opponent, 27 life/)).toBeInTheDocument();
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
