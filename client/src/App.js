@@ -2700,6 +2700,8 @@ function getCampaignSpeakerImage(speaker) {
 function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false }) {
   const dialogueAudioRefs = useRef([]);
   const autoPlayedRef = useRef("");
+  const sequenceRunnerRef = useRef(null);
+  const [autoPlayBlocked, setAutoPlayBlocked] = useState(false);
   const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
   const audioLines = Array.isArray(audio) ? audio : [];
   const audioKey = audioLines.filter(Boolean).join("\n");
@@ -2732,6 +2734,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
     const sources = audioKey.split("\n").filter(Boolean);
     if (!autoPlayKey || sources.length === 0 || autoPlayedRef.current === autoPlayKey) return undefined;
     autoPlayedRef.current = autoPlayKey;
+    setAutoPlayBlocked(false);
     let cancelled = false;
     let currentIndex = 0;
     let activeClip = null;
@@ -2740,17 +2743,23 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
       if (!gestureArmed || typeof window === "undefined") return;
       gestureArmed = false;
       window.removeEventListener("pointerdown", playNext, true);
+      window.removeEventListener("click", playNext, true);
+      window.removeEventListener("touchstart", playNext, true);
       window.removeEventListener("keydown", playNext, true);
     };
     const armGestureRetry = () => {
       if (gestureArmed || typeof window === "undefined") return;
+      setAutoPlayBlocked(true);
       gestureArmed = true;
       window.addEventListener("pointerdown", playNext, true);
+      window.addEventListener("click", playNext, true);
+      window.addEventListener("touchstart", playNext, true);
       window.addEventListener("keydown", playNext, true);
     };
     const playNext = () => {
       removeGestureListeners();
       if (cancelled || currentIndex >= sources.length || typeof window === "undefined" || typeof window.Audio !== "function") return;
+      setAutoPlayBlocked(false);
       const source = sources[currentIndex];
       if (!source) {
         currentIndex += 1;
@@ -2767,16 +2776,42 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
       };
       activeClip.play().catch(armGestureRetry);
     };
+    sequenceRunnerRef.current = playNext;
     const timer = window.setTimeout(playNext, 50);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       removeGestureListeners();
       if (activeClip) activeClip.onended = null;
+      sequenceRunnerRef.current = null;
     };
   }, [autoPlayKey, audioKey]);
 
-  if (audioOnly || visibleLines.length === 0) return null;
+  if (audioOnly) {
+    if (!autoPlayBlocked) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => sequenceRunnerRef.current?.()}
+        style={{
+          position: "fixed",
+          left: 12,
+          bottom: 12,
+          zIndex: 2000,
+          border: "1px solid rgba(250,204,21,0.55)",
+          borderRadius: 8,
+          background: "linear-gradient(180deg, rgba(80,42,15,0.96), rgba(28,14,7,0.96))",
+          color: "#fde9b0",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+          padding: "9px 12px",
+          fontWeight: "bold"
+        }}
+      >
+        Play Chapter Voices
+      </button>
+    );
+  }
+  if (visibleLines.length === 0) return null;
 
   return (
     <div
