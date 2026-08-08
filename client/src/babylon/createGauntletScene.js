@@ -1305,12 +1305,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       actorIsBottom ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
       actorIsBottom ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
     );
+    const sourceForPlayer = (playerNum) => {
+      const isBottom = Number(playerNum) === Number(bottomPlayer);
+      return new Vector3(
+        isBottom ? MATCH_LAYOUT.playerHand.x : MATCH_LAYOUT.opponentHand.x,
+        isBottom ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
+        isBottom ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
+      );
+    };
     const stageCard = (card, id, position, options = {}) => {
       if (!card) return;
       liveIds.add(id);
       updateCardRecord(id, card.label || card.name, position, {
         artPath: card.artPath,
-        initialPosition: source,
+        initialPosition: options.initialPosition || source,
         selected: true,
         scale: options.scale || 0.64,
         selectionRole: options.selectionRole || "primary",
@@ -1365,7 +1373,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       { badgeText: "ARMED", badgeColor: MATCH_COLORS.purple, stateLabel: "Public attachment", stateIcon: "ability", scale: 0.56 }
     ));
     const existingAttack = viewModel.attacks.some((attack) => action.cards?.primary?.runtimeId && attack.card?.raw?.id === action.cards.primary.runtimeId);
-    if (action.cards?.primary && !existingAttack && ["attack", "block", "resolution", "ability"].includes(action.kind)) {
+    if (action.cards?.primary && !existingAttack && ["attack", "block", "defense-declined", "resolution", "ability"].includes(action.kind)) {
+      const isDamagePresentation = ["defense-declined", "resolution"].includes(action.kind);
       stageCard(action.cards.primary, `replay-${action.id}-primary`, {
         x: action.laneIndex == null ? MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX : MATCH_LAYOUT.lanes.x[action.laneIndex],
         y: MATCH_LAYOUT.handCombat.y + 0.36,
@@ -1373,12 +1382,13 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         rotationX: Math.PI / 2,
         rotationZ
       }, {
-        selectionRole: action.kind === "resolution" ? "danger" : "primary",
-        badgeText: action.kind === "resolution" ? `${action.values?.damage || 0} DMG` : action.kind.toUpperCase(),
-        badgeColor: action.kind === "resolution" ? MATCH_COLORS.danger : MATCH_COLORS.blue,
+        selectionRole: isDamagePresentation ? "danger" : "primary",
+        badgeText: isDamagePresentation ? `${action.values?.damage || 0} DMG` : action.kind.toUpperCase(),
+        badgeColor: isDamagePresentation ? MATCH_COLORS.danger : MATCH_COLORS.blue,
         stateLabel: action.summary,
         stateIcon: action.kind,
-        scale: 0.72
+        scale: 0.72,
+        initialPosition: sourceForPlayer(action.primaryCardPlayerNum ?? action.actorPlayerNum)
       });
     }
   }
@@ -1490,8 +1500,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     viewModel.lanes.forEach((lane, index) => {
       const laneMesh = laneMeshes[index];
       const legal = viewModel.interactions.legalLanes.includes(index);
+      const replayHighlightsLane = ["attack", "block", "resolution", "ability", "placement"]
+        .includes(viewModel.replayAction?.kind);
       const highlighted = (viewModel.interactions.highlightedLanes || []).includes(index)
-        || Number(viewModel.replayAction?.laneIndex) === index;
+        || (replayHighlightsLane && Number(viewModel.replayAction?.laneIndex) === index);
       const abilityTargetOwner = viewModel.selection.abilityMode?.targetOwner;
       const peekAnyOwner = viewModel.selection.abilityMode?.abilityId === "polea-peek";
       const selectedAbilityLane = viewModel.selection.selectedAbilityLanes?.includes(index);

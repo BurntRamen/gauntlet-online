@@ -183,6 +183,87 @@ function recordFixture(options = {}) {
   };
 }
 
+function presentationRecord(game) {
+  return {
+    recordVersion: 2,
+    matchId: MATCH_ID,
+    leagueEvidenceVersion: "gauntlet.league-evidence.v1",
+    leagueEvidenceCoverage: "complete",
+    leagueEvidence: game.serverLeagueEvidence,
+    publicReplayFrameVersion: PUBLIC_REPLAY_FRAME_VERSION,
+    publicReplayFrames: game.serverPublicReplayFrames,
+    participants: [
+      { participantId: `${MATCH_ID}:p1`, playerNum: 1, displayName: "Alpha", faction: { id: "rumin", name: "Rumin" }, finalLife: game.players[1].life, result: "unknown" },
+      { participantId: `${MATCH_ID}:p2`, playerNum: 2, displayName: "Beta", faction: { id: "sheen", name: "Sheen" }, finalLife: game.players[2].life, result: "unknown" }
+    ],
+    finalLife: { 1: game.players[1].life, 2: game.players[2].life },
+    winnerPlayerNum: game.winner,
+    completionReason: game.winner == null ? null : "life_total",
+    completedAt: "2026-08-07T12:01:00.000Z",
+    turnCount: game.turn
+  };
+}
+
+function declineReplayFixture(gameMode) {
+  const game = gameFixture();
+  game.gameMode = gameMode;
+  capture(game, { type: "matchStarted" }, [{ id: `${MATCH_ID}:decline-started`, type: "match.started" }]);
+  const attacker = card("decline-attacker", 12);
+  game.handAttacks = [{
+    id: "decline-attack",
+    player: 1,
+    targetPlayer: 2,
+    source: "hand",
+    card: attacker,
+    effectiveValue: 12,
+    notes: [],
+    attachedCards: [],
+    payment: { player: 1, cards: [], total: 0, required: 0 },
+    block: []
+  }];
+  game.priority = 2;
+  capture(game, { type: "declareHandAttack", actor: 1, attackerCardId: attacker.id, paymentCardIds: [] }, [
+    { id: `${MATCH_ID}:decline-attack`, type: "attack.declared", player: 1, targetPlayer: 2, cardId: attacker.id, effectiveValue: 12 }
+  ]);
+
+  if (gameMode === "basic") {
+    game.players[2].life = 12;
+    game.handAttacks = [];
+    capture(game, { type: "declineBlock", actor: 2, attackId: "decline-attack" }, [
+      { id: `${MATCH_ID}:declined-basic`, type: "block.declined", player: 2 },
+      { id: `${MATCH_ID}:declined-basic-calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 0, damage: 8 },
+      { id: `${MATCH_ID}:declined-basic-damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
+    ]);
+  } else {
+    game.priority = 1;
+    capture(game, { type: "declineBlock", actor: 2, attackId: "decline-attack" }, [
+      { id: `${MATCH_ID}:declined-factions`, type: "block.declined", player: 2 },
+      { id: `${MATCH_ID}:declined-priority`, type: "priority.granted", player: 1 }
+    ]);
+    game.players[2].life = 12;
+    game.handAttacks = [];
+    capture(game, { type: "passPriority", actor: 1 }, [
+      { id: `${MATCH_ID}:declined-pass`, type: "priority.passed", player: 1 },
+      { id: `${MATCH_ID}:declined-factions-calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 0, damage: 8 },
+      { id: `${MATCH_ID}:declined-factions-damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
+    ]);
+  }
+  return presentationRecord(game);
+}
+
+function placementReplayFixture(commandType) {
+  const game = gameFixture();
+  game.phase = "end";
+  game.endPlacementLaneIndex = 1;
+  capture(game, { type: "matchStarted" }, [{ id: `${MATCH_ID}:placement-started`, type: "match.started" }]);
+  const events = commandType === "placeFacedown"
+    ? [{ id: `${MATCH_ID}:placed`, type: "card.placedFacedown", player: 1, cardId: "private-placement-card", laneIndex: 1 }]
+    : [{ id: `${MATCH_ID}:skipped`, type: "lanePlacement.skipped", player: 1, laneIndex: 1 }];
+  if (commandType === "placeFacedown") game.lanes[1].facedown[1] = card("private-placement-card", 7);
+  capture(game, { type: commandType, actor: 1, laneIndex: 1, cardId: commandType === "placeFacedown" ? "private-placement-card" : undefined }, events);
+  return presentationRecord(game);
+}
+
 test("builds a deterministic public replay through attack, block, damage, and final result", () => {
   const record = recordFixture();
   const first = buildReplayTimeline(record, { mode: "account-only", capabilities: { publicRecordAfterProcessReplacement: false } });
@@ -219,13 +300,71 @@ test("builds a deterministic public replay through attack, block, damage, and fi
 
 test("preserves exact blocker and payment cards when a lane block resolves immediately", () => {
   const replay = buildReplayTimeline(recordFixture({ immediateBlockResolution: true }));
+  const block = replay.actions.find((action) => action.kind === "block");
+  assert.equal(block.cards.primary.name, "public-blocker");
+  assert.equal(block.cards.blockers[0].name, "public-blocker");
+  assert.equal(block.cards.payments[0].name, "public-block-payment");
+  assert.equal(block.values.attack, 12);
+  assert.equal(block.values.block, 4);
+  assert.equal(block.values.damage, 8);
+  assert.match(block.summary, /blocks/);
+});
+
+test("Basic declineBlock is defense-declined with immediate damage and no blocker choreography", () => {
+  const replay = buildReplayTimeline(declineReplayFixture("basic"));
+  const decline = replay.actions.find((action) => action.commandType === "declineBlock");
+  assert.equal(decline.kind, "defense-declined");
+  assert.match(decline.summary, /declines the block/);
+  assert.match(decline.summary, /8 damage/);
+  assert.doesNotMatch(decline.summary, /Beta blocks/);
+  assert.deepEqual(decline.cards.blockers, []);
+  assert.deepEqual(decline.cards.payments, []);
+  assert.equal(decline.primaryCardPlayerNum, 1);
+  assert.equal(decline.values.block, 0);
+  assert.equal(decline.values.damage, 8);
+});
+
+test("Factions declineBlock stays separate from later combat resolution", () => {
+  const replay = buildReplayTimeline(declineReplayFixture("factions"));
+  const decline = replay.actions.find((action) => action.commandType === "declineBlock");
   const resolution = replay.actions.find((action) => action.kind === "resolution");
-  assert.equal(resolution.cards.primary.name, "public-attacker");
-  assert.equal(resolution.cards.blockers[0].name, "public-blocker");
-  assert.equal(resolution.cards.payments[0].name, "public-block-payment");
-  assert.equal(resolution.values.attack, 12);
-  assert.equal(resolution.values.block, 4);
+  assert.equal(decline.kind, "defense-declined");
+  assert.equal(decline.summary, "Beta declines the block");
+  assert.deepEqual(decline.cards.blockers, []);
+  assert.deepEqual(decline.cards.payments, []);
+  assert.equal(decline.values.damage, 0);
+  assert.equal(resolution.commandType, "passPriority");
   assert.equal(resolution.values.damage, 8);
+});
+
+test("skipPlacement and placeFacedown have distinct exact semantics", () => {
+  const skipped = buildReplayTimeline(placementReplayFixture("skipPlacement")).actions.find((action) => action.commandType === "skipPlacement");
+  assert.equal(skipped.kind, "placement-skipped");
+  assert.equal(skipped.summary, "Alpha skips Lane 2");
+  assert.equal(skipped.cards.primary, null);
+  assert.notEqual(skipped.kind, "turn");
+  assert.notEqual(skipped.kind, "placement");
+
+  const placed = buildReplayTimeline(placementReplayFixture("placeFacedown")).actions.find((action) => action.commandType === "placeFacedown");
+  assert.equal(placed.kind, "placement");
+  assert.equal(placed.summary, "Alpha places a card in Lane 2");
+  assert.equal(placed.laneIndex, 1);
+});
+
+test("passPriority and concede receive intentional presentation semantics", () => {
+  const game = gameFixture();
+  capture(game, { type: "passPriority", actor: 1 }, [{ id: `${MATCH_ID}:pass`, type: "priority.passed", player: 1 }]);
+  game.phase = "gameOver";
+  game.winner = 2;
+  game.loser = 1;
+  capture(game, { type: "concede", actor: 1 }, [{ id: `${MATCH_ID}:concede`, type: "match.ended", winner: 2 }]);
+  const actions = buildReplayTimeline(presentationRecord(game)).actions;
+  const pass = actions.find((action) => action.commandType === "passPriority");
+  const concede = actions.find((action) => action.commandType === "concede");
+  assert.equal(pass.kind, "pass");
+  assert.equal(pass.summary, "Alpha passes");
+  assert.equal(concede.kind, "concede");
+  assert.equal(concede.summary, "Alpha concedes — Beta wins");
 });
 
 test("public replay permanently removes private hands, deck order, facedown identity, peeks, tokens, and server fields", () => {

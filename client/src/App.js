@@ -4439,7 +4439,7 @@ export default function App() {
     url.searchParams.delete("match");
     url.searchParams.delete("profile");
     url.searchParams.delete("replay");
-    window.history.pushState({}, "", url);
+    window.history.replaceState({}, "", url);
     setPublicView(null);
     setHomeArea("matches");
   }

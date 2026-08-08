@@ -114,6 +114,32 @@ function useReplayShortcuts(update) {
   }, [controls, playing, update?.replay?.totalActions]);
 }
 
+function useReplayExitShortcut(onExit) {
+  useEffect(() => {
+    if (!onExit) return undefined;
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      const target = event.target;
+      if (target?.matches?.("input, textarea, select, button, a, [contenteditable='true']")) return;
+      if (document.querySelector("details[open]")) return;
+      event.preventDefault();
+      onExit();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onExit]);
+}
+
+function ReplayNavigation({ onOpenMatches, onOpenMatchRecord }) {
+  return (
+    <header className="replay-navigation" aria-label="Replay navigation">
+      <span>Replay</span>
+      <button type="button" className="replay-exit" onClick={onOpenMatches} title="Return to Matches (Escape)">← Matches</button>
+      <button type="button" onClick={onOpenMatchRecord}>Match Record</button>
+    </header>
+  );
+}
+
 function ReplayControls({ update }) {
   const replay = update?.replay;
   const action = replay?.action;
@@ -200,8 +226,8 @@ function ReplayConclusion({ update, onBack, onOpenMatches }) {
       <p>The final battlefield remains visible behind this broadcast result.</p>
       <div>
         <button type="button" onClick={update.replayControls.restart}>Restart Replay</button>
-        <button type="button" onClick={onBack}>Back to Match Record</button>
-        {onOpenMatches && <button type="button" onClick={onOpenMatches}>All Matches</button>}
+        <button type="button" onClick={onOpenMatches}>Matches</button>
+        <button type="button" onClick={onBack}>Match Record</button>
       </div>
     </section>
   );
@@ -270,17 +296,19 @@ export default function MatchReplayScreen({ matchId, serverUrl, onBack, onOpenMa
   }, [matchId, serverUrl]);
   const adapter = useMemo(() => replay?.availability?.available ? createReplayMatchAdapter({ replay }) : null, [replay]);
   useEffect(() => () => adapter?.dispose(), [adapter]);
+  const openMatches = onOpenMatches || onBack;
+  useReplayExitShortcut(openMatches);
 
-  if (loading) return <main className="replay-status"><strong>Loading authoritative replay...</strong></main>;
-  if (error) return <main className="replay-status"><strong>Replay unavailable</strong><p>{error}</p><button type="button" onClick={onBack}>Back to Match Record</button></main>;
+  if (loading) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Loading authoritative replay...</strong></section></main>;
+  if (error) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay unavailable</strong><p>{error}</p></section></main>;
   if (!replay?.availability?.available || !adapter) {
-    return <main className="replay-status"><strong>Replay no longer available</strong><p>{replay?.availability?.unavailableReason || "The complete record is no longer available."}</p><button type="button" onClick={onBack}>Back to Match Record</button></main>;
+    return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay no longer available</strong><p>{replay?.availability?.unavailableReason || "The complete record is no longer available."}</p></section></main>;
   }
   return (
     <main className="match-replay-page" data-replay-mode={replay.availability.mode}>
-      <button type="button" className="replay-back" onClick={onBack}>Back to Match Record</button>
+      <ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} />
       {replay.availability.mode === "public-state-frames"
-        ? <VisualReplay adapter={adapter} audioEnabled={audioEnabled} onBack={onBack} onOpenMatches={onOpenMatches} />
+        ? <VisualReplay adapter={adapter} audioEnabled={audioEnabled} onBack={onBack} onOpenMatches={openMatches} />
         : <EventOnlyReplay adapter={adapter} />}
     </main>
   );

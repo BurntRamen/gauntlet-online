@@ -314,17 +314,55 @@ function evidenceCards(entries, eventType) {
     .filter(Boolean);
 }
 
+const REPLAY_COMMAND_KIND = new Map([
+  ["matchStarted", "start"],
+  ["declareHandAttack", "attack"],
+  ["declareLaneAttack", "attack"],
+  ["declareHandBlock", "block"],
+  ["declareLaneBlock", "block"],
+  ["declineBlock", "defense-declined"],
+  ["useFactionAbility", "ability"],
+  ["placeFacedown", "placement"],
+  ["skipPlacement", "placement-skipped"],
+  ["passPriority", "pass"],
+  ["concede", "concede"],
+  ["finalizeMatch", "result"]
+]);
+
+const REPLAY_ABILITY_EVENTS = new Set([
+  "ability.used",
+  "acceleration.spent",
+  "card.buffApplied",
+  "card.swapped",
+  "cards.swapped"
+]);
+
+function replayCommandType(entries) {
+  const accepted = entries.find((entry) => entry.eventType === "command.accepted");
+  return accepted?.publicPayload?.command?.type
+    || accepted?.commandType
+    || entries.find((entry) => entry.commandType)?.commandType
+    || "unknown";
+}
+
 function actionKind(entries) {
   const eventTypes = new Set(entries.map((entry) => entry.eventType));
-  const commandType = entries.find((entry) => entry.commandType)?.commandType || "unknown";
-  if (eventTypes.has("match.ended") || eventTypes.has("match.abandoned") || commandType === "finalizeMatch") return "result";
+  const commandType = replayCommandType(entries);
+  const commandKind = REPLAY_COMMAND_KIND.get(commandType);
+
+  // Intentional command semantics take precedence over incidental effects in
+  // the same accepted command. In particular, declineBlock may also deal
+  // immediate Basic damage, and skipPlacement may advance the turn.
+  if (["concede", "defense-declined", "placement-skipped"].includes(commandKind)) return commandKind;
+  if (commandKind === "block" || eventTypes.has("block.declared")) return "block";
+  if (commandKind === "attack" || eventTypes.has("attack.declared")) return "attack";
+  if (commandKind === "ability" || [...REPLAY_ABILITY_EVENTS].some((type) => eventTypes.has(type))) return "ability";
+  if (commandKind === "placement" || eventTypes.has("card.placedFacedown")) return "placement";
   if (eventTypes.has("damage.calculated") || eventTypes.has("damage.dealt")) return "resolution";
-  if (eventTypes.has("block.declared") || /Block$/.test(commandType)) return "block";
-  if (eventTypes.has("attack.declared") || /Attack$/.test(commandType)) return "attack";
-  if (commandType === "useFactionAbility" || [...eventTypes].some((type) => /(ability|buff|acceleration|swapped)/i.test(type))) return "ability";
-  if (eventTypes.has("card.placedFacedown") || commandType === "placeCard") return "placement";
-  if (eventTypes.has("turn.started") || /placement/i.test(commandType)) return "turn";
-  if (eventTypes.has("match.started") || commandType === "matchStarted") return "start";
+  if (commandKind === "result" || eventTypes.has("match.ended") || eventTypes.has("match.abandoned")) return "result";
+  if (eventTypes.has("turn.started")) return "turn";
+  if (commandKind === "start" || eventTypes.has("match.started")) return "start";
+  if (commandKind === "pass" || eventTypes.has("priority.passed")) return "pass";
   if (eventTypes.has("payment.discarded")) return "payment";
   return "housekeeping";
 }
@@ -348,11 +386,13 @@ function groupEvidence(evidence, frames) {
 }
 
 function actionDuration(kind, entries) {
-  if (kind === "result") return 3200;
+  if (["result", "concede"].includes(kind)) return 3200;
   if (kind === "resolution") return entries.some((entry) => entry.eventType === "match.ended") ? 3200 : 3000;
   if (["attack", "block"].includes(kind)) return 2600;
+  if (kind === "defense-declined") return entries.some((entry) => entry.eventType === "damage.dealt") ? 2800 : 1600;
   if (kind === "ability") return 2800;
   if (kind === "placement") return 1800;
+  if (kind === "placement-skipped") return 1100;
   if (kind === "payment") return 1500;
   if (["turn", "start"].includes(kind)) return 1200;
   return 800;
@@ -368,16 +408,20 @@ function humanizeIdentifier(value) {
 function buildPresentationAction({ group, index, frames, participants }) {
   const entries = group.entries;
   const kind = actionKind(entries);
-  const command = entries.find((entry) => entry.eventType === "command.accepted")?.publicPayload?.command || {};
+  const commandEntry = entries.find((entry) => entry.eventType === "command.accepted");
+  const command = commandEntry?.publicPayload?.command || {};
   const primaryEntry = [...entries].reverse().find((entry) => entry.eventType !== "command.accepted") || entries[0];
-  const actorPlayerNum = primaryEntry?.actorPlayerNum ?? entries.find((entry) => entry.actorPlayerNum != null)?.actorPlayerNum ?? null;
+  const actorPlayerNum = commandEntry?.actorPlayerNum
+    ?? entries.find((entry) => entry.actorPlayerNum != null)?.actorPlayerNum
+    ?? primaryEntry?.actorPlayerNum
+    ?? null;
   const actorName = participantName(participants, actorPlayerNum);
   const frameAfterIndex = group.frame?.frameIndex || null;
   const frameAfter = group.frame?.publicState || null;
   const frameBeforeIndex = frameAfterIndex && Number(frameAfterIndex) > 1 ? Number(frameAfterIndex) - 1 : null;
   const frameBefore = frameBeforeIndex ? frames.find((frame) => Number(frame.frameIndex) === frameBeforeIndex)?.publicState : null;
-  const attackState = kind === "resolution" ? (frameBefore || frameAfter) : frameAfter;
-  const attack = ["attack", "block", "resolution"].includes(kind) ? findAttack(attackState, entries) : null;
+  const attackState = ["resolution", "defense-declined"].includes(kind) ? (frameBefore || frameAfter) : frameAfter;
+  const attack = ["attack", "block", "resolution", "defense-declined"].includes(kind) ? findAttack(attackState, entries) : null;
   const evidenceCardIds = entries.flatMap((entry) => [
     entry.publicPayload?.cardId,
     ...(entry.publicPayload?.cardIds || []),
@@ -405,7 +449,9 @@ function buildPresentationAction({ group, index, frames, participants }) {
   const exactCards = evidenceCardIds.map(exactEvidenceCard).filter(Boolean);
   const cards = {
     primary: kind === "block" ? blockers[0]?.card || exactCards[0] || null : attackCard,
-    payments: kind === "block"
+    payments: kind === "defense-declined"
+      ? []
+      : kind === "block"
       ? (blockPayments.length ? blockPayments : recordedPayments)
       : (kind === "resolution" && recordedBlockers.length
         ? recordedPayments
@@ -419,6 +465,9 @@ function buildPresentationAction({ group, index, frames, participants }) {
   const blockValue = Number(damageEvent?.blockValue ?? blockers.reduce((total, block) => total + block.effectiveValue, 0));
   const damage = Number(damageEvent?.damage ?? (primaryEntry?.eventType === "damage.dealt" ? primaryEntry.publicPayload?.amount : 0) ?? 0);
   const abilityId = command.abilityId || null;
+  const primaryCardPlayerNum = ["attack", "resolution", "defense-declined"].includes(kind)
+    ? (attack?.player ?? actorPlayerNum)
+    : actorPlayerNum;
   let label = eventLabel(primaryEntry);
   let summary = label;
   if (kind === "attack") {
@@ -428,6 +477,12 @@ function buildPresentationAction({ group, index, frames, participants }) {
     label = `${actorName} blocks`;
     const names = cards.blockers.map((card) => card.name || `${card.rank || ""}${card.suit || ""}`).filter(Boolean).join(", ");
     summary = `${actorName} blocks${names ? ` with ${names}` : ""}${blockValue ? ` for ${blockValue}` : ""}`;
+    if (damageEvent) summary += ` · ${attackValue} attack − ${blockValue} block = ${damage} damage`;
+  } else if (kind === "defense-declined") {
+    label = `${actorName} declines the block`;
+    summary = damageEvent
+      ? `${actorName} declines the block · ${attackValue} attack · ${damage} damage`
+      : `${actorName} declines the block`;
   } else if (kind === "resolution") {
     label = "Combat resolves";
     summary = `${attackValue} attack − ${blockValue} block = ${damage} damage`;
@@ -438,6 +493,13 @@ function buildPresentationAction({ group, index, frames, participants }) {
   } else if (kind === "placement") {
     label = `${actorName} places a card`;
     summary = `${actorName} places a card${laneIndex == null ? "" : ` in Lane ${Number(laneIndex) + 1}`}`;
+  } else if (kind === "placement-skipped") {
+    label = `${actorName} skips${laneIndex == null ? " placement" : ` Lane ${Number(laneIndex) + 1}`}`;
+    summary = label;
+    if (entries.some((entry) => entry.eventType === "turn.started")) {
+      const startedTurn = entries.find((entry) => entry.eventType === "turn.started")?.turn ?? primaryEntry?.turn;
+      summary += ` · Turn ${Number(startedTurn || 0)} begins`;
+    }
   } else if (kind === "turn") {
     label = `Turn ${Number(primaryEntry?.turn || 0)}`;
     summary = `${label} begins`;
@@ -447,6 +509,13 @@ function buildPresentationAction({ group, index, frames, participants }) {
   } else if (kind === "payment") {
     label = `${actorName} pays`;
     summary = `${actorName} pays ${Number(paymentEvent?.total || 0)} of ${Number(paymentEvent?.required || 0)}`;
+  } else if (kind === "pass") {
+    label = `${actorName} passes`;
+    summary = label;
+  } else if (kind === "concede") {
+    const winnerNum = primaryEntry?.publicPayload?.winner ?? frameAfter?.winner;
+    label = `${actorName} concedes`;
+    summary = winnerNum == null ? label : `${label} — ${participantName(participants, winnerNum)} wins`;
   } else if (kind === "result") {
     const winnerNum = primaryEntry?.publicPayload?.winner ?? frameAfter?.winner;
     label = "Match complete";
@@ -461,13 +530,14 @@ function buildPresentationAction({ group, index, frames, participants }) {
     summary,
     actorPlayerNum: actorPlayerNum == null ? null : Number(actorPlayerNum),
     actorName,
+    primaryCardPlayerNum: primaryCardPlayerNum == null ? null : Number(primaryCardPlayerNum),
     targetPlayerNum: targetPlayerNum == null ? null : Number(targetPlayerNum),
     targetName: targetPlayerNum == null ? null : participantName(participants, targetPlayerNum),
     laneIndex: laneIndex == null ? null : Number(laneIndex),
     turn: Number(primaryEntry?.turn || 0),
     phase: primaryEntry?.phase || "unknown",
     commandId: entries[0]?.commandId || null,
-    commandType: entries[0]?.commandType || null,
+    commandType: replayCommandType(entries),
     evidenceSequenceStart: Number(entries[0].sequence),
     evidenceSequenceEnd: Number(entries.at(-1).sequence),
     evidenceIds: entries.map((entry) => entry.eventId),

@@ -105,7 +105,17 @@ function replayResponse() {
 
 test("visual replay mounts the official ProductionMatchExperience and exposes replay controls", async () => {
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => replayResponse() });
-  render(<MatchReplayScreen matchId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" serverUrl="http://localhost:4000" onBack={() => {}} />);
+  const onBack = jest.fn();
+  const onOpenMatches = jest.fn();
+  render(<MatchReplayScreen matchId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" serverUrl="http://localhost:4000" onBack={onBack} onOpenMatches={onOpenMatches} />);
+  expect(screen.getByRole("button", { name: /← Matches/ })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Match Record" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /← Matches/ }));
+  expect(onOpenMatches).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Match Record" }));
+  expect(onBack).toHaveBeenCalledTimes(1);
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(onOpenMatches).toHaveBeenCalledTimes(2);
   expect(await screen.findByTestId("official-production-renderer")).toHaveTextContent("replay:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
   expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
   expect(screen.getByRole("slider", { name: "Replay action timeline" })).toBeVisible();
@@ -136,10 +146,70 @@ test("event-only legacy replay is explicit and does not mount a fabricated battl
   response.replay.steps[0].frameIndex = null;
   response.replay.actions.forEach((action) => { action.frameAfterIndex = null; });
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => response });
-  render(<MatchReplayScreen matchId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" serverUrl="http://localhost:4000" onBack={() => {}} />);
+  const onOpenMatches = jest.fn();
+  render(<MatchReplayScreen matchId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" serverUrl="http://localhost:4000" onBack={() => {}} onOpenMatches={onOpenMatches} />);
   expect(await screen.findByText("Authoritative event replay")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /← Matches/ }));
+  expect(onOpenMatches).toHaveBeenCalledTimes(1);
   expect(screen.getByText(/predates public replay frames/i)).toBeVisible();
   expect(screen.getByText("Alpha attacks with Triumphal Ram for 12")).toBeVisible();
   expect(screen.getByText("Inspect authoritative evidence")).toBeVisible();
   expect(screen.queryByTestId("official-production-renderer")).not.toBeInTheDocument();
+});
+
+test("replay error and unavailable states retain direct Matches and Match Record navigation", async () => {
+  const onBack = jest.fn();
+  const onOpenMatches = jest.fn();
+  global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ error: "Record expired." }) });
+  const { rerender } = render(<MatchReplayScreen matchId="error-match" serverUrl="http://localhost:4000" onBack={onBack} onOpenMatches={onOpenMatches} />);
+  expect(screen.getByRole("button", { name: /← Matches/ })).toBeVisible();
+  expect(await screen.findByText("Record expired.")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /← Matches/ }));
+  expect(onOpenMatches).toHaveBeenCalledTimes(1);
+
+  const unavailable = replayResponse();
+  unavailable.replay.availability = { available: false, mode: "unavailable", unavailableReason: "Only the compact reference remains." };
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => unavailable });
+  rerender(<MatchReplayScreen matchId="unavailable-match" serverUrl="http://localhost:4000" onBack={onBack} onOpenMatches={onOpenMatches} />);
+  expect(await screen.findByText("Only the compact reference remains.")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Match Record" })).toBeVisible();
+});
+
+test("declined defense never renders blocking copy or blocker cards", async () => {
+  const response = replayResponse();
+  response.replay.actions = [{
+    ...response.replay.actions[0],
+    id: "decline-action",
+    kind: "defense-declined",
+    commandType: "declineBlock",
+    actorName: "Beta",
+    label: "Beta declines the block",
+    summary: "Beta declines the block · 12 attack · 8 damage",
+    cards: { primary: response.replay.actions[0].cards.primary, payments: [], blockers: [], attachments: [] },
+    values: { attack: 12, block: 0, damage: 8 }
+  }];
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => response });
+  render(<MatchReplayScreen matchId="decline-match" serverUrl="http://localhost:4000" onBack={() => {}} onOpenMatches={() => {}} />);
+  expect(await screen.findByText("Beta declines the block · 12 attack · 8 damage")).toBeVisible();
+  expect(screen.queryByText(/\bblocks\b/i)).not.toBeInTheDocument();
+  expect(screen.queryByText("Blockers")).not.toBeInTheDocument();
+});
+
+test("skipped placement is presented as a lane skip", async () => {
+  const response = replayResponse();
+  response.replay.actions = [{
+    ...response.replay.actions[0],
+    id: "skip-action",
+    kind: "placement-skipped",
+    commandType: "skipPlacement",
+    laneIndex: 1,
+    label: "Alpha skips Lane 2",
+    summary: "Alpha skips Lane 2",
+    cards: { primary: null, payments: [], blockers: [], attachments: [] },
+    values: {}
+  }];
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => response });
+  render(<MatchReplayScreen matchId="skip-match" serverUrl="http://localhost:4000" onBack={() => {}} onOpenMatches={() => {}} />);
+  expect(await screen.findByRole("heading", { name: "Alpha skips Lane 2" })).toBeVisible();
+  expect(screen.queryByText(/places a card/i)).not.toBeInTheDocument();
 });
