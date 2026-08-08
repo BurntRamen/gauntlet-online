@@ -28,7 +28,12 @@ function ReplayCard({ card, role }) {
         <strong>{cardLabel(card)}</strong>
         <span>{[card.rank && `${card.rank}${card.suit || ""}`, card.value != null && `Value ${card.value}`, card.factionId].filter(Boolean).join(" · ")}</span>
         {card.collector?.finish && <small>{card.collector.finish} · {card.collector.edition}</small>}
-        {card.rulesText && <p>{card.rulesText}</p>}
+        {card.rulesText && (
+          <details className="replay-card-details">
+            <summary>Card details</summary>
+            <p>{card.rulesText}</p>
+          </details>
+        )}
       </div>
     </article>
   );
@@ -172,7 +177,7 @@ function ReplayControls({ update }) {
   );
 }
 
-function ReplayConclusion({ update, onBack }) {
+function ReplayConclusion({ update, onBack, onOpenMatches }) {
   const [visible, setVisible] = useState(false);
   const replay = update?.replay;
   const final = replay?.currentIndex === Math.max(0, (replay?.totalActions || 1) - 1) && !replay?.playing;
@@ -196,6 +201,7 @@ function ReplayConclusion({ update, onBack }) {
       <div>
         <button type="button" onClick={update.replayControls.restart}>Restart Replay</button>
         <button type="button" onClick={onBack}>Back to Match Record</button>
+        {onOpenMatches && <button type="button" onClick={onOpenMatches}>All Matches</button>}
       </div>
     </section>
   );
@@ -229,7 +235,7 @@ function EventOnlyReplay({ adapter }) {
   );
 }
 
-function VisualReplay({ adapter, audioEnabled, onBack }) {
+function VisualReplay({ adapter, audioEnabled, onBack, onOpenMatches }) {
   const [update, setUpdate] = useState(() => adapter.createUpdate());
   useEffect(() => adapter.subscribe(setUpdate), [adapter]);
   return (
@@ -237,14 +243,14 @@ function VisualReplay({ adapter, audioEnabled, onBack }) {
       <div className="replay-stage" data-testid="replay-battlefield-stage">
         <ProductionMatchExperience adapter={adapter} options={{ audioEnabled }} />
         <ReplayActionLayer action={update?.replay?.action} />
-        <ReplayConclusion update={update} onBack={onBack} />
+        <ReplayConclusion update={update} onBack={onBack} onOpenMatches={onOpenMatches} />
       </div>
       <ReplayControls update={update} />
     </div>
   );
 }
 
-export default function MatchReplayScreen({ matchId, serverUrl, onBack, audioEnabled = true }) {
+export default function MatchReplayScreen({ matchId, serverUrl, onBack, onOpenMatches, audioEnabled = true }) {
   const [replay, setReplay] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -274,7 +280,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, onBack, audioEna
     <main className="match-replay-page" data-replay-mode={replay.availability.mode}>
       <button type="button" className="replay-back" onClick={onBack}>Back to Match Record</button>
       {replay.availability.mode === "public-state-frames"
-        ? <VisualReplay adapter={adapter} audioEnabled={audioEnabled} onBack={onBack} />
+        ? <VisualReplay adapter={adapter} audioEnabled={audioEnabled} onBack={onBack} onOpenMatches={onOpenMatches} />
         : <EventOnlyReplay adapter={adapter} />}
     </main>
   );

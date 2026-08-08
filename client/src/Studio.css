@@ -1,0 +1,50 @@
+.studio,
+.studio-gate { color: #dce8ed; }
+.studio-gate { max-width: 620px; padding: 24px; border: 1px solid rgba(245, 158, 11, .4); background: rgba(12, 25, 38, .94); }
+.studio-gate > span, .studio-header span, .studio-section-heading span { color: #fbbf24; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.studio-gate h3, .studio-header h3 { margin: 4px 0 8px; color: #fff8e7; }
+.studio-gate form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-top: 18px; }
+.studio-gate label { grid-column: 1 / -1; font-size: 12px; font-weight: 800; }
+.studio-gate input { min-height: 42px; padding: 0 11px; border: 1px solid #577387; border-radius: 4px; background: #07131f; color: white; }
+.studio button { cursor: pointer; }
+.studio-gate button, .studio-header button, .studio-records button { min-height: 38px; padding: 8px 12px; border: 1px solid #d99419; border-radius: 4px; background: #895017; color: #fff8e7; font-weight: 800; cursor: pointer; }
+.studio-error { padding: 9px 11px; border-left: 3px solid #ef4444; background: rgba(127, 29, 29, .4); color: #fecaca; }
+.studio-header { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 16px; border: 1px solid rgba(245, 158, 11, .35); background: linear-gradient(110deg, rgba(58, 35, 16, .9), rgba(8, 24, 38, .96)); }
+.studio-header p { max-width: 780px; margin: 0; color: #afc2cb; font-size: 12px; }
+.studio-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.studio-metrics > div { min-width: 0; padding: 12px; border: 1px solid rgba(137, 177, 195, .24); background: rgba(9, 24, 37, .84); }
+.studio-metrics span, .studio-metrics small { display: block; color: #9eb3be; font-size: 10px; }
+.studio-metrics strong { display: block; margin: 5px 0; color: white; font-size: 21px; }
+.studio-status { display: inline-block !important; color: #fbbf24 !important; font-size: 14px !important; }
+.studio-status.is-good { color: #86efac !important; }
+.studio-panel { min-width: 0; margin-top: 10px; padding: 14px; border: 1px solid rgba(137, 177, 195, .23); background: rgba(7, 20, 32, .9); }
+.studio-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.studio-section-heading h4 { margin: 3px 0 0; color: #f8fafc; font-size: 18px; }
+.studio-section-heading small { color: #9eb3be; }
+.studio-table-scroll { overflow-x: auto; }
+.studio table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.studio th, .studio td { padding: 8px; border-bottom: 1px solid rgba(137, 177, 195, .16); text-align: left; white-space: nowrap; }
+.studio th { color: #8edcf6; font-size: 10px; text-transform: uppercase; }
+.studio-empty { color: #9eb3be; }
+.studio-records { display: grid; gap: 6px; }
+.studio-records article { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px; border: 1px solid rgba(137, 177, 195, .15); }
+.studio-records article span, .studio-records article strong, .studio-records article small { display: block; }
+.studio-records article span, .studio-records article small { color: #9eb3be; font-size: 10px; }
+.studio-records article > div:last-child { display: flex; gap: 6px; }
+.studio-two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.studio-standings { margin: 0; padding-left: 24px; }
+.studio-standings li { padding: 5px 0; border-bottom: 1px solid rgba(137, 177, 195, .13); }
+.studio-standings li span { float: right; color: #9eb3be; font-size: 11px; }
+.studio-receipts { display: grid; gap: 5px; }
+.studio-receipts > div { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; font-size: 11px; }
+.studio-receipts span, .studio-receipts small { color: #9eb3be; }
+.studio-generated { color: #8195a0; font-size: 10px; text-align: right; }
+@media (max-width: 1000px) { .studio-metrics { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px) {
+  .studio-header, .studio-section-heading, .studio-records article { align-items: stretch; flex-direction: column; }
+  .studio-metrics { grid-template-columns: repeat(2, 1fr); }
+  .studio-two-column { grid-template-columns: 1fr; }
+  .studio-gate form { grid-template-columns: 1fr; }
+  .studio-receipts > div { grid-template-columns: 1fr; }
+  .studio-standings li span { float: none; display: block; }
+}

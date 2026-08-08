@@ -3,12 +3,14 @@ import "./HomeNavigation.css";
 const AREAS = [
   { id: "play", label: "Play", detail: "Games and tables" },
   { id: "journey", label: "Journey", detail: "Learn and campaign" },
+  { id: "matches", label: "Matches", detail: "Records and replays" },
   { id: "build", label: "Build", detail: "Collection and decks" },
   { id: "identity", label: "Identity", detail: "Profile and community" }
 ];
 
-export default function HomeNavigation({ activeArea, onSelectArea, nextStep, children }) {
-  const activeLabel = AREAS.find((area) => area.id === activeArea)?.label || "Journey";
+export default function HomeNavigation({ activeArea, onSelectArea, nextStep, showStudio = false, children }) {
+  const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations" }] : AREAS;
+  const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
   return (
     <>
@@ -24,7 +26,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, chi
       </section>
 
       <nav className="home-area-nav" aria-label="Gauntlet areas">
-        {AREAS.map((area) => (
+        {areas.map((area) => (
           <button
             key={area.id}
             type="button"

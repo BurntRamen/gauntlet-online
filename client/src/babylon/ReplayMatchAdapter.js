@@ -1,5 +1,6 @@
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
+import { getPlayingCardArtPath } from "../cardArt";
 
 function clone(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
@@ -21,6 +22,43 @@ function replayEvent(step) {
 function actionEvent(action) {
   if (action?.primaryEvent) return clone(action.primaryEvent);
   return action ? replayEvent(action) : null;
+}
+
+function actionEvents(action) {
+  const evidenceEvents = (action?.evidence || []).map((entry) => ({
+    id: entry.eventId || `replay-event-${entry.sequence}`,
+    sequence: Number(entry.sequence || 0),
+    type: entry.eventType,
+    player: entry.actorPlayerNum ?? entry.publicPayload?.player ?? action.actorPlayerNum,
+    targetPlayer: entry.targetPlayerNum ?? entry.publicPayload?.targetPlayer ?? action.targetPlayerNum,
+    laneIndex: entry.laneIndex ?? entry.publicPayload?.laneIndex ?? action.laneIndex,
+    ...(entry.publicPayload || {})
+  })).filter((entry) => entry.type);
+  const primary = actionEvent(action);
+  if (primary && !evidenceEvents.some((entry) => entry.id === primary.id)) evidenceEvents.push(primary);
+  return evidenceEvents;
+}
+
+function visualCard(card) {
+  if (!card) return null;
+  return {
+    ...clone(card),
+    artPath: card.collector?.art || getPlayingCardArtPath(card, card.factionId) || null,
+    label: card.name || [card.rank || card.value, card.suit].filter(Boolean).join("") || "Public card"
+  };
+}
+
+function visualAction(action) {
+  if (!action) return null;
+  return {
+    ...clone(action),
+    cards: {
+      primary: visualCard(action.cards?.primary),
+      payments: (action.cards?.payments || []).map(visualCard).filter(Boolean),
+      blockers: (action.cards?.blockers || []).map(visualCard).filter(Boolean),
+      attachments: (action.cards?.attachments || []).map(visualCard).filter(Boolean)
+    }
+  };
 }
 
 function fallbackAction(step) {
@@ -114,8 +152,8 @@ export class ReplayMatchAdapter {
     const step = this.currentStep();
     const frame = this.frameForAction(action);
     const snapshot = frame?.publicState ? clone(frame.publicState) : null;
-    const event = actionEvent(action);
-    if (snapshot) snapshot.lastEvents = event ? [event] : [];
+    const events = actionEvents(action);
+    if (snapshot) snapshot.lastEvents = events;
     const viewModel = snapshot ? createGauntletMatchViewModel({
       game: snapshot,
       player: null,
@@ -124,7 +162,7 @@ export class ReplayMatchAdapter {
       phaseLabel: snapshot.phase === "gameOver" ? "Match Complete" : String(snapshot.phase || "Replay"),
       currentTurnLabel: `Turn ${Number(snapshot.turn || step?.turn || 0)}`,
       activePlayer: snapshot.priority,
-      events: event ? [event] : [],
+      events,
       interaction: {
         handInteractionEnabled: false,
         legalLanes: [],
@@ -135,6 +173,7 @@ export class ReplayMatchAdapter {
       confirmDisabled: true,
       confirmReason: "Replay is read-only."
     }) : null;
+    if (viewModel) viewModel.replayAction = visualAction(action);
     return {
       source: "replay",
       connected: true,
@@ -142,7 +181,7 @@ export class ReplayMatchAdapter {
       snapshot,
       revision: Number(snapshot?.revision || 0),
       legalActions: [],
-      events: event ? [event] : [],
+      events,
       viewModel,
       commands: this.commands,
       controls: null,

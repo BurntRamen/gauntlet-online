@@ -3,10 +3,12 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
+import MatchesHub from "./MatchesHub";
+import Studio from "./Studio";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
-import { ActiveSeasonMatches, SeasonQueueSummary, SeasonStandings } from "./SeasonZero";
+import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
@@ -31,6 +33,10 @@ const INITIAL_JOIN_ROOM_CODE =
   typeof window !== "undefined"
     ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
     : "";
+const INITIAL_HOME_AREA =
+  typeof window !== "undefined" && new URLSearchParams(window.location.search).get("studio") === "1"
+    ? "studio"
+    : "journey";
 
 function getPublicViewFromLocation() {
   if (typeof window === "undefined") return null;
@@ -3535,7 +3541,8 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
-  const [homeArea, setHomeArea] = useState("journey");
+  const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
+  const [ownerAuthorized, setOwnerAuthorized] = useState(false);
   const [playView, setPlayView] = useState("tables");
   const [identityView, setIdentityView] = useState("profile");
   const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
@@ -4427,6 +4434,16 @@ export default function App() {
     setPublicView(null);
   }
 
+  function openMatchesFromPublicView() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("match");
+    url.searchParams.delete("profile");
+    url.searchParams.delete("replay");
+    window.history.pushState({}, "", url);
+    setPublicView(null);
+    setHomeArea("matches");
+  }
+
   function createRoom() {
     clearReconnectInfo();
     socket.emit("createRoom", playerIdentityPayload());
@@ -4786,6 +4803,11 @@ export default function App() {
     setDraftLeagueStatus({ inQueue: false, message: "" });
   }
 
+  function returnToMatches() {
+    returnToMainMenu();
+    setHomeArea("matches");
+  }
+
   function togglePayment(i) {
     if (attackMode?.from === "hand" && i === selectedAttackCardIndex) return;
     if (blockMode?.type === "handAttack" && selectedBlockCardIndexes.includes(i)) return;
@@ -4947,6 +4969,7 @@ export default function App() {
           serverUrl={SOCKET_URL}
           audioEnabled={!accountSoundMuted}
           onBack={() => openPublicView("match", publicView.id)}
+          onOpenMatches={openMatchesFromPublicView}
         />
       </Suspense>
     );
@@ -5087,7 +5110,7 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep}>
+        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"}>
           {homeArea === "play" && (
             <div className="play-hub">
               <div className="play-view-tabs" role="tablist" aria-label="Play formats">
@@ -5242,6 +5265,22 @@ export default function App() {
             </div>
           )}
 
+          {homeArea === "matches" && (
+            <MatchesHub
+              account={account}
+              authToken={authToken}
+              serverUrl={SOCKET_URL}
+              season={activeSeason}
+              standings={leaderboard}
+              playerStanding={playerSeasonStanding}
+              lifetimeStandings={lifetimeLeaderboard}
+              seasonError={leaderboardError}
+              onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+              onOpenMatch={(matchId) => openPublicView("match", matchId)}
+              onOpenReplay={openReplay}
+            />
+          )}
+
           {homeArea === "build" && (
             <div className="build-hub">
               <section className="build-vault-panel">
@@ -5366,16 +5405,16 @@ export default function App() {
                 unreadCounts={friendUnreadCounts}
                 unreadTotal={friendUnreadTotal}
               />
-              <SeasonStandings
-                season={activeSeason}
-                standings={leaderboard}
-                playerStanding={playerSeasonStanding}
-                lifetimeStandings={lifetimeLeaderboard}
-                error={leaderboardError}
-                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-              />
               </div>}
             </div>
+          )}
+          {homeArea === "studio" && (
+            <Studio
+              serverUrl={SOCKET_URL}
+              onAuthorizedChange={setOwnerAuthorized}
+              onOpenMatch={(matchId) => openPublicView("match", matchId)}
+              onOpenReplay={openReplay}
+            />
           )}
         </HomeNavigation>
         </div>
@@ -5539,6 +5578,7 @@ export default function App() {
             campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
             onContinueCampaign={continueCampaignChapter}
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
+            onOpenMatches={returnToMatches}
             options={{
               audioEnabled: !accountSoundMuted,
               onAudioEnabledChange: (enabled) => {
@@ -5698,6 +5738,7 @@ export default function App() {
             {game.matchId && (
               <MenuButton variant="secondary" onClick={() => openReplay(game.matchId)}>Watch Replay</MenuButton>
             )}
+            <MenuButton variant="secondary" onClick={returnToMatches}>Matches</MenuButton>
             {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
             <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>

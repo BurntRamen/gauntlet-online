@@ -60,7 +60,7 @@
 
 .home-area-nav {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
   gap: 7px;
   margin-bottom: 14px;
 }
@@ -93,8 +93,10 @@
 
 .home-area-nav button[data-area="play"] { --area-accent: var(--play-accent); }
 .home-area-nav button[data-area="journey"] { --area-accent: var(--journey-accent); }
+.home-area-nav button[data-area="matches"] { --area-accent: #7dd3fc; }
 .home-area-nav button[data-area="build"] { --area-accent: var(--build-accent); }
 .home-area-nav button[data-area="identity"] { --area-accent: var(--identity-accent); }
+.home-area-nav button[data-area="studio"] { --area-accent: #f59e0b; }
 
 .home-area-nav strong,
 .home-area-nav span {

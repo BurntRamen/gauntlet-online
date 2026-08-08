@@ -135,6 +135,7 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   assert.equal(issued.entitlement.entitlementId, duplicateIssued.entitlement.entitlementId);
   assert.match(issued.claimUrl, /\?claim=/);
   assert.equal(issued.nonTransferable, true);
+  assert.equal(Object.keys(accounts[0].stats.collection.collectorIssuanceReceipts).length, 1);
 
   const signedOutPreview = await post(port, "/api/collection/collector-entitlement/preview", { token: issued.token });
   assert.equal(signedOutPreview.status, 401);
@@ -158,7 +159,7 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   assert.equal(firstResponse.status, 200);
   assert.equal(concurrentRetryResponse.status, 200);
   assert.deepEqual([first.alreadyRedeemed, concurrentRetry.alreadyRedeemed].sort(), [false, true]);
-  assert.equal(patchCount, 1);
+  assert.equal(patchCount, 2);
   assert.equal(first.grantedVariants.length, 8);
   assert.equal(Object.values(accounts[0].stats.collection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 2);
   assert.equal(Object.values(accounts[0].stats.collection.collectorVariants).reduce((sum, count) => sum + count, 0), 10);
@@ -174,6 +175,6 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   const afterReplacement = await post(port, "/api/collection/collector-entitlement/redeem", { token: issued.token }, refreshedSession);
   const replacementBody = await afterReplacement.json();
   assert.equal(replacementBody.alreadyRedeemed, true);
-  assert.equal(patchCount, 1);
+  assert.equal(patchCount, 2);
   assert.equal(Object.keys(accounts[0].stats.collection.collectorRedemptionReceipts).length, 1);
 });

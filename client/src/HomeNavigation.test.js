@@ -20,7 +20,7 @@ function NavigationHarness({ onContinue }) {
   );
 }
 
-test("shows one next action and switches between all four product areas", () => {
+test("shows one next action and switches between all five player product areas", () => {
   const onContinue = jest.fn();
   render(<NavigationHarness onContinue={onContinue} />);
 
@@ -28,7 +28,7 @@ test("shows one next action and switches between all four product areas", () => 
   fireEvent.click(screen.getByRole("button", { name: "Learn Gauntlet" }));
   expect(onContinue).toHaveBeenCalledTimes(1);
 
-  for (const area of ["Play", "Journey", "Build", "Identity"]) {
+  for (const area of ["Play", "Journey", "Matches", "Build", "Identity"]) {
     const button = screen.getByRole("button", { name: new RegExp(`^${area}`) });
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-current", "page");

@@ -348,12 +348,14 @@ function groupEvidence(evidence, frames) {
 }
 
 function actionDuration(kind, entries) {
-  if (kind === "result") return 2800;
-  if (kind === "resolution") return entries.some((entry) => entry.eventType === "match.ended") ? 2800 : 2400;
-  if (["attack", "block", "ability"].includes(kind)) return 2200;
-  if (["placement", "payment"].includes(kind)) return 1400;
-  if (["turn", "start"].includes(kind)) return 1000;
-  return 700;
+  if (kind === "result") return 3200;
+  if (kind === "resolution") return entries.some((entry) => entry.eventType === "match.ended") ? 3200 : 3000;
+  if (["attack", "block"].includes(kind)) return 2600;
+  if (kind === "ability") return 2800;
+  if (kind === "placement") return 1800;
+  if (kind === "payment") return 1500;
+  if (["turn", "start"].includes(kind)) return 1200;
+  return 800;
 }
 
 function humanizeIdentifier(value) {

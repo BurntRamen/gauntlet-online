@@ -473,12 +473,31 @@ function emptyCollection() {
     openedPacks: 0,
     openedGameplayPacks: 0,
     openedCollectorPacks: 0,
+    collectorIssuanceReceipts: {},
     collectorRedemptionReceipts: {},
     collectorVariantProvenance: {},
     lastPack: null,
     lastGameplayPack: null,
     lastCollectorPack: null
   };
+}
+
+function normalizeCollectorIssuanceReceipts(value = {}) {
+  const receipts = {};
+  for (const [entitlementId, receipt] of Object.entries(value || {})) {
+    if (!receipt || typeof receipt !== "object" || String(receipt.entitlementId || "") !== String(entitlementId)) continue;
+    receipts[String(entitlementId)] = {
+      entitlementId: String(entitlementId),
+      accountId: String(receipt.accountId || ""),
+      productId: String(receipt.productId || ""),
+      productType: String(receipt.productType || PHYSICAL_COLLECTOR_PRODUCT_TYPE),
+      issuanceSource: String(receipt.issuanceSource || "owner-manual-fulfillment"),
+      issuedAt: receipt.issuedAt || null,
+      expiresAt: receipt.expiresAt || null,
+      externalReferenceHash: String(receipt.externalReferenceHash || "")
+    };
+  }
+  return receipts;
 }
 
 function normalizeCollectorRedemptionReceipts(value = {}) {
@@ -553,6 +572,7 @@ function normalizeCollection(stats = {}) {
   const openedGameplayPacks = Math.max(0, Number(collection.openedGameplayPacks ?? collection.openedPacks ?? 0));
   const purchasedCollectorPacks = Math.max(0, Number(collection.purchasedCollectorPacks ?? collection.purchasedPacks ?? 0));
   const lastGameplayPack = collection.lastGameplayPack || collection.lastPack || null;
+  const collectorIssuanceReceipts = normalizeCollectorIssuanceReceipts(collection.collectorIssuanceReceipts);
   const collectorRedemptionReceipts = normalizeCollectorRedemptionReceipts(collection.collectorRedemptionReceipts);
   return {
     schemaVersion: 2,
@@ -567,6 +587,7 @@ function normalizeCollection(stats = {}) {
     openedPacks: openedGameplayPacks,
     openedGameplayPacks,
     openedCollectorPacks: Math.max(0, Number(collection.openedCollectorPacks || 0)),
+    collectorIssuanceReceipts,
     collectorRedemptionReceipts,
     collectorVariantProvenance: buildCollectorVariantProvenance(collectorRedemptionReceipts),
     lastPack: lastGameplayPack,
@@ -2938,6 +2959,38 @@ app.post("/api/collection/collector-pack-purchase-link", sendCollectorPackPurcha
 app.post("/api/collection/pack-purchase-link", sendCollectorPackPurchaseLink);
 
 const collectorRedemptionQueues = new Map();
+const OWNER_SESSION_VERSION = "gauntlet.owner-session.v1";
+const OWNER_SESSION_TTL_MS = 60 * 60 * 1000;
+
+function safeSecretEqual(left, right) {
+  const leftBuffer = Buffer.from(String(left || ""));
+  const rightBuffer = Buffer.from(String(right || ""));
+  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function ownerSessionSignature(payload) {
+  return crypto.createHmac("sha256", OWNER_STATS_TOKEN).update(payload).digest("base64url");
+}
+
+function issueOwnerSession(now = Date.now()) {
+  const payload = Buffer.from(JSON.stringify({
+    version: OWNER_SESSION_VERSION,
+    issuedAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + OWNER_SESSION_TTL_MS).toISOString()
+  })).toString("base64url");
+  return `${payload}.${ownerSessionSignature(payload)}`;
+}
+
+function verifyOwnerSession(token, now = Date.now()) {
+  const [payload, signature, extra] = String(token || "").split(".");
+  if (!payload || !signature || extra || !OWNER_STATS_TOKEN || !safeSecretEqual(signature, ownerSessionSignature(payload))) return false;
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    return parsed.version === OWNER_SESSION_VERSION && Date.parse(parsed.expiresAt) > now;
+  } catch {
+    return false;
+  }
+}
 
 function ownerTokenFromRequest(req) {
   const authHeader = req.get("authorization") || "";
@@ -2945,12 +2998,30 @@ function ownerTokenFromRequest(req) {
 }
 
 function requireOwnerAuthorization(req, res) {
-  if (!OWNER_STATS_TOKEN || ownerTokenFromRequest(req) !== OWNER_STATS_TOKEN) {
+  const rawOwnerToken = ownerTokenFromRequest(req);
+  const sessionToken = req.get("x-owner-session") || "";
+  if (!OWNER_STATS_TOKEN || (!safeSecretEqual(rawOwnerToken, OWNER_STATS_TOKEN) && !verifyOwnerSession(sessionToken))) {
     res.status(403).json({ error: "Owner authorization required." });
     return false;
   }
   return true;
 }
+
+const ownerSessionRateLimit = createAuthRateLimiter({ event: "owner_session_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 8 });
+
+app.post("/api/admin/session", ownerSessionRateLimit, (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!OWNER_STATS_TOKEN || !safeSecretEqual(req.body?.ownerToken, OWNER_STATS_TOKEN)) {
+    res.status(403).json({ error: "Owner authorization required." });
+    return;
+  }
+  res.json({ sessionToken: issueOwnerSession(), expiresInMs: OWNER_SESSION_TTL_MS });
+});
+
+app.get("/api/admin/session", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ authorized: verifyOwnerSession(req.get("x-owner-session") || "") });
+});
 
 async function findCollectorFulfillmentAccount(input = {}) {
   const accountId = String(input.accountId || "").trim();
@@ -3039,6 +3110,48 @@ async function persistCollectorEntitlementRedemption(accountId, entitlement, red
   });
 }
 
+async function persistCollectorEntitlementIssuance(accountId, entitlement) {
+  return withCollectorAccountLock(accountId, async () => {
+    const recordIssuance = (account) => {
+      account.stats = account.stats || {};
+      const collection = normalizeCollection(account.stats);
+      const existing = collection.collectorIssuanceReceipts?.[entitlement.entitlementId];
+      if (existing) return { account, receipt: existing, alreadyIssued: true };
+      const receipt = {
+        entitlementId: entitlement.entitlementId,
+        accountId,
+        productId: entitlement.productId,
+        productType: entitlement.productType,
+        issuanceSource: entitlement.issuanceSource,
+        issuedAt: entitlement.issuedAt,
+        expiresAt: entitlement.expiresAt,
+        externalReferenceHash: entitlement.externalReferenceHash
+      };
+      collection.collectorIssuanceReceipts = {
+        ...collection.collectorIssuanceReceipts,
+        [receipt.entitlementId]: receipt
+      };
+      account.stats.collection = collection;
+      return { account, receipt, alreadyIssued: false };
+    };
+
+    if (useSupabaseStore()) {
+      const account = await findSupabaseAccountById(accountId);
+      if (!account) throw new Error("Gauntlet account was not found.");
+      const result = recordIssuance(account);
+      if (!result.alreadyIssued) await patchSupabaseAccount(accountId, { stats: account.stats, last_seen_at: entitlement.issuedAt });
+      return result;
+    }
+
+    const store = loadAccountStore();
+    const account = store.accounts.find((entry) => entry.id === accountId);
+    if (!account) throw new Error("Gauntlet account was not found.");
+    const result = recordIssuance(account);
+    if (!result.alreadyIssued) saveAccountStore(store);
+    return result;
+  });
+}
+
 app.post("/api/admin/collector-entitlements/issue", async (req, res) => {
   res.set("Cache-Control", "no-store");
   if (!requireOwnerAuthorization(req, res)) return;
@@ -3055,6 +3168,7 @@ app.post("/api/admin/collector-entitlements/issue", async (req, res) => {
       externalReference: req.body?.externalReference || req.body?.orderReference,
       expiresAt: req.body?.expiresAt || null
     }, COLLECTOR_ENTITLEMENT_SECRET);
+    await persistCollectorEntitlementIssuance(account.id, issued.payload);
     res.json({
       entitlement: collectorClaimResponse(account, issued.payload, resolveCollectorEntitlementProduct(issued.payload.productId)).entitlement,
       product: publicCollectorEntitlementProduct(resolveCollectorEntitlementProduct(issued.payload.productId)),
@@ -3302,12 +3416,7 @@ app.patch("/api/friend-challenges/:challengeId", async (req, res) => {
 });
 
 app.get("/api/admin/account-stats", async (req, res) => {
-  const authHeader = req.get("authorization") || "";
-  const providedToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
-  if (!OWNER_STATS_TOKEN || providedToken !== OWNER_STATS_TOKEN) {
-    res.status(403).json({ error: "Owner stats token required." });
-    return;
-  }
+  if (!requireOwnerAuthorization(req, res)) return;
 
   const accounts = useSupabaseStore()
     ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
@@ -3331,12 +3440,7 @@ app.get("/api/admin/account-stats", async (req, res) => {
 });
 
 app.get("/api/admin/faction-stats", async (req, res) => {
-  const authHeader = req.get("authorization") || "";
-  const providedToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
-  if (!OWNER_STATS_TOKEN || providedToken !== OWNER_STATS_TOKEN) {
-    res.status(403).json({ error: "Owner stats token required." });
-    return;
-  }
+  if (!requireOwnerAuthorization(req, res)) return;
 
   try {
     const store = await loadFactionStatsStore();
@@ -3673,6 +3777,149 @@ app.get("/api/seasons/active/matches", (_req, res) => {
     return;
   }
   res.json({ season: publicSeasonDefinition(season), matches: listSpectatableSeasonMatches(season) });
+});
+
+function studioActiveRooms() {
+  const now = Date.now();
+  return [...rooms.values()].map((roomState) => {
+    const game = roomState.game || null;
+    const startedAt = roomState.matchMetadata?.startedAt || roomState.lifecycle?.createdAt || null;
+    return {
+      roomCode: roomState.roomCode,
+      matchId: game?.matchId || roomState.matchMetadata?.matchId || null,
+      mode: game?.gameMode || roomState.lobby?.gameMode || "lobby",
+      ranked: !!roomState.ranked,
+      season: roomState.season ? publicSeasonDefinition(roomState.season) : null,
+      turn: Number(game?.turn || 0),
+      phase: game?.phase || (roomState.draft ? "draft" : "lobby"),
+      lifecycleStatus: roomState.lifecycle?.status || "active",
+      spectatorCount: Number(roomState.lobby?.spectators?.length || 0),
+      startedAt,
+      ageSeconds: startedAt ? Math.max(0, Math.round((now - Date.parse(startedAt)) / 1000)) : null,
+      players: Object.entries(game?.players || roomState.lobby?.players || {}).map(([playerNum, player]) => ({
+        playerNum: Number(playerNum),
+        displayName: player?.accountName || player?.guestName || `Player ${playerNum}`,
+        factionId: player?.faction?.id || player?.factionId || null,
+        connected: player?.connected !== false
+      }))
+    };
+  }).sort((left, right) => Number(right.ageSeconds || 0) - Number(left.ageSeconds || 0));
+}
+
+async function loadStudioAccounts() {
+  return useSupabaseStore()
+    ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
+    : loadAccountStore().accounts;
+}
+
+async function studioMatchState(accounts) {
+  const recordsById = new Map();
+  const results = await Promise.allSettled(accounts.map((account) => listMatchRecordsByAccount(account.id, 30)));
+  results.forEach((result) => {
+    if (result.status !== "fulfilled") return;
+    result.value.forEach((record) => recordsById.set(record.matchId, record));
+  });
+  const records = [...recordsById.values()].sort((left, right) => Date.parse(right.completedAt || 0) - Date.parse(left.completedAt || 0));
+  const availableIds = new Set(recordsById.keys());
+  const unavailableReferences = new Map();
+  accounts.forEach((account) => {
+    normalizeProgression(account.stats || {}).matchHistory.forEach((reference) => {
+      if (!availableIds.has(reference.matchId)) unavailableReferences.set(reference.matchId, reference);
+    });
+  });
+  return {
+    records,
+    unavailableReferences: [...unavailableReferences.values()]
+  };
+}
+
+function studioCollectorState(accounts) {
+  const issuances = [];
+  const redemptions = [];
+  accounts.forEach((account) => {
+    const collection = normalizeCollection(account.stats || {});
+    Object.values(collection.collectorIssuanceReceipts || {}).forEach((receipt) => issuances.push({
+      ...receipt,
+      account: { id: account.id, name: account.name },
+      redeemed: !!collection.collectorRedemptionReceipts?.[receipt.entitlementId]
+    }));
+    Object.values(collection.collectorRedemptionReceipts || {}).forEach((receipt) => redemptions.push({
+      ...receipt,
+      account: { id: account.id, name: account.name }
+    }));
+  });
+  return {
+    issuedCount: issuances.length,
+    redeemedCount: redemptions.length,
+    pendingCount: issuances.filter((receipt) => !receipt.redeemed).length,
+    issuances: issuances.sort((left, right) => Date.parse(right.issuedAt || 0) - Date.parse(left.issuedAt || 0)).slice(0, 50),
+    redemptions: redemptions.sort((left, right) => Date.parse(right.redeemedAt || 0) - Date.parse(left.redeemedAt || 0)).slice(0, 50)
+  };
+}
+
+app.get("/api/admin/overview", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  try {
+    const accounts = await loadStudioAccounts();
+    const season = getActiveSeason() || ACTIVE_SEASON;
+    const matchState = await studioMatchState(accounts);
+    const storage = publicMatchStorageStatus();
+    const recentRecords = matchState.records.slice(0, 30).map((record) => {
+      const replay = replayAvailability(record, storage);
+      let actionCount = 0;
+      if (replay.available) {
+        try { actionCount = buildReplayTimeline(record, storage).actions.length; } catch { actionCount = 0; }
+      }
+      return {
+        ...publicMatchSummary(record),
+        replay: { ...replay, actionCount },
+        recordV2Available: Number(record.recordVersion) === 2,
+        paraExportAvailable: Number(record.recordVersion) === 2
+      };
+    });
+    const standings = buildSeasonStandings(accounts, season);
+    const seasonGames = Math.round(standings.reduce((total, entry) => total + Number(entry.gamesPlayed || 0), 0) / 2);
+    res.json({
+      generatedAt: new Date().toISOString(),
+      system: {
+        backendReachable: true,
+        backendCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || null,
+        accountStorage: useSupabaseStore() ? "supabase-configured" : "local-json",
+        matchStorage: storage.mode,
+        matchStorageCapabilities: storage.capabilities,
+        supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY),
+        activeSeason: publicSeasonDefinition(season)
+      },
+      accounts: {
+        total: accounts.length,
+        activeRecently: accounts.filter((account) => Date.parse(account.lastSeenAt || 0) > Date.now() - 7 * 24 * 60 * 60 * 1000).length
+      },
+      activePlay: {
+        rooms: studioActiveRooms(),
+        rankedQueue: matchmakingQueue.length,
+        draftQueues: { player: draftLeagueQueues.player.length, bot: draftLeagueQueues.bot.length }
+      },
+      matches: {
+        recent: recentRecords,
+        exactFrameReplayCount: recentRecords.filter((record) => record.replay.mode === "public-state-frames").length,
+        eventOnlyReplayCount: recentRecords.filter((record) => record.replay.mode === "event-only").length,
+        unavailableReferenceCount: matchState.unavailableReferences.length,
+        unavailableReferences: matchState.unavailableReferences.slice(0, 50)
+      },
+      season: {
+        definition: publicSeasonDefinition(season),
+        participantCount: standings.length,
+        gameCount: seasonGames,
+        standings: standings.slice(0, 50),
+        activeMatchCount: studioActiveRooms().filter((room) => room.season?.seasonId === season.seasonId).length
+      },
+      collector: studioCollectorState(accounts)
+    });
+  } catch (error) {
+    console.error("[Studio] Failed to load operational overview", error);
+    res.status(503).json({ error: "Studio operations are temporarily unavailable." });
+  }
 });
 
 function persistRoomsNow(now = Date.now()) {

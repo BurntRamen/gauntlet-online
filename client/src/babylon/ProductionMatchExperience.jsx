@@ -756,7 +756,8 @@ function MatchResult({
   completion,
   campaignContinuationReady,
   onContinueCampaign,
-  onOpenReplay
+  onOpenReplay,
+  onOpenMatches
 }) {
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
@@ -799,6 +800,11 @@ function MatchResult({
         {onOpenReplay && (
           <button type="button" onClick={onOpenReplay}>
             Watch Replay
+          </button>
+        )}
+        {onOpenMatches && (
+          <button type="button" onClick={onOpenMatches}>
+            Matches
           </button>
         )}
         {nextMission && onContinueCampaign && (
@@ -1092,6 +1098,7 @@ export default function ProductionMatchExperience({
   campaignContinuationReady = true,
   onContinueCampaign,
   onOpenReplay,
+  onOpenMatches,
   onRendererFailure,
   onSceneMetrics
 }) {
@@ -1408,6 +1415,7 @@ export default function ProductionMatchExperience({
             campaignContinuationReady={campaignContinuationReady}
             onContinueCampaign={onContinueCampaign}
             onOpenReplay={onOpenReplay}
+            onOpenMatches={onOpenMatches}
           />
         )}
 

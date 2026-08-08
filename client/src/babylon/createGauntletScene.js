@@ -848,7 +848,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let currentMatchId = null;
   const animationQueue = [];
   const animatedEventIds = new Set();
-  const lastState = { topLife: null, bottomLife: null, priority: null };
+  const lastState = { topLife: null, bottomLife: null, priority: null, lanes: null, replayActionId: null };
   const pulse = { top: 0, bottom: 0 };
   let lastPointerPick = null;
   const identityMatrix = Matrix.Identity();
@@ -1188,7 +1188,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     arrow.visibility = 0.92;
   }
 
-  function updateIdentity(identity, player, hasPriority, isLocal) {
+  function updateIdentity(identity, player, hasPriority, isLocal, isActing = false) {
     if (!player) {
       identity.playerName.text = isLocal ? "Player" : "Opponent";
       identity.life.text = "♥ —";
@@ -1210,10 +1210,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       ? "G"
       : String(player.factionName || "G").slice(0, 1).toUpperCase();
     identity.status.isVisible = true;
-    identity.statusText.text = hasPriority ? "PRIORITY" : isLocal ? "READY" : "WAITING";
-    identity.status.color = hasPriority ? MATCH_COLORS.blue : "#526879";
-    identity.statusText.color = hasPriority ? MATCH_COLORS.blue : MATCH_COLORS.muted;
-    identity.panel.color = hasPriority ? MATCH_COLORS.blue : "#4b677b";
+    identity.statusText.text = isActing ? "ACTION" : hasPriority ? "PRIORITY" : isLocal ? "READY" : "WAITING";
+    identity.status.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : "#526879";
+    identity.statusText.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : MATCH_COLORS.muted;
+    identity.panel.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : "#4b677b";
   }
 
   function enqueueEventAnimations(events = [], revision = 0) {
@@ -1295,6 +1295,94 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       });
   }
 
+  function stageReplayAction(viewModel, liveIds, bottomPlayer) {
+    const action = viewModel.replayAction;
+    if (!action) return;
+    const actorIsBottom = Number(action.actorPlayerNum) === Number(bottomPlayer);
+    const rotationZ = actorIsBottom ? 0 : Math.PI;
+    const source = new Vector3(
+      actorIsBottom ? MATCH_LAYOUT.playerHand.x : MATCH_LAYOUT.opponentHand.x,
+      actorIsBottom ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
+      actorIsBottom ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
+    );
+    const stageCard = (card, id, position, options = {}) => {
+      if (!card) return;
+      liveIds.add(id);
+      updateCardRecord(id, card.label || card.name, position, {
+        artPath: card.artPath,
+        initialPosition: source,
+        selected: true,
+        scale: options.scale || 0.64,
+        selectionRole: options.selectionRole || "primary",
+        badgeText: options.badgeText || "",
+        badgeColor: options.badgeColor || MATCH_COLORS.blue,
+        badgeBackground: options.badgeBackground || "#07111cf2",
+        metadata: {
+          type: "replay-action",
+          preview: { ...card, stateLabel: options.stateLabel || action.label, stateIcon: options.stateIcon || action.kind }
+        }
+      });
+    };
+
+    (action.cards?.payments || []).forEach((card, index, cards) => stageCard(
+      card,
+      `replay-${action.id}-payment-${index}`,
+      {
+        x: MATCH_LAYOUT.payment.x + (index - (cards.length - 1) / 2) * MATCH_LAYOUT.payment.spread,
+        y: MATCH_LAYOUT.payment.y + index * 0.018,
+        z: MATCH_LAYOUT.payment.z,
+        rotationX: Math.PI / 2,
+        rotationZ
+      },
+      { selectionRole: "payment", badgeText: "PAY", badgeColor: MATCH_COLORS.bronze, stateLabel: "Public payment", stateIcon: "payment", scale: 0.58 }
+    ));
+    const battlefieldBlockerIds = new Set(viewModel.attacks.flatMap((attack) => (
+      attack.blocks || []
+    )).map((block) => block.card?.raw?.id).filter(Boolean));
+    const detachedBlockers = (action.cards?.blockers || []).filter((card) => !battlefieldBlockerIds.has(card.runtimeId));
+    detachedBlockers.forEach((card, index, cards) => stageCard(
+      card,
+      `replay-${action.id}-block-${index}`,
+      {
+        x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX + (index - (cards.length - 1) / 2) * 1.28,
+        y: MATCH_LAYOUT.handCombat.y + 0.3,
+        z: MATCH_LAYOUT.handCombat.localBlockRow,
+        rotationX: Math.PI / 2,
+        rotationZ
+      },
+      { selectionRole: "blocker", badgeText: "BLOCK", badgeColor: MATCH_COLORS.good, stateLabel: "Public blocker", stateIcon: "block" }
+    ));
+    (action.cards?.attachments || []).forEach((card, index, cards) => stageCard(
+      card,
+      `replay-${action.id}-attachment-${index}`,
+      {
+        x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX + (index - (cards.length - 1) / 2) * 1.12,
+        y: MATCH_LAYOUT.handCombat.y + 0.34 + index * 0.02,
+        z: MATCH_LAYOUT.handCombat.localRow + (actorIsBottom ? -0.65 : 0.65),
+        rotationX: Math.PI / 2,
+        rotationZ
+      },
+      { badgeText: "ARMED", badgeColor: MATCH_COLORS.purple, stateLabel: "Public attachment", stateIcon: "ability", scale: 0.56 }
+    ));
+    const existingAttack = viewModel.attacks.some((attack) => action.cards?.primary?.runtimeId && attack.card?.raw?.id === action.cards.primary.runtimeId);
+    if (action.cards?.primary && !existingAttack && ["attack", "block", "resolution", "ability"].includes(action.kind)) {
+      stageCard(action.cards.primary, `replay-${action.id}-primary`, {
+        x: action.laneIndex == null ? MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX : MATCH_LAYOUT.lanes.x[action.laneIndex],
+        y: MATCH_LAYOUT.handCombat.y + 0.36,
+        z: action.laneIndex == null ? MATCH_LAYOUT.handCombat.localRow : MATCH_LAYOUT.anchors.resolution,
+        rotationX: Math.PI / 2,
+        rotationZ
+      }, {
+        selectionRole: action.kind === "resolution" ? "danger" : "primary",
+        badgeText: action.kind === "resolution" ? `${action.values?.damage || 0} DMG` : action.kind.toUpperCase(),
+        badgeColor: action.kind === "resolution" ? MATCH_COLORS.danger : MATCH_COLORS.blue,
+        stateLabel: action.summary,
+        stateIcon: action.kind,
+        scale: 0.72
+      });
+    }
+  }
+
   function update(viewModel) {
     if (disposed || !viewModel) return;
     const nextMatchId = viewModel.matchId || null;
@@ -1309,12 +1397,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       lastState.topLife = null;
       lastState.bottomLife = null;
       lastState.priority = null;
+      lastState.lanes = null;
+      lastState.replayActionId = null;
       pulse.top = 0;
       pulse.bottom = 0;
     }
     currentMatchId = nextMatchId;
     currentViewModel = viewModel;
     const bottomPlayer = viewModel.perspective?.player || viewModel.perspective?.bottomPlayer;
+    if (viewModel.replayAction?.id && viewModel.replayAction.id !== lastState.replayActionId) {
+      animationQueue.length = 0;
+      activeEventAnimation = null;
+      (viewModel.events || []).forEach((entry) => animatedEventIds.delete(entry.id));
+      lastState.replayActionId = viewModel.replayAction.id;
+    }
     enqueueEventAnimations(viewModel.events || [], viewModel.revision);
     const liveIds = new Set();
     const drawnCardIds = new Set(
@@ -1330,8 +1426,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const topPriority = !!top && viewModel.priority === top.id;
     const bottomPriority = !!bottom && viewModel.priority === bottom.id;
 
-    updateIdentity(ui.topIdentity, top, topPriority, false);
-    updateIdentity(ui.bottomIdentity, bottom, bottomPriority, true);
+    const actingPlayer = viewModel.replayAction?.actorPlayerNum;
+    updateIdentity(ui.topIdentity, top, topPriority, false, Number(actingPlayer) === Number(top?.id));
+    updateIdentity(ui.bottomIdentity, bottom, bottomPriority, true, Number(actingPlayer) === Number(bottom?.id));
     ui.phase.text = `${viewModel.currentTurnLabel}  •  ${viewModel.phaseLabel}`;
     ui.phase.color = viewModel.localHasPriority ? MATCH_COLORS.bronze : MATCH_COLORS.muted;
     ui.context.text = viewModel.instruction || (
@@ -1393,7 +1490,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     viewModel.lanes.forEach((lane, index) => {
       const laneMesh = laneMeshes[index];
       const legal = viewModel.interactions.legalLanes.includes(index);
-      const highlighted = (viewModel.interactions.highlightedLanes || []).includes(index);
+      const highlighted = (viewModel.interactions.highlightedLanes || []).includes(index)
+        || Number(viewModel.replayAction?.laneIndex) === index;
       const abilityTargetOwner = viewModel.selection.abilityMode?.targetOwner;
       const peekAnyOwner = viewModel.selection.abilityMode?.abilityId === "polea-peek";
       const selectedAbilityLane = viewModel.selection.selectedAbilityLanes?.includes(index);
@@ -1429,7 +1527,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const opponentId = `lane-opponent-${index}`;
       liveIds.add(localId);
       liveIds.add(opponentId);
-      updateCardRecord(localId, "FACE-DOWN", stagedLaneAttack || stagedLaneBlock
+      const localLaneRecord = updateCardRecord(localId, "FACE-DOWN", stagedLaneAttack || stagedLaneBlock
         ? {
             x: MATCH_LAYOUT.lanes.x[index],
             y: 0.46,
@@ -1460,7 +1558,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         badgeText: stagedLaneAttack ? "ATTACK" : stagedLaneBlock ? "BLOCK" : "",
         badgeColor: stagedLaneBlock ? MATCH_COLORS.good : MATCH_COLORS.blue
       });
-      updateCardRecord(opponentId, "FACE-DOWN", getLanePosition(index, "opponent"), {
+      const opponentLaneRecord = updateCardRecord(opponentId, "FACE-DOWN", getLanePosition(index, "opponent"), {
         faceDown: true,
         alpha: lane.hasOpponentCard ? 1 : 0.05,
         scale: 0.64,
@@ -1480,6 +1578,18 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         selected: selectedAbilityLane && abilityTargetOwner === "opponent",
         selectionRole: "primary"
       });
+      if (!viewModel.reducedMotion && lastState.lanes) {
+        if (!lastState.lanes[index]?.local && lane.hasLocalCard) {
+          localLaneRecord.mesh.position.copyFrom(new Vector3(MATCH_LAYOUT.playerHand.x, 1.25, MATCH_LAYOUT.playerHand.z));
+          localLaneRecord.mesh.scaling.setAll(0.34);
+          localLaneRecord.mesh.visibility = 1;
+        }
+        if (!lastState.lanes[index]?.opponent && lane.hasOpponentCard) {
+          opponentLaneRecord.mesh.position.copyFrom(new Vector3(MATCH_LAYOUT.opponentHand.x, 1.25, MATCH_LAYOUT.opponentHand.z));
+          opponentLaneRecord.mesh.scaling.setAll(0.34);
+          opponentLaneRecord.mesh.visibility = 1;
+        }
+      }
 
       const blocks = lane.blocks || [];
       blocks.forEach((block, blockIndex) => {
@@ -1495,6 +1605,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           rotationZ: block.owner === bottomPlayer ? 0 : Math.PI
         }, {
           artPath: block.card.artPath,
+          initialPosition: viewModel.replayAction?.kind === "block"
+            && viewModel.replayAction.cards?.blockers?.some((card) => card.runtimeId === block.card.raw?.id)
+            ? new Vector3(
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.x : MATCH_LAYOUT.opponentHand.x,
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
+              )
+            : undefined,
           scale: 0.77,
           selected: true,
           selectionRole: "blocker",
@@ -1516,6 +1634,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const ownerIsLocal = laneAttack?.owner === bottomPlayer;
       setCombatDirection(index, ownerIsLocal, !!laneAttack);
     });
+    lastState.lanes = viewModel.lanes.map((lane) => ({ local: lane.hasLocalCard, opponent: lane.hasOpponentCard }));
 
     const opponentCount = top?.handCount || 0;
     for (let index = 0; index < opponentCount; index += 1) {
@@ -1754,6 +1873,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
               ? null
               : objects.get(`lane-opponent-${attack.laneIndex}`)
           );
+      const replayAttackSource = viewModel.replayAction?.kind === "attack"
+        && viewModel.replayAction.cards?.primary?.runtimeId === attack.card.raw?.id
+        ? new Vector3(
+            localAttack ? MATCH_LAYOUT.playerHand.x : MATCH_LAYOUT.opponentHand.x,
+            localAttack ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
+            localAttack ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
+          )
+        : undefined;
       updateCardRecord(id, attack.card.label, {
         x: isHandAttack ? handAttackX : MATCH_LAYOUT.lanes.x[attack.laneIndex],
         y: isHandAttack ? MATCH_LAYOUT.handCombat.y + 0.3 : 0.44,
@@ -1765,7 +1892,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }, {
         artPath: attack.card.artPath,
         faceDown: false,
-        initialPosition: sourceRecord?.mesh?.position?.clone(),
+        initialPosition: sourceRecord?.mesh?.position?.clone() || replayAttackSource,
         selected: true,
         selectionRole: selectedAbilityAttack ? "ability" : localAttack ? "primary" : "danger",
         scale: isHandAttack ? 0.68 : 0.77,
@@ -1795,6 +1922,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           const blockSource = block.owner === bottomPlayer
             ? objects.get(`player-hand-${block.card.id}`)
             : null;
+          const replayBlockSource = viewModel.replayAction?.kind === "block"
+            && viewModel.replayAction.cards?.blockers?.some((card) => card.runtimeId === block.card.raw?.id)
+            ? new Vector3(
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.x : MATCH_LAYOUT.opponentHand.x,
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.y : MATCH_LAYOUT.opponentHand.y,
+                block.owner === bottomPlayer ? MATCH_LAYOUT.playerHand.z : MATCH_LAYOUT.opponentHand.z
+              )
+            : undefined;
           updateCardRecord(blockId, block.card.label, {
             x: MATCH_LAYOUT.handCombat.x
               + MATCH_LAYOUT.handCombat.blockX
@@ -1805,7 +1940,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
             rotationZ: block.owner === bottomPlayer ? 0 : Math.PI
           }, {
             artPath: block.card.artPath,
-            initialPosition: blockSource?.mesh?.position?.clone(),
+            initialPosition: blockSource?.mesh?.position?.clone() || replayBlockSource,
             selected: true,
             selectionRole: "blocker",
             scale: 0.62,
@@ -1827,6 +1962,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
     });
 
+    stageReplayAction(viewModel, liveIds, bottomPlayer);
     stageDepartingPayments(viewModel.events || [], liveIds, viewModel);
     removeMissing(liveIds);
   }
