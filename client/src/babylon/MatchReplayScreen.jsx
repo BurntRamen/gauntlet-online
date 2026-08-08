@@ -68,7 +68,7 @@ function ReplayActionLayer({ action }) {
       <div className="replay-action-cards" aria-label="Focused public cards">
         <ReplayCard card={action.cards?.primary} role="primary" />
         <SupportingCards label="Payment" cards={action.cards?.payments} />
-        <SupportingCards label="Additional blockers" cards={supportingBlockers} />
+        <SupportingCards label="Blockers" cards={supportingBlockers} />
         <SupportingCards label="Armed" cards={action.cards?.attachments} />
       </div>
     </section>

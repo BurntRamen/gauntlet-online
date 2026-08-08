@@ -73,7 +73,10 @@ function replayResponse() {
         cards: {
           primary: { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Vault Shield Bearer", value: 4, factionId: "rumin" },
           payments: [{ runtimeId: "block-payment", name: "Two of Diamonds", rank: "2", value: 2, suit: "diamonds", factionId: "sheen" }],
-          blockers: [{ runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Vault Shield Bearer", value: 4, factionId: "rumin" }],
+          blockers: [
+            { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Vault Shield Bearer", value: 4, factionId: "rumin" },
+            { runtimeId: "blocker-2", name: "Three of Clubs", rank: "3", value: 3, suit: "clubs", factionId: "basic" }
+          ],
           attachments: []
         },
         values: { block: 6, paymentTotal: 2, paymentRequired: 2 },
@@ -117,6 +120,8 @@ test("visual replay mounts the official ProductionMatchExperience and exposes re
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
   expect(screen.getByText("Beta blocks with Vault Shield Bearer for 6")).toBeVisible();
   expect(screen.getAllByText("Vault Shield Bearer")[0]).toBeVisible();
+  expect(screen.getByText("Blockers")).toBeVisible();
+  expect(screen.getByText("Three of Clubs")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
   expect(await screen.findByRole("heading", { name: "Alpha wins" }, { timeout: 1800 })).toBeVisible();
   expect(screen.queryByText("Victory")).not.toBeInTheDocument();
