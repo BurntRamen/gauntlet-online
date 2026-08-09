@@ -1106,6 +1106,16 @@ function EventCallout({ events }) {
   );
 }
 
+function StatusTicker({ message }) {
+  if (!message) return null;
+  return (
+    <div className="production-status-ticker" role="status" aria-live="polite" aria-atomic="true">
+      <span>System</span>
+      <strong key={message}>{message}</strong>
+    </div>
+  );
+}
+
 export default function ProductionMatchExperience({
   adapter,
   options = {},
@@ -1410,6 +1420,7 @@ export default function ProductionMatchExperience({
           </div>
         )}
 
+        {update?.connected !== false && <StatusTicker message={viewModel.statusNotice} />}
         {update?.source !== "replay" && <EventCallout events={viewModel.events} />}
         {update?.source !== "replay" && <CombatRecap events={viewModel.events} />}
         <CardPreview preview={previewCard} />

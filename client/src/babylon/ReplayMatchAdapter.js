@@ -2,6 +2,8 @@ import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
 import { getPlayingCardArtPath } from "../cardArt";
 
+export const MIN_REPLAY_ACTION_INTERVAL_MS = 1100;
+
 function clone(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
   return JSON.parse(JSON.stringify(value));
@@ -176,6 +178,10 @@ export class ReplayMatchAdapter {
     if (viewModel) viewModel.replayAction = visualAction(action);
     return {
       source: "replay",
+      presentation: {
+        renderer: "babylon-shared",
+        motionContract: "gauntlet.card-motion.collision-safe.v1"
+      },
       connected: true,
       descriptor: snapshot ? createMatchDescriptor(snapshot, {}) : null,
       snapshot,
@@ -238,7 +244,10 @@ export class ReplayMatchAdapter {
       if (this.currentIndex >= finalIndex) this.playing = false;
       this.emit();
       if (this.playing) this.schedule();
-    }, Math.max(80, Number(this.currentAction()?.durationMs || this.playbackIntervalMs) / this.speed));
+    }, Math.max(
+      MIN_REPLAY_ACTION_INTERVAL_MS,
+      Number(this.currentAction()?.durationMs || this.playbackIntervalMs) / this.speed
+    ));
   }
 
   play() {

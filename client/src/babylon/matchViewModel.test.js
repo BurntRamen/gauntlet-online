@@ -128,3 +128,18 @@ test("keeps hand-attack blockers paired with the independent attack", () => {
   expect(view.handAttacks[0].blocks).toHaveLength(1);
   expect(view.handAttacks[0].blocks[0].card.label).toContain("5");
 });
+
+test("exposes public payment cards from the matching authoritative payment event", () => {
+  const game = makeGame();
+  game.paymentLog = [{ type: "attack", player: 2, cards: [card("paid-7", 7)], total: 7, required: 6 }];
+  game.lastEvents = [{ id: "payment-event", type: "payment.discarded", player: 2, cardIds: ["paid-7"], total: 7, required: 6 }];
+  const view = createBasicGauntletMatchViewModel({ game, player: 1, role: "player", events: game.lastEvents });
+
+  expect(view.publicPayments).toEqual([expect.objectContaining({
+    eventId: "payment-event",
+    owner: 2,
+    total: 7,
+    required: 6,
+    cards: [expect.objectContaining({ id: "paid-7", visible: true })]
+  })]);
+});

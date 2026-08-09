@@ -24,18 +24,21 @@ export const MATCH_LAYOUT = {
     opponentBlockRow: 5.25
   },
   payment: {
-    x: 12.15,
-    z: -3.6,
+    x: 9.2,
+    z: -6.35,
     y: 0.74,
-    width: 3.7,
-    depth: 1.72,
-    spread: 0.68
+    width: 6.05,
+    depth: 4.25,
+    spread: 1.5,
+    rowSpread: 2.1,
+    columns: 4,
+    scale: 0.6
   },
   piles: {
-    localDeck: { x: -12.35, z: -6.75 },
-    localDiscard: { x: -9.95, z: -6.75 },
-    opponentDeck: { x: 12.35, z: 7.02 },
-    opponentDiscard: { x: 9.95, z: 7.02 }
+    localDeck: { x: -9.9, z: -6.75 },
+    localDiscard: { x: -7.9, z: -6.75 },
+    opponentDeck: { x: 9.9, z: 7.02 },
+    opponentDiscard: { x: 7.9, z: 7.02 }
   },
   pilePads: {
     deck: { width: 1.68, depth: 2.26 },
@@ -58,7 +61,7 @@ export function getHandCombatPosition(role, index = 0, count = 1, ownerIsLocal =
   return {
     x: MATCH_LAYOUT.handCombat.x
       + (isBlocker ? MATCH_LAYOUT.handCombat.blockX : MATCH_LAYOUT.handCombat.attackX)
-      + centered * (isBlocker ? 1.34 : MATCH_LAYOUT.handCombat.spread),
+      + centered * (isBlocker ? 1.56 : MATCH_LAYOUT.handCombat.spread),
     y: MATCH_LAYOUT.handCombat.y + (isBlocker ? 0.24 : 0.3) + index * 0.012,
     z: MATCH_LAYOUT.handCombat.z,
     rotationX: Math.PI / 2,
@@ -67,19 +70,82 @@ export function getHandCombatPosition(role, index = 0, count = 1, ownerIsLocal =
   };
 }
 
+export function getHandCombatTickerPosition(index = 0, count = 1, role = "attacker", ownerIsLocal = true) {
+  const safeCount = Math.max(1, count);
+  const centered = index - (safeCount - 1) / 2;
+  const preferredScale = 0.58;
+  const gap = 0.12;
+  const scale = Math.min(
+    preferredScale,
+    Math.max(0.24, (MATCH_LAYOUT.handCombat.width - 0.5 - gap * (safeCount - 1))
+      / (MATCH_LAYOUT.card.width * safeCount))
+  );
+  const visibleCardWidth = MATCH_LAYOUT.card.width * scale;
+  const spread = safeCount <= 1 ? 0 : visibleCardWidth + gap;
+  return {
+    x: MATCH_LAYOUT.handCombat.x + centered * spread,
+    y: MATCH_LAYOUT.handCombat.y + (role === "blocker" ? 0.22 : 0.3) + index * 0.012,
+    z: MATCH_LAYOUT.handCombat.z + (role === "blocker" ? -0.16 : 0.16),
+    rotationX: Math.PI / 2,
+    rotationZ: ownerIsLocal ? 0 : Math.PI,
+    scale
+  };
+}
+
+export function getHandCombatAttachmentPosition(index = 0, count = 1, ownerIsLocal = true) {
+  const safeCount = Math.max(1, count);
+  const centered = index - (safeCount - 1) / 2;
+  return {
+    x: -6.3 + centered * 1.22,
+    y: MATCH_LAYOUT.handCombat.y + 0.18 + index * 0.012,
+    z: MATCH_LAYOUT.handCombat.z + (ownerIsLocal ? -0.08 : 0.08),
+    rotationX: Math.PI / 2,
+    rotationZ: ownerIsLocal ? 0 : Math.PI,
+    scale: 0.48
+  };
+}
+
+export function getPaymentPosition(index = 0, count = 1, ownerIsLocal = true) {
+  const safeCount = Math.max(1, count);
+  const columnCount = Math.min(MATCH_LAYOUT.payment.columns, safeCount);
+  const rowCount = Math.ceil(safeCount / columnCount);
+  const row = Math.floor(index / columnCount);
+  const cardsInRow = Math.min(columnCount, safeCount - row * columnCount);
+  const column = index % columnCount;
+  const centered = column - (cardsInRow - 1) / 2;
+  const visibleCardWidth = MATCH_LAYOUT.card.width * MATCH_LAYOUT.payment.scale;
+  const availableCenterSpan = Math.max(0, MATCH_LAYOUT.payment.width - visibleCardWidth);
+  const spread = cardsInRow <= 1
+    ? 0
+    : Math.min(MATCH_LAYOUT.payment.spread, availableCenterSpan / (cardsInRow - 1));
+  return {
+    x: MATCH_LAYOUT.payment.x + centered * spread + (row % 2 ? spread * 0.18 : 0),
+    y: MATCH_LAYOUT.payment.y + index * 0.018,
+    z: MATCH_LAYOUT.payment.z + (row - (rowCount - 1) / 2) * MATCH_LAYOUT.payment.rowSpread,
+    rotationX: Math.PI / 2,
+    rotationZ: (ownerIsLocal ? 0 : Math.PI) + centered * -0.035,
+    scale: MATCH_LAYOUT.payment.scale
+  };
+}
+
 export function getLaneCombatPosition(laneIndex, role, index = 0, count = 1, ownerIsLocal = true) {
   const safeCount = Math.max(1, count);
   const centered = index - (safeCount - 1) / 2;
   const isBlocker = role === "blocker";
+  const preferredScale = isBlocker ? 0.58 : 0.68;
+  const gap = 0.12;
+  const scale = Math.min(
+    preferredScale,
+    Math.max(0.3, (MATCH_LAYOUT.lanes.width - 0.45 - gap * (safeCount - 1))
+      / (MATCH_LAYOUT.card.width * safeCount))
+  );
   return {
-    x: (MATCH_LAYOUT.lanes.x[laneIndex] || 0)
-      + (isBlocker ? 1.35 : -1.45)
-      + (isBlocker ? centered * 0.7 : 0),
+    x: (MATCH_LAYOUT.lanes.x[laneIndex] || 0) + centered * (MATCH_LAYOUT.card.width * scale + gap),
     y: 0.42 + index * 0.012,
-    z: MATCH_LAYOUT.anchors.resolution + (ownerIsLocal ? -0.18 : 0.18),
+    z: MATCH_LAYOUT.anchors.resolution + (isBlocker ? -1.25 : 1.25),
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
-    scale: isBlocker ? 0.62 : 0.72
+    scale
   };
 }
 
@@ -118,7 +184,7 @@ export function getTableCameraProjection(width, height) {
   // On phone portrait, frame the complete playable core (all lanes, hand,
   // combat zones) rather than shrinking it to preserve decorative table ends.
   const requiredWidthHalf = aspect < 0.72
-    ? 10.4
+    ? 12.6
     : MATCH_LAYOUT.table.width / 2 + MATCH_LAYOUT.viewport.padding;
   const halfHeight = Math.max(MATCH_LAYOUT.viewport.halfHeight, requiredWidthHalf / Math.max(0.1, aspect));
   return {

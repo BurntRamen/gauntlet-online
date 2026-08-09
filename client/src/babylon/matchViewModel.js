@@ -63,6 +63,47 @@ function normalizeCard(card, { visible = true, factionId = "basic", id = "hidden
   };
 }
 
+function normalizePayment(payment, owner = null) {
+  const cards = Array.isArray(payment) ? payment : payment?.cards || [];
+  return {
+    owner,
+    cards: cards.map((card, index) => normalizeCard(card, {
+      factionId: card?.factionId || "basic",
+      id: card?.id || `payment-${owner || "public"}-${index}`
+    })),
+    total: Number(payment?.total || 0),
+    required: Number(payment?.required || 0)
+  };
+}
+
+function recentPublicPayments(game, events) {
+  const log = Array.isArray(game?.paymentLog) ? game.paymentLog : [];
+  const claimedLogIndexes = new Set();
+  return (events || [])
+    .filter((entry) => entry?.type === "payment.discarded")
+    .map((entry) => {
+      const cardIds = new Set(entry.cardIds || []);
+      let matchedIndex = -1;
+      for (let index = log.length - 1; index >= 0; index -= 1) {
+        if (claimedLogIndexes.has(index)) continue;
+        const candidate = log[index];
+        const candidateIds = (candidate?.cards || []).map((card) => card?.id).filter(Boolean);
+        if (Number(candidate?.player) !== Number(entry.player)) continue;
+        if (cardIds.size && !candidateIds.some((id) => cardIds.has(id))) continue;
+        matchedIndex = index;
+        break;
+      }
+      if (matchedIndex < 0) return null;
+      claimedLogIndexes.add(matchedIndex);
+      return {
+        ...normalizePayment(log[matchedIndex], entry.player),
+        eventId: entry.id || `payment-event-${entry.player}-${matchedIndex}`,
+        type: log[matchedIndex].type || "payment"
+      };
+    })
+    .filter((entry) => entry?.cards?.length);
+}
+
 function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = false } = {}) {
   const source = game?.players?.[playerNumber] || {};
   const faction = source.faction || {};
@@ -98,11 +139,13 @@ function normalizeAttack(attack, laneIndex, owner) {
     card: normalizeCard(attack.card, { factionId: attack.card?.factionId || "basic", id: `attack-${laneIndex}` }),
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
+    payment: normalizePayment(attack.payment, attack.player ?? owner ?? null),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
     blocks: (attack.block || []).map((block, index) => ({
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
+      payment: normalizePayment(block.payment, block.player ?? null),
       card: normalizeCard(block.card, {
         factionId: block.card?.factionId || "basic",
         id: `${attack.id}-block-${index}`
@@ -120,11 +163,13 @@ function normalizeHandAttack(attack) {
     card: normalizeCard(attack.card, { factionId: attack.card?.factionId || "basic", id: `hand-attack-${attack.id}` }),
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
+    payment: normalizePayment(attack.payment, attack.player ?? null),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
     blocks: (attack.block || []).map((block, index) => ({
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
+      payment: normalizePayment(block.payment, block.player ?? null),
       card: normalizeCard(block.card, {
         factionId: block.card?.factionId || "basic",
         id: `${attack.id}-block-${index}`
@@ -220,6 +265,7 @@ export function createGauntletMatchViewModel({
   ));
   const hand = normalizeSelection(localHand, interaction);
   const handAttacks = (game?.handAttacks || []).map(normalizeHandAttack);
+  const publicPayments = recentPublicPayments(game, events);
   const legalLanes = new Set(interaction.legalLanes || []);
   const highlightedLanes = new Set(interaction.highlightedLanes || []);
   const selectedAbilityLanes = new Set(interaction.abilityMode?.laneIndexes || []);
@@ -244,6 +290,7 @@ export function createGauntletMatchViewModel({
     hand,
     lanes,
     handAttacks,
+    publicPayments,
     attacks: [
       ...handAttacks,
       ...lanes.map((lane) => lane.attack).filter(Boolean)

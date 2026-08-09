@@ -2,13 +2,35 @@ import {
   getBattlefieldSafeFrame,
   getFanPosition,
   getHandHoverPosition,
+  getHandCombatAttachmentPosition,
   getHandCombatPosition,
+  getHandCombatTickerPosition,
   getLaneCombatPosition,
   getLanePosition,
+  getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
   normalizeVisibleCardRotation
 } from "./matchLayout";
+
+function expectNoCardOverlap(positions) {
+  positions.forEach((left, leftIndex) => {
+    positions.slice(leftIndex + 1).forEach((right) => {
+      const overlapsX = Math.abs(left.x - right.x)
+        < MATCH_LAYOUT.card.width * (left.scale + right.scale) / 2;
+      const overlapsZ = Math.abs(left.z - right.z)
+        < MATCH_LAYOUT.card.height * (left.scale + right.scale) / 2;
+      expect(overlapsX && overlapsZ).toBe(false);
+    });
+  });
+}
+
+test("hand-combat ticker gives every active card a non-overlapping slot", () => {
+  const positions = Array.from({ length: 12 }, (_, index) => (
+    getHandCombatTickerPosition(index, 12, index % 2 ? "blocker" : "attacker", index % 3 !== 0)
+  ));
+  expectNoCardOverlap(positions);
+});
 
 describe("production card orientation contract", () => {
   test("keeps all local hand fronts upright across an eight-card fan", () => {
@@ -92,10 +114,51 @@ describe("combat tableau geometry", () => {
   test("separates lane attackers and blockers within every lane", () => {
     MATCH_LAYOUT.lanes.x.forEach((unused, laneIndex) => {
       const attacker = getLaneCombatPosition(laneIndex, "attacker", 0, 1, true);
-      const blockers = [0, 1].map((index) => getLaneCombatPosition(laneIndex, "blocker", index, 2, false));
-      expect(blockers[0].x).toBeGreaterThan(attacker.x);
-      expect(blockers[0].x).not.toBe(blockers[1].x);
+      const blockers = [0, 1, 2, 3].map((index) => getLaneCombatPosition(laneIndex, "blocker", index, 4, false));
+      expectNoCardOverlap([attacker, ...blockers]);
     });
+  });
+
+  test("reserves an attachment rail that does not cover the hand attacker", () => {
+    const attacker = getHandCombatPosition("attacker", 0, 1, true);
+    const attachments = Array.from({ length: 3 }, (_, index) => (
+      getHandCombatAttachmentPosition(index, 3, true)
+    ));
+    const attackerLeft = attacker.x - MATCH_LAYOUT.card.width * attacker.scale / 2;
+    const attachmentRight = Math.max(...attachments.map((position) => (
+      position.x + MATCH_LAYOUT.card.width * position.scale / 2
+    )));
+
+    expect(attachmentRight).toBeLessThan(attackerLeft);
+    expect(new Set(attachments.map((position) => position.x)).size).toBe(3);
+    expectNoCardOverlap(attachments);
+  });
+});
+
+describe("payment tray geometry", () => {
+  test("lays a full payment set out in legible rows without stacking card centers", () => {
+    const payments = Array.from({ length: 8 }, (_, index) => getPaymentPosition(index, 8));
+    expect(new Set(payments.map((position) => `${position.x}:${position.z}`)).size).toBe(8);
+    expect(new Set(payments.map((position) => position.z)).size).toBe(2);
+    expect(payments[1].x - payments[0].x).toBeGreaterThanOrEqual(
+      MATCH_LAYOUT.card.width * payments[0].scale
+    );
+    expectNoCardOverlap(payments);
+  });
+
+  test("keeps selected payments inside the portrait camera projection", () => {
+    const camera = getTableCameraProjection(382, 640);
+    const payments = Array.from({ length: 8 }, (_, index) => getPaymentPosition(index, 8));
+    const cardHalfWidth = MATCH_LAYOUT.card.width * payments[0].scale / 2;
+    expect(Math.max(...payments.map((position) => position.x)) + cardHalfWidth).toBeLessThan(camera.right);
+    expect(Math.min(...payments.map((position) => position.x)) - cardHalfWidth).toBeGreaterThan(camera.left);
+  });
+
+  test("keeps deck and discard piles inside the narrow playable camera", () => {
+    const camera = getTableCameraProjection(382, 640);
+    const pileHalfWidth = MATCH_LAYOUT.pilePads.discard.width / 2;
+    expect(MATCH_LAYOUT.piles.localDeck.x - pileHalfWidth).toBeGreaterThan(camera.left);
+    expect(MATCH_LAYOUT.piles.opponentDeck.x + pileHalfWidth).toBeLessThan(camera.right);
   });
 });
 

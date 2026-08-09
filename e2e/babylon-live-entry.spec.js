@@ -245,7 +245,7 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
 
   await expect(priorityPage.getByText("Opponent offered a draw")).toBeVisible();
   await priorityPage.getByRole("button", { name: "Decline" }).click();
-  await expect(currentAction(priorityPage)).toContainText("Draw offer declined.");
+  await expect(priorityPage.locator(".production-status-ticker")).toContainText("Draw offer declined.");
 
   await waitingPage.getByRole("button", { name: "Concede" }).click();
   const confirmation = waitingPage.getByRole("group", { name: "Confirm concession" });
@@ -288,7 +288,7 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
 
   await priorityPage.getByText("Match", { exact: true }).click();
   await priorityPage.getByRole("button", { name: "Request undo" }).click();
-  await expect(currentAction(priorityPage)).toContainText("No recent move available to undo.");
+  await expect(priorityPage.locator(".production-status-ticker")).toContainText("No recent move available to undo.");
 
   await currentAction(priorityPage).getByRole("button", { name: "Pass Priority" }).click();
   await expect(otherPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();

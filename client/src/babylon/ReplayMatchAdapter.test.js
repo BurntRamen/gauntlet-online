@@ -1,4 +1,4 @@
-import { createReplayMatchAdapter } from "./ReplayMatchAdapter";
+import { createReplayMatchAdapter, MIN_REPLAY_ACTION_INTERVAL_MS } from "./ReplayMatchAdapter";
 
 function snapshot({ turn, phase = "priority", priority = 1, life = 20, winner = null, attack = null }) {
   return {
@@ -54,6 +54,10 @@ test("replay adapter is spectator-only, read-only, and steps deterministically",
   await adapter.connect();
   let update = adapter.createUpdate();
   expect(update.source).toBe("replay");
+  expect(update.presentation).toEqual({
+    renderer: "babylon-shared",
+    motionContract: "gauntlet.card-motion.collision-safe.v1"
+  });
   expect(update.viewModel.perspective.spectator).toBe(true);
   expect(update.commands).toEqual({});
   expect(update.legalActions).toEqual([]);
@@ -81,9 +85,11 @@ test("replay adapter auto-play and speed use evidence order rather than timestam
   const adapter = createReplayMatchAdapter({ replay: replayFixture(), playbackIntervalMs: 1000 });
   adapter.replayControls.setSpeed(2);
   adapter.replayControls.play();
-  jest.advanceTimersByTime(500);
+  jest.advanceTimersByTime(MIN_REPLAY_ACTION_INTERVAL_MS - 1);
+  expect(adapter.createUpdate().replay.currentIndex).toBe(0);
+  jest.advanceTimersByTime(1);
   expect(adapter.createUpdate().replay.currentIndex).toBe(1);
-  jest.advanceTimersByTime(1000);
+  jest.advanceTimersByTime(MIN_REPLAY_ACTION_INTERVAL_MS * 2);
   expect(adapter.createUpdate().replay.currentIndex).toBe(3);
   expect(adapter.createUpdate().replay.playing).toBe(false);
   adapter.dispose();

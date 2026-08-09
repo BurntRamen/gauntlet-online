@@ -605,6 +605,54 @@
   transform: translateX(-50%);
 }
 
+.production-status-ticker {
+  position: absolute;
+  z-index: 12;
+  top: 64px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  width: min(520px, calc(100% - 32px));
+  min-height: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  border-radius: 999px;
+  color: #dbeafe;
+  background: rgba(3, 10, 20, 0.93);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.42);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.production-status-ticker span {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  color: #07111c;
+  background: #60a5fa;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.production-status-ticker strong {
+  min-width: 0;
+  padding: 0 12px;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: production-status-tick 360ms ease-out both;
+}
+
+@keyframes production-status-tick {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .production-privacy-curtain,
 .production-match-result {
   position: absolute;

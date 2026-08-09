@@ -2,8 +2,9 @@
 
 Do not commit review screenshots into the client source tree. Generate the
 repeatable review matrix locally with `npm run capture:babylon-review`; it uses
-`?babylon-test=1&review=1`, hides developer chrome, and writes ignored evidence
-under `artifacts/babylon-visual-review/current/`.
+the normal room, match, and replay routes against the local server and writes
+ignored evidence under `artifacts/babylon-visual-review/current/`. It does not
+add or depend on production test/fixture routes.
 
 ## Current composition
 
@@ -31,29 +32,12 @@ It writes a browsable matrix, manifest, final poses, and motion samples to
 ordinary-player requirements live in `PRODUCTION_REVIEW_MATRIX.md`; the
 fillable observer record lives in `HUMAN_PLAYTEST_SESSION_TEMPLATE.md`.
 
-## Repeatable review URLs
+## Repeatable production-path states
 
-Open each URL at the target viewport with browser chrome and the developer
-drawer closed:
-
-- `?babylon-test=1&review=1&fixture=populated-priority`
-- `?babylon-test=1&review=1&fixture=select-attacker`
-- `?babylon-test=1&review=1&fixture=select-payment`
-- `?babylon-test=1&review=1&fixture=incoming-hand`
-- `?babylon-test=1&review=1&fixture=select-blockers`
-- `?babylon-test=1&review=1&fixture=lane-attack`
-- `?babylon-test=1&review=1&fixture=same-lane-block`
-- `?babylon-test=1&review=1&fixture=damage-resolution`
-- `?babylon-test=1&review=1&fixture=end-placement`
-- `?babylon-test=1&review=1&fixture=card-draw`
-- `?babylon-test=1&review=1&fixture=priority-change`
-- `?babylon-test=1&review=1&fixture=victory`
-- `?babylon-test=1&review=1&fixture=defeat`
-- `?babylon-test=1&review=1&fixture=populated-priority&connection=disconnected`
-
-Use
-`?babylon-test=1&review=1&fixture=default&seed=<recorded-seed>` for the
-ordinary-player flow. The reviewer records viewport, perspective, fixture or
-seed, rules version, revision, reduced-motion setting, and date alongside each
-capture. Reconnect evidence uses the same populated fixture before, during,
-and after the interruption so role and position continuity can be compared.
+The capture script creates a real Basic room, reconnects both players through
+the normal client entry path, and drives priority, attacker selection, payment,
+incoming combat, blocker/payment selection, immediate block resolution, match
+completion, and public replay. Each stable state is captured at desktop,
+ultrawide, tablet, and phone dimensions; the same-frame block resolution also
+gets an early motion sample. The resulting manifest records the exact captures
+for review without exposing any fixture route in the shipped application.

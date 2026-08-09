@@ -33,6 +33,10 @@ test("local adapter immediately exposes a production match update", () => {
   const update = latestUpdate(adapter);
 
   expect(update.source).toBe("local");
+  expect(update.presentation).toEqual({
+    renderer: "babylon-shared",
+    motionContract: "gauntlet.card-motion.collision-safe.v1"
+  });
   expect(update.viewModel.hand).toHaveLength(8);
   expect(update.viewModel.lanes).toHaveLength(3);
   expect(update.viewModel.revision).toBe(0);
@@ -42,6 +46,17 @@ test("local adapter immediately exposes a production match update", () => {
     /^Player [12] has priority: select a hand card for an independent attack, or pass\.$/
   );
   adapter.dispose();
+});
+
+test("live and offline adapters expose the same collision-safe presentation contract", () => {
+  const local = createLocalDuelAdapter({ seed: "shared-presentation-local" });
+  const live = new LiveSocketAdapter({ seed: "shared-presentation-live" });
+  live.game = local.game;
+
+  expect(live.createUpdate().presentation).toEqual(latestUpdate(local).presentation);
+  expect(live.createUpdate().source).toBe("live");
+  local.dispose();
+  live.dispose();
 });
 
 test("local play gives actionable guidance through all six placement opportunities", () => {
@@ -581,6 +596,9 @@ test("live adapter builds the production view model from a sanitized game snapsh
   expect(update.viewModel.hand).toHaveLength(8);
   expect(update.viewModel.lanes).toHaveLength(3);
   expect(update.viewModel.perspective.player).toBe(1);
+  expect(update.viewModel.bottom.deckCount).toBe(44);
+  expect(update.viewModel.top.deckCount).toBe(44);
+  expect(update.viewModel.top.handCount).toBe(8);
   expect(update.diagnostics.revision).toBe(game.revision);
   expect(update.connected).toBe(true);
   adapter.dispose();
@@ -621,9 +639,10 @@ test("live adapter owns semantic envelopes and presents server rejection", async
     }),
     expect.any(Function)
   );
-  expect(update.viewModel.instruction).toBe(
+  expect(update.viewModel.statusNotice).toBe(
     "The match advanced before that action was confirmed."
   );
+  expect(update.viewModel.instruction).toMatch(/^Player 1 has priority:/);
   adapter.dispose();
 });
 
@@ -698,7 +717,7 @@ test("live adapter discards unconfirmed selection when transport disconnects", (
   expect(update.viewModel.hand.every((card) => card.unavailable)).toBe(true);
 
   adapter.update({ game, player: 1, connected: true });
-  expect(adapter.createUpdate().viewModel.instruction).toMatch(/restored from the latest authoritative snapshot/i);
+  expect(adapter.createUpdate().viewModel.statusNotice).toMatch(/restored from the latest authoritative snapshot/i);
   adapter.dispose();
 });
 
@@ -724,7 +743,7 @@ test("live adapter ignores a late acknowledgement after disconnect interrupts th
   expect((await commandPromise).accepted).toBe(true);
   const update = adapter.createUpdate();
   expect(update.diagnostics.commandStatus.state).toBe("interrupted");
-  expect(update.viewModel.instruction).toMatch(/connection interrupted/i);
+  expect(update.viewModel.statusNotice).toMatch(/connection interrupted/i);
   adapter.dispose();
 });
 
@@ -804,7 +823,7 @@ test("live adapter resets transient state when a best-of-three game changes at t
     gameNumber: 2,
     playerWins: { 1: 1, 2: 0 }
   });
-  expect(update.viewModel.instruction).toBe("Game 2 is ready.");
+  expect(update.viewModel.statusNotice).toBe("Game 2 is ready.");
   adapter.dispose();
 });
 

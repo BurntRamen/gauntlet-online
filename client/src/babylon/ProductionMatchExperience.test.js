@@ -154,6 +154,22 @@ test("keeps the post-match flow inside the production experience", async () => {
   expect(newMatch).toHaveBeenCalledTimes(1);
 });
 
+test("presents transport notices in a ticker without replacing action guidance", async () => {
+  const viewModel = {
+    ...createViewModel(),
+    statusNotice: "Match restored from the latest authoritative snapshot."
+  };
+  render(
+    <ProductionMatchExperience
+      adapter={adapterFor({ viewModel })}
+      options={{ audioEnabled: false }}
+    />
+  );
+
+  expect(await screen.findByText(/Match restored/)).toBeInTheDocument();
+  expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
+});
+
 test("uses the App-owned completion and waits for account refresh before continuing campaign", async () => {
   const onContinueCampaign = jest.fn();
   const viewModel = createViewModel();

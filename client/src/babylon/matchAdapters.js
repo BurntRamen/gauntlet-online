@@ -560,9 +560,20 @@ export class LocalDuelAdapter {
     return "";
   }
 
+  includeNoticeInInstruction() {
+    return true;
+  }
+
+  projectGameForView() {
+    const spectator = this.role === "spectator" || !this.perspective;
+    return spectator
+      ? clone(this.game)
+      : projectForPerspective(this.game, this.perspective);
+  }
+
   instruction() {
     const values = this.selectionValues();
-    if (this.notice) return this.notice;
+    if (this.notice && this.includeNoticeInInstruction()) return this.notice;
     if (this.controller !== this.perspective) return `Viewing Player ${this.perspective}.`;
     if (this.game.phase === "end" && this.selection.kind !== "placement") {
       const actor = currentPlacementPlayer(this.game);
@@ -644,9 +655,7 @@ export class LocalDuelAdapter {
 
   createUpdate() {
     const spectator = this.role === "spectator" || !this.perspective;
-    const projected = spectator
-      ? clone(this.game)
-      : projectForPerspective(this.game, this.perspective);
+    const projected = this.projectGameForView();
     const projectedHand = spectator
       ? []
       : projected.players[this.perspective]?.hand || [];
@@ -944,6 +953,10 @@ export class LocalDuelAdapter {
 
     return {
       source: this.source,
+      presentation: {
+        renderer: "babylon-shared",
+        motionContract: "gauntlet.card-motion.collision-safe.v1"
+      },
       connected: this.connected,
       descriptor: createMatchDescriptor(this.game, this.controlState),
       snapshot: projected,
@@ -1515,6 +1528,17 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     return () => this.listeners.delete(listener);
   }
 
+  includeNoticeInInstruction() {
+    return false;
+  }
+
+  projectGameForView() {
+    // The server has already projected live state for this viewer. Running a
+    // second privacy projection over redacted arrays would turn authoritative
+    // hand and deck counts into zero.
+    return clone(this.game);
+  }
+
   legalActions() {
     if (this.role === "spectator") return [];
     return Array.isArray(this.game?.legalActions) ? this.game.legalActions : [];
@@ -1622,14 +1646,13 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
       || this.commandSubmissionFrozen
       || this.resyncing
     );
-    const instruction = this.notice || update.viewModel.instruction;
     return {
       ...update,
       source: "live",
       connected: this.connected,
       viewModel: {
         ...update.viewModel,
-        instruction,
+        statusNotice: this.notice || "",
         hand: update.viewModel.hand.map((card) => ({
           ...card,
           interactionEnabled: inputLocked ? false : card.interactionEnabled,
