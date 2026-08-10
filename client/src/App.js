@@ -3,10 +3,8 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
-import Studio from "./Studio";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import CollectorClaimScreen from "./CollectorClaimScreen";
-import { CompetitiveIdentityPanel, MatchRecordScreen, PublicProfileScreen } from "./CompetitiveIdentity";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
@@ -16,11 +14,18 @@ import {
   createCompletionAccountRefreshCoordinator,
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
-import { saveCompletedMatchFromServer } from "./matchHistory";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 const MatchesHub = lazy(() => import("./MatchesHub"));
+const Studio = lazy(() => import("./Studio"));
+const CompetitiveIdentityPanel = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.CompetitiveIdentityPanel })));
+const MatchRecordScreen = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.MatchRecordScreen })));
+const PublicProfileScreen = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.PublicProfileScreen })));
+
+function SurfaceLoading({ label }) {
+  return <div className="loading" role="status">Loading {label}&hellip;</div>;
+}
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -3845,13 +3850,15 @@ export default function App() {
         const completion = data.completion || null;
         setCompletionEnvelope(completion);
         if (authToken && completion?.matchId) {
-          saveCompletedMatchFromServer({
-            serverUrl: SOCKET_URL,
-            matchId: completion.matchId,
-            authToken
-          }).catch((localSaveError) => {
-            console.warn("[MatchLibrary] Completed match could not be saved on this device.", localSaveError);
-          });
+          import("./matchHistory")
+            .then(({ saveCompletedMatchFromServer }) => saveCompletedMatchFromServer({
+              serverUrl: SOCKET_URL,
+              matchId: completion.matchId,
+              authToken
+            }))
+            .catch((localSaveError) => {
+              console.warn("[MatchLibrary] Completed match could not be saved on this device.", localSaveError);
+            });
         }
         if (!authToken || !completion?.matchId) {
           setCompletionAccountReadyMatchId(matchId);
@@ -5020,15 +5027,17 @@ export default function App() {
 
   if (publicView?.type === "match") {
     return (
-      <MatchRecordScreen
-        match={publicViewData}
-        loading={publicViewLoading}
-        error={publicViewError}
-        serverUrl={SOCKET_URL}
-        onBack={closePublicView}
-        onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-        onWatchReplay={(matchId) => openReplay(matchId)}
-      />
+      <Suspense fallback={<SurfaceLoading label="match record" />}>
+        <MatchRecordScreen
+          match={publicViewData}
+          loading={publicViewLoading}
+          error={publicViewError}
+          serverUrl={SOCKET_URL}
+          onBack={closePublicView}
+          onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+          onWatchReplay={(matchId) => openReplay(matchId)}
+        />
+      </Suspense>
     );
   }
 
@@ -5051,14 +5060,16 @@ export default function App() {
 
   if (publicView?.type === "profile") {
     return (
-      <PublicProfileScreen
-        profile={publicViewData}
-        loading={publicViewLoading}
-        error={publicViewError}
-        onBack={closePublicView}
-        onOpenMatch={(matchId) => openPublicView("match", matchId)}
-        onOpenReplay={(matchId) => openReplay(matchId)}
-      />
+      <Suspense fallback={<SurfaceLoading label="player profile" />}>
+        <PublicProfileScreen
+          profile={publicViewData}
+          loading={publicViewLoading}
+          error={publicViewError}
+          onBack={closePublicView}
+          onOpenMatch={(matchId) => openPublicView("match", matchId)}
+          onOpenReplay={(matchId) => openReplay(matchId)}
+        />
+      </Suspense>
     );
   }
 
@@ -5457,14 +5468,16 @@ export default function App() {
               <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
               </div>}
               {identityView === "record" && (
-              <CompetitiveIdentityPanel
-                profile={competitiveProfile}
-                loading={competitiveProfileLoading}
-                error={competitiveProfileError}
-                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-                onOpenMatch={(matchId) => openPublicView("match", matchId)}
-                onOpenReplay={(matchId) => openReplay(matchId)}
-              />
+              <Suspense fallback={<SurfaceLoading label="competitive record" />}>
+                <CompetitiveIdentityPanel
+                  profile={competitiveProfile}
+                  loading={competitiveProfileLoading}
+                  error={competitiveProfileError}
+                  onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+                  onOpenMatch={(matchId) => openPublicView("match", matchId)}
+                  onOpenReplay={(matchId) => openReplay(matchId)}
+                />
+              </Suspense>
               )}
               {identityView === "profile" && (
               <MenuCard title="Featured Decks">
@@ -5502,12 +5515,14 @@ export default function App() {
             </div>
           )}
           {homeArea === "studio" && (
-            <Studio
-              serverUrl={SOCKET_URL}
-              onAuthorizedChange={setOwnerAuthorized}
-              onOpenMatch={(matchId) => openPublicView("match", matchId)}
-              onOpenReplay={openReplay}
-            />
+            <Suspense fallback={<SurfaceLoading label="Studio" />}>
+              <Studio
+                serverUrl={SOCKET_URL}
+                onAuthorizedChange={setOwnerAuthorized}
+                onOpenMatch={(matchId) => openPublicView("match", matchId)}
+                onOpenReplay={openReplay}
+              />
+            </Suspense>
           )}
         </HomeNavigation>
         </div>
