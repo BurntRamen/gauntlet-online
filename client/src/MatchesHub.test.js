@@ -60,6 +60,7 @@ test("merges account references honestly and keeps Season Zero as a subsection",
   });
   const onOpenReplay = jest.fn();
   const onOpenMatch = jest.fn();
+  const onOpenRanked = jest.fn();
   render(<MatchesHub
     account={{ id: "account-1", stats: { gamesPlayed: 2 } }}
     authToken="session"
@@ -70,6 +71,7 @@ test("merges account references honestly and keeps Season Zero as a subsection",
     onOpenProfile={() => {}}
     onOpenReplay={onOpenReplay}
     onOpenMatch={onOpenMatch}
+    onOpenRanked={onOpenRanked}
     matchLibrary={emptyLibrary()}
   />);
 
@@ -77,7 +79,9 @@ test("merges account references honestly and keeps Season Zero as a subsection",
   expect(screen.getByText("Match bbbbbbbb")).toBeVisible();
   expect(screen.getAllByText(/Replay file not saved on this device/).length).toBeGreaterThan(0);
   expect(screen.getAllByRole("heading", { name: "Season Zero" }).length).toBeGreaterThan(0);
-  expect(screen.getByText("Imported files remain local history and never alter competitive standings.")).toBeVisible();
+  expect(screen.getByText("Ranked results appear here; imported match files never change the standings.")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Play Ranked" }));
+  expect(onOpenRanked).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Preview" }));
   expect(screen.getByText("11")).toBeVisible();
 
@@ -98,8 +102,8 @@ test("keeps local import and history available while signed out without requesti
     lifetimeStandings={[]}
     matchLibrary={emptyLibrary()}
   />);
-  expect(screen.getByRole("heading", { name: "Import Match JSON" })).toBeVisible();
-  expect(screen.getByText("Sign in to merge durable account result references with matches saved on this device.")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Import Match File" })).toBeVisible();
+  expect(screen.getByText("Sign in to see account results alongside replays saved on this device.")).toBeVisible();
   await waitFor(() => expect(global.fetch).not.toHaveBeenCalled());
 });
 
@@ -118,8 +122,8 @@ test("previews imported JSON, watches without persisting, then saves only after 
   />);
   const file = { text: async () => portableJson() };
   fireEvent.drop(container.querySelector(".match-import-drop"), { dataTransfer: { files: [file] } });
-  expect(await screen.findByText("Valid Gauntlet record")).toBeVisible();
-  expect(screen.getByText(/Integrity confirms canonical content identity/)).toBeVisible();
+  expect(await screen.findByText("Valid Gauntlet match file")).toBeVisible();
+  expect(screen.getByText(/file is complete and unchanged/i)).toBeVisible();
 
   fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
   expect(onOpenReplay).toHaveBeenCalledWith(

@@ -29,8 +29,8 @@ function MatchPreview({ preview, sha256 }) {
       <div><dt>Turns</dt><dd>{preview.turnCount || 0}</dd></div>
       <div><dt>Final life</dt><dd>{(preview.participants || []).map((entry) => `${entry.displayName} ${entry.finalLife}`).join(" · ")}</dd></div>
       <div><dt>Largest attack</dt><dd>{preview.largestAttack?.value ?? "—"}</dd></div>
-      <div><dt>Evidence</dt><dd>{preview.evidenceCount ?? preview.replay?.evidenceCount ?? 0} events · {preview.replayFrameCount ?? preview.replay?.frameCount ?? 0} frames</dd></div>
-      {sha256 && <div><dt>Integrity</dt><dd>Canonical hash verified · {sha256.slice(0, 12)}…</dd></div>}
+      <div><dt>Replay detail</dt><dd>{preview.evidenceCount ?? preview.replay?.evidenceCount ?? 0} events · {preview.replayFrameCount ?? preview.replay?.frameCount ?? 0} scenes</dd></div>
+      {sha256 && <div><dt>File check</dt><dd>Match file verified · {sha256.slice(0, 12)}…</dd></div>}
     </dl>
   );
 }
@@ -73,12 +73,12 @@ function UnavailableReferenceRow({ reference }) {
     <article className="matches-row matches-reference" data-replay-state="unavailable">
       <div className="matches-result is-recorded"><span>RECORDED</span></div>
       <div className="matches-row-main">
-        <span>Account match reference</span>
+        <span>Result saved to your account</span>
         <h3>Match {String(reference.matchId || "").slice(0, 8)}</h3>
-        <p>{formatDate(reference.completedAt)} · Record v{reference.recordVersion || 2}</p>
+        <p>{formatDate(reference.completedAt)}</p>
         <small className="is-unavailable">Replay file not saved on this device.</small>
       </div>
-      <div className="matches-row-actions"><span className="matches-unavailable-label">Import its JSON to replay</span></div>
+      <div className="matches-row-actions"><span className="matches-unavailable-label">Import a saved match file to replay</span></div>
     </article>
   );
 }
@@ -118,9 +118,9 @@ function MatchImporter({ library, onWatchReplay, onSaved }) {
   return (
     <section className="match-importer" aria-labelledby="match-import-title">
       <div>
-        <span>Portable Replayer</span>
-        <h3 id="match-import-title">Import Match JSON</h3>
-        <p>Validate and preview canonical record-v2 JSON entirely in this browser. Importing never changes account, campaign, reward, achievement, collector, Season Zero, or Para state.</p>
+        <span>Bring back a saved replay</span>
+        <h3 id="match-import-title">Import Match File</h3>
+        <p>Choose a Gauntlet match file to preview and replay it here. Importing never changes account progress, rewards, achievements, collection ownership, or Season Zero standings.</p>
       </div>
       <div
         className={`match-import-drop${dragging ? " is-dragging" : ""}`}
@@ -134,14 +134,14 @@ function MatchImporter({ library, onWatchReplay, onSaved }) {
         }}
       >
         <input ref={inputRef} type="file" accept="application/json,.json" onChange={(event) => inspectFile(event.target.files?.[0])} />
-        <button type="button" onClick={() => inputRef.current?.click()}>Choose Match JSON</button>
-        <span>or drop a `.json` file here</span>
+        <button type="button" onClick={() => inputRef.current?.click()}>Choose Match File</button>
+        <span>or drop a Gauntlet `.json` file here</span>
       </div>
       {error && <p className="matches-error" role="alert">{error}</p>}
       {status && <p className="matches-storage-note" role="status">{status}</p>}
       {inspection && (
         <div className="match-import-preview">
-          <div className="match-import-integrity"><strong>Valid Gauntlet record</strong><span>Canonical hash verified · {inspection.artifact.sha256}</span><small>Integrity confirms canonical content identity, not that an unsigned imported file was issued by the Gauntlet server.</small></div>
+          <div className="match-import-integrity"><strong>Valid Gauntlet match file</strong><span>File integrity verified · {inspection.artifact.sha256}</span><small>This check confirms the file is complete and unchanged. Imported files remain player-owned local history.</small></div>
           <MatchPreview preview={inspection.preview} sha256={inspection.artifact.sha256} />
           <div className="matches-row-actions">
             <button type="button" className="matches-primary-action" onClick={() => onWatchReplay(inspection)}>Watch Replay</button>
@@ -165,6 +165,7 @@ export default function MatchesHub({
   onOpenProfile,
   onOpenMatch,
   onOpenReplay,
+  onOpenRanked,
   matchLibrary = localMatchLibrary
 }) {
   const [serverData, setServerData] = useState({ matches: [], unavailableMatchReferences: [], storage: null });
@@ -247,7 +248,7 @@ export default function MatchesHub({
   return (
     <div className="matches-hub">
       <section className="matches-overview" aria-labelledby="matches-overview-title">
-        <div><span>Player-owned match history</span><h3 id="matches-overview-title">Recent Matches</h3><p>Account references and canonical replay files saved in this browser.</p></div>
+        <div><span>Your match history</span><h3 id="matches-overview-title">Recent Matches</h3><p>Recent results and replays available on this device.</p></div>
         <div className="matches-overview-stats">
           <div><strong>{(data.matches || []).length + (data.unavailableMatchReferences || []).length}</strong><span>Recent matches</span></div>
           <div><strong>{localEntries.length}</strong><span>Saved on device</span></div>
@@ -255,8 +256,8 @@ export default function MatchesHub({
         </div>
         <button type="button" onClick={loadMatches} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
       </section>
-      <p className="matches-storage-note"><strong>Portable history belongs to you.</strong> IndexedDB keeps convenient local copies; exported canonical JSON can be moved to another browser and replayed without the original backend process.</p>
-      {!account && <p className="matches-storage-note">Sign in to merge durable account result references with matches saved on this device.</p>}
+      <p className="matches-storage-note"><strong>Your saved replays travel with you.</strong> Export a match file to keep it, back it up, or replay it on another device.</p>
+      {!account && <p className="matches-storage-note">Sign in to see account results alongside replays saved on this device.</p>}
       {error && <p className="matches-error">{error}</p>}
       {!loading && !(data.matches || []).length && !(data.unavailableMatchReferences || []).length && <p className="matches-empty">No completed matches are saved on this device yet.</p>}
       <div className="matches-list">
@@ -275,7 +276,8 @@ export default function MatchesHub({
       </div>
       <MatchImporter library={matchLibrary} onWatchReplay={watchImported} onSaved={loadLocalMatches} />
       <section className="matches-season-section" aria-labelledby="matches-season-title">
-        <div className="matches-section-heading"><span>Seasonal competition</span><h3 id="matches-season-title">Season Zero</h3><p>Imported files remain local history and never alter competitive standings.</p></div>
+        <div className="matches-section-heading"><span>Seasonal competition</span><h3 id="matches-season-title">Season Zero</h3><p>Ranked results appear here; imported match files never change the standings.</p></div>
+        {onOpenRanked && <button type="button" className="matches-ranked-action" onClick={onOpenRanked}>Play Ranked</button>}
         <SeasonStandings season={season} standings={standings} playerStanding={playerStanding} lifetimeStandings={lifetimeStandings} error={seasonError} onOpenProfile={onOpenProfile} />
       </section>
     </div>

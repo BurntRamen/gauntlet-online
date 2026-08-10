@@ -207,6 +207,8 @@ textarea:focus-visible {
 }
 
 .play-ranked-grid {
+  display: grid;
+  gap: 12px;
   max-width: 760px;
 }
 

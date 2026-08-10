@@ -9,6 +9,17 @@ test("ranked presentation identifies Season Zero and BO3 scoring semantics", () 
   expect(screen.getByText(/Ranked BO3/)).toHaveTextContent("series result scores standings points");
 });
 
+test("explains scoring and honest low-population queue behavior", () => {
+  render(<SeasonQueueSummary season={{ ...season, scoring: { win: 3, draw: 1, loss: 0 } }} />);
+  expect(screen.getByText("Win 3 · Draw 1 · Loss 0 points")).toBeVisible();
+  expect(screen.getByText(/waits for another player instead of creating a bot/i)).toBeVisible();
+});
+
+test("presents an intentionally quiet live-match state", () => {
+  render(<ActiveSeasonMatches season={season} matches={[]} />);
+  expect(screen.getByText(/quiet queue, not an outage/i)).toBeVisible();
+});
+
 test("standings show rank, points, record, and an off-board player position", () => {
   const onOpenProfile = jest.fn();
   render(<SeasonStandings

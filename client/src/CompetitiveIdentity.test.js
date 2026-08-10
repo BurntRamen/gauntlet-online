@@ -44,6 +44,7 @@ test("opens a public profile and verified match from Identity", () => {
 test("public profile exposes the same direct replay action", () => {
   const onOpenReplay = jest.fn();
   render(<PublicProfileScreen profile={profile} loading={false} error="" onBack={() => {}} onOpenMatch={() => {}} onOpenReplay={onOpenReplay} />);
+  expect(screen.getByRole("heading", { name: "Match History" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Replay Rumin vs Beta" }));
   expect(onOpenReplay).toHaveBeenCalledWith("match-1");
 });

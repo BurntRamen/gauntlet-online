@@ -4,6 +4,7 @@
 .season-queue-summary { display: grid; gap: 3px; margin-bottom: 12px; padding: 12px; border: 1px solid rgba(250,204,21,.28); border-radius: 10px; background: rgba(15,23,42,.5); color: #dbeafe; }
 .season-queue-summary strong { color: #fff; font-size: 20px; }
 .season-queue-summary small,.season-match-row small { color: #93c5fd; }
+.season-queue-summary p { margin: 5px 0 0; padding-top: 7px; border-top: 1px solid rgba(125,211,252,.16); color: #bfdbfe; font-size: 12px; }
 .season-table-wrap { overflow-x: auto; }
 .season-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .season-table th,.season-table td { padding: 7px 5px; border-bottom: 1px solid rgba(148,163,184,.16); text-align: right; }

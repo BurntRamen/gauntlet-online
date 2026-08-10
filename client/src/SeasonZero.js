@@ -2,11 +2,14 @@ import "./SeasonZero.css";
 
 export function SeasonQueueSummary({ season, bestOf = 1 }) {
   if (!season) return null;
+  const scoring = season.scoring || { win: 3, draw: 1, loss: 0 };
   return (
     <div className="season-queue-summary">
       <span>{season.status === "active" ? "Active season" : season.status}</span>
       <strong>{season.displayName}</strong>
       <small>Ranked {Number(bestOf) === 3 ? "BO3" : "BO1"} · {Number(bestOf) === 3 ? "series result scores standings points" : "each completed match scores standings points"}</small>
+      <small>Win {scoring.win ?? 3} · Draw {scoring.draw ?? 1} · Loss {scoring.loss ?? 0} points</small>
+      <p>Live-player queue: during quiet periods your search waits for another player instead of creating a bot.</p>
     </div>
   );
 }
@@ -35,7 +38,7 @@ export function SeasonStandings({ season, standings = [], playerStanding = null,
     <section className="season-surface" aria-labelledby="season-standings-title">
       <div className="season-surface-heading"><span>Competitive standings</span><h3 id="season-standings-title">{season?.displayName || "Active Season"}</h3></div>
       {error && <p className="season-error">{error}</p>}
-      {!error && standings.length === 0 && <p className="season-empty">No seasonal ranked results yet.</p>}
+      {!error && standings.length === 0 && <p className="season-empty">No ranked results yet. Season Zero is ready for its first completed match.</p>}
       {standings.length > 0 && <StandingTable standings={standings.slice(0, 8)} onOpenProfile={onOpenProfile} />}
       {playerStanding && !standings.slice(0, 8).some((entry) => entry.accountId === playerStanding.accountId) && (
         <div className="season-own-standing"><span>Your position</span><strong>#{playerStanding.rank} · {playerStanding.points} points · {playerStanding.wins}W {playerStanding.losses}L {playerStanding.draws}D</strong></div>
@@ -52,7 +55,7 @@ export function ActiveSeasonMatches({ season, matches = [], error = "", onSpecta
     <section className="season-surface" aria-labelledby="season-matches-title">
       <div className="season-surface-heading"><span>Watch live competition</span><h3 id="season-matches-title">Active {season?.displayName || "Season"} Matches</h3></div>
       {error && <p className="season-error">{error}</p>}
-      {!error && matches.length === 0 && <p className="season-empty">No seasonal matches are available to spectate right now.</p>}
+      {!error && matches.length === 0 && <p className="season-empty">No ranked matches are live right now. This is a quiet queue, not an outage.</p>}
       <div className="season-match-list">
         {matches.map((match) => (
           <div className="season-match-row" key={match.matchId || match.roomCode}>

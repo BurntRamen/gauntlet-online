@@ -18,7 +18,7 @@ function resultClass(result) {
 }
 
 function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
-  if (!matches?.length) return <p className="competitive-empty">No verified matches yet.</p>;
+  if (!matches?.length) return <p className="competitive-empty">No completed matches yet.</p>;
   return (
     <div className="competitive-match-list">
       {matches.map((match) => {
@@ -61,7 +61,7 @@ function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
         <div>
           <span className="competitive-kicker">{profile.identity?.selectedTitle || "Recruit"}</span>
           <h1>{profile.displayName}</h1>
-          <p>Member since {formatDate(profile.memberSince)} / {profile.verifiedMatchCount || 0} verified matches</p>
+          <p>Member since {formatDate(profile.memberSince)} / {profile.verifiedMatchCount || 0} completed matches</p>
         </div>
         <div className="competitive-record-block">
           <strong>{ranked.wins || 0}W {ranked.losses || 0}L {ranked.draws || 0}D</strong>
@@ -108,13 +108,13 @@ function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
       </div>
 
       <section className="competitive-history">
-        <h2>Verified Match History</h2>
+        <h2>Match History</h2>
         <MatchRows profile={profile} matches={profile.recentMatches || []} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />
       </section>
       {activeSeason?.recentMatchReferences?.length > 0 && (
         <section className="competitive-history">
-          <h2>{activeSeason.season?.displayName} Account References</h2>
-          <p className="competitive-empty">Compact account references remain durable even when full record-v2 history is unavailable.</p>
+          <h2>{activeSeason.season?.displayName} Earlier Results</h2>
+          <p className="competitive-empty">These ranked results are saved to the account, but their replay files are not available on this device.</p>
           <div className="competitive-events">
             {activeSeason.recentMatchReferences.slice(0, 12).map((reference) => (
               <div key={reference.matchId}><strong>{String(reference.result || "match").toUpperCase()} · {reference.pointsDelta > 0 ? "+" : ""}{reference.pointsDelta || 0} pts</strong><span>{reference.format} · {formatDate(reference.completedAt)} · {reference.matchId}</span></div>

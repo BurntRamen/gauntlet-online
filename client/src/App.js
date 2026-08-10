@@ -3,7 +3,6 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
-import MatchesHub from "./MatchesHub";
 import Studio from "./Studio";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import CollectorClaimScreen from "./CollectorClaimScreen";
@@ -21,6 +20,7 @@ import { saveCompletedMatchFromServer } from "./matchHistory";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
+const MatchesHub = lazy(() => import("./MatchesHub"));
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL || "https://gauntlet-online.onrender.com";
@@ -1008,6 +1008,11 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
 
   return (
     <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
+      <p style={{ margin: "0 0 10px", color: "#bfdbfe", fontSize: 13 }}>
+        {mode === "register"
+          ? "Save campaign progress, rewards, match results, and your Season Zero record."
+          : "Return to your campaign, collection, match history, and ranked record."}
+      </p>
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -1026,6 +1031,7 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
           placeholder="Account name"
           autoComplete="username"
           style={MENU_THEME.input}
+          aria-label="Account name"
         />
         <input
           value={form.password}
@@ -1034,12 +1040,18 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
           type="password"
           autoComplete={mode === "register" ? "new-password" : "current-password"}
           style={MENU_THEME.input}
+          aria-label="Password"
         />
+        {mode === "register" && (
+          <small style={{ color: "#93c5fd", lineHeight: 1.4 }}>
+            Account names use 3-24 letters, numbers, spaces, hyphens, or underscores. Passwords need at least 8 characters.
+          </small>
+        )}
         {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
         <div>
           <MenuButton type="submit" style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
           <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
-            {mode === "register" ? "Use Existing Account" : "Make Account"}
+            {mode === "register" ? "Use Existing Account" : "Create Account"}
           </MenuButton>
         </div>
       </form>
@@ -2342,7 +2354,10 @@ function MatchmakingPanel({
       <p style={{ marginTop: 0, color: "#bfdbfe" }}>{description}</p>
       {status.message && <div style={{ color: status.inQueue ? "#fde68a" : "#bfdbfe", fontSize: 13, marginBottom: 10 }}>{status.message}</div>}
       {status.inQueue ? (
-        <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
+        <>
+          <p style={{ margin: "0 0 10px", color: "#bfdbfe", fontSize: 13 }}>Keep this page open while searching. You can cancel at any time, and no bot will be substituted for a ranked opponent.</p>
+          <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
+        </>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
@@ -3579,7 +3594,7 @@ export default function App() {
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useState(false);
-  const [playView, setPlayView] = useState("tables");
+  const [playView, setPlayView] = useState("practice");
   const [identityView, setIdentityView] = useState("profile");
   const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
   const [tutorialCompletions, setTutorialCompletions] = useState(() => {
@@ -3591,7 +3606,7 @@ export default function App() {
   });
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(STORAGE_KEYS.onboardingDismissed) !== "true");
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
@@ -4858,6 +4873,11 @@ export default function App() {
     setHomeArea("matches");
   }
 
+  function returnToJourney() {
+    returnToMainMenu();
+    setHomeArea("journey");
+  }
+
   function togglePayment(i) {
     if (attackMode?.from === "hand" && i === selectedAttackCardIndex) return;
     if (blockMode?.type === "handAttack" && selectedBlockCardIndexes.includes(i)) return;
@@ -4923,6 +4943,7 @@ export default function App() {
   const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
+  const canCustomizeConstructedDeck = ownedCardCount > 0;
   let journeyNextStep;
 
   if (hasSavedRoom) {
@@ -5220,7 +5241,7 @@ export default function App() {
                     onJoin={() => joinMatchmaking(1)}
                     onLeave={leaveMatchmaking}
                     title={`${activeSeason?.displayName || "Season"} Ranked Duel`}
-                    description="Enter the active seasonal queue. BO1 scores each match; BO3 scores the completed series while retaining every game result."
+                    description="Play ranked matches against another signed-in player. BO1 scores each match; BO3 scores the completed series while retaining every game result."
                     joinLabel="Find Ranked Match"
                     extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
                   />
@@ -5319,19 +5340,25 @@ export default function App() {
           )}
 
           {homeArea === "matches" && (
-            <MatchesHub
-              account={account}
-              authToken={authToken}
-              serverUrl={SOCKET_URL}
-              season={activeSeason}
-              standings={leaderboard}
-              playerStanding={playerSeasonStanding}
-              lifetimeStandings={lifetimeLeaderboard}
-              seasonError={leaderboardError}
-              onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-              onOpenMatch={(matchId, record) => openPublicView("match", matchId, record || null)}
-              onOpenReplay={openReplay}
-            />
+            <Suspense fallback={<p style={{ color: "#bfdbfe" }}>Loading match history…</p>}>
+              <MatchesHub
+                account={account}
+                authToken={authToken}
+                serverUrl={SOCKET_URL}
+                season={activeSeason}
+                standings={leaderboard}
+                playerStanding={playerSeasonStanding}
+                lifetimeStandings={lifetimeLeaderboard}
+                seasonError={leaderboardError}
+                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
+                onOpenMatch={(matchId, record) => openPublicView("match", matchId, record || null)}
+                onOpenReplay={openReplay}
+                onOpenRanked={() => {
+                  setPlayView("ranked");
+                  setHomeArea("play");
+                }}
+              />
+            </Suspense>
           )}
 
           {homeArea === "build" && (
@@ -5359,9 +5386,22 @@ export default function App() {
                   <span className="build-deck-cover" aria-hidden="true" style={{ backgroundImage: `linear-gradient(rgba(3,8,13,0.08), rgba(3,8,13,0.72)), url(${resolveAssetPath(`/assets/gauntlet/${buildDeckFactionId}-card.webp`)})` }} />
                   <div>
                     <span>Constructed / {constructedDecks.length} saved</span>
-                    <h3>{activeConstructedDeck?.name || "Build your first deck"}</h3>
-                    <p>{activeConstructedDeck ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} gameplay-card replacements.` : "Begin with the standard 52-card deck, then map freely earned faction cards into matching values."}</p>
-                    <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>{activeConstructedDeck ? "Edit Active Deck" : "Build First Deck"}</MenuButton>
+                    <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
+                    <p>{activeConstructedDeck
+                      ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} gameplay-card replacements.`
+                      : canCustomizeConstructedDeck
+                        ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
+                        : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
+                    <MenuButton
+                      variant="secondary"
+                      onClick={() => {
+                        if (activeConstructedDeck || canCustomizeConstructedDeck) setShowCollection(true);
+                        else setHomeArea("journey");
+                      }}
+                      disabled={!account}
+                    >
+                      {activeConstructedDeck ? "Edit Active Deck" : canCustomizeConstructedDeck ? "Build Custom Deck" : "Earn Cards in Campaign"}
+                    </MenuButton>
                   </div>
                 </section>
                 <section className="build-draft-entry">
@@ -5630,6 +5670,7 @@ export default function App() {
             completion={completionEnvelope}
             campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
             onContinueCampaign={continueCampaignChapter}
+            onContinueJourney={returnToJourney}
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
             options={{
@@ -5783,6 +5824,7 @@ export default function App() {
                 Campaign
               </MenuButton>
             )}
+            {!game.campaign && <MenuButton onClick={returnToJourney}>Continue Journey</MenuButton>}
             {canRematch && (
               <MenuButton onClick={requestRematch} disabled={rematchRequestedByMe}>
                 {rematchRequestedByOpponent ? "Accept Rematch" : rematchRequestedByMe ? "Rematch Requested" : "Request Rematch"}
@@ -5793,7 +5835,7 @@ export default function App() {
             )}
             <MenuButton variant="secondary" onClick={returnToMatches}>Matches</MenuButton>
             {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
-            <MenuButton variant={nextCampaignChapter ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
+            <MenuButton variant={nextCampaignChapter || !game.campaign ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
           {canRematch && rematchStatus.message && <p style={{ margin: "12px 0 0", color: "#4b2d16", fontSize: 13 }}>{rematchStatus.message}</p>}
         </div>

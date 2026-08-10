@@ -138,6 +138,7 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
 
 test("keeps the post-match flow inside the production experience", async () => {
   const newMatch = jest.fn();
+  const onContinueJourney = jest.fn();
   const viewModel = createViewModel();
   viewModel.phase = "gameOver";
   viewModel.winner = 1;
@@ -147,11 +148,14 @@ test("keeps the post-match flow inside the production experience", async () => {
     <ProductionMatchExperience
       adapter={adapterFor({ viewModel, commands: { newMatch } })}
       options={{ audioEnabled: false }}
+      onContinueJourney={onContinueJourney}
     />
   );
 
   fireEvent.click(await screen.findByRole("button", { name: "Start New Match" }));
   expect(newMatch).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Continue Journey" }));
+  expect(onContinueJourney).toHaveBeenCalledTimes(1);
 });
 
 test("presents transport notices in a ticker without replacing action guidance", async () => {

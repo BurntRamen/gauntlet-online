@@ -8,6 +8,7 @@ export default function LiveBabylonMatchExperience({
   completion,
   campaignContinuationReady,
   onContinueCampaign,
+  onContinueJourney,
   onOpenReplay,
   onOpenMatches,
   onRendererFailure,
@@ -30,6 +31,7 @@ export default function LiveBabylonMatchExperience({
       completion={completion}
       campaignContinuationReady={campaignContinuationReady}
       onContinueCampaign={onContinueCampaign}
+      onContinueJourney={onContinueJourney}
       onOpenReplay={onOpenReplay}
       onOpenMatches={onOpenMatches}
       onRendererFailure={onRendererFailure}

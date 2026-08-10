@@ -771,6 +771,7 @@ function MatchResult({
   completion,
   campaignContinuationReady,
   onContinueCampaign,
+  onContinueJourney,
   onOpenReplay,
   onOpenMatches
 }) {
@@ -812,6 +813,11 @@ function MatchResult({
         audioEnabled={audioEnabled}
       />
       <div className="production-result-actions">
+        {!campaign && onContinueJourney && (
+          <button type="button" className="production-result-primary" onClick={onContinueJourney}>
+            Continue Journey
+          </button>
+        )}
         {onOpenReplay && (
           <button type="button" onClick={onOpenReplay}>
             Watch Replay
@@ -1122,6 +1128,7 @@ export default function ProductionMatchExperience({
   completion = null,
   campaignContinuationReady = true,
   onContinueCampaign,
+  onContinueJourney,
   onOpenReplay,
   onOpenMatches,
   onRendererFailure,
@@ -1442,6 +1449,7 @@ export default function ProductionMatchExperience({
             completion={completion}
             campaignContinuationReady={campaignContinuationReady}
             onContinueCampaign={onContinueCampaign}
+            onContinueJourney={onContinueJourney}
             onOpenReplay={onOpenReplay}
             onOpenMatches={onOpenMatches}
           />
