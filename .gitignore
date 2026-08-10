@@ -36,4 +36,5 @@ yarn-error.log*
 server/accounts.json
 server/faction-stats.json
 server/matches.json
+server/matches.json.archive/
 server/rooms.json

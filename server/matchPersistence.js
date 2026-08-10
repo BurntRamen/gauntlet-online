@@ -173,7 +173,12 @@ function createMatchPersistence({
 
   async function persist(record, options = {}) {
     const activeMode = await getMode();
-    if (activeMode === "local" || activeMode === "account-only") return localStore.upsert(record);
+    if (activeMode === "local" || activeMode === "account-only") {
+      if (record.completion?.status === "finalized" && (options.accountApplications || []).length > 0) {
+        await commitCompatibilityApplications(record.matchId, options.accountApplications);
+      }
+      return localStore.upsert(record);
+    }
     if (activeMode === "compatibility") return writeJournal(record);
 
     try {

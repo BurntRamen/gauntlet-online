@@ -78,6 +78,9 @@ Server variables:
 | `ACCOUNT_DATA_FILE` | Local account JSON path when Supabase is unavailable | `server/accounts.json` |
 | `FACTION_STATS_DATA_FILE` | Local faction statistics JSON path | `server/faction-stats.json` |
 | `MATCH_DATA_FILE` | Local durable match-record JSON path | `server/matches.json` |
+| `MATCH_ARCHIVE_DATA_DIR` | Local canonical-object archive path for development/tests only | `<MATCH_DATA_FILE>.archive` |
+| `MATCH_ARCHIVE_BUCKET` | Existing private Gauntlet Supabase Storage bucket | `gauntlet-match-archives` |
+| `MATCH_ARCHIVE_REQUIRED` | Fail completion before account mutation when durable archive/index storage is unavailable | `false` with Supabase during rollout; enable after production verification |
 | `ROOM_STATE_DATA_FILE` | Private active-room snapshot path; contains hands and reconnect tokens | `server/rooms.json` |
 | `ROOM_STATE_RECOVERY_ENABLED` | Persist and restore active rooms on this server instance | `true` |
 | `ROOM_RECONNECT_GRACE_MS` | Time an active match waits with no human players connected | `600000` (10 minutes) |
@@ -124,7 +127,7 @@ The React client is deployed from the `client` directory on Vercel at `https://g
 
 Production account, friend, message, progression, collection, and leaderboard data can be stored in Supabase when the server credentials are configured. See `server/SUPABASE.md`.
 
-Completed matches use one canonical record-v2 representation, stored separately from active rooms when the selected match-storage capability is durable. Each server-authored record includes public participant and deck-version snapshots, completion metadata, combat aggregates, and a privacy-filtered audit stream. `GET /api/matches/:matchId` returns a public record, while authenticated accounts can list available recent records at `GET /api/account/matches`. In `account-only` mode, that account endpoint also returns compact unavailable match references after process-local records are lost; those references are indexes, never fabricated authoritative records. `GET /api/storage-status` reports which guarantees survive process replacement.
+Completed matches use one canonical record-v2 representation. Archive-enabled finalization serializes the finalized record as deterministic UTF-8 JSON, identifies it by SHA-256, writes one immutable private object, and inserts a lightweight searchable index before committing account consequences. Match Record, Replay, Studio, JSON export, and Para v1/v2 all consume that same verified object after process replacement. `GET /api/matches/:matchId` returns a public projection, participating accounts can download canonical JSON through the authorized archive route, and authenticated accounts list history at `GET /api/account/matches`. Compact account-only references are never fabricated into full records. See `docs/match-archive.md`; `GET /api/storage-status` reports archive availability and degraded rollout state.
 
 Available completed records can be replayed at `/?match=:matchId&replay=1` through the official Babylon presentation. New records carry versioned, privacy-filtered public frames after authoritative commands; older record-v2 matches fall back to an explicitly partial typed-event timeline. See `docs/match-replay.md`.
 

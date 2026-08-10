@@ -13,6 +13,8 @@ const ALLOWED_ORIGINS = [
 const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
 const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
 const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
+const MATCH_ARCHIVE_DATA_DIR = process.env.MATCH_ARCHIVE_DATA_DIR || `${MATCH_DATA_FILE}.archive`;
+const MATCH_ARCHIVE_BUCKET = process.env.MATCH_ARCHIVE_BUCKET || "gauntlet-match-archives";
 const ROOM_STATE_DATA_FILE = process.env.ROOM_STATE_DATA_FILE || `${__dirname}/rooms.json`;
 const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
 const DEVELOPMENT_AUTH_SECRETS = new Set([
@@ -24,6 +26,7 @@ const ACCOUNT_SESSION_TTL_MS = Math.max(60 * 1000, Number(process.env.ACCOUNT_SE
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const MATCH_ARCHIVE_REQUIRED = process.env.MATCH_ARCHIVE_REQUIRED === "true" || !(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
 
@@ -80,6 +83,13 @@ const {
   receiptKey
 } = require("./matchCompletion");
 const { createMatchPersistence } = require("./matchPersistence");
+const {
+  MatchArchiveError,
+  buildMatchPreview,
+  createLocalArchiveBackend,
+  createMatchArchive,
+  createSupabaseArchiveBackend
+} = require("./matchArchive");
 const {
   createRoomLifecycle,
   getRoomLifecycleAction,
@@ -139,6 +149,16 @@ const PUBLIC_CLIENT_URL = process.env.PUBLIC_CLIENT_URL
   || (CLIENT_URL.startsWith("https://") ? CLIENT_URL : "https://gauntlet-online.vercel.app");
 
 const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
+const matchArchive = createMatchArchive({
+  required: MATCH_ARCHIVE_REQUIRED,
+  backend: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+    ? createSupabaseArchiveBackend({
+        bucket: MATCH_ARCHIVE_BUCKET,
+        supabaseRequest,
+        storageRequest: supabaseStorageRequest
+      })
+    : createLocalArchiveBackend(MATCH_ARCHIVE_DATA_DIR)
+});
 const roomLifecycleConfig = getRoomLifecycleConfig();
 const roomStateStore = createRoomStateStore(ROOM_STATE_DATA_FILE, {
   enabled: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED)
@@ -170,6 +190,7 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
+app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
 app.use(express.json({ limit: "20kb" }));
 
 function getRequestAddress(req) {
@@ -229,12 +250,13 @@ app.get("/", (_req, res) => {
 
 app.get("/api/storage-status", async (_req, res) => {
   try {
-    const matchStorage = await matchPersistence.getMode();
+    const [matchStorage, archiveStorage] = await Promise.all([matchPersistence.getMode(), matchArchive.probe()]);
     const matchStorageStatus = publicMatchStorageStatus();
     res.json({
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
+      matchArchive: archiveStorage,
       supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
     });
   } catch (error) {
@@ -1466,6 +1488,35 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
+async function supabaseStorageRequest(pathname, options = {}) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase Storage is not configured.");
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/storage/v1/${pathname}`, {
+    method: options.method || "GET",
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      ...(options.headers || {})
+    },
+    body: options.body
+  });
+  if (options.notFound && response.status === 404) return null;
+  if (!response.ok) {
+    let detail = null;
+    try { detail = await response.json(); } catch { detail = null; }
+    const error = new Error(detail?.message || detail?.error || `Supabase Storage request failed (${response.status}).`);
+    error.status = response.status;
+    error.code = detail?.errorCode || detail?.statusCode || null;
+    throw error;
+  }
+  if (options.raw) {
+    const bytes = await response.arrayBuffer();
+    return Buffer.from(bytes);
+  }
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
 function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   const stats = account?.stats || {};
   const library = normalizeDeckLibrary(stats, account?.id);
@@ -1623,23 +1674,36 @@ function matchRecordToSupabaseRow(record) {
 }
 
 async function persistMatchRecord(record, options = {}) {
+  if (record?.completion?.status === "finalized") {
+    options.archive = await matchArchive.store(record);
+  }
   return matchPersistence.persist(record, options);
 }
 
 async function findMatchRecordById(matchId) {
+  const archived = await matchArchive.findById(matchId);
+  if (archived) return archived.record;
   return matchPersistence.findById(matchId);
 }
 
 async function listMatchRecordsByAccount(accountId, limit = 30) {
   const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100));
+  const archiveIndexes = await matchArchive.list({ accountId, limit: safeLimit });
+  const archived = (await Promise.all(archiveIndexes.map((entry) => matchArchive.findById(entry.matchId))))
+    .filter(Boolean)
+    .map((entry) => entry.record);
   const mode = await matchPersistence.getMode();
   let indexedMatchIds = [];
   if (mode === "compatibility") {
     const account = await findSupabaseAccountById(accountId);
     indexedMatchIds = normalizeProgression(account?.stats || {}).matchHistory.map((entry) => entry.matchId || entry.id);
   }
-  const records = await matchPersistence.listByAccount(accountId, safeLimit, indexedMatchIds);
-  return records.filter((record) => record && (!record.completion || record.completion.status === "finalized"));
+  const legacyRecords = await matchPersistence.listByAccount(accountId, safeLimit, indexedMatchIds);
+  const recordsById = new Map([...legacyRecords, ...archived].filter(Boolean).map((record) => [record.matchId, record]));
+  return [...recordsById.values()]
+    .filter((record) => !record.completion || record.completion.status === "finalized")
+    .sort((left, right) => Date.parse(right.completedAt || 0) - Date.parse(left.completedAt || 0))
+    .slice(0, safeLimit);
 }
 
 async function commitCompatibilityAccountApplications(_matchId, accountApplications = []) {
@@ -1662,7 +1726,22 @@ const matchPersistence = createMatchPersistence({
 
 function publicMatchStorageStatus() {
   const { mode, capabilities } = matchPersistence.status();
-  return { mode, capabilities };
+  const archive = matchArchive.status();
+  const archiveDurable = archive.available && archive.durable;
+  return {
+    mode: archiveDurable ? "canonical-json-archive" : mode,
+    legacyMode: mode,
+    archive,
+    capabilities: archiveDurable ? {
+      ...capabilities,
+      completeRecordV2: "durable",
+      publicRecordAfterProcessReplacement: true,
+      completionAfterProcessReplacement: true,
+      auditHistoryAfterProcessReplacement: true,
+      canonicalJsonArchive: "durable",
+      archiveIntegrityVerification: true
+    } : { ...capabilities, canonicalJsonArchive: "unavailable", archiveIntegrityVerification: false }
+  };
 }
 
 function getNextCampaignMission(account, factionId, chapterId, result) {
@@ -1684,23 +1763,29 @@ function getNextCampaignMission(account, factionId, chapterId, result) {
   };
 }
 
+async function commitAccountConsequence(consequence) {
+  const storageMode = await matchPersistence.getMode();
+  return recordAccountGameResult(consequence.accountId, consequence.result, {
+    ...consequence.context,
+    compatibilityPersistence: useSupabaseStore() && storageMode !== "preferred",
+    deferPersistence: false
+  });
+}
+
 const finalizeCompletedMatch = createFinalizeCompletedMatch({
   findMatchRecord: findMatchRecordById,
   persistMatchRecord,
-  applyAccountConsequence: async (consequence) => {
-    const storageMode = await matchPersistence.getMode();
-    return recordAccountGameResult(
-      consequence.accountId,
-      consequence.result,
-      {
-        ...consequence.context,
-        // The preferred schema commits prepared account applications in the
-        // authoritative finalization RPC. Compatibility storage commits the
-        // updated account projection and embedded receipt in one PATCH.
-        deferPersistence: storageMode === "preferred",
-        compatibilityPersistence: useSupabaseStore() && storageMode !== "preferred"
-      }
-    );
+  applyAccountConsequence: commitAccountConsequence,
+  // Consequence facts are prepared without mutating account state. The final
+  // record is canonicalized, archived, and indexed before persistence commits
+  // the prepared applications through the preferred RPC or compatibility path.
+  prepareAccountConsequence: (consequence) => recordAccountGameResult(
+    consequence.accountId,
+    consequence.result,
+    { ...consequence.context, deferPersistence: true }
+  ),
+  recoverFinalizedConsequences: async ({ consequences }) => {
+    for (const consequence of consequences) await commitAccountConsequence(consequence);
   },
   buildEnvelope: buildCompletionEnvelope,
   buildNextMission: async ({ account, factionId, chapterId, result }) => getNextCampaignMission(account, factionId, chapterId, result)
@@ -2157,8 +2242,9 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   }
 
   const store = loadAccountStore();
-  const account = store.accounts.find((entry) => entry.id === accountId);
-  if (!account) return null;
+  const storedAccount = store.accounts.find((entry) => entry.id === accountId);
+  if (!storedAccount) return null;
+  const account = context.deferPersistence ? clonePlain(storedAccount) : storedAccount;
 
   account.stats = account.stats || {};
   const receipts = account.stats.matchConsequenceReceipts || {};
@@ -2184,6 +2270,9 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
   const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
+  if (context.deferPersistence) {
+    return { alreadyApplied: false, account: publicAccountProjection(account), nextStats: clonePlain(account.stats), ...facts };
+  }
   if (key) account.stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
   account.lastSeenAt = new Date().toISOString();
   saveAccountStore(store);
@@ -2583,6 +2672,27 @@ function buildCompetitiveCapabilitySnapshot(stats = {}) {
   };
 }
 
+function ownerArchiveRequestAuthorized(req) {
+  const sessionToken = String(req.get("x-owner-session") || "");
+  return !!sessionToken && verifyOwnerSession(sessionToken);
+}
+
+async function requireArchiveAccess(req, res, record) {
+  if (ownerArchiveRequestAuthorized(req)) return { owner: true, account: null };
+  const context = await requireAccountRecord(req, res);
+  if (!context) return null;
+  if (!(record.participants || []).some((participant) => participant.accountId === context.account.id)) {
+    res.status(403).json({ error: "This archived match does not belong to your account." });
+    return null;
+  }
+  return { owner: false, account: context.account };
+}
+
+async function archiveProjectionForRecord(record) {
+  const archived = await matchArchive.findById(record.matchId);
+  return archived ? { ...archived.index, integrity: "verified" } : null;
+}
+
 app.get("/api/matches/:matchId", async (req, res) => {
   const matchId = String(req.params.matchId || "");
   if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
@@ -2595,15 +2705,45 @@ app.get("/api/matches/:matchId", async (req, res) => {
       res.status(404).json({ error: "Match not found." });
       return;
     }
+    const archive = await archiveProjectionForRecord(record);
+    const replay = replayAvailability(record, publicMatchStorageStatus());
     res.json({
       match: {
         ...publicMatchRecord(record),
-        replay: replayAvailability(record, publicMatchStorageStatus())
-      }
+        replay,
+        archive: archive
+          ? { status: archive.archiveStatus, integrity: archive.integrity, sha256: archive.sha256, byteSize: archive.byteSize }
+          : { status: "unavailable", integrity: "unavailable" }
+      },
+      preview: buildMatchPreview(record, archive, replay)
     });
   } catch (error) {
     console.error("[Matches] Failed to load public match", error);
     res.status(503).json({ error: "Match records are temporarily unavailable." });
+  }
+});
+
+app.get("/api/matches/:matchId/archive", async (req, res) => {
+  const matchId = String(req.params.matchId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
+    res.status(400).json({ error: "Invalid match ID." });
+    return;
+  }
+  try {
+    const archived = await matchArchive.findById(matchId);
+    if (!archived) {
+      res.status(404).json({ error: "Archived match JSON not found." });
+      return;
+    }
+    if (!await requireArchiveAccess(req, res, archived.record)) return;
+    res.set("Cache-Control", "private, no-store");
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.set("Content-Disposition", `attachment; filename="gauntlet-match-${matchId}.json"`);
+    res.set("Digest", `sha-256=${Buffer.from(archived.artifact.sha256, "hex").toString("base64")}`);
+    res.send(archived.artifact.json);
+  } catch (error) {
+    console.error("[MatchArchive] Failed to export canonical JSON", { matchId, code: error.code, message: error.message });
+    res.status(error instanceof MatchArchiveError ? 422 : 503).json({ error: "Archived match JSON could not be verified.", code: error.code || null });
   }
 });
 
@@ -2717,11 +2857,20 @@ app.get("/api/account/matches", async (req, res) => {
     const safeLimit = Math.max(1, Math.min(Number(req.query.limit) || 30, 100));
     const references = normalizeProgression(context.account.stats || {}).matchHistory.slice(0, safeLimit);
     const availableIds = new Set(records.map((record) => record.matchId));
-    res.json({
-      matches: records.map((record) => ({
+    const matches = await Promise.all(records.map(async (record) => {
+      const archive = await archiveProjectionForRecord(record);
+      const replay = replayAvailability(record, publicMatchStorageStatus());
+      return {
         ...publicMatchSummary(record, { accountId: context.account.id }),
-        replay: replayAvailability(record, publicMatchStorageStatus())
-      })),
+        replay,
+        archive: archive
+          ? { status: archive.archiveStatus, integrity: archive.integrity, sha256: archive.sha256, byteSize: archive.byteSize }
+          : { status: "unavailable", integrity: "unavailable", sha256: null, byteSize: 0 },
+        preview: buildMatchPreview(record, archive, replay)
+      };
+    }));
+    res.json({
+      matches,
       unavailableMatchReferences: references.filter((reference) => !availableIds.has(reference.matchId)),
       storage: publicMatchStorageStatus()
     });
@@ -3814,11 +3963,16 @@ async function loadStudioAccounts() {
 
 async function studioMatchState(accounts) {
   const recordsById = new Map();
-  const results = await Promise.allSettled(accounts.map((account) => listMatchRecordsByAccount(account.id, 30)));
+  const [results, archiveIndexes] = await Promise.all([
+    Promise.allSettled(accounts.map((account) => listMatchRecordsByAccount(account.id, 30))),
+    matchArchive.list({ limit: 30 })
+  ]);
   results.forEach((result) => {
     if (result.status !== "fulfilled") return;
     result.value.forEach((record) => recordsById.set(record.matchId, record));
   });
+  const archivedRecords = await Promise.all(archiveIndexes.map((entry) => matchArchive.findById(entry.matchId)));
+  archivedRecords.filter(Boolean).forEach((entry) => recordsById.set(entry.record.matchId, entry.record));
   const records = [...recordsById.values()].sort((left, right) => Date.parse(right.completedAt || 0) - Date.parse(left.completedAt || 0));
   const availableIds = new Set(recordsById.keys());
   const unavailableReferences = new Map();
@@ -3865,8 +4019,9 @@ app.get("/api/admin/overview", async (req, res) => {
     const season = getActiveSeason() || ACTIVE_SEASON;
     const matchState = await studioMatchState(accounts);
     const storage = publicMatchStorageStatus();
-    const recentRecords = matchState.records.slice(0, 30).map((record) => {
+    const recentRecords = await Promise.all(matchState.records.slice(0, 30).map(async (record) => {
       const replay = replayAvailability(record, storage);
+      const archive = await archiveProjectionForRecord(record);
       let actionCount = 0;
       if (replay.available) {
         try { actionCount = buildReplayTimeline(record, storage).actions.length; } catch { actionCount = 0; }
@@ -3874,10 +4029,14 @@ app.get("/api/admin/overview", async (req, res) => {
       return {
         ...publicMatchSummary(record),
         replay: { ...replay, actionCount },
+        preview: buildMatchPreview(record, archive, replay),
+        archive: archive
+          ? { status: archive.archiveStatus, integrity: archive.integrity, sha256: archive.sha256, byteSize: archive.byteSize, objectKey: archive.objectKey }
+          : { status: "unavailable", integrity: "unavailable", sha256: null, byteSize: 0, objectKey: null },
         recordV2Available: Number(record.recordVersion) === 2,
         paraExportAvailable: Number(record.recordVersion) === 2
       };
-    });
+    }));
     const standings = buildSeasonStandings(accounts, season);
     const seasonGames = Math.round(standings.reduce((total, entry) => total + Number(entry.gamesPlayed || 0), 0) / 2);
     res.json({
@@ -3888,6 +4047,7 @@ app.get("/api/admin/overview", async (req, res) => {
         accountStorage: useSupabaseStore() ? "supabase-configured" : "local-json",
         matchStorage: storage.mode,
         matchStorageCapabilities: storage.capabilities,
+        matchArchive: storage.archive,
         supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY),
         activeSeason: publicSeasonDefinition(season)
       },
@@ -3920,6 +4080,81 @@ app.get("/api/admin/overview", async (req, res) => {
     console.error("[Studio] Failed to load operational overview", error);
     res.status(503).json({ error: "Studio operations are temporarily unavailable." });
   }
+});
+
+function archiveErrorStatus(error) {
+  if (error?.code === "ARCHIVE_CONFLICT") return 409;
+  if (error?.code === "ARCHIVE_UNAVAILABLE") return 503;
+  return error instanceof MatchArchiveError ? 422 : 503;
+}
+
+app.post("/api/admin/match-archive/import/preview", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  try {
+    const inspection = matchArchive.inspect(req.body?.record);
+    const existing = await matchArchive.findById(inspection.artifact.record.matchId);
+    if (existing && existing.artifact.sha256 !== inspection.artifact.sha256) {
+      throw new MatchArchiveError("ARCHIVE_CONFLICT", "This match ID is already archived with a different SHA-256.");
+    }
+    res.json({
+      verified: true,
+      status: existing ? "already-archived" : "ready-to-import",
+      sha256: inspection.artifact.sha256,
+      byteSize: inspection.artifact.byteSize,
+      preview: inspection.preview
+    });
+  } catch (error) {
+    res.status(archiveErrorStatus(error)).json({ error: error.message || "Match archive validation failed.", code: error.code || null });
+  }
+});
+
+app.post("/api/admin/match-archive/import/commit", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  try {
+    const inspection = matchArchive.inspect(req.body?.record);
+    if (inspection.artifact.sha256 !== String(req.body?.expectedSha256 || "").toLowerCase()) {
+      throw new MatchArchiveError("ARCHIVE_HASH_MISMATCH", "The import changed after preview; preview the JSON again before committing.");
+    }
+    const result = await matchArchive.store(inspection.artifact.record, { imported: true });
+    if (result.status === "degraded") throw new MatchArchiveError("ARCHIVE_UNAVAILABLE", "Durable archive storage is unavailable.", result.error);
+    res.status(result.created ? 201 : 200).json({
+      status: result.status,
+      matchId: result.artifact.record.matchId,
+      sha256: result.artifact.sha256,
+      byteSize: result.artifact.byteSize,
+      preview: buildMatchPreview(result.artifact.record, { ...result.index, integrity: "verified" })
+    });
+  } catch (error) {
+    res.status(archiveErrorStatus(error)).json({ error: error.message || "Match archive import failed.", code: error.code || null });
+  }
+});
+
+app.post("/api/admin/match-archive/:matchId/verify", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  try {
+    res.json(await matchArchive.verify(String(req.params.matchId || "")));
+  } catch (error) {
+    res.status(archiveErrorStatus(error)).json({ verified: false, error: error.message || "Archive verification failed.", code: error.code || null });
+  }
+});
+
+app.post("/api/admin/match-archive/archive-process-local", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!requireOwnerAuthorization(req, res)) return;
+  const results = [];
+  for (const record of localMatchStore.load().matches) {
+    if (Number(record?.recordVersion) !== 2 || record?.completion?.status !== "finalized") continue;
+    try {
+      const archived = await matchArchive.store(record, { imported: true });
+      results.push({ matchId: record.matchId, status: archived.status, sha256: archived.artifact.sha256 });
+    } catch (error) {
+      results.push({ matchId: record.matchId, status: "failed", code: error.code || null, error: error.message });
+    }
+  }
+  res.json({ processed: results.length, results });
 });
 
 function persistRoomsNow(now = Date.now()) {
@@ -9119,6 +9354,7 @@ module.exports = {
     buildCompletionEnvelope,
     buildCompetitiveCapabilitySnapshot,
     buildCollectorVariantProvenance,
+    matchArchive,
     finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,

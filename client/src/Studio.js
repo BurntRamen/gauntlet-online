@@ -20,6 +20,10 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [previewMatchId, setPreviewMatchId] = useState("");
+  const [importRecord, setImportRecord] = useState(null);
+  const [importPreview, setImportPreview] = useState(null);
+  const [importMessage, setImportMessage] = useState("");
 
   const loadOverview = useCallback(async (sessionToken = sessionRef.current) => {
     if (!sessionToken) return;
@@ -74,6 +78,86 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
     }
   }
 
+  async function ownerRequest(path, options = {}) {
+    const response = await fetch(`${serverUrl}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        "x-owner-session": sessionRef.current,
+        ...(options.headers || {})
+      }
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Studio archive operation failed.");
+    return body;
+  }
+
+  async function downloadMatchJson(matchId) {
+    try {
+      const response = await fetch(`${serverUrl}/api/matches/${encodeURIComponent(matchId)}/archive`, {
+        headers: { "x-owner-session": sessionRef.current }
+      });
+      if (!response.ok) throw new Error((await response.json()).error || "Could not download match JSON.");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `gauntlet-match-${matchId}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      setError(downloadError.message);
+    }
+  }
+
+  async function verifyArchive(matchId) {
+    try {
+      const result = await ownerRequest(`/api/admin/match-archive/${encodeURIComponent(matchId)}/verify`, { method: "POST", body: "{}" });
+      setImportMessage(`Verified ${shortId(matchId)} · SHA ${result.sha256.slice(0, 16)}…`);
+    } catch (verifyError) {
+      setError(verifyError.message);
+    }
+  }
+
+  async function previewImport(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImportMessage("");
+    try {
+      const parsed = JSON.parse(await file.text());
+      const preview = await ownerRequest("/api/admin/match-archive/import/preview", {
+        method: "POST",
+        body: JSON.stringify({ record: parsed })
+      });
+      setImportRecord(parsed);
+      setImportPreview(preview);
+      setError("");
+    } catch (importError) {
+      setImportRecord(null);
+      setImportPreview(null);
+      setError(importError instanceof SyntaxError ? "The selected archive is not valid JSON." : importError.message);
+    }
+  }
+
+  async function commitImport() {
+    if (!importRecord || !importPreview?.sha256) return;
+    try {
+      const result = await ownerRequest("/api/admin/match-archive/import/commit", {
+        method: "POST",
+        body: JSON.stringify({ record: importRecord, expectedSha256: importPreview.sha256 })
+      });
+      setImportMessage(result.status === "already-archived" ? "Already archived · no changes made." : `Imported ${shortId(result.matchId)} successfully.`);
+      setImportRecord(null);
+      setImportPreview(null);
+      await loadOverview();
+    } catch (importError) {
+      setError(importError.message);
+    }
+  }
+
   if (!authorized) {
     return (
       <section className="studio-gate" aria-labelledby="studio-gate-title">
@@ -105,7 +189,7 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
       <section className="studio-metrics" aria-label="System status">
         <div><span>Backend</span><strong><Status good={system.backendReachable}>{system.backendReachable ? "Reachable" : "Unavailable"}</Status></strong><small>{system.backendCommit ? `Commit ${shortId(system.backendCommit)}` : "Commit not exposed"}</small></div>
         <div><span>Accounts</span><strong>{overview?.accounts?.total ?? 0}</strong><small>{overview?.accounts?.activeRecently ?? 0} active in 7 days</small></div>
-        <div><span>Match storage</span><strong><Status good={system.matchStorage !== "account-only"}>{system.matchStorage || "unknown"}</Status></strong><small>{system.matchStorage === "account-only" ? "Results durable; full replays process-local" : "Full records durable"}</small></div>
+        <div><span>Match archive</span><strong><Status good={system.matchArchive?.available}>{system.matchArchive?.available ? "Verified" : "Degraded"}</Status></strong><small>{system.matchArchive?.available ? "Canonical JSON durable" : "Archive target unavailable"}</small></div>
         <div><span>Active play</span><strong>{rooms.length}</strong><small>{overview?.activePlay?.rankedQueue || 0} ranked queued</small></div>
         <div><span>Replay health</span><strong>{overview?.matches?.exactFrameReplayCount || 0}</strong><small>{overview?.matches?.unavailableReferenceCount || 0} unavailable references</small></div>
         <div><span>Collector</span><strong>{collector.redeemedCount || 0}</strong><small>{collector.pendingCount || 0} issued pending</small></div>
@@ -121,12 +205,43 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
       </section>
 
       <section className="studio-panel">
-        <div className="studio-section-heading"><div><span>Authoritative history</span><h4>Recent Match Records</h4></div><small>{overview?.matches?.eventOnlyReplayCount || 0} event-only · {overview?.matches?.unavailableReferenceCount || 0} unavailable</small></div>
+        <div className="studio-section-heading"><div><span>Portable canonical history</span><h4>Match Archive</h4></div><small>{overview?.matches?.eventOnlyReplayCount || 0} event-only · {overview?.matches?.unavailableReferenceCount || 0} unavailable</small></div>
+        <div className="studio-archive-import">
+          <div><strong>Owner recovery import</strong><small>Select canonical record-v2 JSON, validate it, preview it, then explicitly commit.</small></div>
+          <label className="studio-file-action">Select JSON<input type="file" accept="application/json,.json" onChange={previewImport} /></label>
+        </div>
+        {importPreview && (
+          <div className="studio-import-preview">
+            <strong>{importPreview.status === "already-archived" ? "Already archived" : "Verified · Ready to import"}</strong>
+            <span>{(importPreview.preview?.participants || []).map((entry) => entry.displayName).join(" vs ")} · {formatDate(importPreview.preview?.completedAt)}</span>
+            <small>SHA-256 {importPreview.sha256} · {importPreview.byteSize} bytes</small>
+            <details><summary>Inspect JSON</summary><pre>{JSON.stringify(importRecord, null, 2)}</pre></details>
+            <div><button type="button" onClick={commitImport}>{importPreview.status === "already-archived" ? "Confirm No-op" : "Commit Import"}</button><button type="button" onClick={() => { setImportRecord(null); setImportPreview(null); }}>Cancel</button></div>
+          </div>
+        )}
+        {importMessage && <p className="studio-success">{importMessage}</p>}
         {records.length === 0 ? <p className="studio-empty">No recent Match Records.</p> : (
           <div className="studio-records">{records.map((record) => (
             <article key={record.matchId}>
-              <div><span>{record.mode || "match"} · {formatDate(record.completedAt)}</span><strong>{shortId(record.matchId)}</strong><small>Record v{record.recordVersion || "?"} · {record.replay?.actionCount || 0} replay actions · Para {record.paraExportAvailable ? "ready" : "unavailable"}</small></div>
-              <div><button type="button" onClick={() => onOpenMatch?.(record.matchId)}>Record</button>{record.replay?.available && <button type="button" onClick={() => onOpenReplay?.(record.matchId)}>Replay</button>}</div>
+              <div><span>{record.mode || "match"} · {formatDate(record.completedAt)}</span><strong>{shortId(record.matchId)}</strong><small>Record v{record.recordVersion || "?"} · {record.archive?.integrity === "verified" ? `Archived · ${record.archive.byteSize} bytes · ${record.archive.sha256.slice(0, 12)}…` : "Archive unavailable"}</small></div>
+              <div className="studio-record-actions">
+                <button type="button" onClick={() => setPreviewMatchId((current) => current === record.matchId ? "" : record.matchId)}>Preview</button>
+                <button type="button" onClick={() => onOpenMatch?.(record.matchId)}>Match Record</button>
+                {record.replay?.available && <button type="button" onClick={() => onOpenReplay?.(record.matchId)}>Replay</button>}
+                {record.archive?.integrity === "verified" && <button type="button" onClick={() => downloadMatchJson(record.matchId)}>Download JSON</button>}
+                <button type="button" onClick={() => window.open(`${serverUrl}/api/matches/${encodeURIComponent(record.matchId)}/export/para?version=2`, "_blank", "noopener,noreferrer")}>Para Export</button>
+                {record.archive?.integrity === "verified" && <button type="button" onClick={() => verifyArchive(record.matchId)}>Verify Integrity</button>}
+              </div>
+              {previewMatchId === record.matchId && (
+                <dl className="studio-record-preview">
+                  <div><dt>Players</dt><dd>{(record.preview?.participants || []).map((entry) => `${entry.displayName} (${entry.faction?.name || "Basic"})`).join(" vs ")}</dd></div>
+                  <div><dt>Winner</dt><dd>{record.preview?.participants?.find((entry) => Number(entry.playerNum) === Number(record.preview?.winnerPlayerNum))?.displayName || "Draw"}</dd></div>
+                  <div><dt>Turns</dt><dd>{record.preview?.turnCount || 0}</dd></div>
+                  <div><dt>Largest attack</dt><dd>{record.preview?.largestAttack?.value ?? "—"}</dd></div>
+                  <div><dt>Damage</dt><dd>{record.preview?.damageDealt || 0}</dd></div>
+                  <div><dt>Integrity</dt><dd>{record.archive?.integrity || "unavailable"}</dd></div>
+                </dl>
+              )}
             </article>
           ))}</div>
         )}

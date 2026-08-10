@@ -7,7 +7,7 @@
 .studio-gate label { grid-column: 1 / -1; font-size: 12px; font-weight: 800; }
 .studio-gate input { min-height: 42px; padding: 0 11px; border: 1px solid #577387; border-radius: 4px; background: #07131f; color: white; }
 .studio button { cursor: pointer; }
-.studio-gate button, .studio-header button, .studio-records button { min-height: 38px; padding: 8px 12px; border: 1px solid #d99419; border-radius: 4px; background: #895017; color: #fff8e7; font-weight: 800; cursor: pointer; }
+.studio-gate button, .studio-header button, .studio-records button, .studio-import-preview button { min-height: 38px; padding: 8px 12px; border: 1px solid #d99419; border-radius: 4px; background: #895017; color: #fff8e7; font-weight: 800; cursor: pointer; }
 .studio-error { padding: 9px 11px; border-left: 3px solid #ef4444; background: rgba(127, 29, 29, .4); color: #fecaca; }
 .studio-header { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 16px; border: 1px solid rgba(245, 158, 11, .35); background: linear-gradient(110deg, rgba(58, 35, 16, .9), rgba(8, 24, 38, .96)); }
 .studio-header p { max-width: 780px; margin: 0; color: #afc2cb; font-size: 12px; }
@@ -27,10 +27,18 @@
 .studio th { color: #8edcf6; font-size: 10px; text-transform: uppercase; }
 .studio-empty { color: #9eb3be; }
 .studio-records { display: grid; gap: 6px; }
-.studio-records article { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px; border: 1px solid rgba(137, 177, 195, .15); }
+.studio-records article { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 9px; border: 1px solid rgba(137, 177, 195, .15); }
 .studio-records article span, .studio-records article strong, .studio-records article small { display: block; }
 .studio-records article span, .studio-records article small { color: #9eb3be; font-size: 10px; }
-.studio-records article > div:last-child { display: flex; gap: 6px; }
+.studio-record-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.studio-record-preview { flex: 1 0 100%; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin: 0; padding-top: 9px; border-top: 1px solid rgba(137,177,195,.15); }
+.studio-record-preview > div { padding: 7px; background: rgba(3,10,18,.55); }
+.studio-record-preview dt { color: #8edcf6; font-size: 9px; font-weight: 900; text-transform: uppercase; }.studio-record-preview dd { margin: 3px 0 0; font-size: 11px; }
+.studio-archive-import { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding: 10px; border: 1px dashed rgba(245,158,11,.4); background: rgba(58,35,16,.18); }
+.studio-archive-import strong,.studio-archive-import small { display: block; }.studio-archive-import small { color: #9eb3be; margin-top: 3px; }
+.studio-file-action { display: inline-grid; place-items: center; min-height: 38px; padding: 8px 12px; border: 1px solid #d99419; border-radius: 4px; background: #895017; color: #fff8e7; font-weight: 800; cursor: pointer; }.studio-file-action input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.studio-import-preview { display: grid; gap: 6px; margin-bottom: 10px; padding: 12px; border: 1px solid rgba(134,239,172,.35); background: rgba(20,83,45,.18); }.studio-import-preview > span,.studio-import-preview > small { color: #b7d4c1; }.studio-import-preview details { max-height: 280px; overflow: auto; }.studio-import-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; }.studio-import-preview > div { display: flex; gap: 7px; }
+.studio-success { padding: 9px 11px; border-left: 3px solid #22c55e; background: rgba(20,83,45,.3); color: #bbf7d0; }
 .studio-two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .studio-standings { margin: 0; padding-left: 24px; }
 .studio-standings li { padding: 5px 0; border-bottom: 1px solid rgba(137, 177, 195, .13); }
@@ -46,5 +54,6 @@
   .studio-two-column { grid-template-columns: 1fr; }
   .studio-gate form { grid-template-columns: 1fr; }
   .studio-receipts > div { grid-template-columns: 1fr; }
+  .studio-archive-import { align-items: stretch; flex-direction: column; }.studio-record-preview { grid-template-columns: 1fr; }
   .studio-standings li span { float: none; display: block; }
 }

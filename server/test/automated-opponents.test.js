@@ -286,12 +286,12 @@ for (const { label, campaign, factions = false } of [
     room.lobby.players[2].factionId = campaign ? "rumin" : "bizi";
   }
   const matchId = campaign
-    ? "complete-campaign-match"
+    ? "30000000-0000-4000-8000-000000000003"
     : factions
-      ? "complete-faction-training-match"
-      : "complete-training-match";
+      ? "30000000-0000-4000-8000-000000000002"
+      : "30000000-0000-4000-8000-000000000001";
   __test.createGameFromLobby(room, {
-    matchMetadata: { matchId, gameNumber: 1, seriesId: null },
+    matchMetadata: { matchId, gameNumber: 1, seriesId: null, startedAt: new Date().toISOString() },
     seed: matchId
   });
   if (campaign) {

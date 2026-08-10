@@ -21,7 +21,20 @@ test("shows available and unavailable matches honestly with direct actions and S
           player: { participantId: "p1", faction: { name: "Rumin" }, result: "win" },
           opponent: { participantId: "p2", displayName: "Beta" }
         },
-        replay: { available: true, mode: "public-state-frames" }
+        replay: { available: true, mode: "public-state-frames" },
+        archive: { status: "archived", integrity: "verified", sha256: "a".repeat(64), byteSize: 1234 },
+        preview: {
+          matchId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          winnerPlayerNum: 1,
+          participants: [
+            { playerNum: 1, displayName: "Alpha", faction: { name: "Rumin" }, finalLife: 12 },
+            { playerNum: 2, displayName: "Beta", faction: { name: "Sheen" }, finalLife: -1 }
+          ],
+          largestAttack: { value: 11 },
+          damageDealt: 18,
+          damagePrevented: 4,
+          archive: { status: "archived", sha256: "a".repeat(64) }
+        }
       }],
       unavailableMatchReferences: [{
         matchId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
@@ -49,6 +62,9 @@ test("shows available and unavailable matches honestly with direct actions and S
   expect(screen.getAllByText("Replay unavailable").length).toBeGreaterThan(0);
   expect(screen.getAllByRole("heading", { name: "Season Zero" }).length).toBeGreaterThan(0);
   expect(screen.getByText("Season standings are one part of your broader match history.")).toBeVisible();
+  expect(screen.getByText("Archived · Verified")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+  expect(screen.getByText("11")).toBeVisible();
 
   fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
   expect(onOpenReplay).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");

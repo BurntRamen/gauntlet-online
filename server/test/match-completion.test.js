@@ -139,3 +139,63 @@ test("a record failure prevents account consequences, and a consequence failure 
   await assert.rejects(() => consequenceFailure.service.finalizeCompletedMatch({ record, consequences: [consequence] }));
   assert.equal(consequenceFailure.records.get(record.matchId).completion.status, "pending");
 });
+
+test("prepares consequence facts, archives the finalized record, then commits applications", async () => {
+  const calls = [];
+  const records = new Map();
+  const service = createFinalizeCompletedMatch({
+    findMatchRecord: async (matchId) => records.get(matchId) || null,
+    prepareAccountConsequence: async (consequence) => {
+      calls.push("prepare-consequence");
+      return {
+        result: consequence.result,
+        boosterCreditDelta: 1,
+        campaign: { outcome: "cleared", firstClear: true, clearType: "first-clear" },
+        progression: { campaign: { rumin: [consequence.context.campaign.chapterId] } },
+        nextStats: { gamesPlayed: 1 }
+      };
+    },
+    applyAccountConsequence: async () => { throw new Error("direct mutation must not run"); },
+    persistMatchRecord: async (record, options = {}) => {
+      if (record.completion.status === "pending") {
+        calls.push("persist-pending");
+      } else {
+        calls.push("archive-final-record");
+        assert.equal(options.accountApplications.length, 1);
+        calls.push("commit-consequence");
+      }
+      records.set(record.matchId, structuredClone(record));
+    }
+  });
+  const record = makeRecord("match-ordered");
+  await service.finalizeCompletedMatch({
+    record,
+    consequences: [{ matchId: record.matchId, accountId: "account-1", playerNum: 1, result: "win", context: { campaign: record.campaign } }]
+  });
+  assert.deepEqual(calls, ["persist-pending", "prepare-consequence", "archive-final-record", "commit-consequence"]);
+});
+
+test("a retry reconciles receipt-guarded consequences after archive/index succeeded", async () => {
+  const record = makeRecord("match-recovery");
+  record.completion = {
+    status: "finalized",
+    finalizedAt: "2026-08-05T12:01:00.000Z",
+    consequences: [{ accountId: "account-1", playerNum: 1, result: "win", receiptKey: "match-recovery:account-1" }]
+  };
+  let recoveryCalls = 0;
+  const service = createFinalizeCompletedMatch({
+    findMatchRecord: async () => record,
+    persistMatchRecord: async () => { throw new Error("a finalized retry must not rewrite the immutable archive"); },
+    applyAccountConsequence: async () => {},
+    recoverFinalizedConsequences: async ({ consequences }) => {
+      recoveryCalls += 1;
+      assert.equal(consequences[0].accountId, "account-1");
+    }
+  });
+  const result = await service.finalizeCompletedMatch({
+    record,
+    consequences: [{ accountId: "account-1", playerNum: 1, result: "win", context: { campaign: record.campaign } }]
+  });
+  assert.equal(result.alreadyFinalized, true);
+  assert.equal(recoveryCalls, 1);
+});

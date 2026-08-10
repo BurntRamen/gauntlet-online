@@ -9,7 +9,7 @@ test("exchanges the owner credential for a memory-only session and renders safe 
     .mockResolvedValueOnce({ ok: true, json: async () => ({ sessionToken: "short-session", expiresInMs: 3600000 }) })
     .mockResolvedValueOnce({ ok: true, json: async () => ({
       generatedAt: "2026-08-07T12:00:00.000Z",
-      system: { backendReachable: true, matchStorage: "account-only", accountStorage: "supabase-configured", supabaseConfigured: true },
+      system: { backendReachable: true, matchStorage: "canonical-json-archive", matchArchive: { available: true }, accountStorage: "supabase-configured", supabaseConfigured: true },
       accounts: { total: 12, activeRecently: 4 },
       activePlay: { rooms: [], rankedQueue: 0, draftQueues: { player: 0, bot: 0 } },
       matches: { recent: [], exactFrameReplayCount: 0, eventOnlyReplayCount: 0, unavailableReferenceCount: 2 },
@@ -24,7 +24,8 @@ test("exchanges the owner credential for a memory-only session and renders safe 
   fireEvent.click(screen.getByRole("button", { name: "Open Studio" }));
 
   expect(await screen.findByRole("heading", { name: "Gauntlet Studio" })).toBeVisible();
-  expect(screen.getByText("Results durable; full replays process-local")).toBeVisible();
+  expect(screen.getByText("Canonical JSON durable")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Match Archive" })).toBeVisible();
   expect(onAuthorizedChange).toHaveBeenCalledWith(true);
   expect(global.fetch).toHaveBeenNthCalledWith(1, "http://localhost:4000/api/admin/session", expect.objectContaining({ body: JSON.stringify({ ownerToken: "owner-secret" }) }));
   await waitFor(() => expect(global.fetch).toHaveBeenNthCalledWith(2, "http://localhost:4000/api/admin/overview", { headers: { "x-owner-session": "short-session" } }));

@@ -59,6 +59,36 @@ create index if not exists gauntlet_match_records_completed_idx
 create index if not exists gauntlet_match_records_participants_idx
   on gauntlet_match_records using gin (participant_account_ids);
 
+-- Lightweight discovery metadata for the immutable canonical record-v2 JSON
+-- stored in the private `gauntlet-match-archives` Storage bucket. This index
+-- is not authoritative match truth and intentionally excludes evidence,
+-- replay frames, completion envelopes, and full match JSON.
+create table if not exists gauntlet_match_archive_index (
+  match_id uuid primary key,
+  index_version text not null check (index_version = 'gauntlet.match-archive-index.v1'),
+  record_version integer not null check (record_version = 2),
+  completed_at timestamptz not null,
+  participant_account_ids uuid[] not null default '{}'::uuid[],
+  participants jsonb not null default '[]'::jsonb,
+  mode text not null,
+  ranked boolean not null default false,
+  season jsonb,
+  winner_player_num integer,
+  completion_reason text not null,
+  archive_object_key text not null unique,
+  archive_sha256 text not null check (archive_sha256 ~ '^[0-9a-f]{64}$'),
+  archive_byte_size bigint not null check (archive_byte_size > 0),
+  archive_status text not null default 'archived' check (archive_status in ('archived', 'degraded')),
+  archive_object_version text not null default 'record-v2' check (archive_object_version = 'record-v2'),
+  indexed_at timestamptz not null default now()
+);
+
+create index if not exists gauntlet_match_archive_completed_idx
+  on gauntlet_match_archive_index (completed_at desc);
+
+create index if not exists gauntlet_match_archive_participants_idx
+  on gauntlet_match_archive_index using gin (participant_account_ids);
+
 create table if not exists gauntlet_match_events (
   match_id uuid not null references gauntlet_match_records(id) on delete cascade,
   sequence integer not null,
@@ -205,13 +235,16 @@ end;
 $$;
 
 alter table gauntlet_match_records enable row level security;
+alter table gauntlet_match_archive_index enable row level security;
 alter table gauntlet_match_events enable row level security;
 alter table gauntlet_match_consequence_receipts enable row level security;
 
-revoke all on gauntlet_match_records from anon, authenticated;
+revoke all on gauntlet_match_records from public, anon, authenticated;
+revoke all on gauntlet_match_archive_index from public, anon, authenticated;
 revoke all on gauntlet_match_events from anon, authenticated;
 revoke all on gauntlet_match_consequence_receipts from anon, authenticated;
 grant select, insert, update, delete on gauntlet_match_records to service_role;
+grant select, insert on gauntlet_match_archive_index to service_role;
 grant select, insert, update, delete on gauntlet_match_events to service_role;
 grant select, insert, update, delete on gauntlet_match_consequence_receipts to service_role;
 revoke execute on function finalize_gauntlet_match(jsonb, jsonb, jsonb, jsonb) from public, anon, authenticated;

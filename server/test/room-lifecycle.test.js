@@ -59,6 +59,7 @@ function makeActiveGame(roomState) {
     reconnectToken: "beta-private-token"
   };
   roomState.game = {
+    matchId: roomState.matchMetadata.matchId,
     gameMode: "factions",
     phase: "priority",
     turn: 3,
@@ -159,6 +160,7 @@ test("sweeps disconnected matches, then removes them after completed retention",
   const startedAt = Date.parse("2026-07-15T13:00:00.000Z");
   const room = makeActiveGame(__test.createRoom());
   room.matchMetadata.matchId = "44444444-4444-4444-8444-444444444444";
+  room.game.matchId = room.matchMetadata.matchId;
   room.lifecycle.emptySince = new Date(startedAt).toISOString();
 
   const abandoned = await __test.sweepRoomLifecycle({ now: startedAt + 1000, config: TEST_CONFIG });

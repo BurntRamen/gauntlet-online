@@ -89,6 +89,8 @@ function createFinalizeCompletedMatch({
   findMatchRecord,
   persistMatchRecord,
   applyAccountConsequence,
+  prepareAccountConsequence = null,
+  recoverFinalizedConsequences = async () => {},
   buildEnvelope = buildCompletionEnvelope,
   buildNextMission = () => null,
   now = () => new Date().toISOString()
@@ -99,6 +101,11 @@ function createFinalizeCompletedMatch({
     if (!record?.matchId) throw new Error("A match ID is required to finalize a completed match.");
     const existing = await findMatchRecord(record.matchId);
     if (existing?.completion?.status === "finalized") {
+      // The immutable object/index can succeed before a database/account
+      // application. Re-run the receipt-guarded applications so a retry after
+      // process replacement reconciles that partial state without duplicating
+      // rewards or season points.
+      await recoverFinalizedConsequences({ record: existing, consequences });
       const existingConsequence = existing.completion.consequences?.find((entry) => Number(entry.playerNum) === Number(playerNum)) || existing.completion.consequences?.[0] || null;
       return {
         alreadyFinalized: true,
@@ -130,7 +137,7 @@ function createFinalizeCompletedMatch({
       const accountApplications = [];
       for (const consequence of consequences) {
         if (!consequence?.accountId) continue;
-        const applied = await applyAccountConsequence(consequence);
+        const applied = await (prepareAccountConsequence || applyAccountConsequence)(consequence);
         if (applied?.account) appliedAccounts.set(consequence.accountId, applied.account);
         const { account: _accountProjection, nextStats: _nextStats, ...consequenceFacts } = applied || {};
         accountApplications.push({

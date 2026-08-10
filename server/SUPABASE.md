@@ -37,6 +37,8 @@ When `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present, the backend sto
 
 The account match index is not an authoritative match record. It intentionally contains only a match ID, record version, completion timestamp, and deck-version reference. APIs never reconstruct a fake record v2 from that incomplete projection.
 
-Production cannot provide durable global record-v2 persistence in `account-only` mode. Enabling either the existing preferred schema or the existing compatibility journal immediately closes that capability gap; do not work around it by duplicating full records into account rows or unrelated tables.
+Production cannot provide durable global record-v2 persistence in `account-only` mode. The portable archive path closes that gap with one private Storage object per finalized match plus `gauntlet_match_archive_index`. Create the private `gauntlet-match-archives` bucket through the Storage API/dashboard, apply the checked-in index schema, verify the capability, and then set `MATCH_ARCHIVE_REQUIRED=true`. Do not work around missing archive infrastructure by duplicating full records into account rows or unrelated tables/projects.
 
 The match tables are accessed only by the backend service role. They are not granted to `anon` or `authenticated`; public match pages must use the privacy-filtered server API. Current Supabase projects may require the explicit `service_role` grants in `supabase-schema.sql` because newly created tables are no longer automatically exposed to the Data API.
+
+Canonical archive objects are also backend-only. Do not make the bucket public or add `anon`/`authenticated` Storage policies. See `docs/match-archive.md` for canonical bytes, index fields, import conflict handling, and restart qualification.

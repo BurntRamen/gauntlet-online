@@ -11,7 +11,22 @@ function titleCase(value) {
   return String(value || "match").replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function AvailableMatchRow({ match, onOpenMatch, onOpenReplay }) {
+function MatchPreview({ preview }) {
+  if (!preview) return null;
+  const winner = preview.participants?.find((entry) => Number(entry.playerNum) === Number(preview.winnerPlayerNum));
+  return (
+    <dl className="matches-preview" aria-label={`Match ${preview.matchId} preview`}>
+      <div><dt>Players</dt><dd>{(preview.participants || []).map((entry) => `${entry.displayName} (${entry.faction?.name || "Basic"})`).join(" vs ")}</dd></div>
+      <div><dt>Winner</dt><dd>{winner?.displayName || "Draw"}</dd></div>
+      <div><dt>Final life</dt><dd>{(preview.participants || []).map((entry) => `${entry.displayName} ${entry.finalLife}`).join(" · ")}</dd></div>
+      <div><dt>Largest attack</dt><dd>{preview.largestAttack?.value ?? "—"}</dd></div>
+      <div><dt>Damage</dt><dd>{preview.damageDealt || 0} dealt · {preview.damagePrevented || 0} prevented</dd></div>
+      <div><dt>Archive</dt><dd>{preview.archive?.status === "archived" ? `Verified · ${preview.archive.sha256?.slice(0, 12)}…` : "Unavailable"}</dd></div>
+    </dl>
+  );
+}
+
+function AvailableMatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, onTogglePreview }) {
   const perspective = match.perspective || {};
   const player = perspective.player || match.participants?.[0] || {};
   const opponent = perspective.opponent || perspective.opponents?.[0]
@@ -29,12 +44,18 @@ function AvailableMatchRow({ match, onOpenMatch, onOpenReplay }) {
             ? match.replay.mode === "public-state-frames" ? "Replay available · exact public battlefield" : "Replay available · event timeline"
             : match.replay?.unavailableReason || "Replay unavailable"}
         </small>
+        <small className={match.archive?.integrity === "verified" ? "is-available" : "is-unavailable"}>
+          {match.archive?.integrity === "verified" ? "Archived · Verified" : "Canonical JSON archive unavailable"}
+        </small>
       </div>
       <div className="matches-row-actions">
+        <button type="button" onClick={onTogglePreview}>{previewOpen ? "Hide Preview" : "Preview"}</button>
         {match.replay?.available && <button type="button" className="matches-primary-action" onClick={() => onOpenReplay(match.matchId)}>Watch Replay</button>}
         {!match.replay?.available && <span className="matches-unavailable-label">Replay unavailable</span>}
         <button type="button" onClick={() => onOpenMatch(match.matchId)}>Match Record</button>
+        {match.archive?.integrity === "verified" && <button type="button" onClick={() => onDownload(match.matchId)}>Export JSON</button>}
       </div>
+      {previewOpen && <MatchPreview preview={match.preview} />}
     </article>
   );
 }
@@ -70,6 +91,7 @@ export default function MatchesHub({
   const [data, setData] = useState({ matches: [], unavailableMatchReferences: [], storage: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [previewMatchId, setPreviewMatchId] = useState("");
   const loadMatches = useCallback(async () => {
     if (!authToken) {
       setData({ matches: [], unavailableMatchReferences: [], storage: null });
@@ -92,6 +114,29 @@ export default function MatchesHub({
   useEffect(() => { loadMatches(); }, [loadMatches, account?.stats?.gamesPlayed]);
   const replayCount = useMemo(() => (data.matches || []).filter((match) => match.replay?.available).length, [data.matches]);
 
+  async function downloadMatchJson(matchId) {
+    try {
+      const response = await fetch(`${serverUrl}/api/matches/${encodeURIComponent(matchId)}/archive`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.error || "Could not export match JSON.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `gauntlet-match-${matchId}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      setError(downloadError.message);
+    }
+  }
+
   if (!account) {
     return <section className="matches-hub matches-signed-out"><span>Match Archive</span><h3>Sign in to see your matches</h3><p>Account matches, Match Records, and replay availability will appear here.</p></section>;
   }
@@ -112,7 +157,17 @@ export default function MatchesHub({
       {error && <p className="matches-error">{error}</p>}
       {!loading && !error && !(data.matches || []).length && !(data.unavailableMatchReferences || []).length && <p className="matches-empty">No completed matches yet.</p>}
       <div className="matches-list">
-        {(data.matches || []).map((match) => <AvailableMatchRow key={match.matchId} match={match} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />)}
+        {(data.matches || []).map((match) => (
+          <AvailableMatchRow
+            key={match.matchId}
+            match={match}
+            onOpenMatch={onOpenMatch}
+            onOpenReplay={onOpenReplay}
+            onDownload={downloadMatchJson}
+            previewOpen={previewMatchId === match.matchId}
+            onTogglePreview={() => setPreviewMatchId((current) => current === match.matchId ? "" : match.matchId)}
+          />
+        ))}
         {(data.unavailableMatchReferences || []).map((reference) => <UnavailableReferenceRow key={reference.matchId} reference={reference} />)}
       </div>
       <section className="matches-season-section" aria-labelledby="matches-season-title">
