@@ -1,11 +1,28 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import MatchesHub from "./MatchesHub";
+import { createLocalMatchLibrary, createLocalMatchRecorder, createMemoryMatchBackend } from "./matchHistory";
+
+const { applyCommand, createCommandEnvelope, createMatch } = require("@gauntlet/duel-rules");
 
 const originalFetch = global.fetch;
 
 afterEach(() => { global.fetch = originalFetch; });
 
-test("shows available and unavailable matches honestly with direct actions and Season Zero as a subsection", async () => {
+function emptyLibrary() {
+  return createLocalMatchLibrary({ backend: createMemoryMatchBackend() });
+}
+
+function portableJson() {
+  const matchId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const game = createMatch({ matchId, seed: "matches-import", playerNames: { 1: "Import Alpha", 2: "Import Beta" } }).state;
+  const recorder = createLocalMatchRecorder({ initialGame: game, playerNames: { 1: "Import Alpha", 2: "Import Beta" }, startedAt: "2026-08-09T12:00:00.000Z" });
+  const envelope = createCommandEnvelope(game, game.priority, { type: "concede", player: game.priority }, `${matchId}:concede`);
+  const result = applyCommand(game, envelope);
+  recorder.recordAccepted(result.state, envelope);
+  return recorder.buildRecord(result.state, "2026-08-09T12:01:00.000Z").json;
+}
+
+test("merges account references honestly and keeps Season Zero as a subsection", async () => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
     json: async () => ({
@@ -22,7 +39,6 @@ test("shows available and unavailable matches honestly with direct actions and S
           opponent: { participantId: "p2", displayName: "Beta" }
         },
         replay: { available: true, mode: "public-state-frames" },
-        archive: { status: "archived", integrity: "verified", sha256: "a".repeat(64), byteSize: 1234 },
         preview: {
           matchId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
           winnerPlayerNum: 1,
@@ -32,8 +48,7 @@ test("shows available and unavailable matches honestly with direct actions and S
           ],
           largestAttack: { value: 11 },
           damageDealt: 18,
-          damagePrevented: 4,
-          archive: { status: "archived", sha256: "a".repeat(64) }
+          damagePrevented: 4
         }
       }],
       unavailableMatchReferences: [{
@@ -55,27 +70,67 @@ test("shows available and unavailable matches honestly with direct actions and S
     onOpenProfile={() => {}}
     onOpenReplay={onOpenReplay}
     onOpenMatch={onOpenMatch}
+    matchLibrary={emptyLibrary()}
   />);
 
   expect(await screen.findByText("Rumin vs Beta")).toBeVisible();
   expect(screen.getByText("Match bbbbbbbb")).toBeVisible();
-  expect(screen.getAllByText("Replay unavailable").length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/Replay file not saved on this device/).length).toBeGreaterThan(0);
   expect(screen.getAllByRole("heading", { name: "Season Zero" }).length).toBeGreaterThan(0);
-  expect(screen.getByText("Season standings are one part of your broader match history.")).toBeVisible();
-  expect(screen.getByText("Archived · Verified")).toBeVisible();
+  expect(screen.getByText("Imported files remain local history and never alter competitive standings.")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Preview" }));
   expect(screen.getByText("11")).toBeVisible();
 
   fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
-  expect(onOpenReplay).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  await waitFor(() => expect(onOpenReplay).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
   fireEvent.click(screen.getByRole("button", { name: "Match Record" }));
-  expect(onOpenMatch).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
-  await waitFor(() => expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/account/matches?limit=30", expect.any(Object)));
+  await waitFor(() => expect(onOpenMatch).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+  expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/account/matches?limit=30", expect.any(Object));
 });
 
-test("asks signed-out players to sign in without requesting private history", () => {
+test("keeps local import and history available while signed out without requesting account history", async () => {
   global.fetch = jest.fn();
-  render(<MatchesHub account={null} authToken="" serverUrl="http://localhost:4000" standings={[]} lifetimeStandings={[]} />);
-  expect(screen.getByRole("heading", { name: "Sign in to see your matches" })).toBeVisible();
+  render(<MatchesHub
+    account={null}
+    authToken=""
+    serverUrl="http://localhost:4000"
+    standings={[]}
+    lifetimeStandings={[]}
+    matchLibrary={emptyLibrary()}
+  />);
+  expect(screen.getByRole("heading", { name: "Import Match JSON" })).toBeVisible();
+  expect(screen.getByText("Sign in to merge durable account result references with matches saved on this device.")).toBeVisible();
+  await waitFor(() => expect(global.fetch).not.toHaveBeenCalled());
+});
+
+test("previews imported JSON, watches without persisting, then saves only after explicit action", async () => {
+  global.fetch = jest.fn();
+  const library = emptyLibrary();
+  const onOpenReplay = jest.fn();
+  const { container } = render(<MatchesHub
+    account={null}
+    authToken=""
+    serverUrl="http://localhost:4000"
+    standings={[]}
+    lifetimeStandings={[]}
+    onOpenReplay={onOpenReplay}
+    matchLibrary={library}
+  />);
+  const file = { text: async () => portableJson() };
+  fireEvent.drop(container.querySelector(".match-import-drop"), { dataTransfer: { files: [file] } });
+  expect(await screen.findByText("Valid Gauntlet record")).toBeVisible();
+  expect(screen.getByText(/Integrity confirms canonical content identity/)).toBeVisible();
+
+  fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
+  expect(onOpenReplay).toHaveBeenCalledWith(
+    "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    expect.objectContaining({ availability: expect.objectContaining({ available: true }) }),
+    expect.objectContaining({ matchId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" })
+  );
+  expect(await library.list()).toHaveLength(0);
+
+  fireEvent.click(screen.getByRole("button", { name: "Save to My Matches" }));
+  expect(await screen.findByText("Saved to My Matches.")).toBeVisible();
+  expect(await library.list()).toHaveLength(1);
   expect(global.fetch).not.toHaveBeenCalled();
 });

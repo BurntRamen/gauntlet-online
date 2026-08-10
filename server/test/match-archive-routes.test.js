@@ -114,6 +114,33 @@ test("Match Record, Replay, Para, JSON export, verify, and import use the same a
   assert.equal(archiveText, createArtifact(record).json);
   assert.match(archiveResponse.headers.get("content-disposition"), /gauntlet-match-/);
 
+  const processLocalMatchId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const processLocalRecord = {
+    ...record,
+    matchId: processLocalMatchId,
+    participants: record.participants.map((participant) => ({
+      ...participant,
+      participantId: `${processLocalMatchId}:p${participant.playerNum}`
+    })),
+    completion: {
+      ...record.completion,
+      consequences: record.completion.consequences.map((consequence) => ({
+        ...consequence,
+        receiptKey: `${processLocalMatchId}:${consequence.accountId}`
+      }))
+    }
+  };
+  await __test.matchPersistence.persist(processLocalRecord);
+  const findArchived = __test.matchArchive.findById;
+  __test.matchArchive.findById = async (matchId) => matchId === processLocalMatchId ? null : findArchived(matchId);
+  try {
+    const processLocalResponse = await fetch(`${origin}/api/matches/${processLocalMatchId}/archive`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal(processLocalResponse.status, 200);
+    assert.equal(await processLocalResponse.text(), createArtifact(processLocalRecord).json);
+  } finally {
+    __test.matchArchive.findById = findArchived;
+  }
+
   const ownerSession = await jsonRequest("/api/admin/session", {
     method: "POST",
     body: JSON.stringify({ ownerToken: process.env.OWNER_STATS_TOKEN })

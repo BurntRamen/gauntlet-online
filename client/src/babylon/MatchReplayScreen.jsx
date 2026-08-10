@@ -277,11 +277,17 @@ function VisualReplay({ adapter, audioEnabled, onBack, onOpenMatches }) {
   );
 }
 
-export default function MatchReplayScreen({ matchId, serverUrl, onBack, onOpenMatches, audioEnabled = true }) {
-  const [replay, setReplay] = useState(null);
+export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = null, onBack, onOpenMatches, audioEnabled = true }) {
+  const [replay, setReplay] = useState(initialReplay);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialReplay);
   useEffect(() => {
+    if (initialReplay) {
+      setReplay(initialReplay);
+      setLoading(false);
+      setError("");
+      return undefined;
+    }
     let active = true;
     setLoading(true);
     setError("");
@@ -294,7 +300,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, onBack, onOpenMa
       .catch((fetchError) => active && setError(fetchError.message))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [matchId, serverUrl]);
+  }, [initialReplay, matchId, serverUrl]);
   const adapter = useMemo(() => replay?.availability?.available ? createReplayMatchAdapter({ replay }) : null, [replay]);
   useEffect(() => () => adapter?.dispose(), [adapter]);
   const openMatches = onOpenMatches || onBack;

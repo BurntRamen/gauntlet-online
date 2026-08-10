@@ -1,8 +1,8 @@
-const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
 const { buildReplayTimeline } = require("./matchReplay");
+const portableMatchHistory = require("../shared/match-history");
 
 const MATCH_ARCHIVE_HASH_ALGORITHM = "sha256";
 const MATCH_ARCHIVE_INDEX_VERSION = "gauntlet.match-archive-index.v1";
@@ -11,47 +11,14 @@ const MATCH_RECORD_VERSION = 2;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FORBIDDEN_ARCHIVE_KEY = /(reconnect|token|servicerole|secret|credential|password|socket|deckorder|privatehand|privatedeck|privatepeek|privateaudit)/i;
 
-class MatchArchiveError extends Error {
-  constructor(code, message, details = null) {
-    super(message);
-    this.name = "MatchArchiveError";
-    this.code = code;
-    this.details = details;
-  }
-}
+const { MatchArchiveError } = portableMatchHistory;
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
 }
 
 function canonicalValue(value, seen = new Set()) {
-  if (value === null || ["string", "boolean"].includes(typeof value)) return value;
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new MatchArchiveError("NON_FINITE_NUMBER", "Canonical match JSON cannot contain a non-finite number.");
-    return Object.is(value, -0) ? 0 : value;
-  }
-  if (!value || typeof value !== "object") {
-    throw new MatchArchiveError("UNSUPPORTED_JSON_VALUE", "Canonical match JSON contains an unsupported value.");
-  }
-  if (seen.has(value)) throw new MatchArchiveError("CYCLIC_JSON", "Canonical match JSON cannot contain circular references.");
-  seen.add(value);
-  if (Array.isArray(value)) {
-    const result = value.map((entry) => canonicalValue(entry, seen));
-    seen.delete(value);
-    return result;
-  }
-  const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) {
-    seen.delete(value);
-    throw new MatchArchiveError("UNSUPPORTED_JSON_VALUE", "Canonical match JSON contains a non-JSON object.");
-  }
-  const result = {};
-  for (const key of Object.keys(value).sort()) {
-    if (value[key] === undefined) throw new MatchArchiveError("UNDEFINED_JSON_VALUE", `Canonical match JSON contains undefined at ${key}.`);
-    result[key] = canonicalValue(value[key], seen);
-  }
-  seen.delete(value);
-  return result;
+  return portableMatchHistory.canonicalValue(value, seen);
 }
 
 function canonicalJson(value) {
@@ -59,15 +26,11 @@ function canonicalJson(value) {
 }
 
 function sha256(value) {
-  return crypto.createHash(MATCH_ARCHIVE_HASH_ALGORITHM).update(value).digest("hex");
+  return portableMatchHistory.sha256Hex(value);
 }
 
 function archiveObjectKey(record) {
-  const completedAt = new Date(record.completedAt);
-  if (Number.isNaN(completedAt.getTime())) throw new MatchArchiveError("INVALID_COMPLETED_AT", "Match completion time is invalid.");
-  const year = String(completedAt.getUTCFullYear());
-  const month = String(completedAt.getUTCMonth() + 1).padStart(2, "0");
-  return `matches/${year}/${month}/${record.matchId}/record-v2.json`;
+  return portableMatchHistory.archiveObjectKey(record);
 }
 
 function inspectPrivateFields(value, location = "$", findings = []) {
@@ -143,30 +106,7 @@ function validateCompletion(record) {
 }
 
 function validateMatchRecord(record) {
-  assertArchive(record && typeof record === "object" && !Array.isArray(record), "INVALID_RECORD", "The archive must contain one match record object.");
-  assertArchive(Number(record.recordVersion) === MATCH_RECORD_VERSION, "UNSUPPORTED_RECORD_VERSION", "Only authoritative match record version 2 is supported.");
-  assertArchive(UUID_PATTERN.test(record.matchId || ""), "INVALID_MATCH_ID", "The match archive has an invalid match ID.");
-  assertArchive(typeof record.mode === "string" && record.mode.length > 0, "INVALID_MODE", "The match archive is missing its mode.");
-  assertArchive(typeof record.startedAt === "string" && !Number.isNaN(Date.parse(record.startedAt)), "INVALID_STARTED_AT", "The match archive has an invalid start time.");
-  assertArchive(typeof record.completedAt === "string" && !Number.isNaN(Date.parse(record.completedAt)), "INVALID_COMPLETED_AT", "The match archive has an invalid completion time.");
-  assertArchive(Date.parse(record.completedAt) >= Date.parse(record.startedAt), "INVALID_MATCH_TIME_RANGE", "The match completion precedes its start.");
-  assertArchive(typeof record.completionReason === "string" && record.completionReason.length > 0, "INVALID_COMPLETION_REASON", "The match archive is missing a completion reason.");
-  validateParticipants(record);
-  validateCompletion(record);
-  const privateFields = inspectPrivateFields(record);
-  assertArchive(privateFields.length === 0, "PRIVATE_ARCHIVE_FIELD", "The match archive contains a forbidden private field.", { fields: privateFields });
-  try {
-    buildReplayTimeline(record, {
-      mode: "archive",
-      capabilities: { completeRecordV2: "durable", publicRecordAfterProcessReplacement: true, auditHistoryAfterProcessReplacement: true }
-    });
-  } catch (error) {
-    if (error?.name === "MatchReplayIntegrityError") {
-      throw new MatchArchiveError(error.code || "REPLAY_INTEGRITY_FAILURE", error.message);
-    }
-    throw error;
-  }
-  return record;
+  return portableMatchHistory.validateMatchRecord(record);
 }
 
 function archiveIndex(record, artifact) {
@@ -220,78 +160,15 @@ function validateArchiveIndex(index, expectedMatchId = null) {
 }
 
 function createArtifact(record) {
-  const normalizedRecord = canonicalValue(record);
-  validateMatchRecord(normalizedRecord);
-  const json = JSON.stringify(normalizedRecord);
-  const bytes = Buffer.from(json, "utf8");
-  const artifact = {
-    record: clone(normalizedRecord),
-    json,
-    bytes,
-    sha256: sha256(bytes),
-    byteSize: bytes.byteLength,
-    objectKey: archiveObjectKey(normalizedRecord)
-  };
-  artifact.index = archiveIndex(normalizedRecord, artifact);
-  return artifact;
+  return portableMatchHistory.createArtifact(record);
 }
 
 function parseAndVerifyArchive(input, expected = {}) {
-  let record;
-  try {
-    record = typeof input === "string" || Buffer.isBuffer(input)
-      ? JSON.parse(Buffer.isBuffer(input) ? input.toString("utf8") : input)
-      : clone(input);
-  } catch {
-    throw new MatchArchiveError("INVALID_JSON", "The selected match archive is not valid JSON.");
-  }
-  const artifact = createArtifact(record);
-  if (expected.matchId) assertArchive(artifact.record.matchId === expected.matchId, "MATCH_ID_MISMATCH", "The archive match ID does not match the requested match.");
-  if (expected.sha256) assertArchive(artifact.sha256 === String(expected.sha256).toLowerCase(), "ARCHIVE_HASH_MISMATCH", "The archived JSON does not match its indexed SHA-256.");
-  if (expected.byteSize != null) assertArchive(artifact.byteSize === Number(expected.byteSize), "ARCHIVE_SIZE_MISMATCH", "The archived JSON byte size does not match its index.");
-  if (expected.indexVersion) {
-    validateArchiveIndex(expected, artifact.record.matchId);
-    for (const key of Object.keys(artifact.index)) {
-      const matches = key === "completedAt"
-        ? Date.parse(expected[key]) === Date.parse(artifact.index[key])
-        : canonicalJson(expected[key]) === canonicalJson(artifact.index[key]);
-      assertArchive(matches, "ARCHIVE_INDEX_PROJECTION_MISMATCH", `The archived JSON does not match indexed field ${key}.`);
-    }
-  }
-  return artifact;
+  return portableMatchHistory.parseAndVerifyArchive(input, expected);
 }
 
 function buildMatchPreview(record, archive = null, replay = null) {
-  const participants = (record.participants || []).map((entry) => ({
-    playerNum: Number(entry.playerNum),
-    displayName: entry.displayName,
-    faction: clone(entry.faction || null),
-    result: entry.result,
-    finalLife: Number(entry.finalLife || 0)
-  }));
-  return {
-    matchId: record.matchId,
-    recordVersion: Number(record.recordVersion),
-    completedAt: record.completedAt,
-    mode: record.mode,
-    ranked: !!record.ranked,
-    season: clone(record.season || null),
-    participants,
-    winnerPlayerNum: record.winnerPlayerNum == null ? null : Number(record.winnerPlayerNum),
-    turnCount: Number(record.turnCount || 0),
-    finalLife: clone(record.finalLife || {}),
-    largestAttack: clone(record.notableMoments?.largestAttack || null),
-    damageDealt: Number(record.combatStats?.totalDamageDealt || 0),
-    damagePrevented: Number(record.combatStats?.totalDamagePrevented || 0),
-    replay: clone(replay || null),
-    archive: archive ? {
-      status: archive.archiveStatus || "archived",
-      integrity: archive.integrity || "verified",
-      sha256: archive.sha256,
-      byteSize: Number(archive.byteSize || 0),
-      objectVersion: archive.archiveObjectVersion || MATCH_ARCHIVE_OBJECT_VERSION
-    } : { status: "unavailable", integrity: "unavailable", sha256: null, byteSize: 0, objectVersion: null }
-  };
+  return portableMatchHistory.buildMatchPreview(record, archive, replay);
 }
 
 function createLocalArchiveBackend(rootDirectory) {

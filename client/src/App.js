@@ -17,6 +17,7 @@ import {
   createCompletionAccountRefreshCoordinator,
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
+import { saveCompletedMatchFromServer } from "./matchHistory";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -3828,6 +3829,15 @@ export default function App() {
         if (cancelled) return;
         const completion = data.completion || null;
         setCompletionEnvelope(completion);
+        if (authToken && completion?.matchId) {
+          saveCompletedMatchFromServer({
+            serverUrl: SOCKET_URL,
+            matchId: completion.matchId,
+            authToken
+          }).catch((localSaveError) => {
+            console.warn("[MatchLibrary] Completed match could not be saved on this device.", localSaveError);
+          });
+        }
         if (!authToken || !completion?.matchId) {
           setCompletionAccountReadyMatchId(matchId);
           return;
@@ -3931,6 +3941,11 @@ export default function App() {
     setPublicViewData(null);
     setPublicViewError("");
     if (publicView.type === "replay") {
+      setPublicViewLoading(false);
+      return undefined;
+    }
+    if (publicView.data) {
+      setPublicViewData(publicView.data);
       setPublicViewLoading(false);
       return undefined;
     }
@@ -4424,7 +4439,7 @@ export default function App() {
     return { guestName: normalizedGuestName, reconnectToken };
   }
 
-  function openPublicView(type, id) {
+  function openPublicView(type, id, data = null) {
     if (!id) return;
     const url = new URL(window.location.href);
     url.searchParams.delete("match");
@@ -4432,7 +4447,7 @@ export default function App() {
     url.searchParams.delete("replay");
     url.searchParams.set(type, id);
     window.history.pushState({ gauntletPublicView: true }, "", url);
-    setPublicView({ type, id });
+    setPublicView({ type, id, data });
   }
 
   function closeCollectorClaim(openCollection = false) {
@@ -4446,14 +4461,14 @@ export default function App() {
     }
   }
 
-  function openReplay(matchId) {
+  function openReplay(matchId, replay = null, record = null) {
     if (!matchId) return;
     const url = new URL(window.location.href);
     url.searchParams.delete("profile");
     url.searchParams.set("match", matchId);
     url.searchParams.set("replay", "1");
     window.history.pushState({ gauntletPublicView: true }, "", url);
-    setPublicView({ type: "replay", id: matchId });
+    setPublicView({ type: "replay", id: matchId, replay, record });
   }
 
   function closePublicView() {
@@ -5002,8 +5017,11 @@ export default function App() {
         <MatchReplayScreen
           matchId={publicView.id}
           serverUrl={SOCKET_URL}
+          initialReplay={publicView.replay}
           audioEnabled={!accountSoundMuted}
-          onBack={() => openPublicView("match", publicView.id)}
+          onBack={() => publicView.record
+            ? openPublicView("match", publicView.id, publicView.record)
+            : openPublicView("match", publicView.id)}
           onOpenMatches={openMatchesFromPublicView}
         />
       </Suspense>
@@ -5311,7 +5329,7 @@ export default function App() {
               lifetimeStandings={lifetimeLeaderboard}
               seasonError={leaderboardError}
               onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-              onOpenMatch={(matchId) => openPublicView("match", matchId)}
+              onOpenMatch={(matchId, record) => openPublicView("match", matchId, record || null)}
               onOpenReplay={openReplay}
             />
           )}

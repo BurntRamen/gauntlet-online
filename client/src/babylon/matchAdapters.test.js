@@ -48,6 +48,28 @@ test("local adapter immediately exposes a production match update", () => {
   adapter.dispose();
 });
 
+test("local adapter automatically finalizes portable record-v2 history after a completed match", async () => {
+  const saved = [];
+  const adapter = new LocalDuelAdapter({
+    seed: "portable-local-adapter",
+    matchId: "77777777-7777-4777-8777-777777777777",
+    startedAt: "2026-08-09T12:00:00.000Z",
+    onCompletedMatchArtifact: async (artifact) => { saved.push(artifact); return { status: "saved" }; }
+  });
+  const result = await adapter.dispatch({ type: "concede" });
+  expect(result.accepted).toBe(true);
+  await adapter.completedMatchSave;
+  expect(saved).toHaveLength(1);
+  expect(saved[0].record).toMatchObject({
+    recordVersion: 2,
+    matchId: "77777777-7777-4777-8777-777777777777",
+    mode: "basic",
+    completion: { status: "finalized", consequences: [] }
+  });
+  expect(saved[0].record.publicReplayFrames.length).toBeGreaterThan(0);
+  expect(saved[0].record.leagueEvidence.length).toBeGreaterThan(0);
+});
+
 test("live and offline adapters expose the same collision-safe presentation contract", () => {
   const local = createLocalDuelAdapter({ seed: "shared-presentation-local" });
   const live = new LiveSocketAdapter({ seed: "shared-presentation-live" });

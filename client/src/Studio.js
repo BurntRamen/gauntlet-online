@@ -223,7 +223,7 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
         {records.length === 0 ? <p className="studio-empty">No recent Match Records.</p> : (
           <div className="studio-records">{records.map((record) => (
             <article key={record.matchId}>
-              <div><span>{record.mode || "match"} · {formatDate(record.completedAt)}</span><strong>{shortId(record.matchId)}</strong><small>Record v{record.recordVersion || "?"} · {record.archive?.integrity === "verified" ? `Archived · ${record.archive.byteSize} bytes · ${record.archive.sha256.slice(0, 12)}…` : "Archive unavailable"}</small></div>
+              <div><span>{record.mode || "match"} · {formatDate(record.completedAt)}</span><strong>{shortId(record.matchId)}</strong><small>Record v{record.recordVersion || "?"} · {record.archive?.integrity === "verified" ? `Cloud archived · ${record.archive.byteSize} bytes · ${record.archive.sha256.slice(0, 12)}…` : "Optional cloud archive not configured"}</small></div>
               <div className="studio-record-actions">
                 <button type="button" onClick={() => setPreviewMatchId((current) => current === record.matchId ? "" : record.matchId)}>Preview</button>
                 <button type="button" onClick={() => onOpenMatch?.(record.matchId)}>Match Record</button>

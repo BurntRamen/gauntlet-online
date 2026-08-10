@@ -86,6 +86,7 @@ const { createMatchPersistence } = require("./matchPersistence");
 const {
   MatchArchiveError,
   buildMatchPreview,
+  createArtifact,
   createLocalArchiveBackend,
   createMatchArchive,
   createSupabaseArchiveBackend
@@ -2682,7 +2683,7 @@ async function requireArchiveAccess(req, res, record) {
   const context = await requireAccountRecord(req, res);
   if (!context) return null;
   if (!(record.participants || []).some((participant) => participant.accountId === context.account.id)) {
-    res.status(403).json({ error: "This archived match does not belong to your account." });
+    res.status(403).json({ error: "This match does not belong to your account." });
     return null;
   }
   return { owner: false, account: context.account };
@@ -2731,16 +2732,18 @@ app.get("/api/matches/:matchId/archive", async (req, res) => {
   }
   try {
     const archived = await matchArchive.findById(matchId);
-    if (!archived) {
-      res.status(404).json({ error: "Archived match JSON not found." });
+    const record = archived?.record || await matchPersistence.findById(matchId);
+    if (!record || record.completion?.status !== "finalized") {
+      res.status(404).json({ error: "Completed match JSON not found." });
       return;
     }
-    if (!await requireArchiveAccess(req, res, archived.record)) return;
+    if (!await requireArchiveAccess(req, res, record)) return;
+    const artifact = archived?.artifact || createArtifact(record);
     res.set("Cache-Control", "private, no-store");
     res.set("Content-Type", "application/json; charset=utf-8");
     res.set("Content-Disposition", `attachment; filename="gauntlet-match-${matchId}.json"`);
-    res.set("Digest", `sha-256=${Buffer.from(archived.artifact.sha256, "hex").toString("base64")}`);
-    res.send(archived.artifact.json);
+    res.set("Digest", `sha-256=${Buffer.from(artifact.sha256, "hex").toString("base64")}`);
+    res.send(artifact.json);
   } catch (error) {
     console.error("[MatchArchive] Failed to export canonical JSON", { matchId, code: error.code, message: error.message });
     res.status(error instanceof MatchArchiveError ? 422 : 503).json({ error: "Archived match JSON could not be verified.", code: error.code || null });
@@ -9355,6 +9358,7 @@ module.exports = {
     buildCompetitiveCapabilitySnapshot,
     buildCollectorVariantProvenance,
     matchArchive,
+    matchPersistence,
     finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,

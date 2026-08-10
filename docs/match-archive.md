@@ -1,75 +1,48 @@
-# Portable Match Archive
+# Local-First Portable Match History
 
-Gauntlet treats the server-authored match record v2 as its one canonical historical artifact. Match Record, Replay, completion reconstruction, Studio previews, and Para v1/v2 are projections of the same retrieved record; none has separate long-term truth.
+Gauntlet match history has one portable artifact: canonical match record-v2 JSON. Match preview, Match Record, Replay, Studio inspection, JSON export, and Para projections all derive from that record. IndexedDB is a local convenience index, not a second source of truth.
 
-## Canonical JSON and identity
+## Canonical JSON and integrity
 
-Only a finalized `recordVersion: 2` object is archivable. The verifier validates participant/result consistency, completion receipts, evidence ordering, public replay-frame checksums, internal match IDs, supported versions, and the absence of private session, reconnect, hand/deck-order, peek, socket, password, token, or credential fields.
+Only a finalized `recordVersion: 2` object is accepted. The shared browser/server verifier checks participant and result consistency, completion receipts, evidence ordering, public replay-frame checksums, internal match IDs, supported versions, and the absence of private session, reconnect, hand/deck-order, peek, socket, password, token, or credential fields.
 
-Canonical serialization recursively sorts object keys, preserves array order, emits compact UTF-8 JSON, normalizes negative zero, and rejects undefined, cyclic, unsupported, or non-finite values. Presentation indentation is not part of the identity. SHA-256 of those canonical UTF-8 bytes is the archive identity.
+Canonical serialization recursively sorts object keys, preserves array order, emits compact UTF-8 JSON, normalizes negative zero, and rejects undefined, cyclic, unsupported, or non-finite values. SHA-256 of those canonical UTF-8 bytes is the artifact's content identity. A matching hash proves canonical-content integrity; an unsigned imported file is not thereby proven to have been issued by the Gauntlet server.
 
-Objects use this private layout:
+The filename is `gauntlet-match-<matchId>.json`. A duplicate match ID with the same SHA-256 is a safe no-op. The same match ID with a different SHA-256 is a `LOCAL_MATCH_CONFLICT` and never silently replaces the saved artifact.
+
+## Device Match Library
+
+The browser stores full canonical JSON in IndexedDB under `gauntlet-match-library`. Discovery metadata includes match ID, SHA-256, completion time, participants, mode, season summary, winner, record version, and replay capability. Metadata can always be recreated from the JSON.
+
+After a signed-in live match finalizes, the client requests the authorized canonical record from `GET /api/matches/:matchId/archive`, validates it locally, and saves it automatically. The route can serialize a complete finalized record still held by the normal match store; optional cloud object storage is not required. Supported local/offline adapter matches generate the same record-v2/evidence/frame contract and enter the same save path after completion. In-progress state is never stored as completed history.
+
+Matches merges compact account references with full records saved in the current browser. A full local artifact is labeled `Saved on this device` and supports Preview, Watch Replay, Match Record, and Export JSON. A compact server reference without local JSON remains an honest result reference labeled `Replay file not saved on this device`.
+
+## Client-only import and replay
+
+`Import Match JSON` uses a file picker or drag and drop:
 
 ```text
-matches/<UTC year>/<UTC month>/<matchId>/record-v2.json
+select file -> parse -> validate -> preview -> Watch Replay
 ```
 
-The object is immutable. A duplicate match ID with the same SHA-256 is a safe no-op. The same match ID with a different SHA-256 is an `ARCHIVE_CONFLICT` and is never overwritten.
+No upload is required. The shared projector transforms the validated record into the existing `ReplayMatchAdapter -> ProductionMatchExperience` path. Choosing Watch Replay does not persist the file. `Save to My Matches` is a separate explicit action.
 
-## Lightweight index
+Export writes the exact stored canonical JSON. An exported file can be imported in a fresh browser and replayed without the original backend process.
 
-`gauntlet_match_archive_index` contains discovery metadata only:
+## Competitive trust boundary
 
-- match ID and record/index versions;
-- completion time, mode, ranked flag, and compact season/result facts;
-- participant account IDs and public participant summaries;
-- private object key, SHA-256, canonical byte size, status, and object version.
+Imported JSON is player-controlled local history. It is never attached to an account by participant-name similarity and never changes:
 
-Evidence, replay frames, full completion data, and the canonical record are not duplicated into this index. The durable read path is match ID → index → private object → canonical SHA/size validation → record-v2/replay validation → consumer projection.
+- Season standings or account wins/losses;
+- campaign progression, rewards, achievements, or booster credits;
+- collector ownership;
+- Para league submission.
 
-Legacy `gauntlet_match_records`, event rows, and compatibility journals remain readable during migration. They are compatibility sources, not a second archive format.
+UI copy therefore says `Valid Gauntlet record` and `Canonical hash verified`, not `Official verified match`. Server signatures may be added in a future milestone if imported files ever become eligible to create official competitive consequences.
 
-## Finalization and recovery
+## Optional cloud archive
 
-For archive-enabled completion, the server:
+The existing private object/index abstractions remain isolated for future use. If configured, they can provide global record persistence and Studio diagnostics, but they are not required for player history, local replay, JSON export, or portability. Missing optional cloud archive infrastructure is informational and must not make Matches appear broken or block normal completion.
 
-1. builds record v2;
-2. prepares account consequence facts without mutating account state;
-3. builds and validates the finalized record;
-4. canonicalizes and hashes it;
-5. writes the immutable private object;
-6. inserts the lightweight index;
-7. commits prepared account applications through the preferred RPC or compatibility receipt path;
-8. exposes the completed match.
-
-Object and index writes are idempotent. An object without an index is reconciled by retrying the same canonical record. An indexed object is re-downloaded and verified before a duplicate is accepted. Account applications retain the `(matchId, accountId)` receipt identity, so a lost response or retry does not duplicate rewards or season points.
-
-When archive infrastructure is optional during rollout, failure is explicitly reported as `archive-unavailable`/degraded and existing completion behavior continues. Production should set `MATCH_ARCHIVE_REQUIRED=true` after the private bucket and index are verified; then archive failure stops finalization before account mutation.
-
-## Access and workflows
-
-Canonical objects are private and have no public raw URL. `GET /api/matches/:matchId/archive` streams verified canonical JSON only to a participating signed-in account or a valid short-lived Studio owner session. The filename is `gauntlet-match-<matchId>.json`.
-
-Matches presents a friendly preview and `Archived · Verified` state before raw export. Studio provides Preview, Match Record, Replay, Download JSON, Para Export, Verify Integrity, and an owner-only recovery import.
-
-Import is `select → parse → validate → preview → explicit commit`. It accepts only a complete authoritative record-v2 artifact. It never reconstructs evidence from compact history and never applies account consequences. Exact duplicates are no-ops; conflicting bytes fail closed.
-
-The owner-only `POST /api/admin/match-archive/archive-process-local` path can archive complete finalized records still available in the current process. Compact account references are never promoted into fabricated records and remain visibly unavailable.
-
-## Supabase activation
-
-Use the existing Gauntlet Supabase project only:
-
-1. apply the `gauntlet_match_archive_index` portion of `server/supabase-schema.sql`;
-2. create a private Files bucket named `gauntlet-match-archives` through the Supabase Storage API or dashboard;
-3. do not add public object policies—the backend service role is the only storage client;
-4. set `MATCH_ARCHIVE_BUCKET` if a different reviewed name is used;
-5. verify `GET /api/storage-status` reports an available private canonical archive;
-6. set `MATCH_ARCHIVE_REQUIRED=true` and restart the backend;
-7. complete the before/after restart qualification with one real production match.
-
-Do not insert or update `storage.objects` directly. Supabase Storage metadata is read-only application infrastructure; object operations go through the Storage API.
-
-## Historical limitation
-
-An account-only compact match reference has only match ID, record version, completion time, and deck-version reference. If its full process-local record was already lost, the canonical archive, Match Record, Replay, and JSON export remain unavailable. Gauntlet reports that limitation instead of inventing historical evidence.
+Compact historical account references cannot be expanded into records after their original full data is gone. Gauntlet does not fabricate evidence; importing a player-owned canonical JSON file is the recovery path.

@@ -1,6 +1,11 @@
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
 import { getPlayingCardArtPath } from "../cardArt";
+import {
+  createLocalMatchRecorder,
+  createPortableLocalMatchId,
+  localMatchLibrary
+} from "../matchHistory";
 
 const {
   COMMAND_SCHEMA_VERSION,
@@ -134,12 +139,14 @@ function createLocalState({
   seed,
   gameMode = "basic",
   factions,
-  playerNames
+  playerNames,
+  matchId
 }) {
   return createMatch({
     seed,
     gameMode,
     factions,
+    matchId,
     playerNames: playerNames || { 1: "Player 1", 2: "Player 2" }
   }).state;
 }
@@ -155,9 +162,18 @@ export class LocalDuelAdapter {
       2: { id: "sheen", name: "Sheen" }
     };
     this.playerNames = options.playerNames || { 1: "Player 1", 2: "Player 2" };
+    this.autoSaveLocalHistory = options.autoSaveLocalHistory !== false;
+    this.onCompletedMatchArtifact = options.onCompletedMatchArtifact || ((artifact) => (
+      localMatchLibrary.save(artifact.json, { source: "local-completion" })
+    ));
     this.listeners = new Set();
+    this.startedAt = options.startedAt || new Date().toISOString();
+    this.matchId = options.matchId || createPortableLocalMatchId(this.seed);
     this.game = createLocalState(this);
     this.initialGame = clone(this.game);
+    this.localMatchRecorder = createLocalMatchRecorder({ initialGame: this.initialGame, playerNames: this.playerNames, startedAt: this.startedAt });
+    this.completedMatchArtifact = null;
+    this.completedMatchSave = null;
     this.controller = nextActor(this.game);
     this.perspective = this.controller || 1;
     this.selection = freshSelection();
@@ -254,8 +270,13 @@ export class LocalDuelAdapter {
     this.seed = String(options.seed || this.seed || "gauntlet-local");
     this.gameMode = options.gameMode === "factions" ? "factions" : options.gameMode || this.gameMode;
     if (options.factions) this.factions = options.factions;
+    this.startedAt = options.startedAt || new Date().toISOString();
+    this.matchId = options.matchId || createPortableLocalMatchId(this.seed);
     this.game = createLocalState(this);
     this.initialGame = clone(this.game);
+    this.localMatchRecorder = createLocalMatchRecorder({ initialGame: this.initialGame, playerNames: this.playerNames, startedAt: this.startedAt });
+    this.completedMatchArtifact = null;
+    this.completedMatchSave = null;
     this.undoStack = [];
     this.selection = freshSelection();
     this.inspection = null;
@@ -269,6 +290,9 @@ export class LocalDuelAdapter {
 
   reset() {
     this.game = clone(this.initialGame);
+    this.localMatchRecorder = createLocalMatchRecorder({ initialGame: this.initialGame, playerNames: this.playerNames, startedAt: this.startedAt });
+    this.completedMatchArtifact = null;
+    this.completedMatchSave = null;
     this.undoStack = [];
     this.selection = freshSelection();
     this.inspection = null;
@@ -281,8 +305,10 @@ export class LocalDuelAdapter {
   }
 
   undo() {
+    if (this.completedMatchArtifact) return;
     const previous = this.undoStack.pop();
     if (!previous) return;
+    this.localMatchRecorder.undo();
     this.game = previous;
     this.selection = freshSelection();
     this.controller = nextActor(this.game);
@@ -320,6 +346,7 @@ export class LocalDuelAdapter {
     this.undoStack.push(this.game);
     this.undoStack = this.undoStack.slice(-40);
     this.game = result.state;
+    this.localMatchRecorder.recordAccepted(this.game, envelope);
     this.selection = freshSelection();
     this.notice = "";
     this.pendingEvents = result.animationEvents || [];
@@ -330,6 +357,16 @@ export class LocalDuelAdapter {
       this.privacyRequired = actor !== previousActor;
     }
     this.emit();
+    if (this.game.phase === "gameOver" && !this.completedMatchArtifact) {
+      this.completedMatchArtifact = this.localMatchRecorder.buildRecord(this.game);
+      if (this.autoSaveLocalHistory) {
+        this.completedMatchSave = Promise.resolve(this.onCompletedMatchArtifact(this.completedMatchArtifact))
+          .catch((error) => {
+            console.warn("[MatchLibrary] Local match could not be saved on this device.", error);
+            return { status: "failed", error };
+          });
+      }
+    }
     return Promise.resolve(result);
   }
 
@@ -1450,7 +1487,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     acknowledgementTimeoutMs = 5000,
     retryCount = 1
   } = {}) {
-    super({ seed: "live-adapter-bootstrap" });
+    super({ seed: "live-adapter-bootstrap", autoSaveLocalHistory: false });
     const sessionState = session?.getCurrent?.() || {};
     game = sessionState.game ?? game;
     player = sessionState.player ?? player;

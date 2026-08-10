@@ -8,6 +8,7 @@
   "dependencies": {
     "@gauntlet/basic-rules": "file:../shared/basic-gauntlet-rules",
     "@gauntlet/duel-rules": "file:../shared/duel-rules",
+    "@gauntlet/match-history": "file:../shared/match-history",
     "@babylonjs/core": "^9.18.0",
     "@babylonjs/gui": "^9.18.0",
     "@testing-library/dom": "^10.4.1",
