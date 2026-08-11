@@ -137,3 +137,27 @@ test("semantic actions, not their component evidence rows, are the playback unit
   expect(adapter.createUpdate().replay.action.summary).toBe("Alpha wins");
   adapter.dispose();
 });
+
+test("manual replay traversal emits one coherent frame per command", () => {
+  const adapter = createReplayMatchAdapter({ replay: replayFixture() });
+  const listener = jest.fn();
+  const unsubscribe = adapter.subscribe(listener);
+  listener.mockClear();
+
+  adapter.replayControls.next();
+  expect(listener).toHaveBeenCalledTimes(1);
+  expect(listener.mock.calls[0][0].replay).toMatchObject({ currentIndex: 1, transitionMode: "animate" });
+
+  listener.mockClear();
+  adapter.replayControls.previous();
+  expect(listener).toHaveBeenCalledTimes(1);
+  expect(listener.mock.calls[0][0].replay).toMatchObject({ currentIndex: 0, transitionMode: "reconcile" });
+
+  listener.mockClear();
+  adapter.replayControls.jump(3);
+  expect(listener).toHaveBeenCalledTimes(1);
+  expect(listener.mock.calls[0][0].replay.currentIndex).toBe(3);
+
+  unsubscribe();
+  adapter.dispose();
+});

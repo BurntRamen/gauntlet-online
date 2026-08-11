@@ -1,11 +1,11 @@
 {
   "schemaVersion": "gauntlet.match-presentation.v1",
   "kitId": "gauntlet-core-v1",
-  "revision": "production-surface-audio-2026-08-10",
+  "revision": "native-board-audio-2026-08-11",
   "status": "approved",
   "provenance": {
     "creator": "Gauntlet engineering",
-    "source": "Approved authored 2D surface, emissive, FX, and audio kit with procedural depth fallback",
+    "source": "Native modular Babylon board with approved emissive, FX, and audio assets; authored GLB and PBR replacements remain provisional",
     "approvalOwner": "Gauntlet art direction",
     "license": "Project-internal production use approved",
     "checksum": null
@@ -51,7 +51,7 @@
     },
     "materials": {
       "table.graphite": { "id": "table.graphite", "role": "procedural-depth-base", "format": "pbr-set", "path": "/assets/gauntlet/match/graphite-table-v1.png", "paths": { "baseColor": "/assets/gauntlet/match/graphite-table-v1.png", "normal": null, "metallicRoughness": null, "ao": null, "emissive": null }, "status": "provisional", "revision": "generated-v1", "requiredForCutover": false, "fallback": "procedural.graphite" },
-      "board.surface-overlay": { "id": "board.surface-overlay", "role": "approved-authored-board-surface", "format": "webp", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "procedural.board-surface", "checksum": "sha256:5a44f4d0c433ab4315d0c7b4f99f2a7ae86f3c8564d46da6b3d351dde950cd7d", "provenanceRef": "gauntlet-visual-concepts-2026-08-10" },
+      "board.surface-overlay": { "id": "board.surface-overlay", "role": "reference-only-board-concept", "format": "webp", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp", "status": "approved", "revision": "reference-2026-08-10", "requiredForCutover": false, "runtimeSelectable": false, "referenceOnly": true, "structuralComposite": true, "fallback": "procedural.native-board-modules", "checksum": "sha256:5a44f4d0c433ab4315d0c7b4f99f2a7ae86f3c8564d46da6b3d351dde950cd7d", "provenanceRef": "gauntlet-visual-concepts-2026-08-10" },
       "table.engraved": { "id": "table.engraved", "role": "future-pbr-enhancement", "format": "pbr-set", "status": "provisional", "revision": "future-enhancement", "requiredForCutover": false, "fallback": "procedural.engraved" },
       "trim.bronze": { "id": "trim.bronze", "role": "future-pbr-enhancement", "format": "pbr-set", "status": "provisional", "revision": "future-enhancement", "requiredForCutover": false, "fallback": "procedural.bronze" },
       "rail.steel": { "id": "rail.steel", "role": "future-pbr-enhancement", "format": "pbr-set", "status": "provisional", "revision": "future-enhancement", "requiredForCutover": false, "fallback": "procedural.steel" },

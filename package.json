@@ -10,7 +10,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",
-    "test:e2e:usability": "playwright test e2e/babylon-usability.spec.js",
+    "test:e2e:usability": "playwright test --config=playwright.usability.config.js",
     "test:e2e:performance": "playwright test --config=playwright.performance.config.js",
     "test:qualification": "node --test scripts/babylon-experience-gate.test.js scripts/prune-webgpu-build.test.js scripts/report-match-assets.test.js",
     "capture:babylon-review": "playwright test --config=playwright.visual-review.config.js",

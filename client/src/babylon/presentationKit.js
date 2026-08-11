@@ -39,7 +39,7 @@ export const FALLBACK_PRESENTATION_KIT = Object.freeze({
     materials: {
       "table.graphite": {
         id: "table.graphite",
-        role: "board-surface",
+        role: "tiling-table-material",
         format: "png",
         path: "/assets/gauntlet/match/graphite-table-v1.png",
         status: "provisional",
@@ -117,6 +117,15 @@ export function validatePresentationKit(kit, { requireApproved = false } = {}) {
       const checksum = asset?.checksum ?? kit.assetDefaults?.checksum;
       if (["candidate", "approved"].includes(asset?.status) && !checksum) errors.push(`assets.${group}.${key} needs a checksum before ${asset.status} review.`);
       if (!asset?.path && !asset?.fallback) errors.push(`assets.${group}.${key} needs a path or fallback.`);
+      if (asset?.referenceOnly && asset?.runtimeSelectable !== false) {
+        errors.push(`assets.${group}.${key} is reference-only and must not be runtime selectable.`);
+      }
+      if (asset?.referenceOnly && asset?.requiredForCutover) {
+        errors.push(`assets.${group}.${key} is reference-only and cannot be required for runtime cutover.`);
+      }
+      if (asset?.structuralComposite && asset?.runtimeSelectable !== false) {
+        errors.push(`assets.${group}.${key} is a structural composite and cannot be runtime selectable.`);
+      }
       if (requireApproved && asset?.requiredForCutover && asset.status !== "approved") {
         errors.push(`assets.${group}.${key} is required for cutover but is not approved.`);
       }

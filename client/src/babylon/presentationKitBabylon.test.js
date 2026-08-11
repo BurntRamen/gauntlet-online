@@ -59,6 +59,10 @@ test("the presentation loader caches an authored source and creates requested in
 
   expect(result.loaded).toBe(true);
   expect(result.roots.map((root) => root.id)).toEqual(["lane-0", "lane-1"]);
+  expect(result.instances.map(({ instance, root }) => [instance.id, root.id])).toEqual([
+    ["lane-0", "lane-0"],
+    ["lane-1", "lane-1"]
+  ]);
   expect(modelLoader).toHaveBeenCalledTimes(1);
   expect(instantiate).toHaveBeenCalledTimes(2);
 });

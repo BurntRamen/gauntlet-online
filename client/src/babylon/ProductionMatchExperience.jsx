@@ -1159,6 +1159,7 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
+  const [sceneMetrics, setSceneMetrics] = useState(null);
   const adapterRef = useRef(adapter);
   const inspectionReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
@@ -1228,7 +1229,8 @@ export default function ProductionMatchExperience({
     };
   }, [adapter, onRendererFailure, reducedMotion]);
 
-  const viewModel = update?.viewModel;
+  const battlefieldViewModel = update?.viewModel;
+  const viewModel = authoritativeUpdate?.viewModel || battlefieldViewModel;
   const transportUpdate = authoritativeUpdate || update;
   const commands = useMemo(
     () => transportUpdate?.commands || {},
@@ -1246,6 +1248,10 @@ export default function ProductionMatchExperience({
     setAudioEnabled(Boolean(enabled));
     options.onAudioEnabledChange?.(Boolean(enabled));
   }, [options]);
+  const handleSceneMetrics = useCallback((metrics) => {
+    setSceneMetrics(metrics);
+    onSceneMetrics?.(metrics);
+  }, [onSceneMetrics]);
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
       interactionCueTokenRef.current += 1;
@@ -1301,15 +1307,21 @@ export default function ProductionMatchExperience({
     };
   }, [playbackState.inputLocked, transportUpdate?.connected, viewModel]);
   const canvasViewModel = useMemo(() => (
-    presentedViewModel
+    battlefieldViewModel
       ? {
-          ...presentedViewModel,
+          ...battlefieldViewModel,
           reducedMotion,
           presentationKit,
-          presentationCues: update?.presentation?.cues || presentedViewModel.presentationCues || []
+          presentationCues: update?.presentation?.cues || battlefieldViewModel.presentationCues || [],
+          presentationSource: update?.source || "unknown",
+          presentationTransitionMode: update?.replay?.transitionMode
+            || update?.presentation?.transitionMode
+            || "animate",
+          replayTraversalGeneration: update?.replay?.traversalGeneration || 0,
+          presentationPlaybackRate: update?.replay?.speed || 1
         }
-      : presentedViewModel
-  ), [presentationKit, presentedViewModel, reducedMotion, update?.presentation?.cues]);
+      : battlefieldViewModel
+  ), [battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
 
   useEffect(() => {
     if (transportUpdate?.inspection) {
@@ -1453,6 +1465,22 @@ export default function ProductionMatchExperience({
       data-opponent-kind={update?.descriptor?.opponentKind}
       data-presentation-kit={presentationKit.kitId}
       data-presentation-status={presentationKit.status}
+      data-scene-contract={sceneMetrics?.sceneContract || "initializing"}
+      data-board-module-count={sceneMetrics?.boardModuleCount ?? ""}
+      data-card-actor-count={sceneMetrics?.cardActorCount ?? ""}
+      data-actors-by-zone={JSON.stringify(sceneMetrics?.actorsByZone || {})}
+      data-known-actor-count={sceneMetrics?.knownActorCount ?? ""}
+      data-anonymous-actor-count={sceneMetrics?.anonymousActorCount ?? ""}
+      data-departing-actor-count={sceneMetrics?.departingActorCount ?? ""}
+      data-duplicate-visible-identity-count={sceneMetrics?.duplicateVisibleIdentityCount ?? ""}
+      data-structural-composite-raster-count={sceneMetrics?.structuralCompositeRasterCount ?? ""}
+      data-active-transition-count={sceneMetrics?.activeTransitionCount ?? ""}
+      data-active-motions-by-role={JSON.stringify(sceneMetrics?.activeMotionsByRole || {})}
+      data-active-motion-paths={JSON.stringify(sceneMetrics?.activeMotionPaths || [])}
+      data-queued-transition-count={sceneMetrics?.queuedTransitionCount ?? ""}
+      data-active-effects={sceneMetrics?.activeEffects ?? ""}
+      data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
+      data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
     >
       <div
         className="production-match-surface"
@@ -1463,7 +1491,7 @@ export default function ProductionMatchExperience({
           <GauntletMatchCanvas
             viewModel={canvasViewModel}
             commands={interactionCommands}
-            onSceneMetrics={onSceneMetrics}
+            onSceneMetrics={handleSceneMetrics}
             onRendererError={(error) => {
               setAdapterError(error?.message || "The Babylon renderer failed.");
               onRendererFailure?.(error);
@@ -1547,11 +1575,6 @@ export default function ProductionMatchExperience({
           />
         )}
 
-        <div className="production-portrait-guard" role="status">
-          <span aria-hidden="true">↻</span>
-          <strong>Rotate to landscape for the 3D battlefield</strong>
-          <p>Keyboard and screen-reader controls remain available.</p>
-        </div>
       </div>
       <PrivacyCurtain privacy={transportUpdate?.privacy} />
     </main>

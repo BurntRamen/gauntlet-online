@@ -48,6 +48,9 @@ function evaluatePresentationKitAssets(kit, publicDirectory) {
       };
     })
   ));
+  const runtimeStructuralComposites = entries.filter((entry) => (
+    entry.structuralComposite === true && entry.runtimeSelectable !== false
+  ));
   return {
     schemaVersion: kit?.schemaVersion || null,
     kitId: kit?.kitId || null,
@@ -57,7 +60,8 @@ function evaluatePresentationKitAssets(kit, publicDirectory) {
     candidate: entries.filter((entry) => entry.status === "candidate"),
     approved: entries.filter((entry) => entry.status === "approved"),
     integrityFailures: entries.filter((entry) => entry.checksumValid === false),
-    cutoverBlockers: entries.filter((entry) => !entry.cutoverReady)
+    cutoverBlockers: entries.filter((entry) => !entry.cutoverReady),
+    runtimeStructuralComposites
   };
 }
 
@@ -113,10 +117,15 @@ function runCli() {
   kitResult.cutoverBlockers.forEach((entry) => {
     console.log(`    ${entry.kind}/${entry.id}: ${entry.status}${entry.missingPaths.length ? `; missing ${entry.missingPaths.join(", ")}` : ""}`);
   });
+  console.log(`  runtime structural composite rasters: ${kitResult.runtimeStructuralComposites.length}`);
+  kitResult.runtimeStructuralComposites.forEach((entry) => {
+    console.log(`    ${entry.kind}/${entry.id}: structural composites are reference-only`);
+  });
   if (process.argv.includes("--strict") && (
     result.missingCutover.length > 0
       || kitResult.cutoverBlockers.length > 0
       || kitResult.integrityFailures.length > 0
+      || kitResult.runtimeStructuralComposites.length > 0
   )) {
     process.exitCode = 1;
   }

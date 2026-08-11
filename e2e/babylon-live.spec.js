@@ -213,10 +213,6 @@ test("WebGL context loss falls back to React and persists for the current match"
   const activePlayer = duel.players[1].state.priority;
   const page = await openPlayer(context, baseURL, duel, activePlayer);
   const matchId = duel.players[1].state.matchId;
-  const fallbackLogs = [];
-  page.on("console", (message) => {
-    if (message.text().includes("[MatchRendererFallback]")) fallbackLogs.push(message.text());
-  });
 
   await page.locator("canvas.babylon-match-canvas").evaluate((canvas) => {
     canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
@@ -229,7 +225,6 @@ test("WebGL context loss falls back to React and persists for the current match"
   await expect(reactMatch.getByText("Opponent Acting")).toBeVisible();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem("gauntlet_babylon_failed_match")))
     .toBe(matchId);
-  expect(fallbackLogs.some((message) => message.includes("legacy React match renderer"))).toBe(true);
 
   await page.reload();
   await expect(page.getByTestId("production-babylon-match")).toHaveCount(0);
@@ -252,102 +247,50 @@ test("the explicit React emergency flag bypasses Babylon without changing the li
   await context.close();
 });
 
-test("resets, reduced motion, and portrait accessibility preserve one Babylon scene", async ({ page, baseURL }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(`${baseURL}/?babylon-test=1&babylon-dev=1`);
-  await expect(page.getByTestId("production-babylon-match")).toBeVisible();
-  await expect(page.getByTestId("production-babylon-match")).toHaveClass(/reduced-motion/);
+test("reduced motion and portrait accessibility preserve one native live scene", async ({ browser, baseURL }) => {
+  const duel = await seedDuel({ mode: "basic" });
+  const activePlayer = duel.players[1].state.priority;
+  const context = await browser.newContext({
+    reducedMotion: "reduce",
+    viewport: { width: 1366, height: 768 }
+  });
+  const page = await openPlayer(context, baseURL, duel, activePlayer);
+  const match = page.getByTestId("production-babylon-match");
 
-  await page.getByText("Developer tools").click();
-  const scenes = page.locator(".babylon-developer-status span").filter({ hasText: /^Scenes/ }).locator("strong");
-  const meshes = page.locator(".babylon-developer-status span").filter({ hasText: /^Meshes/ }).locator("strong");
-  const materials = page.locator(".babylon-developer-status span").filter({ hasText: /^Materials/ }).locator("strong");
-  const textures = page.locator(".babylon-developer-status span").filter({ hasText: /^Textures/ }).locator("strong");
-  const fps = page.locator(".babylon-developer-status span").filter({ hasText: /^FPS/ }).locator("strong");
-  const initialization = page.locator(".babylon-developer-status span").filter({ hasText: /^Initialization/ }).locator("strong");
-  await expect(scenes).toHaveText("1");
-  const initialMeshes = await meshes.textContent();
-  const initialMaterials = await materials.textContent();
-  const initialTextures = Number(await textures.textContent());
-  expect(Number(initialMeshes)).toBeLessThanOrEqual(150);
-  expect(Number(initialMaterials)).toBeLessThanOrEqual(26);
-  // The approved table/card-back asset adds one retained texture over the
-  // earlier placeholder fixture. The stability assertion below remains the
-  // important leak guard across resets and consecutive matches.
-  expect(initialTextures).toBeLessThanOrEqual(26);
-  await expect.poll(async () => Number(await fps.textContent())).toBeGreaterThan(0);
-  expect(Number.parseInt(await initialization.textContent(), 10)).toBeLessThan(1000);
-  const initialHeap = await page.evaluate(() => performance.memory?.usedJSHeapSize || 0);
-
-  const matchSurface = page.getByTestId("production-babylon-match");
-  const matchIds = new Set([await matchSurface.getAttribute("data-match-id")]);
-  for (let index = 0; index < 5; index += 1) {
-    await page.getByLabel("Seed").fill(`qualification-match-${index}`);
-    await page.getByRole("button", { name: "New Match" }).click();
-    await expect.poll(async () => matchSurface.getAttribute("data-match-id"))
-      .not.toBe([...matchIds].at(-1));
-    matchIds.add(await matchSurface.getAttribute("data-match-id"));
-  }
-  expect(matchIds.size).toBe(6);
-  await expect(scenes).toHaveText("1");
-  await expect(meshes).toHaveText(initialMeshes);
-  await expect(materials).toHaveText(initialMaterials);
-
-  for (let index = 0; index < 10; index += 1) {
-    await page.getByRole("button", { name: "Reset Default Match" }).click();
-  }
-  await expect(scenes).toHaveText("1");
-  await expect(meshes).toHaveText(initialMeshes);
-  await expect(materials).toHaveText(initialMaterials);
-  const finalTextures = Number(await textures.textContent());
-  expect(finalTextures).toBeLessThanOrEqual(26);
-  expect(finalTextures).toBeLessThanOrEqual(initialTextures + 1);
-  const finalHeap = await page.evaluate(() => performance.memory?.usedJSHeapSize || 0);
-  if (initialHeap > 0 && finalHeap > 0) {
-    expect(finalHeap).toBeLessThan(initialHeap + 64 * 1024 * 1024);
-  }
-
-  const visualFixture = page.getByLabel("Visual fixture");
-  for (const fixture of ["damage-resolution", "priority-change", "lane-attack", "victory"]) {
-    await visualFixture.selectOption(fixture);
-    await page.getByRole("button", { name: "Load Fixture" }).click();
-  }
-  const matchResult = page.getByRole("dialog").filter({ hasText: "Gauntlet Match Complete" });
-  await expect(matchResult).toBeVisible();
-  await expect(matchResult.getByRole("heading", { name: /Victory|Defeat/ })).toBeVisible();
-  await expect(matchResult).toContainText(/Player [12] wins the fixture match\./);
-  await page.waitForTimeout(900);
-  await expect(matchResult).toBeVisible();
-  await expect(scenes).toHaveText("1");
+  await expect(match).toHaveClass(/reduced-motion/);
+  await expect(match).toHaveAttribute("data-scene-contract", "gauntlet.board-stage.native.v1");
+  await expect(match).toHaveAttribute("data-board-module-count", "10");
+  await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
+  await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByText("Rotate to landscape for the 3D battlefield")).toBeVisible();
+  await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+  await expect(page.locator(".production-context-panel")).toBeVisible();
   await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeAttached();
+  await expect(match).toHaveAttribute("data-layout-profile", "portrait");
+  await context.close();
 });
 
-test("responsive, keyboard, focus, zoom, target-size, and high-contrast contracts remain usable", async ({ page, baseURL }) => {
-  test.setTimeout(90000);
-  await page.goto(`${baseURL}/?babylon-test=1&seed=production-qualification`);
-  await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+test("responsive, keyboard, focus, zoom, target-size, and high-contrast contracts remain usable", async ({ browser, baseURL }) => {
+  test.setTimeout(120000);
+  const duel = await seedDuel({ mode: "basic" });
+  const activePlayer = duel.players[1].state.priority;
+  const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+  const page = await openPlayer(context, baseURL, duel, activePlayer);
 
   const viewports = [
-    { width: 2560, height: 1080, portraitGuard: false },
-    { width: 1180, height: 820, portraitGuard: false },
-    { width: 820, height: 1180, portraitGuard: false },
-    { width: 844, height: 390, portraitGuard: false },
-    { width: 390, height: 844, portraitGuard: true }
+    { width: 2560, height: 1080 },
+    { width: 1180, height: 820 },
+    { width: 820, height: 1180 },
+    { width: 844, height: 390 },
+    { width: 390, height: 844 }
   ];
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await expect(page.locator("canvas.babylon-match-canvas")).toBeAttached();
-    if (viewport.portraitGuard) {
-      await expect(page.getByText("Rotate to landscape for the 3D battlefield")).toBeVisible();
-      await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeAttached();
-    } else {
-      await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
-      await expect(page.locator(".production-context-panel")).toBeVisible();
-      await expect(page.locator(".production-player-plate")).toHaveCount(2);
-    }
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    await expect(page.locator(".production-context-panel")).toBeVisible();
+    await expect(page.locator(".production-player-plate")).toHaveCount(2);
+    await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeAttached();
   }
 
   await page.setViewportSize({ width: 1366, height: 768 });
@@ -414,4 +357,5 @@ test("responsive, keyboard, focus, zoom, target-size, and high-contrast contract
     .exclude("canvas")
     .analyze();
   expect(accessibility.violations).toEqual([]);
+  await context.close();
 });

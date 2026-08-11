@@ -129,6 +129,22 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
   };
 }
 
+function publicCardCatalog(game) {
+  const catalog = {};
+  for (const playerNumber of numericPlayerKeys(game?.players)) {
+    const player = game.players[playerNumber] || {};
+    const factionId = player.faction?.id || "basic";
+    (player.discard || []).forEach((card, index) => {
+      if (!card?.id) return;
+      catalog[card.id] = normalizeCard(card, {
+        factionId: card.factionId || factionId,
+        id: card.id || `discard-${playerNumber}-${index}`
+      });
+    });
+  }
+  return catalog;
+}
+
 function normalizeAttack(attack, laneIndex, owner) {
   if (!attack) return null;
   return {
@@ -140,6 +156,10 @@ function normalizeAttack(attack, laneIndex, owner) {
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
     payment: normalizePayment(attack.payment, attack.player ?? owner ?? null),
+    attachments: (attack.attachedCards || []).map((card, index) => normalizeCard(card, {
+      factionId: card?.factionId || "basic",
+      id: card?.id || `${attack.id}-attachment-${index}`
+    })),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
     blocks: (attack.block || []).map((block, index) => ({
       id: block.id || `${attack.id}-block-${index}`,
@@ -164,6 +184,10 @@ function normalizeHandAttack(attack) {
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
     payment: normalizePayment(attack.payment, attack.player ?? null),
+    attachments: (attack.attachedCards || []).map((card, index) => normalizeCard(card, {
+      factionId: card?.factionId || "basic",
+      id: card?.id || `${attack.id}-attachment-${index}`
+    })),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
     blocks: (attack.block || []).map((block, index) => ({
       id: block.id || `${attack.id}-block-${index}`,
@@ -266,6 +290,7 @@ export function createGauntletMatchViewModel({
   const hand = normalizeSelection(localHand, interaction);
   const handAttacks = (game?.handAttacks || []).map(normalizeHandAttack);
   const publicPayments = recentPublicPayments(game, events);
+  const visibleCardCatalog = publicCardCatalog(game);
   const legalLanes = new Set(interaction.legalLanes || []);
   const highlightedLanes = new Set(interaction.highlightedLanes || []);
   const selectedAbilityLanes = new Set(interaction.abilityMode?.laneIndexes || []);
@@ -291,6 +316,7 @@ export function createGauntletMatchViewModel({
     lanes,
     handAttacks,
     publicPayments,
+    visibleCardCatalog,
     attacks: [
       ...handAttacks,
       ...lanes.map((lane) => lane.attack).filter(Boolean)

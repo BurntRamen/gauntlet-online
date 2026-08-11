@@ -125,12 +125,134 @@ async function clickHandCardByValue(page, direction = "lowest") {
   await candidates[0].button.press("Enter");
 }
 
+async function activateLaneButton(page, name) {
+  const button = page.getByRole("button", { name, exact: true });
+  await button.focus();
+  await button.press("Enter");
+}
+
 async function payUntilEnabled(page, confirmationName) {
   const confirmation = currentAction(page).getByRole("button", { name: confirmationName });
   for (let count = 0; count < 8 && await confirmation.isDisabled(); count += 1) {
     await clickHandCardByValue(page, "highest");
   }
   await expect(confirmation).toBeEnabled();
+}
+
+async function pageWithBottomPriority(pages) {
+  for (const page of pages) {
+    if (await page.locator(".production-player-plate-bottom.has-priority").isVisible()) return page;
+  }
+  throw new Error("No live player page currently owns priority.");
+}
+
+async function pageWithBottomAction(pages, pattern) {
+  let matchingIndex = -1;
+  await expect.poll(async () => {
+    matchingIndex = -1;
+    for (let index = 0; index < pages.length; index += 1) {
+      const page = pages[index];
+      const ownsAction = await page.locator(".production-player-plate-bottom.has-priority").isVisible();
+      const text = await currentAction(page).textContent();
+      if (ownsAction && pattern.test(text || "")) {
+        matchingIndex = index;
+        break;
+      }
+    }
+    return matchingIndex;
+  }, { timeout: 20000 }).toBeGreaterThanOrEqual(0);
+  return pages[matchingIndex];
+}
+
+async function waitForMotionRole(page, role) {
+  const match = page.getByTestId("production-babylon-match");
+  await expect.poll(async () => {
+    const roles = JSON.parse(await match.getAttribute("data-active-motions-by-role") || "{}");
+    return Number(roles[role] || 0);
+  }, { timeout: 8000 }).toBeGreaterThan(0);
+}
+
+async function waitForActiveEvent(page, eventType) {
+  await expect(page.getByTestId("production-babylon-match"))
+    .toHaveAttribute("data-active-event-type", eventType, { timeout: 10000 });
+}
+
+function expectedLayoutProfile(viewport) {
+  const aspect = viewport.width / Math.max(1, viewport.height);
+  if (viewport.height <= 520 && aspect > 1) return "short-landscape";
+  if (aspect <= 0.72) return "portrait";
+  return "desktop";
+}
+
+async function setReviewViewport(page, viewport) {
+  await page.setViewportSize(viewport);
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  await expect(canvas).toBeVisible();
+  await page.evaluate(() => new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  }));
+  const surface = await canvas.evaluate((element) => ({
+    width: element.clientWidth,
+    height: element.clientHeight
+  }));
+  await expect(page.getByTestId("production-babylon-match"))
+    .toHaveAttribute("data-layout-profile", expectedLayoutProfile(surface), { timeout: 10000 });
+}
+
+async function expectNativeSceneDiagnostics(page) {
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toHaveAttribute("data-scene-contract", "gauntlet.board-stage.native.v1");
+  await expect(match).toHaveAttribute("data-board-module-count", "10");
+  await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
+  await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
+  return match;
+}
+
+async function waitForPlaybackSettled(page) {
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toHaveAttribute("data-active-event-type", "", { timeout: 20000 });
+  await expect.poll(async () => {
+    const state = await match.evaluate((element) => ({
+      active: Number(element.dataset.activeTransitionCount || 0),
+      queued: Number(element.dataset.queuedTransitionCount || 0),
+      departing: Number(element.dataset.departingActorCount || 0),
+      motions: Object.values(JSON.parse(element.dataset.activeMotionsByRole || "{}"))
+        .reduce((total, count) => total + Number(count || 0), 0)
+    }));
+    return state.active + state.queued + state.departing + state.motions;
+  }, { timeout: 20000 }).toBe(0);
+  await page.waitForTimeout(120);
+  await expect(match).toHaveAttribute("data-active-event-type", "");
+}
+
+async function captureDiagnostics(page) {
+  const match = page.getByTestId("production-babylon-match");
+  const attributes = await match.evaluate((element) => ({
+    sceneContract: element.dataset.sceneContract || null,
+    boardModuleCount: Number(element.dataset.boardModuleCount || 0),
+    duplicateVisibleIdentityCount: Number(element.dataset.duplicateVisibleIdentityCount || 0),
+    structuralCompositeRasterCount: Number(element.dataset.structuralCompositeRasterCount || 0),
+    actorCount: Number(element.dataset.cardActorCount || 0),
+    actorsByZone: JSON.parse(element.dataset.actorsByZone || "{}"),
+    knownActorCount: Number(element.dataset.knownActorCount || 0),
+    anonymousActorCount: Number(element.dataset.anonymousActorCount || 0),
+    departingActorCount: Number(element.dataset.departingActorCount || 0),
+    activeTransitionCount: Number(element.dataset.activeTransitionCount || 0),
+    activeMotionsByRole: JSON.parse(element.dataset.activeMotionsByRole || "{}"),
+    activeMotionPaths: JSON.parse(element.dataset.activeMotionPaths || "[]"),
+    queuedTransitionCount: Number(element.dataset.queuedTransitionCount || 0),
+    activeEffects: Number(element.dataset.activeEffects || 0),
+    activeEventType: element.dataset.activeEventType || null,
+    layoutProfile: element.dataset.layoutProfile || null,
+    canvasWidth: element.querySelector("canvas.babylon-match-canvas")?.clientWidth || 0,
+    canvasHeight: element.querySelector("canvas.babylon-match-canvas")?.clientHeight || 0
+  }));
+  expect(attributes.sceneContract).toBe("gauntlet.board-stage.native.v1");
+  expect(attributes.boardModuleCount).toBe(10);
+  expect(attributes.duplicateVisibleIdentityCount).toBe(0);
+  expect(attributes.structuralCompositeRasterCount).toBe(0);
+  expect(attributes.actorCount).toBe(attributes.knownActorCount + attributes.anonymousActorCount);
+  return attributes;
 }
 
 function htmlEscape(value) {
@@ -157,24 +279,30 @@ async function captureState(page, manifest, id, viewports = VIEWPORTS) {
   const record = { id, captures: [] };
   await page.evaluate(() => document.activeElement?.blur());
   for (const viewport of viewports) {
-    await page.setViewportSize(viewport);
-    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    await setReviewViewport(page, viewport);
     await page.waitForTimeout(80);
+    const diagnostics = await captureDiagnostics(page);
     const file = `${id}--${viewport.id}.jpg`;
     await page.screenshot({ path: path.join(OUTPUT_DIRECTORY, file), type: "jpeg", quality: 86 });
-    const dimensions = await page.locator("canvas.babylon-match-canvas").evaluate((canvas) => ({
-      width: canvas.clientWidth,
-      height: canvas.clientHeight
-    }));
+    const dimensions = { width: diagnostics.canvasWidth, height: diagnostics.canvasHeight };
     expect(dimensions.width).toBeGreaterThan(300);
     expect(dimensions.height).toBeGreaterThan(200);
-    record.captures.push({ file, viewport: viewport.id, ...dimensions });
+    record.captures.push({ file, viewport: viewport.id, ...dimensions, diagnostics });
   }
   manifest.states.push(record);
+  return record;
+}
+
+function expectZonesEmpty(record, zones) {
+  record.captures.forEach((capture) => {
+    zones.forEach((zone) => {
+      expect(capture.diagnostics.actorsByZone[zone] || 0).toBe(0);
+    });
+  });
 }
 
 test("capture real live and replay match presentation states", async ({ browser, baseURL }) => {
-  test.setTimeout(300000);
+  test.setTimeout(900000);
   fs.rmSync(OUTPUT_DIRECTORY, { recursive: true, force: true });
   fs.mkdirSync(OUTPUT_DIRECTORY, { recursive: true });
   const manifest = { generatedAt: new Date().toISOString(), states: [] };
@@ -198,23 +326,153 @@ test("capture real live and replay match presentation states", async ({ browser,
   await payUntilEnabled(attacker, "Confirm Attack");
   await attacker.waitForTimeout(720);
   await captureState(attacker, manifest, "payment-staged");
-  await attacker.setViewportSize(VIEWPORTS[0]);
+  await setReviewViewport(attacker, VIEWPORTS[0]);
+  const attackPaymentMotionReady = waitForMotionRole(attacker, "payment-enter");
+  const attackMotionReady = waitForMotionRole(attacker, "attack-enter");
+  const attackEventReady = waitForActiveEvent(attacker, "attack.declared");
   await currentAction(attacker).getByRole("button", { name: "Confirm Attack" }).click();
 
+  await attackPaymentMotionReady;
+  const attackPaymentStart = await pageMotionCapture(attacker, manifest, "payment-transition-start", 40);
+  expect(attackPaymentStart.activeTransitionCount).toBeGreaterThan(0);
+  if (attackPaymentStart.activeTransitionCount > (attackPaymentStart.actorsByZone.payment || 0)) {
+    throw new Error(`Unexpected payment motion fan-out: ${JSON.stringify(attackPaymentStart)}`);
+  }
+  expect(attackPaymentStart.activeTransitionCount).toBeLessThanOrEqual(attackPaymentStart.actorsByZone.payment || 0);
+  await pageMotionCapture(attacker, manifest, "payment-transition-midpoint", 140);
+  await attackEventReady;
+  await attackMotionReady;
+  await pageMotionCapture(attacker, manifest, "attack-transition-start", 0);
+  await pageMotionCapture(attacker, manifest, "attack-transition-midpoint", 220);
+
   await expect(currentAction(defender)).toContainText(/may block or decline/i);
+  await waitForPlaybackSettled(attacker);
+  const settledAttack = await captureState(attacker, manifest, "attack-settled", [VIEWPORTS[0]]);
+  expectZonesEmpty(settledAttack, ["payment"]);
   await captureState(defender, manifest, "incoming-hand-attack", VIEWPORTS.slice(0, 4));
   await defender.setViewportSize(VIEWPORTS[0]);
   await openHandControls(defender);
   await clickHandCardByValue(defender, "lowest");
+  await clickHandCardByValue(defender, "lowest");
+  await expect(defender.locator('[data-match-zone="hand"][aria-pressed="true"]')).toHaveCount(2);
   const continueButton = currentAction(defender).getByRole("button", { name: /Choose Payment|Continue to Payment/ });
   await expect(continueButton).toBeEnabled();
   await continueButton.click();
   await payUntilEnabled(defender, "Confirm Block");
   await defender.waitForTimeout(720);
   await captureState(defender, manifest, "block-and-payment-staged");
-  await defender.setViewportSize(VIEWPORTS[0]);
+  await setReviewViewport(defender, VIEWPORTS[0]);
+  const blockPaymentMotionReady = waitForMotionRole(defender, "payment-enter");
+  const blockMotionReady = waitForMotionRole(defender, "block-enter");
+  const blockEventReady = waitForActiveEvent(defender, "block.declared");
+  const damageEventReady = waitForActiveEvent(defender, "damage.calculated");
   await currentAction(defender).getByRole("button", { name: "Confirm Block" }).click();
-  await pageMotionCapture(defender, manifest, "resolved-block-motion");
+  await blockPaymentMotionReady;
+  const blockPaymentStart = await pageMotionCapture(defender, manifest, "block-payment-transition-start", 40);
+  expect(blockPaymentStart.activeTransitionCount).toBeGreaterThan(0);
+  expect(blockPaymentStart.activeTransitionCount).toBeLessThanOrEqual(blockPaymentStart.actorsByZone.payment || 0);
+  const blockPaymentPath = blockPaymentStart.activeMotionPaths.find((motion) => motion.role === "payment-enter")?.path || [];
+  expect(blockPaymentPath.length).toBeGreaterThanOrEqual(2);
+  expect(
+    Math.max(...blockPaymentPath.map((point) => point.z)),
+    JSON.stringify(blockPaymentStart.activeMotionPaths)
+  ).toBeLessThan(0);
+  await pageMotionCapture(defender, manifest, "block-payment-transition-midpoint", 140);
+  await blockEventReady;
+  await blockMotionReady;
+  await pageMotionCapture(defender, manifest, "block-transition-start", 0);
+  await pageMotionCapture(defender, manifest, "block-transition-midpoint", 220);
+  await damageEventReady;
+  await pageMotionCapture(defender, manifest, "combat-resolution", 0);
+  await waitForPlaybackSettled(defender);
+  const combatFinal = await captureState(defender, manifest, "combat-final", [VIEWPORTS[0]]);
+  expectZonesEmpty(combatFinal, ["payment", "combat"]);
+
+  await defender.reload();
+  await expect(defender.getByTestId("production-babylon-match")).toBeVisible();
+  await openHandControls(defender);
+  await waitForPlaybackSettled(defender);
+  await captureState(defender, manifest, "reconnect-canonical", [VIEWPORTS[0]]);
+
+  const livePages = [attacker, defender];
+  const firstPassPage = await pageWithBottomPriority(livePages);
+  const secondPassPage = firstPassPage === attacker ? defender : attacker;
+  await currentAction(firstPassPage).getByRole("button", { name: "Pass Priority" }).click();
+  await expect(secondPassPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
+  await pageMotionCapture(secondPassPage, manifest, "priority-transfer", 80);
+  await currentAction(secondPassPage).getByRole("button", { name: "Pass Priority" }).click();
+
+  let drawMotionPagePromise = null;
+  for (let opportunity = 1; opportunity <= 6; opportunity += 1) {
+    const actingPage = await pageWithBottomAction(livePages, new RegExp(`Placement ${opportunity} of 6`, "i"));
+    await actingPage.setViewportSize(VIEWPORTS[0]);
+    if (opportunity === 6) {
+      drawMotionPagePromise = Promise.any(livePages.map(async (page) => {
+        await waitForMotionRole(page, "draw-enter");
+        return page;
+      }));
+      await currentAction(actingPage).getByRole("button", { name: "Skip Lane" }).click();
+      continue;
+    }
+    await clickHandCardByValue(actingPage, "lowest");
+    if (opportunity === 1) {
+      await captureState(actingPage, manifest, "placement-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+      await actingPage.setViewportSize(VIEWPORTS[0]);
+    }
+    await currentAction(actingPage).getByRole("button", { name: "Place Facedown" }).click();
+    if (opportunity === 1) {
+      await waitForMotionRole(actingPage, "placement-enter");
+      await pageMotionCapture(actingPage, manifest, "placement-transition-start", 40);
+      await pageMotionCapture(actingPage, manifest, "placement-transition-midpoint", 360);
+      await waitForPlaybackSettled(actingPage);
+      await captureState(actingPage, manifest, "placement-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+    }
+  }
+
+  const turnTwoPage = await pageWithBottomAction(livePages, /Turn 2/i);
+  const drawMotionPage = await drawMotionPagePromise;
+  await pageMotionCapture(drawMotionPage, manifest, "draw-and-turn-transition", 0);
+  await waitForPlaybackSettled(turnTwoPage);
+  await captureState(turnTwoPage, manifest, "turn-two-draw-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+
+  const laneAttacker = await pageWithBottomPriority(livePages);
+  const laneDefender = laneAttacker === attacker ? defender : attacker;
+  await laneAttacker.setViewportSize(VIEWPORTS[0]);
+  await activateLaneButton(laneAttacker, "Lane 1");
+  await captureState(laneAttacker, manifest, "lane-attack-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  await laneAttacker.setViewportSize(VIEWPORTS[0]);
+  await payUntilEnabled(laneAttacker, "Confirm Attack");
+  await currentAction(laneAttacker).getByRole("button", { name: "Confirm Attack" }).click();
+  await waitForMotionRole(laneAttacker, "attack-enter");
+  await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-start", 60);
+  await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-midpoint", 420);
+  await expect(currentAction(laneDefender)).toContainText(/attacked from Lane 1.*may block or decline/i);
+  await currentAction(laneDefender).getByRole("button", { name: "Take Damage" }).click();
+  await pageMotionCapture(laneDefender, manifest, "lane-damage-resolution", 100);
+  await waitForMotionRole(laneDefender, "discard-exit");
+  await pageMotionCapture(laneDefender, manifest, "lane-discard-departure", 120);
+  await waitForPlaybackSettled(laneDefender);
+  const laneDamageFinal = await captureState(laneDefender, manifest, "lane-damage-final", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  expectZonesEmpty(laneDamageFinal, ["payment", "combat"]);
+
+  const secondLaneAttacker = await pageWithBottomPriority(livePages);
+  const secondLaneDefender = secondLaneAttacker === attacker ? defender : attacker;
+  await secondLaneAttacker.setViewportSize(VIEWPORTS[0]);
+  await activateLaneButton(secondLaneAttacker, "Lane 2");
+  await payUntilEnabled(secondLaneAttacker, "Confirm Attack");
+  await currentAction(secondLaneAttacker).getByRole("button", { name: "Confirm Attack" }).click();
+  await expect(currentAction(secondLaneDefender)).toContainText(/attacked from Lane 2.*may block or decline/i);
+  await activateLaneButton(secondLaneDefender, "Lane 2");
+  await captureState(secondLaneDefender, manifest, "lane-block-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  await secondLaneDefender.setViewportSize(VIEWPORTS[0]);
+  await payUntilEnabled(secondLaneDefender, "Confirm Block");
+  await currentAction(secondLaneDefender).getByRole("button", { name: "Confirm Block" }).click();
+  await waitForMotionRole(secondLaneDefender, "block-enter");
+  await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-start", 60);
+  await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-midpoint", 450);
+  await waitForPlaybackSettled(secondLaneDefender);
+  const laneBlockFinal = await captureState(secondLaneDefender, manifest, "lane-block-final", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  expectZonesEmpty(laneBlockFinal, ["payment", "combat"]);
 
   const matchId = await defender.getByTestId("production-babylon-match").getAttribute("data-match-id");
   await defender.locator(".production-match-utilities > summary").click();
@@ -234,17 +492,48 @@ test("capture real live and replay match presentation states", async ({ browser,
   await replayPage.setViewportSize(VIEWPORTS[0]);
   await replayPage.getByRole("button", { name: "Next action" }).click();
   await captureState(replayPage, manifest, "replay-block-action", VIEWPORTS.slice(0, 4));
+  for (let index = 0; index < 20; index += 1) {
+    const actionText = await replayPage.locator(".replay-action-layer").textContent();
+    if (/Lane [12]/i.test(actionText || "")) break;
+    const nextAction = replayPage.getByRole("button", { name: "Next action" });
+    if (await nextAction.isDisabled()) break;
+    await nextAction.click();
+  }
+  await expect(replayPage.locator(".replay-action-layer")).toContainText(/Lane [12]/i);
+  await captureState(replayPage, manifest, "replay-lane-action", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  await replayPage.setViewportSize(VIEWPORTS[0]);
+  await replayPage.getByRole("button", { name: "Previous action" }).click();
+  await expectNativeSceneDiagnostics(replayPage);
+  await replayPage.getByRole("button", { name: "Next action" }).click();
+  await expectNativeSceneDiagnostics(replayPage);
+  await captureState(replayPage, manifest, "replay-seek-restored", [VIEWPORTS[0]]);
+
+  const localContext = await browser.newContext({ viewport: VIEWPORTS[0] });
+  const localPage = await localContext.newPage();
+  await localPage.goto(baseURL, { waitUntil: "domcontentloaded" });
+  await localPage.locator('button[data-area="identity"]').click();
+  await localPage.getByLabel("Play as guest").check();
+  await localPage.getByPlaceholder("Guest name").fill("Visual Local");
+  await localPage.locator('button[data-area="play"]').click();
+  await localPage.getByRole("tab", { name: "Practice" }).click();
+  await localPage.getByRole("button", { name: /Basic vs AI/ }).click();
+  await expect(localPage.getByTestId("production-babylon-match")).toBeVisible();
+  await captureState(localPage, manifest, "local-training-native", VIEWPORTS);
 
   fs.writeFileSync(path.join(OUTPUT_DIRECTORY, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   fs.writeFileSync(path.join(OUTPUT_DIRECTORY, "index.html"), buildIndex(manifest));
   await replayContext.close();
+  await localContext.close();
   await Promise.all(Object.values(opened).map(({ context }) => context.close()));
 });
 
-async function pageMotionCapture(page, manifest, id) {
-  await page.setViewportSize(VIEWPORTS[0]);
-  await page.waitForTimeout(140);
+async function pageMotionCapture(page, manifest, id, delayMs = 0) {
+  await setReviewViewport(page, VIEWPORTS[0]);
+  if (delayMs > 0) await page.waitForTimeout(delayMs);
+  const diagnostics = await captureDiagnostics(page);
   const file = `${id}--desktop.jpg`;
   await page.screenshot({ path: path.join(OUTPUT_DIRECTORY, file), type: "jpeg", quality: 90 });
-  manifest.states.push({ id, captures: [{ file, viewport: "desktop-motion", width: 1366, height: 768 }] });
+  const dimensions = { width: diagnostics.canvasWidth, height: diagnostics.canvasHeight };
+  manifest.states.push({ id, captures: [{ file, viewport: "desktop-motion", ...dimensions, diagnostics }] });
+  return diagnostics;
 }

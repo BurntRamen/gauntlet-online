@@ -48,6 +48,7 @@ test("presentation kit report distinguishes fallbacks from production cutover ap
     assert.equal(result.candidate.length, 0);
     assert.equal(result.cutoverBlockers.length, 1);
     assert.equal(result.cutoverBlockers[0].id, "lane");
+    assert.equal(result.runtimeStructuralComposites.length, 0);
   } finally {
     fs.rmSync(publicDirectory, { recursive: true, force: true });
   }
@@ -99,10 +100,35 @@ test("the selected production kit has approved, present, checksum-valid cutover 
   assert.equal(kitResult.integrityFailures.length, 0);
   assert.equal(requirementResult.missingCutover.length, 0);
   assert.equal(kit.assets.modules["board.base"].requiredForCutover, false);
-  assert.equal(kit.assets.materials["board.surface-overlay"].requiredForCutover, true);
+  assert.equal(kit.assets.materials["board.surface-overlay"].requiredForCutover, false);
+  assert.equal(kit.assets.materials["board.surface-overlay"].referenceOnly, true);
+  assert.equal(kit.assets.materials["board.surface-overlay"].runtimeSelectable, false);
+  assert.equal(kit.assets.materials["board.surface-overlay"].structuralComposite, true);
+  assert.equal(kitResult.runtimeStructuralComposites.length, 0);
   assert.equal(kit.assets.masks["lane.resolving"].status, "approved");
   assert.equal(kit.assets.effects["payment.release"].status, "approved");
   assert.equal(kit.assets.audio["attack.declare"].status, "approved");
+});
+
+test("strict reporting identifies a runtime structural board composite", () => {
+  const result = evaluatePresentationKitAssets({
+    assets: {
+      materials: {
+        board: {
+          id: "board",
+          role: "full-board-layout",
+          format: "webp",
+          path: "/assets/board.webp",
+          status: "provisional",
+          structuralComposite: true,
+          runtimeSelectable: true,
+          requiredForCutover: false
+        }
+      }
+    }
+  }, process.cwd());
+  assert.equal(result.runtimeStructuralComposites.length, 1);
+  assert.equal(result.runtimeStructuralComposites[0].id, "board");
 });
 
 test("icon generator creates the complete editable SVG set", () => {

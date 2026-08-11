@@ -12,6 +12,8 @@ import {
   MATCH_LAYOUT,
   normalizeVisibleCardRotation
 } from "./matchLayout";
+import { createBoardStageDescriptor, getBoardLayoutProfile } from "./boardStage";
+import { resolveActorPosition } from "./presentationGeometry";
 
 function expectNoCardOverlap(positions) {
   positions.forEach((left, leftIndex) => {
@@ -148,7 +150,10 @@ describe("payment tray geometry", () => {
 
   test("keeps selected payments inside the portrait camera projection", () => {
     const camera = getTableCameraProjection(382, 640);
-    const payments = Array.from({ length: 8 }, (_, index) => getPaymentPosition(index, 8));
+    const profile = getBoardLayoutProfile(382, 640);
+    const payments = Array.from({ length: 8 }, (_, index) => resolveActorPosition({
+      zone: { kind: "payment", side: "local", role: "payment", slotIndex: index, count: 8 }
+    }, profile));
     const cardHalfWidth = MATCH_LAYOUT.card.width * payments[0].scale / 2;
     expect(Math.max(...payments.map((position) => position.x)) + cardHalfWidth).toBeLessThan(camera.right);
     expect(Math.min(...payments.map((position) => position.x)) - cardHalfWidth).toBeGreaterThan(camera.left);
@@ -156,9 +161,11 @@ describe("payment tray geometry", () => {
 
   test("keeps deck and discard piles inside the narrow playable camera", () => {
     const camera = getTableCameraProjection(382, 640);
-    const pileHalfWidth = MATCH_LAYOUT.pilePads.discard.width / 2;
-    expect(MATCH_LAYOUT.piles.localDeck.x - pileHalfWidth).toBeGreaterThan(camera.left);
-    expect(MATCH_LAYOUT.piles.opponentDeck.x + pileHalfWidth).toBeLessThan(camera.right);
+    const profile = getBoardLayoutProfile(382, 640);
+    const board = createBoardStageDescriptor(profile);
+    const piles = board.boardModules.filter((module) => module.semanticId === "pile.dock");
+    expect(Math.min(...piles.map((module) => module.bounds.left))).toBeGreaterThan(camera.left);
+    expect(Math.max(...piles.map((module) => module.bounds.right))).toBeLessThan(camera.right);
   });
 });
 
@@ -177,9 +184,12 @@ describe("battlefield safe frame", () => {
     expect(frame.battlefield.height).toBeGreaterThan(0);
     expect(frame.topHud.y + frame.topHud.height).toBeLessThanOrEqual(frame.battlefield.y);
     expect(frame.battlefield.y + frame.battlefield.height).toBeLessThanOrEqual(frame.bottomHud.y);
-    expect(camera.right).toBeGreaterThanOrEqual(10);
-    expect(camera.left).toBeLessThanOrEqual(-10);
-    expect(camera.top - camera.bottom).toBeGreaterThanOrEqual(MATCH_LAYOUT.table.depth);
+    const profile = getBoardLayoutProfile(frame.battlefield.width, frame.battlefield.height);
+    const stage = createBoardStageDescriptor(profile);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.right))).toBeLessThanOrEqual(camera.right);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.left);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.top);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.bottom);
     expect(["desktop", "portrait", "short-landscape"]).toContain(camera.profile);
   });
 });

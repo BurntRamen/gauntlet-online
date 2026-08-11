@@ -19,7 +19,7 @@
       "output": "../materials/board-surface-candidate.webp",
       "outputSha256": "5a44f4d0c433ab4315d0c7b4f99f2a7ae86f3c8564d46da6b3d351dde950cd7d",
       "conversion": "WebP quality 90, alpha quality 100, exact transparent RGB preservation",
-      "decision": "Approved as the production non-interactive board surface. Procedural geometry supplies depth and load-failure fallback."
+      "decision": "Initially approved as a non-interactive board surface; reclassified 2026-08-11 as checksum-preserved art-direction reference. Native modular Babylon geometry now supplies all production structure and layout."
     },
     "reviewAtlases": [
       {

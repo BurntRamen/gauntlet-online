@@ -75,6 +75,15 @@ async function waitForPlaybackSettled(page) {
     .toHaveText("Live", { timeout: 15000 });
 }
 
+async function expectNativeSceneDiagnostics(page) {
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toHaveAttribute("data-scene-contract", "gauntlet.board-stage.native.v1");
+  await expect(match).toHaveAttribute("data-board-module-count", "10");
+  await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
+  await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
+  await expect(match).toHaveAttribute("data-layout-profile", /desktop|portrait|short-landscape/);
+}
+
 async function openAccessibleControls(page) {
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "h" })));
   await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeAttached();
@@ -226,6 +235,7 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
     await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-kit", "gauntlet-core-v1");
     await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-status", "approved");
     await expect(page.getByText("Developer tools")).toHaveCount(0);
+    await expectNativeSceneDiagnostics(page);
   }
 
   await prepareGuest(spectatorPage, baseURL, "Lobby Spectator");
@@ -265,6 +275,19 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await expect(waitingPage.getByRole("button", { name: "Accept Rematch" })).toBeVisible();
   await waitingPage.getByRole("button", { name: "Decline Rematch" }).click();
   await expect(priorityPage.getByRole("dialog").getByText(/declined the rematch/i)).toBeVisible();
+
+  await priorityPage.getByRole("button", { name: "Watch Replay" }).click();
+  await expect(priorityPage.locator(".match-replay-page")).toBeVisible();
+  await expect(priorityPage.locator("canvas.babylon-match-canvas")).toBeVisible();
+  await expectNativeSceneDiagnostics(priorityPage);
+  await expect(priorityPage.getByLabel("Focused public cards")).toHaveCount(0);
+  const replayNext = priorityPage.getByRole("button", { name: "Next action" });
+  if (await replayNext.isEnabled()) {
+    await replayNext.click();
+    await expectNativeSceneDiagnostics(priorityPage);
+    await priorityPage.getByRole("button", { name: "Previous action" }).click();
+    await expectNativeSceneDiagnostics(priorityPage);
+  }
 
   await hostContext.close();
   await guestContext.close();
@@ -380,11 +403,25 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await expect(otherPage.getByRole("button", { name: "Lane 3" })).toBeDisabled();
   await expect(otherPage.getByRole("list", { name: "Unavailable lane reasons" }))
     .toContainText("Lane 3 has no face-down card available to attack.");
+  await waitForPlaybackSettled(otherPage);
+  const actorCountBeforeSelection = Number(
+    await otherPage.getByTestId("production-babylon-match").getAttribute("data-card-actor-count")
+  );
 
   // Independent hand combat with a paid hand block.
   await clickHandCardByValue(otherPage, "lowest");
   await expect(currentAction(otherPage)).toContainText("independent hand attack");
+  await expect(otherPage.getByTestId("production-babylon-match")).toHaveAttribute(
+    "data-card-actor-count",
+    String(actorCountBeforeSelection)
+  );
+  await expect(otherPage.getByTestId("production-babylon-match")).toHaveAttribute("data-active-transition-count", "0");
   await payUntilEnabled(otherPage, "Confirm Attack");
+  await expect(otherPage.getByTestId("production-babylon-match")).toHaveAttribute(
+    "data-card-actor-count",
+    String(actorCountBeforeSelection)
+  );
+  await expect(otherPage.getByTestId("production-babylon-match")).toHaveAttribute("data-active-transition-count", "0");
   await currentAction(otherPage).getByRole("button", { name: "Confirm Attack" }).click();
 
   await expect(currentAction(startingPage)).toContainText(/may block or decline/i);
@@ -393,6 +430,7 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
   await waitForPlaybackSettled(startingPage);
+  await expectNativeSceneDiagnostics(startingPage);
   await expect(startingPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
 
   // Lane 1 resolves unblocked and visibly changes life.

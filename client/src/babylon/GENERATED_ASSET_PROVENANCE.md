@@ -66,8 +66,10 @@ Payment release reuses payment commitment, discard uses card travel, and
 ability activation uses the priority accent so no active hook depends on the
 old provisional sound set.
 
-The supplied visual set is the approved authored 2D production surface. The
-full-board source is installed as a non-interactive layer over deterministic
-Babylon depth. The emissive and FX atlases were converted into independently
-addressable runtime WebPs with checksums. Optional GLB depth and full PBR map
-sets remain accurately classified as future enhancements.
+The supplied visual set remains approved art direction and source provenance.
+Its full-board output was initially installed as a non-interactive surface, then
+reclassified during the 2026-08-11 native-client cutover as reference-only; its
+source and output checksums remain preserved. Production structure is now
+native modular Babylon geometry. The emissive and FX atlases remain approved
+because they were converted into independently addressable transparent runtime
+WebPs. Optional GLB modules and full PBR map sets remain future enhancements.

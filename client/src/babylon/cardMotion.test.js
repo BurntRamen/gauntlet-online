@@ -5,15 +5,29 @@ import {
   cardTravelPathCollides,
   COMBAT_RESOLUTION_HOLD_MS,
   createCardMotion,
+  didCardDepartureComplete,
   getPaymentDepartureTiming,
   PAYMENT_SETTLE_HOLD_MS,
   planCardTravelPath,
   sampleCardMotion,
   sampleCardTravelPath,
+  semanticCardTravelCorridors,
   shouldHoldCombatCard
 } from "./cardMotion";
 
 describe("shared Babylon card motion", () => {
+  test("completes actor disposal from the actual discard trajectory", () => {
+    const record = {
+      departureStarted: true,
+      motion: { role: "discard-exit" }
+    };
+
+    expect(didCardDepartureComplete(record, { complete: false })).toBe(false);
+    expect(didCardDepartureComplete(record, { complete: true })).toBe(true);
+    expect(didCardDepartureComplete({ ...record, departureStarted: false }, { complete: true })).toBe(false);
+    expect(didCardDepartureComplete({ ...record, motion: { role: "attack-enter" } }, { complete: true })).toBe(false);
+  });
+
   test("samples meaningful travel by elapsed time rather than frame count", () => {
     const motion = createCardMotion({
       role: "attack-enter",
@@ -98,6 +112,30 @@ describe("shared Babylon card motion", () => {
     expect(sampleCardMotion(motion, 0)).toMatchObject({ x: 10, complete: true });
   });
 
+  test("scales travel, stagger, and cue timing coherently for replay speed", () => {
+    const normal = createCardMotion({
+      role: "block-enter",
+      start: { x: 0, z: 0 },
+      destination: { x: 4, z: 2 },
+      startTimeMs: 100,
+      delayMs: 200,
+      playbackRate: 1
+    });
+    const fast = createCardMotion({
+      role: "block-enter",
+      start: { x: 0, z: 0 },
+      destination: { x: 4, z: 2 },
+      startTimeMs: 100,
+      delayMs: 200,
+      playbackRate: 2
+    });
+    expect(fast.durationMs).toBe(Math.round(normal.durationMs / 2));
+    expect(fast.startTimeMs - 100).toBe((normal.startTimeMs - 100) / 2);
+    expect(fast.cueHooks.map((cue) => cue.offsetMs)).toEqual(
+      normal.cueHooks.map((cue) => Math.round(cue.offsetMs / 2))
+    );
+  });
+
   test.each([
     ["hand attack", { x: -8, z: -7 }, { x: -2, z: 1 }],
     ["lane attack", { x: 0, z: -6 }, { x: 0, z: 2.5 }],
@@ -136,6 +174,123 @@ describe("shared Babylon card motion", () => {
     paths.forEach((path) => expect(cardTravelPathCollides(path, [attacker], 0.66)).toBe(false));
     const midpoints = paths.map((path) => sampleCardTravelPath(path, 0.5));
     expect(new Set(midpoints.map((point) => `${point.x.toFixed(2)}:${point.z.toFixed(2)}`)).size).toBe(3);
+  });
+
+  test("escapes the permitted source-hand fan before enforcing full path clearance", () => {
+    const obstacles = [
+      { id: "source-neighbour", x: 0.42, z: 0, scale: 0.72 },
+      { id: "combat-card", x: 4.2, z: 0, scale: 0.64 }
+    ];
+    const path = planCardTravelPath({
+      start: { x: 0, z: 0 },
+      destination: { x: 8.4, z: 0 },
+      obstacles,
+      movingScale: 0.72,
+      bounds: { left: -10, right: 10, bottom: -8, top: 8 }
+    });
+
+    expect(path.length).toBeGreaterThan(2);
+    expect(cardTravelPathCollides(path, obstacles, 0.72)).toBe(false);
+  });
+
+  test("routes local payment through a deliberate lower-board corridor instead of an extreme detour", () => {
+    const start = { x: -1.34, y: 0.62, z: -6.23, scale: 0.82 };
+    const destination = { x: 9.89, y: 0.34, z: -5.59, scale: 0.55 };
+    const obstacles = [0.34, 2.02, 3.7, 5.38].map((x, index) => ({
+      id: `hand-${index}`,
+      x,
+      z: -6.2,
+      scale: 0.82,
+      allowElevatedSourceEgress: true
+    }));
+    const preferredPaths = semanticCardTravelCorridors({ role: "payment-enter", start, destination });
+    const path = planCardTravelPath({
+      start,
+      destination,
+      obstacles,
+      movingScale: 0.82,
+      preferredPaths
+    });
+
+    expect(path).toHaveLength(4);
+    expect(Math.max(...path.map((point) => point.z))).toBeLessThan(-2.8);
+    expect(cardTravelPathCollides(path, obstacles, 0.82)).toBe(false);
+  });
+
+  test("seats a shrinking payment card beside an occupied tray slot without overlap or board-wide routing", () => {
+    const start = { x: -3.02, y: 0.62, z: -6.294, scale: 0.82 };
+    const destination = { x: 9.168, y: 0.34, z: -5.59, scale: 0.55 };
+    const obstacles = [
+      ...[-1.34, 0.34, 2.02].map((x, index) => ({
+        id: `hand-${index}`,
+        x,
+        z: -6.23,
+        scale: 0.82,
+        allowElevatedSourceEgress: true
+      })),
+      { id: "seated-payment", x: 10.612, z: -5.59, scale: 0.55, settleAdjacent: true }
+    ];
+    const motion = createCardMotion({
+      role: "payment-enter",
+      start,
+      destination,
+      obstacles,
+      pathIndex: 0,
+      bounds: { left: -12.31, right: 12.31, bottom: -7.23, top: 7.1 }
+    });
+
+    expect(motion.path).toHaveLength(4);
+    expect(Math.max(...motion.path.map((point) => point.z))).toBeLessThan(0);
+    expect(cardTravelPathCollides(motion.path, obstacles, {
+      start: start.scale,
+      end: destination.scale
+    })).toBe(false);
+  });
+
+  test("keeps a crowded multi-payment route below lane and combat space", () => {
+    const start = { x: 1.7, y: 0.62, z: -7.05, scale: 0.9 };
+    const destination = { x: 9.97, y: 0.34, z: -6.35, scale: 0.6 };
+    const obstacles = [
+      ...[-4.8, -2.9, -1, 0.9, 2.8, 4.7].map((x, index) => ({
+        id: `hand-${index}`,
+        x,
+        z: -7.05,
+        scale: 0.9,
+        allowElevatedSourceEgress: true
+      })),
+      ...[-7.35, 0, 7.35].map((x, index) => ({
+        id: `lane-${index}`,
+        x,
+        z: -3.15,
+        scale: 0.64
+      })),
+      { id: "seated-payment", x: 11.53, z: -6.35, scale: 0.6, settleAdjacent: true }
+    ];
+    const motion = createCardMotion({
+      role: "payment-enter",
+      start,
+      destination,
+      obstacles,
+      bounds: { left: -13, right: 13, bottom: -8.3, top: 8.3 }
+    });
+
+    expect(Math.max(...motion.path.map((point) => point.z))).toBeLessThan(0);
+    expect(cardTravelPathCollides(motion.path, obstacles, {
+      start: start.scale,
+      end: destination.scale
+    })).toBe(false);
+  });
+
+  test("treats an occupied destination as a collision except for the tiny hand settle allowance", () => {
+    const occupiedDestination = { id: "occupied", x: 14, z: 0, scale: 0.72 };
+    const direct = [{ x: 0, z: 0 }, { x: 14, z: 0 }];
+
+    expect(cardTravelPathCollides(direct, [occupiedDestination], 0.72)).toBe(true);
+    expect(cardTravelPathCollides(direct, [{
+      ...occupiedDestination,
+      x: 15.5,
+      allowTargetOverlap: true
+    }], 0.72)).toBe(false);
   });
 
   test("publishes one collision-safe presentation contract for every adapter", () => {

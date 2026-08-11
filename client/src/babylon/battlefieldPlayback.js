@@ -68,14 +68,7 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
     return [{ update, event: null, durationMs: 0 }];
   }
 
-  const baseUpdate = options.baseUpdate?.viewModel ? options.baseUpdate : null;
-  const commitIndex = baseUpdate ? battlefieldCommitEventIndex(freshEvents) : 0;
-  return freshEvents.map((entry, index) => {
-    const stateCommitted = index >= commitIndex;
-    const sourceViewModel = stateCommitted ? update.viewModel : baseUpdate.viewModel;
-    const visualViewModel = entry.type === "payment.discarded" && !stateCommitted
-      ? { ...sourceViewModel, publicPayments: update.viewModel.publicPayments || [] }
-      : sourceViewModel;
+  const eventFrames = freshEvents.map((entry, index) => {
     const durationMs = battlefieldEventDuration(entry, options);
     const presentationCues = projectPresentationCues(entry, {
       matchId: update.viewModel.matchId || update.snapshot?.id,
@@ -87,35 +80,72 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
       event: entry,
       durationMs,
       update: {
-      ...(index < commitIndex ? baseUpdate : update),
+      ...update,
       source: update.source,
       connected: update.connected,
       commands: update.commands,
       events: [entry],
       presentation: {
-        ...(index < commitIndex ? baseUpdate?.presentation : update.presentation),
+        ...update.presentation,
         playbackContract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
         activeEventIndex: index,
         activeEventCount: freshEvents.length,
         activeEventType: entry.type,
-        stateCommitted,
+        stateCommitted: true,
+        eventGate: true,
         cues: presentationCues
       },
       viewModel: {
-        ...visualViewModel,
+        ...update.viewModel,
         events: [entry],
         presentationCues,
+        presentationEventGate: true,
         presentationPlayback: {
           contract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
           activeEventIndex: index,
           activeEventCount: freshEvents.length,
           activeEventType: entry.type,
-          stateCommitted
+          stateCommitted: true,
+          eventGate: true,
+          playbackRate: Math.max(0.25, Number(options.playbackRate) || 1)
         }
       }
       }
     };
   });
+  return [
+    ...eventFrames,
+    {
+      event: null,
+      durationMs: 0,
+      update: {
+        ...update,
+        events: [],
+        presentation: {
+          ...update.presentation,
+          playbackContract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
+          stateCommitted: true,
+          finalReconcile: true,
+          cues: []
+        },
+        viewModel: {
+          ...update.viewModel,
+          events: [],
+          presentationCues: [],
+          presentationEventGate: false,
+          presentationPlayback: {
+            contract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
+            activeEventIndex: freshEvents.length,
+            activeEventCount: freshEvents.length,
+            activeEventType: null,
+            stateCommitted: true,
+            finalReconcile: true,
+            playbackRate: Math.max(0.25, Number(options.playbackRate) || 1)
+          }
+        }
+      }
+    }
+  ];
 }
 
 export class BattlefieldPlaybackQueue {
@@ -207,7 +237,7 @@ export class BattlefieldPlaybackQueue {
       active: Boolean(this.activeFrame),
       queuedFrames: this.frames.length,
       catchingUp: Boolean(this.activeFrame) || this.frames.length > 0,
-      inputLocked: this.activeFrame?.update?.presentation?.stateCommitted === false
+      inputLocked: false
     });
   }
 

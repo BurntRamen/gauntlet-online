@@ -97,6 +97,8 @@ export class ReplayMatchAdapter {
     this.currentIndex = 0;
     this.playing = false;
     this.speed = 1;
+    this.traversalGeneration = 0;
+    this.transitionMode = "reconcile";
     this.timer = null;
     this.commands = Object.freeze({});
     this.replayControls = Object.freeze({
@@ -175,7 +177,12 @@ export class ReplayMatchAdapter {
       confirmDisabled: true,
       confirmReason: "Replay is read-only."
     }) : null;
-    if (viewModel) viewModel.replayAction = visualAction(action);
+    if (viewModel) {
+      viewModel.replayAction = visualAction(action);
+      viewModel.presentationSource = "replay";
+      viewModel.presentationTransitionMode = this.transitionMode;
+      viewModel.replayTraversalGeneration = this.traversalGeneration;
+    }
     return {
       source: "replay",
       presentation: {
@@ -200,6 +207,8 @@ export class ReplayMatchAdapter {
         totalSteps: this.replay?.steps?.length || 0,
         playing: this.playing,
         speed: this.speed,
+        traversalGeneration: this.traversalGeneration,
+        transitionMode: this.transitionMode,
         step,
         action,
         result: clone(this.replay?.result || null),
@@ -241,6 +250,7 @@ export class ReplayMatchAdapter {
         return;
       }
       this.currentIndex += 1;
+      this.transitionMode = "animate";
       if (this.currentIndex >= finalIndex) this.playing = false;
       this.emit();
       if (this.playing) this.schedule();
@@ -251,40 +261,58 @@ export class ReplayMatchAdapter {
   }
 
   play() {
-    if (this.currentIndex >= (this.actions().length || 1) - 1) this.currentIndex = 0;
+    if (this.currentIndex >= (this.actions().length || 1) - 1) {
+      this.currentIndex = 0;
+      this.traversalGeneration += 1;
+      this.transitionMode = "reconcile";
+    } else {
+      this.transitionMode = "animate";
+    }
     this.playing = true;
     this.emit();
     this.schedule();
   }
 
-  pause() {
+  stopPlayback({ emit = false } = {}) {
     this.playing = false;
     clearTimeout(this.timer);
-    this.emit();
+    this.timer = null;
+    if (emit) this.emit();
+  }
+
+  pause() {
+    this.stopPlayback({ emit: true });
   }
 
   previous() {
-    this.pause();
+    this.stopPlayback();
     this.currentIndex = Math.max(0, this.currentIndex - 1);
+    this.traversalGeneration += 1;
+    this.transitionMode = "reconcile";
     this.emit();
   }
 
   next() {
-    this.pause();
+    this.stopPlayback();
     this.currentIndex = Math.min(Math.max(0, (this.actions().length || 1) - 1), this.currentIndex + 1);
+    this.transitionMode = "animate";
     this.emit();
   }
 
   restart() {
-    this.pause();
+    this.stopPlayback();
     this.currentIndex = 0;
+    this.traversalGeneration += 1;
+    this.transitionMode = "reconcile";
     this.emit();
   }
 
   jump(index) {
-    this.pause();
+    this.stopPlayback();
     const finalIndex = Math.max(0, (this.actions().length || 1) - 1);
     this.currentIndex = Math.max(0, Math.min(finalIndex, Number(index) || 0));
+    this.traversalGeneration += 1;
+    this.transitionMode = "reconcile";
     this.emit();
   }
 

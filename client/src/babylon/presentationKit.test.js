@@ -79,3 +79,22 @@ test("candidate assets require durable checksum and provenance records", () => {
   kit.assets.materials["board.surface-overlay"].checksum = "sha256:abc";
   expect(validatePresentationKit(kit)).toEqual({ valid: true, errors: [] });
 });
+
+test("reference and structural board composites cannot become runtime assets", () => {
+  const kit = JSON.parse(JSON.stringify(FALLBACK_PRESENTATION_KIT));
+  kit.assets.materials["board.reference"] = {
+    id: "board.reference",
+    role: "reference-only-board-concept",
+    format: "webp",
+    path: "/board.webp",
+    status: "provisional",
+    revision: "reference-1",
+    referenceOnly: true,
+    structuralComposite: true,
+    runtimeSelectable: true
+  };
+  const invalid = validatePresentationKit(kit);
+  expect(invalid.valid).toBe(false);
+  expect(invalid.errors.join(" ")).toMatch(/reference-only.*runtime selectable/i);
+  expect(invalid.errors.join(" ")).toMatch(/structural composite.*runtime selectable/i);
+});

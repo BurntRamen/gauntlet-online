@@ -26,7 +26,7 @@ export const MATCH_LAYOUT = {
     opponentBlockRow: 5.25
   },
   payment: {
-    x: 9.2,
+    x: 10.75,
     z: -6.35,
     y: 0.3,
     width: 6.05,
@@ -37,8 +37,8 @@ export const MATCH_LAYOUT = {
     scale: 0.6
   },
   piles: {
-    localDeck: { x: -9.9, z: -6.75 },
-    localDiscard: { x: -7.9, z: -6.75 },
+    localDeck: { x: -12.6, z: -6.75 },
+    localDiscard: { x: -10.4, z: -6.75 },
     opponentDeck: { x: 9.9, z: 7.02 },
     opponentDiscard: { x: 7.9, z: 7.02 }
   },
@@ -187,7 +187,11 @@ export function getTableCameraProjection(width, height) {
   // On phone portrait, frame the complete playable core (all lanes, hand,
   // combat zones) rather than shrinking it to preserve decorative table ends.
   const requiredWidthHalf = profile.cameraWidth / 2;
-  const halfHeight = Math.max(MATCH_LAYOUT.viewport.halfHeight, requiredWidthHalf / Math.max(0.1, aspect));
+  const boardTransform = profile.modules?.["board-base"] || { z: 0, scaleZ: 1 };
+  const boardHalfHeight = Math.abs(Number(boardTransform.z || 0))
+    + MATCH_LAYOUT.table.depth * Number(boardTransform.scaleZ || 1) / 2
+    + 0.4;
+  const halfHeight = Math.max(boardHalfHeight, requiredWidthHalf / Math.max(0.1, aspect));
   return {
     aspect,
     profile: profile.id,

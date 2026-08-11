@@ -122,20 +122,37 @@ test("visual replay mounts the official ProductionMatchExperience and exposes re
   fireEvent.click(screen.getByText("More"));
   expect(screen.getByRole("button", { name: "Match ending" })).toBeVisible();
   expect(screen.getByText("Alpha attacks with Triumphal Ram for 12")).toBeVisible();
-  expect(screen.getByText("Triumphal Ram")).toBeVisible();
-  expect(screen.getByText("Payment")).toBeVisible();
+  expect(screen.queryByLabelText("Focused public cards")).not.toBeInTheDocument();
   expect(screen.getByTestId("replay-battlefield-stage")).toBeVisible();
   expect(screen.getByTestId("replay-transport")).toBeVisible();
   expect(screen.getByTestId("replay-battlefield-stage")).not.toContainElement(screen.getByTestId("replay-transport"));
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
   expect(screen.getByText("Beta blocks with Vault Shield Bearer for 6")).toBeVisible();
-  expect(screen.getAllByText("Vault Shield Bearer")[0]).toBeVisible();
-  expect(screen.getByText("Blockers")).toBeVisible();
-  expect(screen.getByText("Three of Clubs")).toBeVisible();
+  expect(screen.queryByLabelText("Focused public cards")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
   expect(await screen.findByRole("heading", { name: "Alpha wins" }, { timeout: 1800 })).toBeVisible();
   expect(screen.queryByText("Victory")).not.toBeInTheDocument();
   await waitFor(() => expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/matches/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/replay"));
+});
+
+test("an imported local JSON replay mounts the same production renderer without a backend fetch", async () => {
+  global.fetch = jest.fn();
+  const importedReplay = replayResponse().replay;
+  render(
+    <MatchReplayScreen
+      matchId={importedReplay.matchId}
+      serverUrl="http://localhost:4000"
+      initialReplay={importedReplay}
+      onBack={() => {}}
+      onOpenMatches={() => {}}
+    />
+  );
+
+  expect(await screen.findByTestId("official-production-renderer")).toHaveTextContent(
+    "replay:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+  );
+  expect(screen.getByTestId("replay-battlefield-stage")).toBeVisible();
+  expect(global.fetch).not.toHaveBeenCalled();
 });
 
 test("event-only legacy replay is explicit and does not mount a fabricated battlefield", async () => {

@@ -14,42 +14,42 @@ import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder.js";
 import { CreateTorus } from "@babylonjs/core/Meshes/Builders/torusBuilder.js";
 import { Scene } from "@babylonjs/core/scene.js";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture.js";
-import { Button } from "@babylonjs/gui/2D/controls/button.js";
 import { Control } from "@babylonjs/gui/2D/controls/control.js";
-import { Image } from "@babylonjs/gui/2D/controls/image.js";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle.js";
-import { StackPanel } from "@babylonjs/gui/2D/controls/stackPanel.js";
 import { TextBlock, TextWrapping } from "@babylonjs/gui/2D/controls/textBlock.js";
 import {
-  getHandCombatAttachmentPosition,
-  getHandCombatPosition,
-  getHandCombatTickerPosition,
-  getFanPosition,
   getHandHoverPosition,
-  getLaneCombatPosition,
-  getLanePosition,
   getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
   normalizeVisibleCardRotation
 } from "./matchLayout";
 import {
-  CARD_MOTION_PROFILES,
   COMBAT_RESOLUTION_HOLD_MS,
   createCardMotion,
-  getPaymentDepartureTiming,
+  didCardDepartureComplete,
   sampleCardMotion,
-  shouldHoldCombatCard
+  sampleCardTravelPath
 } from "./cardMotion";
-import {
-  claimReplayCardStage,
-  getBattlefieldCardPresence,
-  getDetachedDeclaredBlockCards,
-  replayCardIsOnBattlefield,
-  replayStageId
-} from "./replayPresentation";
 import { makeMaterial, MATCH_COLORS } from "./matchMaterials";
 import { getBoardLayoutProfile, projectBoardPresentation } from "./boardPresentation";
+import {
+  boardModuleIdForPresentationInstance,
+  boardStageMotionBounds,
+  resolveBoardAnchor
+} from "./boardStage";
+import { createBabylonBoardStage } from "./boardStageBabylon";
+import { createPresentationSnapshot, presentationSnapshotMetrics } from "./presentationSnapshot";
+import {
+  PresentationTransitionPlanner,
+  shouldSnapPresentationUpdate
+} from "./presentationTransitionPlanner";
+import { CardActorRegistry } from "./cardActorRegistry";
+import {
+  resolveActorPosition,
+  resolveDeparturePosition,
+  resolveTransitionOrigin
+} from "./presentationGeometry";
 import {
   loadAuthoredPresentationModules,
   loadAuthoredPresentationTexture
@@ -254,21 +254,6 @@ function textBlock(text, options = {}) {
   return block;
 }
 
-function makeButton(label, callback, options = {}) {
-  const button = Button.CreateSimpleButton(`button-${label}`, label);
-  button.width = options.width || "90px";
-  button.height = options.height || "36px";
-  button.cornerRadius = options.cornerRadius ?? 6;
-  button.thickness = options.thickness ?? 1;
-  button.color = options.color || MATCH_COLORS.text;
-  button.background = options.background || "#152738";
-  button.fontFamily = "Arial";
-  button.fontSize = options.fontSize || 12;
-  button.fontWeight = options.fontWeight || "bold";
-  button.onPointerUpObservable.add(callback);
-  return button;
-}
-
 function findMetadata(mesh) {
   let current = mesh;
   while (current) {
@@ -276,114 +261,6 @@ function findMetadata(mesh) {
     current = current.parent;
   }
   return null;
-}
-
-function createIdentityPanel(fullscreenUi, name, placement) {
-  const panel = new Rectangle(`${name}-identity-panel`);
-  panel.width = placement.width || "300px";
-  panel.height = placement.height || "82px";
-  panel.cornerRadius = 9;
-  panel.thickness = 2;
-  panel.color = "#4b677b";
-  panel.background = "#07121ee8";
-  panel.shadowColor = "#000000";
-  panel.shadowBlur = 18;
-  panel.horizontalAlignment = placement.horizontalAlignment;
-  panel.verticalAlignment = placement.verticalAlignment;
-  panel.left = placement.left || 0;
-  panel.top = placement.top || 0;
-  fullscreenUi.addControl(panel);
-
-  const portraitFrame = new Rectangle(`${name}-portrait-frame`);
-  portraitFrame.width = "54px";
-  portraitFrame.height = "66px";
-  portraitFrame.left = "8px";
-  portraitFrame.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  portraitFrame.cornerRadius = 6;
-  portraitFrame.thickness = 1;
-  portraitFrame.color = MATCH_COLORS.bronze;
-  portraitFrame.background = "#132434";
-  panel.addControl(portraitFrame);
-
-  const portrait = new Image(`${name}-portrait`, "/assets/gauntlet/rumin-card.webp");
-  portrait.width = "48px";
-  portrait.height = "60px";
-  portrait.stretch = Image.STRETCH_UNIFORM_TO_FILL;
-  portraitFrame.addControl(portrait);
-  const portraitGlyph = textBlock("R", {
-    name: `${name}-portrait-glyph`,
-    width: "100%",
-    height: "100%",
-    color: "#f1d39a",
-    fontFamily: "Georgia",
-    fontSize: 24,
-    fontWeight: "bold",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-  });
-  portraitFrame.addControl(portraitGlyph);
-
-  const playerName = textBlock("", {
-    name: `${name}-name`,
-    width: "150px",
-    height: "24px",
-    left: "70px",
-    top: "-22px",
-    color: MATCH_COLORS.text,
-    fontSize: 15,
-    fontWeight: "bold"
-  });
-  playerName.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.addControl(playerName);
-
-  const meta = textBlock("", {
-    name: `${name}-meta`,
-    width: "160px",
-    height: "20px",
-    left: "70px",
-    top: "23px",
-    color: MATCH_COLORS.muted,
-    fontSize: 10
-  });
-  meta.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.addControl(meta);
-
-  const life = textBlock("♥ 0", {
-    name: `${name}-life`,
-    width: "94px",
-    height: "38px",
-    left: "-9px",
-    top: "-9px",
-    color: "#f4f7f9",
-    fontSize: 26,
-    fontWeight: "bold",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-  });
-  life.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-  panel.addControl(life);
-
-  const status = new Rectangle(`${name}-priority`);
-  status.width = "86px";
-  status.height = "22px";
-  status.left = "-10px";
-  status.top = "23px";
-  status.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-  status.cornerRadius = 11;
-  status.thickness = 1;
-  status.color = MATCH_COLORS.blue;
-  status.background = "#12354be8";
-  panel.addControl(status);
-  const statusText = textBlock("", {
-    name: `${name}-priority-text`,
-    width: "100%",
-    height: "100%",
-    color: MATCH_COLORS.blue,
-    fontSize: 10,
-    fontWeight: "bold",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-  });
-  status.addControl(statusText);
-
-  return { panel, portrait, portraitGlyph, playerName, meta, life, status, statusText };
 }
 
 function createCard(scene, materials, shadowGenerator, id, options = {}) {
@@ -480,6 +357,19 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
   record.target.selected = !!options.selected;
   record.target.hovered = !!options.hovered;
   if (!changed) return;
+  if (options.snap === true) {
+    record.mesh.position.copyFrom(record.target.position);
+    record.mesh.rotation.set(
+      record.target.rotationX,
+      record.target.rotationY,
+      record.target.rotationZ
+    );
+    record.mesh.scaling.setAll(record.target.scale);
+    record.mesh.visibility = record.target.alpha;
+    record.motion = null;
+    record.emittedCueHooks?.clear?.();
+    return;
+  }
   const start = {
     x: record.mesh.position.x,
     y: record.mesh.position.y,
@@ -500,7 +390,8 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
     pathIndex: options.motionPathIndex || 0,
     delayMs: options.motionDelayMs || 0,
     bounds: options.motionBounds || null,
-    occurrenceId: options.motionOccurrenceId || null
+    occurrenceId: options.motionOccurrenceId || null,
+    playbackRate: options.motionPlaybackRate || 1
   });
   record.emittedCueHooks = new Set();
 }
@@ -519,6 +410,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   camera.attachControl(canvas, false);
   babylonScene.activeCamera = camera;
   let lastAspect = 0;
+  let nativeBoardStage = null;
+  let activeLayoutProfile = getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight());
 
   function syncCamera() {
     const width = Math.max(1, engine.getRenderWidth());
@@ -531,17 +424,19 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     camera.orthoBottom = projection.bottom;
     camera.orthoLeft = projection.left;
     camera.orthoRight = projection.right;
+    activeLayoutProfile = getBoardLayoutProfile(width, height);
+    nativeBoardStage?.applyProfile(activeLayoutProfile);
     return true;
   }
   syncCamera();
 
   const hemi = new HemisphericLight("table-fill", new Vector3(0, 1, 0), babylonScene);
-  hemi.intensity = 0.42;
+  hemi.intensity = 0.54;
   hemi.diffuse = color("#b8d4e6");
   hemi.groundColor = color("#071019");
   const key = new DirectionalLight("table-key", new Vector3(0.28, -1, 0.3), babylonScene);
   key.position = new Vector3(-7, 14, -6);
-  key.intensity = 0.58;
+  key.intensity = 0.72;
   key.diffuse = color("#e7d3ae");
   const shadowGenerator = new ShadowGenerator(1024, key);
   shadowGenerator.useBlurExponentialShadowMap = true;
@@ -600,8 +495,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth,
     accent = steelMaterial,
     rail = 0.075,
-    floorVisibility = 0.05,
-    railVisibility = 0.28
+    floorVisibility = 0.88,
+    railVisibility = 0.72
   }) {
     const floor = CreateBox(`${name}-floor`, { width, height: 0.055, depth }, babylonScene);
     floor.position = new Vector3(x, y, z);
@@ -637,7 +532,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth,
     material = bronzeMaterial,
     thickness = 0.12,
-    visibility = 0.18
+    visibility = 0.68
   }) {
     return [
       { x, z: z - depth / 2, width, depth: thickness },
@@ -699,7 +594,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth: MATCH_LAYOUT.table.depth - 0.78,
     material: steelMaterial,
     thickness: 0.09
-  }).forEach((mesh) => { mesh.visibility = 0.72; });
+  }).forEach((mesh) => { mesh.visibility = 0.9; });
 
   [
     [-MATCH_LAYOUT.table.width / 2 + 0.62, -MATCH_LAYOUT.table.depth / 2 + 0.62],
@@ -778,6 +673,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const laneMeshes = [];
   const laneRails = [];
   const laneStateLights = [];
+  const laneStateMasks = [];
   const combatLines = [];
   const combatArrows = [];
   [0, 1, 2].forEach((index) => {
@@ -788,7 +684,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }, babylonScene);
     lane.position = new Vector3(MATCH_LAYOUT.lanes.x[index], -0.045, MATCH_LAYOUT.lanes.z);
     lane.material = laneMaterials[index];
-    lane.visibility = 0.045;
+    lane.visibility = 0.92;
     lane.isPickable = true;
     lane.enablePointerMoveEvents = true;
     lane.receiveShadows = true;
@@ -822,11 +718,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         z: slot.z,
         ...dimensions,
         accent: slot.material,
-        floorVisibility: 0.025,
-        railVisibility: slot.name === "resolution" ? 0.14 : 0.2
+        floorVisibility: 0.82,
+        railVisibility: slot.name === "resolution" ? 0.58 : 0.72
       });
       well.rails.forEach((rail) => {
-        rail.visibility = slot.name === "resolution" ? 0.14 : 0.2;
+        rail.visibility = slot.name === "resolution" ? 0.58 : 0.72;
       });
     });
 
@@ -854,9 +750,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     stateLightMaterial.specularColor = color("#000000");
     stateLightMaterial.useAlphaFromDiffuseTexture = true;
     stateLightMaterial.backFaceCulling = false;
-    const stateLight = CreatePlane(`lane-state-light-${index}`, {
-      width: MATCH_LAYOUT.lanes.width - 0.12,
-      height: MATCH_LAYOUT.lanes.depth - 0.18
+    const stateLight = CreateTorus(`lane-state-light-${index}`, {
+      diameter: 1.42,
+      thickness: 0.075,
+      tessellation: 36
     }, babylonScene);
     stateLight.rotation.x = Math.PI / 2;
     stateLight.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.105, MATCH_LAYOUT.lanes.z);
@@ -864,6 +761,24 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     stateLight.visibility = 0;
     stateLight.isPickable = false;
     laneStateLights.push(stateLight);
+
+    const stateMaskMaterial = new StandardMaterial(`lane-state-mask-material-${index}`, babylonScene);
+    stateMaskMaterial.disableLighting = true;
+    stateMaskMaterial.diffuseColor = color("#ffffff");
+    stateMaskMaterial.emissiveColor = color("#718392");
+    stateMaskMaterial.specularColor = color("#000000");
+    stateMaskMaterial.useAlphaFromDiffuseTexture = true;
+    stateMaskMaterial.backFaceCulling = false;
+    const stateMask = CreatePlane(`lane-state-light-${index}-mask`, {
+      width: MATCH_LAYOUT.lanes.width - 0.28,
+      height: MATCH_LAYOUT.lanes.depth - 0.24
+    }, babylonScene);
+    stateMask.rotation.x = Math.PI / 2;
+    stateMask.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.095, MATCH_LAYOUT.lanes.z);
+    stateMask.material = stateMaskMaterial;
+    stateMask.visibility = 0;
+    stateMask.isPickable = false;
+    laneStateMasks.push(stateMask);
 
     Object.values(MATCH_LAYOUT.anchors).forEach((z, anchorIndex) => {
       const tick = CreateBox(`lane-anchor-${index}-${anchorIndex}`, {
@@ -908,7 +823,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       depth: MATCH_LAYOUT.lanes.depth,
       material: index === 1 ? bronzeMaterial : steelMaterial,
       thickness: 0.1
-    }).forEach((mesh) => { mesh.visibility = index === 1 ? 0.2 : 0.14; });
+    }).forEach((mesh) => { mesh.visibility = index === 1 ? 0.78 : 0.66; });
 
     const sigil = CreateTorus(`lane-sigil-${index}`, {
       diameter: 1.15,
@@ -918,7 +833,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     sigil.rotation.x = Math.PI / 2;
     sigil.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.09, MATCH_LAYOUT.anchors.resolution);
     sigil.material = bronzeMaterial;
-    sigil.visibility = 0.34;
+    sigil.visibility = 0.72;
     sigil.isPickable = false;
 
     const laneLabel = CreatePlane(`lane-label-${index}`, {
@@ -960,7 +875,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth: MATCH_LAYOUT.handCombat.depth,
     material: bronzeMaterial,
     thickness: 0.11,
-    visibility: 0.13
+    visibility: 0.74
   });
   createInsetWell("hand-combat-attacker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
@@ -969,8 +884,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 4.7,
     depth: 1.92,
     accent: sapphireMaterial,
-    floorVisibility: 0.025,
-    railVisibility: 0.2
+    floorVisibility: 0.84,
+    railVisibility: 0.72
   });
   createInsetWell("hand-combat-blocker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX,
@@ -979,8 +894,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 6.4,
     depth: 1.92,
     accent: dangerMaterial,
-    floorVisibility: 0.025,
-    railVisibility: 0.2
+    floorVisibility: 0.84,
+    railVisibility: 0.72
   });
   const versusMedallion = CreateCylinder("hand-combat-versus-medallion", {
     height: 0.11,
@@ -989,7 +904,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }, babylonScene);
   versusMedallion.position = new Vector3(-0.15, MATCH_LAYOUT.handCombat.y + 0.13, MATCH_LAYOUT.handCombat.z);
   versusMedallion.material = bronzeMaterial;
-  versusMedallion.visibility = 0.18;
+  versusMedallion.visibility = 0.76;
   versusMedallion.isPickable = false;
   const handCombatRails = [];
   [-1, 1].forEach((side) => {
@@ -1031,7 +946,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth: MATCH_LAYOUT.payment.depth,
     material: bronzeMaterial,
     thickness: 0.11,
-    visibility: 0.13
+    visibility: 0.74
   });
   Array.from({ length: 8 }, (_, slotIndex) => getPaymentPosition(slotIndex, 8, true)).forEach((slot, slotIndex) => {
     createInsetWell(`payment-slot-${slotIndex}`, {
@@ -1042,9 +957,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       depth: MATCH_LAYOUT.card.height * MATCH_LAYOUT.payment.scale + 0.12,
       accent: bronzeMaterial,
       rail: 0.045,
-      floorVisibility: 0.02,
-      railVisibility: 0.18
-    }).rails.forEach((rail) => { rail.visibility = 0.18; });
+      floorVisibility: 0.82,
+      railVisibility: 0.68
+    }).rails.forEach((rail) => { rail.visibility = 0.68; });
   });
 
   const paymentLabel = CreatePlane("payment-tray-label", {
@@ -1066,6 +981,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   paymentLabel.material.emissiveColor = color("#22170a");
   paymentLabel.isPickable = false;
 
+  const pileDockMeshes = new Map();
   Object.entries(MATCH_LAYOUT.piles).forEach(([name, position]) => {
     const isDiscard = name.toLowerCase().includes("discard");
     const dimensions = isDiscard ? MATCH_LAYOUT.pilePads.discard : MATCH_LAYOUT.pilePads.deck;
@@ -1076,7 +992,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }, babylonScene);
     pad.position = new Vector3(position.x, 0.01, position.z);
     pad.material = wellMaterial;
-    pad.visibility = 0.055;
+    pad.visibility = 0.88;
     pad.isPickable = isDiscard;
     if (isDiscard) {
       pad.metadata = {
@@ -1094,7 +1010,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       depth: dimensions.depth + 0.28,
       material: isDiscard ? bronzeMaterial : steelMaterial,
       thickness: 0.1,
-      visibility: 0.12
+      visibility: 0.68
     });
     const medallion = CreateCylinder(`pile-medallion-${name}`, {
       height: 0.09,
@@ -1103,42 +1019,76 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }, babylonScene);
     medallion.position = new Vector3(position.x, 0.13, position.z - dimensions.depth / 2 - 0.34);
     medallion.material = isDiscard ? bronzeMaterial : steelMaterial;
-    medallion.visibility = 0.12;
+    medallion.visibility = 0.74;
     medallion.isPickable = false;
+    pileDockMeshes.set(name, medallion);
   });
 
-  function createPresentationLight(name, { x, y, z, width, height, tint }) {
-    const material = new StandardMaterial(`${name}-material`, babylonScene);
-    material.disableLighting = true;
-    material.diffuseColor = color("#ffffff");
-    material.emissiveColor = color(tint);
-    material.specularColor = color("#000000");
-    material.useAlphaFromDiffuseTexture = true;
-    material.backFaceCulling = false;
-    const mesh = CreatePlane(name, { width, height }, babylonScene);
-    mesh.rotation.x = Math.PI / 2;
-    mesh.position = new Vector3(x, y, z);
-    mesh.material = material;
-    mesh.visibility = 0;
-    mesh.isPickable = false;
-    return mesh;
+  function createPresentationLight(name, { x, y, z, width, height, tint, fallbackMaterial }) {
+    const maskMaterial = new StandardMaterial(`${name}-mask-material`, babylonScene);
+    maskMaterial.disableLighting = true;
+    maskMaterial.diffuseColor = color("#ffffff");
+    maskMaterial.emissiveColor = color(tint);
+    maskMaterial.specularColor = color("#000000");
+    maskMaterial.useAlphaFromDiffuseTexture = true;
+    maskMaterial.backFaceCulling = false;
+    const mask = CreatePlane(`${name}-mask`, { width, height }, babylonScene);
+    mask.rotation.x = Math.PI / 2;
+    mask.position = new Vector3(x, y, z);
+    mask.material = maskMaterial;
+    mask.visibility = 0;
+    mask.isPickable = false;
+
+    const fallback = CreateTorus(`${name}-fallback`, {
+      diameter: Math.max(width, height) * 0.72,
+      thickness: 0.07,
+      tessellation: 40
+    }, babylonScene);
+    fallback.rotation.x = Math.PI / 2;
+    fallback.position = new Vector3(x, y - 0.01, z);
+    fallback.material = fallbackMaterial;
+    fallback.visibility = 0;
+    fallback.isPickable = false;
+    return { mask, fallback };
   }
 
-  const paymentStateLight = createPresentationLight("payment-state-light", {
-    x: MATCH_LAYOUT.payment.x,
-    y: 0.115,
-    z: MATCH_LAYOUT.payment.z,
-    width: MATCH_LAYOUT.payment.width - 0.18,
-    height: MATCH_LAYOUT.payment.depth - 0.18,
-    tint: "#f0bd68"
-  });
+  const paymentStateLight = CreateBox("payment-state-light", {
+    width: MATCH_LAYOUT.payment.width - 0.52,
+    height: 0.045,
+    depth: 0.08
+  }, babylonScene);
+  paymentStateLight.position = new Vector3(
+    MATCH_LAYOUT.payment.x,
+    0.15,
+    MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.22
+  );
+  paymentStateLight.material = bronzeMaterial;
+  paymentStateLight.visibility = 0;
+  paymentStateLight.isPickable = false;
+  const paymentStateMaskMaterial = new StandardMaterial("payment-state-mask-material", babylonScene);
+  paymentStateMaskMaterial.disableLighting = true;
+  paymentStateMaskMaterial.diffuseColor = color("#ffffff");
+  paymentStateMaskMaterial.emissiveColor = color(MATCH_COLORS.bronze);
+  paymentStateMaskMaterial.specularColor = color("#000000");
+  paymentStateMaskMaterial.useAlphaFromDiffuseTexture = true;
+  paymentStateMaskMaterial.backFaceCulling = false;
+  const paymentStateMask = CreatePlane("payment-state-light-mask", {
+    width: MATCH_LAYOUT.payment.width - 0.5,
+    height: (MATCH_LAYOUT.payment.width - 0.5) / 2
+  }, babylonScene);
+  paymentStateMask.rotation.x = Math.PI / 2;
+  paymentStateMask.position = new Vector3(MATCH_LAYOUT.payment.x, 0.105, MATCH_LAYOUT.payment.z);
+  paymentStateMask.material = paymentStateMaskMaterial;
+  paymentStateMask.visibility = 0;
+  paymentStateMask.isPickable = false;
   const combatStateLight = createPresentationLight("combat-state-light", {
     x: -0.15,
     y: MATCH_LAYOUT.handCombat.y + 0.17,
     z: MATCH_LAYOUT.handCombat.z,
     width: 1.25,
     height: 1.25,
-    tint: "#f0bd68"
+    tint: "#f0bd68",
+    fallbackMaterial: bronzeMaterial
   });
   const priorityStateLights = [
     createPresentationLight("priority-local-light", {
@@ -1147,7 +1097,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       z: -5.35,
       width: 1.5,
       height: 1.5,
-      tint: "#53c9ff"
+      tint: "#53c9ff",
+      fallbackMaterial: sapphireMaterial
     }),
     createPresentationLight("priority-opponent-light", {
       x: 0,
@@ -1155,7 +1106,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       z: 5.85,
       width: 1.5,
       height: 1.5,
-      tint: "#e04c58"
+      tint: "#e04c58",
+      fallbackMaterial: dangerMaterial
     })
   ];
 
@@ -1207,26 +1159,21 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return [type, texture];
   }));
   const eventSpritePaths = new Map(Object.entries(EVENT_EFFECT_ASSETS));
+  nativeBoardStage = createBabylonBoardStage(babylonScene, activeLayoutProfile);
   const presentationAssetCache = new PresentationAssetCache();
   const presentationMaskTextures = new Map();
   const presentationMaskPaths = new Map();
   let activePresentationKitKey = null;
   let authoredModuleRoots = [];
-  let authoredSurfaceRoots = [];
 
   function authoredModulePlacements() {
+    const centered = (id) => ({ id, position: { x: 0, y: 0, z: 0 } });
     return {
-      "board.base": [{ id: "board", position: { x: 0, y: 0, z: 0 } }],
-      "lane.module": MATCH_LAYOUT.lanes.x.map((x, index) => ({
-        id: `lane-${index}`,
-        position: { x, y: 0, z: MATCH_LAYOUT.lanes.z }
-      })),
-      "combat.dais": [{ id: "combat", position: { x: MATCH_LAYOUT.handCombat.x, y: 0, z: MATCH_LAYOUT.handCombat.z } }],
-      "payment.tray": [{ id: "payment", position: { x: MATCH_LAYOUT.payment.x, y: 0, z: MATCH_LAYOUT.payment.z } }],
-      "pile.dock": Object.entries(MATCH_LAYOUT.piles).map(([id, position]) => ({
-        id,
-        position: { x: position.x, y: 0, z: position.z }
-      }))
+      "board.base": [centered("board")],
+      "lane.module": [0, 1, 2].map((index) => centered(`lane-${index}`)),
+      "combat.dais": [centered("combat")],
+      "payment.tray": [centered("payment")],
+      "pile.dock": ["localDeck", "localDiscard", "opponentDeck", "opponentDiscard"].map(centered)
     };
   }
 
@@ -1259,37 +1206,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       texture.hasAlpha = true;
       texture.anisotropicFilteringLevel = 8;
     });
-  }
-
-  function createAuthoredBoardSurface(texture, asset) {
-    const material = new StandardMaterial(`authored-${asset.id}-material`, babylonScene);
-    material.diffuseColor = color("#7d8790");
-    material.emissiveColor = color("#313941");
-    material.specularColor = color("#000000");
-    material.diffuseTexture = texture;
-    material.opacityTexture = texture;
-    material.useAlphaFromDiffuseTexture = true;
-    material.alpha = 0.9;
-    material.backFaceCulling = false;
-    const mesh = CreatePlane(`authored-${asset.id}`, {
-      width: MATCH_LAYOUT.table.width,
-      height: MATCH_LAYOUT.table.depth
-    }, babylonScene);
-    mesh.rotation.x = Math.PI / 2;
-    mesh.position.y = 0.011;
-    mesh.material = material;
-    mesh.isPickable = false;
-    mesh.receiveShadows = false;
-    mesh.metadata = {
-      gauntletPresentationAsset: asset.id,
-      gauntletPresentationStatus: asset.status
-    };
-    return {
-      dispose() {
-        mesh.dispose(false, false);
-        material.dispose(false, false);
-      }
-    };
   }
 
   function syncPresentationKit(kit) {
@@ -1326,18 +1242,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     activePresentationKitKey = kitKey;
     authoredModuleRoots.forEach((root) => root.dispose?.());
     authoredModuleRoots = [];
-    authoredSurfaceRoots.forEach((root) => root.dispose?.());
-    authoredSurfaceRoots = [];
+    nativeBoardStage?.resetAuthoredRoots?.();
     babylonScene.meshes.forEach((mesh) => {
       if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(true);
-    });
-    const boardSurfaceAsset = resolvePresentationAsset(kit, "materials", "board.surface-overlay");
-    loadAuthoredPresentationTexture(babylonScene, boardSurfaceAsset, {
-      cache: presentationAssetCache,
-      textureLoader: loadPresentationTexture
-    }).then((result) => {
-      if (!result.loaded || disposed || activePresentationKitKey !== kitKey) return;
-      authoredSurfaceRoots.push(createAuthoredBoardSurface(result.texture, boardSurfaceAsset));
     });
     loadAuthoredPresentationModules(
       babylonScene,
@@ -1354,16 +1261,33 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
       Object.entries(results).forEach(([moduleId, result]) => {
         if (!result.loaded) return;
+        const attachedRoots = [];
+        (result.instances || result.roots.map((root) => ({
+          instance: { id: root?.id },
+          root
+        }))).forEach(({ instance, root }) => {
+          const stageModuleId = boardModuleIdForPresentationInstance(moduleId, instance?.id);
+          if (nativeBoardStage?.attachAuthoredRoot?.(stageModuleId, root)) {
+            attachedRoots.push(root);
+          } else {
+            root?.dispose?.();
+          }
+        });
+        if (!attachedRoots.length) return;
         proceduralMeshesForModule(moduleId).forEach((mesh) => {
           mesh.metadata = { ...(mesh.metadata || {}), gauntletPresentationFallback: moduleId };
           mesh.setEnabled(false);
         });
-        authoredModuleRoots.push(...result.roots);
+        authoredModuleRoots.push(...attachedRoots);
       });
     });
   }
 
   const objects = new Map();
+  const transitionPlanner = new PresentationTransitionPlanner();
+  let actorRegistry = null;
+  let currentPresentationSnapshot = null;
+  let queuedTransitionCount = 0;
   const textureCache = new Map();
   const textureReferences = new Map();
   const pendingTexturePaths = new Set();
@@ -1372,6 +1296,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let disposed = false;
   let currentViewModel = null;
   let currentBoardPresentation = null;
+  let responsiveRecompose = false;
   let elapsed = 0;
   let motionClockMs = 0;
   let activeEventAnimation = null;
@@ -1379,115 +1304,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let currentMatchId = null;
   const animationQueue = [];
   const animatedEventIds = new Set();
-  const stagedBlockEventIds = new Set();
-  const lastState = { topLife: null, bottomLife: null, priority: null, lanes: null, replayActionId: null };
-  const pulse = { top: 0, bottom: 0 };
+  let lastReplayActionId = null;
+  let lastDuplicateWarningKey = null;
   let lastPointerPick = null;
   const identityMatrix = Matrix.Identity();
 
   const fullscreenUi = AdvancedDynamicTexture.CreateFullscreenUI("gauntlet-ui", true, babylonScene);
-  ui.topIdentity = createIdentityPanel(fullscreenUi, "opponent", {
-    width: "320px",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER,
-    verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
-    top: "52px"
-  });
-  ui.bottomIdentity = createIdentityPanel(fullscreenUi, "local", {
-    width: "286px",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
-    verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
-    left: "16px",
-    top: "-28px"
-  });
-
-  ui.phase = textBlock("", {
-    name: "phase",
-    width: "168px",
-    height: "20px",
-    left: "69px",
-    top: "4px",
-    color: MATCH_COLORS.bronze,
-    fontSize: 10,
-    fontWeight: "bold"
-  });
-  ui.topIdentity.panel.addControl(ui.phase);
-
-  const actionPanel = new Rectangle("context-actions");
-  actionPanel.width = "300px";
-  actionPanel.height = "126px";
-  actionPanel.left = "-16px";
-  actionPanel.top = "-28px";
-  actionPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-  actionPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-  actionPanel.cornerRadius = 10;
-  actionPanel.thickness = 2;
-  actionPanel.color = "#45677d";
-  actionPanel.background = "#07121eef";
-  actionPanel.shadowColor = "#000000";
-  actionPanel.shadowBlur = 20;
-  fullscreenUi.addControl(actionPanel);
-
-  ui.context = textBlock("", {
-    name: "context",
-    width: "272px",
-    height: "56px",
-    top: "-29px",
-    color: MATCH_COLORS.text,
-    fontSize: 12,
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
-    wrapping: true
-  });
-  actionPanel.addControl(ui.context);
-  ui.payment = textBlock("", {
-    name: "payment",
-    width: "150px",
-    height: "20px",
-    left: "-9px",
-    top: "-48px",
-    color: MATCH_COLORS.bronze,
-    fontSize: 11,
-    fontWeight: "bold",
-    horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_RIGHT
-  });
-  ui.payment.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-  actionPanel.addControl(ui.payment);
-
-  const actions = new StackPanel("actions");
-  actions.width = "276px";
-  actions.height = "40px";
-  actions.top = "-8px";
-  actions.isVertical = false;
-  actions.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-  actions.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-  actions.spacing = 6;
-  actionPanel.addControl(actions);
-  ui.confirm = makeButton("Confirm", () => commands.confirmCurrentAction?.(), {
-    width: "110px",
-    height: "38px",
-    background: "#2b86ad",
-    color: "#f7fbfd",
-    fontSize: 13
-  });
-  ui.pass = makeButton("Pass", () => commands.passPriority?.(), {
-    width: "82px",
-    height: "34px"
-  });
-  ui.cancel = makeButton("Cancel", () => commands.cancelCurrentAction?.(), {
-    width: "72px",
-    height: "34px",
-    color: "#efcc8c",
-    background: "#2b241a"
-  });
-  actions.addControl(ui.confirm);
-  actions.addControl(ui.pass);
-  actions.addControl(ui.cancel);
-
-  // Player-facing HUD and action controls live in semantic React DOM so the
-  // same accessible composition can host simulator, fixture, and live data.
-  // Keep Babylon GUI focused on labels that are spatially tied to the table.
-  ui.topIdentity.panel.isVisible = false;
-  ui.bottomIdentity.panel.isVisible = false;
-  actionPanel.isVisible = false;
+  // Player identity, phase, navigation, and actions live in semantic React DOM.
+  // Babylon GUI is reserved for readouts physically attached to board modules.
 
   ui.handCombatLabel = textBlock("INDEPENDENT HAND COMBAT", {
     name: "hand-combat-label",
@@ -1528,6 +1352,43 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return { frame, value };
   }
 
+  function createPileReadout(name, mesh, label, accent) {
+    const frame = new Rectangle(`${name}-frame`);
+    frame.width = "64px";
+    frame.height = "42px";
+    frame.cornerRadius = 9;
+    frame.thickness = 1;
+    frame.color = accent;
+    frame.background = "#050b10ee";
+    frame.linkOffsetY = -5;
+    const title = textBlock(label, {
+      name: `${name}-label`,
+      width: "100%",
+      height: "16px",
+      top: "-10px",
+      color: MATCH_COLORS.muted,
+      fontSize: 8,
+      fontWeight: "bold",
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
+    });
+    const value = textBlock("0", {
+      name: `${name}-value`,
+      width: "100%",
+      height: "24px",
+      top: "7px",
+      color: MATCH_COLORS.text,
+      fontFamily: "Georgia",
+      fontSize: 17,
+      fontWeight: "bold",
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
+    });
+    frame.addControl(title);
+    frame.addControl(value);
+    fullscreenUi.addControl(frame);
+    frame.linkWithMesh(mesh);
+    return { frame, value, title };
+  }
+
   ui.combatAttackValue = createBoardReadout("combat-attack-readout", handCombatPlate, {
     offsetX: -54,
     offsetY: -72,
@@ -1542,6 +1403,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     offsetY: -66,
     accent: MATCH_COLORS.bronze
   });
+  ui.pileCounts = {
+    localDeck: createPileReadout("local-deck-readout", pileDockMeshes.get("localDeck"), "DECK", MATCH_COLORS.blue),
+    localDiscard: createPileReadout("local-discard-readout", pileDockMeshes.get("localDiscard"), "DISCARD", MATCH_COLORS.bronze),
+    opponentDeck: createPileReadout("opponent-deck-readout", pileDockMeshes.get("opponentDeck"), "DECK", MATCH_COLORS.danger),
+    opponentDiscard: createPileReadout("opponent-discard-readout", pileDockMeshes.get("opponentDiscard"), "DISCARD", MATCH_COLORS.bronze)
+  };
 
   ui.loading = textBlock("", {
     name: "asset-loading",
@@ -1622,6 +1489,34 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     syncLoadingUi();
   }
 
+  function releaseOwnedFaceMaterial(record) {
+    if (!record?.ownedFaceMaterial) return;
+    record.ownedFaceMaterial.dispose(false, !record.faceTexturePath);
+    record.ownedFaceMaterial = null;
+    releaseFaceTexture(record.faceTexturePath);
+    record.faceTexturePath = null;
+  }
+
+  function syncCardFace(record, id, label, options) {
+    const faceDown = Boolean(options.faceDown);
+    const artPath = faceDown ? null : options.artPath || null;
+    const labelChanged = !faceDown && !artPath && record.faceLabel !== label;
+    if (
+      record.faceDown === faceDown
+      && record.faceTexturePath === artPath
+      && !labelChanged
+    ) return;
+    releaseOwnedFaceMaterial(record);
+    const material = faceDown
+      ? materials.cardBack
+      : getFaceMaterial(artPath, label, id);
+    record.mesh.gauntletFace.material = material;
+    record.ownedFaceMaterial = faceDown ? null : material;
+    record.faceTexturePath = artPath;
+    record.faceDown = faceDown;
+    record.faceLabel = label;
+  }
+
   function createBadge(mesh, text, accent, background) {
     const root = new Rectangle(`badge-${mesh.name}`);
     root.width = "58px";
@@ -1667,22 +1562,43 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return selectionMaterials.blue;
   }
 
-  function motionObstaclesFor(id) {
+  function motionObstaclesFor(id, destinationZone = null) {
     const obstacles = [];
-    const importantTypes = new Set(["attack", "block", "lane", "pile", "public-payment", "replay-action"]);
+    const importantTypes = new Set([
+      "attack", "attacker", "block", "blocker", "attachment", "hand", "lane", "pile",
+      "public-payment", "replay-action"
+    ]);
+    const importantZones = new Set(["hand", "lane", "combat", "attachment", "payment"]);
     for (const [otherId, other] of objects.entries()) {
       if (otherId === id) continue;
       const type = other.mesh.metadata?.gauntlet?.type;
+      const otherZone = other.presentationActor?.zone || null;
+      const settleAdjacent = destinationZone?.kind === "payment" && otherZone?.kind === "payment";
+      const staggeredPaymentMotion = destinationZone?.kind === "payment"
+        && other.motion?.role === "payment-enter";
+      const allowElevatedSourceEgress = destinationZone?.kind === "payment"
+        && otherZone?.kind === "hand"
+        && destinationZone?.side === otherZone?.side;
+      const vacatingPaymentSlot = destinationZone?.kind === "payment"
+        && otherZone?.kind === "payment"
+        && (other.departureStarted || other.holdUntilMs != null || other.motion?.role === "discard-exit");
+      if (vacatingPaymentSlot) continue;
       const meaningfulMotion = [
         "payment-enter", "placement-enter", "attack-enter", "block-enter", "replay-stage", "discard-exit"
       ].includes(other.motion?.role);
-      if (!importantTypes.has(type) && !meaningfulMotion) continue;
-      if (other.mesh.visibility > 0.1) {
+      if (!importantTypes.has(type) && !importantZones.has(otherZone?.kind) && !meaningfulMotion) continue;
+      const allowTargetOverlap = destinationZone?.kind === "hand"
+        && otherZone?.kind === "hand"
+        && destinationZone.side === otherZone.side;
+      if (other.mesh.visibility > 0.1 && !staggeredPaymentMotion) {
         obstacles.push({
           id: `${otherId}:current`,
           x: other.mesh.position.x,
           z: other.mesh.position.z,
-          scale: other.mesh.scaling.x
+          scale: other.mesh.scaling.x,
+          allowTargetOverlap,
+          settleAdjacent,
+          allowElevatedSourceEgress
         });
       }
       if (other.target?.alpha > 0.1) {
@@ -1690,19 +1606,31 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           id: `${otherId}:target`,
           x: other.target.position.x,
           z: other.target.position.z,
-          scale: other.target.scale
+          scale: other.target.scale,
+          allowTargetOverlap,
+          settleAdjacent,
+          allowElevatedSourceEgress
+        });
+      }
+      if (meaningfulMotion && !staggeredPaymentMotion && other.motion?.path?.length >= 2) {
+        [0.2, 0.4, 0.6, 0.8].forEach((progress) => {
+          const point = sampleCardTravelPath(other.motion.path, progress);
+          obstacles.push({
+            id: `${otherId}:reserved-path:${progress}`,
+            x: point.x,
+            z: point.z,
+            scale: Math.max(Number(other.mesh.scaling.x || 0), Number(other.target?.scale || 0)),
+            allowTargetOverlap: false
+          });
         });
       }
     }
     return obstacles;
   }
 
-  const motionBounds = {
-    left: -MATCH_LAYOUT.table.width / 2 + 0.75,
-    right: MATCH_LAYOUT.table.width / 2 - 0.75,
-    bottom: -MATCH_LAYOUT.table.depth / 2 + 0.65,
-    top: MATCH_LAYOUT.table.depth / 2 - 0.65
-  };
+  function activeMotionBounds() {
+    return boardStageMotionBounds(activeLayoutProfile);
+  }
 
   function updateCardRecord(id, label, position, options = {}) {
     let record = objects.get(id);
@@ -1719,6 +1647,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         material: faceMaterial,
         metadata: options.metadata
       });
+      mesh.parent = nativeBoardStage?.layers?.CardLayer || null;
       record = {
         id,
         target: {
@@ -1733,6 +1662,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         },
         mesh,
         label: stableLabel,
+        faceDown: Boolean(options.faceDown),
+        faceLabel: stableLabel,
         ownedFaceMaterial: ownsFaceMaterial ? faceMaterial : null,
         faceTexturePath: ownsFaceMaterial ? options.artPath || null : null
       };
@@ -1752,7 +1683,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
       objects.set(id, record);
     }
-    record.departingUntil = null;
+    syncCardFace(record, id, stableLabel, options);
+    record.label = stableLabel;
     record.holdUntilMs = null;
     record.departureTarget = null;
     record.departureStarted = false;
@@ -1763,15 +1695,30 @@ export function createGauntletScene(engine, canvas, commands = {}) {
             Number(other.motion.startTimeMs || 0)
             + Number(other.motion.durationMs || 0)
             - motionClockMs
-            + 120
+            + 120 / Math.max(0.25, Number(options.motionPlaybackRate) || 1)
+          )))
+      : 0;
+    const paymentVacateDelay = options.motionRole === "payment-enter"
+      ? Math.max(0, ...[...objects.values()]
+          .filter((other) => other.id !== id && other.presentationActor?.zone?.kind === "payment")
+          .filter((other) => other.departureStarted || other.holdUntilMs != null || other.motion?.role === "discard-exit")
+          .map((other) => (
+            Math.max(0, Number(other.holdUntilMs || motionClockMs) - motionClockMs)
+            + 180 / Math.max(0.25, Number(options.motionPlaybackRate) || 1)
           )))
       : 0;
     const motionOptions = {
       ...options,
-      motionOccurrenceId: `${currentMatchId || "match"}:${currentViewModel?.revision || 0}:${id}:${options.motionRole || "state-correction"}`,
-      motionDelayMs: Math.max(Number(options.motionDelayMs || 0), attackerSettleDelay),
-      motionObstacles: motionObstaclesFor(id),
-      motionBounds
+      motionOccurrenceId: options.motionOccurrenceId || [
+        currentMatchId || "match",
+        id,
+        options.motionRole || "state-correction",
+        Number(position?.x || 0).toFixed(3),
+        Number(position?.z || 0).toFixed(3)
+      ].join(":"),
+      motionDelayMs: Math.max(Number(options.motionDelayMs || 0), attackerSettleDelay, paymentVacateDelay),
+      motionObstacles: motionObstaclesFor(id, options.motionDestinationZone),
+      motionBounds: activeMotionBounds()
     };
     setCardTarget(record, position, motionOptions, motionClockMs, currentViewModel?.reducedMotion);
     if (created && !options.initialPosition) {
@@ -1805,65 +1752,140 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     record.badge?.root.dispose();
     record.mesh.gauntletContactShadow?.dispose(false, false);
     record.mesh.dispose(false, false);
-    if (record.ownedFaceMaterial) {
-      record.ownedFaceMaterial.dispose(false, !record.faceTexturePath);
-      record.ownedFaceMaterial = null;
-    }
-    releaseFaceTexture(record.faceTexturePath);
-    record.faceTexturePath = null;
+    releaseOwnedFaceMaterial(record);
   }
 
-  function removeMissing(ids) {
-    for (const [id, record] of objects.entries()) {
-      if (ids.has(id)) continue;
-      if (record.departingUntil) continue;
-      const type = record.mesh.metadata?.gauntlet?.type;
-      const presentationRole = record.mesh.metadata?.gauntlet?.presentationRole;
-      const owner = record.mesh.metadata?.gauntlet?.owner;
-      const discard = owner === "opponent"
-        ? MATCH_LAYOUT.piles.opponentDiscard
-        : MATCH_LAYOUT.piles.localDiscard;
-      if (type === "replay-action") {
-        disposeCardRecord(record);
-        objects.delete(id);
-        continue;
-      }
-      if (presentationRole === "payment") {
-        record.departingUntil = elapsed + CARD_MOTION_PROFILES["discard-exit"].durationMs / 1000;
-        record.departureStarted = true;
-        setCardTarget(record, {
-          x: discard.x,
-          y: 0.44,
-          z: discard.z,
-          rotationX: Math.PI / 2,
-          rotationZ: owner === "opponent" ? Math.PI : 0
-        }, {
-          scale: 0.42,
-          alpha: 0,
-          motionRole: "discard-exit",
-          motionObstacles: motionObstaclesFor(id),
-          motionBounds
-        }, motionClockMs, currentViewModel?.reducedMotion);
-        continue;
-      }
-      if (shouldHoldCombatCard(type, presentationRole)) {
-        record.holdUntilMs = motionClockMs + COMBAT_RESOLUTION_HOLD_MS;
-        record.departingUntil = elapsed + (
-          COMBAT_RESOLUTION_HOLD_MS + CARD_MOTION_PROFILES["discard-exit"].durationMs
-        ) / 1000;
-        record.departureTarget = {
-          x: discard.x,
-          y: 0.44,
-          z: discard.z,
-          rotationX: Math.PI / 2,
-          rotationZ: owner === "opponent" ? Math.PI : 0
-        };
-        continue;
-      }
-      disposeCardRecord(record);
-      objects.delete(id);
+  function actorMetadata(actor) {
+    if (actor.zone.kind === "hand") {
+      return {
+        type: "hand",
+        actorId: actor.actorId,
+        index: actor.zone.slotIndex,
+        enabled: actor.interaction?.enabled !== false,
+        card: actor.interaction?.card || actor.card?.raw || actor.card,
+        preview: actor.preview
+      };
     }
+    if (actor.zone.kind === "lane") {
+      return {
+        type: "lane",
+        actorId: actor.actorId,
+        laneIndex: actor.zone.laneIndex,
+        owner: actor.zone.side,
+        legal: actor.interaction?.enabled === true,
+        preview: actor.preview
+      };
+    }
+    if (actor.zone.kind === "combat" && actor.zone.role === "attacker") {
+      return {
+        type: "attack",
+        actorId: actor.actorId,
+        attackId: actor.zone.attackId,
+        laneIndex: actor.zone.laneIndex,
+        owner: actor.zone.side,
+        legal: actor.interaction?.enabled === true,
+        presentationRole: "attacker",
+        preview: actor.preview
+      };
+    }
+    return {
+      type: actor.zone.kind === "payment" ? "public-payment" : actor.zone.role || actor.zone.kind,
+      actorId: actor.actorId,
+      owner: actor.zone.side,
+      laneIndex: actor.zone.laneIndex,
+      presentationRole: actor.zone.role,
+      preview: actor.preview
+    };
   }
+
+  function presentationPlaybackRate() {
+    return Math.max(0.25, Number(
+      currentViewModel?.presentationPlaybackRate
+      || currentViewModel?.presentationPlayback?.playbackRate
+      || 1
+    ) || 1);
+  }
+
+  function rekeyPresentationRecord(record, actorId) {
+    if (!record || record.id === actorId) return record;
+    objects.delete(record.id);
+    record.id = actorId;
+    record.mesh.name = `card-${actorId}`;
+    objects.set(actorId, record);
+    return record;
+  }
+
+  function renderPresentationActor(actor, transition, runtime = null) {
+    rekeyPresentationRecord(runtime, actor.actorId);
+    let position = resolveActorPosition(actor, activeLayoutProfile);
+    const hovered = hoveredId === actor.actorId && actor.zone.kind === "hand";
+    if (hovered) position = getHandHoverPosition(position, currentViewModel?.reducedMotion);
+    const animateTransition = Boolean(transition?.animate && !currentViewModel?.reducedMotion);
+    const localFeedbackChanged = Boolean(runtime) && !transition && (
+      Boolean(runtime.presentationActor?.selected) !== Boolean(actor.selected)
+      || runtime.presentationActor?.selectionRole !== actor.selectionRole
+      || Boolean(runtime.target?.hovered) !== hovered
+    );
+    const initial = animateTransition ? resolveTransitionOrigin(transition, activeLayoutProfile) : null;
+    const record = updateCardRecord(actor.actorId, actor.label, position, {
+      artPath: actor.artPath,
+      faceDown: actor.faceDown,
+      initialPosition: initial ? new Vector3(initial.x, initial.y, initial.z) : undefined,
+      initialRotation: initial ? new Vector3(
+        initial.rotationX || 0,
+        initial.rotationY || 0,
+        initial.rotationZ || 0
+      ) : undefined,
+      initialScale: initial?.scale,
+      motionRole: animateTransition ? transition.motionRole : localFeedbackChanged ? "hover" : "state-correction",
+      motionOccurrenceId: transition?.occurrenceId,
+      motionPathIndex: actor.zone.slotIndex || 0,
+      motionDelayMs: animateTransition ? transition.delayMs : 0,
+      motionPlaybackRate: presentationPlaybackRate(),
+      selected: actor.selected,
+      hovered,
+      selectionRole: actor.selectionRole,
+      scale: position.scale,
+      alpha: actor.unavailable ? 0.42 : 1,
+      metadata: actorMetadata(actor),
+      motionDestinationZone: actor.zone,
+      // Reflow/reconcile changes update the canonical pose without inventing
+      // travel. Selection and hover have no transition record, so they retain
+      // their short local lift while accepted semantic transitions animate.
+      snap: shouldSnapPresentationUpdate(transition, {
+        animateTransition,
+        responsiveRecompose,
+        localFeedbackChanged
+      }),
+      badgeText: ""
+    });
+    record.presentationActor = actor;
+    record.presentationOccurrenceId = transition?.occurrenceId || null;
+    return record;
+  }
+
+  function departPresentationActor(record, actor, transition) {
+    if (!record) return false;
+    const target = resolveDeparturePosition(actor, activeLayoutProfile, actor.zone.slotIndex || 0);
+    const rate = presentationPlaybackRate();
+    const holdMs = (actor.zone.kind === "combat" ? COMBAT_RESOLUTION_HOLD_MS : 180) / rate;
+    record.holdUntilMs = motionClockMs + holdMs;
+    record.departureTarget = target;
+    record.departureStarted = false;
+    record.departureOccurrenceId = transition.occurrenceId;
+    return true;
+  }
+
+  actorRegistry = new CardActorRegistry({
+    create: (actor, transition) => renderPresentationActor(actor, transition),
+    update: (runtime, actor, transition) => renderPresentationActor(actor, transition, runtime),
+    depart: (runtime, actor, transition) => departPresentationActor(runtime, actor, transition),
+    dispose: (runtime) => {
+      if (!runtime) return;
+      disposeCardRecord(runtime);
+      objects.delete(runtime.id);
+    }
+  });
 
   function setCombatDirection(laneIndex, ownerIsLocal, visible) {
     const line = combatLines[laneIndex];
@@ -1885,34 +1907,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     arrow.rotation.y = ownerIsLocal ? -Math.PI / 2 : Math.PI / 2;
     arrow.material = material;
     arrow.visibility = 0.92;
-  }
-
-  function updateIdentity(identity, player, hasPriority, isLocal, isActing = false) {
-    if (!player) {
-      identity.playerName.text = isLocal ? "Player" : "Opponent";
-      identity.life.text = "♥ —";
-      identity.meta.text = "";
-      identity.statusText.text = "";
-      identity.status.isVisible = false;
-      return;
-    }
-    identity.playerName.text = player.name;
-    identity.life.text = `♥ ${player.life}`;
-    identity.meta.text = `${player.factionName || "Gauntlet"}  •  ${player.handCount} CARDS`;
-    const neutralIdentity = !player.factionId
-      || player.factionId === "basic"
-      || player.factionName === "Basic Gauntlet";
-    identity.portrait.source = neutralIdentity
-      ? MATCH_ASSETS.cardBack
-      : `/assets/gauntlet/${player.factionId}-card.webp`;
-    identity.portraitGlyph.text = neutralIdentity
-      ? "G"
-      : String(player.factionName || "G").slice(0, 1).toUpperCase();
-    identity.status.isVisible = true;
-    identity.statusText.text = isActing ? "ACTION" : hasPriority ? "PRIORITY" : isLocal ? "READY" : "WAITING";
-    identity.status.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : "#526879";
-    identity.statusText.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : MATCH_COLORS.muted;
-    identity.panel.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : "#4b677b";
   }
 
   function enqueueEventAnimations(events = [], cues = [], revision = 0) {
@@ -1952,21 +1946,26 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   function eventEffectPosition(entry) {
     const laneIndex = Number(entry?.laneIndex);
     if (Number.isInteger(laneIndex) && laneIndex >= 0 && laneIndex < 3) {
-      return new Vector3(MATCH_LAYOUT.lanes.x[laneIndex], 0.84, MATCH_LAYOUT.anchors.resolution);
+      const anchor = resolveBoardAnchor(`lane-${laneIndex}`, "fxCenter", activeLayoutProfile);
+      return new Vector3(anchor.x, anchor.y, anchor.z);
     }
     if (entry?.type === "payment.discarded") {
-      return new Vector3(MATCH_LAYOUT.payment.x, 0.84, MATCH_LAYOUT.payment.z);
+      const anchor = resolveBoardAnchor("payment-tray", "fxDischarge", activeLayoutProfile);
+      return new Vector3(anchor.x, anchor.y, anchor.z);
     }
     if (entry?.type === "attack.declared" || entry?.type === "block.declared") {
-      return new Vector3(MATCH_LAYOUT.handCombat.x, 1.08, MATCH_LAYOUT.handCombat.z);
+      const anchor = resolveBoardAnchor("hand-combat-dais", "fxImpact", activeLayoutProfile);
+      return new Vector3(anchor.x, anchor.y, anchor.z);
     }
     if (entry?.type === "priority.granted") {
       const bottomPlayer = currentViewModel?.perspective?.player
         || currentViewModel?.perspective?.bottomPlayer;
       const local = Number(entry.player) === Number(bottomPlayer);
-      return new Vector3(0, 0.84, local ? -5.35 : 5.85);
+      const anchor = resolveBoardAnchor("board-base", local ? "priorityLocal" : "priorityOpponent", activeLayoutProfile);
+      return new Vector3(anchor.x, 0.84, anchor.z);
     }
-    return new Vector3(0, 0.84, MATCH_LAYOUT.anchors.resolution);
+    const anchor = resolveBoardAnchor("hand-combat-dais", "fxImpact", activeLayoutProfile);
+    return new Vector3(anchor.x, anchor.y, anchor.z);
   }
 
   function effectMaterialForEvent(type) {
@@ -1978,246 +1977,21 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return eventEffectMaterials.sapphire;
   }
 
-  function stageDepartingPayments(events, liveIds, viewModel) {
-    if (viewModel.reducedMotion) return;
-    const localPlayer = Number(
-      viewModel.perspective?.player || viewModel.perspective?.bottomPlayer
-    );
-    events
-      .filter((entry) => entry.type === "payment.discarded" && Number(entry.player) === localPlayer)
-      .flatMap((entry) => entry.cardIds || [])
-      .forEach((cardId, index) => {
-        if ((viewModel.publicPayments || []).some((payment) => (
-          payment.cards.some((card) => card.id === cardId)
-        ))) return;
-        const record = objects.get(`player-hand-${cardId}`);
-        if (!record || record.departingUntil) return;
-        liveIds.add(record.id);
-        const timing = getPaymentDepartureTiming(record.motion, motionClockMs, false);
-        record.holdUntilMs = motionClockMs + timing.holdMs + index * 25;
-        record.departingUntil = elapsed + (timing.totalMs + index * 25) / 1000;
-        record.departureTarget = {
-          x: MATCH_LAYOUT.piles.localDiscard.x + index * 0.05,
-          y: 0.42 + index * 0.02,
-          z: MATCH_LAYOUT.piles.localDiscard.z,
-          rotationX: Math.PI / 2,
-          rotationZ: index * -0.04
-        };
-        record.departureStarted = false;
-      });
-  }
-
-  function stagePublicPayments(viewModel, liveIds, bottomPlayer) {
-    const payments = (viewModel.publicPayments || []).flatMap((payment) => (
-      payment.cards.map((card) => ({ card, payment }))
-    ));
-    payments.forEach(({ card, payment }, index) => {
-      const id = `public-payment-${card.id || `${payment.eventId}-${index}`}`;
-      const ownerIsLocal = Number(payment.owner) === Number(bottomPlayer);
-      const sourceRecord = ownerIsLocal ? objects.get(`player-hand-${card.id}`) : null;
-      liveIds.add(id);
-      updateCardRecord(id, card.label, getPaymentPosition(index, payments.length, ownerIsLocal), {
-        artPath: card.artPath,
-        initialPosition: sourceRecord?.mesh?.position?.clone() || replayApproachPosition(
-          getPaymentPosition(index, payments.length, ownerIsLocal),
-          ownerIsLocal,
-          "payment",
-          index
-        ),
-        initialRotation: sourceRecord?.mesh?.rotation?.clone(),
-        initialScale: sourceRecord?.mesh?.scaling?.x,
-        motionRole: "payment-enter",
-        motionPathIndex: index,
-        motionDelayMs: index * 90,
-        selected: true,
-        scale: MATCH_LAYOUT.payment.scale,
-        selectionRole: "payment",
-        badgeText: "PAID",
-        badgeColor: MATCH_COLORS.bronze,
-        badgeBackground: "#3d2b12f2",
-        metadata: {
-          type: "public-payment",
-          presentationRole: "payment",
-          owner: ownerIsLocal ? "local" : "opponent",
-          eventId: payment.eventId,
-          preview: { ...card, stateLabel: `Paid ${payment.total}/${payment.required}`, stateIcon: "payment" }
-        }
-      });
-      if (sourceRecord) {
-        sourceRecord.mesh.visibility = 0;
-        sourceRecord.target.alpha = 0;
-      }
-    });
-  }
-
-  function stageResolvedDeclaredBlocks(events, liveIds, viewModel) {
-    const localPlayer = Number(
-      viewModel.perspective?.player || viewModel.perspective?.bottomPlayer
-    );
-    const presence = getBattlefieldCardPresence(viewModel.attacks);
-    const detached = getDetachedDeclaredBlockCards(events, presence, localPlayer);
-    detached.forEach((entry, index) => {
-      const stageId = `${entry.eventId || "block"}:${entry.cardId}`;
-      if (stagedBlockEventIds.has(stageId)) return;
-      const sourceRecord = entry.laneIndex == null
-        ? objects.get(`player-hand-${entry.cardId}`)
-        : objects.get(`lane-local-${entry.laneIndex}`);
-      if (!sourceRecord) return;
-      stagedBlockEventIds.add(stageId);
-      const position = entry.laneIndex == null
-        ? getHandCombatPosition("blocker", index, detached.length, true)
-        : getLaneCombatPosition(entry.laneIndex, "blocker", index, detached.length, true);
-      const preview = sourceRecord.mesh.metadata?.gauntlet?.preview || {};
-      const presentationId = entry.laneIndex == null
-        ? sourceRecord.id
-        : `resolved-lane-block-${stageId}`;
-      const record = updateCardRecord(presentationId, sourceRecord.label, position, {
-        faceDown: entry.laneIndex != null,
-        initialPosition: entry.laneIndex == null ? undefined : sourceRecord.mesh.position.clone(),
-        motionRole: "block-enter",
-        motionPathIndex: index,
-        motionDelayMs: index * 130,
-        selected: true,
-        selectionRole: "blocker",
-        scale: position.scale,
-        badgeText: "BLOCK",
-        badgeColor: MATCH_COLORS.good,
-        badgeBackground: "#103424f2",
-        metadata: {
-          type: "block",
-          owner: "local",
-          source: entry.laneIndex == null ? "hand" : "lane",
-          laneIndex: entry.laneIndex,
-          presentationRole: "blocker",
-          preview: { ...preview, stateLabel: "Resolved blocker", stateIcon: "block" }
-        }
-      });
-      liveIds.add(record.id);
-      const travelMs = Number(record.motion?.durationMs ?? CARD_MOTION_PROFILES["block-enter"].durationMs);
-      const exitMs = CARD_MOTION_PROFILES["discard-exit"].durationMs;
-      record.holdUntilMs = motionClockMs + travelMs + COMBAT_RESOLUTION_HOLD_MS;
-      record.departingUntil = elapsed + (travelMs + COMBAT_RESOLUTION_HOLD_MS + exitMs) / 1000;
-      record.departureTarget = {
-        x: MATCH_LAYOUT.piles.localDiscard.x + index * 0.05,
-        y: 0.44 + index * 0.02,
-        z: MATCH_LAYOUT.piles.localDiscard.z,
-        rotationX: Math.PI / 2,
-        rotationZ: index * -0.04
-      };
-      record.departureStarted = false;
-    });
-    if (stagedBlockEventIds.size > 500) {
-      const retained = Array.from(stagedBlockEventIds).slice(-240);
-      stagedBlockEventIds.clear();
-      retained.forEach((id) => stagedBlockEventIds.add(id));
-    }
-  }
-
-  function replayApproachPosition(position, actorIsBottom, role = "primary", index = 0) {
-    const sideOffset = (index % 2 === 0 ? 1 : -1) * Math.ceil(index / 2) * 0.9;
-    return new Vector3(
-      Number(position.x || 0) + sideOffset,
-      0.72,
-      actorIsBottom ? -7.65 : 7.65
-    );
-  }
-
-  function stageReplayAction(viewModel, liveIds, bottomPlayer) {
-    const action = viewModel.replayAction;
-    if (!action) return;
-    const actorIsBottom = Number(action.actorPlayerNum) === Number(bottomPlayer);
-    const stagedPhysicalCards = new Set();
-    const stageCard = (card, id, position, options = {}) => {
-      if (!claimReplayCardStage(card, stagedPhysicalCards)) return false;
-      liveIds.add(id);
-      updateCardRecord(id, card.label || card.name, position, {
-        artPath: card.artPath,
-        initialPosition: options.initialPosition || replayApproachPosition(
-          position,
-          actorIsBottom,
-          options.presentationRole,
-          options.motionPathIndex || 0
-        ),
-        motionRole: options.motionRole || "replay-stage",
-        motionPathIndex: options.motionPathIndex || 0,
-        motionDelayMs: options.motionDelayMs || 0,
-        selected: true,
-        scale: options.scale || 0.64,
-        selectionRole: options.selectionRole || "primary",
-        badgeText: options.badgeText || "",
-        badgeColor: options.badgeColor || MATCH_COLORS.blue,
-        badgeBackground: options.badgeBackground || "#07111cf2",
-        metadata: {
-          type: "replay-action",
-          presentationRole: options.presentationRole || "primary",
-          owner: options.owner || (actorIsBottom ? "local" : "opponent"),
-          preview: { ...card, stateLabel: options.stateLabel || action.label, stateIcon: options.stateIcon || action.kind }
-        }
-      });
-      return true;
-    };
-
-    const battlefieldPresence = getBattlefieldCardPresence(viewModel.attacks);
-    const detachedBlockers = (action.cards?.blockers || []).filter((card) => (
-      !replayCardIsOnBattlefield(card, "blocker", battlefieldPresence)
-    ));
-    detachedBlockers.forEach((card, index, cards) => stageCard(
-      card,
-      replayStageId("blocker", card, action.id, index),
-      getHandCombatPosition("blocker", index, cards.length, actorIsBottom),
-      { presentationRole: "blocker", selectionRole: "blocker", motionRole: "block-enter", motionPathIndex: index, motionDelayMs: index * 130, badgeText: "BLOCK", badgeColor: MATCH_COLORS.good, stateLabel: "Public blocker", stateIcon: "block" }
-    ));
-    (action.cards?.attachments || []).forEach((card, index, cards) => stageCard(
-      card,
-      replayStageId("attachment", card, action.id, index),
-      getHandCombatAttachmentPosition(index, cards.length, actorIsBottom),
-      { presentationRole: "attachment", badgeText: "ARMED", badgeColor: MATCH_COLORS.purple, stateLabel: "Public attachment", stateIcon: "ability", scale: 0.48 }
-    ));
-    const primaryOnBattlefield = replayCardIsOnBattlefield(action.cards?.primary, "primary", battlefieldPresence);
-    if (action.cards?.primary && !primaryOnBattlefield && ["attack", "block", "defense-declined", "resolution", "ability"].includes(action.kind)) {
-      const isDamagePresentation = ["defense-declined", "resolution"].includes(action.kind);
-      const primaryRole = action.kind === "block" ? "blocker" : "attacker";
-      const combatPosition = action.laneIndex == null
-        ? getHandCombatPosition(primaryRole, 0, 1, actorIsBottom)
-        : getLaneCombatPosition(action.laneIndex, primaryRole, 0, 1, actorIsBottom);
-      stageCard(action.cards.primary, replayStageId("primary", action.cards.primary, action.id), combatPosition, {
-        presentationRole: "primary",
-        selectionRole: isDamagePresentation ? "danger" : "primary",
-        badgeText: isDamagePresentation ? `${action.values?.damage || 0} DMG` : action.kind.toUpperCase(),
-        badgeColor: isDamagePresentation ? MATCH_COLORS.danger : MATCH_COLORS.blue,
-        stateLabel: action.summary,
-        stateIcon: action.kind,
-        scale: 0.72,
-        motionRole: "attack-enter"
-      });
-    }
-    (action.cards?.payments || []).forEach((card, index, cards) => stageCard(
-      card,
-      replayStageId("payment", card, action.id, index),
-      getPaymentPosition(index, cards.length, actorIsBottom),
-      { presentationRole: "payment", selectionRole: "payment", motionRole: "payment-enter", motionPathIndex: index, motionDelayMs: index * 90, badgeText: "PAY", badgeColor: MATCH_COLORS.bronze, stateLabel: "Public payment", stateIcon: "payment", scale: MATCH_LAYOUT.payment.scale }
-    ));
-  }
-
   function update(viewModel) {
     if (disposed || !viewModel) return;
     const nextMatchId = viewModel.matchId || null;
     if (currentMatchId && nextMatchId && currentMatchId !== nextMatchId) {
+      actorRegistry?.clear();
+      transitionPlanner.reset();
+      currentPresentationSnapshot = null;
       animationQueue.length = 0;
       activeEventAnimation = null;
       animatedEventIds.clear();
-      stagedBlockEventIds.clear();
       highestAnimationRevision = -1;
       eventRing.visibility = 0;
       turnSweep.visibility = 0;
       eventSprite.visibility = 0;
-      lastState.topLife = null;
-      lastState.bottomLife = null;
-      lastState.priority = null;
-      lastState.lanes = null;
-      lastState.replayActionId = null;
-      pulse.top = 0;
-      pulse.bottom = 0;
+      lastReplayActionId = null;
     }
     currentMatchId = nextMatchId;
     currentViewModel = viewModel;
@@ -2226,55 +2000,41 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       activeCue: viewModel.presentationCues?.[0] || null,
       profile: getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight())
     });
+    const requestedSnapshot = createPresentationSnapshot(viewModel, {
+      source: viewModel.presentationSource,
+      transitionMode: viewModel.presentationTransitionMode,
+      traversalGeneration: viewModel.replayTraversalGeneration
+    });
+    const transitionPlan = transitionPlanner.plan(requestedSnapshot, {
+      eventGate: viewModel.presentationEventGate === true
+    });
+    if (!transitionPlan.accepted) return;
+    currentPresentationSnapshot = transitionPlan.snapshot || requestedSnapshot;
+    queuedTransitionCount = Number(viewModel.presentationPlayback?.activeEventCount || 0)
+      - Number(viewModel.presentationPlayback?.activeEventIndex || 0)
+      - 1;
     const bottomPlayer = viewModel.perspective?.player || viewModel.perspective?.bottomPlayer;
-    if (viewModel.replayAction?.id && viewModel.replayAction.id !== lastState.replayActionId) {
+    if (viewModel.replayAction?.id && viewModel.replayAction.id !== lastReplayActionId) {
       animationQueue.length = 0;
       activeEventAnimation = null;
       (viewModel.events || []).forEach((entry) => animatedEventIds.delete(entry.id));
-      lastState.replayActionId = viewModel.replayAction.id;
+      lastReplayActionId = viewModel.replayAction.id;
     }
     enqueueEventAnimations(viewModel.events || [], viewModel.presentationCues || [], viewModel.revision);
-    const liveIds = new Set();
-    const drawnCardIds = new Set(
-      (viewModel.events || [])
-        .filter((entry) => (
-          entry.type === "cards.drawn"
-          && Number(entry.player) === Number(viewModel.perspective?.player)
-        ))
-        .flatMap((entry) => entry.cardIds || [])
-    );
     const top = viewModel.top;
     const bottom = viewModel.bottom;
     const topPriority = !!top && viewModel.priority === top.id;
     const bottomPriority = !!bottom && viewModel.priority === bottom.id;
-
-    const actingPlayer = viewModel.replayAction?.actorPlayerNum;
-    updateIdentity(ui.topIdentity, top, topPriority, false, Number(actingPlayer) === Number(top?.id));
-    updateIdentity(ui.bottomIdentity, bottom, bottomPriority, true, Number(actingPlayer) === Number(bottom?.id));
-    ui.phase.text = `${viewModel.currentTurnLabel}  •  ${viewModel.phaseLabel}`;
-    ui.phase.color = viewModel.localHasPriority ? MATCH_COLORS.bronze : MATCH_COLORS.muted;
-    ui.context.text = viewModel.instruction || (
-      viewModel.localHasPriority
-        ? "Choose a card or lane, or pass priority."
-        : "Your opponent currently has priority."
-    );
     const resolvedPayment = viewModel.publicPayments?.[0] || null;
     const replayPaymentCount = viewModel.replayAction?.cards?.payments?.length || 0;
-    ui.payment.text = viewModel.payment.active
-      ? `PAY ${viewModel.payment.total} / ${viewModel.payment.required}`
-      : resolvedPayment
-        ? `PAID ${resolvedPayment.total} / ${resolvedPayment.required}`
-        : replayPaymentCount
-          ? `${replayPaymentCount} PAYMENT${replayPaymentCount === 1 ? "" : "S"}`
-          : "";
     const handCombatActive = viewModel.handAttacks.length > 0
       || viewModel.selection.attackMode?.from === "hand"
       || viewModel.selection.blockMode?.type === "handAttack";
-    handCombatPlate.visibility = handCombatActive ? 0.12 : 0.035;
+    handCombatPlate.visibility = handCombatActive ? 1 : 0.9;
     handCombatRails.forEach((rail) => {
-      rail.visibility = handCombatActive ? 0.7 : 0.3;
+      rail.visibility = handCombatActive ? 1 : 0.72;
     });
-    ui.handCombatLabel.alpha = handCombatActive ? 1 : 0.7;
+    ui.handCombatLabel.alpha = handCombatActive ? 1 : 0.82;
     ui.combatAttackValue.value.text = String(currentBoardPresentation.combat.attackValue || "—");
     ui.combatBlockValue.value.text = String(currentBoardPresentation.combat.blockValue || "—");
     ui.combatAttackValue.frame.alpha = handCombatActive ? 1 : 0.38;
@@ -2283,52 +2043,27 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       ? String(currentBoardPresentation.payment.occupiedSlots)
       : "—";
     ui.paymentReadout.frame.alpha = currentBoardPresentation.payment.state === "idle" ? 0.38 : 1;
-    paymentPlate.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.09 : 0.025;
-    const paymentTexture = presentationMaskTextures.get("payment.active");
-    paymentStateLight.material.diffuseTexture = paymentTexture || null;
-    paymentStateLight.material.opacityTexture = paymentTexture || null;
-    paymentStateLight.visibility = paymentTexture
-      ? (viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.62 : 0.08)
-      : 0;
-    const priorityTexture = presentationMaskTextures.get("board.priority");
-    priorityStateLights.forEach((mesh, index) => {
-      mesh.material.diffuseTexture = priorityTexture || null;
-      mesh.material.opacityTexture = priorityTexture || null;
-      mesh.visibility = priorityTexture && (index === 0 ? bottomPriority : topPriority) ? 0.72 : 0;
+    Object.entries(currentBoardPresentation.piles).forEach(([pile, count]) => {
+      if (ui.pileCounts[pile]) ui.pileCounts[pile].value.text = String(count);
     });
-    combatStateLight.material.diffuseTexture = priorityTexture || null;
-    combatStateLight.material.opacityTexture = priorityTexture || null;
-    combatStateLight.visibility = priorityTexture && handCombatActive ? 0.38 : 0;
-
-    if (lastState.topLife !== null && lastState.topLife !== top?.life) pulse.top = 1;
-    if (lastState.bottomLife !== null && lastState.bottomLife !== bottom?.life) pulse.bottom = 1;
-    lastState.topLife = top?.life ?? null;
-    lastState.bottomLife = bottom?.life ?? null;
-    lastState.priority = viewModel.priority;
-
-    const passLabel = viewModel.interactions.passLabel || "Pass";
-    ui.pass.textBlock.text = passLabel === "Pass / Continue" ? "Pass" : passLabel;
-    ui.confirm.textBlock.text = viewModel.interactions.confirmLabel || "Confirm";
-    const hasSelection = !!(
-      viewModel.selection.attackMode ||
-      viewModel.selection.blockMode ||
-      viewModel.selection.placementMode ||
-      viewModel.selection.abilityMode
-    );
-    ui.pass.isEnabled = !viewModel.perspective.spectator
-      && viewModel.phase !== "gameOver"
-      && !viewModel.interactions.passDisabled
-      && !hasSelection;
-    ui.confirm.isEnabled = !viewModel.perspective.spectator && !viewModel.interactions.confirmDisabled;
-    ui.cancel.isEnabled = !viewModel.perspective.spectator && (
-      viewModel.selection.attackMode ||
-      viewModel.selection.blockMode ||
-      viewModel.selection.placementMode ||
-      viewModel.selection.abilityMode
-    );
-    ui.confirm.alpha = ui.confirm.isEnabled ? 1 : 0.44;
-    ui.pass.alpha = ui.pass.isEnabled ? 1 : 0.44;
-    ui.cancel.alpha = ui.cancel.isEnabled ? 1 : 0.44;
+    paymentPlate.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 1 : 0.9;
+    paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.82 : 0;
+    const paymentTexture = presentationMaskTextures.get("payment.active") || null;
+    paymentStateMask.material.diffuseTexture = paymentTexture;
+    paymentStateMask.material.opacityTexture = paymentTexture;
+    paymentStateMask.visibility = paymentTexture && currentBoardPresentation.payment.state !== "idle" ? 0.34 : 0;
+    const priorityTexture = presentationMaskTextures.get("board.priority");
+    priorityStateLights.forEach((light, index) => {
+      const active = index === 0 ? bottomPriority : topPriority;
+      light.mask.material.diffuseTexture = priorityTexture || null;
+      light.mask.material.opacityTexture = priorityTexture || null;
+      light.mask.visibility = priorityTexture && active ? 0.72 : 0;
+      light.fallback.visibility = !priorityTexture && active ? 0.72 : 0;
+    });
+    combatStateLight.mask.material.diffuseTexture = priorityTexture || null;
+    combatStateLight.mask.material.opacityTexture = priorityTexture || null;
+    combatStateLight.mask.visibility = priorityTexture && handCombatActive ? 0.38 : 0;
+    combatStateLight.fallback.visibility = !priorityTexture && handCombatActive ? 0.52 : 0;
 
     const attackByLane = new Map();
     viewModel.attacks
@@ -2337,32 +2072,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const laneIndex = attack.laneIndex;
       if (!attackByLane.has(laneIndex)) attackByLane.set(laneIndex, attack);
     });
-    const localPlacementEvents = new Map(
-      (viewModel.events || [])
-        .filter((entry) => (
-          entry.type === "card.placedFacedown"
-          && Number(entry.player) === Number(bottomPlayer)
-          && entry.cardId
-          && Number.isInteger(Number(entry.laneIndex))
-        ))
-        .map((entry) => [Number(entry.laneIndex), entry])
-    );
-
-    viewModel.lanes.forEach((lane, index) => {
+    viewModel.lanes.forEach((_, index) => {
       const laneMesh = laneMeshes[index];
       const legal = viewModel.interactions.legalLanes.includes(index);
       const abilityTargetOwner = viewModel.selection.abilityMode?.targetOwner;
-      const peekAnyOwner = viewModel.selection.abilityMode?.abilityId === "polea-peek";
-      const selectedAbilityLane = viewModel.selection.selectedAbilityLanes?.includes(index);
       const laneAttack = attackByLane.get(index);
-      const stagedLaneAttack = (
-        viewModel.selection.attackMode?.from === "lane"
-        && Number(viewModel.selection.attackMode?.lane) === index
-      );
-      const stagedLaneBlock = (
-        viewModel.selection.blockMode?.type === "laneAttack"
-        && Number(viewModel.selection.blockMode?.lane) === index
-      );
       laneMesh.material = laneMaterials[index];
       laneMesh.metadata = {
         gauntlet: {
@@ -2385,468 +2099,56 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                 : ["legal", "active"].includes(state)
                   ? laneLegalRailMaterial
                   : laneRailMaterial;
-          rail.visibility = state === "idle" ? 0.55 : state === "legal" ? 0.82 : 1;
+          rail.visibility = state === "idle" ? 0.68 : state === "legal" ? 0.9 : 1;
         });
       const state = currentBoardPresentation.lanes[index].state;
       const lightConfig = LANE_STATE_LIGHTS[state] || LANE_STATE_LIGHTS.idle;
-      const stateTexture = presentationMaskTextures.get(lightConfig.assetId);
-      laneStateLights[index].material.diffuseTexture = stateTexture || null;
-      laneStateLights[index].material.opacityTexture = stateTexture || null;
+      const stateTexture = presentationMaskTextures.get(lightConfig.assetId) || null;
+      laneStateMasks[index].material.diffuseTexture = stateTexture;
+      laneStateMasks[index].material.opacityTexture = stateTexture;
+      laneStateMasks[index].material.emissiveColor = color(lightConfig.tint);
+      laneStateMasks[index].visibility = stateTexture
+        ? (state === "idle" ? 0.035 : lightConfig.alpha * 0.42)
+        : 0;
       laneStateLights[index].material.emissiveColor = color(lightConfig.tint);
-      laneStateLights[index].visibility = stateTexture ? lightConfig.alpha : 0;
-
-      const localId = `lane-local-${index}`;
-      const opponentId = `lane-opponent-${index}`;
-      liveIds.add(localId);
-      liveIds.add(opponentId);
-      const localPlacementEntered = !viewModel.reducedMotion
-        && lastState.lanes
-        && !lastState.lanes[index]?.local
-        && lane.hasLocalCard;
-      const opponentPlacementEntered = !viewModel.reducedMotion
-        && lastState.lanes
-        && !lastState.lanes[index]?.opponent
-        && lane.hasOpponentCard;
-      const stagedLanePosition = stagedLaneAttack || stagedLaneBlock
-        ? getLaneCombatPosition(index, stagedLaneBlock ? "blocker" : "attacker", 0, 1, true)
-        : null;
-      const placementSource = localPlacementEntered
-        ? objects.get(`player-hand-${localPlacementEvents.get(index)?.cardId}`)
-        : null;
-      const existingLaneRecord = objects.get(localId);
-      if (placementSource && existingLaneRecord) {
-        existingLaneRecord.mesh.position.copyFrom(placementSource.mesh.position);
-        existingLaneRecord.mesh.rotation.copyFrom(placementSource.mesh.rotation);
-        existingLaneRecord.mesh.scaling.copyFrom(placementSource.mesh.scaling);
-        existingLaneRecord.mesh.visibility = placementSource.mesh.visibility;
-        existingLaneRecord.target.position.copyFrom(placementSource.mesh.position);
-        existingLaneRecord.target.rotationX = placementSource.mesh.rotation.x;
-        existingLaneRecord.target.rotationY = placementSource.mesh.rotation.y;
-        existingLaneRecord.target.rotationZ = placementSource.mesh.rotation.z;
-        existingLaneRecord.target.scale = placementSource.mesh.scaling.x;
-        existingLaneRecord.target.alpha = placementSource.mesh.visibility;
-      }
-      updateCardRecord(localId, "FACE-DOWN", stagedLanePosition
-        ? stagedLanePosition
-        : getLanePosition(index, "player"), {
-        faceDown: true,
-        initialPosition: localPlacementEntered
-          ? new Vector3(MATCH_LAYOUT.playerHand.x, 1.25, MATCH_LAYOUT.playerHand.z)
-          : undefined,
-        motionRole: localPlacementEntered
-          ? "placement-enter"
-          : stagedLaneBlock
-            ? "block-enter"
-            : stagedLaneAttack
-              ? "attack-enter"
-              : "state-correction",
-        alpha: lane.hasLocalCard ? 1 : 0.05,
-        scale: stagedLanePosition?.scale || 0.64,
-        legal: legal && lane.hasLocalCard,
-        metadata: {
-          type: "lane",
-          laneIndex: index,
-          owner: "local",
-          legal: legal && (peekAnyOwner ? lane.hasLocalCard : abilityTargetOwner !== "opponent"),
-          preview: lane.hasLocalCard ? {
-            ...lane.localCard,
-            stateLabel: `Face-down in Lane ${index + 1}`,
-            stateIcon: "placement"
-          } : null
-        },
-        selected: stagedLaneAttack
-          || stagedLaneBlock
-          || (selectedAbilityLane && abilityTargetOwner !== "opponent"),
-        selectionRole: stagedLaneBlock ? "blocker" : "primary",
-        badgeText: stagedLaneAttack ? "ATTACK" : stagedLaneBlock ? "BLOCK" : "",
-        badgeColor: stagedLaneBlock ? MATCH_COLORS.good : MATCH_COLORS.blue
-      });
-      updateCardRecord(opponentId, "FACE-DOWN", getLanePosition(index, "opponent"), {
-        faceDown: true,
-        initialPosition: opponentPlacementEntered
-          ? new Vector3(MATCH_LAYOUT.opponentHand.x, 1.25, MATCH_LAYOUT.opponentHand.z)
-          : undefined,
-        motionRole: opponentPlacementEntered ? "placement-enter" : "state-correction",
-        alpha: lane.hasOpponentCard ? 1 : 0.05,
-        scale: 0.64,
-        metadata: {
-          type: "lane",
-          laneIndex: index,
-          owner: "opponent",
-          legal: legal && (peekAnyOwner ? lane.hasOpponentCard : abilityTargetOwner === "opponent"),
-          preview: lane.hasOpponentCard ? {
-            label: "Opponent face-down card",
-            value: null,
-            artPath: MATCH_ASSETS.cardBack,
-            stateLabel: `Face-down in Lane ${index + 1}`,
-            stateIcon: "placement"
-          } : null
-        },
-        selected: selectedAbilityLane && abilityTargetOwner === "opponent",
-        selectionRole: "primary"
-      });
-      const blocks = lane.blocks || [];
-      const laneBlockTotal = blocks.reduce((total, block) => total + Number(block.value || 0), 0);
-      blocks.forEach((block, blockIndex) => {
-        const id = `block-${index}-${block.id || blockIndex}`;
-        const blockerIsLocal = block.owner === bottomPlayer;
-        const blockerPosition = getLaneCombatPosition(
-          index,
-          "blocker",
-          blockIndex,
-          blocks.length,
-          blockerIsLocal
-        );
-        const blockerSource = objects.get(
-          blockerIsLocal ? `lane-local-${index}` : `lane-opponent-${index}`
-        );
-        liveIds.add(id);
-        updateCardRecord(id, block.card.label, blockerPosition, {
-          artPath: block.card.artPath,
-          initialPosition: blockerSource?.mesh?.position?.clone()
-            || replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex),
-          motionRole: "block-enter",
-          motionPathIndex: blockIndex,
-          motionDelayMs: blockIndex * 130,
-          scale: blockerPosition.scale,
-          selected: true,
-          selectionRole: "blocker",
-          badgeText: blockIndex === 0 ? `BLOCK ${laneBlockTotal}` : `+${block.value}`,
-          badgeColor: MATCH_COLORS.good,
-          badgeBackground: "#103424f2",
-          metadata: {
-            type: "block",
-            owner: blockerIsLocal ? "local" : "opponent",
-            laneIndex: index,
-            preview: {
-              ...block.card,
-              stateLabel: `Blocking in Lane ${index + 1}`,
-              stateIcon: "block"
-            }
-          }
-        });
-      });
+      laneStateLights[index].visibility = state === "idle" ? 0.08 : lightConfig.alpha * 0.72;
 
       const ownerIsLocal = laneAttack?.owner === bottomPlayer;
       setCombatDirection(index, ownerIsLocal, !!laneAttack);
     });
-    lastState.lanes = viewModel.lanes.map((lane) => ({ local: lane.hasLocalCard, opponent: lane.hasOpponentCard }));
 
-    const opponentCount = top?.handCount || 0;
-    for (let index = 0; index < opponentCount; index += 1) {
-      const id = `opponent-hand-${index}`;
-      liveIds.add(id);
-      const position = getFanPosition(index, opponentCount, "opponent");
-      updateCardRecord(id, "FACE-DOWN", position, {
-        faceDown: true,
-        scale: position.scale,
-        metadata: { type: "opponent-hand", index },
-        alpha: 1
-      });
+    actorRegistry.reconcile(currentPresentationSnapshot, transitionPlan.transitions);
+    if (process.env.NODE_ENV !== "production") {
+      const duplicates = actorRegistry.duplicateVisibleIdentities();
+      if (duplicates.length > 0) {
+        const warningKey = `${currentPresentationSnapshot.matchId}:${currentPresentationSnapshot.revision}`;
+        if (warningKey !== lastDuplicateWarningKey) {
+          lastDuplicateWarningKey = warningKey;
+          console.error("Gauntlet duplicate visible card actors", duplicates.map(({ identity, entries }) => ({
+            identity,
+            entries: entries.map(({ actorId, actor, departing }) => ({
+              actorId,
+              zone: actor?.zone,
+              source: actor?.source,
+              departing,
+              sequence: currentPresentationSnapshot.revision
+            }))
+          })));
+        }
+      }
     }
-
-    [
-      {
-        id: "local-deck-pile",
-        label: "DECK",
-        position: MATCH_LAYOUT.piles.localDeck,
-        count: bottom?.deckCount || 0,
-        faceDown: true,
-        rotationZ: 0
-      },
-      {
-        id: "local-discard-pile",
-        label: "DISCARD",
-        position: MATCH_LAYOUT.piles.localDiscard,
-        count: bottom?.discardCount || 0,
-        faceDown: false,
-        rotationZ: 0
-      },
-      {
-        id: "opponent-deck-pile",
-        label: "DECK",
-        position: MATCH_LAYOUT.piles.opponentDeck,
-        count: top?.deckCount || 0,
-        faceDown: true,
-        rotationZ: Math.PI
-      },
-      {
-        id: "opponent-discard-pile",
-        label: "DISCARD",
-        position: MATCH_LAYOUT.piles.opponentDiscard,
-        count: top?.discardCount || 0,
-        faceDown: false,
-        rotationZ: 0
-      }
-    ].forEach((pile) => {
-      liveIds.add(pile.id);
-      updateCardRecord(pile.id, pile.label, {
-        x: pile.position.x,
-        y: 0.24,
-        z: pile.position.z,
-        rotationX: Math.PI / 2,
-        rotationZ: pile.rotationZ
-      }, {
-        faceDown: pile.faceDown,
-        alpha: pile.count > 0 ? 0.9 : 0.16,
-        scale: pile.id.includes("discard") ? 0.58 : 0.46,
-        badgeText: String(pile.count),
-        badgeColor: MATCH_COLORS.muted,
-        badgeBackground: "#07111ce8",
-        badgeOffsetY: pile.id.includes("discard") ? -48 : -38,
-        metadata: { type: "pile", pile: pile.id }
-      });
-    });
-
-    const hand = viewModel.hand || [];
-    const canvasWidth = canvas.clientWidth || engine.getRenderWidth();
-    const responsiveHand = canvasWidth >= 1450
-      ? null
-      : canvasWidth >= 900
-        ? { x: -0.95, scale: 0.86, spread: 1.72 }
-        : { x: -0.25, scale: 0.82, spread: 1.62 };
-    hand.forEach((card, index) => {
-      const id = `player-hand-${card.id || index}`;
-      liveIds.add(id);
-      const selected = Object.values(card.selected || {}).some(Boolean);
-      const position = getFanPosition(index, hand.length, "player", responsiveHand || undefined);
-      const hovered = hoveredId === id;
-      const wasHovered = !!objects.get(id)?.target?.hovered;
-      let targetPosition = { ...position };
-      let scale = position.scale;
-      let badgeText = "";
-      let badgeColor = MATCH_COLORS.blue;
-      let badgeBackground = "#07111cf2";
-      let selectionRole = "primary";
-      let motionRole = hovered || wasHovered ? "hover" : "state-correction";
-      let motionPathIndex = 0;
-      let motionDelayMs = 0;
-      let previewState = "In hand";
-      let previewIcon = "inspect";
-
-      if (card.selected?.attacker) {
-        const fromLane = viewModel.selection.attackMode?.from === "lane";
-        const laneIndex = viewModel.selection.attackMode?.lane ?? 0;
-        targetPosition = fromLane
-          ? getLaneCombatPosition(laneIndex, "attacker", 0, 1, true)
-          : getHandCombatPosition("attacker", 0, 1, true);
-        scale = 0.68;
-        motionRole = "attack-enter";
-        previewState = fromLane ? `Attacking in Lane ${laneIndex + 1}` : "Selected hand attacker";
-        previewIcon = "attack";
-        badgeText = `⚔ ${card.value}`;
-      } else if (card.selected?.blocker) {
-        const laneBlock = viewModel.selection.blockMode?.type === "laneAttack";
-        const laneIndex = viewModel.selection.blockMode?.lane ?? 0;
-        const blockerOrder = viewModel.selection.selectedBlockCardIndexes.indexOf(index);
-        const blockerCount = Math.max(1, viewModel.selection.selectedBlockCardIndexes.length);
-        targetPosition = laneBlock
-          ? getLaneCombatPosition(laneIndex, "blocker", blockerOrder, blockerCount, true)
-          : getHandCombatPosition("blocker", blockerOrder, blockerCount, true);
-        scale = 0.68;
-        motionRole = "block-enter";
-        motionPathIndex = blockerOrder;
-        motionDelayMs = blockerOrder * 130;
-        badgeText = `◆ ${card.value}`;
-        badgeColor = MATCH_COLORS.good;
-        badgeBackground = "#103424f2";
-        selectionRole = "blocker";
-        previewState = laneBlock ? `Blocking in Lane ${laneIndex + 1}` : "Selected hand blocker";
-        previewIcon = "block";
-      } else if (card.selected?.placement) {
-        const laneIndex = viewModel.selection.placementMode?.lane ?? 0;
-        targetPosition = {
-          x: MATCH_LAYOUT.lanes.x[laneIndex],
-          y: 0.46,
-          z: MATCH_LAYOUT.anchors.localFacedown,
-          rotationX: Math.PI / 2,
-          rotationZ: 0
-        };
-        scale = 0.76;
-        motionRole = "placement-enter";
-        badgeText = "SET";
-        badgeColor = MATCH_COLORS.purple;
-        selectionRole = "placement";
-        previewState = `Placing in Lane ${laneIndex + 1}`;
-        previewIcon = "placement";
-      } else {
-        if (card.selected?.payment) {
-          const paymentOrder = viewModel.selection.payments.indexOf(index);
-          const paymentCount = Math.max(1, viewModel.selection.payments.length);
-          targetPosition = getPaymentPosition(paymentOrder, paymentCount, true);
-          scale = targetPosition.scale;
-          motionRole = "payment-enter";
-          motionPathIndex = paymentOrder;
-          motionDelayMs = paymentOrder * 90;
-          badgeText = "PAY";
-          badgeColor = MATCH_COLORS.bronze;
-          badgeBackground = "#3d2b12f2";
-          selectionRole = "payment";
-          previewState = "Committed as payment";
-          previewIcon = "payment";
-        }
-        if (hovered) {
-          targetPosition = getHandHoverPosition(targetPosition, viewModel.reducedMotion);
-          scale = targetPosition.scale;
-        }
-      }
-
-      updateCardRecord(id, card.label, targetPosition, {
-        artPath: card.artPath,
-        faceDown: false,
-        initialPosition: drawnCardIds.has(card.id)
-          ? new Vector3(MATCH_LAYOUT.piles.localDeck.x, 0.42, MATCH_LAYOUT.piles.localDeck.z)
-          : undefined,
-        motionRole: drawnCardIds.has(card.id) ? "draw-enter" : motionRole,
-        motionPathIndex: drawnCardIds.has(card.id) ? index : motionPathIndex,
-        motionDelayMs: drawnCardIds.has(card.id) ? index * 70 : motionDelayMs,
-        selected,
-        hovered,
-        selectionRole,
-        scale,
-        alpha: card.unavailable ? 0.42 : 1,
-        metadata: {
-          type: "hand",
-          index,
-          enabled: card.interactionEnabled && !card.unavailable,
-          card: card.raw,
-          preview: {
-            ...card,
-            stateLabel: previewState,
-            stateIcon: previewIcon
-          }
-        },
-        badgeText,
-        badgeColor,
-        badgeBackground,
-        badgeOffsetY: card.selected?.attacker || card.selected?.blocker ? -46 : -58
-      });
-    });
-
-    const handAttacks = viewModel.attacks.filter((attack) => attack.laneIndex == null);
-    const handCombatSlots = handAttacks.flatMap((attack) => [
-      { id: `attack:${attack.id}` },
-      ...(attack.blocks || []).map((block, blockIndex) => ({
-        id: `block:${attack.id}:${block.id || blockIndex}`
-      }))
-    ]);
-    const handCombatPosition = (slotId, role, owner) => {
-      const slotIndex = Math.max(0, handCombatSlots.findIndex((slot) => slot.id === slotId));
-      return getHandCombatTickerPosition(
-        slotIndex,
-        Math.max(1, handCombatSlots.length),
-        role,
-        owner === bottomPlayer
-      );
-    };
-    viewModel.attacks.forEach((attack, index) => {
-      const id = `attack-${attack.id || index}`;
-      liveIds.add(id);
-      const localAttack = attack.owner === bottomPlayer;
-      const isHandAttack = attack.laneIndex == null;
-      const abilityTargetsAttack = (
-        ["polea-buff", "focus-buff"].includes(viewModel.selection.abilityMode?.abilityId)
-        && attack.owner === bottomPlayer
-      );
-      const selectedAbilityAttack = viewModel.selection.abilityMode?.attackId === attack.id;
-      const attackPosition = isHandAttack
-        ? handCombatPosition(`attack:${attack.id}`, "attacker", attack.owner)
-        : getLaneCombatPosition(attack.laneIndex, "attacker", 0, 1, localAttack);
-      const sourceRecord = localAttack
-        ? (
-            isHandAttack
-              ? objects.get(`player-hand-${attack.card.id}`)
-              : objects.get(`lane-local-${attack.laneIndex}`)
-          )
-        : (
-            isHandAttack
-              ? null
-              : objects.get(`lane-opponent-${attack.laneIndex}`)
-          );
-      updateCardRecord(id, attack.card.label, attackPosition, {
-        artPath: attack.card.artPath,
-        faceDown: false,
-        initialPosition: sourceRecord?.mesh?.position?.clone()
-          || replayApproachPosition(attackPosition, localAttack, "attacker", 0),
-        motionRole: "attack-enter",
-        selected: true,
-        selectionRole: selectedAbilityAttack ? "ability" : localAttack ? "primary" : "danger",
-        scale: attackPosition.scale,
-        metadata: {
-          type: "attack",
-          owner: localAttack ? "local" : "opponent",
-          attackId: attack.id,
-          laneIndex: attack.laneIndex,
-          source: isHandAttack ? "hand" : "lane",
-          legal: abilityTargetsAttack,
-          preview: {
-            ...attack.card,
-            stateLabel: isHandAttack ? "Attacking from hand" : `Attacking in Lane ${attack.laneIndex + 1}`,
-            stateIcon: "attack"
-          }
-        },
-        badgeText: `⚔ ${attack.value}`,
-        badgeColor: localAttack ? MATCH_COLORS.blue : MATCH_COLORS.danger,
-        badgeBackground: localAttack ? "#10354af2" : "#45151bf2",
-        badgeOffsetY: -46
-      });
-
-      if (isHandAttack) {
-        const handBlockTotal = (attack.blocks || []).reduce(
-          (total, block) => total + Number(block.value || 0),
-          0
-        );
-        (attack.blocks || []).forEach((block, blockIndex) => {
-          const blockId = `hand-attack-block-${attack.id}-${block.id || blockIndex}`;
-          liveIds.add(blockId);
-          const blockSource = block.owner === bottomPlayer
-            ? objects.get(`player-hand-${block.card.id}`)
-            : null;
-          const blockerIsLocal = block.owner === bottomPlayer;
-          const blockerPosition = handCombatPosition(
-            `block:${attack.id}:${block.id || blockIndex}`,
-            "blocker",
-            block.owner
-          );
-          updateCardRecord(blockId, block.card.label, blockerPosition, {
-            artPath: block.card.artPath,
-            initialPosition: blockSource?.mesh?.position?.clone()
-              || replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex),
-            motionRole: "block-enter",
-            motionPathIndex: blockIndex,
-            motionDelayMs: blockIndex * 130,
-            selected: true,
-            selectionRole: "blocker",
-            scale: blockerPosition.scale,
-            badgeText: blockIndex === 0 ? `BLOCK ${handBlockTotal}` : `+${block.value}`,
-            badgeColor: MATCH_COLORS.good,
-            badgeBackground: "#103424f2",
-            metadata: {
-              type: "block",
-              owner: blockerIsLocal ? "local" : "opponent",
-              attackId: attack.id,
-              source: "hand",
-              preview: {
-                ...block.card,
-                stateLabel: "Blocking a hand attack",
-                stateIcon: "block"
-              }
-            }
-          });
-        });
-      }
-    });
-
-    stagePublicPayments(viewModel, liveIds, bottomPlayer);
-    stageReplayAction(viewModel, liveIds, bottomPlayer);
-    stageResolvedDeclaredBlocks(viewModel.events || [], liveIds, viewModel);
-    stageDepartingPayments(viewModel.events || [], liveIds, viewModel);
-    removeMissing(liveIds);
   }
 
   function animate() {
     const cameraChanged = syncCamera();
-    if (cameraChanged && currentViewModel) update(currentViewModel);
+    if (cameraChanged && currentViewModel) {
+      responsiveRecompose = true;
+      try {
+        update(currentViewModel);
+      } finally {
+        responsiveRecompose = false;
+      }
+    }
     const deltaMs = babylonScene.getEngine().getDeltaTime();
     elapsed += deltaMs / 1000;
     motionClockMs += deltaMs;
@@ -2914,8 +2216,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           scale: 0.42,
           alpha: 0,
           motionRole: "discard-exit",
+          motionOccurrenceId: record.departureOccurrenceId,
           motionObstacles: motionObstaclesFor(id),
-          motionBounds
+          motionBounds: activeMotionBounds(),
+          motionPlaybackRate: presentationPlaybackRate()
         }, motionClockMs, currentViewModel?.reducedMotion);
       }
       for (const cue of record.motion?.cueHooks || []) {
@@ -2937,12 +2241,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
             complete: true
           }
         : sampleCardMotion(record.motion, motionClockMs);
+      const departureComplete = didCardDepartureComplete(record, sampled);
       if (sampled) {
         record.mesh.position.set(sampled.x, sampled.y, sampled.z);
         record.mesh.rotation.set(sampled.rotationX, sampled.rotationY, sampled.rotationZ);
         record.mesh.scaling.setAll(sampled.scale);
         record.mesh.visibility = sampled.alpha;
         if (sampled.complete) record.motion = null;
+      }
+      if (departureComplete) {
+        // The queued motion clock is the source of truth for visual playback.
+        // Dispose only after the real discard path has reached its endpoint so
+        // delayed/staggered trajectories cannot leave invisible registry actors.
+        actorRegistry?.completeDeparture(id);
+        continue;
       }
       const contactShadow = record.mesh.gauntletContactShadow;
       if (contactShadow) {
@@ -2959,10 +2271,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           : 1 + Math.sin(elapsed * 5) * 0.025;
         record.mesh.gauntletHalo.scaling.set(haloPulse, haloPulse, 1);
       }
-      if (record.departingUntil && elapsed >= record.departingUntil) {
-        disposeCardRecord(record);
-        objects.delete(id);
-      }
     }
     combatLines.forEach((line, index) => {
       if (line.visibility > 0 && !currentViewModel?.reducedMotion) {
@@ -2970,12 +2278,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         line.visibility = pulseValue;
       }
     });
-    pulse.top = Math.max(0, pulse.top - 0.035);
-    pulse.bottom = Math.max(0, pulse.bottom - 0.035);
-    ui.topIdentity.life.color = pulse.top > 0 ? MATCH_COLORS.danger : "#f4f7f9";
-    ui.bottomIdentity.life.color = pulse.bottom > 0 ? MATCH_COLORS.danger : "#f4f7f9";
-    ui.topIdentity.life.scaleX = ui.topIdentity.life.scaleY = pulse.top > 0 ? 1.08 : 1;
-    ui.bottomIdentity.life.scaleX = ui.bottomIdentity.life.scaleY = pulse.bottom > 0 ? 1.08 : 1;
   }
 
   const beforeRender = babylonScene.onBeforeRenderObservable.add(animate);
@@ -3035,7 +2337,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   function handleCanvasPointerMove(event) {
     const metadata = pickCanvasMetadata(event);
     const nextHover = metadata?.type === "hand"
-      ? `player-hand-${metadata.card?.id || metadata.index}`
+      ? metadata.actorId || null
       : null;
     if (hoveredId !== nextHover) {
       hoveredId = nextHover;
@@ -3080,11 +2382,40 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     update,
     getMetrics() {
       const engine = babylonScene.getEngine();
+      const stageMetrics = nativeBoardStage?.getMetrics?.() || {};
+      const registryMetrics = actorRegistry?.metrics?.() || {};
+      const snapshotMetrics = presentationSnapshotMetrics(currentPresentationSnapshot);
+      const activeMotionRecords = Array.from(objects.values()).filter((record) => record.motion);
+      const activeMotionsByRole = activeMotionRecords.reduce((counts, record) => {
+        const role = record.motion?.role || "unknown";
+        counts[role] = (counts[role] || 0) + 1;
+        return counts;
+      }, {});
+      const activeMotionPaths = activeMotionRecords.map((record) => ({
+        role: record.motion?.role || "unknown",
+        path: (record.motion?.path || []).map((point) => ({
+          x: Number(Number(point.x || 0).toFixed(3)),
+          z: Number(Number(point.z || 0).toFixed(3))
+        }))
+      }));
       return {
+        ...stageMetrics,
+        ...snapshotMetrics,
+        ...registryMetrics,
+        duplicateVisibleIdentityCount: registryMetrics.duplicateVisibleIdentityCount
+          ?? snapshotMetrics.duplicateVisibleIdentityCount,
         meshes: babylonScene.meshes.length,
         materials: babylonScene.materials.length,
         textures: babylonScene.textures.length,
         activeCards: objects.size,
+        activeTransitionCount: activeMotionRecords.length,
+        activeMotionsByRole,
+        activeMotionPaths,
+        queuedTransitionCount: Math.max(0, queuedTransitionCount),
+        activeEffects: Number(Boolean(activeEventAnimation)) + animationQueue.length,
+        layoutProfile: activeLayoutProfile.id,
+        moduleBounds: Object.fromEntries((stageMetrics.boardModules || []).map((module) => [module.id, module.bounds])),
+        structuralCompositeRasterCount: 0,
         pendingTextures: pendingTexturePaths.size,
         engineScenes: engine.scenes.length,
         activeMeshes: babylonScene.getActiveMeshes().length,
@@ -3113,7 +2444,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       canvas.removeEventListener("pointerup", handleCanvasPointerUp);
       fullscreenUi.dispose();
       authoredModuleRoots.forEach((root) => root.dispose?.());
-      authoredSurfaceRoots.forEach((root) => root.dispose?.());
+      actorRegistry?.clear();
       presentationAssetCache.dispose();
       babylonScene.dispose();
     }

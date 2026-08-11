@@ -1055,10 +1055,6 @@
   cursor: pointer;
 }
 
-.production-portrait-guard {
-  display: none;
-}
-
 @keyframes production-crest-pulse {
   50% { opacity: 0.55; transform: scale(0.92); }
 }
@@ -1218,6 +1214,26 @@
     color: CanvasText;
   }
 
+  .production-match-experience,
+  .production-match-experience * {
+    color: CanvasText !important;
+  }
+
+  .production-match-experience button,
+  .production-match-experience [role="button"],
+  .production-match-experience summary,
+  .production-match-experience input,
+  .production-match-experience select,
+  .production-match-experience textarea {
+    border-color: ButtonText !important;
+    color: ButtonText !important;
+    background: ButtonFace !important;
+  }
+
+  .production-match-experience a {
+    color: LinkText !important;
+  }
+
   .production-player-copy span,
   .production-priority,
   .production-context-kicker,
@@ -1240,6 +1256,14 @@
   }
 
   .production-action-buttons button:disabled {
+    border-color: GrayText !important;
+    color: GrayText !important;
+  }
+
+  .production-match-experience button:disabled,
+  .production-match-experience input:disabled,
+  .production-match-experience select:disabled,
+  .production-match-experience textarea:disabled {
     border-color: GrayText !important;
     color: GrayText !important;
   }
@@ -1700,51 +1724,6 @@
   }
 }
 
-@media (max-width: 600px) and (orientation: portrait) {
-  .production-match-experience .babylon-match-canvas,
-  .production-player-plate,
-  .production-faction-actions,
-  .production-context-panel,
-  .production-turn-marker,
-  .production-card-preview,
-  .production-combat-recap {
-    visibility: hidden;
-  }
-
-  .production-portrait-guard {
-    position: absolute;
-    z-index: 30;
-    inset: 0;
-    display: grid;
-    align-content: center;
-    justify-items: center;
-    gap: 10px;
-    padding: 28px;
-    color: var(--gauntlet-parchment);
-    background: radial-gradient(circle, #14243b, #05080c 64%);
-    text-align: center;
-  }
-
-  .production-portrait-guard > span {
-    color: var(--gauntlet-sapphire);
-    font-size: 54px;
-  }
-
-  .production-portrait-guard p {
-    margin: 0;
-    color: #9eabb6;
-  }
-
-  .production-match-experience .babylon-accessible-controls {
-    z-index: 35;
-    right: auto;
-    top: auto;
-    bottom: 12px;
-    left: 50%;
-    width: 1px;
-    max-height: 42vh;
-  }
-}
 .production-broadcast-marker {
   position: absolute;
   z-index: 14;
@@ -1902,10 +1881,6 @@
   .production-context-panel,
   .production-turn-marker {
     visibility: visible;
-  }
-
-  .production-portrait-guard {
-    display: none;
   }
 
   .production-player-plate-top {

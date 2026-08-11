@@ -1,23 +1,23 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "presentationKit": {
     "schemaVersion": "gauntlet.match-presentation.v1",
     "kitId": "gauntlet-core-v1",
     "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/kit.json",
     "strictCutoverRequiresApprovedAssets": true,
-    "productionForm": "approved-authored-2d-plus-procedural-depth"
+    "productionForm": "native-modular-babylon-plus-approved-cue-assets",
+    "structuralCompositeRuntimeAllowed": false
   },
   "integrated": [
     { "id": "presentation-kit-manifest", "kind": "manifest", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/kit.json" },
     { "id": "delivery-provenance", "kind": "manifest", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/source/delivery-2026-08-10.json" },
-    { "id": "approved-board-surface", "kind": "material", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp" },
+    { "id": "board-concept-reference", "kind": "reference", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp" },
     { "id": "approved-emissive-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/emissive-atlas-candidate.webp" },
     { "id": "approved-fx-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/effects/fx-atlas-candidate.webp" },
     { "id": "official-card-back", "kind": "texture", "path": "/assets/gauntlet/match/gauntlet-card-back-official.jpg" },
     { "id": "graphite-depth-texture", "kind": "texture", "path": "/assets/gauntlet/match/graphite-table-v1.png" }
   ],
   "cutoverRequired": [
-    { "id": "board-surface", "kind": "material", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp" },
     { "id": "lane-idle-mask", "kind": "mask", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/runtime/lane-idle.webp" },
     { "id": "lane-legal-mask", "kind": "mask", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/runtime/lane-legal.webp" },
     { "id": "lane-active-mask", "kind": "mask", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/runtime/lane-active.webp" },
@@ -52,7 +52,7 @@
     { "id": "defeat-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/defeat_stinger.wav" }
   ],
   "futureEnhancements": [
-    { "id": "authored-glb-depth-modules", "kind": "optional", "reason": "The approved production form uses authored 2D surfaces over deterministic procedural depth." },
+    { "id": "authored-glb-depth-modules", "kind": "optional", "reason": "The native production form uses deterministic modular Babylon geometry; authored GLBs can replace modules independently through the same anchors." },
     { "id": "full-pbr-map-sets", "kind": "optional", "reason": "Normal, ORM, and AO maps remain an optional fidelity enhancement rather than a cutover blocker." },
     { "id": "faction-crest-and-commander-set", "kind": "optional", "reason": "Identity art is outside the battlefield presentation cutover." }
   ]

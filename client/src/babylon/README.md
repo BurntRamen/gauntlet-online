@@ -9,12 +9,14 @@ training, and campaign matches.
 privacy, reconnect, failure, and result presentation. `GauntletMatchCanvas`
 owns one Babylon engine and scene. `createGauntletScene` owns stable meshes,
 materials, camera fitting, animation targets, pointer handling, and disposal.
+`BoardStage`, `PresentationSnapshot`, `PresentationTransitionPlanner`, and
+`CardActorRegistry` explicitly separate physical modules from persistent cards.
 
 The replaceable production boundary and cue lifecycle are defined in
 `PRESENTATION_ARCHITECTURE.md`. The runtime kit is versioned separately from
-gameplay. The approved authored 2D surface, mask, FX, and audio kit is the
-production default; code-native board elements remain independent load-failure
-fallbacks and supply physical depth and interaction geometry.
+gameplay. Native modular Babylon geometry is the production board. Approved
+mask, FX, and audio resources augment it; the former full-board concept is
+reference-only and never supplies runtime layout.
 
 The renderer consumes a view model and semantic callbacks only. It never imports
 Socket.IO, room state, or server functions.

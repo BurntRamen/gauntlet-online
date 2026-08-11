@@ -1,32 +1,37 @@
 # Babylon match asset inventory
 
-The supplied composite is used as visual direction only, never as a runtime
-atlas. Runtime assets stay individually addressable and have neutral fallbacks.
+The supplied board composites are visual direction and provenance records, not
+runtime layout. Production structure is composed from native Babylon modules;
+runtime images remain independently addressable.
 
 | Purpose | Runtime source | Status |
 | --- | --- | --- |
-| Visible 5:7 fronts | `/assets/gauntlet/playing-cards/{faction}-*.webp` through the existing card-art resolver | Integrated and cached by path |
-| Hidden cards | `/assets/gauntlet/match/gauntlet-card-back-official.jpg` supplied from the approved Gauntlet art archive | Integrated; procedural graphite/navy/sapphire/bronze back remains the load-failure fallback |
-| Faction identity | `/assets/gauntlet/{rumin,bizi,sheen,frumo}-card.webp` | Used in the identity system where available |
-| Table surface | Approved `gauntlet-core-v1/materials/board-surface-candidate.webp` over generated physical depth | Production default; the neutral procedural surface remains the load-failure fallback |
-| Board modules | Authored 2D board, lane, combat, payment, and dock surfaces over deterministic Babylon depth | Production default; optional GLB depth modules remain future enhancements |
-| Materials and masks | Nine independently addressable WebP emissive masks | Approved and selected for idle, legal, active, opposed, blocked, resolving, payment, priority, and turn states |
-| Lanes, rails, slots | Separate Babylon geometry and materials using the production palette | Provisional fallback; no composite-image sampling |
-| Gameplay markers | Fourteen original SVG icons plus independent high-contrast Babylon GUI badges and DOM labels | SVG pack generated; approval and replacement of the current code-native markers remain pending |
-| Effects | Seven independently addressable WebP cue assets plus restrained procedural fallback light | Approved runtime slices cover attack, block, payment, placement, damage, priority, and turn transitions |
-| Match audio | Kit-addressable WAV variants keyed by presentation-cue occurrence IDs | Seventeen delivered WAVs are approved; all active semantic hooks resolve to the production pack and retain tone fallback safety |
-| Missing assets | Neutral label texture and neutral card back | Integrated |
+| Visible 5:7 fronts | `/assets/gauntlet/playing-cards/{faction}-*.webp` through the card-art resolver | Integrated and cached by path |
+| Hidden cards | `/assets/gauntlet/match/gauntlet-card-back-official.jpg` | Approved; deterministic card back remains the failure fallback |
+| Board base | Babylon tabletop slab, inset field, frame, edges, and corner caps | Native modular geometry; art is provisional |
+| Lane modules | One Babylon lane definition instanced three times with wells, rails, sigil, anchors, bounds, and interaction volume | Native modular geometry; art is provisional |
+| Combat dais | Babylon attacker/blocker wells, versus socket, value/readout anchors, and FX anchor | Native module; art is provisional |
+| Payment tray | Babylon tray with eight stable wells, readout, light, and discharge anchors | Native module; art is provisional |
+| Pile docks | One aggregate dock definition instantiated four times with card/count anchors | Native modules; art is provisional |
+| Base material | `/assets/gauntlet/match/graphite-table-v1.png` as a tiling material texture | Provisional; no gameplay layout is baked into it |
+| Full-board concept | `gauntlet-core-v1/materials/board-surface-candidate.webp` | Reference-only, checksum preserved, not runtime-selectable |
+| State masks | Nine independently addressable transparent WebPs | Approved; localized idle/legal/active/opposed/blocked/resolving/payment/priority/turn channels |
+| Effects | Seven independently addressable transparent WebPs | Approved; attack, block, payment, placement, damage, priority, and turn hooks |
+| Gameplay markers | Fourteen original SVG icons plus Babylon/DOM semantic readouts | Integrated; code-native marker art remains provisional |
+| Audio | Seventeen kit-addressable WAV files keyed by presentation cue occurrence | Approved; deterministic tone fallback retained |
+| Optional GLBs | Board, lane, combat, payment, and pile module paths in `kit.json` | Provisional future authored replacements; not required for current cutover |
+| Optional PBR sets | Engraved graphite, bronze, steel, wells, and sapphire definitions | Provisional future fidelity replacements |
 
-Textures use anisotropic filtering, are cached for the scene lifetime, and are
-disposed with the scene. Normal updates do not recreate textures.
+Textures are cached for the scene lifetime and disposed with the scene. Stable
+card actors keep their material and texture across ordinary revisions and zone
+changes.
 
-The approved 2026-08-10 production delivery is recorded by source and output checksum in
-`gauntlet-core-v1/source/delivery-2026-08-10.json`. Opaque concept sheets and
-unsliced atlases are not presented as runtime-ready assets. The authored board
-surface is deliberately non-interactive: Babylon's shared geometry continues
-to own placement, collision, responsive layout, and input bounds.
+The 2026-08-10 delivery and its source/output checksums remain recorded in
+`gauntlet-core-v1/source/delivery-2026-08-10.json`. The 2026-08-11 native-board
+cutover reclassifies the full-board output as art-direction reference while
+preserving that history. Opaque concept sheets and unsliced atlases are never
+presented as runtime modules.
 
-The production delivery specification and machine-readable cutover checklist
-are in `PRODUCTION_ASSET_BRIEF.md` and `MATCH_ASSET_REQUIREMENTS.json`. Run
-`npm run report:match-assets -- --strict` to verify the selected production form.
-Optional GLB and full-PBR enhancements are reported separately from cutover.
+Run `npm run report:match-assets` for the informational inventory and
+`npm run report:match-assets -- --strict` for approved required assets,
+integrity, and the zero-runtime-structural-composite gate.

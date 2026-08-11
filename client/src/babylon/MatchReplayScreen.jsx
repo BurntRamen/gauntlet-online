@@ -39,24 +39,9 @@ function ReplayCard({ card, role }) {
   );
 }
 
-function SupportingCards({ label, cards }) {
-  if (!cards?.length) return null;
-  return (
-    <div className="replay-supporting-cards">
-      <span>{label}</span>
-      <div>{cards.map((card, index) => <ReplayCard card={card} role="supporting" key={`${card.runtimeId || card.gameplayCardId || label}-${index}`} />)}</div>
-    </div>
-  );
-}
-
 function ReplayActionLayer({ action }) {
   if (!action) return null;
-  const tableauPrimary = ["attack", "block", "defense-declined", "resolution"].includes(action.kind);
   const values = action.values || {};
-  const supportingBlockers = (action.cards?.blockers || []).filter((card) => (
-    card.runtimeId !== action.cards?.primary?.runtimeId
-    || card.gameplayCardId !== action.cards?.primary?.gameplayCardId
-  ));
   const facts = [
     action.laneIndex != null ? `Lane ${Number(action.laneIndex) + 1}` : null,
     values.paymentRequired ? `Paid ${values.paymentTotal}/${values.paymentRequired}` : null,
@@ -65,17 +50,11 @@ function ReplayActionLayer({ action }) {
     values.damage ? `${values.damage} damage` : null
   ].filter(Boolean);
   return (
-    <section className={`replay-action-layer kind-${action.kind}${tableauPrimary ? " is-tableau-primary" : ""}`} aria-live="polite" aria-atomic="true">
+    <section className={`replay-action-layer kind-${action.kind}`} aria-live="polite" aria-atomic="true">
       <div className="replay-action-copy">
         <span>{action.actorName || "Gauntlet broadcast"} · Turn {action.turn || 0}</span>
         <h2>{action.summary || action.label}</h2>
         {facts.length > 0 && <p>{facts.join(" · ")}</p>}
-      </div>
-      <div className="replay-action-cards" aria-label="Focused public cards">
-        <ReplayCard card={action.cards?.primary} role="primary" />
-        <SupportingCards label="Payment" cards={action.cards?.payments} />
-        <SupportingCards label="Blockers" cards={supportingBlockers} />
-        <SupportingCards label="Armed" cards={action.cards?.attachments} />
       </div>
     </section>
   );

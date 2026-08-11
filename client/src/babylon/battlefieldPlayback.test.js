@@ -33,11 +33,12 @@ describe("queued battlefield playback", () => {
     ];
     const frames = createBattlefieldPlaybackFrames(updateFor(events), seen);
 
-    expect(frames.map((frame) => frame.event.id)).toEqual(["paid", "attack", "priority"]);
+    expect(frames.map((frame) => frame.event?.id || null)).toEqual(["paid", "attack", "priority", null]);
     expect(frames.map((frame) => frame.durationMs)).toEqual([
       BATTLEFIELD_EVENT_PACING["payment.discarded"],
       BATTLEFIELD_EVENT_PACING["attack.declared"],
-      BATTLEFIELD_EVENT_PACING["priority.granted"]
+      BATTLEFIELD_EVENT_PACING["priority.granted"],
+      0
     ]);
     expect(frames.reduce((total, frame) => total + frame.durationMs, 0)).toBeGreaterThan(3000);
     expect(frames[1].update.viewModel.events).toEqual([events[1]]);
@@ -51,7 +52,7 @@ describe("queued battlefield playback", () => {
     expect(frames[1].update.viewModel.presentationCues).toEqual(frames[1].update.presentation.cues);
   });
 
-  test("holds the prior battlefield through payment and commits combat at the readable event", () => {
+  test("keeps authoritative state current while presentation events are gated sequentially", () => {
     const seen = new Set();
     const previous = updateFor([], {
       revision: 1,
@@ -70,16 +71,18 @@ describe("queued battlefield playback", () => {
     const frames = createBattlefieldPlaybackFrames(resolved, seen, { baseUpdate: previous });
 
     expect(battlefieldCommitEventIndex(blockEvents)).toBe(2);
-    expect(frames[0].update.viewModel.instruction).toBe("Attack awaiting a response");
-    expect(frames[1].update.viewModel.instruction).toBe("Attack awaiting a response");
+    expect(frames[0].update.viewModel.instruction).toBe("Combat resolved");
+    expect(frames[1].update.viewModel.instruction).toBe("Combat resolved");
     expect(frames[2].update.viewModel.instruction).toBe("Combat resolved");
+    expect(frames.slice(0, -1).every((frame) => frame.update.viewModel.presentationEventGate)).toBe(true);
+    expect(frames.at(-1).update.viewModel.presentationPlayback.finalReconcile).toBe(true);
     expect(frames[2].update.viewModel.presentationPlayback.stateCommitted).toBe(true);
   });
 
   test("never replays duplicate authoritative events", () => {
     const seen = new Set();
     const event = { id: "attack", type: "attack.declared" };
-    expect(createBattlefieldPlaybackFrames(updateFor([event]), seen)).toHaveLength(1);
+    expect(createBattlefieldPlaybackFrames(updateFor([event]), seen)).toHaveLength(2);
     expect(createBattlefieldPlaybackFrames(updateFor([event]), seen)).toEqual([
       expect.objectContaining({ event: null, durationMs: 0 })
     ]);
@@ -107,12 +110,12 @@ describe("queued battlefield playback", () => {
       { revision: 3, viewModel: { ...updateFor([]).viewModel, revision: 3 } }
     ));
 
-    expect(presented.map(({ frame }) => frame.event.id)).toEqual(["attack"]);
+    expect(presented.map(({ frame }) => frame.event?.id || null)).toEqual(["attack"]);
     jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["attack.declared"] - 1);
     expect(presented).toHaveLength(1);
     jest.advanceTimersByTime(1);
-    expect(presented.map(({ frame }) => frame.event.id)).toEqual(["attack", "block"]);
-    expect(states.some((state) => state.queuedFrames === 1)).toBe(true);
+    expect(presented.map(({ frame }) => frame.event?.id || null)).toEqual(["attack", null, "block"]);
+    expect(states.some((state) => state.queuedFrames >= 2)).toBe(true);
 
     queue.dispose();
     jest.useRealTimers();
@@ -139,7 +142,7 @@ describe("queued battlefield playback", () => {
     jest.useRealTimers();
   });
 
-  test("locks stale pre-commit input but unlocks as soon as the visible snapshot commits", () => {
+  test("does not delay authoritative input while visual frames catch up", () => {
     jest.useFakeTimers();
     const states = [];
     const queue = new BattlefieldPlaybackQueue({
@@ -152,7 +155,7 @@ describe("queued battlefield playback", () => {
       { id: "attack", type: "attack.declared" }
     ], { revision: 3 }));
 
-    expect(states.at(-1)).toMatchObject({ catchingUp: true, inputLocked: true });
+    expect(states.at(-1)).toMatchObject({ catchingUp: true, inputLocked: false });
     jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["payment.discarded"]);
     expect(states.at(-1)).toMatchObject({ catchingUp: true, inputLocked: false });
 

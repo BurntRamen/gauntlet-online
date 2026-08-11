@@ -43,8 +43,17 @@ export async function loadAuthoredPresentationModule(scene, asset, {
     if (typeof source?.instantiate !== "function") {
       throw new Error("Presentation model loader must return an instantiable cached source.");
     }
-    const roots = await Promise.all(instances.map((instance) => source.instantiate(instance)));
-    return { loaded: true, roots: roots.filter(Boolean), source };
+    const instantiated = await Promise.all(instances.map(async (instance) => ({
+      instance,
+      root: await source.instantiate(instance)
+    })));
+    const loadedInstances = instantiated.filter(({ root }) => Boolean(root));
+    return {
+      loaded: true,
+      roots: loadedInstances.map(({ root }) => root),
+      instances: loadedInstances,
+      source
+    };
   } catch (error) {
     return { loaded: false, roots: [], reason: error?.message || String(error) };
   }

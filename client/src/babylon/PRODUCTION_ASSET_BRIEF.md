@@ -8,10 +8,11 @@ image or a runtime atlas; every element must remain independently addressable.
 
 ## Production kit boundary
 
-The selected production form targets `gauntlet-core-v1/kit.json`: an authored
-2D surface and independently addressable lights/FX over deterministic Babylon
-depth and interaction geometry. Optional GLB replacements must still follow
-the attachment-node names and `2.3 x 3.22 x 0.1` card reference.
+The selected production form targets `gauntlet-core-v1/kit.json`: native
+modular Babylon geometry with independently addressable material, light, FX,
+and audio resources. Authored GLB replacements must follow the attachment-node
+names and `2.3 x 3.22 x 0.1` card reference. No replacement may encode the full
+gameplay layout in one raster.
 
 Each module's PBR materials and emissive state masks remain independently
 replaceable. Every delivery must update status, revision, creator/source,
@@ -20,12 +21,13 @@ cutover validation.
 
 ### Approved production delivery
 
-The 2026-08-10 delivery establishes the production layer without weakening
-this boundary. The transparent board surface is loaded as a
-scene-lifetime-cached, non-pickable surface beneath the existing rails, wells,
-cards, and interaction volumes. If it cannot load, the procedural board remains
-fully functional. GLB depth modules and expanded PBR maps are optional fidelity
-enhancements, not blockers for this approved 2D-plus-procedural-depth form.
+The 2026-08-10 delivery established the approved cue resources without weakening
+this boundary. Its full-board output is retained by checksum as art-direction
+reference and is not loaded by production. The transparent state masks and FX
+slices remain independently addressable runtime assets. Native module geometry
+stays fully functional if any authored resource fails. GLB modules and expanded
+PBR maps are optional fidelity enhancements, not blockers for the native-client
+cutover.
 
 The delivered audio pack is mapped directly to stable semantic cue IDs and
 plays on the shared visual queue clock. It is approved for production use. The

@@ -25,7 +25,7 @@ test("selects stable responsive board profiles at qualification viewports", () =
   expect(getBoardLayoutProfile(1366, 768).id).toBe("desktop");
   expect(getBoardLayoutProfile(390, 844).id).toBe("portrait");
   expect(getBoardLayoutProfile(844, 390).id).toBe("short-landscape");
-  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 7.6, z: 2 });
+  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 5.8, z: 2.81 });
 });
 
 test("projects idle, legal, active, opposed, blocked, and resolving lane states", () => {
@@ -50,6 +50,18 @@ test("projects board-native combat, payment, pile, and priority information", ()
   expect(projected.payment).toEqual({ state: "active", occupiedSlots: 2 });
   expect(projected.piles.localDeck).toBe(44);
   expect(projected.priority).toBe("local");
+});
+
+test("selection lights destinations without changing a card's physical zone", () => {
+  const attackIntent = projectBoardPresentation(model({
+    selection: { payments: [], attackMode: { from: "hand" } }
+  }));
+  expect(attackIntent.combat.state).toBe("legal");
+
+  const committedPayment = projectBoardPresentation(model({
+    publicPayments: [{ cards: [{ id: "a" }, { id: "b" }, { id: "c" }] }]
+  }));
+  expect(committedPayment.payment).toEqual({ state: "committed", occupiedSlots: 3 });
 });
 
 test("presentation geometry is source-agnostic for local, live, and replay adapters", () => {
