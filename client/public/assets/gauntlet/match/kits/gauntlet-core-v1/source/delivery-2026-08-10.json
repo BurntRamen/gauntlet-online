@@ -1,0 +1,74 @@
+{
+  "deliveryId": "gauntlet-core-v1-user-delivery-2026-08-10",
+  "receivedOn": "2026-08-10",
+  "status": "approved",
+  "approvalOwner": "Gauntlet art and audio direction",
+  "license": "Project-internal production use approved",
+  "audio": {
+    "source": "gauntlet_core_audio_v1.zip",
+    "sha256": "6df4fc36d171ad433c20e90601eac04785f22548ab3ac830c6ff2a1e151ef6a6",
+    "runtimeFiles": 17,
+    "format": "mono 48000 Hz 16-bit PCM WAV",
+    "sourceManifest": "gauntlet-core-audio-v1-manifest.json",
+    "decision": "Approved as the production audio pack. Semantic hooks retain deterministic tone fallbacks."
+  },
+  "visuals": {
+    "runtimeCandidate": {
+      "source": "ChatGPT Image Aug 10, 2026, 05_09_30 PM (1).png",
+      "sourceSha256": "8be4ad504d1c61c8a2bb60a7007302733ed6a82e6a8b4b9c94f4ccf406da95b9",
+      "output": "../materials/board-surface-candidate.webp",
+      "outputSha256": "5a44f4d0c433ab4315d0c7b4f99f2a7ae86f3c8564d46da6b3d351dde950cd7d",
+      "conversion": "WebP quality 90, alpha quality 100, exact transparent RGB preservation",
+      "decision": "Approved as the production non-interactive board surface. Procedural geometry supplies depth and load-failure fallback."
+    },
+    "reviewAtlases": [
+      {
+        "source": "ChatGPT Image Aug 10, 2026, 05_18_21 PM (7).png",
+        "sourceSha256": "73af9c1c5e4f6c1b13bf5c35babf518c85461443412dbbc5d9a4cff4ed2d9c18",
+        "output": "../masks/emissive-atlas-candidate.webp",
+        "outputSha256": "7dafdde567849ffa0924054f3e27590d07a973ef1b41d096d19e0f807b7fdd42",
+        "decision": "Approved as the source atlas for independently addressable runtime state masks."
+      },
+      {
+        "source": "ChatGPT Image Aug 10, 2026, 05_18_21 PM (8).png",
+        "sourceSha256": "bae2ae2d7b2aac3452b9c403445d666355eff88330ede36b7e62f5dfc9bfb686",
+        "output": "../effects/fx-atlas-candidate.webp",
+        "outputSha256": "69681a0641bddd63c13b5271a42309f81cecc8a5ee82c03165f8bbcb53dd1dd5",
+        "decision": "Approved as the source atlas for independently addressable runtime cue effects."
+      }
+    ],
+    "runtimeDerived": {
+      "maskDirectory": "../masks/runtime/",
+      "maskCount": 9,
+      "effectDirectory": "../effects/runtime/",
+      "effectCount": 7,
+      "sourceMaskAtlas": "ChatGPT Image Aug 10, 2026, 05_22_03 PM (8).png",
+      "sourceFxAtlas": "ChatGPT Image Aug 10, 2026, 05_22_03 PM (9).png",
+      "conversion": "Opaque black backgrounds converted to alpha; semantic regions isolated; lane rails mirrored into deterministic left/right masks; outputs written as 512 WebP or 384x768 lane WebP.",
+      "checksums": "Recorded per asset in kit.json"
+    },
+    "referenceOnly": [
+      { "file": "ChatGPT Image Aug 10, 2026, 05_09_30 PM (2).png", "sha256": "e27bb55f28d17a323f6e2fa3c3c392a0111c04d6a704a33b1f81f8ff9bff3421", "role": "lane module concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_09_31 PM (3).png", "sha256": "1e0402df8305a9cbf1f9774beeea5bb8c56a27fe5f37927a90f64932cdfeb88c", "role": "combat dais concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_09_31 PM (4).png", "sha256": "ed517c14d32b29a4470eda68813f94c6ca2383cdef8e321b40a012d95433c93e", "role": "payment tray concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_09_31 PM (5).png", "sha256": "67e625ac6b52dac4e6fe5c0306ddd18780dcc94e97c9fed2de69bad73960a884", "role": "pile dock concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_09_32 PM (6).png", "sha256": "9762401f54839280b5ccf4d53b556d547e30cd8b72f68db5dd93244aceaada4a", "role": "FX concept atlas" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_19 PM (1).png", "sha256": "3dcaab21448110fbee70c8cd313b61d1206c9b7bdf34bc17e3579938c774d608", "role": "lane module concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_19 PM (2).png", "sha256": "70db0b48f5c467b077269041588b4292ff3ed04093847143175a16c3d714aeb7", "role": "combat dais concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_20 PM (3).png", "sha256": "3ccbfdd6ed30c6f16a4c47e13a0568b0489d0a0d678dae2e0ebc77b2e0e2551d", "role": "hand dock concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_20 PM (4).png", "sha256": "68fc3faaf11490e28b4792cb280e50b27e87fda6958b1b5f0c201ed4919f22d4", "role": "pile dock concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_20 PM (5).png", "sha256": "c6b21f0f3ae6ccfc30df6423dd04f32a87981268d607ed6348f0ce11f62f3506", "role": "interface atlas concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_18_20 PM (6).png", "sha256": "6ff4f6783781a9b50a07c4159f49f222d745b2f7336d08fe48db1304cb113732", "role": "player plate concept" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_00 PM (1).png", "sha256": "09d617ad83b3228b79670da7964431deb3f2072e1263b6f8c412c9f70b5532d0", "role": "opaque board concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_00 PM (2).png", "sha256": "c497212c856d4c7973d947f679cc0f86ca5e74fcb683ea4c62cb170da52a5917", "role": "opaque lane concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_01 PM (3).png", "sha256": "23e7f3d5df0cb5046adf82b66c34550288160fa4bda0cd668605efefbab15d2d", "role": "opaque combat concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_01 PM (4).png", "sha256": "206c4320589fcbabf60c047909e3ff77b2b2f586ddd2a38c4d64bbeb5b12a03c", "role": "opaque payment concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_02 PM (5).png", "sha256": "e36f78a7bd64e00e61fffdc0d7c8918eda70270313ee442a80d8c4a1be317935", "role": "opaque pile dock concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_02 PM (6).png", "sha256": "5ce681ce4b93dc038667b26b9ce3d964f9762fd7386265c72d5485e43474fab7", "role": "opaque player plate concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_03 PM (7).png", "sha256": "65948d5f597e4ecfd8c5fc2191488c6891e049b8d64044c7ed07fe66f03dd813", "role": "opaque interface atlas concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_03 PM (8).png", "sha256": "6037e8a55c87de1539684af461213292fa070035dcd591e95dad5f5d998439a7", "role": "opaque emissive mask concept revision" },
+      { "file": "ChatGPT Image Aug 10, 2026, 05_22_03 PM (9).png", "sha256": "f20397966c023da5da3dce5b0d73ab6d39ba73fd1e9e5883d8e91b26cb52f502", "role": "opaque FX atlas concept revision" }
+    ],
+    "referenceDecision": "Reference-only images are recorded by checksum but not copied wholesale into the runtime bundle. Selected mask and FX regions are transformed into transparent independently addressable runtime assets; optional GLB modules remain future enhancements."
+  }
+}

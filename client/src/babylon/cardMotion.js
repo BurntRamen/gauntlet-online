@@ -1,20 +1,59 @@
 export const CARD_MOTION_PROFILES = Object.freeze({
   hover: Object.freeze({ durationMs: 150, easing: "ease-out" }),
-  "payment-enter": Object.freeze({ durationMs: 520, easing: "ease-in-out", lift: 0.72 }),
-  "draw-enter": Object.freeze({ durationMs: 560, easing: "ease-out", lift: 0.58 }),
-  "placement-enter": Object.freeze({ durationMs: 620, easing: "ease-in-out", lift: 0.54 }),
-  "attack-enter": Object.freeze({ durationMs: 640, easing: "ease-in-out", lift: 0.7 }),
-  "block-enter": Object.freeze({ durationMs: 680, easing: "ease-in-out", lift: 0.82 }),
-  "replay-stage": Object.freeze({ durationMs: 640, easing: "ease-in-out", lift: 0.7 }),
-  "discard-exit": Object.freeze({ durationMs: 520, easing: "ease-in", lift: 0.28 }),
-  "state-correction": Object.freeze({ durationMs: 220, easing: "ease-out" })
+  "payment-enter": Object.freeze({ durationMs: 760, easing: "ease-in-out", lift: 0.72 }),
+  "draw-enter": Object.freeze({ durationMs: 720, easing: "ease-out", lift: 0.58 }),
+  "placement-enter": Object.freeze({ durationMs: 880, easing: "ease-in-out", lift: 0.54 }),
+  "attack-enter": Object.freeze({ durationMs: 1000, easing: "ease-in-out", lift: 0.7 }),
+  "block-enter": Object.freeze({ durationMs: 1100, easing: "ease-in-out", lift: 0.82 }),
+  "replay-stage": Object.freeze({ durationMs: 1000, easing: "ease-in-out", lift: 0.7 }),
+  "discard-exit": Object.freeze({ durationMs: 720, easing: "ease-in", lift: 0.28 }),
+  "state-correction": Object.freeze({ durationMs: 280, easing: "ease-out" })
 });
 
-export const COMBAT_RESOLUTION_HOLD_MS = 900;
-export const PAYMENT_SETTLE_HOLD_MS = 220;
+export const COMBAT_RESOLUTION_HOLD_MS = 1500;
+export const PAYMENT_SETTLE_HOLD_MS = 500;
 export const CARD_PATH_CLEARANCE = 0.16;
 export const CARD_PATH_FOOTPRINT = Object.freeze({ width: 2.3, height: 3.22 });
 export const CARD_MOTION_CONTRACT_VERSION = "gauntlet.card-motion.collision-safe.v1";
+
+export const CARD_MOTION_CUE_HOOKS = Object.freeze({
+  "payment-enter": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.12 },
+    { cueId: "payment.commit", phase: "settle", at: 0.78 },
+    { cueId: "card.settle", phase: "settle", at: 0.9 }
+  ]),
+  "draw-enter": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.12 },
+    { cueId: "card.settle", phase: "settle", at: 0.9 }
+  ]),
+  "placement-enter": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.12 },
+    { cueId: "card.settle", phase: "settle", at: 0.92 }
+  ]),
+  "attack-enter": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.1 },
+    { cueId: "card.settle", phase: "settle", at: 0.92 }
+  ]),
+  "block-enter": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.1 },
+    { cueId: "card.settle", phase: "settle", at: 0.92 }
+  ]),
+  "replay-stage": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.1 },
+    { cueId: "card.settle", phase: "settle", at: 0.92 }
+  ]),
+  "discard-exit": Object.freeze([
+    { cueId: "card.lift", phase: "anticipate", at: 0 },
+    { cueId: "card.travel", phase: "travel", at: 0.12 },
+    { cueId: "card.discard", phase: "release", at: 0.82 }
+  ])
+});
 
 const COLLISION_PLANNED_ROLES = new Set([
   "payment-enter",
@@ -170,7 +209,8 @@ export function createCardMotion({
   obstacles = [],
   pathIndex = 0,
   delayMs = 0,
-  bounds = null
+  bounds = null,
+  occurrenceId = null
 }) {
   const profile = CARD_MOTION_PROFILES[role] || CARD_MOTION_PROFILES["state-correction"];
   const path = !reducedMotion && COLLISION_PLANNED_ROLES.has(role)
@@ -183,6 +223,13 @@ export function createCardMotion({
         bounds
       })
     : [{ x: start?.x || 0, z: start?.z || 0 }, { x: destination?.x || 0, z: destination?.z || 0 }];
+  const stableOccurrenceId = occurrenceId || [
+    role,
+    Number(start?.x || 0).toFixed(3),
+    Number(start?.z || 0).toFixed(3),
+    Number(destination?.x || 0).toFixed(3),
+    Number(destination?.z || 0).toFixed(3)
+  ].join(":");
   return {
     role,
     start: { ...start },
@@ -191,7 +238,15 @@ export function createCardMotion({
     durationMs: reducedMotion ? 0 : profile.durationMs,
     easing: profile.easing,
     lift: reducedMotion ? 0 : Number(profile.lift || 0),
-    path
+    path,
+    cueHooks: (CARD_MOTION_CUE_HOOKS[role] || []).map((hook) => ({
+      contract: "gauntlet.presentation-cues.v1",
+      ...hook,
+      occurrenceId: `${stableOccurrenceId}:${hook.cueId}:${hook.phase}`,
+      offsetMs: Math.round((reducedMotion ? 0 : profile.durationMs) * hook.at),
+      visual: { assetId: hook.cueId, fallback: `procedural.${hook.cueId}` },
+      audio: { assetId: hook.cueId, gain: 0.34, variant: "stable-hash", fallback: `tone.${hook.cueId}` }
+    }))
   };
 }
 

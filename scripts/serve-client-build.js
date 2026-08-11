@@ -1,8 +1,10 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 
 const buildDirectory = path.resolve(__dirname, "../client/build");
+const repositoryRoot = path.resolve(__dirname, "..");
 const port = Number(process.env.PORT || 3200);
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -14,6 +16,19 @@ const mimeTypes = {
   ".svg": "image/svg+xml",
   ".webp": "image/webp"
 };
+
+if (process.env.REBUILD_CLIENT === "true") {
+  const npmCli = process.env.npm_execpath;
+  if (!npmCli) throw new Error("npm_execpath is required to rebuild the client.");
+  const build = spawnSync(process.execPath, [npmCli, "run", "build:client"], {
+    cwd: repositoryRoot,
+    env: process.env,
+    stdio: "inherit"
+  });
+  if (build.status !== 0) {
+    throw new Error(`Client production build failed with exit code ${build.status}.`);
+  }
+}
 
 if (!fs.existsSync(path.join(buildDirectory, "index.html"))) {
   throw new Error("Client production build is missing. Run npm run build:client first.");

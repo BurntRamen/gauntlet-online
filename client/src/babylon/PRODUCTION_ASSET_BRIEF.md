@@ -6,6 +6,32 @@ and campaign/ability voice files. New work should focus on the assets that make
 the match feel authored rather than procedural. Do not supply a composite board
 image or a runtime atlas; every element must remain independently addressable.
 
+## Production kit boundary
+
+The selected production form targets `gauntlet-core-v1/kit.json`: an authored
+2D surface and independently addressable lights/FX over deterministic Babylon
+depth and interaction geometry. Optional GLB replacements must still follow
+the attachment-node names and `2.3 x 3.22 x 0.1` card reference.
+
+Each module's PBR materials and emissive state masks remain independently
+replaceable. Every delivery must update status, revision, creator/source,
+license or approval owner, and checksum metadata before it can pass strict
+cutover validation.
+
+### Approved production delivery
+
+The 2026-08-10 delivery establishes the production layer without weakening
+this boundary. The transparent board surface is loaded as a
+scene-lifetime-cached, non-pickable surface beneath the existing rails, wells,
+cards, and interaction volumes. If it cannot load, the procedural board remains
+fully functional. GLB depth modules and expanded PBR maps are optional fidelity
+enhancements, not blockers for this approved 2D-plus-procedural-depth form.
+
+The delivered audio pack is mapped directly to stable semantic cue IDs and
+plays on the shared visual queue clock. It is approved for production use. The
+supplied mask and FX atlases have deterministic independently addressable
+runtime slices; displaying a complete atlas as one effect remains forbidden.
+
 ## Priority 1: table and identity kit
 
 - One neutral Gauntlet crest and one crest for each faction as clean SVGs with

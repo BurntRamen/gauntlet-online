@@ -2,62 +2,57 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GauntletMatchCanvas from "./GauntletMatchCanvas";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
+import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
+import {
+  CORE_PRESENTATION_KIT_URL,
+  FALLBACK_PRESENTATION_KIT,
+  loadPresentationKit,
+  resolvePresentationAsset
+} from "./presentationKit";
+import { createInteractionCue } from "./presentationCues";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 
 const EVENT_TONES = {
-  "payment.discarded": [230, 0.09],
-  "attack.declared": [520, 0.13],
-  "block.declared": [350, 0.12],
-  "damage.calculated": [150, 0.18],
-  "priority.granted": [680, 0.12],
-  "turn.started": [780, 0.18],
-  "match.ended": [880, 0.32],
-  "card.placedFacedown": [300, 0.1],
-  "acceleration.gained": [740, 0.12],
-  "campaign.attackDeclared": [185, 0.2],
-  "campaign.bossHealed": [610, 0.22],
+  "payment.release": [230, 0.09],
+  "attack.declare": [520, 0.13],
+  "block.commit": [350, 0.12],
+  "damage.impact": [150, 0.18],
+  "priority.transfer": [680, 0.12],
+  "turn.start": [780, 0.18],
+  "match.victory": [880, 0.32],
+  "match.defeat": [170, 0.32],
+  "card.place": [300, 0.1],
+  "card.draw": [460, 0.1],
+  "card.lift": [390, 0.055],
+  "card.settle": [270, 0.07],
+  "card.discard": [205, 0.09],
+  "payment.commit": [260, 0.08],
+  "combat.resolve": [190, 0.13],
+  "ability.activate": [740, 0.12],
   "ui.select": [430, 0.055],
   "ui.confirm": [640, 0.075],
   "ui.cancel": [220, 0.065],
-  "ui.pass": [510, 0.065]
+  "priority.pass": [510, 0.065]
 };
 
-const EVENT_SFX = {
-  "payment.discarded": "/assets/gauntlet/match/sfx/payment-discard.wav",
-  "attack.declared": "/assets/gauntlet/match/sfx/attack-declare.wav",
-  "block.declared": "/assets/gauntlet/match/sfx/block-declare.wav",
-  "damage.calculated": "/assets/gauntlet/match/sfx/damage-impact.wav",
-  "priority.granted": "/assets/gauntlet/match/sfx/priority-transfer.wav",
-  "turn.started": "/assets/gauntlet/match/sfx/turn-start.wav",
-  "match.ended": "/assets/gauntlet/match/sfx/victory.wav",
-  "card.placedFacedown": "/assets/gauntlet/match/sfx/card-place.wav",
-  "cards.drawn": "/assets/gauntlet/match/sfx/card-draw.wav",
-  "acceleration.gained": "/assets/gauntlet/match/sfx/ability-activate.wav",
-  "campaign.attackDeclared": "/assets/gauntlet/match/sfx/attack-declare.wav",
-  "campaign.bossHealed": "/assets/gauntlet/match/sfx/ability-activate.wav",
-  "ui.select": "/assets/gauntlet/match/sfx/ui-select.wav",
-  "ui.confirm": "/assets/gauntlet/match/sfx/ui-confirm.wav",
-  "ui.cancel": "/assets/gauntlet/match/sfx/ui-cancel.wav",
-  "ui.pass": "/assets/gauntlet/match/sfx/priority-pass.wav"
-};
-
-function useEventAudio(events, enabled) {
+function useEventAudio(cues, enabled, presentationKit) {
   const audioRef = useRef({
     buffers: new Map(),
     context: null,
     loading: new Map(),
     played: new Set(),
+    timers: new Set(),
     unlocked: false
   });
 
-  const preloadSound = useCallback((type) => {
-    const path = EVENT_SFX[type];
+  const preloadSound = useCallback((assetId) => {
+    const path = resolvePresentationAsset(presentationKit, "audio", assetId)?.path;
     const state = audioRef.current;
-    if (!path || !state.context || state.buffers.has(type) || state.loading.has(type)) {
-      return state.loading.get(type) || Promise.resolve(state.buffers.get(type));
+    if (!path || !state.context || state.buffers.has(assetId) || state.loading.has(assetId)) {
+      return state.loading.get(assetId) || Promise.resolve(state.buffers.get(assetId));
     }
     if (typeof window.fetch !== "function" || typeof state.context.decodeAudioData !== "function") {
       return Promise.resolve(null);
@@ -69,14 +64,14 @@ function useEventAudio(events, enabled) {
       })
       .then((data) => state.context?.decodeAudioData(data))
       .then((buffer) => {
-        if (buffer) state.buffers.set(type, buffer);
+        if (buffer) state.buffers.set(assetId, buffer);
         return buffer;
       })
       .catch(() => null)
-      .finally(() => state.loading.delete(type));
-    state.loading.set(type, loading);
+      .finally(() => state.loading.delete(assetId));
+    state.loading.set(assetId, loading);
     return loading;
-  }, []);
+  }, [presentationKit]);
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return undefined;
@@ -86,7 +81,7 @@ function useEventAudio(events, enabled) {
       if (!audioRef.current.context) audioRef.current.context = new AudioContext();
       audioRef.current.context.resume?.();
       audioRef.current.unlocked = true;
-      Object.keys(EVENT_SFX).forEach(preloadSound);
+      Object.keys(presentationKit?.assets?.audio || {}).forEach(preloadSound);
     };
     window.addEventListener("pointerdown", unlock, { once: true, capture: true });
     window.addEventListener("keydown", unlock, { once: true, capture: true });
@@ -94,29 +89,31 @@ function useEventAudio(events, enabled) {
       window.removeEventListener("pointerdown", unlock, { capture: true });
       window.removeEventListener("keydown", unlock, { capture: true });
     };
-  }, [enabled, preloadSound]);
+  }, [enabled, preloadSound, presentationKit]);
 
-  const playTone = useCallback((type) => {
+  const playTone = useCallback((cueOrAssetId) => {
     if (!enabled || !audioRef.current.unlocked || !audioRef.current.context) return;
+    const cue = typeof cueOrAssetId === "string" ? null : cueOrAssetId;
+    const assetId = cue?.audio?.assetId || cueOrAssetId;
     const context = audioRef.current.context;
-    const sample = audioRef.current.buffers.get(type);
+    const sample = audioRef.current.buffers.get(assetId);
     if (sample && typeof context.createBufferSource === "function") {
       const source = context.createBufferSource();
       const gain = context.createGain();
       source.buffer = sample;
-      gain.gain.setValueAtTime(0.48, context.currentTime);
+      gain.gain.setValueAtTime(Number(cue?.audio?.gain ?? 0.48), context.currentTime);
       source.connect(gain);
       gain.connect(context.destination);
       source.start();
       return;
     }
-    preloadSound(type);
-    const tone = EVENT_TONES[type];
+    preloadSound(assetId);
+    const tone = EVENT_TONES[assetId];
     if (!tone) return;
     const [frequency, duration] = tone;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = type === "damage.calculated" ? "triangle" : "sine";
+    oscillator.type = assetId === "damage.impact" ? "triangle" : "sine";
     oscillator.frequency.setValueAtTime(frequency, context.currentTime);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.012);
@@ -129,18 +126,24 @@ function useEventAudio(events, enabled) {
 
   useEffect(() => {
     if (!enabled || !audioRef.current.unlocked || !audioRef.current.context) return;
-    (events || []).forEach((entry) => {
-      if (!entry?.id || audioRef.current.played.has(entry.id)) return;
-      audioRef.current.played.add(entry.id);
-      playTone(entry.type);
+    (cues || []).forEach((cue) => {
+      if (!cue?.occurrenceId || audioRef.current.played.has(cue.occurrenceId)) return;
+      audioRef.current.played.add(cue.occurrenceId);
+      const timer = window.setTimeout(() => {
+        audioRef.current.timers.delete(timer);
+        playTone(cue);
+      }, Math.max(0, Number(cue.offsetMs || 0)));
+      audioRef.current.timers.add(timer);
     });
     if (audioRef.current.played.size > 300) {
       audioRef.current.played = new Set(Array.from(audioRef.current.played).slice(-160));
     }
-  }, [enabled, events, playTone]);
+  }, [cues, enabled, playTone]);
 
   useEffect(() => () => {
     audioRef.current.context?.close?.();
+    audioRef.current.timers.forEach((timer) => window.clearTimeout(timer));
+    audioRef.current.timers.clear();
     audioRef.current.buffers.clear();
     audioRef.current.loading.clear();
     audioRef.current.context = null;
@@ -1092,33 +1095,42 @@ export function eventCalloutContent(entry) {
   }[entry.type] || null;
 }
 
-function EventCallout({ events }) {
-  const [entry, setEntry] = useState(null);
-  useEffect(() => {
-    const next = (events || []).at(-1) || null;
-    setEntry(next);
-    if (!next) return undefined;
-    const timer = window.setTimeout(() => setEntry(null), 3200);
-    return () => window.clearTimeout(timer);
-  }, [events]);
-  if (!entry) return null;
-  const content = eventCalloutContent(entry);
-  if (!content) return null;
+function MatchFeed({ entries, statusNotice, catchingUp }) {
+  const visibleEntries = entries.filter((entry) => eventCalloutContent(entry));
+  const currentEntry = visibleEntries.at(-1) || null;
+  const currentContent = eventCalloutContent(currentEntry);
+  const priorEntries = visibleEntries.slice(0, -1).reverse();
   return (
-    <div className="production-event-callout" key={entry.id} role="status">
-      <GameIcon name={content[0]} size={18} />
-      <strong>{content[1]}</strong>
-    </div>
-  );
-}
-
-function StatusTicker({ message }) {
-  if (!message) return null;
-  return (
-    <div className="production-status-ticker" role="status" aria-live="polite" aria-atomic="true">
-      <span>System</span>
-      <strong key={message}>{message}</strong>
-    </div>
+    <section className="production-match-feed" aria-label="Live match feed">
+      <div className="production-match-feed-current" role="status" aria-live="polite" aria-atomic="true">
+        <span>{catchingUp ? "Resolving" : "Live"}</span>
+        {currentContent && <GameIcon name={currentContent[0]} size={17} />}
+        <div>
+          <strong key={currentEntry?.id || statusNotice || "ready"}>
+            {currentContent?.[1] || statusNotice || "The table is ready."}
+          </strong>
+          {currentContent && statusNotice && <small>{statusNotice}</small>}
+        </div>
+      </div>
+      {priorEntries.length > 0 && (
+        <details className="production-match-feed-history">
+          <summary aria-label={`Show ${priorEntries.length} recent match events`}>
+            Recent <b>{priorEntries.length}</b>
+          </summary>
+          <ol>
+            {priorEntries.map((entry, index) => {
+              const content = eventCalloutContent(entry);
+              return (
+                <li key={entry.id || `${entry.type}-${index}`}>
+                  <GameIcon name={content[0]} size={15} />
+                  <span>{content[1]}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </details>
+      )}
+    </section>
   );
 }
 
@@ -1135,13 +1147,43 @@ export default function ProductionMatchExperience({
   onSceneMetrics
 }) {
   const [update, setUpdate] = useState(null);
+  const [authoritativeUpdate, setAuthoritativeUpdate] = useState(null);
+  const [playbackState, setPlaybackState] = useState({
+    catchingUp: false,
+    inputLocked: false,
+    queuedFrames: 0
+  });
+  const [feedEntries, setFeedEntries] = useState([]);
+  const [presentationKit, setPresentationKit] = useState(FALLBACK_PRESENTATION_KIT);
   const [adapterError, setAdapterError] = useState("");
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
   const adapterRef = useRef(adapter);
   const inspectionReturnFocusRef = useRef(null);
+  const interactionCueTokenRef = useRef(0);
   adapterRef.current = adapter;
+
+  useEffect(() => {
+    if (options.presentationKit) {
+      setPresentationKit(options.presentationKit);
+      return undefined;
+    }
+    if (process.env.NODE_ENV === "test") return undefined;
+    let active = true;
+    loadPresentationKit(resolveMatchAssetPath(options.presentationKitUrl || CORE_PRESENTATION_KIT_URL))
+      .then((kit) => {
+        if (active) setPresentationKit(kit);
+      });
+    return () => {
+      active = false;
+    };
+  }, [options.presentationKit, options.presentationKitUrl]);
+
+  const reducedMotion = options.reducedMotion ?? (
+    typeof window !== "undefined"
+    && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  );
 
   useEffect(() => {
     if (!adapter) {
@@ -1149,9 +1191,29 @@ export default function ProductionMatchExperience({
       return undefined;
     }
     let active = true;
+    setUpdate(null);
+    setAuthoritativeUpdate(null);
+    setFeedEntries([]);
+    const playback = new BattlefieldPlaybackQueue({
+      reducedMotion,
+      onPresent: (next, frame) => {
+        if (!active) return;
+        setUpdate(next);
+        if (frame.event) {
+          setFeedEntries((current) => {
+            if (current.some((entry) => entry.id && entry.id === frame.event.id)) return current;
+            return [...current, frame.event].slice(-12);
+          });
+        }
+      },
+      onStateChange: (state) => {
+        if (active) setPlaybackState(state);
+      }
+    });
     const unsubscribe = adapter.subscribe((next) => {
       if (!active) return;
-      setUpdate(next);
+      setAuthoritativeUpdate(next);
+      playback.push(next);
       setAdapterError("");
     });
     Promise.resolve(adapter.connect?.()).catch((error) => {
@@ -1162,16 +1224,21 @@ export default function ProductionMatchExperience({
     return () => {
       active = false;
       unsubscribe?.();
+      playback.dispose();
     };
-  }, [adapter, onRendererFailure]);
+  }, [adapter, onRendererFailure, reducedMotion]);
 
   const viewModel = update?.viewModel;
-  const commands = useMemo(() => update?.commands || {}, [update?.commands]);
-  const reducedMotion = options.reducedMotion ?? (
-    typeof window !== "undefined"
-    && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  const transportUpdate = authoritativeUpdate || update;
+  const commands = useMemo(
+    () => transportUpdate?.commands || {},
+    [transportUpdate?.commands]
   );
-  const playUiTone = useEventAudio(viewModel?.events, audioEnabled);
+  const playUiTone = useEventAudio(
+    update?.presentation?.cues || viewModel?.presentationCues || [],
+    audioEnabled,
+    presentationKit
+  );
   useEffect(() => {
     if (options.audioEnabled != null) setAudioEnabled(Boolean(options.audioEnabled));
   }, [options.audioEnabled]);
@@ -1181,7 +1248,12 @@ export default function ProductionMatchExperience({
   }, [options]);
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
-      playUiTone(tone);
+      interactionCueTokenRef.current += 1;
+      playUiTone(createInteractionCue(tone, {
+        matchId: viewModel?.matchId,
+        revision: viewModel?.revision,
+        token: interactionCueTokenRef.current
+      }));
       return callback?.(...args);
     };
     return {
@@ -1189,19 +1261,22 @@ export default function ProductionMatchExperience({
       activateHandCard: withTone("ui.select", commands.activateHandCard),
       activateLane: withTone("ui.select", commands.activateLane),
       activateAbility: withTone("ui.select", commands.activateAbility),
-      passPriority: withTone("ui.pass", commands.passPriority),
+      passPriority: withTone("priority.pass", commands.passPriority),
       confirmCurrentAction: withTone("ui.confirm", commands.confirmCurrentAction),
       cancelCurrentAction: withTone("ui.cancel", commands.cancelCurrentAction),
       inspectCard: withTone("ui.select", commands.inspectCard),
       closeInspection: withTone("ui.cancel", commands.closeInspection),
+      loadPresentationModule: options.presentationModelLoader,
+      presentationCue: playUiTone,
       previewCard: setPreviewCard,
       openDiscard: () => setReferencePanel("discard"),
       newMatch: withTone("ui.confirm", commands.newMatch),
       concede: withTone("ui.confirm", commands.concede)
     };
-  }, [commands, playUiTone]);
+  }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision]);
   const presentedViewModel = useMemo(() => {
-    if (!viewModel || update?.connected !== false) return viewModel;
+    if (!viewModel || (transportUpdate?.connected !== false && !playbackState.inputLocked)) return viewModel;
+    const disconnected = transportUpdate?.connected === false;
     return {
       ...viewModel,
       hand: (viewModel.hand || []).map((card) => ({
@@ -1209,26 +1284,35 @@ export default function ProductionMatchExperience({
         interactionEnabled: false,
         unavailable: true
       })),
-      instruction: "Connection interrupted. The current table is preserved while reconnecting.",
+      instruction: disconnected
+        ? "Connection interrupted. The current table is preserved while reconnecting."
+        : "Resolving the current table action…",
       interactions: {
         ...viewModel.interactions,
         handInteractionEnabled: false,
         legalLanes: [],
         abilities: [],
         confirmDisabled: true,
-        confirmReason: "Reconnect before submitting an action.",
+        confirmReason: disconnected
+          ? "Reconnect before submitting an action."
+          : "The battlefield is finishing the current action.",
         passDisabled: true
       }
     };
-  }, [update?.connected, viewModel]);
+  }, [playbackState.inputLocked, transportUpdate?.connected, viewModel]);
   const canvasViewModel = useMemo(() => (
     presentedViewModel
-      ? { ...presentedViewModel, reducedMotion }
+      ? {
+          ...presentedViewModel,
+          reducedMotion,
+          presentationKit,
+          presentationCues: update?.presentation?.cues || presentedViewModel.presentationCues || []
+        }
       : presentedViewModel
-  ), [presentedViewModel, reducedMotion]);
+  ), [presentationKit, presentedViewModel, reducedMotion, update?.presentation?.cues]);
 
   useEffect(() => {
-    if (update?.inspection) {
+    if (transportUpdate?.inspection) {
       if (!inspectionReturnFocusRef.current && document.activeElement instanceof HTMLElement) {
         inspectionReturnFocusRef.current = document.activeElement;
       }
@@ -1239,7 +1323,7 @@ export default function ProductionMatchExperience({
     if (returnTarget?.isConnected) {
       window.requestAnimationFrame(() => returnTarget.focus());
     }
-  }, [update?.inspection]);
+  }, [transportUpdate?.inspection]);
 
   useEffect(() => {
     function onKeyDown(event) {
@@ -1265,7 +1349,7 @@ export default function ProductionMatchExperience({
         }
         return;
       }
-      if (key === "escape" && update?.inspection) {
+      if (key === "escape" && transportUpdate?.inspection) {
         event.preventDefault();
         interactionCommands.closeInspection?.();
         return;
@@ -1329,14 +1413,15 @@ export default function ProductionMatchExperience({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [interactionCommands, referencePanel, update?.inspection, viewModel]);
+  }, [interactionCommands, referencePanel, transportUpdate?.inspection, viewModel]);
 
   const shellClass = useMemo(() => [
     "production-match-experience",
     reducedMotion ? "reduced-motion" : "",
     update?.source ? `source-${update.source}` : "",
-    update?.connected === false ? "is-disconnected" : ""
-  ].filter(Boolean).join(" "), [reducedMotion, update?.connected, update?.source]);
+    transportUpdate?.connected === false ? "is-disconnected" : "",
+    playbackState.catchingUp ? "is-resolving" : ""
+  ].filter(Boolean).join(" "), [playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
 
   if (adapterError) {
     return (
@@ -1366,11 +1451,13 @@ export default function ProductionMatchExperience({
       data-ruleset={update?.descriptor?.ruleset}
       data-deck-format={update?.descriptor?.deckFormat}
       data-opponent-kind={update?.descriptor?.opponentKind}
+      data-presentation-kit={presentationKit.kitId}
+      data-presentation-status={presentationKit.status}
     >
       <div
         className="production-match-surface"
-        aria-hidden={update?.privacy?.required ? true : undefined}
-        inert={update?.privacy?.required ? true : undefined}
+        aria-hidden={transportUpdate?.privacy?.required ? true : undefined}
+        inert={transportUpdate?.privacy?.required ? true : undefined}
       >
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <GauntletMatchCanvas
@@ -1396,16 +1483,16 @@ export default function ProductionMatchExperience({
           priority={presentedViewModel.priority}
           position="bottom"
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
-          statusOverride={update?.connected === false ? "Reconnecting" : ""}
+          statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
         />
-        <FactionActions viewModel={presentedViewModel} commands={interactionCommands} connected={update?.connected !== false} />
-        <ContextActions viewModel={presentedViewModel} commands={interactionCommands} connected={update?.connected !== false} />
+        <FactionActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
+        <ContextActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
         {update?.controls && (
           <MatchUtilities
             viewModel={presentedViewModel}
             controls={update?.controls}
             commands={interactionCommands}
-            connected={update?.connected !== false}
+            connected={transportUpdate?.connected !== false && !playbackState.inputLocked}
             descriptor={update?.descriptor}
             audioEnabled={audioEnabled}
             onAudioEnabledChange={updateAudioEnabled}
@@ -1421,17 +1508,22 @@ export default function ProductionMatchExperience({
         <BroadcastMarker broadcast={update?.broadcast} viewModel={presentedViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
 
-        {update?.connected === false && (
+        {transportUpdate?.connected === false && (
           <div className="production-connection-banner" role="status">
             Connection interrupted · attempting to restore the match
           </div>
         )}
 
-        {update?.connected !== false && <StatusTicker message={viewModel.statusNotice} />}
-        {update?.source !== "replay" && <EventCallout events={viewModel.events} />}
-        {update?.source !== "replay" && <CombatRecap events={viewModel.events} />}
+        {transportUpdate?.connected !== false && (
+          <MatchFeed
+            entries={feedEntries}
+            statusNotice={viewModel.statusNotice}
+            catchingUp={playbackState.catchingUp}
+          />
+        )}
+        {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
         <CardPreview preview={previewCard} />
-        <CardInspection inspection={update?.inspection} commands={interactionCommands} />
+        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
         <MatchReferencePanel
           kind={referencePanel}
           snapshot={update?.snapshot}
@@ -1461,7 +1553,7 @@ export default function ProductionMatchExperience({
           <p>Keyboard and screen-reader controls remain available.</p>
         </div>
       </div>
-      <PrivacyCurtain privacy={update?.privacy} />
+      <PrivacyCurtain privacy={transportUpdate?.privacy} />
     </main>
   );
 }

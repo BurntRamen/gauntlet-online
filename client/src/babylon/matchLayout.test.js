@@ -180,5 +180,6 @@ describe("battlefield safe frame", () => {
     expect(camera.right).toBeGreaterThanOrEqual(10);
     expect(camera.left).toBeLessThanOrEqual(-10);
     expect(camera.top - camera.bottom).toBeGreaterThanOrEqual(MATCH_LAYOUT.table.depth);
+    expect(["desktop", "portrait", "short-landscape"]).toContain(camera.profile);
   });
 });

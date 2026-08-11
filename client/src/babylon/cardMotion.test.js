@@ -1,4 +1,5 @@
 import {
+  CARD_MOTION_CUE_HOOKS,
   CARD_MOTION_CONTRACT_VERSION,
   CARD_MOTION_PROFILES,
   cardTravelPathCollides,
@@ -30,8 +31,8 @@ describe("shared Babylon card motion", () => {
   });
 
   test("uses one profile contract for live and replay staging", () => {
-    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBeGreaterThanOrEqual(500);
-    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBeGreaterThanOrEqual(500);
+    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBeGreaterThanOrEqual(950);
+    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBeGreaterThanOrEqual(1000);
     expect(CARD_MOTION_PROFILES["replay-stage"].durationMs).toBe(
       CARD_MOTION_PROFILES["attack-enter"].durationMs
     );
@@ -39,7 +40,8 @@ describe("shared Babylon card motion", () => {
     expect(CARD_MOTION_PROFILES["block-enter"].lift).toBeGreaterThan(
       CARD_MOTION_PROFILES["placement-enter"].lift
     );
-    expect(COMBAT_RESOLUTION_HOLD_MS).toBeGreaterThanOrEqual(600);
+    expect(COMBAT_RESOLUTION_HOLD_MS).toBeGreaterThanOrEqual(1400);
+    expect(PAYMENT_SETTLE_HOLD_MS).toBeGreaterThanOrEqual(450);
     expect(shouldHoldCombatCard("attack")).toBe(true);
     expect(shouldHoldCombatCard("block")).toBe(true);
     expect(shouldHoldCombatCard("replay-action", "primary")).toBe(true);
@@ -47,6 +49,21 @@ describe("shared Babylon card motion", () => {
     expect(shouldHoldCombatCard("replay-action", "attachment")).toBe(true);
     expect(shouldHoldCombatCard("replay-action", "payment")).toBe(false);
     expect(shouldHoldCombatCard("hand")).toBe(false);
+  });
+
+  test("gives every meaningful movement stable visual and audio cue hooks", () => {
+    Object.keys(CARD_MOTION_CUE_HOOKS).forEach((role) => {
+      const motion = createCardMotion({
+        role,
+        occurrenceId: `match:event:card:${role}`,
+        start: { x: 0, y: 0, z: 0 },
+        destination: { x: 4, y: 0.2, z: 2 }
+      });
+      expect(motion.cueHooks.length).toBeGreaterThan(0);
+      expect(new Set(motion.cueHooks.map((cue) => cue.occurrenceId)).size).toBe(motion.cueHooks.length);
+      expect(motion.cueHooks.every((cue) => cue.visual && cue.audio)).toBe(true);
+      expect(Math.max(...motion.cueHooks.map((cue) => cue.offsetMs))).toBeLessThanOrEqual(motion.durationMs);
+    });
   });
 
   test("lets payment reach and settle in its tray before discard departure", () => {

@@ -4,6 +4,9 @@ These assets were created for the Babylon production match renderer on
 2026-08-03. They are original provisional assets and require project approval
 before public cutover.
 
+They are registered as `provisional` in the `gauntlet-core-v1` presentation
+manifest. Their presence is a runtime fallback, not production-art approval.
+
 ## Gameplay effects
 
 The six source images were generated with the built-in OpenAI image-generation
@@ -50,3 +53,21 @@ The set covers UI select/confirm/cancel, pass, payment, attack, block, damage,
 priority, turn, place, draw, ability activation, victory, and defeat. The WAV
 files are browser-compatible masters; an approved audio pipeline may later
 transcode them to Ogg and create frequent-action variants.
+
+## Production delivery approved 2026-08-10
+
+The user-supplied `gauntlet_core_audio_v1.zip` is the approved authored audio
+delivery, separate from the engineering-generated fallback set. Its source ZIP,
+17 mono 48 kHz/16-bit WAV files, source manifest, and every runtime file are
+recorded by SHA-256 checksum in the presentation kit and
+`source/delivery-2026-08-10.json`. Eighteen existing semantic cue hooks now
+select the delivered production files, and `ui.hover` remains an optional cue.
+Payment release reuses payment commitment, discard uses card travel, and
+ability activation uses the priority accent so no active hook depends on the
+old provisional sound set.
+
+The supplied visual set is the approved authored 2D production surface. The
+full-board source is installed as a non-interactive layer over deterministic
+Babylon depth. The emissive and FX atlases were converted into independently
+addressable runtime WebPs with checksums. Optional GLB depth and full PBR map
+sets remain accurately classified as future enhancements.

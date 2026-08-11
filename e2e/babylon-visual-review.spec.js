@@ -227,6 +227,7 @@ test("capture real live and replay match presentation states", async ({ browser,
   await replayPage.goto(`${baseURL}/?match=${encodeURIComponent(matchId)}&replay=1`);
   await expect(replayPage.locator(".match-replay-page")).toBeVisible();
   await expect(replayPage.getByTestId("production-babylon-match")).toBeVisible();
+  await expect(replayPage.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-status", "approved");
   await captureState(replayPage, manifest, "replay-action", VIEWPORTS.slice(0, 4));
   await replayPage.getByRole("button", { name: "Next action" }).click();
   await captureState(replayPage, manifest, "replay-next-action", VIEWPORTS.slice(0, 4));

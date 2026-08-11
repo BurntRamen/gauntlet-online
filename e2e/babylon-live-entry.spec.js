@@ -70,6 +70,11 @@ function currentAction(page) {
   return page.getByRole("region", { name: "Current match action" });
 }
 
+async function waitForPlaybackSettled(page) {
+  await expect(page.locator(".production-match-feed-current > span"))
+    .toHaveText("Live", { timeout: 15000 });
+}
+
 async function openAccessibleControls(page) {
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "h" })));
   await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeAttached();
@@ -218,6 +223,8 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
     await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
     await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-ruleset", "basic");
     await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-opponent-kind", "human");
+    await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-kit", "gauntlet-core-v1");
+    await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-status", "approved");
     await expect(page.getByText("Developer tools")).toHaveCount(0);
   }
 
@@ -245,7 +252,7 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
 
   await expect(priorityPage.getByText("Opponent offered a draw")).toBeVisible();
   await priorityPage.getByRole("button", { name: "Decline" }).click();
-  await expect(priorityPage.locator(".production-status-ticker")).toContainText("Draw offer declined.");
+  await expect(priorityPage.locator(".production-match-feed")).toContainText("Draw offer declined.");
 
   await waitingPage.getByRole("button", { name: "Concede" }).click();
   const confirmation = waitingPage.getByRole("group", { name: "Confirm concession" });
@@ -288,7 +295,7 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
 
   await priorityPage.getByText("Match", { exact: true }).click();
   await priorityPage.getByRole("button", { name: "Request undo" }).click();
-  await expect(priorityPage.locator(".production-status-ticker")).toContainText("No recent move available to undo.");
+  await expect(priorityPage.locator(".production-match-feed")).toContainText("No recent move available to undo.");
 
   await currentAction(priorityPage).getByRole("button", { name: "Pass Priority" }).click();
   await expect(otherPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
@@ -385,6 +392,7 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await currentAction(startingPage).getByRole("button", { name: "Choose Payment" }).click();
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
+  await waitForPlaybackSettled(startingPage);
   await expect(startingPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
 
   // Lane 1 resolves unblocked and visibly changes life.
@@ -396,6 +404,7 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await expect(currentAction(otherPage)).toContainText(/attacked from Lane 1.*may block or decline/i);
   await currentAction(otherPage).getByRole("button", { name: "Take Damage" }).click();
   await expect.poll(() => localLife(otherPage)).toBeLessThan(lifeBeforeDamage);
+  await waitForPlaybackSettled(otherPage);
   await expect(otherPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
 
   // Lane 2 proves that a placed lane can attack and only its same-lane card can block.
@@ -410,6 +419,7 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await expect(currentAction(startingPage)).toContainText(/Same-lane blocker/i);
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
+  await waitForPlaybackSettled(startingPage);
   await expect(startingPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
 
   await hostContext.close();
@@ -490,6 +500,7 @@ test("normal Training Grounds entry uses the shared Babylon match and semantic A
   await expect(match).toBeVisible();
   await expect(match).toHaveAttribute("data-ruleset", "basic");
   await expect(match).toHaveAttribute("data-opponent-kind", "trainingAi");
+  await expect(match).toHaveAttribute("data-presentation-status", "approved");
   await expect(page.locator(".production-player-plate-top")).toContainText("Training AI");
 
   const initialRevision = Number(await match.getAttribute("data-revision"));
@@ -544,6 +555,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(match).toHaveAttribute("data-ruleset", "factions");
   await expect(match).toHaveAttribute("data-deck-format", "campaign");
   await expect(match).toHaveAttribute("data-opponent-kind", "campaignBoss");
+  await expect(match).toHaveAttribute("data-presentation-status", "approved");
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
 
   await page.evaluate(() => {

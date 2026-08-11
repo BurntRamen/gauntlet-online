@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import ProductionMatchExperience, { eventCalloutContent } from "./ProductionMatchExperience";
+import { BATTLEFIELD_EVENT_PACING } from "./battlefieldPlayback";
 
 jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, commands }) {
   return (
@@ -79,6 +80,8 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   render(<ProductionMatchExperience adapter={adapterFor()} options={{ audioEnabled: false }} />);
 
   expect(await screen.findByTestId("production-babylon-match")).toHaveAttribute("data-revision", "4");
+  expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-kit", "gauntlet-core-v1");
+  expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-presentation-status", "provisional");
   expect(screen.getByTestId("battlefield-safe-frame")).toContainElement(
     screen.getByTestId("mock-gauntlet-canvas")
   );
@@ -172,6 +175,53 @@ test("presents transport notices in a ticker without replacing action guidance",
 
   expect(await screen.findByText(/Match restored/)).toBeInTheDocument();
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
+});
+
+test("plays rapid battlefield events sequentially and retains prior feed entries", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const initialUpdate = {
+    source: "local",
+    connected: true,
+    viewModel: createViewModel(),
+    commands: {},
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+
+  const events = [
+    { id: "payment-queued", type: "payment.discarded" },
+    { id: "attack-queued", type: "attack.declared", laneIndex: 0 },
+    { id: "block-queued", type: "block.declared", laneIndex: 0 }
+  ];
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events,
+    viewModel: { ...createViewModel(), revision: 5, events }
+  }));
+
+  expect(screen.getByText("Payment discarded")).toBeVisible();
+  expect(screen.queryByText("Lane 1 attack committed")).not.toBeInTheDocument();
+  act(() => jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["payment.discarded"]));
+  expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
+  act(() => jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["attack.declared"]));
+  expect(screen.getByText("Lane 1 block committed")).toBeVisible();
+
+  fireEvent.click(screen.getByLabelText("Show 2 recent match events"));
+  expect(screen.getByText("Payment discarded")).toBeVisible();
+  expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
+  act(() => jest.runOnlyPendingTimers());
+  jest.useRealTimers();
 });
 
 test("uses the App-owned completion and waits for account refresh before continuing campaign", async () => {
@@ -580,6 +630,7 @@ test("opens keyboard zones without permanent duplicate chrome and exposes the di
 });
 
 test("shows a nonmodal card-role preview and a persistent combat recap", async () => {
+  jest.useFakeTimers();
   let publish;
   const adapter = adapterFor();
   adapter.subscribe = jest.fn((listener) => {
@@ -614,12 +665,18 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
     commands: {},
     privacy: { required: false, player: 1 }
   }));
+  act(() => jest.advanceTimersByTime(
+    BATTLEFIELD_EVENT_PACING["attack.declared"]
+    + BATTLEFIELD_EVENT_PACING["block.declared"]
+  ));
   const recap = screen.getByRole("status", { name: "Latest combat summary" });
   expect(recap).toHaveTextContent("Lane 1 attack");
   expect(recap).toHaveTextContent("Attack 9");
   expect(recap).toHaveTextContent("Block 3");
   expect(recap).toHaveTextContent("Damage 6");
   expect(recap).toHaveTextContent("6 damage dealt");
+  act(() => jest.runOnlyPendingTimers());
+  jest.useRealTimers();
 });
 
 test("presents rematch acceptance and decline as explicit post-match actions", async () => {
@@ -694,6 +751,7 @@ test("ignores a completion outcome for a different player perspective", async ()
 });
 
 test("plays accepted event IDs once and disposes its audio context", async () => {
+  jest.useFakeTimers();
   const oscillator = {
     connect: jest.fn(),
     frequency: { setValueAtTime: jest.fn() },
@@ -745,6 +803,8 @@ test("plays accepted event IDs once and disposes its audio context", async () =>
     viewModel: { ...initialUpdate.viewModel, events }
   }));
   publishEvents([{ id: "accepted-1", type: "attack.declared" }]);
+  expect(audioContext.createOscillator).toHaveBeenCalledTimes(0);
+  act(() => jest.advanceTimersByTime(820));
   expect(audioContext.createOscillator).toHaveBeenCalledTimes(1);
   publishEvents([{ id: "accepted-1", type: "attack.declared" }]);
   expect(audioContext.createOscillator).toHaveBeenCalledTimes(1);
@@ -752,11 +812,14 @@ test("plays accepted event IDs once and disposes its audio context", async () =>
     { id: "accepted-1", type: "attack.declared" },
     { id: "accepted-2", type: "damage.calculated" }
   ]);
+  act(() => jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["attack.declared"]));
+  act(() => jest.advanceTimersByTime(260));
   expect(audioContext.createOscillator).toHaveBeenCalledTimes(2);
 
   rendered.unmount();
   expect(audioContext.close).toHaveBeenCalledTimes(1);
   window.AudioContext = originalAudioContext;
+  jest.useRealTimers();
 });
 
 test("does not initialize event audio while sound is muted", () => {

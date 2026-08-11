@@ -55,7 +55,9 @@ export default function GauntletMatchCanvas({
         cancelCurrentAction: (...args) => commandsRef.current.cancelCurrentAction?.(...args),
         inspectCard: (...args) => commandsRef.current.inspectCard?.(...args),
         previewCard: (...args) => commandsRef.current.previewCard?.(...args),
-        openDiscard: (...args) => commandsRef.current.openDiscard?.(...args)
+        openDiscard: (...args) => commandsRef.current.openDiscard?.(...args),
+        loadPresentationModule: (...args) => commandsRef.current.loadPresentationModule?.(...args),
+        presentationCue: (...args) => commandsRef.current.presentationCue?.(...args)
       });
       if (!renderer.scene.activeCamera) {
         throw new Error("The Babylon match scene did not assign an active camera.");

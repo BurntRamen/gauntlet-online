@@ -49,6 +49,12 @@ import {
   replayStageId
 } from "./replayPresentation";
 import { makeMaterial, MATCH_COLORS } from "./matchMaterials";
+import { getBoardLayoutProfile, projectBoardPresentation } from "./boardPresentation";
+import {
+  loadAuthoredPresentationModules,
+  loadAuthoredPresentationTexture
+} from "./presentationKitBabylon";
+import { PresentationAssetCache, resolvePresentationAsset } from "./presentationKit";
 
 const CARD_BACK_COLOR = "#102437";
 const CARD_FACE_COLOR = "#f3ead9";
@@ -57,24 +63,39 @@ const MATCH_ASSETS = {
   table: "/assets/gauntlet/match/graphite-table-v1.png"
 };
 const EVENT_DURATIONS = {
-  "attack.declared": 920,
-  "block.declared": 980,
-  "payment.discarded": 720,
-  "damage.calculated": 1250,
-  "card.placedFacedown": 680,
-  "cards.drawn": 760,
-  "priority.granted": 880,
-  "turn.started": 1050,
-  "match.ended": 1400
+  "attack.declared": 1300,
+  "block.declared": 1450,
+  "payment.discarded": 1000,
+  "damage.calculated": 1400,
+  "card.placedFacedown": 1050,
+  "cards.drawn": 950,
+  "priority.granted": 800,
+  "turn.started": 1150,
+  "match.ended": 1600
 };
 const EVENT_EFFECT_ASSETS = {
-  "attack.declared": "/assets/gauntlet/match/effects/attack-declare.webp",
-  "block.declared": "/assets/gauntlet/match/effects/block-raise.webp",
-  "payment.discarded": "/assets/gauntlet/match/effects/payment-discard.webp",
-  "damage.calculated": "/assets/gauntlet/match/effects/damage-impact.webp",
-  "priority.granted": "/assets/gauntlet/match/effects/priority-transfer.webp",
-  "turn.started": "/assets/gauntlet/match/effects/turn-transition.webp"
+  "attack.declare": "/assets/gauntlet/match/effects/attack-declare.webp",
+  "block.commit": "/assets/gauntlet/match/effects/block-raise.webp",
+  "payment.release": "/assets/gauntlet/match/effects/payment-discard.webp",
+  "card.place": "/assets/gauntlet/match/effects/card-place.webp",
+  "card.draw": "/assets/gauntlet/match/effects/card-place.webp",
+  "card.discard": "/assets/gauntlet/match/effects/payment-discard.webp",
+  "combat.resolve": "/assets/gauntlet/match/effects/damage-impact.webp",
+  "damage.impact": "/assets/gauntlet/match/effects/damage-impact.webp",
+  "priority.transfer": "/assets/gauntlet/match/effects/priority-transfer.webp",
+  "turn.start": "/assets/gauntlet/match/effects/turn-transition.webp",
+  "match.victory": "/assets/gauntlet/match/effects/damage-impact.webp",
+  "match.defeat": "/assets/gauntlet/match/effects/damage-impact.webp"
 };
+
+const LANE_STATE_LIGHTS = Object.freeze({
+  idle: { assetId: "lane.idle", tint: "#718392", alpha: 0.12 },
+  legal: { assetId: "lane.legal", tint: "#45b9ff", alpha: 0.58 },
+  active: { assetId: "lane.active", tint: "#53c9ff", alpha: 0.84 },
+  opposed: { assetId: "lane.opposed", tint: "#e04c58", alpha: 0.72 },
+  blocked: { assetId: "lane.blocked", tint: "#b695ff", alpha: 0.82 },
+  resolving: { assetId: "lane.resolving", tint: "#f0bd68", alpha: 0.9 }
+});
 
 function color(hex) {
   return Color3.FromHexString(hex);
@@ -411,6 +432,16 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   halo.isVisible = false;
   halo.isPickable = false;
   root.gauntletHalo = halo;
+  const contactShadow = CreatePlane(`card-contact-${id}`, {
+    width: MATCH_LAYOUT.card.width * 0.94,
+    height: MATCH_LAYOUT.card.height * 0.94
+  }, scene);
+  contactShadow.rotation.x = Math.PI / 2;
+  contactShadow.position = new Vector3(root.position.x, 0.11, root.position.z);
+  contactShadow.material = materials.contactShadow;
+  contactShadow.visibility = 0.42;
+  contactShadow.isPickable = false;
+  root.gauntletContactShadow = contactShadow;
   shadowGenerator.addShadowCaster(root);
   return root;
 }
@@ -418,7 +449,7 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
 function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion = false) {
   const destination = {
     x: position.x,
-    y: position.y,
+    y: position.y + (options.selected && !options.hovered ? 0.07 : 0),
     z: position.z,
     rotationX: position.rotationX || 0,
     rotationY: position.rotationY || 0,
@@ -468,8 +499,10 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
     obstacles: options.motionObstacles || [],
     pathIndex: options.motionPathIndex || 0,
     delayMs: options.motionDelayMs || 0,
-    bounds: options.motionBounds || null
+    bounds: options.motionBounds || null,
+    occurrenceId: options.motionOccurrenceId || null
   });
+  record.emittedCueHooks = new Set();
 }
 
 export function createGauntletScene(engine, canvas, commands = {}) {
@@ -543,6 +576,83 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     emissive: "#593d84",
     specular: "#f2eaff"
   });
+  const engravedMaterial = makeMaterial(babylonScene, "palette-engraved", "#101b24", {
+    emissive: "#010407",
+    specular: "#3b4d59"
+  });
+  engravedMaterial.specularPower = 112;
+  const wellMaterial = makeMaterial(babylonScene, "palette-card-well", "#050b10", {
+    emissive: "#010203",
+    specular: "#1d2c36"
+  });
+  const contactShadowMaterial = makeMaterial(babylonScene, "card-contact-shadow", "#000000", {
+    emissive: "#000000",
+    specular: "#000000",
+    alpha: 0.48
+  });
+  contactShadowMaterial.disableLighting = true;
+
+  function createInsetWell(name, {
+    x,
+    y = 0.02,
+    z,
+    width,
+    depth,
+    accent = steelMaterial,
+    rail = 0.075,
+    floorVisibility = 0.05,
+    railVisibility = 0.28
+  }) {
+    const floor = CreateBox(`${name}-floor`, { width, height: 0.055, depth }, babylonScene);
+    floor.position = new Vector3(x, y, z);
+    floor.material = wellMaterial;
+    floor.visibility = floorVisibility;
+    floor.receiveShadows = true;
+    floor.isPickable = false;
+    const rails = [
+      { x, z: z - depth / 2, width, depth: rail },
+      { x, z: z + depth / 2, width, depth: rail },
+      { x: x - width / 2, z, width: rail, depth },
+      { x: x + width / 2, z, width: rail, depth }
+    ].map((edge, index) => {
+      const mesh = CreateBox(`${name}-inlay-${index}`, {
+        width: edge.width,
+        height: 0.035,
+        depth: edge.depth
+      }, babylonScene);
+      mesh.position = new Vector3(edge.x, y + 0.042, edge.z);
+      mesh.material = accent;
+      mesh.visibility = railVisibility;
+      mesh.isPickable = false;
+      return mesh;
+    });
+    return { floor, rails };
+  }
+
+  function createMountedFrame(name, {
+    x,
+    y = 0.04,
+    z,
+    width,
+    depth,
+    material = bronzeMaterial,
+    thickness = 0.12,
+    visibility = 0.18
+  }) {
+    return [
+      { x, z: z - depth / 2, width, depth: thickness },
+      { x, z: z + depth / 2, width, depth: thickness },
+      { x: x - width / 2, z, width: thickness, depth },
+      { x: x + width / 2, z, width: thickness, depth }
+    ].map((edge, index) => {
+      const mesh = CreateBox(`${name}-${index}`, { width: edge.width, height: 0.11, depth: edge.depth }, babylonScene);
+      mesh.position = new Vector3(edge.x, y, edge.z);
+      mesh.material = material;
+      mesh.visibility = visibility;
+      mesh.isPickable = false;
+      return mesh;
+    });
+  }
 
   const table = CreateBox("tabletop", {
     width: MATCH_LAYOUT.table.width,
@@ -581,6 +691,28 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   inlay.material.backFaceCulling = false;
   inlay.receiveShadows = true;
 
+  createMountedFrame("board-inner-frame", {
+    x: 0,
+    y: -0.02,
+    z: 0,
+    width: MATCH_LAYOUT.table.width - 0.78,
+    depth: MATCH_LAYOUT.table.depth - 0.78,
+    material: steelMaterial,
+    thickness: 0.09
+  }).forEach((mesh) => { mesh.visibility = 0.72; });
+
+  [
+    [-MATCH_LAYOUT.table.width / 2 + 0.62, -MATCH_LAYOUT.table.depth / 2 + 0.62],
+    [MATCH_LAYOUT.table.width / 2 - 0.62, -MATCH_LAYOUT.table.depth / 2 + 0.62],
+    [-MATCH_LAYOUT.table.width / 2 + 0.62, MATCH_LAYOUT.table.depth / 2 - 0.62],
+    [MATCH_LAYOUT.table.width / 2 - 0.62, MATCH_LAYOUT.table.depth / 2 - 0.62]
+  ].forEach(([x, z], index) => {
+    const cap = CreateCylinder(`board-corner-cap-${index}`, { height: 0.13, diameter: 0.38, tessellation: 8 }, babylonScene);
+    cap.position = new Vector3(x, 0.03, z);
+    cap.material = bronzeMaterial;
+    cap.isPickable = false;
+  });
+
   const tableEdgeMaterial = steelMaterial;
   const bronzeTrimMaterial = bronzeMaterial;
   [
@@ -599,7 +731,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     mesh.isPickable = false;
   });
 
-  const laneMaterial = surfaceMaterial;
+  const laneMaterial = engravedMaterial;
   const laneMaterials = [laneMaterial, laneMaterial, laneMaterial];
   const laneCombatMaterial = dangerMaterial;
   const laneCombatMaterials = [laneCombatMaterial, laneCombatMaterial, laneCombatMaterial];
@@ -638,12 +770,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       emissive: "#07090c",
       specular: "#8c7553"
     }),
-    selectionBlue: selectionMaterials.blue
+    selectionBlue: selectionMaterials.blue,
+    contactShadow: contactShadowMaterial
   };
   materials.cardBack.emissiveColor = color("#171b20");
 
   const laneMeshes = [];
   const laneRails = [];
+  const laneStateLights = [];
   const combatLines = [];
   const combatArrows = [];
   [0, 1, 2].forEach((index) => {
@@ -654,6 +788,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }, babylonScene);
     lane.position = new Vector3(MATCH_LAYOUT.lanes.x[index], -0.045, MATCH_LAYOUT.lanes.z);
     lane.material = laneMaterials[index];
+    lane.visibility = 0.045;
     lane.isPickable = true;
     lane.enablePointerMoveEvents = true;
     lane.receiveShadows = true;
@@ -663,7 +798,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     [
       {
         name: "opponent",
-        z: MATCH_LAYOUT.anchors.opponentAttack,
+        z: MATCH_LAYOUT.anchors.opponentFacedown,
         material: opponentSlotMaterial
       },
       {
@@ -673,19 +808,26 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       },
       {
         name: "local",
-        z: MATCH_LAYOUT.anchors.localAttack,
+        z: MATCH_LAYOUT.anchors.localFacedown,
         material: localSlotMaterial
       }
     ].forEach((slot) => {
-      const slotMesh = CreateBox(`lane-${index}-${slot.name}-slot`, {
-        width: MATCH_LAYOUT.lanes.width - 0.48,
-        height: 0.045,
-        depth: slot.name === "resolution" ? 0.72 : 1.22
-      }, babylonScene);
-      slotMesh.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.018, slot.z);
-      slotMesh.material = slot.material;
-      slotMesh.visibility = slot.name === "resolution" ? 0.3 : 0.24;
-      slotMesh.isPickable = false;
+      const dimensions = {
+        width: slot.name === "resolution" ? MATCH_LAYOUT.lanes.width - 0.62 : 3.25,
+        depth: slot.name === "resolution" ? 2.28 : 2.78
+      };
+      const well = createInsetWell(`lane-${index}-${slot.name}-slot`, {
+        x: MATCH_LAYOUT.lanes.x[index],
+        y: 0.006,
+        z: slot.z,
+        ...dimensions,
+        accent: slot.material,
+        floorVisibility: 0.025,
+        railVisibility: slot.name === "resolution" ? 0.14 : 0.2
+      });
+      well.rails.forEach((rail) => {
+        rail.visibility = slot.name === "resolution" ? 0.14 : 0.2;
+      });
     });
 
     [-1, 1].forEach((side) => {
@@ -702,8 +844,26 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       rail.material = laneRailMaterial;
       rail.metadata = { gauntlet: { type: "lane-rail", laneIndex: index } };
       rail.isPickable = false;
-      laneRails.push(rail);
+    laneRails.push(rail);
     });
+
+    const stateLightMaterial = new StandardMaterial(`lane-state-light-material-${index}`, babylonScene);
+    stateLightMaterial.disableLighting = true;
+    stateLightMaterial.diffuseColor = color("#ffffff");
+    stateLightMaterial.emissiveColor = color("#718392");
+    stateLightMaterial.specularColor = color("#000000");
+    stateLightMaterial.useAlphaFromDiffuseTexture = true;
+    stateLightMaterial.backFaceCulling = false;
+    const stateLight = CreatePlane(`lane-state-light-${index}`, {
+      width: MATCH_LAYOUT.lanes.width - 0.12,
+      height: MATCH_LAYOUT.lanes.depth - 0.18
+    }, babylonScene);
+    stateLight.rotation.x = Math.PI / 2;
+    stateLight.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.105, MATCH_LAYOUT.lanes.z);
+    stateLight.material = stateLightMaterial;
+    stateLight.visibility = 0;
+    stateLight.isPickable = false;
+    laneStateLights.push(stateLight);
 
     Object.values(MATCH_LAYOUT.anchors).forEach((z, anchorIndex) => {
       const tick = CreateBox(`lane-anchor-${index}-${anchorIndex}`, {
@@ -713,7 +873,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }, babylonScene);
       tick.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.025, z);
       tick.material = anchorMaterial;
-      tick.visibility = 0.36;
+      tick.visibility = 0;
       tick.isPickable = false;
     });
 
@@ -740,6 +900,27 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     arrow.isPickable = false;
     combatArrows.push(arrow);
 
+    createMountedFrame(`lane-frame-${index}`, {
+      x: MATCH_LAYOUT.lanes.x[index],
+      y: 0.035,
+      z: MATCH_LAYOUT.lanes.z,
+      width: MATCH_LAYOUT.lanes.width,
+      depth: MATCH_LAYOUT.lanes.depth,
+      material: index === 1 ? bronzeMaterial : steelMaterial,
+      thickness: 0.1
+    }).forEach((mesh) => { mesh.visibility = index === 1 ? 0.2 : 0.14; });
+
+    const sigil = CreateTorus(`lane-sigil-${index}`, {
+      diameter: 1.15,
+      thickness: 0.055,
+      tessellation: 32
+    }, babylonScene);
+    sigil.rotation.x = Math.PI / 2;
+    sigil.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.09, MATCH_LAYOUT.anchors.resolution);
+    sigil.material = bronzeMaterial;
+    sigil.visibility = 0.34;
+    sigil.isPickable = false;
+
     const laneLabel = CreatePlane(`lane-label-${index}`, {
       width: 2.8,
       height: 0.55
@@ -756,7 +937,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     laneLabel.isPickable = false;
   });
 
-  const handCombatMaterial = surfaceMaterial;
+  const handCombatMaterial = engravedMaterial;
   const handCombatRailMaterial = bronzeMaterial;
   const handCombatPlate = CreateBox("independent-hand-combat", {
     width: MATCH_LAYOUT.handCombat.width,
@@ -771,6 +952,45 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   handCombatPlate.material = handCombatMaterial;
   handCombatPlate.receiveShadows = true;
   handCombatPlate.isPickable = false;
+  createMountedFrame("hand-combat-frame", {
+    x: MATCH_LAYOUT.handCombat.x,
+    y: MATCH_LAYOUT.handCombat.y + 0.04,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: MATCH_LAYOUT.handCombat.width,
+    depth: MATCH_LAYOUT.handCombat.depth,
+    material: bronzeMaterial,
+    thickness: 0.11,
+    visibility: 0.13
+  });
+  createInsetWell("hand-combat-attacker", {
+    x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
+    y: MATCH_LAYOUT.handCombat.y + 0.055,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: 4.7,
+    depth: 1.92,
+    accent: sapphireMaterial,
+    floorVisibility: 0.025,
+    railVisibility: 0.2
+  });
+  createInsetWell("hand-combat-blocker", {
+    x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX,
+    y: MATCH_LAYOUT.handCombat.y + 0.055,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: 6.4,
+    depth: 1.92,
+    accent: dangerMaterial,
+    floorVisibility: 0.025,
+    railVisibility: 0.2
+  });
+  const versusMedallion = CreateCylinder("hand-combat-versus-medallion", {
+    height: 0.11,
+    diameter: 0.72,
+    tessellation: 32
+  }, babylonScene);
+  versusMedallion.position = new Vector3(-0.15, MATCH_LAYOUT.handCombat.y + 0.13, MATCH_LAYOUT.handCombat.z);
+  versusMedallion.material = bronzeMaterial;
+  versusMedallion.visibility = 0.18;
+  versusMedallion.isPickable = false;
   const handCombatRails = [];
   [-1, 1].forEach((side) => {
     const rail = CreateBox(`hand-combat-rail-${side}`, {
@@ -788,7 +1008,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     handCombatRails.push(rail);
   });
 
-  const paymentPlateMaterial = bronzeMaterial;
+  const paymentPlateMaterial = engravedMaterial;
   const paymentPlate = CreateBox("payment-tray", {
     width: MATCH_LAYOUT.payment.width,
     height: 0.08,
@@ -800,9 +1020,32 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     MATCH_LAYOUT.payment.z
   );
   paymentPlate.material = paymentPlateMaterial;
-  paymentPlate.visibility = 0.42;
+  paymentPlate.visibility = 0.94;
   paymentPlate.receiveShadows = true;
   paymentPlate.isPickable = false;
+  createMountedFrame("payment-tray-frame", {
+    x: MATCH_LAYOUT.payment.x,
+    y: 0.07,
+    z: MATCH_LAYOUT.payment.z,
+    width: MATCH_LAYOUT.payment.width,
+    depth: MATCH_LAYOUT.payment.depth,
+    material: bronzeMaterial,
+    thickness: 0.11,
+    visibility: 0.13
+  });
+  Array.from({ length: 8 }, (_, slotIndex) => getPaymentPosition(slotIndex, 8, true)).forEach((slot, slotIndex) => {
+    createInsetWell(`payment-slot-${slotIndex}`, {
+      x: slot.x,
+      y: 0.075,
+      z: slot.z,
+      width: MATCH_LAYOUT.card.width * MATCH_LAYOUT.payment.scale + 0.12,
+      depth: MATCH_LAYOUT.card.height * MATCH_LAYOUT.payment.scale + 0.12,
+      accent: bronzeMaterial,
+      rail: 0.045,
+      floorVisibility: 0.02,
+      railVisibility: 0.18
+    }).rails.forEach((rail) => { rail.visibility = 0.18; });
+  });
 
   const paymentLabel = CreatePlane("payment-tray-label", {
     width: 5.1,
@@ -832,8 +1075,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       depth: dimensions.depth
     }, babylonScene);
     pad.position = new Vector3(position.x, 0.01, position.z);
-    pad.material = isDiscard ? bronzeMaterial : steelMaterial;
-    pad.visibility = isDiscard ? 0.56 : 0.42;
+    pad.material = wellMaterial;
+    pad.visibility = 0.055;
     pad.isPickable = isDiscard;
     if (isDiscard) {
       pad.metadata = {
@@ -843,7 +1086,78 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         }
       };
     }
+    createMountedFrame(`pile-frame-${name}`, {
+      x: position.x,
+      y: 0.055,
+      z: position.z,
+      width: dimensions.width + 0.28,
+      depth: dimensions.depth + 0.28,
+      material: isDiscard ? bronzeMaterial : steelMaterial,
+      thickness: 0.1,
+      visibility: 0.12
+    });
+    const medallion = CreateCylinder(`pile-medallion-${name}`, {
+      height: 0.09,
+      diameter: 0.62,
+      tessellation: 28
+    }, babylonScene);
+    medallion.position = new Vector3(position.x, 0.13, position.z - dimensions.depth / 2 - 0.34);
+    medallion.material = isDiscard ? bronzeMaterial : steelMaterial;
+    medallion.visibility = 0.12;
+    medallion.isPickable = false;
   });
+
+  function createPresentationLight(name, { x, y, z, width, height, tint }) {
+    const material = new StandardMaterial(`${name}-material`, babylonScene);
+    material.disableLighting = true;
+    material.diffuseColor = color("#ffffff");
+    material.emissiveColor = color(tint);
+    material.specularColor = color("#000000");
+    material.useAlphaFromDiffuseTexture = true;
+    material.backFaceCulling = false;
+    const mesh = CreatePlane(name, { width, height }, babylonScene);
+    mesh.rotation.x = Math.PI / 2;
+    mesh.position = new Vector3(x, y, z);
+    mesh.material = material;
+    mesh.visibility = 0;
+    mesh.isPickable = false;
+    return mesh;
+  }
+
+  const paymentStateLight = createPresentationLight("payment-state-light", {
+    x: MATCH_LAYOUT.payment.x,
+    y: 0.115,
+    z: MATCH_LAYOUT.payment.z,
+    width: MATCH_LAYOUT.payment.width - 0.18,
+    height: MATCH_LAYOUT.payment.depth - 0.18,
+    tint: "#f0bd68"
+  });
+  const combatStateLight = createPresentationLight("combat-state-light", {
+    x: -0.15,
+    y: MATCH_LAYOUT.handCombat.y + 0.17,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: 1.25,
+    height: 1.25,
+    tint: "#f0bd68"
+  });
+  const priorityStateLights = [
+    createPresentationLight("priority-local-light", {
+      x: 0,
+      y: 0.125,
+      z: -5.35,
+      width: 1.5,
+      height: 1.5,
+      tint: "#53c9ff"
+    }),
+    createPresentationLight("priority-opponent-light", {
+      x: 0,
+      y: 0.125,
+      z: 5.85,
+      width: 1.5,
+      height: 1.5,
+      tint: "#e04c58"
+    })
+  ];
 
   const eventEffectMaterials = {
     sapphire: sapphireMaterial,
@@ -880,7 +1194,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   );
   eventSpriteMaterial.disableLighting = true;
   eventSpriteMaterial.useAlphaFromDiffuseTexture = true;
-  const eventSprite = CreatePlane("event-sprite", { size: 4.25 }, babylonScene);
+  const eventSprite = CreatePlane("event-sprite", { size: 3.55 }, babylonScene);
   eventSprite.rotation.x = Math.PI / 2;
   eventSprite.position.y = 1.02;
   eventSprite.material = eventSpriteMaterial;
@@ -892,6 +1206,162 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     texture.anisotropicFilteringLevel = 4;
     return [type, texture];
   }));
+  const eventSpritePaths = new Map(Object.entries(EVENT_EFFECT_ASSETS));
+  const presentationAssetCache = new PresentationAssetCache();
+  const presentationMaskTextures = new Map();
+  const presentationMaskPaths = new Map();
+  let activePresentationKitKey = null;
+  let authoredModuleRoots = [];
+  let authoredSurfaceRoots = [];
+
+  function authoredModulePlacements() {
+    return {
+      "board.base": [{ id: "board", position: { x: 0, y: 0, z: 0 } }],
+      "lane.module": MATCH_LAYOUT.lanes.x.map((x, index) => ({
+        id: `lane-${index}`,
+        position: { x, y: 0, z: MATCH_LAYOUT.lanes.z }
+      })),
+      "combat.dais": [{ id: "combat", position: { x: MATCH_LAYOUT.handCombat.x, y: 0, z: MATCH_LAYOUT.handCombat.z } }],
+      "payment.tray": [{ id: "payment", position: { x: MATCH_LAYOUT.payment.x, y: 0, z: MATCH_LAYOUT.payment.z } }],
+      "pile.dock": Object.entries(MATCH_LAYOUT.piles).map(([id, position]) => ({
+        id,
+        position: { x: position.x, y: 0, z: position.z }
+      }))
+    };
+  }
+
+  function proceduralMeshesForModule(moduleId) {
+    const prefixes = {
+      "board.base": ["tabletop", "table-inlay", "table-edge", "board-"],
+      "lane.module": ["lane-", "combat-line-", "combat-arrow-"],
+      "combat.dais": ["independent-hand-combat", "hand-combat-"],
+      "payment.tray": ["payment-tray"],
+      "pile.dock": ["pile-pad-", "pile-frame-", "pile-medallion-"]
+    }[moduleId] || [];
+    return babylonScene.meshes.filter((mesh) => prefixes.some((prefix) => mesh.name.startsWith(prefix)));
+  }
+
+  function loadPresentationTexture({ asset }) {
+    return new Promise((resolve, reject) => {
+      let texture = null;
+      texture = new Texture(
+        asset.path,
+        babylonScene,
+        false,
+        true,
+        Texture.TRILINEAR_SAMPLINGMODE,
+        () => resolve(texture),
+        (_message, error) => {
+          texture?.dispose();
+          reject(error || new Error(`Unable to load presentation texture ${asset.path}.`));
+        }
+      );
+      texture.hasAlpha = true;
+      texture.anisotropicFilteringLevel = 8;
+    });
+  }
+
+  function createAuthoredBoardSurface(texture, asset) {
+    const material = new StandardMaterial(`authored-${asset.id}-material`, babylonScene);
+    material.diffuseColor = color("#7d8790");
+    material.emissiveColor = color("#313941");
+    material.specularColor = color("#000000");
+    material.diffuseTexture = texture;
+    material.opacityTexture = texture;
+    material.useAlphaFromDiffuseTexture = true;
+    material.alpha = 0.9;
+    material.backFaceCulling = false;
+    const mesh = CreatePlane(`authored-${asset.id}`, {
+      width: MATCH_LAYOUT.table.width,
+      height: MATCH_LAYOUT.table.depth
+    }, babylonScene);
+    mesh.rotation.x = Math.PI / 2;
+    mesh.position.y = 0.011;
+    mesh.material = material;
+    mesh.isPickable = false;
+    mesh.receiveShadows = false;
+    mesh.metadata = {
+      gauntletPresentationAsset: asset.id,
+      gauntletPresentationStatus: asset.status
+    };
+    return {
+      dispose() {
+        mesh.dispose(false, false);
+        material.dispose(false, false);
+      }
+    };
+  }
+
+  function syncPresentationKit(kit) {
+    if (!kit) return;
+    const kitKey = `${kit.kitId}:${kit.revision}`;
+    Object.keys(EVENT_EFFECT_ASSETS).forEach((assetId) => {
+      const path = resolvePresentationAsset(kit, "effects", assetId)?.path;
+      if (!path || eventSpritePaths.get(assetId) === path) return;
+      eventSpriteTextures.get(assetId)?.dispose();
+      const texture = new Texture(path, babylonScene, true, true, Texture.TRILINEAR_SAMPLINGMODE);
+      texture.hasAlpha = true;
+      texture.anisotropicFilteringLevel = 4;
+      eventSpriteTextures.set(assetId, texture);
+      eventSpritePaths.set(assetId, path);
+    });
+    [
+      ...Object.values(LANE_STATE_LIGHTS).map((entry) => entry.assetId),
+      "payment.active",
+      "board.priority"
+    ].forEach((assetId) => {
+      const asset = resolvePresentationAsset(kit, "masks", assetId);
+      if (!asset?.path || presentationMaskPaths.get(assetId) === asset.path) return;
+      loadAuthoredPresentationTexture(babylonScene, asset, {
+        cache: presentationAssetCache,
+        textureLoader: loadPresentationTexture
+      }).then((result) => {
+        if (!result.loaded || disposed || activePresentationKitKey !== kitKey) return;
+        presentationMaskTextures.set(assetId, result.texture);
+        presentationMaskPaths.set(assetId, asset.path);
+      });
+    });
+
+    if (kitKey === activePresentationKitKey) return;
+    activePresentationKitKey = kitKey;
+    authoredModuleRoots.forEach((root) => root.dispose?.());
+    authoredModuleRoots = [];
+    authoredSurfaceRoots.forEach((root) => root.dispose?.());
+    authoredSurfaceRoots = [];
+    babylonScene.meshes.forEach((mesh) => {
+      if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(true);
+    });
+    const boardSurfaceAsset = resolvePresentationAsset(kit, "materials", "board.surface-overlay");
+    loadAuthoredPresentationTexture(babylonScene, boardSurfaceAsset, {
+      cache: presentationAssetCache,
+      textureLoader: loadPresentationTexture
+    }).then((result) => {
+      if (!result.loaded || disposed || activePresentationKitKey !== kitKey) return;
+      authoredSurfaceRoots.push(createAuthoredBoardSurface(result.texture, boardSurfaceAsset));
+    });
+    loadAuthoredPresentationModules(
+      babylonScene,
+      kit,
+      authoredModulePlacements(),
+      {
+        cache: presentationAssetCache,
+        modelLoader: commands.loadPresentationModule
+      }
+    ).then((results) => {
+      if (disposed || activePresentationKitKey !== kitKey) {
+        Object.values(results).flatMap((result) => result.roots || []).forEach((root) => root.dispose?.());
+        return;
+      }
+      Object.entries(results).forEach(([moduleId, result]) => {
+        if (!result.loaded) return;
+        proceduralMeshesForModule(moduleId).forEach((mesh) => {
+          mesh.metadata = { ...(mesh.metadata || {}), gauntletPresentationFallback: moduleId };
+          mesh.setEnabled(false);
+        });
+        authoredModuleRoots.push(...result.roots);
+      });
+    });
+  }
 
   const objects = new Map();
   const textureCache = new Map();
@@ -901,6 +1371,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let hoveredId = null;
   let disposed = false;
   let currentViewModel = null;
+  let currentBoardPresentation = null;
   let elapsed = 0;
   let motionClockMs = 0;
   let activeEventAnimation = null;
@@ -1030,6 +1501,47 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   ui.handCombatLabel.linkOffsetY = -72;
   fullscreenUi.addControl(ui.handCombatLabel);
   ui.handCombatLabel.linkWithMesh(handCombatPlate);
+
+  function createBoardReadout(name, mesh, { offsetX = 0, offsetY = 0, accent = MATCH_COLORS.bronze } = {}) {
+    const frame = new Rectangle(`${name}-frame`);
+    frame.width = "52px";
+    frame.height = "30px";
+    frame.cornerRadius = 7;
+    frame.thickness = 1;
+    frame.color = accent;
+    frame.background = "#050b10ee";
+    frame.linkOffsetX = offsetX;
+    frame.linkOffsetY = offsetY;
+    const value = textBlock("0", {
+      name: `${name}-value`,
+      width: "100%",
+      height: "100%",
+      color: MATCH_COLORS.text,
+      fontFamily: "Georgia",
+      fontSize: 19,
+      fontWeight: "bold",
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
+    });
+    frame.addControl(value);
+    fullscreenUi.addControl(frame);
+    frame.linkWithMesh(mesh);
+    return { frame, value };
+  }
+
+  ui.combatAttackValue = createBoardReadout("combat-attack-readout", handCombatPlate, {
+    offsetX: -54,
+    offsetY: -72,
+    accent: MATCH_COLORS.blue
+  });
+  ui.combatBlockValue = createBoardReadout("combat-block-readout", handCombatPlate, {
+    offsetX: 54,
+    offsetY: -72,
+    accent: MATCH_COLORS.danger
+  });
+  ui.paymentReadout = createBoardReadout("payment-readout", paymentPlate, {
+    offsetY: -66,
+    accent: MATCH_COLORS.bronze
+  });
 
   ui.loading = textBlock("", {
     name: "asset-loading",
@@ -1256,6 +1768,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       : 0;
     const motionOptions = {
       ...options,
+      motionOccurrenceId: `${currentMatchId || "match"}:${currentViewModel?.revision || 0}:${id}:${options.motionRole || "state-correction"}`,
       motionDelayMs: Math.max(Number(options.motionDelayMs || 0), attackerSettleDelay),
       motionObstacles: motionObstaclesFor(id),
       motionBounds
@@ -1290,6 +1803,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function disposeCardRecord(record) {
     record.badge?.root.dispose();
+    record.mesh.gauntletContactShadow?.dispose(false, false);
     record.mesh.dispose(false, false);
     if (record.ownedFaceMaterial) {
       record.ownedFaceMaterial.dispose(false, !record.faceTexturePath);
@@ -1401,23 +1915,31 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     identity.panel.color = isActing ? MATCH_COLORS.bronze : hasPriority ? MATCH_COLORS.blue : "#4b677b";
   }
 
-  function enqueueEventAnimations(events = [], revision = 0) {
+  function enqueueEventAnimations(events = [], cues = [], revision = 0) {
     const numericRevision = Number(revision || 0);
-    if (highestAnimationRevision >= 0 && numericRevision !== highestAnimationRevision) {
-      animationQueue.length = 0;
-      activeEventAnimation = null;
-      eventRing.visibility = 0;
-      turnSweep.visibility = 0;
-      eventSprite.visibility = 0;
-    }
     highestAnimationRevision = Math.max(highestAnimationRevision, numericRevision);
-    events.forEach((entry) => {
-      if (!entry?.id || animatedEventIds.has(entry.id) || !EVENT_DURATIONS[entry.type]) return;
+    const eventById = new Map(events.map((entry) => [entry.id, entry]));
+    const presentations = cues.length
+      ? cues.map((cue) => ({
+          cue,
+          entry: {
+            ...(eventById.get(cue.sourceEventId) || {}),
+            id: cue.occurrenceId,
+            type: cue.eventType,
+            laneIndex: cue.target?.laneIndex,
+            player: cue.target?.side?.replace?.("player-", "")
+          },
+          durationMs: cue.durationMs
+        }))
+      : events.map((entry) => ({ entry, cue: null, durationMs: EVENT_DURATIONS[entry.type] }));
+    presentations.forEach(({ entry, cue, durationMs }) => {
+      if (!entry?.id || animatedEventIds.has(entry.id) || !durationMs) return;
       animatedEventIds.add(entry.id);
       animationQueue.push({
         entry,
+        cue,
         elapsedMs: 0,
-        durationMs: EVENT_DURATIONS[entry.type]
+        durationMs
       });
     });
     if (animatedEventIds.size > 500) {
@@ -1496,7 +2018,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       liveIds.add(id);
       updateCardRecord(id, card.label, getPaymentPosition(index, payments.length, ownerIsLocal), {
         artPath: card.artPath,
-        initialPosition: sourceRecord?.mesh?.position?.clone(),
+        initialPosition: sourceRecord?.mesh?.position?.clone() || replayApproachPosition(
+          getPaymentPosition(index, payments.length, ownerIsLocal),
+          ownerIsLocal,
+          "payment",
+          index
+        ),
         initialRotation: sourceRecord?.mesh?.rotation?.clone(),
         initialScale: sourceRecord?.mesh?.scaling?.x,
         motionRole: "payment-enter",
@@ -1516,6 +2043,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           preview: { ...card, stateLabel: `Paid ${payment.total}/${payment.required}`, stateIcon: "payment" }
         }
       });
+      if (sourceRecord) {
+        sourceRecord.mesh.visibility = 0;
+        sourceRecord.target.alpha = 0;
+      }
     });
   }
 
@@ -1690,6 +2221,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
     currentMatchId = nextMatchId;
     currentViewModel = viewModel;
+    syncPresentationKit(viewModel.presentationKit);
+    currentBoardPresentation = projectBoardPresentation(viewModel, {
+      activeCue: viewModel.presentationCues?.[0] || null,
+      profile: getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight())
+    });
     const bottomPlayer = viewModel.perspective?.player || viewModel.perspective?.bottomPlayer;
     if (viewModel.replayAction?.id && viewModel.replayAction.id !== lastState.replayActionId) {
       animationQueue.length = 0;
@@ -1697,7 +2233,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       (viewModel.events || []).forEach((entry) => animatedEventIds.delete(entry.id));
       lastState.replayActionId = viewModel.replayAction.id;
     }
-    enqueueEventAnimations(viewModel.events || [], viewModel.revision);
+    enqueueEventAnimations(viewModel.events || [], viewModel.presentationCues || [], viewModel.revision);
     const liveIds = new Set();
     const drawnCardIds = new Set(
       (viewModel.events || [])
@@ -1734,12 +2270,35 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const handCombatActive = viewModel.handAttacks.length > 0
       || viewModel.selection.attackMode?.from === "hand"
       || viewModel.selection.blockMode?.type === "handAttack";
-    handCombatPlate.visibility = handCombatActive ? 1 : 0.28;
+    handCombatPlate.visibility = handCombatActive ? 0.12 : 0.035;
     handCombatRails.forEach((rail) => {
-      rail.visibility = handCombatActive ? 1 : 0.58;
+      rail.visibility = handCombatActive ? 0.7 : 0.3;
     });
     ui.handCombatLabel.alpha = handCombatActive ? 1 : 0.7;
-    paymentPlate.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.82 : 0.16;
+    ui.combatAttackValue.value.text = String(currentBoardPresentation.combat.attackValue || "—");
+    ui.combatBlockValue.value.text = String(currentBoardPresentation.combat.blockValue || "—");
+    ui.combatAttackValue.frame.alpha = handCombatActive ? 1 : 0.38;
+    ui.combatBlockValue.frame.alpha = currentBoardPresentation.combat.blockValue ? 1 : 0.38;
+    ui.paymentReadout.value.text = currentBoardPresentation.payment.occupiedSlots
+      ? String(currentBoardPresentation.payment.occupiedSlots)
+      : "—";
+    ui.paymentReadout.frame.alpha = currentBoardPresentation.payment.state === "idle" ? 0.38 : 1;
+    paymentPlate.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.09 : 0.025;
+    const paymentTexture = presentationMaskTextures.get("payment.active");
+    paymentStateLight.material.diffuseTexture = paymentTexture || null;
+    paymentStateLight.material.opacityTexture = paymentTexture || null;
+    paymentStateLight.visibility = paymentTexture
+      ? (viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.62 : 0.08)
+      : 0;
+    const priorityTexture = presentationMaskTextures.get("board.priority");
+    priorityStateLights.forEach((mesh, index) => {
+      mesh.material.diffuseTexture = priorityTexture || null;
+      mesh.material.opacityTexture = priorityTexture || null;
+      mesh.visibility = priorityTexture && (index === 0 ? bottomPriority : topPriority) ? 0.72 : 0;
+    });
+    combatStateLight.material.diffuseTexture = priorityTexture || null;
+    combatStateLight.material.opacityTexture = priorityTexture || null;
+    combatStateLight.visibility = priorityTexture && handCombatActive ? 0.38 : 0;
 
     if (lastState.topLife !== null && lastState.topLife !== top?.life) pulse.top = 1;
     if (lastState.bottomLife !== null && lastState.bottomLife !== bottom?.life) pulse.bottom = 1;
@@ -1792,10 +2351,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     viewModel.lanes.forEach((lane, index) => {
       const laneMesh = laneMeshes[index];
       const legal = viewModel.interactions.legalLanes.includes(index);
-      const replayHighlightsLane = ["attack", "block", "resolution", "ability", "placement"]
-        .includes(viewModel.replayAction?.kind);
-      const highlighted = (viewModel.interactions.highlightedLanes || []).includes(index)
-        || (replayHighlightsLane && Number(viewModel.replayAction?.laneIndex) === index);
       const abilityTargetOwner = viewModel.selection.abilityMode?.targetOwner;
       const peekAnyOwner = viewModel.selection.abilityMode?.abilityId === "polea-peek";
       const selectedAbilityLane = viewModel.selection.selectedAbilityLanes?.includes(index);
@@ -1820,12 +2375,25 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       laneRails
         .filter((rail) => rail.metadata?.gauntlet?.laneIndex === index)
         .forEach((rail) => {
-          rail.material = laneAttack || lane.isActive
-            ? laneCombatMaterials[index]
-            : highlighted
-              ? laneLegalRailMaterial
-              : laneRailMaterial;
+          const state = currentBoardPresentation.lanes[index].state;
+          rail.material = state === "resolving"
+            ? bronzeMaterial
+            : state === "blocked"
+              ? purpleMaterial
+              : state === "opposed"
+                ? laneCombatMaterials[index]
+                : ["legal", "active"].includes(state)
+                  ? laneLegalRailMaterial
+                  : laneRailMaterial;
+          rail.visibility = state === "idle" ? 0.55 : state === "legal" ? 0.82 : 1;
         });
+      const state = currentBoardPresentation.lanes[index].state;
+      const lightConfig = LANE_STATE_LIGHTS[state] || LANE_STATE_LIGHTS.idle;
+      const stateTexture = presentationMaskTextures.get(lightConfig.assetId);
+      laneStateLights[index].material.diffuseTexture = stateTexture || null;
+      laneStateLights[index].material.opacityTexture = stateTexture || null;
+      laneStateLights[index].material.emissiveColor = color(lightConfig.tint);
+      laneStateLights[index].visibility = stateTexture ? lightConfig.alpha : 0;
 
       const localId = `lane-local-${index}`;
       const opponentId = `lane-opponent-${index}`;
@@ -1929,12 +2497,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           blocks.length,
           blockerIsLocal
         );
+        const blockerSource = objects.get(
+          blockerIsLocal ? `lane-local-${index}` : `lane-opponent-${index}`
+        );
         liveIds.add(id);
         updateCardRecord(id, block.card.label, blockerPosition, {
           artPath: block.card.artPath,
-          initialPosition: viewModel.replayAction
-            ? replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex)
-            : undefined,
+          initialPosition: blockerSource?.mesh?.position?.clone()
+            || replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex),
           motionRole: "block-enter",
           motionPathIndex: blockIndex,
           motionDelayMs: blockIndex * 130,
@@ -2196,11 +2766,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       updateCardRecord(id, attack.card.label, attackPosition, {
         artPath: attack.card.artPath,
         faceDown: false,
-        initialPosition: sourceRecord?.mesh?.position?.clone() || (
-          viewModel.replayAction
-            ? replayApproachPosition(attackPosition, localAttack, "attacker", 0)
-            : undefined
-        ),
+        initialPosition: sourceRecord?.mesh?.position?.clone()
+          || replayApproachPosition(attackPosition, localAttack, "attacker", 0),
         motionRole: "attack-enter",
         selected: true,
         selectionRole: selectedAbilityAttack ? "ability" : localAttack ? "primary" : "danger",
@@ -2243,11 +2810,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           );
           updateCardRecord(blockId, block.card.label, blockerPosition, {
             artPath: block.card.artPath,
-            initialPosition: blockSource?.mesh?.position?.clone() || (
-              viewModel.replayAction
-                ? replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex)
-                : undefined
-            ),
+            initialPosition: blockSource?.mesh?.position?.clone()
+              || replayApproachPosition(blockerPosition, blockerIsLocal, "blocker", blockIndex),
             motionRole: "block-enter",
             motionPathIndex: blockIndex,
             motionDelayMs: blockIndex * 130,
@@ -2295,7 +2859,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       eventRing.material = effectMaterialForEvent(activeEventAnimation.entry.type);
       eventRing.scaling.setAll(0.72);
       turnSweep.material = effectMaterialForEvent(activeEventAnimation.entry.type);
-      const spriteTexture = eventSpriteTextures.get(activeEventAnimation.entry.type) || null;
+      const spriteTexture = eventSpriteTextures.get(
+        activeEventAnimation.cue?.visual?.assetId || activeEventAnimation.entry.type
+      ) || null;
       eventSpriteMaterial.diffuseTexture = spriteTexture;
       eventSpriteMaterial.opacityTexture = spriteTexture;
       eventSprite.position.copyFrom(eventEffectPosition(activeEventAnimation.entry));
@@ -2307,14 +2873,15 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const fadeIn = Math.min(1, progress / 0.16);
       const fadeOut = progress < 0.72 ? 1 : Math.max(0, 1 - ((progress - 0.72) / 0.28));
       const pulseValue = fadeIn * fadeOut;
-      const isTurn = activeEventAnimation.entry.type === "turn.started";
-      const isPayment = activeEventAnimation.entry.type === "payment.discarded";
-      const hasSprite = activeEventAnimation.entry.type !== "payment.discarded"
-        && eventSpriteTextures.has(activeEventAnimation.entry.type);
+      const activeCueId = activeEventAnimation.cue?.cueId;
+      const visualAssetId = activeEventAnimation.cue?.visual?.assetId || activeEventAnimation.entry.type;
+      const isTurn = activeCueId === "turn.start" || activeEventAnimation.entry.type === "turn.started";
+      const isPayment = activeCueId === "payment.release" || activeEventAnimation.entry.type === "payment.discarded";
+      const hasSprite = eventSpriteTextures.has(visualAssetId);
       eventRing.visibility = isTurn || isPayment ? 0 : pulseValue * 0.92;
       eventRing.scaling.setAll(0.72 + progress * 0.72);
       turnSweep.visibility = isTurn ? pulseValue * 0.9 : 0;
-      eventSprite.visibility = hasSprite ? pulseValue * 0.9 : 0;
+      eventSprite.visibility = hasSprite ? pulseValue * 0.76 : 0;
       if (hasSprite) {
         const spriteScale = 0.86 + Math.min(1, progress / 0.58) * 0.34;
         eventSprite.scaling.set(
@@ -2351,6 +2918,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           motionBounds
         }, motionClockMs, currentViewModel?.reducedMotion);
       }
+      for (const cue of record.motion?.cueHooks || []) {
+        if (record.emittedCueHooks?.has(cue.occurrenceId)) continue;
+        if (motionClockMs < record.motion.startTimeMs + cue.offsetMs) continue;
+        record.emittedCueHooks?.add(cue.occurrenceId);
+        commands.presentationCue?.(cue);
+      }
       const sampled = currentViewModel?.reducedMotion
         ? {
             x: record.target.position.x,
@@ -2370,6 +2943,15 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         record.mesh.scaling.setAll(sampled.scale);
         record.mesh.visibility = sampled.alpha;
         if (sampled.complete) record.motion = null;
+      }
+      const contactShadow = record.mesh.gauntletContactShadow;
+      if (contactShadow) {
+        const seatedY = Math.max(0.09, Number(record.target.position.y || 0.2) - 0.16);
+        const lift = Math.max(0, record.mesh.position.y - seatedY);
+        contactShadow.position.set(record.mesh.position.x, seatedY, record.mesh.position.z);
+        contactShadow.rotation.z = record.mesh.rotation.z;
+        contactShadow.scaling.setAll(record.mesh.scaling.x * (0.96 + Math.min(0.22, lift * 0.07)));
+        contactShadow.visibility = record.mesh.visibility * Math.max(0.08, 0.42 - lift * 0.14);
       }
       if (record.mesh.gauntletHalo.isVisible) {
         const haloPulse = currentViewModel?.reducedMotion
@@ -2510,7 +3092,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         pickableMeshes: babylonScene.meshes.filter((mesh) => mesh.isPickable).length,
         renderSize: `${engine.getRenderWidth()}x${engine.getRenderHeight()}`,
         canvasSize: `${Math.round(canvas.clientWidth)}x${Math.round(canvas.clientHeight)}`,
-        lastPointerPick
+        lastPointerPick,
+        boardPresentation: currentBoardPresentation,
+        presentationKit: currentViewModel?.presentationKit
+          ? {
+              id: currentViewModel.presentationKit.kitId,
+              revision: currentViewModel.presentationKit.revision,
+              status: currentViewModel.presentationKit.status,
+              loadError: currentViewModel.presentationKit.loadError || null
+            }
+          : null
       };
     },
     dispose() {
@@ -2521,6 +3112,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       canvas.removeEventListener("pointerleave", handleCanvasPointerLeave);
       canvas.removeEventListener("pointerup", handleCanvasPointerUp);
       fullscreenUi.dispose();
+      authoredModuleRoots.forEach((root) => root.dispose?.());
+      authoredSurfaceRoots.forEach((root) => root.dispose?.());
+      presentationAssetCache.dispose();
       babylonScene.dispose();
     }
   };

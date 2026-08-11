@@ -1,3 +1,5 @@
+import { getBoardLayoutProfile } from "./boardPresentation";
+
 export const MATCH_LAYOUT = {
   viewport: { halfHeight: 9.35, padding: 0.55 },
   table: { width: 28.4, depth: 17.9, y: -0.42 },
@@ -11,7 +13,7 @@ export const MATCH_LAYOUT = {
   playerHand: { x: -0.6, z: -7.05, y: 0.62, scale: 0.9, spread: 1.9 },
   handCombat: {
     x: 0,
-    y: 0.72,
+    y: 0.22,
     z: 5.25,
     width: 13.6,
     depth: 2.45,
@@ -26,7 +28,7 @@ export const MATCH_LAYOUT = {
   payment: {
     x: 9.2,
     z: -6.35,
-    y: 0.74,
+    y: 0.3,
     width: 6.05,
     depth: 4.25,
     spread: 1.5,
@@ -181,14 +183,14 @@ export function getTableCameraProjection(width, height) {
   const safeWidth = Math.max(1, Number(width) || 1);
   const safeHeight = Math.max(1, Number(height) || 1);
   const aspect = safeWidth / safeHeight;
+  const profile = getBoardLayoutProfile(safeWidth, safeHeight);
   // On phone portrait, frame the complete playable core (all lanes, hand,
   // combat zones) rather than shrinking it to preserve decorative table ends.
-  const requiredWidthHalf = aspect < 0.72
-    ? 12.6
-    : MATCH_LAYOUT.table.width / 2 + MATCH_LAYOUT.viewport.padding;
+  const requiredWidthHalf = profile.cameraWidth / 2;
   const halfHeight = Math.max(MATCH_LAYOUT.viewport.halfHeight, requiredWidthHalf / Math.max(0.1, aspect));
   return {
     aspect,
+    profile: profile.id,
     top: halfHeight,
     bottom: -halfHeight,
     left: -halfHeight * aspect,

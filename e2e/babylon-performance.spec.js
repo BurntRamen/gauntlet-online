@@ -9,13 +9,22 @@ function percentile(values, percentage) {
   return ordered[Math.max(0, Math.ceil(ordered.length * percentage) - 1)];
 }
 
-async function collectSample(browser, baseURL, viewport) {
+async function openTrainingGrounds(page, baseURL, sampleId) {
+  await page.goto(baseURL, { waitUntil: "domcontentloaded" });
+  await page.locator('button[data-area="identity"]').click();
+  await page.getByLabel("Play as guest").check();
+  await page.getByPlaceholder("Guest name").fill(`Perf ${sampleId.slice(-14)}`);
+  await page.locator('button[data-area="play"]').click();
+  await page.getByRole("tab", { name: "Practice" }).click();
+  await expect(page.getByRole("button", { name: /Basic vs AI/ })).toBeEnabled();
+}
+
+async function collectSample(browser, baseURL, viewport, sampleId) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
+  await openTrainingGrounds(page, baseURL, sampleId);
   const startedAt = Date.now();
-  await page.goto(`${baseURL}/?babylon-test=1&seed=production-performance`, {
-    waitUntil: "domcontentloaded"
-  });
+  await page.getByRole("button", { name: /Basic vs AI/ }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await expect(page.locator(".production-context-panel")).toBeVisible();
@@ -60,7 +69,7 @@ test("compiled Babylon client meets local cold-load performance safeguards", asy
   for (const profile of profiles) {
     const samples = [];
     for (let index = 0; index < profile.samples; index += 1) {
-      samples.push(await collectSample(browser, baseURL, profile.viewport));
+      samples.push(await collectSample(browser, baseURL, profile.viewport, `${profile.id}-${index}`));
     }
     const usableSceneValues = samples.map((sample) => sample.usableSceneMs);
     const p95UsableSceneMs = percentile(usableSceneValues, 0.95);

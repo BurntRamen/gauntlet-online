@@ -1,4 +1,10 @@
+const path = require("node:path");
 const { defineConfig, devices } = require("@playwright/test");
+
+const root = __dirname;
+const dataDirectory = path.join(root, ".playwright-performance-data");
+const serverUrl = "http://127.0.0.1:4200";
+const clientUrl = "http://127.0.0.1:3200";
 
 module.exports = defineConfig({
   testDir: "./e2e",
@@ -10,7 +16,7 @@ module.exports = defineConfig({
   },
   reporter: [["list"]],
   use: {
-    baseURL: "http://127.0.0.1:3200",
+    baseURL: clientUrl,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
@@ -28,10 +34,33 @@ module.exports = defineConfig({
       }
     }
   ],
-  webServer: {
-    command: "npm run serve:client-build",
-    url: "http://127.0.0.1:3200/?babylon-test=1",
-    reuseExistingServer: false,
-    timeout: 30000
-  }
+  webServer: [
+    {
+      command: "npm --prefix server start",
+      url: `${serverUrl}/api/game-content`,
+      reuseExistingServer: false,
+      timeout: 120000,
+      env: {
+        PORT: "4200",
+        CLIENT_URL: clientUrl,
+        ACCOUNT_DATA_FILE: path.join(dataDirectory, "accounts.json"),
+        FACTION_STATS_DATA_FILE: path.join(dataDirectory, "faction-stats.json"),
+        MATCH_DATA_FILE: path.join(dataDirectory, "matches.json"),
+        ROOM_STATE_DATA_FILE: path.join(dataDirectory, "rooms.json"),
+        ROOM_STATE_RECOVERY_ENABLED: "false",
+        E2E_TEST: "true"
+      }
+    },
+    {
+      command: "npm run serve:client-build",
+      url: clientUrl,
+      reuseExistingServer: false,
+      timeout: 180000,
+      env: {
+        PORT: "3200",
+        REBUILD_CLIENT: "true",
+        REACT_APP_SOCKET_URL: serverUrl
+      }
+    }
+  ]
 });
