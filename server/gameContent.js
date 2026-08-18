@@ -795,18 +795,18 @@ const campaignChapters = {
     { id: "first-emperor", playableName: "Augustus", opponentName: "Bobei the Great", title: "The First Emperor", story: "Augustus defeats Bobei, keeps the bank, legions, and rune program, restores Senate traditions, and leaves Rumie with an empire wearing republican robes.", dialogue: ["Narrator: Augustus and Bobei clash over Kaiser's legacy: vengeance or settlement, sword or law.", "Bobei: I was Kaiser's sword.", "Augustus: And I will be his law.", "Bobei: Law without fire is parchment.", "Augustus: Fire without law is only smoke.", "Old Senator: Perhaps the better question is whether Rumie could have survived without him."], dialogueAudio: ["/assets/gauntlet/voices/rumin-ch12-before-01-narrator.mp3", "/assets/gauntlet/voices/rumin-ch12-before-02-bobei.mp3", "/assets/gauntlet/voices/rumin-ch12-before-03-augustus.mp3", "/assets/gauntlet/voices/rumin-ch12-before-04-bobei.mp3", "/assets/gauntlet/voices/rumin-ch12-before-05-augustus.mp3", "/assets/gauntlet/voices/rumin-ch12-before-06-senator.mp3"], endDialogue: ["Narrator: Augustus wins. The Senate returns in ceremony, the empire remains in fact, and Rumie learns to call obedience tradition.", "Bobei: You kept the Senate's masks.", "Augustus: People fear naked power.", "Old Senator: And what should we call this new arrangement?", "Augustus: Peace.", "Bobei: Empire.", "Augustus: In Rumie, they will learn to mean the same thing."], endDialogueAudio: ["/assets/gauntlet/voices/rumin-ch12-after-01-narrator.mp3", "/assets/gauntlet/voices/rumin-ch12-after-02-bobei.mp3", "/assets/gauntlet/voices/rumin-ch12-after-03-augustus.mp3", "/assets/gauntlet/voices/rumin-ch12-after-04-senator.mp3", "/assets/gauntlet/voices/rumin-ch12-after-05-augustus.mp3", "/assets/gauntlet/voices/rumin-ch12-after-06-bobei.mp3", "/assets/gauntlet/voices/rumin-ch12-after-07-augustus.mp3"] }
   ],
   sheen: [
-    { id: "iron-roots", playableName: "Leafen Gao", opponentName: "Emperor Blackthorn", title: "The Iron Roots", story: "The Obsidian Lords drain the forests through Iron Root outposts while Leafen Gao begins a rebellion among starving villages.", dialogue: ["Leafen Gao: A root that drinks everything is not a root. It is a chain.", "Blackthorn: Chains hold kingdoms together.", "Leafen Gao: Then the forest will break yours."] },
-    { id: "verdant-uprising", playableName: "Leafen Gao and Hushan", opponentName: "The Thorn Guard Commanders", title: "The Verdant Uprising", story: "Hushan joins Leafen as the rebellion spreads against Ironbark, Thornclaw, and Rootlash.", dialogue: ["Hushan: They say this rebellion is doomed.", "Leafen Gao: Seeds are buried before they rise.", "Ironbark: Then we will salt the soil."] },
-    { id: "obsidian-throne", playableName: "Leafen Gao, Hushan, and Leshan", opponentName: "Blackthorn, Lord of Iron", title: "Fall of the Obsidian Throne", story: "Leshan and Dowan collapse the Iron Roots themselves, forcing Blackthorn into one last monstrous stand.", dialogue: ["Leshan: Strike the root, not the branch.", "Blackthorn: I am the root.", "Leafen Gao: Then fall with it."] },
-    { id: "beli-living-city", playableName: "Leafen Gao", opponentName: "The Great Blight", title: "Beli, Living City", story: "The Sheen rebuild, found Beli, and begin the Root Network while a natural blight threatens the new kingdom.", dialogue: ["Leafen Gao: We won a forest. Now we must make it a home.", "Reane: Homes are grown, not declared.", "The Great Blight: All growth returns to hunger."] },
-    { id: "root-network", playableName: "Bark Xin and Dowan", opponentName: "The Ash Serpent", title: "The Root Network", story: "Dowan expands Sheen botanical science with barriers, shields, greenhouses, and trade routes, but the Ash Serpent burns the nodes.", dialogue: ["Dowan: The network must bend before it spreads.", "Bark Xin: And if fire follows the roots?", "Dowan: Then we teach roots to carry rain."] },
-    { id: "blooming-age", playableName: "Reane and Hushan", opponentName: "The Drought King", title: "The Blooming Age", story: "The Sheen enter a golden age of shelters, retreats, springs, and living greenhouses as a desert warlord tests the border.", dialogue: ["Reane: Prosperity is not how much we store. It is how much survives winter.", "Drought King: I bring a longer winter.", "Hushan: Then we bring deeper roots."] },
-    { id: "court-of-blossoms", playableName: "Den", opponentName: "Minister Hollowvine", title: "The Court of Blossoms", story: "Political factions emerge in Beli as Den tries to preserve stability while Aime and Tang rise through the court.", dialogue: ["Den: A court can rot while every garden blooms.", "Hollowvine: Rot feeds the next garden.", "Den: Not while I still prune."] },
-    { id: "the-reformer", playableName: "Tang", opponentName: "Lord Goldroot", title: "The Reformer", story: "Tang sees inequality and stagnation, introduces reforms that truly help, and wins sympathy against corrupt nobles.", dialogue: ["Tang: Tradition has become a fence around empty soil.", "Goldroot: Empty soil is still mine.", "Tang: Not after the roots remember the poor."] },
-    { id: "thorned-crown", playableName: "Tang", opponentName: "Ringan", title: "Thorned Crown", story: "Tang centralizes power and creates the Thornblades, while Ringan, a former ally, tries to stop his imbalance.", dialogue: ["Ringan: You wanted reform. This is control.", "Tang: Control is reform that cannot be bribed.", "Ringan: And cannot be questioned."] },
-    { id: "war-of-roots", playableName: "Dowan, Hushan, and Ringan", opponentName: "The Thornblade Generals", title: "The War of Roots", story: "Civil war burns the forests as shelters are weaponized and the Root Network collapses under Ashroot, Briarfang, and Ironvine.", dialogue: ["Dowan: I built these roads to feed cities.", "Ashroot: Roads also carry armies.", "Hushan: Then we cut the roads and save the roots."] },
-    { id: "fall-of-thorn-mang", playableName: "Dowan and Reane", opponentName: "Tang, Crown of Thorns", title: "Fall of Thorn Mang", story: "Tang realizes too late what his reforms became, then falls as healer, commander, and living thorn avatar.", dialogue: ["Tang: I only wanted the kingdom to live.", "Reane: Then why does it bleed when you speak?", "Tang: Because I mistook pain for pruning."] },
-    { id: "green-era", playableName: "Dowan", opponentName: "The Great Renewal", title: "The Green Era", story: "Dowan restores the Root Network, shelters, healing, greenhouses, and balance after the civil war.", dialogue: ["Dowan: Growth without harmony becomes overgrowth.", "Reane: Tradition without growth becomes ash.", "Dowan: Then wisdom is knowing when to nurture and when to prune."] }
+    { id: "iron-roots", playableName: "Leafen Gao", opponentName: "Emperor Blackthorn", title: "The Iron Roots", story: "The Obsidian Lords drain the forests through Iron Root outposts while Leafen Gao begins a rebellion among starving villages.", dialogue: ["Narrator: Before Beli had a crown, the Obsidian Lords taught the forest to starve.", "Leafen Gao: A root that drinks everything is not a root. It is a chain.", "Blackthorn: Chains hold kingdoms together.", "Leafen Gao: Then the forest will break yours.", "Blackthorn: Break a chain, rebel, and you will learn how much it was holding back."], dialogueAudio: ["/assets/gauntlet/voices/sheen-ch01-before-01-narrator.mp3", "/assets/gauntlet/voices/sheen-ch01-before-02-leafen-gao.mp3", "/assets/gauntlet/voices/sheen-ch01-before-03-blackthorn.mp3", "/assets/gauntlet/voices/sheen-ch01-before-04-leafen-gao.mp3", "/assets/gauntlet/voices/sheen-ch01-before-05-blackthorn.mp3"], endDialogue: ["Narrator: The first Iron Root falls, and the villages remember that hunger can become courage.", "Leafen Gao: Take the grain. Share it before nightfall.", "Blackthorn: You have fed one valley and doomed ten more.", "Leafen Gao: No. I have shown ten valleys where to begin.", "Blackthorn: Then I will teach them what rebellion costs."], endDialogueAudio: ["/assets/gauntlet/voices/sheen-ch01-after-01-narrator.mp3", "/assets/gauntlet/voices/sheen-ch01-after-02-leafen-gao.mp3", "/assets/gauntlet/voices/sheen-ch01-after-03-blackthorn.mp3", "/assets/gauntlet/voices/sheen-ch01-after-04-leafen-gao.mp3", "/assets/gauntlet/voices/sheen-ch01-after-05-blackthorn.mp3"] },
+    { id: "verdant-uprising", playableName: "Leafen Gao and Hushan", opponentName: "The Thorn Guard Commanders", title: "The Verdant Uprising", story: "Hushan joins Leafen as the rebellion spreads against Ironbark, Thornclaw, and Rootlash.", dialogue: ["Narrator: Word of Leafen's victory moves faster than soldiers, and Hushan brings disciplined roots to wild hope.", "Hushan: They say this rebellion is doomed.", "Leafen Gao: Seeds are buried before they rise.", "Ironbark: Then we will salt the soil.", "Hushan: Salt washes away. Roots remember water."], endDialogue: ["Narrator: Thorn Guard banners fall in three valleys, and the uprising becomes a map.", "Ironbark: You cannot command forests with songs.", "Leafen Gao: No. But songs tell forests when to move.", "Hushan: We do not need every tree to fight. Only enough to make the tyrant afraid of shade.", "Ironbark: Then shade will burn."] },
+    { id: "obsidian-throne", playableName: "Leafen Gao, Hushan, and Leshan", opponentName: "Blackthorn, Lord of Iron", title: "Fall of the Obsidian Throne", story: "Leshan and Dowan collapse the Iron Roots themselves, forcing Blackthorn into one last monstrous stand.", dialogue: ["Narrator: Leshan and Dowan find the hidden roots beneath Blackthorn's throne, where every stolen harvest has been counted.", "Leshan: Strike the root, not the branch.", "Blackthorn: I am the root.", "Leafen Gao: Then fall with it.", "Blackthorn: Without me, the forest will devour itself."], endDialogue: ["Narrator: Blackthorn falls, and the Obsidian Throne cracks like winter bark.", "Leafen Gao: No lord will drink the forest dry again.", "Leshan: Then we must become more than rebels.", "Hushan: Rebellion cuts. A kingdom must heal.", "Leafen Gao: Then we begin with living soil, not stone."] },
+    { id: "beli-living-city", playableName: "Leafen Gao", opponentName: "The Great Blight", title: "Beli, Living City", story: "The Sheen rebuild, found Beli, and begin the Root Network while a natural blight threatens the new kingdom.", dialogue: ["Narrator: The Sheen found Beli as a city grown from oath, root, and shelter.", "Leafen Gao: We won a forest. Now we must make it a home.", "Reane: Homes are grown, not declared.", "The Great Blight: All growth returns to hunger.", "Leafen Gao: Then hunger will find us planted together."], endDialogue: ["Narrator: Beli survives its first sickness, and the city learns that care can be a defense.", "Reane: The blight did not vanish. It retreated.", "Leafen Gao: Then we watch the soil.", "The Great Blight: Watch. Worry. Wither. I am patient.", "Reane: So are forests."] },
+    { id: "root-network", playableName: "Bark Xin and Dowan", opponentName: "The Ash Serpent", title: "The Root Network", story: "Dowan expands Sheen botanical science with barriers, shields, greenhouses, and trade routes, but the Ash Serpent burns the nodes.", dialogue: ["Narrator: Dowan begins the Root Network, binding distant shelters through living paths beneath the earth.", "Dowan: The network must bend before it spreads.", "Bark Xin: And if fire follows the roots?", "Dowan: Then we teach roots to carry rain.", "Ash Serpent: Rain becomes steam. Roots become smoke."], endDialogue: ["Narrator: The first firebreak blooms, and the Root Network learns to survive attack.", "Bark Xin: The burned nodes are already budding.", "Dowan: A network is not one root. That is why it lives.", "Ash Serpent: I will find the heart.", "Dowan: You misunderstand us. We are learning not to have one."] },
+    { id: "blooming-age", playableName: "Reane and Hushan", opponentName: "The Drought King", title: "The Blooming Age", story: "The Sheen enter a golden age of shelters, retreats, springs, and living greenhouses as a desert warlord tests the border.", dialogue: ["Narrator: Beli enters its blooming age, and prosperity spreads through shelters, springs, and greenhouses.", "Reane: Prosperity is not how much we store. It is how much survives winter.", "Drought King: I bring a longer winter.", "Hushan: Then we bring deeper roots.", "Drought King: Roots crack when the world forgets rain."], endDialogue: ["Narrator: The Drought King's army breaks at the living springs, and Beli's borders flower instead of harden.", "Reane: Water belongs to need, not conquest.", "Hushan: The border villages will have reservoirs by autumn.", "Drought King: Mercy makes soft kingdoms.", "Reane: Mercy made this one hard to kill."] },
+    { id: "court-of-blossoms", playableName: "Den", opponentName: "Minister Hollowvine", title: "The Court of Blossoms", story: "Political factions emerge in Beli as Den tries to preserve stability while Aime and Tang rise through the court.", dialogue: ["Narrator: In peace, Beli grows a court, and every blossom learns the shadow of ambition.", "Den: A court can rot while every garden blooms.", "Hollowvine: Rot feeds the next garden.", "Den: Not while I still prune.", "Hollowvine: Prune too much and you become the knife, not the gardener."], endDialogue: ["Narrator: Hollowvine is exposed, but the Court of Blossoms has learned how quietly poison travels.", "Den: Remove his seal. Leave his records.", "Hollowvine: You will read them and find half the court inside.", "Den: Then half the court will answer.", "Hollowvine: Careful, Den. Roots tangle below every throne."] },
+    { id: "the-reformer", playableName: "Tang", opponentName: "Lord Goldroot", title: "The Reformer", story: "Tang sees inequality and stagnation, introduces reforms that truly help, and wins sympathy against corrupt nobles.", dialogue: ["Narrator: Tang rises from the court with reform in his hands and anger beneath his patience.", "Tang: Tradition has become a fence around empty soil.", "Goldroot: Empty soil is still mine.", "Tang: Not after the roots remember the poor.", "Goldroot: The poor need shade, not power."], endDialogue: ["Narrator: Goldroot's estates open, and Tang becomes the voice of those Beli forgot.", "Tang: Every storehouse will answer to the hunger around it.", "Goldroot: You call seizure justice because applause makes it warm.", "Tang: I call it justice because children will eat tonight.", "Goldroot: Tonight is not a constitution."] },
+    { id: "thorned-crown", playableName: "Tang", opponentName: "Ringan", title: "Thorned Crown", story: "Tang centralizes power and creates the Thornblades, while Ringan, a former ally, tries to stop his imbalance.", dialogue: ["Narrator: Tang's reforms harden into command, and the Thornblades rise where councils once argued.", "Ringan: You wanted reform. This is control.", "Tang: Control is reform that cannot be bribed.", "Ringan: And cannot be questioned.", "Tang: Questions are how the hungry are delayed."], endDialogue: ["Narrator: Ringan retreats, and Tang takes the thorned crown no one officially offered.", "Ringan: You are protecting the people from their own voices.", "Tang: I am protecting them from the voices that purchase them.", "Ringan: You have made distrust into law.", "Tang: I have made weakness answerable."] },
+    { id: "war-of-roots", playableName: "Dowan, Hushan, and Ringan", opponentName: "The Thornblade Generals", title: "The War of Roots", story: "Civil war burns the forests as shelters are weaponized and the Root Network collapses under Ashroot, Briarfang, and Ironvine.", dialogue: ["Narrator: Civil war reaches the Root Network, and the roads built for bread begin carrying blades.", "Dowan: I built these roads to feed cities.", "Ashroot: Roads also carry armies.", "Hushan: Then we cut the roads and save the roots.", "Briarfang: Cut them, and the cities starve for your conscience."], endDialogue: ["Narrator: The Thornblade generals fall, but every victory severs another living path.", "Dowan: We saved the nodes by burning the bridges between them.", "Hushan: Better wounded roots than captured ones.", "Ringan: Do not comfort yourselves. We are pruning a kingdom with fire.", "Dowan: Then we remember every branch we took."] },
+    { id: "fall-of-thorn-mang", playableName: "Dowan and Reane", opponentName: "Tang, Crown of Thorns", title: "Fall of Thorn Mang", story: "Tang realizes too late what his reforms became, then falls as healer, commander, and living thorn avatar.", dialogue: ["Narrator: Tang waits at Thorn Mang, where reform, fear, and living thorn have become one body.", "Tang: I only wanted the kingdom to live.", "Reane: Then why does it bleed when you speak?", "Tang: Because I mistook pain for pruning.", "Dowan: Then let the wound close before the whole forest scars."], endDialogue: ["Narrator: Tang falls, and for a moment even the thorns seem relieved.", "Tang: Was I wrong from the beginning?", "Reane: No. That is why this hurts.", "Dowan: Good roots can still strangle when they forget light.", "Tang: Then teach them better than I did."] },
+    { id: "green-era", playableName: "Dowan", opponentName: "The Great Renewal", title: "The Green Era", story: "Dowan restores the Root Network, shelters, healing, greenhouses, and balance after the civil war.", dialogue: ["Narrator: After civil war, Dowan faces the hardest enemy left: rebuilding without repeating the wound.", "Dowan: Growth without harmony becomes overgrowth.", "Reane: Tradition without growth becomes ash.", "Dowan: Then wisdom is knowing when to nurture and when to prune.", "The Great Renewal: All new growth must decide what old roots deserve to remain."], endDialogue: ["Narrator: The Root Network blooms again, slower now, wiser for every scar beneath it.", "Dowan: No single root will rule the forest.", "Reane: And no old branch will be kept only because it is old.", "The Great Renewal: Then Beli is not restored. It is changed.", "Dowan: That is how living things endure."] }
   ],
   frumo: [
     { id: "tax-of-tides", playableName: "Lafayette", opponentName: "Royal Tax Collector", title: "The Tax of the Tides", story: "King Ludvik's tribute fleets bleed Ristus while royal collectors seize treasure from every captain and family.", dialogue: ["Lafayette: The sea gives enough for all Frumo.", "Tax Collector: Then all Frumo can pay the king.", "Lafayette: The tide is turning against your vaults."] },
@@ -1083,6 +1083,111 @@ const CAMPAIGN_METADATA = {
   xendra: { commanderName: "The Deep Currents", pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual." }
 };
 
+const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
+  sheen: {
+    narrator: {
+      name: "Sheen Narrator",
+      role: "Mythic campaign narrator",
+      description: "A calm, reflective voice that treats the Sheen story like a forest history told after many generations. The narrator should feel wise rather than dramatic, carrying both wonder and grief as the campaign moves from rebellion to renewal."
+    },
+    leafenGao: {
+      name: "Leafen Gao",
+      role: "Founder-rebel of Beli",
+      description: "Leafen Gao begins as a gentle revolutionary who refuses to let hunger become normal. He is patient, soft-spoken, and deeply rooted in compassion, but his calm hides extraordinary resolve. In the early campaign he gives the Sheen their moral center: resistance is justified only if it grows into shelter, food, and a livable kingdom."
+    },
+    emperorBlackthorn: {
+      name: "Emperor Blackthorn",
+      role: "Obsidian tyrant",
+      description: "Blackthorn is the ruler of the Obsidian Lords, an imperial figure who believes extraction, fear, and hierarchy are the only forces strong enough to keep the forest from chaos. He should feel cold, old, and immovable, like iron grown through living roots. He is not frantic; he is certain."
+    },
+    hushan: {
+      name: "Hushan",
+      role: "Disciplined rebel commander",
+      description: "Hushan gives Leafen's uprising structure. Where Leafen inspires, Hushan organizes, protects, and makes hard battlefield decisions. He should sound grounded and dependable, with a soldier's economy of words and a guardian's concern for the villages under his care."
+    },
+    ironbark: {
+      name: "Ironbark",
+      role: "Thorn Guard enforcer",
+      description: "Ironbark represents Blackthorn's military order: blunt, punitive, and contemptuous of rebellion. He is less philosophical than Blackthorn and more immediately threatening, the kind of commander who believes burning one valley can keep ten obedient."
+    },
+    leshan: {
+      name: "Leshan",
+      role: "Strategist of the Obsidian rebellion",
+      description: "Leshan is a quiet tactical mind who sees systems beneath symbols. She understands that defeating Blackthorn requires attacking the hidden machinery of power, not merely winning battles. Her voice should be precise, restrained, and quietly brave."
+    },
+    reane: {
+      name: "Reane",
+      role: "Healer and civic philosopher",
+      description: "Reane embodies Sheen care at its most mature. She is a healer, builder, and moral critic who understands that homes, laws, and traditions must be grown with attention. Her warmth should never sound weak; she is often the character who sees the wound before the warriors do."
+    },
+    greatBlight: {
+      name: "The Great Blight",
+      role: "Ancient hunger in the soil",
+      description: "The Great Blight is less a villain than a living pressure: disease, scarcity, and decay given voice. It should sound slow, patient, and unsettling, as if it has watched forests rise and rot many times before. It opposes the Sheen by making survival itself uncertain."
+    },
+    dowan: {
+      name: "Dowan",
+      role: "Root Network architect",
+      description: "Dowan is an engineer-scientist of living systems, responsible for turning Sheen ideals into infrastructure. He is curious, careful, and humane, but the civil war forces him to face how any network can be captured or weaponized. His voice should be thoughtful, analytical, and quietly burdened."
+    },
+    barkXin: {
+      name: "Bark Xin",
+      role: "Practical defender of the network",
+      description: "Bark Xin is a field guardian who tests Dowan's ideas against danger. He is cautious without being cowardly, practical without being cynical, and often asks the question that keeps invention from becoming fantasy."
+    },
+    ashSerpent: {
+      name: "The Ash Serpent",
+      role: "Destroyer of the Root Network",
+      description: "The Ash Serpent is wildfire with intent. It should feel dry, hissing, and predatory, a force that mocks the Sheen belief that every system can bend and survive. Its purpose is to test whether the Root Network is truly resilient."
+    },
+    droughtKing: {
+      name: "The Drought King",
+      role: "Border warlord of scarcity",
+      description: "The Drought King is a severe ruler shaped by barren lands. He sees mercy as softness and abundance as something to seize before it disappears. His voice should be proud, harsh, and sun-baked, but not foolish; he is what survival looks like without compassion."
+    },
+    den: {
+      name: "Den",
+      role: "Guardian of court stability",
+      description: "Den is a courtly stabilizer who understands that peace creates its own dangers. He is diplomatic, suspicious, and careful with power. He should sound controlled and observant, like someone pruning corruption before it becomes visible from the road."
+    },
+    hollowvine: {
+      name: "Minister Hollowvine",
+      role: "Court manipulator",
+      description: "Hollowvine is rot with manners. He believes corruption is not a failure of politics but one of its natural nutrients. His voice should be smooth, patient, and poisonous, the kind of person who makes decay sound practical."
+    },
+    tang: {
+      name: "Tang",
+      role: "Reformer turned thorn-crowned ruler",
+      description: "Tang begins with real compassion for the poor and real anger at stagnant elites. His tragedy is that he increasingly treats opposition as sabotage and delay as cruelty. He should start earnest and wounded, then become sharper, more commanding, and more isolated as reform hardens into control."
+    },
+    goldroot: {
+      name: "Lord Goldroot",
+      role: "Aristocrat of inherited shelter",
+      description: "Goldroot is the voice of comfortable tradition. He does not think of himself as evil; he thinks order belongs to those who already own it. His voice should be entitled, polished, and dismissive, with flashes of fear when Tang proves popular."
+    },
+    ringan: {
+      name: "Ringan",
+      role: "Former ally and principled dissenter",
+      description: "Ringan once believed in Tang's reforms, which makes his opposition personal and painful. He represents the line between justice and control. His voice should carry grief, frustration, and courage rather than simple hostility."
+    },
+    ashroot: {
+      name: "Ashroot",
+      role: "Thornblade general",
+      description: "Ashroot is the military face of Tang's hardened reforms. He sees roads, shelters, and networks as strategic assets first and civic promises second. His voice should be severe and efficient."
+    },
+    briarfang: {
+      name: "Briarfang",
+      role: "Thornblade general",
+      description: "Briarfang is a sharper, more mocking Thornblade commander who understands the moral leverage of necessity. He should sound like someone who knows cutting supply lines will hurt civilians and uses that fact as a weapon."
+    },
+    greatRenewal: {
+      name: "The Great Renewal",
+      role: "Spirit of postwar restoration",
+      description: "The Great Renewal is the sacred pressure of regrowth after catastrophe. It is not sentimental; it asks what deserves to remain and what must be transformed. The voice should feel ancient, green, and impersonal, like a forest speaking in seasons."
+    }
+  }
+};
+
 const DECK_RULES = {
   basePlayingDeckSize: BASE_PLAYING_DECK_SIZE,
   playingDeckValues: PLAYING_DECK_VALUES,
@@ -1207,6 +1312,7 @@ function getPublicGameContent() {
       factionName: factionsData[factionId].name,
       commanderName: CAMPAIGN_METADATA[factionId].commanderName,
       pitch: CAMPAIGN_METADATA[factionId].pitch,
+      characters: CAMPAIGN_CHARACTER_DESCRIPTIONS[factionId] || {},
       chapters: chapters.map((chapter) => ({ ...chapter, ...(CAMPAIGN_NARRATION[chapter.id] || {}) }))
     }
   ]));
@@ -1227,6 +1333,7 @@ validateGameContent();
 module.exports = {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
+  CAMPAIGN_CHARACTER_DESCRIPTIONS,
   CAMPAIGN_NARRATION,
   COLLECTOR_VARIANT_MECHANICAL_FIELDS,
   COLLECTOR_VARIANT_SCHEMA_VERSION,
