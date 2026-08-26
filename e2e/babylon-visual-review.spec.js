@@ -292,48 +292,55 @@ async function pageWithBottomAction(pages, pattern) {
 }
 
 async function waitForMotionRole(page, role) {
-  const match = page.getByTestId("production-babylon-match");
-  return match.evaluate((element, { expectedRole, timeoutMs }) => new Promise((resolve, reject) => {
-    let timer = null;
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  return canvas.evaluate((element, { expectedRole, timeoutMs }) => new Promise((resolve, reject) => {
+    const captureControl = element.__gauntletCaptureControl;
+    if (typeof captureControl?.snapshot !== "function") {
+      reject(new Error(`The Babylon renderer-frame capture control is unavailable for ${expectedRole}.`));
+      return;
+    }
+    let frameRequest = null;
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      if (frameRequest != null) cancelAnimationFrame(frameRequest);
+      clearTimeout(timer);
+      callback(value);
+    };
     const observedDiagnostics = () => {
       try {
-        const roles = JSON.parse(element.getAttribute("data-active-motions-by-role") || "{}");
+        const metrics = captureControl.snapshot() || {};
+        const roles = metrics.activeMotionsByRole || {};
         return {
           observedMotionRole: expectedRole,
           observedAtMs: performance.now(),
           activeCount: Number(roles[expectedRole] || 0),
-          activeTransitionCount: Number(element.dataset.activeTransitionCount || 0),
+          activeTransitionCount: Number(metrics.activeTransitionCount || 0),
           activeMotionsByRole: roles,
-          activeMotionPaths: JSON.parse(element.dataset.activeMotionPaths || "[]"),
-          actorsByZone: JSON.parse(element.dataset.actorsByZone || "{}"),
-          activeEventType: element.dataset.activeEventType || null,
-          cadenceTier: element.dataset.cadenceTier || "rest",
-          focusRegion: element.dataset.focusRegion || "board"
+          activeMotionPaths: metrics.activeMotionPaths || [],
+          actorsByZone: metrics.actorsByZone || {},
+          activeEventType: metrics.activeEventType || null,
+          focusRegion: metrics.boardPresentation?.focus?.region || null,
+          rendererRevision: metrics.revision ?? null,
+          rendererFrameSnapshot: true
         };
       } catch {
         return { activeCount: 0 };
       }
     };
-    const observer = new MutationObserver(() => {
+    const sample = () => {
       const diagnostics = observedDiagnostics();
-      if (diagnostics.activeCount <= 0) return;
-      observer.disconnect();
-      clearTimeout(timer);
-      resolve(diagnostics);
-    });
-    const initialDiagnostics = observedDiagnostics();
-    if (initialDiagnostics.activeCount > 0) {
-      resolve(initialDiagnostics);
-      return;
-    }
-    observer.observe(element, {
-      attributes: true,
-      attributeFilter: ["data-active-motions-by-role"]
-    });
-    timer = setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`Timed out waiting for ${expectedRole} motion.`));
+      if (diagnostics.activeCount > 0) {
+        finish(resolve, diagnostics);
+        return;
+      }
+      frameRequest = requestAnimationFrame(sample);
+    };
+    const timer = setTimeout(() => {
+      finish(reject, new Error(`Timed out waiting for ${expectedRole} motion in renderer-frame metrics.`));
     }, timeoutMs);
+    sample();
   }), { expectedRole: role, timeoutMs: 8000 });
 }
 
@@ -840,17 +847,22 @@ test("capture real live and replay match presentation states", async ({ browser,
   await expect(currentAction(laneDefender)).toContainText(/attacked from Lane 1.*may block or decline/i);
   const laneDiscardMotionReady = waitForMotionRole(laneDefender, "discard-exit");
   const mobileDamageEventReady = waitForActiveEvent(mobileSpectator.page, "damage.calculated");
-  const mobileDiscardMotionReady = waitForMotionRole(mobileSpectator.page, "discard-exit");
+  const mobileDiscardCaptureReady = waitForMotionRole(mobileSpectator.page, "discard-exit")
+    .then((observedMobileDiscard) => pageMotionCapture(
+      mobileSpectator.page,
+      manifest,
+      "mobile-combat-motion",
+      80,
+      VIEWPORTS[4],
+      "phone-landscape-motion",
+      observedMobileDiscard
+    ));
   await currentAction(laneDefender).getByRole("button", { name: "Take Damage" }).click();
-  await Promise.all([laneDiscardMotionReady, mobileDamageEventReady, mobileDiscardMotionReady]);
-  await pageMotionCapture(
-    mobileSpectator.page,
-    manifest,
-    "mobile-combat-motion",
-    80,
-    VIEWPORTS[4],
-    "phone-landscape-motion"
-  );
+  await Promise.all([
+    laneDiscardMotionReady,
+    mobileDamageEventReady,
+    mobileDiscardCaptureReady
+  ]);
   await pageMotionCapture(laneDefender, manifest, "lane-damage-resolution", 100);
   await pageMotionCapture(laneDefender, manifest, "lane-discard-departure", 120);
   await waitForPlaybackSettled(laneDefender);
