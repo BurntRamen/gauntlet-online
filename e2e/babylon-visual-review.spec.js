@@ -438,6 +438,71 @@ function expectedLayoutProfile(viewport) {
   return "desktop";
 }
 
+async function captureLiveSceneSample(page) {
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  return canvas.evaluate((element) => {
+    const match = element.closest('[data-testid="production-babylon-match"]');
+    const captureControl = element.__gauntletCaptureControl;
+    if (!match) throw new Error("The Babylon match root is unavailable for capture diagnostics.");
+    if (!captureControl?.snapshot) {
+      throw new Error("The Babylon renderer snapshot control is unavailable for capture diagnostics.");
+    }
+    return {
+      rendererMetrics: captureControl.snapshot(),
+      attributes: {
+        sceneContract: match.dataset.sceneContract || null,
+        matchId: match.dataset.matchId || null,
+        revision: Number(match.dataset.revision || 0),
+        boardModuleCount: Number(match.dataset.boardModuleCount || 0),
+        duplicateVisibleIdentityCount: Number(match.dataset.duplicateVisibleIdentityCount || 0),
+        structuralCompositeRasterCount: Number(match.dataset.structuralCompositeRasterCount || 0),
+        actorCount: Number(match.dataset.cardActorCount || 0),
+        actorsByZone: JSON.parse(match.dataset.actorsByZone || "{}"),
+        knownActorCount: Number(match.dataset.knownActorCount || 0),
+        anonymousActorCount: Number(match.dataset.anonymousActorCount || 0),
+        departingActorCount: Number(match.dataset.departingActorCount || 0),
+        activeTransitionCount: Number(match.dataset.activeTransitionCount || 0),
+        activeMotionsByRole: JSON.parse(match.dataset.activeMotionsByRole || "{}"),
+        activeMotionPaths: JSON.parse(match.dataset.activeMotionPaths || "[]"),
+        queuedTransitionCount: Number(match.dataset.queuedTransitionCount || 0),
+        activeEffects: Number(match.dataset.activeEffects || 0),
+        activeEventType: match.dataset.activeEventType || null,
+        playbackCatchingUp: match.dataset.playbackCatchingUp === "true",
+        playbackQueuedFrames: Number(match.dataset.playbackQueuedFrames || 0),
+        rulesVersion: match.dataset.rulesVersion || null,
+        ruleset: match.dataset.ruleset || null,
+        reducedMotion: match.classList.contains("reduced-motion")
+          || window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        layoutProfile: match.dataset.layoutProfile || null,
+        focusRegion: match.dataset.focusRegion || null,
+        canvasWidth: element.clientWidth,
+        canvasHeight: element.clientHeight
+      }
+    };
+  });
+}
+
+function liveSceneSampleIsSettled(sample) {
+  const renderer = sample?.rendererMetrics || {};
+  const playback = sample?.attributes || {};
+  const activeMotions = Object.values(renderer.activeMotionsByRole || {})
+    .reduce((total, count) => total + Number(count || 0), 0);
+  return (
+    playback.playbackCatchingUp === false
+    && playback.playbackQueuedFrames === 0
+    && !playback.activeEventType
+    && !renderer.activeEventType
+    && !renderer.activeEffectEventType
+    && Number(renderer.activeEffects || 0) === 0
+    && Number(renderer.activeTransitionCount || 0) === 0
+    && Number(renderer.queuedTransitionCount || 0) === 0
+    && Number(renderer.departingActorCount || 0) === 0
+    && activeMotions === 0
+    && renderer.matchId === playback.matchId
+    && Number(renderer.revision || 0) === Number(playback.revision || 0)
+  );
+}
+
 async function setReviewViewport(page, viewport) {
   await page.setViewportSize(viewport);
   const canvas = page.locator("canvas.babylon-match-canvas");
@@ -449,8 +514,9 @@ async function setReviewViewport(page, viewport) {
     width: element.clientWidth,
     height: element.clientHeight
   }));
-  await expect(page.getByTestId("production-babylon-match"))
-    .toHaveAttribute("data-layout-profile", expectedLayoutProfile(surface), { timeout: 10000 });
+  await expect.poll(async () => (
+    await captureLiveSceneSample(page)
+  ).rendererMetrics?.layoutProfile, { timeout: 10000 }).toBe(expectedLayoutProfile(surface));
 }
 
 async function expectNativeSceneDiagnostics(page) {
@@ -463,20 +529,15 @@ async function expectNativeSceneDiagnostics(page) {
 }
 
 async function waitForPlaybackSettled(page) {
-  const match = page.getByTestId("production-babylon-match");
-  await expect(match).toHaveAttribute("data-active-event-type", "", { timeout: 20000 });
   await expect.poll(async () => {
-    const state = await match.evaluate((element) => ({
-      active: Number(element.dataset.activeTransitionCount || 0),
-      queued: Number(element.dataset.queuedTransitionCount || 0),
-      departing: Number(element.dataset.departingActorCount || 0),
-      motions: Object.values(JSON.parse(element.dataset.activeMotionsByRole || "{}"))
-        .reduce((total, count) => total + Number(count || 0), 0)
-    }));
-    return state.active + state.queued + state.departing + state.motions;
-  }, { timeout: 20000 }).toBe(0);
-  await page.waitForTimeout(120);
-  await expect(match).toHaveAttribute("data-active-event-type", "");
+    const first = await captureLiveSceneSample(page);
+    if (!liveSceneSampleIsSettled(first)) return false;
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+    const second = await captureLiveSceneSample(page);
+    return liveSceneSampleIsSettled(second)
+      && second.rendererMetrics.matchId === first.rendererMetrics.matchId
+      && Number(second.rendererMetrics.revision || 0) === Number(first.rendererMetrics.revision || 0);
+  }, { timeout: 20000 }).toBe(true);
 }
 
 function mergeRendererDiagnostics(attributes, rendererMetrics) {
@@ -508,45 +569,26 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
     queuedTransitionCount: rendererValue("queuedTransitionCount", attributes.queuedTransitionCount),
     activeEffects: rendererValue("activeEffects", attributes.activeEffects),
     activeEventType: rendererValue("activeEventType", attributes.activeEventType),
+    activeEffectEventType: rendererValue("activeEffectEventType", null),
     rulesVersion: rendererValue("rulesVersion", attributes.rulesVersion),
     layoutProfile: rendererValue("layoutProfile", attributes.layoutProfile),
     focusRegion: Object.prototype.hasOwnProperty.call(rendererMetrics, "boardPresentation")
       ? rendererMetrics.boardPresentation?.focus?.region || null
       : attributes.focusRegion,
     rendererRevision: rendererValue("revision", null),
+    rootRevision: attributes.revision,
+    playbackCatchingUp: attributes.playbackCatchingUp,
+    playbackQueuedFrames: attributes.playbackQueuedFrames,
     rendererFrameSnapshot: true
   };
 }
 
 async function captureDiagnostics(page, rendererMetrics = null) {
-  const match = page.getByTestId("production-babylon-match");
-  const attributes = await match.evaluate((element) => ({
-    sceneContract: element.dataset.sceneContract || null,
-    matchId: element.dataset.matchId || null,
-    boardModuleCount: Number(element.dataset.boardModuleCount || 0),
-    duplicateVisibleIdentityCount: Number(element.dataset.duplicateVisibleIdentityCount || 0),
-    structuralCompositeRasterCount: Number(element.dataset.structuralCompositeRasterCount || 0),
-    actorCount: Number(element.dataset.cardActorCount || 0),
-    actorsByZone: JSON.parse(element.dataset.actorsByZone || "{}"),
-    knownActorCount: Number(element.dataset.knownActorCount || 0),
-    anonymousActorCount: Number(element.dataset.anonymousActorCount || 0),
-    departingActorCount: Number(element.dataset.departingActorCount || 0),
-    activeTransitionCount: Number(element.dataset.activeTransitionCount || 0),
-    activeMotionsByRole: JSON.parse(element.dataset.activeMotionsByRole || "{}"),
-    activeMotionPaths: JSON.parse(element.dataset.activeMotionPaths || "[]"),
-    queuedTransitionCount: Number(element.dataset.queuedTransitionCount || 0),
-    activeEffects: Number(element.dataset.activeEffects || 0),
-    activeEventType: element.dataset.activeEventType || null,
-    rulesVersion: element.dataset.rulesVersion || null,
-    ruleset: element.dataset.ruleset || null,
-    reducedMotion: element.classList.contains("reduced-motion")
-      || window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    layoutProfile: element.dataset.layoutProfile || null,
-    focusRegion: element.dataset.focusRegion || null,
-    canvasWidth: element.querySelector("canvas.babylon-match-canvas")?.clientWidth || 0,
-    canvasHeight: element.querySelector("canvas.babylon-match-canvas")?.clientHeight || 0
-  }));
-  const diagnostics = mergeRendererDiagnostics(attributes, rendererMetrics);
+  const sample = await captureLiveSceneSample(page);
+  const diagnostics = mergeRendererDiagnostics(
+    sample.attributes,
+    rendererMetrics || sample.rendererMetrics
+  );
   expect(diagnostics.sceneContract).toBe("gauntlet.board-stage.native.v1");
   expect(diagnostics.boardModuleCount).toBe(10);
   expect(diagnostics.duplicateVisibleIdentityCount).toBe(0);
@@ -593,6 +635,10 @@ async function captureState(page, manifest, id, viewports = VIEWPORTS) {
     await setReviewViewport(page, viewport);
     await page.waitForTimeout(80);
     const diagnostics = await captureDiagnostics(page);
+    expect(diagnostics.layoutProfile).toBe(expectedLayoutProfile({
+      width: diagnostics.canvasWidth,
+      height: diagnostics.canvasHeight
+    }));
     const file = `${id}--${viewport.id}.jpg`;
     const capturePath = path.join(OUTPUT_DIRECTORY, file);
     if (fs.existsSync(capturePath)) throw new Error(`Duplicate Babylon review capture path: ${file}`);

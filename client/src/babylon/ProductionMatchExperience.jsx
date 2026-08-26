@@ -1578,6 +1578,8 @@ export default function ProductionMatchExperience({
       data-queued-transition-count={sceneMetrics?.queuedTransitionCount ?? ""}
       data-active-effects={sceneMetrics?.activeEffects ?? ""}
       data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
+      data-playback-catching-up={playbackState.catchingUp ? "true" : "false"}
+      data-playback-queued-frames={playbackState.queuedFrames}
       data-cadence-tier={canvasViewModel?.presentationCues?.[0]?.cadence?.tier || "rest"}
       data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
