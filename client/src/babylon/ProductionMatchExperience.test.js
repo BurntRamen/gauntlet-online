@@ -248,6 +248,60 @@ test("coalesces payment with attack, then presents the next combat beat and feed
   jest.useRealTimers();
 });
 
+test("keeps spectator guidance neutral while presentation playback resolves", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const spectatorViewModel = {
+    ...createViewModel(),
+    instruction: "Player 1 has priority.",
+    perspective: { player: null, spectator: true }
+  };
+  const initialUpdate = {
+    source: "live",
+    connected: true,
+    viewModel: spectatorViewModel,
+    commands: {},
+    privacy: { required: false, player: null }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  const spectatorPanel = screen.getByText("Spectator view").closest("section");
+  expect(within(spectatorPanel).getByText("Player 1 has priority.")).toBeVisible();
+
+  const damageEvent = {
+    id: "spectator-damage-5",
+    type: "damage.calculated",
+    attackId: "attack-5",
+    damage: 8
+  };
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [damageEvent],
+    viewModel: {
+      ...spectatorViewModel,
+      revision: 5,
+      instruction: "Player 2 has priority.",
+      events: [damageEvent]
+    }
+  }));
+
+  expect(within(spectatorPanel).getByText("Watching the current action resolve.")).toBeVisible();
+  expect(within(spectatorPanel).queryByText(/Player null/)).not.toBeInTheDocument();
+  act(() => jest.runAllTimers());
+  expect(within(spectatorPanel).getByText("Player 2 has priority.")).toBeVisible();
+  jest.useRealTimers();
+});
+
 test("holds the result modal until the terminal cadence reaches final reconcile", async () => {
   jest.useFakeTimers();
   let publish;

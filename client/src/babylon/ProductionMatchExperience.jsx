@@ -440,7 +440,7 @@ function PlayerPlate({
   );
 }
 
-function ContextActions({ viewModel, commands, connected }) {
+function ContextActions({ viewModel, commands, connected, resolving = false }) {
   const spectator = viewModel?.perspective?.spectator;
   const interactions = viewModel?.interactions || {};
   const hasSelection = !!(
@@ -468,7 +468,7 @@ function ContextActions({ viewModel, commands, connected }) {
     return (
       <section className="production-context-panel spectator">
         <strong>Spectator view</strong>
-        <span>{viewModel?.instruction || "Watching the match."}</span>
+        <span>{resolving ? "Watching the current action resolve." : viewModel?.instruction || "Watching the match."}</span>
       </section>
     );
   }
@@ -1618,7 +1618,12 @@ export default function ProductionMatchExperience({
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
         />
         <FactionActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
-        <ContextActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
+        <ContextActions
+          viewModel={presentedViewModel}
+          commands={interactionCommands}
+          connected={transportUpdate?.connected !== false && !playbackState.inputLocked}
+          resolving={playbackState.catchingUp}
+        />
         {update?.controls && (
           <MatchUtilities
             viewModel={presentedViewModel}

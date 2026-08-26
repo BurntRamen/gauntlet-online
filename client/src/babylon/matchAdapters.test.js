@@ -864,6 +864,8 @@ test("live spectator uses the Babylon engine view without receiving actions or p
 
   expect(update.viewModel.perspective.spectator).toBe(true);
   expect(update.viewModel.hand).toHaveLength(0);
+  expect(update.viewModel.instruction).toBe(`Player ${state.priority} has priority.`);
+  expect(update.viewModel.instruction).not.toContain("null");
   expect(update.diagnostics.legalActions).toHaveLength(0);
   const result = await adapter.dispatch({ type: "passPriority" });
   expect(result.rejection.code).toBe("SPECTATOR_READ_ONLY");

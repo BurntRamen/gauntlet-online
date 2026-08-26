@@ -611,6 +611,16 @@ export class LocalDuelAdapter {
   instruction() {
     const values = this.selectionValues();
     if (this.notice && this.includeNoticeInInstruction()) return this.notice;
+    const spectator = this.role === "spectator" || !this.perspective;
+    if (spectator) {
+      if (this.game.phase === "priority" && !activeAttack(this.game)) {
+        const priority = Number(this.game.priority);
+        return Number.isInteger(priority) && priority > 0
+          ? `Player ${priority} has priority.`
+          : "Watching for the next priority decision.";
+      }
+      return this.game.message || "Watching the match.";
+    }
     if (this.controller !== this.perspective) return `Viewing Player ${this.perspective}.`;
     if (this.game.phase === "end" && this.selection.kind !== "placement") {
       const actor = currentPlacementPlayer(this.game);
