@@ -291,13 +291,19 @@ async function pageWithBottomAction(pages, pattern) {
   return pages[matchingIndex];
 }
 
-async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 } = {}) {
+async function waitForMotionRole(
+  page,
+  role,
+  { latch = false, latchDelayMs = 0, latchProgress = null, eventType = null } = {}
+) {
   const canvas = page.locator("canvas.babylon-match-canvas");
   return canvas.evaluate((element, {
     expectedRole,
     timeoutMs,
     shouldLatch,
-    requestedLatchDelayMs
+    requestedLatchDelayMs,
+    requestedLatchProgress,
+    requiredEventType
   }) => new Promise((resolve, reject) => {
     const captureControl = element.__gauntletCaptureControl;
     if (typeof captureControl?.snapshot !== "function") {
@@ -316,15 +322,39 @@ async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 }
     };
     const observedDiagnostics = (metrics = {}) => {
       const roles = metrics.activeMotionsByRole || {};
+      const activeEventId = metrics.activeEventId || null;
+      const activeEventType = metrics.activeEventType || null;
+      const eventMatches = !requiredEventType || (
+        activeEventType === requiredEventType && Boolean(activeEventId)
+      );
+      const rolePaths = eventMatches
+        ? (metrics.activeMotionPaths || []).filter((motion) => (
+            motion.role === expectedRole
+            && (!requiredEventType || motion.sourceEventId === activeEventId)
+          ))
+        : [];
       return {
         observedMotionRole: expectedRole,
         observedAtMs: performance.now(),
-        activeCount: Number(roles[expectedRole] || 0),
+        activeCount: rolePaths.length,
         activeTransitionCount: Number(metrics.activeTransitionCount || 0),
         activeMotionsByRole: roles,
         activeMotionPaths: metrics.activeMotionPaths || [],
+        motionProgress: Math.max(0, ...rolePaths.map((motion) => Number(motion.progress || 0))),
+        matchedMotionActorIds: rolePaths.map((motion) => motion.actorId),
+        matchedMotionOccurrenceIds: rolePaths.map((motion) => motion.occurrenceId),
+        matchedMotionSourceEventIds: rolePaths.map((motion) => motion.sourceEventId),
+        motionMatchPolicy: requiredEventType
+          ? "role-source-event-identity"
+          : "any-active-role-actor",
+        requiredEventType,
+        eventCorrelationVerified: eventMatches && (
+          !requiredEventType
+          || rolePaths.every((motion) => motion.sourceEventId === activeEventId)
+        ),
         actorsByZone: metrics.actorsByZone || {},
-        activeEventType: metrics.activeEventType || null,
+        activeEventId,
+        activeEventType,
         focusRegion: metrics.boardPresentation?.focus?.region || null,
         rendererRevision: metrics.revision ?? null,
         rendererFrameSnapshot: true
@@ -341,7 +371,10 @@ async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 }
       const diagnostics = observedDiagnostics(metrics);
       if (diagnostics.activeCount <= 0) {
         if (shouldLatch && firstObservedAtMs != null) {
-          finish(reject, new Error(`${expectedRole} ended before its renderer-frame latch delay elapsed.`));
+          const target = Number.isFinite(requestedLatchProgress)
+            ? `progress ${requestedLatchProgress}`
+            : `delay ${requestedLatchDelayMs}ms`;
+          finish(reject, new Error(`${expectedRole} ended before its renderer-frame latch ${target}.`));
           return;
         }
         frameRequest = requestAnimationFrame(sample);
@@ -352,6 +385,13 @@ async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 }
         return;
       }
       if (firstObservedAtMs == null) firstObservedAtMs = performance.now();
+      if (
+        Number.isFinite(requestedLatchProgress)
+        && diagnostics.motionProgress < requestedLatchProgress
+      ) {
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
       if (performance.now() - firstObservedAtMs < requestedLatchDelayMs) {
         frameRequest = requestAnimationFrame(sample);
         return;
@@ -380,6 +420,7 @@ async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 }
         ...pausedDiagnostics,
         firstObservedAtMs,
         requestedLatchDelayMs,
+        requestedLatchProgress,
         capturePauseResult
       });
     };
@@ -391,7 +432,11 @@ async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 }
     expectedRole: role,
     timeoutMs: 8000,
     shouldLatch: latch,
-    requestedLatchDelayMs: Math.max(0, Number(latchDelayMs || 0))
+    requestedLatchDelayMs: Math.max(0, Number(latchDelayMs || 0)),
+    requestedLatchProgress: Number.isFinite(latchProgress)
+      ? Math.max(0, Math.min(0.95, Number(latchProgress)))
+      : null,
+    requiredEventType: eventType || null
   });
 }
 
@@ -466,6 +511,7 @@ async function captureLiveSceneSample(page) {
         activeMotionPaths: JSON.parse(match.dataset.activeMotionPaths || "[]"),
         queuedTransitionCount: Number(match.dataset.queuedTransitionCount || 0),
         activeEffects: Number(match.dataset.activeEffects || 0),
+        activeEventId: match.dataset.activeEventId || null,
         activeEventType: match.dataset.activeEventType || null,
         playbackCatchingUp: match.dataset.playbackCatchingUp === "true",
         playbackQueuedFrames: Number(match.dataset.playbackQueuedFrames || 0),
@@ -568,6 +614,7 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
     activeMotionPaths: rendererValue("activeMotionPaths", attributes.activeMotionPaths),
     queuedTransitionCount: rendererValue("queuedTransitionCount", attributes.queuedTransitionCount),
     activeEffects: rendererValue("activeEffects", attributes.activeEffects),
+    activeEventId: rendererValue("activeEventId", attributes.activeEventId),
     activeEventType: rendererValue("activeEventType", attributes.activeEventType),
     activeEffectEventType: rendererValue("activeEffectEventType", null),
     rulesVersion: rendererValue("rulesVersion", attributes.rulesVersion),
@@ -974,7 +1021,8 @@ test("capture real live and replay match presentation states", async ({ browser,
   const mobileDamageEventReady = waitForActiveEvent(mobileSpectator.page, "damage.calculated");
   const mobileDiscardCaptureReady = waitForMotionRole(mobileSpectator.page, "discard-exit", {
     latch: true,
-    latchDelayMs: 80
+    latchProgress: 0.18,
+    eventType: "damage.calculated"
   })
     .then((observedMobileDiscard) => pageMotionCapture(
       mobileSpectator.page,
@@ -1124,9 +1172,19 @@ async function pageMotionCapture(
     if (observedRole && (!capturePaused || !playbackCapturePaused)) {
       throw new Error(`The Babylon capture latch was unavailable for ${file}.`);
     }
+    const matchesObservedPath = (motion) => (
+      motion.role === observedRole
+      && (
+        !observedMotion?.requiredEventType
+        || motion.sourceEventId === observedMotion.activeEventId
+      )
+    );
     const beforeCaptureDiagnostics = await captureDiagnostics(page, pauseResult?.metrics || null);
+    const beforeObservedPaths = observedRole
+      ? beforeCaptureDiagnostics.activeMotionPaths.filter(matchesObservedPath)
+      : [];
     const activeBeforeCapture = observedRole
-      ? Number(beforeCaptureDiagnostics.activeMotionsByRole?.[observedRole] || 0)
+      ? beforeObservedPaths.length
       : 0;
     if (observedRole && activeBeforeCapture < 1) {
       throw new Error(`Observed ${observedRole} ended before ${file} could be captured.`);
@@ -1136,18 +1194,15 @@ async function pageMotionCapture(
       ? await canvas.evaluate((element) => element.__gauntletCaptureControl?.snapshot?.() || null)
       : null;
     const afterCaptureDiagnostics = await captureDiagnostics(page, afterRendererMetrics);
+    const afterObservedPaths = observedRole
+      ? afterCaptureDiagnostics.activeMotionPaths.filter(matchesObservedPath)
+      : [];
     const activeAfterCapture = observedRole
-      ? Number(afterCaptureDiagnostics.activeMotionsByRole?.[observedRole] || 0)
+      ? afterObservedPaths.length
       : 0;
     if (observedRole && activeAfterCapture < 1) {
       throw new Error(`Observed ${observedRole} ended while ${file} was being captured.`);
     }
-    const beforeObservedPaths = observedRole
-      ? beforeCaptureDiagnostics.activeMotionPaths.filter((motion) => motion.role === observedRole)
-      : [];
-    const afterObservedPaths = observedRole
-      ? afterCaptureDiagnostics.activeMotionPaths.filter((motion) => motion.role === observedRole)
-      : [];
     if (observedRole && JSON.stringify(beforeObservedPaths) !== JSON.stringify(afterObservedPaths)) {
       throw new Error(`Observed ${observedRole} path changed while ${file} was being captured.`);
     }
@@ -1164,6 +1219,15 @@ async function pageMotionCapture(
           playbackCapturePaused,
           motionLatchAtomic: Boolean(observedMotion.capturePauseResult),
           motionLatchDelayMs: Number(observedMotion.requestedLatchDelayMs || 0),
+          motionLatchProgress: observedMotion.requestedLatchProgress,
+          observedMotionProgress: observedMotion.motionProgress,
+          motionMatchPolicy: observedMotion.motionMatchPolicy,
+          motionRequiredEventType: observedMotion.requiredEventType,
+          motionEventCorrelationVerified: observedMotion.eventCorrelationVerified,
+          motionActiveEventId: observedMotion.activeEventId,
+          matchedMotionActorIds: observedMotion.matchedMotionActorIds,
+          matchedMotionOccurrenceIds: observedMotion.matchedMotionOccurrenceIds,
+          matchedMotionSourceEventIds: observedMotion.matchedMotionSourceEventIds,
           motionObservationSource: "renderer-frame-snapshot",
           activeBeforeCapture,
           activeAfterCapture

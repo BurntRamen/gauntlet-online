@@ -322,6 +322,7 @@ export function createCardMotion({
   delayMs = 0,
   bounds = null,
   occurrenceId = null,
+  sourceEventId = null,
   playbackRate = 1
 }) {
   const profile = CARD_MOTION_PROFILES[role] || CARD_MOTION_PROFILES["state-correction"];
@@ -352,6 +353,8 @@ export function createCardMotion({
   ].join(":");
   return {
     role,
+    occurrenceId: stableOccurrenceId,
+    sourceEventId,
     start: { ...start },
     destination: { ...destination },
     startTimeMs: (Number(startTimeMs) || 0) + (reducedMotion ? 0 : Number(delayMs || 0) / rate),

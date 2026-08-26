@@ -73,10 +73,13 @@ describe("shared Babylon card motion", () => {
       const motion = createCardMotion({
         role,
         occurrenceId: `match:event:card:${role}`,
+        sourceEventId: `event:${role}`,
         start: { x: 0, y: 0, z: 0 },
         destination: { x: 4, y: 0.2, z: 2 }
       });
       expect(motion.cueHooks.length).toBeGreaterThan(0);
+      expect(motion.occurrenceId).toBe(`match:event:card:${role}`);
+      expect(motion.sourceEventId).toBe(`event:${role}`);
       expect(new Set(motion.cueHooks.map((cue) => cue.occurrenceId)).size).toBe(motion.cueHooks.length);
       expect(motion.cueHooks.every((cue) => cue.visual && cue.audio)).toBe(true);
       expect(Math.max(...motion.cueHooks.map((cue) => cue.offsetMs))).toBeLessThanOrEqual(motion.durationMs);

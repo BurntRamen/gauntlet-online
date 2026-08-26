@@ -234,6 +234,7 @@ test("coalesces payment with attack, then presents the next combat beat and feed
   act(() => publish(queuedUpdate));
 
   expect(match).toHaveAttribute("data-playback-catching-up", "true");
+  expect(match).toHaveAttribute("data-active-event-id", attackFrame.event.id);
   expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
   act(() => jest.advanceTimersByTime(attackFrame.durationMs));
   expect(screen.getByText("Lane 1 block committed")).toBeVisible();
@@ -241,6 +242,7 @@ test("coalesces payment with attack, then presents the next combat beat and feed
   fireEvent.click(screen.getByLabelText("Show 1 recent match events"));
   expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
   act(() => jest.runOnlyPendingTimers());
+  expect(match).toHaveAttribute("data-active-event-id", "");
   expect(match).toHaveAttribute("data-playback-catching-up", "false");
   expect(match).toHaveAttribute("data-playback-queued-frames", "0");
   jest.useRealTimers();

@@ -112,14 +112,73 @@ test("combat resolution schedules one departure and equivalent snapshots cannot 
   const planner = new PresentationTransitionPlanner();
   const combat = actorSnapshot({
     revision: 1,
-    from: { kind: "combat", side: "local", role: "attacker", slotIndex: 0 }
+    from: {
+      kind: "combat",
+      side: "local",
+      role: "attacker",
+      attackId: "attack-one",
+      laneIndex: 1,
+      slotIndex: 0
+    }
   });
   planner.plan(combat);
-  const cleared = actorSnapshot({ revision: 2, from: null, events: [{ id: "resolve", type: "damage.calculated" }] });
-  expect(planner.plan(cleared).transitions).toEqual([
-    expect.objectContaining({ actorId: "card:one", motionRole: "discard-exit", animate: true })
+  const cleared = actorSnapshot({
+    revision: 2,
+    from: null,
+    events: [
+      {
+        id: "resolve",
+        type: "damage.calculated",
+        attackId: "attack-one",
+        laneIndex: 1,
+        cardId: "one"
+      },
+      { id: "dealt", type: "damage.dealt" },
+      { id: "complete", type: "combat.resolutionCompleted" }
+    ]
+  });
+  expect(planner.plan(cleared, { eventGate: true }).transitions).toEqual([
+    expect.objectContaining({
+      actorId: "card:one",
+      motionRole: "discard-exit",
+      sourceEventId: "resolve",
+      animate: true
+    })
   ]);
-  expect(planner.plan(cleared).transitions).toHaveLength(0);
+  expect(planner.plan(cleared, { eventGate: true }).transitions).toHaveLength(0);
+});
+
+test.each([
+  ["blocker", { kind: "combat", side: "local", role: "blocker" }],
+  ["attachment", { kind: "attachment", side: "local", role: "attachment" }]
+])("aggregate damage identity releases a %s even when cardId names the attacker", (_label, zone) => {
+  const planner = new PresentationTransitionPlanner();
+  planner.plan(actorSnapshot({
+    revision: 1,
+    from: { ...zone, attackId: "attack-one", laneIndex: 1, slotIndex: 0 }
+  }));
+  const cleared = actorSnapshot({
+    revision: 2,
+    from: null,
+    events: [{
+      id: "resolve",
+      type: "damage.calculated",
+      attackId: "attack-one",
+      laneIndex: 1,
+      cardId: "attacker-card"
+    }]
+  });
+
+  const result = planner.plan(cleared, { eventGate: true });
+  expect(result.snapshot.actors).toHaveLength(0);
+  expect(result.transitions).toEqual([
+    expect.objectContaining({
+      actorId: "card:one",
+      motionRole: "discard-exit",
+      sourceEventId: "resolve",
+      animate: true
+    })
+  ]);
 });
 
 test("duplicate snapshots cannot restart an emitted occurrence", () => {

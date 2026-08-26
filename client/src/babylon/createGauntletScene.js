@@ -410,6 +410,7 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
     delayMs: options.motionDelayMs || 0,
     bounds: options.motionBounds || null,
     occurrenceId: options.motionOccurrenceId || null,
+    sourceEventId: options.motionSourceEventId || null,
     playbackRate: options.motionPlaybackRate || 1
   });
   record.emittedCueHooks = new Set();
@@ -2393,6 +2394,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       initialScale: initial?.scale,
       motionRole: animateTransition ? transition.motionRole : localFeedbackChanged ? "hover" : "state-correction",
       motionOccurrenceId: transition?.occurrenceId,
+      motionSourceEventId: transition?.sourceEventId,
       motionPathIndex: actor.zone.slotIndex || 0,
       motionDelayMs: animateTransition ? transition.delayMs : 0,
       motionPlaybackRate: presentationPlaybackRate(),
@@ -2428,6 +2430,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     record.departureTarget = target;
     record.departureStarted = false;
     record.departureOccurrenceId = transition.occurrenceId;
+    record.departureSourceEventId = transition.sourceEventId || null;
     return true;
   }
 
@@ -2916,6 +2919,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           alpha: 0,
           motionRole: "discard-exit",
           motionOccurrenceId: record.departureOccurrenceId,
+          motionSourceEventId: record.departureSourceEventId,
           motionObstacles: motionObstaclesFor(id),
           motionBounds: activeMotionBounds(),
           motionPlaybackRate: presentationPlaybackRate()
@@ -3091,14 +3095,25 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const stageMetrics = nativeBoardStage?.getMetrics?.() || {};
       const registryMetrics = actorRegistry?.metrics?.() || {};
       const snapshotMetrics = presentationSnapshotMetrics(currentPresentationSnapshot);
-      const activeMotionRecords = Array.from(objects.values()).filter((record) => record.motion);
-      const activeMotionsByRole = activeMotionRecords.reduce((counts, record) => {
+      const activeMotionRecords = Array.from(objects.entries()).filter(([, record]) => record.motion);
+      const activeMotionsByRole = activeMotionRecords.reduce((counts, [, record]) => {
         const role = record.motion?.role || "unknown";
         counts[role] = (counts[role] || 0) + 1;
         return counts;
       }, {});
-      const activeMotionPaths = activeMotionRecords.map((record) => ({
+      const activeMotionPaths = activeMotionRecords.map(([actorId, record]) => ({
+        actorId,
         role: record.motion?.role || "unknown",
+        occurrenceId: record.motion?.occurrenceId || null,
+        sourceEventId: record.motion?.sourceEventId || null,
+        progress: Number((Number(record.motion?.durationMs || 0) <= 0
+          ? 1
+          : Math.max(0, Math.min(
+              1,
+              (motionClockMs - Number(record.motion?.startTimeMs || 0))
+                / Number(record.motion.durationMs)
+            ))).toFixed(3)),
+        durationMs: Number(record.motion?.durationMs || 0),
         path: (record.motion?.path || []).map((point) => ({
           x: Number(Number(point.x || 0).toFixed(3)),
           z: Number(Number(point.z || 0).toFixed(3))
@@ -3111,6 +3126,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         matchId: currentPresentationSnapshot?.matchId || currentViewModel?.matchId || null,
         revision: Number(currentPresentationSnapshot?.revision ?? currentViewModel?.revision ?? 0),
         activeEventType: currentViewModel?.presentationPlayback?.activeEventType || null,
+        activeEventId: currentViewModel?.presentationPlayback?.activeEventId || null,
         activeEffectEventType: activeEventAnimation?.entry?.type || null,
         rulesVersion: currentViewModel?.rulesVersion || null,
         duplicateVisibleIdentityCount: registryMetrics.duplicateVisibleIdentityCount

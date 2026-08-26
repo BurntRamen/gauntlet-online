@@ -103,6 +103,7 @@ describe("queued battlefield playback", () => {
     expect(frames[2].update.viewModel.bottom.life).toBe(16);
     expect(frames[2].update.viewModel.presentationPlayback).toMatchObject({
       activeBeatPhase: "consequence",
+      activeEventId: "block-damage",
       activeEventType: "damage.calculated",
       stateCommitted: true
     });
@@ -113,6 +114,7 @@ describe("queued battlefield playback", () => {
     expect(frames[3].update.viewModel.instruction).toBe("Combat resolved");
     expect(frames.slice(0, -1).every((frame) => frame.update.viewModel.presentationEventGate)).toBe(true);
     expect(frames.at(-1).update.viewModel.presentationPlayback.finalReconcile).toBe(true);
+    expect(frames.at(-1).update.viewModel.presentationPlayback.activeEventId).toBeNull();
     expect(frames[3].update.viewModel.presentationPlayback.stateCommitted).toBe(true);
   });
 

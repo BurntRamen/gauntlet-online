@@ -26,11 +26,23 @@ const EVENT_TYPES_BY_ROUTE = Object.freeze({
     "campaign.attackDeclared",
     "block.declared"
   ],
+  // `damage.calculated` is the canonical representative for the coalesced
+  // resolution beat, so release motions retain exact event identity even when
+  // damage/dealt/completion decoration events share that beat.
+  "combat>none:attacker": ["damage.calculated"],
+  "combat>none:blocker": ["damage.calculated"],
+  "attachment>none:attachment": ["damage.calculated"],
   "hand>lane:facedown": ["card.placedFacedown", "laneCard.swappedWithHand"],
   "lane>lane:facedown": ["lanes.swapped"],
   "lane>hand:hand": ["laneCard.swappedWithHand"],
   "none>hand:hand": ["cards.drawn"]
 });
+
+const AGGREGATE_RESOLUTION_ROUTES = new Set([
+  "combat>none:attacker",
+  "combat>none:blocker",
+  "attachment>none:attachment"
+]);
 
 function cardMatchesEvent(actor, event) {
   if (!event || !actor) return false;
@@ -46,11 +58,29 @@ function routeKey(previousActor, nextActor) {
   return `${from}>${to}:${role}`;
 }
 
+function aggregateResolutionMatches(actor, event) {
+  const zone = actor?.zone || {};
+  if (zone.attackId && event?.attackId) {
+    return String(zone.attackId) === String(event.attackId);
+  }
+  if (zone.laneIndex != null && event?.laneIndex != null) {
+    return Number(zone.laneIndex) === Number(event.laneIndex);
+  }
+  return true;
+}
+
 function sourceEventFor(previousActor, nextActor, events = []) {
   const route = routeKey(previousActor, nextActor);
   const acceptedTypes = EVENT_TYPES_BY_ROUTE[route] || [];
-  const matches = (event) => acceptedTypes.includes(event.type)
-    && (route === "payment>none:payment" || cardMatchesEvent(nextActor || previousActor, event));
+  const actor = nextActor || previousActor;
+  const matches = (event) => acceptedTypes.includes(event.type) && (
+    route === "payment>none:payment"
+    || (
+      AGGREGATE_RESOLUTION_ROUTES.has(route)
+        ? aggregateResolutionMatches(actor, event)
+        : cardMatchesEvent(actor, event)
+    )
+  );
   return events.findLast?.(matches)
     || [...events].reverse().find(matches)
     || null;

@@ -1577,6 +1577,7 @@ export default function ProductionMatchExperience({
       data-active-motion-paths={JSON.stringify(sceneMetrics?.activeMotionPaths || [])}
       data-queued-transition-count={sceneMetrics?.queuedTransitionCount ?? ""}
       data-active-effects={sceneMetrics?.activeEffects ?? ""}
+      data-active-event-id={canvasViewModel?.presentationPlayback?.activeEventId || ""}
       data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
       data-playback-catching-up={playbackState.catchingUp ? "true" : "false"}
       data-playback-queued-frames={playbackState.queuedFrames}
