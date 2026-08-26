@@ -193,21 +193,26 @@ async function openPlayer(browser, baseURL, duel, playerNumber) {
     viewport: VIEWPORTS[0],
     reducedMotion: REVIEW_REDUCED_MOTION
   });
-  const player = duel.players[playerNumber];
-  await context.addInitScript(({ roomCode, reconnectToken, guestName }) => {
-    localStorage.setItem("gauntlet_room_code", roomCode);
-    localStorage.setItem("gauntlet_reconnect_token", reconnectToken);
-    localStorage.setItem("gauntlet_role", "player");
-    localStorage.setItem("gauntlet_guest_name", guestName);
-  }, {
-    roomCode: duel.roomCode,
-    reconnectToken: player.assignment.reconnectToken,
-    guestName: playerNumber === 1 ? "Visual Host" : "Visual Guest"
-  });
-  const page = await context.newPage();
-  await page.goto(baseURL);
-  await expect(page.getByTestId("production-babylon-match")).toBeVisible({ timeout: MATCH_RENDER_TIMEOUT_MS });
-  return { context, page };
+  try {
+    const player = duel.players[playerNumber];
+    await context.addInitScript(({ roomCode, reconnectToken, guestName }) => {
+      localStorage.setItem("gauntlet_room_code", roomCode);
+      localStorage.setItem("gauntlet_reconnect_token", reconnectToken);
+      localStorage.setItem("gauntlet_role", "player");
+      localStorage.setItem("gauntlet_guest_name", guestName);
+    }, {
+      roomCode: duel.roomCode,
+      reconnectToken: player.assignment.reconnectToken,
+      guestName: playerNumber === 1 ? "Visual Host" : "Visual Guest"
+    });
+    const page = await context.newPage();
+    await page.goto(baseURL);
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible({ timeout: MATCH_RENDER_TIMEOUT_MS });
+    return { context, page };
+  } catch (error) {
+    await context.close();
+    throw error;
+  }
 }
 
 async function openSpectator(browser, baseURL, duel, viewport = VIEWPORTS[4]) {
@@ -215,14 +220,19 @@ async function openSpectator(browser, baseURL, duel, viewport = VIEWPORTS[4]) {
     viewport,
     reducedMotion: REVIEW_REDUCED_MOTION
   });
-  await context.addInitScript(({ roomCode }) => {
-    localStorage.setItem("gauntlet_room_code", roomCode);
-    localStorage.setItem("gauntlet_role", "spectator");
-  }, { roomCode: duel.roomCode });
-  const page = await context.newPage();
-  await page.goto(baseURL);
-  await expect(page.getByTestId("production-babylon-match")).toBeVisible({ timeout: MATCH_RENDER_TIMEOUT_MS });
-  return { context, page };
+  try {
+    await context.addInitScript(({ roomCode }) => {
+      localStorage.setItem("gauntlet_room_code", roomCode);
+      localStorage.setItem("gauntlet_role", "spectator");
+    }, { roomCode: duel.roomCode });
+    const page = await context.newPage();
+    await page.goto(baseURL);
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible({ timeout: MATCH_RENDER_TIMEOUT_MS });
+    return { context, page };
+  } catch (error) {
+    await context.close();
+    throw error;
+  }
 }
 
 function currentAction(page) {
@@ -965,9 +975,12 @@ async function captureFactionAbilityScenario(browser, baseURL, manifest) {
   });
   registerScenario(manifest, "faction-ability-live", duel.players[1].state);
   const playerNumber = Number(duel.players[1].state.priority);
-  const opened = await openPlayer(browser, baseURL, duel, playerNumber);
-  const { context, page } = opened;
+  const opened = {};
   try {
+    opened[1] = await openPlayer(browser, baseURL, duel, 1);
+    opened[2] = await openPlayer(browser, baseURL, duel, 2);
+    const page = opened[playerNumber].page;
+    await expect(page.locator(".production-player-plate-top")).not.toContainText(/Disconnected/i);
     await openHandControls(page);
     const polea = page.locator(".production-faction-actions")
       .getByRole("button", { name: /Polea.*place a hand card/i });
@@ -995,7 +1008,7 @@ async function captureFactionAbilityScenario(browser, baseURL, manifest) {
     await waitForPlaybackSettled(page);
     await captureState(page, manifest, "ability-activation-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   } finally {
-    await context.close();
+    await Promise.all(Object.values(opened).map(({ context }) => context.close()));
   }
 }
 

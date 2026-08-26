@@ -472,6 +472,19 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
       </section>
     );
   }
+  if (resolving) {
+    return (
+      <section className="production-context-panel resolving" aria-label="Current match action">
+        <div className="production-context-copy" aria-live="polite">
+          <span className="production-context-kicker">
+            <GameIcon name="priority" size={15} />
+            {viewModel?.currentTurnLabel} · Resolving
+          </span>
+          <strong>Current action is resolving.</strong>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="production-context-panel" aria-label="Current match action">
       <div className="production-context-copy" aria-live="polite">
@@ -1372,8 +1385,26 @@ export default function ProductionMatchExperience({
       concede: withTone("ui.confirm", commands.concede)
     };
   }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision]);
+  const gameplayInputLocked = Boolean(
+    transportUpdate?.connected === false
+    || playbackState.inputLocked
+    || playbackState.catchingUp
+  );
+  const gameplayCommands = useMemo(() => {
+    if (!gameplayInputLocked) return interactionCommands;
+    return {
+      ...interactionCommands,
+      activateHandCard: undefined,
+      activateLane: undefined,
+      activateAttackTarget: undefined,
+      activateAbility: undefined,
+      passPriority: undefined,
+      confirmCurrentAction: undefined,
+      cancelCurrentAction: undefined
+    };
+  }, [gameplayInputLocked, interactionCommands]);
   const presentedViewModel = useMemo(() => {
-    if (!viewModel || (transportUpdate?.connected !== false && !playbackState.inputLocked)) return viewModel;
+    if (!viewModel || !gameplayInputLocked) return viewModel;
     const disconnected = transportUpdate?.connected === false;
     return {
       ...viewModel,
@@ -1397,7 +1428,7 @@ export default function ProductionMatchExperience({
         passDisabled: true
       }
     };
-  }, [playbackState.inputLocked, transportUpdate?.connected, viewModel]);
+  }, [gameplayInputLocked, transportUpdate?.connected, viewModel]);
   const canvasViewModel = useMemo(() => (
     battlefieldViewModel
       ? {
@@ -1431,7 +1462,7 @@ export default function ProductionMatchExperience({
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (!viewModel || event.defaultPrevented) return;
+      if (!presentedViewModel || event.defaultPrevented) return;
       const element = event.target;
       const key = event.key.toLowerCase();
       if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -1475,33 +1506,33 @@ export default function ProductionMatchExperience({
       }
       if (/^[1-8]$/.test(key)) {
         const index = Number(key) - 1;
-        if (viewModel.hand[index] && !viewModel.hand[index].unavailable) {
+        if (presentedViewModel.hand[index] && !presentedViewModel.hand[index].unavailable) {
           event.preventDefault();
-          interactionCommands.activateHandCard?.(index);
+          gameplayCommands.activateHandCard?.(index);
         }
         return;
       }
       const hasStagedSelection = !!(
-        viewModel.selection?.attackMode
-        || viewModel.selection?.blockMode
-        || viewModel.selection?.placementMode
-        || viewModel.selection?.abilityMode
+        presentedViewModel.selection?.attackMode
+        || presentedViewModel.selection?.blockMode
+        || presentedViewModel.selection?.placementMode
+        || presentedViewModel.selection?.abilityMode
       );
-      if (key === "p" && !viewModel.interactions.passDisabled && !hasStagedSelection) {
+      if (key === "p" && !presentedViewModel.interactions.passDisabled && !hasStagedSelection) {
         event.preventDefault();
-        interactionCommands.passPriority?.();
+        gameplayCommands.passPriority?.();
         return;
       }
-      if (key === "c" && !viewModel.interactions.confirmDisabled) {
+      if (key === "c" && !presentedViewModel.interactions.confirmDisabled) {
         event.preventDefault();
-        interactionCommands.confirmCurrentAction?.();
+        gameplayCommands.confirmCurrentAction?.();
         return;
       }
       if (key === "i") {
         const index = Number(document.activeElement?.dataset?.cardIndex);
-        if (Number.isInteger(index) && viewModel.hand[index]) {
+        if (Number.isInteger(index) && presentedViewModel.hand[index]) {
           event.preventDefault();
-          interactionCommands.inspectCard?.(viewModel.hand[index].raw);
+          interactionCommands.inspectCard?.(presentedViewModel.hand[index].raw);
         }
         return;
       }
@@ -1510,14 +1541,14 @@ export default function ProductionMatchExperience({
         setReferencePanel("discard");
         return;
       }
-      if (key === "escape") {
+      if (key === "escape" && !gameplayInputLocked) {
         event.preventDefault();
-        interactionCommands.cancelCurrentAction?.();
+        gameplayCommands.cancelCurrentAction?.();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [interactionCommands, referencePanel, transportUpdate?.inspection, viewModel]);
+  }, [gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.inspection]);
 
   const shellClass = useMemo(() => [
     "production-match-experience",
@@ -1593,7 +1624,13 @@ export default function ProductionMatchExperience({
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <GauntletMatchCanvas
             viewModel={canvasViewModel}
-            commands={interactionCommands}
+            commands={gameplayCommands}
+            interactionLocked={gameplayInputLocked}
+            interactionStatus={transportUpdate?.connected === false
+              ? "Connection interrupted. The current table is preserved while reconnecting."
+              : gameplayInputLocked
+                ? "Current action is resolving."
+                : ""}
             capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
             onRendererError={(error) => {
@@ -1617,11 +1654,17 @@ export default function ProductionMatchExperience({
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
         />
-        <FactionActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
+        {!playbackState.catchingUp && (
+          <FactionActions
+            viewModel={presentedViewModel}
+            commands={gameplayCommands}
+            connected={!gameplayInputLocked}
+          />
+        )}
         <ContextActions
           viewModel={presentedViewModel}
-          commands={interactionCommands}
-          connected={transportUpdate?.connected !== false && !playbackState.inputLocked}
+          commands={gameplayCommands}
+          connected={!gameplayInputLocked}
           resolving={playbackState.catchingUp}
         />
         {update?.controls && (
@@ -1629,7 +1672,7 @@ export default function ProductionMatchExperience({
             viewModel={presentedViewModel}
             controls={update?.controls}
             commands={interactionCommands}
-            connected={transportUpdate?.connected !== false && !playbackState.inputLocked}
+            connected={!gameplayInputLocked}
             descriptor={update?.descriptor}
             audioEnabled={audioEnabled}
             onAudioEnabledChange={updateAudioEnabled}

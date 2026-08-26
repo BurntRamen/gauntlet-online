@@ -8,6 +8,8 @@ import "./GauntletMatchCanvas.css";
 export default function GauntletMatchCanvas({
   viewModel,
   commands = {},
+  interactionLocked = false,
+  interactionStatus = "",
   capturePlaybackControl = null,
   onRendererError,
   onSceneMetrics
@@ -227,7 +229,12 @@ export default function GauntletMatchCanvas({
       aria-label={`${viewModel?.mode === "factions" ? "Faction" : "Basic Gauntlet"} match rendered with Babylon.js`}
     >
       <canvas ref={canvasRef} className="babylon-match-canvas" aria-label="Gauntlet game table. Press H, L, F, or A to enter keyboard card, lane, faction, or action controls." />
-      <AccessibleMatchControls viewModel={viewModel} commands={commands} />
+      <AccessibleMatchControls
+        viewModel={viewModel}
+        commands={commands}
+        interactionLocked={interactionLocked}
+        interactionStatus={interactionStatus}
+      />
     </section>
   );
 }

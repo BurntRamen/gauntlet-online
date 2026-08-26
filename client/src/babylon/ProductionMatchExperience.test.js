@@ -6,13 +6,20 @@ import {
 } from "./battlefieldPlayback";
 import { PRESENTATION_BEAT_RECIPES } from "./presentationCadence";
 
-jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, commands, onSceneMetrics }) {
+jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
+  viewModel,
+  commands,
+  interactionLocked,
+  interactionStatus,
+  onSceneMetrics
+}) {
   return (
     <div data-testid="mock-gauntlet-canvas">
       {viewModel.instruction}
       <span data-testid="mock-canvas-cadence-tier">
         {viewModel.presentationCues?.[0]?.cadence?.tier || "rest"}
       </span>
+      <span data-testid="mock-interaction-status">{interactionStatus}</span>
       <button
         type="button"
         data-testid="mock-report-combat-focus"
@@ -35,6 +42,14 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, comman
         onMouseLeave={() => commands.previewCard?.(null)}
       >
         Preview card
+      </button>
+      <button
+        type="button"
+        data-testid="mock-activate-hand-card"
+        disabled={interactionLocked}
+        onClick={() => commands.activateHandCard?.(0)}
+      >
+        Activate mock card
       </button>
       <button type="button" data-match-zone="hand">Mock card one</button>
       <button type="button" data-match-zone="hand">Mock card two</button>
@@ -302,6 +317,95 @@ test("keeps spectator guidance neutral while presentation playback resolves", as
   jest.useRealTimers();
 });
 
+test("keeps player guidance on the current beat while presentation playback resolves", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const activateHandCard = jest.fn();
+  const passPriority = jest.fn();
+  const confirmCurrentAction = jest.fn();
+  const cancelCurrentAction = jest.fn();
+  const playerViewModel = {
+    ...createViewModel(),
+    instruction: "Player 1 has priority.",
+    hand: [{
+      id: "cadence-card-1",
+      label: "Seven of Hearts",
+      value: 7,
+      raw: { id: "cadence-card-1", value: 7 },
+      unavailable: false
+    }],
+    interactions: {
+      ...createViewModel().interactions,
+      confirmDisabled: false
+    }
+  };
+  const initialUpdate = {
+    source: "live",
+    connected: true,
+    viewModel: playerViewModel,
+    commands: {
+      activateHandCard,
+      passPriority,
+      confirmCurrentAction,
+      cancelCurrentAction
+    },
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  expect(within(screen.getByLabelText("Current match action")).getByText("Player 1 has priority.")).toBeVisible();
+
+  const damageEvent = {
+    id: "player-damage-5",
+    type: "damage.calculated",
+    attackId: "attack-5",
+    damage: 8
+  };
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [damageEvent],
+    viewModel: {
+      ...playerViewModel,
+      revision: 5,
+      instruction: "Player 2 has priority.",
+      events: [damageEvent]
+    }
+  }));
+
+  const resolvingPanel = screen.getByLabelText("Current match action");
+  expect(within(resolvingPanel).getByText("Current action is resolving.")).toBeVisible();
+  expect(within(resolvingPanel).queryByText("Player 2 has priority.")).not.toBeInTheDocument();
+  expect(within(resolvingPanel).queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.getByTestId("mock-interaction-status")).toHaveTextContent("Current action is resolving.");
+  expect(screen.getByTestId("mock-activate-hand-card")).toBeDisabled();
+  fireEvent.click(screen.getByTestId("mock-activate-hand-card"));
+  fireEvent.keyDown(window, { key: "1" });
+  fireEvent.keyDown(window, { key: "p" });
+  fireEvent.keyDown(window, { key: "c" });
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(activateHandCard).not.toHaveBeenCalled();
+  expect(passPriority).not.toHaveBeenCalled();
+  expect(confirmCurrentAction).not.toHaveBeenCalled();
+  expect(cancelCurrentAction).not.toHaveBeenCalled();
+  act(() => jest.runAllTimers());
+  expect(within(screen.getByLabelText("Current match action")).getByText("Player 2 has priority.")).toBeVisible();
+  expect(screen.getByTestId("mock-interaction-status")).toBeEmptyDOMElement();
+  expect(screen.getByTestId("mock-activate-hand-card")).toBeEnabled();
+  fireEvent.click(screen.getByTestId("mock-activate-hand-card"));
+  expect(activateHandCard).toHaveBeenCalledWith(0);
+  jest.useRealTimers();
+});
+
 test("holds the result modal until the terminal cadence reaches final reconcile", async () => {
   jest.useFakeTimers();
   let publish;
@@ -350,7 +454,7 @@ test("holds the result modal until the terminal cadence reaches final reconcile"
   jest.useRealTimers();
 });
 
-test("keeps the HUD projection on the presented combat beat while commands stay authoritative", async () => {
+test("keeps HUD projection and authoritative commands aligned with presentation release", async () => {
   jest.useFakeTimers();
   let publish;
   const oldPassPriority = jest.fn();
@@ -433,8 +537,9 @@ test("keeps the HUD projection on the presented combat beat while commands stay 
   expect(within(broadcast).getByText("Qualifier")).toBeVisible();
   expect(within(broadcast).getByText("Turn 3")).toBeVisible();
   expect(within(broadcast).getByText("12 watching")).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Yield New Priority" }));
-  expect(newPassPriority).toHaveBeenCalledTimes(1);
+  expect(within(screen.getByLabelText("Current match action")).getByText("Current action is resolving.")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Yield New Priority" })).not.toBeInTheDocument();
+  expect(newPassPriority).not.toHaveBeenCalled();
   expect(oldPassPriority).not.toHaveBeenCalled();
 
   act(() => jest.advanceTimersByTime(blockFrame.durationMs + damageAnticipationFrame.durationMs));
@@ -445,6 +550,9 @@ test("keeps the HUD projection on the presented combat beat while commands stay 
   expect(within(broadcast).getByText("31 watching")).toBeVisible();
 
   act(() => jest.runOnlyPendingTimers());
+  fireEvent.click(screen.getByRole("button", { name: "Yield New Priority" }));
+  expect(newPassPriority).toHaveBeenCalledTimes(1);
+  expect(oldPassPriority).not.toHaveBeenCalled();
   jest.useRealTimers();
 });
 
