@@ -249,22 +249,80 @@ export class BattlefieldPlaybackQueue {
     onStateChange = () => {},
     reducedMotion = false,
     setTimer = (callback, duration) => setTimeout(callback, duration),
-    clearTimer = (timer) => clearTimeout(timer)
+    clearTimer = (timer) => clearTimeout(timer),
+    now = () => Date.now()
   }) {
     this.onPresent = onPresent;
     this.onStateChange = onStateChange;
     this.reducedMotion = reducedMotion;
     this.setTimer = setTimer;
     this.clearTimer = clearTimer;
+    this.now = now;
     this.frames = [];
     this.seenEventIds = new Set();
     this.activeFrame = null;
     this.timer = null;
+    this.timerStartedAtMs = null;
+    this.timerDurationMs = 0;
+    this.pausedRemainingMs = null;
+    this.pauseDepth = 0;
     this.matchId = null;
     this.replayIndex = null;
     this.latestUpdate = null;
     this.traversalGeneration = 0;
     this.disposed = false;
+  }
+
+  scheduleActiveFrame(durationMs) {
+    const duration = Math.max(0, Number(durationMs || 0));
+    this.timerStartedAtMs = this.now();
+    this.timerDurationMs = duration;
+    this.timer = this.setTimer(() => {
+      this.timer = null;
+      this.timerStartedAtMs = null;
+      this.timerDurationMs = 0;
+      this.pausedRemainingMs = null;
+      this.activeFrame = null;
+      this.pump();
+    }, duration);
+  }
+
+  pause() {
+    if (this.disposed) return 0;
+    this.pauseDepth += 1;
+    if (this.pauseDepth > 1) return this.pauseDepth;
+    if (this.timer != null) {
+      const elapsedMs = Math.max(0, this.now() - Number(this.timerStartedAtMs || 0));
+      this.pausedRemainingMs = Math.max(0, this.timerDurationMs - elapsedMs);
+      this.clearTimer(this.timer);
+      this.timer = null;
+      this.timerStartedAtMs = null;
+      this.timerDurationMs = 0;
+    }
+    this.notify();
+    return this.pauseDepth;
+  }
+
+  resume() {
+    if (this.disposed) return 0;
+    if (this.pauseDepth <= 0) return 0;
+    this.pauseDepth = Math.max(0, this.pauseDepth - 1);
+    if (this.pauseDepth > 0) return this.pauseDepth;
+    if (this.activeFrame) {
+      const remainingMs = Math.max(0, Number(
+        this.pausedRemainingMs ?? this.activeFrame.durationMs ?? 0
+      ));
+      this.pausedRemainingMs = null;
+      if (remainingMs > 0) this.scheduleActiveFrame(remainingMs);
+      else {
+        this.activeFrame = null;
+        this.pump();
+      }
+    } else {
+      this.pump();
+    }
+    this.notify();
+    return this.pauseDepth;
   }
 
   push(update) {
@@ -302,7 +360,7 @@ export class BattlefieldPlaybackQueue {
   }
 
   pump() {
-    if (this.disposed || this.activeFrame || this.frames.length === 0) {
+    if (this.disposed || this.pauseDepth > 0 || this.activeFrame || this.frames.length === 0) {
       this.notify();
       return;
     }
@@ -320,11 +378,7 @@ export class BattlefieldPlaybackQueue {
       this.pump();
       return;
     }
-    this.timer = this.setTimer(() => {
-      this.timer = null;
-      this.activeFrame = null;
-      this.pump();
-    }, frame.durationMs);
+    this.scheduleActiveFrame(frame.durationMs);
   }
 
   notify() {
@@ -332,6 +386,7 @@ export class BattlefieldPlaybackQueue {
       active: Boolean(this.activeFrame),
       queuedFrames: this.frames.length,
       catchingUp: Boolean(this.activeFrame) || this.frames.length > 0,
+      capturePaused: this.pauseDepth > 0,
       inputLocked: false
     });
   }
@@ -339,6 +394,9 @@ export class BattlefieldPlaybackQueue {
   reset() {
     if (this.timer != null) this.clearTimer(this.timer);
     this.timer = null;
+    this.timerStartedAtMs = null;
+    this.timerDurationMs = 0;
+    this.pausedRemainingMs = null;
     this.frames = [];
     this.activeFrame = null;
     this.seenEventIds.clear();
@@ -350,5 +408,6 @@ export class BattlefieldPlaybackQueue {
   dispose() {
     this.disposed = true;
     this.reset();
+    this.pauseDepth = 0;
   }
 }

@@ -291,9 +291,14 @@ async function pageWithBottomAction(pages, pattern) {
   return pages[matchingIndex];
 }
 
-async function waitForMotionRole(page, role) {
+async function waitForMotionRole(page, role, { latch = false, latchDelayMs = 0 } = {}) {
   const canvas = page.locator("canvas.babylon-match-canvas");
-  return canvas.evaluate((element, { expectedRole, timeoutMs }) => new Promise((resolve, reject) => {
+  return canvas.evaluate((element, {
+    expectedRole,
+    timeoutMs,
+    shouldLatch,
+    requestedLatchDelayMs
+  }) => new Promise((resolve, reject) => {
     const captureControl = element.__gauntletCaptureControl;
     if (typeof captureControl?.snapshot !== "function") {
       reject(new Error(`The Babylon renderer-frame capture control is unavailable for ${expectedRole}.`));
@@ -301,6 +306,7 @@ async function waitForMotionRole(page, role) {
     }
     let frameRequest = null;
     let settled = false;
+    let firstObservedAtMs = null;
     const finish = (callback, value) => {
       if (settled) return;
       settled = true;
@@ -308,45 +314,118 @@ async function waitForMotionRole(page, role) {
       clearTimeout(timer);
       callback(value);
     };
-    const observedDiagnostics = () => {
-      try {
-        const metrics = captureControl.snapshot() || {};
-        const roles = metrics.activeMotionsByRole || {};
-        return {
-          observedMotionRole: expectedRole,
-          observedAtMs: performance.now(),
-          activeCount: Number(roles[expectedRole] || 0),
-          activeTransitionCount: Number(metrics.activeTransitionCount || 0),
-          activeMotionsByRole: roles,
-          activeMotionPaths: metrics.activeMotionPaths || [],
-          actorsByZone: metrics.actorsByZone || {},
-          activeEventType: metrics.activeEventType || null,
-          focusRegion: metrics.boardPresentation?.focus?.region || null,
-          rendererRevision: metrics.revision ?? null,
-          rendererFrameSnapshot: true
-        };
-      } catch {
-        return { activeCount: 0 };
-      }
+    const observedDiagnostics = (metrics = {}) => {
+      const roles = metrics.activeMotionsByRole || {};
+      return {
+        observedMotionRole: expectedRole,
+        observedAtMs: performance.now(),
+        activeCount: Number(roles[expectedRole] || 0),
+        activeTransitionCount: Number(metrics.activeTransitionCount || 0),
+        activeMotionsByRole: roles,
+        activeMotionPaths: metrics.activeMotionPaths || [],
+        actorsByZone: metrics.actorsByZone || {},
+        activeEventType: metrics.activeEventType || null,
+        focusRegion: metrics.boardPresentation?.focus?.region || null,
+        rendererRevision: metrics.revision ?? null,
+        rendererFrameSnapshot: true
+      };
     };
     const sample = () => {
-      const diagnostics = observedDiagnostics();
-      if (diagnostics.activeCount > 0) {
+      let metrics;
+      try {
+        metrics = captureControl.snapshot() || {};
+      } catch {
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
+      const diagnostics = observedDiagnostics(metrics);
+      if (diagnostics.activeCount <= 0) {
+        if (shouldLatch && firstObservedAtMs != null) {
+          finish(reject, new Error(`${expectedRole} ended before its renderer-frame latch delay elapsed.`));
+          return;
+        }
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
+      if (!shouldLatch) {
         finish(resolve, diagnostics);
         return;
       }
-      frameRequest = requestAnimationFrame(sample);
+      if (firstObservedAtMs == null) firstObservedAtMs = performance.now();
+      if (performance.now() - firstObservedAtMs < requestedLatchDelayMs) {
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
+      let capturePauseResult;
+      try {
+        capturePauseResult = captureControl.pause();
+      } catch (error) {
+        finish(reject, error);
+        return;
+      }
+      const pausedDiagnostics = observedDiagnostics(capturePauseResult?.metrics || {});
+      if (
+        Number(capturePauseResult?.depth || 0) < 1
+        || Number(capturePauseResult?.playbackDepth || 0) < 1
+        || pausedDiagnostics.activeCount < 1
+      ) {
+        if (
+          Number(capturePauseResult?.depth || 0) > 0
+          || Number(capturePauseResult?.playbackDepth || 0) > 0
+        ) captureControl.resume?.();
+        finish(reject, new Error(`${expectedRole} could not be frozen on its observed renderer frame.`));
+        return;
+      }
+      finish(resolve, {
+        ...pausedDiagnostics,
+        firstObservedAtMs,
+        requestedLatchDelayMs,
+        capturePauseResult
+      });
     };
     const timer = setTimeout(() => {
       finish(reject, new Error(`Timed out waiting for ${expectedRole} motion in renderer-frame metrics.`));
     }, timeoutMs);
     sample();
-  }), { expectedRole: role, timeoutMs: 8000 });
+  }), {
+    expectedRole: role,
+    timeoutMs: 8000,
+    shouldLatch: latch,
+    requestedLatchDelayMs: Math.max(0, Number(latchDelayMs || 0))
+  });
 }
 
 async function waitForActiveEvent(page, eventType) {
-  await expect(page.getByTestId("production-babylon-match"))
-    .toHaveAttribute("data-active-event-type", eventType, { timeout: 10000 });
+  const match = page.getByTestId("production-babylon-match");
+  return match.evaluate((element, { expectedEventType, timeoutMs }) => new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      observer.disconnect();
+      clearTimeout(timer);
+      callback(value);
+    };
+    const sample = () => {
+      const activeEventType = element.dataset.activeEventType || null;
+      if (activeEventType === expectedEventType) {
+        finish(resolve, {
+          activeEventType,
+          revision: Number(element.dataset.revision || 0),
+          observedAtMs: performance.now()
+        });
+      }
+    };
+    const observer = new MutationObserver(sample);
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ["data-active-event-type"]
+    });
+    const timer = setTimeout(() => {
+      finish(reject, new Error(`Timed out waiting for ${expectedEventType} playback presentation.`));
+    }, timeoutMs);
+    sample();
+  }), { expectedEventType: eventType, timeoutMs: 10000 });
 }
 
 function expectedLayoutProfile(viewport) {
@@ -693,7 +772,7 @@ test("capture real live and replay match presentation states", async ({ browser,
   await attacker.waitForTimeout(720);
   await captureState(attacker, manifest, "payment-staged");
   await setReviewViewport(attacker, VIEWPORTS[0]);
-  const attackPaymentMotionReady = waitForMotionRole(attacker, "payment-enter");
+  const attackPaymentMotionReady = waitForMotionRole(attacker, "payment-enter", { latch: true });
   const attackMotionReady = waitForMotionRole(attacker, "attack-enter");
   const attackEventReady = waitForActiveEvent(attacker, "attack.declared");
   await currentAction(attacker).getByRole("button", { name: "Confirm Attack" }).click();
@@ -743,7 +822,7 @@ test("capture real live and replay match presentation states", async ({ browser,
   await defender.waitForTimeout(720);
   await captureState(defender, manifest, "block-and-payment-staged");
   await setReviewViewport(defender, VIEWPORTS[0]);
-  const blockPaymentMotionReady = waitForMotionRole(defender, "payment-enter");
+  const blockPaymentMotionReady = waitForMotionRole(defender, "payment-enter", { latch: true });
   const blockMotionReady = waitForMotionRole(defender, "block-enter");
   const blockEventReady = waitForActiveEvent(defender, "block.declared");
   const damageEventReady = waitForActiveEvent(defender, "damage.calculated");
@@ -847,12 +926,15 @@ test("capture real live and replay match presentation states", async ({ browser,
   await expect(currentAction(laneDefender)).toContainText(/attacked from Lane 1.*may block or decline/i);
   const laneDiscardMotionReady = waitForMotionRole(laneDefender, "discard-exit");
   const mobileDamageEventReady = waitForActiveEvent(mobileSpectator.page, "damage.calculated");
-  const mobileDiscardCaptureReady = waitForMotionRole(mobileSpectator.page, "discard-exit")
+  const mobileDiscardCaptureReady = waitForMotionRole(mobileSpectator.page, "discard-exit", {
+    latch: true,
+    latchDelayMs: 80
+  })
     .then((observedMobileDiscard) => pageMotionCapture(
       mobileSpectator.page,
       manifest,
       "mobile-combat-motion",
-      80,
+      0,
       VIEWPORTS[4],
       "phone-landscape-motion",
       observedMobileDiscard
@@ -964,27 +1046,38 @@ async function pageMotionCapture(
   viewportId = "desktop-motion",
   observedMotion = null
 ) {
-  const currentViewport = page.viewportSize();
-  if (currentViewport?.width !== viewport.width || currentViewport?.height !== viewport.height) {
-    await setReviewViewport(page, viewport);
-  } else {
-    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
-  }
-  if (delayMs > 0) await page.waitForTimeout(delayMs);
-  const file = `${id}--${viewport.id}.jpg`;
-  const capturePath = path.join(OUTPUT_DIRECTORY, file);
-  if (fs.existsSync(capturePath)) throw new Error(`Duplicate Babylon review capture path: ${file}`);
   const observedRole = observedMotion?.observedMotionRole || null;
   const canvas = page.locator("canvas.babylon-match-canvas");
-  const pauseResult = observedRole
-    ? await canvas.evaluate((element) => element.__gauntletCaptureControl?.pause?.() || null)
-    : null;
-  const capturePaused = Number(pauseResult?.depth || 0) > 0;
-  if (observedRole && !capturePaused) {
-    throw new Error(`The Babylon capture latch was unavailable for ${file}.`);
-  }
-  let diagnostics;
+  let pauseResult = observedMotion?.capturePauseResult || null;
+  let capturePaused = Number(pauseResult?.depth || 0) > 0;
+  let playbackCapturePaused = Number(pauseResult?.playbackDepth || 0) > 0;
   try {
+    const currentViewport = page.viewportSize();
+    const viewportChanged = currentViewport?.width !== viewport.width
+      || currentViewport?.height !== viewport.height;
+    if ((capturePaused || playbackCapturePaused) && viewportChanged) {
+      throw new Error(`A latched Babylon capture cannot change viewport for ${id}.`);
+    }
+    if (viewportChanged) {
+      await setReviewViewport(page, viewport);
+    } else {
+      await expect(canvas).toBeVisible();
+    }
+    if ((capturePaused || playbackCapturePaused) && delayMs > 0) {
+      throw new Error(`A latched Babylon capture cannot apply a second delay for ${id}.`);
+    }
+    if (delayMs > 0) await page.waitForTimeout(delayMs);
+    const file = `${id}--${viewport.id}.jpg`;
+    const capturePath = path.join(OUTPUT_DIRECTORY, file);
+    if (fs.existsSync(capturePath)) throw new Error(`Duplicate Babylon review capture path: ${file}`);
+    if (observedRole && !capturePaused) {
+      pauseResult = await canvas.evaluate((element) => element.__gauntletCaptureControl?.pause?.() || null);
+      capturePaused = Number(pauseResult?.depth || 0) > 0;
+      playbackCapturePaused = Number(pauseResult?.playbackDepth || 0) > 0;
+    }
+    if (observedRole && (!capturePaused || !playbackCapturePaused)) {
+      throw new Error(`The Babylon capture latch was unavailable for ${file}.`);
+    }
     const beforeCaptureDiagnostics = await captureDiagnostics(page, pauseResult?.metrics || null);
     const activeBeforeCapture = observedRole
       ? Number(beforeCaptureDiagnostics.activeMotionsByRole?.[observedRole] || 0)
@@ -1012,26 +1105,41 @@ async function pageMotionCapture(
     if (observedRole && JSON.stringify(beforeObservedPaths) !== JSON.stringify(afterObservedPaths)) {
       throw new Error(`Observed ${observedRole} path changed while ${file} was being captured.`);
     }
-    diagnostics = observedMotion
+    const diagnostics = observedMotion
       ? {
           ...afterCaptureDiagnostics,
           observedMotionRole: observedRole,
           observedAtMs: observedMotion.observedAtMs,
+          firstObservedAtMs: observedMotion.firstObservedAtMs ?? observedMotion.observedAtMs,
           activeCount: activeAfterCapture,
           motionObservationPreserved: true,
           motionObservationBracketed: true,
           motionCapturePaused: capturePaused,
+          playbackCapturePaused,
+          motionLatchAtomic: Boolean(observedMotion.capturePauseResult),
+          motionLatchDelayMs: Number(observedMotion.requestedLatchDelayMs || 0),
           motionObservationSource: "renderer-frame-snapshot",
           activeBeforeCapture,
           activeAfterCapture
         }
       : afterCaptureDiagnostics;
+    const dimensions = { width: diagnostics.canvasWidth, height: diagnostics.canvasHeight };
+    manifest.states.push({ id, captures: [{ file, viewport: viewportId, ...dimensions, diagnostics }] });
+    return diagnostics;
   } finally {
-    if (capturePaused) {
-      await canvas.evaluate((element) => element.__gauntletCaptureControl?.resume?.());
+    if (capturePaused || playbackCapturePaused) {
+      const resumeResult = await canvas.evaluate(
+        (element) => element.__gauntletCaptureControl?.resume?.() || null
+      );
+      if (
+        observedRole
+        && (
+          Number(resumeResult?.depth || 0) !== 0
+          || Number(resumeResult?.playbackDepth || 0) !== 0
+        )
+      ) {
+        throw new Error(`The Babylon capture latch did not fully release after ${id}.`);
+      }
     }
   }
-  const dimensions = { width: diagnostics.canvasWidth, height: diagnostics.canvasHeight };
-  manifest.states.push({ id, captures: [{ file, viewport: viewportId, ...dimensions, diagnostics }] });
-  return diagnostics;
 }

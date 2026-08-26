@@ -3111,6 +3111,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         matchId: currentPresentationSnapshot?.matchId || currentViewModel?.matchId || null,
         revision: Number(currentPresentationSnapshot?.revision ?? currentViewModel?.revision ?? 0),
         activeEventType: currentViewModel?.presentationPlayback?.activeEventType || null,
+        activeEffectEventType: activeEventAnimation?.entry?.type || null,
         rulesVersion: currentViewModel?.rulesVersion || null,
         duplicateVisibleIdentityCount: registryMetrics.duplicateVisibleIdentityCount
           ?? snapshotMetrics.duplicateVisibleIdentityCount,

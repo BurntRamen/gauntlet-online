@@ -1247,6 +1247,7 @@ export default function ProductionMatchExperience({
   const adapterRef = useRef(adapter);
   const inspectionReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
+  const playbackRef = useRef(null);
   adapterRef.current = adapter;
 
   useEffect(() => {
@@ -1295,6 +1296,7 @@ export default function ProductionMatchExperience({
         if (active) setPlaybackState(state);
       }
     });
+    playbackRef.current = playback;
     const unsubscribe = adapter.subscribe((next) => {
       if (!active) return;
       setAuthoritativeUpdate(next);
@@ -1309,6 +1311,7 @@ export default function ProductionMatchExperience({
     return () => {
       active = false;
       unsubscribe?.();
+      if (playbackRef.current === playback) playbackRef.current = null;
       playback.dispose();
     };
   }, [adapter, onRendererFailure, reducedMotion]);
@@ -1337,6 +1340,10 @@ export default function ProductionMatchExperience({
     setSceneMetrics(metrics);
     onSceneMetrics?.(metrics);
   }, [onSceneMetrics]);
+  const capturePlaybackControl = useMemo(() => ({
+    pause: () => playbackRef.current?.pause?.() || 0,
+    resume: () => playbackRef.current?.resume?.() || 0
+  }), []);
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
       interactionCueTokenRef.current += 1;
@@ -1584,6 +1591,7 @@ export default function ProductionMatchExperience({
           <GauntletMatchCanvas
             viewModel={canvasViewModel}
             commands={interactionCommands}
+            capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
             onRendererError={(error) => {
               setAdapterError(error?.message || "The Babylon renderer failed.");

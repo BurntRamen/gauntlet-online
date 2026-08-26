@@ -241,6 +241,40 @@ describe("queued battlefield playback", () => {
     jest.useRealTimers();
   });
 
+  test("pauses and resumes the active presentation frame with nested capture leases", () => {
+    jest.useFakeTimers();
+    const presented = [];
+    const queue = new BattlefieldPlaybackQueue({
+      onPresent: (_update, frame) => presented.push(frame.event?.id || null),
+      onStateChange: () => {}
+    });
+    queue.push(updateFor([{ id: "attack", type: "attack.declared" }]));
+    const activeDurationMs = queue.activeFrame.durationMs;
+
+    jest.advanceTimersByTime(100);
+    expect(queue.pause()).toBe(1);
+    expect(queue.pause()).toBe(2);
+    queue.push(updateFor(
+      [{ id: "block", type: "block.declared" }],
+      { revision: 3, viewModel: { ...updateFor([]).viewModel, revision: 3 } }
+    ));
+    jest.advanceTimersByTime(activeDurationMs * 3);
+    expect(presented).toEqual(["attack"]);
+
+    expect(queue.resume()).toBe(1);
+    jest.advanceTimersByTime(activeDurationMs * 3);
+    expect(presented).toEqual(["attack"]);
+    expect(queue.resume()).toBe(0);
+    jest.advanceTimersByTime(activeDurationMs - 101);
+    expect(presented).toEqual(["attack"]);
+    jest.advanceTimersByTime(1);
+    expect(presented).toEqual(expect.arrayContaining(["attack", "block"]));
+    expect(queue.resume()).toBe(0);
+
+    queue.dispose();
+    jest.useRealTimers();
+  });
+
   test("starts a new cue traversal when replay deliberately seeks or restarts", () => {
     jest.useFakeTimers();
     const cues = [];

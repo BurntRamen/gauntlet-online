@@ -8,6 +8,7 @@ import "./GauntletMatchCanvas.css";
 export default function GauntletMatchCanvas({
   viewModel,
   commands = {},
+  capturePlaybackControl = null,
   onRendererError,
   onSceneMetrics
 }) {
@@ -16,11 +17,13 @@ export default function GauntletMatchCanvas({
   const engineRef = useRef(null);
   const rendererFailedRef = useRef(false);
   const commandsRef = useRef(commands);
+  const capturePlaybackControlRef = useRef(capturePlaybackControl);
   const onRendererErrorRef = useRef(onRendererError);
   const onSceneMetricsRef = useRef(onSceneMetrics);
   const initializationMsRef = useRef(null);
   const [rendererError, setRendererError] = useState("");
   commandsRef.current = commands;
+  capturePlaybackControlRef.current = capturePlaybackControl;
   onRendererErrorRef.current = onRendererError;
   onSceneMetricsRef.current = onSceneMetrics;
 
@@ -64,17 +67,83 @@ export default function GauntletMatchCanvas({
       }
       rendererRef.current = renderer;
       if (process.env.NODE_ENV !== "production") {
+        let ownedCaptureDepth = 0;
         const captureMetrics = () => ({
           ...renderer.getMetrics?.(),
           initializationMs: initializationMsRef.current
         });
+        const releaseCaptureLease = () => {
+          if (ownedCaptureDepth <= 0) return { depth: 0, playbackDepth: 0 };
+          let depth = 0;
+          let playbackDepth = 0;
+          let releaseError = null;
+          try {
+            depth = renderer.setCapturePaused?.(false) || 0;
+          } catch (error) {
+            releaseError = error;
+          }
+          try {
+            playbackDepth = capturePlaybackControlRef.current?.resume?.() || 0;
+          } catch (error) {
+            releaseError ||= error;
+          } finally {
+            ownedCaptureDepth = Math.max(0, ownedCaptureDepth - 1);
+          }
+          if (releaseError) throw releaseError;
+          return { depth, playbackDepth };
+        };
         canvas.__gauntletCaptureControl = {
-          pause: () => ({
-            depth: renderer.setCapturePaused?.(true) || 0,
-            metrics: captureMetrics()
-          }),
+          pause: () => {
+            if (ownedCaptureDepth > 0) {
+              throw new Error("The Babylon capture control already owns an active lease.");
+            }
+            const playbackDepth = capturePlaybackControlRef.current?.pause?.() || 0;
+            if (playbackDepth !== 1) {
+              if (playbackDepth > 0) capturePlaybackControlRef.current?.resume?.();
+              throw new Error("The presentation playback queue could not acquire an exclusive capture lease.");
+            }
+            let depth = 0;
+            let rendererAcquired = false;
+            try {
+              depth = renderer.setCapturePaused?.(true) || 0;
+              rendererAcquired = depth > 0;
+              if (depth !== 1) {
+                throw new Error("The Babylon renderer could not acquire an exclusive capture lease.");
+              }
+              const metrics = captureMetrics();
+              ownedCaptureDepth = 1;
+              return { depth, playbackDepth, metrics };
+            } catch (error) {
+              let rollbackError = null;
+              try {
+                if (rendererAcquired) renderer.setCapturePaused?.(false);
+              } catch (releaseError) {
+                rollbackError = releaseError;
+              }
+              try {
+                capturePlaybackControlRef.current?.resume?.();
+              } catch (releaseError) {
+                rollbackError ||= releaseError;
+              }
+              throw rollbackError || error;
+            }
+          },
           snapshot: captureMetrics,
-          resume: () => renderer.setCapturePaused?.(false) || 0
+          resume: releaseCaptureLease,
+          releaseAll: () => {
+            let depth = 0;
+            let playbackDepth = 0;
+            let releaseError = null;
+            while (ownedCaptureDepth > 0) {
+              try {
+                ({ depth, playbackDepth } = releaseCaptureLease());
+              } catch (error) {
+                releaseError ||= error;
+              }
+            }
+            if (releaseError) throw releaseError;
+            return { depth, playbackDepth };
+          }
         };
       }
       renderer.scene.render();
@@ -110,7 +179,13 @@ export default function GauntletMatchCanvas({
         canvas.removeEventListener("webglcontextlost", contextLost);
         if (metricsInterval) window.clearInterval(metricsInterval);
         engine.stopRenderLoop();
-        delete canvas.__gauntletCaptureControl;
+        try {
+          canvas.__gauntletCaptureControl?.releaseAll?.();
+        } catch (error) {
+          console.error("The Babylon capture lease could not be fully released during cleanup.", error);
+        } finally {
+          delete canvas.__gauntletCaptureControl;
+        }
         renderer.dispose();
         rendererRef.current = null;
         engineRef.current = null;
