@@ -2530,6 +2530,39 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return new Vector3(anchor.x, 0.84, anchor.z);
   }
 
+  function activeEffectMetrics() {
+    if (!activeEventAnimation) {
+      return {
+        activeEffectEventType: null,
+        activeEffectOccurrenceId: null,
+        activeEffectSourceEventId: null,
+        activeEffectCueId: null,
+        activeEffectElapsedMs: 0,
+        activeEffectDelayMs: 0,
+        activeEffectDurationMs: 0,
+        activeEffectProgress: 0,
+        activeEffectVisible: false
+      };
+    }
+    const elapsedMs = Number(activeEventAnimation.elapsedMs || 0);
+    const delayMs = Number(activeEventAnimation.delayMs || 0);
+    const durationMs = Math.max(1, Number(activeEventAnimation.durationMs || 0));
+    const effectElapsedMs = elapsedMs - delayMs;
+    return {
+      activeEffectEventType: activeEventAnimation.entry?.type || null,
+      activeEffectOccurrenceId: activeEventAnimation.entry?.id || null,
+      activeEffectSourceEventId: activeEventAnimation.cue?.sourceEventId
+        || activeEventAnimation.entry?.id
+        || null,
+      activeEffectCueId: activeEventAnimation.cue?.cueId || null,
+      activeEffectElapsedMs: Number(effectElapsedMs.toFixed(3)),
+      activeEffectDelayMs: delayMs,
+      activeEffectDurationMs: durationMs,
+      activeEffectProgress: Number(Math.max(0, Math.min(1, effectElapsedMs / durationMs)).toFixed(3)),
+      activeEffectVisible: effectElapsedMs > 0 && effectElapsedMs < durationMs
+    };
+  }
+
   function priorityEffectPath(entry) {
     if (entry?.type === "priority.passed") {
       const source = priorityEffectPosition(entry.player);
@@ -3119,6 +3152,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           z: Number(Number(point.z || 0).toFixed(3))
         }))
       }));
+      const effectMetrics = activeEffectMetrics();
       return {
         ...stageMetrics,
         ...snapshotMetrics,
@@ -3127,7 +3161,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         revision: Number(currentPresentationSnapshot?.revision ?? currentViewModel?.revision ?? 0),
         activeEventType: currentViewModel?.presentationPlayback?.activeEventType || null,
         activeEventId: currentViewModel?.presentationPlayback?.activeEventId || null,
-        activeEffectEventType: activeEventAnimation?.entry?.type || null,
+        ...effectMetrics,
         rulesVersion: currentViewModel?.rulesVersion || null,
         duplicateVisibleIdentityCount: registryMetrics.duplicateVisibleIdentityCount
           ?? snapshotMetrics.duplicateVisibleIdentityCount,

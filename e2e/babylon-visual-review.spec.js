@@ -294,7 +294,13 @@ async function pageWithBottomAction(pages, pattern) {
 async function waitForMotionRole(
   page,
   role,
-  { latch = false, latchDelayMs = 0, latchProgress = null, eventType = null } = {}
+  {
+    latch = false,
+    latchDelayMs = 0,
+    latchProgress = null,
+    eventType = null,
+    occurrenceIds = null
+  } = {}
 ) {
   const canvas = page.locator("canvas.babylon-match-canvas");
   return canvas.evaluate((element, {
@@ -303,7 +309,8 @@ async function waitForMotionRole(
     shouldLatch,
     requestedLatchDelayMs,
     requestedLatchProgress,
-    requiredEventType
+    requiredEventType,
+    requiredOccurrenceIds
   }) => new Promise((resolve, reject) => {
     const captureControl = element.__gauntletCaptureControl;
     if (typeof captureControl?.snapshot !== "function") {
@@ -331,12 +338,23 @@ async function waitForMotionRole(
         ? (metrics.activeMotionPaths || []).filter((motion) => (
             motion.role === expectedRole
             && (!requiredEventType || motion.sourceEventId === activeEventId)
+            && (
+              !Array.isArray(requiredOccurrenceIds)
+              || requiredOccurrenceIds.includes(motion.occurrenceId)
+            )
           ))
         : [];
+      const occurrenceMatches = !Array.isArray(requiredOccurrenceIds)
+        || (
+          requiredOccurrenceIds.length > 0
+          && requiredOccurrenceIds.every((occurrenceId) => (
+            rolePaths.some((motion) => motion.occurrenceId === occurrenceId)
+          ))
+        );
       return {
         observedMotionRole: expectedRole,
         observedAtMs: performance.now(),
-        activeCount: rolePaths.length,
+        activeCount: occurrenceMatches ? rolePaths.length : 0,
         activeTransitionCount: Number(metrics.activeTransitionCount || 0),
         activeMotionsByRole: roles,
         activeMotionPaths: metrics.activeMotionPaths || [],
@@ -344,14 +362,20 @@ async function waitForMotionRole(
         matchedMotionActorIds: rolePaths.map((motion) => motion.actorId),
         matchedMotionOccurrenceIds: rolePaths.map((motion) => motion.occurrenceId),
         matchedMotionSourceEventIds: rolePaths.map((motion) => motion.sourceEventId),
-        motionMatchPolicy: requiredEventType
-          ? "role-source-event-identity"
-          : "any-active-role-actor",
+        motionMatchPolicy: requiredEventType && Array.isArray(requiredOccurrenceIds)
+          ? "role-source-event-and-occurrence-identity"
+          : requiredEventType
+            ? "role-source-event-identity"
+            : Array.isArray(requiredOccurrenceIds)
+              ? "role-occurrence-identity"
+              : "any-active-role-actor",
         requiredEventType,
+        requiredOccurrenceIds,
         eventCorrelationVerified: eventMatches && (
           !requiredEventType
           || rolePaths.every((motion) => motion.sourceEventId === activeEventId)
         ),
+        occurrenceCorrelationVerified: occurrenceMatches,
         actorsByZone: metrics.actorsByZone || {},
         activeEventId,
         activeEventType,
@@ -436,7 +460,112 @@ async function waitForMotionRole(
     requestedLatchProgress: Number.isFinite(latchProgress)
       ? Math.max(0, Math.min(0.95, Number(latchProgress)))
       : null,
-    requiredEventType: eventType || null
+    requiredEventType: eventType || null,
+    requiredOccurrenceIds: Array.isArray(occurrenceIds) ? occurrenceIds : null
+  });
+}
+
+async function waitForEventEffect(page, eventTypes, { latchProgress = 0.22 } = {}) {
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  const expectedTypes = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+  return canvas.evaluate((element, {
+    requiredEventTypes,
+    requiredEffectProgress,
+    timeoutMs
+  }) => new Promise((resolve, reject) => {
+    const captureControl = element.__gauntletCaptureControl;
+    if (typeof captureControl?.snapshot !== "function") {
+      reject(new Error(`The Babylon renderer-frame capture control is unavailable for ${requiredEventTypes.join("/")}.`));
+      return;
+    }
+    let frameRequest = null;
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      if (frameRequest != null) cancelAnimationFrame(frameRequest);
+      clearTimeout(timer);
+      callback(value);
+    };
+    const observedDiagnostics = (metrics = {}) => {
+      const activeEventType = metrics.activeEventType || null;
+      const activeEventId = metrics.activeEventId || null;
+      const activeEffectEventType = metrics.activeEffectEventType || null;
+      const activeEffectOccurrenceId = metrics.activeEffectOccurrenceId || null;
+      const activeEffectSourceEventId = metrics.activeEffectSourceEventId || null;
+      const activeEffectProgress = Number(metrics.activeEffectProgress || 0);
+      const eventMatches = Boolean(activeEventId) && requiredEventTypes.includes(activeEventType);
+      const effectMatches = Number(metrics.activeEffects || 0) > 0
+        && Boolean(metrics.activeEffectVisible)
+        && requiredEventTypes.includes(activeEffectEventType)
+        && Boolean(activeEffectOccurrenceId)
+        && activeEffectSourceEventId === activeEventId
+        && activeEffectProgress >= requiredEffectProgress;
+      return {
+        observedEventType: activeEventType,
+        observedEventId: activeEventId,
+        observedEffectEventType: activeEffectEventType,
+        observedEffectOccurrenceId: activeEffectOccurrenceId,
+        observedEffectSourceEventId: activeEffectSourceEventId,
+        observedEffectProgress: activeEffectProgress,
+        observedAtMs: performance.now(),
+        activeEffects: Number(metrics.activeEffects || 0),
+        eventEffectCorrelationVerified: eventMatches && effectMatches,
+        requiredEventTypes,
+        requiredEffectProgress,
+        rendererRevision: metrics.revision ?? null,
+        rendererFrameSnapshot: true
+      };
+    };
+    const sample = () => {
+      let metrics;
+      try {
+        metrics = captureControl.snapshot() || {};
+      } catch {
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
+      const diagnostics = observedDiagnostics(metrics);
+      if (!diagnostics.eventEffectCorrelationVerified) {
+        frameRequest = requestAnimationFrame(sample);
+        return;
+      }
+      let capturePauseResult;
+      try {
+        capturePauseResult = captureControl.pause();
+      } catch (error) {
+        finish(reject, error);
+        return;
+      }
+      const pausedDiagnostics = observedDiagnostics(capturePauseResult?.metrics || {});
+      if (
+        Number(capturePauseResult?.depth || 0) !== 1
+        || Number(capturePauseResult?.playbackDepth || 0) !== 1
+        || !pausedDiagnostics.eventEffectCorrelationVerified
+        || pausedDiagnostics.observedEventId !== diagnostics.observedEventId
+        || pausedDiagnostics.observedEffectOccurrenceId !== diagnostics.observedEffectOccurrenceId
+        || pausedDiagnostics.observedEffectSourceEventId !== diagnostics.observedEffectSourceEventId
+      ) {
+        if (
+          Number(capturePauseResult?.depth || 0) > 0
+          || Number(capturePauseResult?.playbackDepth || 0) > 0
+        ) captureControl.resume?.();
+        finish(reject, new Error(`${requiredEventTypes.join("/")} could not be frozen on its renderer effect frame.`));
+        return;
+      }
+      finish(resolve, {
+        ...pausedDiagnostics,
+        capturePauseResult
+      });
+    };
+    const timer = setTimeout(() => {
+      finish(reject, new Error(`Timed out waiting for ${requiredEventTypes.join("/")} renderer effect.`));
+    }, timeoutMs);
+    sample();
+  }), {
+    requiredEventTypes: expectedTypes.filter(Boolean),
+    requiredEffectProgress: Math.max(0.01, Math.min(0.95, Number(latchProgress) || 0.22)),
+    timeoutMs: 10000
   });
 }
 
@@ -617,6 +746,14 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
     activeEventId: rendererValue("activeEventId", attributes.activeEventId),
     activeEventType: rendererValue("activeEventType", attributes.activeEventType),
     activeEffectEventType: rendererValue("activeEffectEventType", null),
+    activeEffectOccurrenceId: rendererValue("activeEffectOccurrenceId", null),
+    activeEffectSourceEventId: rendererValue("activeEffectSourceEventId", null),
+    activeEffectCueId: rendererValue("activeEffectCueId", null),
+    activeEffectElapsedMs: rendererValue("activeEffectElapsedMs", 0),
+    activeEffectDelayMs: rendererValue("activeEffectDelayMs", 0),
+    activeEffectDurationMs: rendererValue("activeEffectDurationMs", 0),
+    activeEffectProgress: rendererValue("activeEffectProgress", 0),
+    activeEffectVisible: rendererValue("activeEffectVisible", false),
     rulesVersion: rendererValue("rulesVersion", attributes.rulesVersion),
     layoutProfile: rendererValue("layoutProfile", attributes.layoutProfile),
     focusRegion: Object.prototype.hasOwnProperty.call(rendererMetrics, "boardPresentation")
@@ -748,17 +885,41 @@ async function captureMajorDamageScenario(browser, baseURL, manifest) {
     );
     const majorEventReady = waitForActiveEvent(defender, "damage.calculated");
     const mobileMajorEventReady = waitForActiveEvent(mobileSpectator.page, "damage.calculated");
+    const majorDiscardReady = waitForMotionRole(defender, "discard-exit", {
+      latch: true,
+      latchProgress: 0.22,
+      eventType: "damage.calculated"
+    });
+    const mobileMajorDiscardReady = waitForMotionRole(mobileSpectator.page, "discard-exit", {
+      latch: true,
+      latchProgress: 0.22,
+      eventType: "damage.calculated"
+    });
     await currentAction(defender).getByRole("button", { name: "Take Damage" }).click();
-    await Promise.all([majorEventReady, mobileMajorEventReady]);
+    const [, , observedMajorDiscard, observedMobileMajorDiscard] = await Promise.all([
+      majorEventReady,
+      mobileMajorEventReady,
+      majorDiscardReady,
+      mobileMajorDiscardReady
+    ]);
     await pageMotionCapture(
       mobileSpectator.page,
       manifest,
       "mobile-major-damage-motion",
-      80,
+      0,
       VIEWPORTS[4],
-      "phone-landscape-motion"
+      "phone-landscape-motion",
+      observedMobileMajorDiscard
     );
-    await pageMotionCapture(defender, manifest, "major-damage-resolution", 120);
+    await pageMotionCapture(
+      defender,
+      manifest,
+      "major-damage-resolution",
+      0,
+      VIEWPORTS[0],
+      "desktop-motion",
+      observedMajorDiscard
+    );
     await expect.poll(async () => Number(
       await defender.locator(".production-player-plate-bottom .production-life strong").textContent()
     )).toBeLessThanOrEqual(lifeBefore - 8);
@@ -772,13 +933,22 @@ async function captureMajorDamageScenario(browser, baseURL, manifest) {
 
 async function captureConcessionResult(attacker, defender, manifest) {
   const matchId = await defender.getByTestId("production-babylon-match").getAttribute("data-match-id");
-  const victoryEventReady = waitForActiveEvent(attacker, "match.ended");
+  await setReviewViewport(attacker, VIEWPORTS[0]);
+  const victoryEffectReady = waitForEventEffect(attacker, "match.ended");
   await defender.locator(".production-match-utilities > summary").click();
   await defender.getByRole("button", { name: "Concede", exact: true }).click();
   await defender.getByRole("group", { name: "Confirm concession" })
     .getByRole("button", { name: "Confirm" }).click();
-  await victoryEventReady;
-  await pageMotionCapture(attacker, manifest, "victory-result-transition", 120);
+  const observedVictoryEffect = await victoryEffectReady;
+  await pageMotionCapture(
+    attacker,
+    manifest,
+    "victory-result-transition",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedVictoryEffect
+  );
   await waitForPlaybackSettled(attacker);
   await captureState(attacker, manifest, "victory-result", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await captureState(defender, manifest, "defeat-result", [VIEWPORTS[0]]);
@@ -807,10 +977,21 @@ async function captureFactionAbilityScenario(browser, baseURL, manifest) {
     await activateLaneButton(page, "Lane 1");
     await captureState(page, manifest, "ability-activation-staged", [VIEWPORTS[0], VIEWPORTS[4]]);
     await page.setViewportSize(VIEWPORTS[0]);
-    const placementMotionReady = waitForMotionRole(page, "placement-enter");
+    const placementMotionReady = waitForMotionRole(page, "placement-enter", {
+      latch: true,
+      latchProgress: 0.38
+    });
     await currentAction(page).getByRole("button", { name: "Confirm Placement" }).click();
-    await placementMotionReady;
-    await pageMotionCapture(page, manifest, "ability-activation", 160);
+    const observedPlacement = await placementMotionReady;
+    await pageMotionCapture(
+      page,
+      manifest,
+      "ability-activation",
+      0,
+      VIEWPORTS[0],
+      "desktop-motion",
+      observedPlacement
+    );
     await waitForPlaybackSettled(page);
     await captureState(page, manifest, "ability-activation-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   } finally {
@@ -866,7 +1047,6 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(attacker, manifest, "payment-staged");
   await setReviewViewport(attacker, VIEWPORTS[0]);
   const attackPaymentMotionReady = waitForMotionRole(attacker, "payment-enter", { latch: true });
-  const attackMotionReady = waitForMotionRole(attacker, "attack-enter");
   const attackEventReady = waitForActiveEvent(attacker, "attack.declared");
   await currentAction(attacker).getByRole("button", { name: "Confirm Attack" }).click();
 
@@ -892,11 +1072,51 @@ test("capture real live and replay match presentation states", async ({ browser,
     Math.max(...attackPaymentPath.map((point) => point.z)),
     JSON.stringify(attackPaymentStart.activeMotionPaths)
   ).toBeLessThan(0);
-  await pageMotionCapture(attacker, manifest, "payment-transition-midpoint", 140);
+  const observedAttackPaymentMidpoint = await waitForMotionRole(attacker, "payment-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    occurrenceIds: observedAttackPayment.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    attacker,
+    manifest,
+    "payment-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedAttackPaymentMidpoint
+  );
+  const attackMotionReady = waitForMotionRole(attacker, "attack-enter", {
+    latch: true,
+    latchProgress: 0.12,
+    eventType: "attack.declared"
+  });
   await attackEventReady;
-  await attackMotionReady;
-  await pageMotionCapture(attacker, manifest, "attack-transition-start", 0);
-  await pageMotionCapture(attacker, manifest, "attack-transition-midpoint", 220);
+  const observedAttackStart = await attackMotionReady;
+  await pageMotionCapture(
+    attacker,
+    manifest,
+    "attack-transition-start",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedAttackStart
+  );
+  const observedAttackMidpoint = await waitForMotionRole(attacker, "attack-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    eventType: "attack.declared",
+    occurrenceIds: observedAttackStart.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    attacker,
+    manifest,
+    "attack-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedAttackMidpoint
+  );
 
   await expect(currentAction(defender)).toContainText(/may block or decline/i);
   await waitForPlaybackSettled(attacker);
@@ -916,7 +1136,6 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(defender, manifest, "block-and-payment-staged");
   await setReviewViewport(defender, VIEWPORTS[0]);
   const blockPaymentMotionReady = waitForMotionRole(defender, "payment-enter", { latch: true });
-  const blockMotionReady = waitForMotionRole(defender, "block-enter");
   const blockEventReady = waitForActiveEvent(defender, "block.declared");
   const damageEventReady = waitForActiveEvent(defender, "damage.calculated");
   await currentAction(defender).getByRole("button", { name: "Confirm Block" }).click();
@@ -939,13 +1158,67 @@ test("capture real live and replay match presentation states", async ({ browser,
     Math.max(...blockPaymentPath.map((point) => point.z)),
     JSON.stringify(blockPaymentStart.activeMotionPaths)
   ).toBeLessThan(0);
-  await pageMotionCapture(defender, manifest, "block-payment-transition-midpoint", 140);
+  const observedBlockPaymentMidpoint = await waitForMotionRole(defender, "payment-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    occurrenceIds: observedBlockPayment.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    defender,
+    manifest,
+    "block-payment-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedBlockPaymentMidpoint
+  );
+  const blockMotionReady = waitForMotionRole(defender, "block-enter", {
+    latch: true,
+    latchProgress: 0.12,
+    eventType: "block.declared"
+  });
   await blockEventReady;
-  await blockMotionReady;
-  await pageMotionCapture(defender, manifest, "block-transition-start", 0);
-  await pageMotionCapture(defender, manifest, "block-transition-midpoint", 220);
+  const observedBlockStart = await blockMotionReady;
+  await pageMotionCapture(
+    defender,
+    manifest,
+    "block-transition-start",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedBlockStart
+  );
+  const observedBlockMidpoint = await waitForMotionRole(defender, "block-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    eventType: "block.declared",
+    occurrenceIds: observedBlockStart.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    defender,
+    manifest,
+    "block-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedBlockMidpoint
+  );
+  const combatDiscardReady = waitForMotionRole(defender, "discard-exit", {
+    latch: true,
+    latchProgress: 0.2,
+    eventType: "damage.calculated"
+  });
   await damageEventReady;
-  await pageMotionCapture(defender, manifest, "combat-resolution", 0);
+  const observedCombatDiscard = await combatDiscardReady;
+  await pageMotionCapture(
+    defender,
+    manifest,
+    "combat-resolution",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedCombatDiscard
+  );
   await waitForPlaybackSettled(defender);
   const combatFinal = await captureState(defender, manifest, "combat-final", [VIEWPORTS[0]]);
   expectZonesEmpty(combatFinal, ["payment", "combat"]);
@@ -966,20 +1239,32 @@ test("capture real live and replay match presentation states", async ({ browser,
   const livePages = [attacker, defender];
   const firstPassPage = await pageWithBottomPriority(livePages);
   const secondPassPage = firstPassPage === attacker ? defender : attacker;
+  const priorityEffectReady = waitForEventEffect(secondPassPage, ["priority.granted", "priority.passed"]);
   await currentAction(firstPassPage).getByRole("button", { name: "Pass Priority" }).click();
+  const observedPriorityEffect = await priorityEffectReady;
+  await pageMotionCapture(
+    secondPassPage,
+    manifest,
+    "priority-transfer",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedPriorityEffect
+  );
   await expect(secondPassPage.locator(".production-player-plate-bottom.has-priority")).toBeVisible();
-  await pageMotionCapture(secondPassPage, manifest, "priority-transfer", 80);
   await currentAction(secondPassPage).getByRole("button", { name: "Pass Priority" }).click();
 
-  let drawMotionPagePromise = null;
+  let drawMotionPage = null;
+  let drawMotionReady = null;
   for (let opportunity = 1; opportunity <= 6; opportunity += 1) {
     const actingPage = await pageWithBottomAction(livePages, new RegExp(`Placement ${opportunity} of 6`, "i"));
     await actingPage.setViewportSize(VIEWPORTS[0]);
     if (opportunity === 6) {
-      drawMotionPagePromise = Promise.any(livePages.map(async (page) => {
-        await waitForMotionRole(page, "draw-enter");
-        return page;
-      }));
+      drawMotionPage = actingPage;
+      drawMotionReady = waitForMotionRole(drawMotionPage, "draw-enter", {
+        latch: true,
+        latchProgress: 0.35
+      });
       await currentAction(actingPage).getByRole("button", { name: "Skip Lane" }).click();
       continue;
     }
@@ -988,19 +1273,56 @@ test("capture real live and replay match presentation states", async ({ browser,
       await captureState(actingPage, manifest, "placement-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
       await actingPage.setViewportSize(VIEWPORTS[0]);
     }
+    const placementMotionReady = opportunity === 1
+      ? waitForMotionRole(actingPage, "placement-enter", {
+          latch: true,
+          latchProgress: 0.12,
+          eventType: "card.placedFacedown"
+        })
+      : null;
     await currentAction(actingPage).getByRole("button", { name: "Place Facedown" }).click();
     if (opportunity === 1) {
-      await waitForMotionRole(actingPage, "placement-enter");
-      await pageMotionCapture(actingPage, manifest, "placement-transition-start", 40);
-      await pageMotionCapture(actingPage, manifest, "placement-transition-midpoint", 360);
+      const observedPlacementStart = await placementMotionReady;
+      await pageMotionCapture(
+        actingPage,
+        manifest,
+        "placement-transition-start",
+        0,
+        VIEWPORTS[0],
+        "desktop-motion",
+        observedPlacementStart
+      );
+      const observedPlacementMidpoint = await waitForMotionRole(actingPage, "placement-enter", {
+        latch: true,
+        latchProgress: 0.55,
+        eventType: "card.placedFacedown",
+        occurrenceIds: observedPlacementStart.matchedMotionOccurrenceIds
+      });
+      await pageMotionCapture(
+        actingPage,
+        manifest,
+        "placement-transition-midpoint",
+        0,
+        VIEWPORTS[0],
+        "desktop-motion",
+        observedPlacementMidpoint
+      );
       await waitForPlaybackSettled(actingPage);
       await captureState(actingPage, manifest, "placement-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
     }
   }
 
+  const observedDrawMidpoint = await drawMotionReady;
+  await pageMotionCapture(
+    drawMotionPage,
+    manifest,
+    "draw-and-turn-transition",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedDrawMidpoint
+  );
   const turnTwoPage = await pageWithBottomAction(livePages, /Turn 2/i);
-  const drawMotionPage = await drawMotionPagePromise;
-  await pageMotionCapture(drawMotionPage, manifest, "draw-and-turn-transition", 0);
   await waitForPlaybackSettled(turnTwoPage);
   await captureState(turnTwoPage, manifest, "turn-two-draw-settled", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
 
@@ -1011,13 +1333,43 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(laneAttacker, manifest, "lane-attack-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await laneAttacker.setViewportSize(VIEWPORTS[0]);
   await payUntilEnabled(laneAttacker, "Confirm Attack");
-  const laneAttackMotionReady = waitForMotionRole(laneAttacker, "attack-enter");
+  const laneAttackMotionReady = waitForMotionRole(laneAttacker, "attack-enter", {
+    latch: true,
+    latchProgress: 0.12,
+    eventType: "attack.declared"
+  });
   await currentAction(laneAttacker).getByRole("button", { name: "Confirm Attack" }).click();
-  await laneAttackMotionReady;
-  await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-start", 60);
-  await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-midpoint", 420);
+  const observedLaneAttackStart = await laneAttackMotionReady;
+  await pageMotionCapture(
+    laneAttacker,
+    manifest,
+    "lane-attack-transition-start",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneAttackStart
+  );
+  const observedLaneAttackMidpoint = await waitForMotionRole(laneAttacker, "attack-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    eventType: "attack.declared",
+    occurrenceIds: observedLaneAttackStart.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    laneAttacker,
+    manifest,
+    "lane-attack-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneAttackMidpoint
+  );
   await expect(currentAction(laneDefender)).toContainText(/attacked from Lane 1.*may block or decline/i);
-  const laneDiscardMotionReady = waitForMotionRole(laneDefender, "discard-exit");
+  const laneDiscardMotionReady = waitForMotionRole(laneDefender, "discard-exit", {
+    latch: true,
+    latchProgress: 0.18,
+    eventType: "damage.calculated"
+  });
   const mobileDamageEventReady = waitForActiveEvent(mobileSpectator.page, "damage.calculated");
   const mobileDiscardCaptureReady = waitForMotionRole(mobileSpectator.page, "discard-exit", {
     latch: true,
@@ -1034,13 +1386,35 @@ test("capture real live and replay match presentation states", async ({ browser,
       observedMobileDiscard
     ));
   await currentAction(laneDefender).getByRole("button", { name: "Take Damage" }).click();
-  await Promise.all([
+  const [observedLaneDiscard] = await Promise.all([
     laneDiscardMotionReady,
     mobileDamageEventReady,
     mobileDiscardCaptureReady
   ]);
-  await pageMotionCapture(laneDefender, manifest, "lane-damage-resolution", 100);
-  await pageMotionCapture(laneDefender, manifest, "lane-discard-departure", 120);
+  await pageMotionCapture(
+    laneDefender,
+    manifest,
+    "lane-damage-resolution",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneDiscard
+  );
+  const observedLaneDiscardDeparture = await waitForMotionRole(laneDefender, "discard-exit", {
+    latch: true,
+    latchProgress: 0.62,
+    eventType: "damage.calculated",
+    occurrenceIds: observedLaneDiscard.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    laneDefender,
+    manifest,
+    "lane-discard-departure",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneDiscardDeparture
+  );
   await waitForPlaybackSettled(laneDefender);
   const laneDamageFinal = await captureState(laneDefender, manifest, "lane-damage-final", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   expectZonesEmpty(laneDamageFinal, ["payment", "combat"]);
@@ -1056,11 +1430,37 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(secondLaneDefender, manifest, "lane-block-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await secondLaneDefender.setViewportSize(VIEWPORTS[0]);
   await payUntilEnabled(secondLaneDefender, "Confirm Block");
-  const laneBlockMotionReady = waitForMotionRole(secondLaneDefender, "block-enter");
+  const laneBlockMotionReady = waitForMotionRole(secondLaneDefender, "block-enter", {
+    latch: true,
+    latchProgress: 0.12,
+    eventType: "block.declared"
+  });
   await currentAction(secondLaneDefender).getByRole("button", { name: "Confirm Block" }).click();
-  await laneBlockMotionReady;
-  await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-start", 60);
-  await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-midpoint", 450);
+  const observedLaneBlockStart = await laneBlockMotionReady;
+  await pageMotionCapture(
+    secondLaneDefender,
+    manifest,
+    "lane-block-transition-start",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneBlockStart
+  );
+  const observedLaneBlockMidpoint = await waitForMotionRole(secondLaneDefender, "block-enter", {
+    latch: true,
+    latchProgress: 0.55,
+    eventType: "block.declared",
+    occurrenceIds: observedLaneBlockStart.matchedMotionOccurrenceIds
+  });
+  await pageMotionCapture(
+    secondLaneDefender,
+    manifest,
+    "lane-block-transition-midpoint",
+    0,
+    VIEWPORTS[0],
+    "desktop-motion",
+    observedLaneBlockMidpoint
+  );
   await waitForPlaybackSettled(secondLaneDefender);
   const laneBlockFinal = await captureState(secondLaneDefender, manifest, "lane-block-final", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   expectZonesEmpty(laneBlockFinal, ["payment", "combat"]);
@@ -1141,6 +1541,8 @@ async function pageMotionCapture(
   observedMotion = null
 ) {
   const observedRole = observedMotion?.observedMotionRole || null;
+  const observedEventType = observedMotion?.observedEventType || null;
+  const hasAtomicObservation = Boolean(observedRole || observedEventType);
   const canvas = page.locator("canvas.babylon-match-canvas");
   let pauseResult = observedMotion?.capturePauseResult || null;
   let capturePaused = Number(pauseResult?.depth || 0) > 0;
@@ -1164,12 +1566,12 @@ async function pageMotionCapture(
     const file = `${id}--${viewport.id}.jpg`;
     const capturePath = path.join(OUTPUT_DIRECTORY, file);
     if (fs.existsSync(capturePath)) throw new Error(`Duplicate Babylon review capture path: ${file}`);
-    if (observedRole && !capturePaused) {
+    if (hasAtomicObservation && !capturePaused) {
       pauseResult = await canvas.evaluate((element) => element.__gauntletCaptureControl?.pause?.() || null);
       capturePaused = Number(pauseResult?.depth || 0) > 0;
       playbackCapturePaused = Number(pauseResult?.playbackDepth || 0) > 0;
     }
-    if (observedRole && (!capturePaused || !playbackCapturePaused)) {
+    if (hasAtomicObservation && (!capturePaused || !playbackCapturePaused)) {
       throw new Error(`The Babylon capture latch was unavailable for ${file}.`);
     }
     const matchesObservedPath = (motion) => (
@@ -1178,16 +1580,46 @@ async function pageMotionCapture(
         !observedMotion?.requiredEventType
         || motion.sourceEventId === observedMotion.activeEventId
       )
+      && (
+        !Array.isArray(observedMotion?.requiredOccurrenceIds)
+        || observedMotion.requiredOccurrenceIds.includes(motion.occurrenceId)
+      )
     );
     const beforeCaptureDiagnostics = await captureDiagnostics(page, pauseResult?.metrics || null);
+    const matchesObservedEventEffect = (diagnostics) => (
+      !observedEventType
+      || (
+        diagnostics.activeEventId === observedMotion.observedEventId
+        && diagnostics.activeEventType === observedMotion.observedEventType
+        && diagnostics.activeEffectEventType === observedMotion.observedEffectEventType
+        && diagnostics.activeEffectOccurrenceId === observedMotion.observedEffectOccurrenceId
+        && diagnostics.activeEffectSourceEventId === observedMotion.observedEffectSourceEventId
+        && diagnostics.activeEffectSourceEventId === diagnostics.activeEventId
+        && diagnostics.activeEffectVisible === true
+        && Number(diagnostics.activeEffectProgress || 0) >= Number(observedMotion.requiredEffectProgress || 0)
+        && Number(diagnostics.activeEffects || 0) > 0
+      )
+    );
     const beforeObservedPaths = observedRole
       ? beforeCaptureDiagnostics.activeMotionPaths.filter(matchesObservedPath)
       : [];
+    const requiredOccurrenceIds = Array.isArray(observedMotion?.requiredOccurrenceIds)
+      ? observedMotion.requiredOccurrenceIds
+      : [];
+    const requiredOccurrencesPresent = (paths) => (
+      requiredOccurrenceIds.length === 0
+      || requiredOccurrenceIds.every((occurrenceId) => (
+        paths.some((motion) => motion.occurrenceId === occurrenceId)
+      ))
+    );
     const activeBeforeCapture = observedRole
       ? beforeObservedPaths.length
       : 0;
-    if (observedRole && activeBeforeCapture < 1) {
+    if (observedRole && (activeBeforeCapture < 1 || !requiredOccurrencesPresent(beforeObservedPaths))) {
       throw new Error(`Observed ${observedRole} ended before ${file} could be captured.`);
+    }
+    if (!matchesObservedEventEffect(beforeCaptureDiagnostics)) {
+      throw new Error(`Observed ${observedEventType} effect ended before ${file} could be captured.`);
     }
     await page.screenshot({ path: capturePath, type: "jpeg", quality: 90 });
     const afterRendererMetrics = observedRole
@@ -1200,8 +1632,11 @@ async function pageMotionCapture(
     const activeAfterCapture = observedRole
       ? afterObservedPaths.length
       : 0;
-    if (observedRole && activeAfterCapture < 1) {
+    if (observedRole && (activeAfterCapture < 1 || !requiredOccurrencesPresent(afterObservedPaths))) {
       throw new Error(`Observed ${observedRole} ended while ${file} was being captured.`);
+    }
+    if (!matchesObservedEventEffect(afterCaptureDiagnostics)) {
+      throw new Error(`Observed ${observedEventType} effect ended while ${file} was being captured.`);
     }
     if (observedRole && JSON.stringify(beforeObservedPaths) !== JSON.stringify(afterObservedPaths)) {
       throw new Error(`Observed ${observedRole} path changed while ${file} was being captured.`);
@@ -1209,28 +1644,52 @@ async function pageMotionCapture(
     const diagnostics = observedMotion
       ? {
           ...afterCaptureDiagnostics,
-          observedMotionRole: observedRole,
           observedAtMs: observedMotion.observedAtMs,
-          firstObservedAtMs: observedMotion.firstObservedAtMs ?? observedMotion.observedAtMs,
-          activeCount: activeAfterCapture,
-          motionObservationPreserved: true,
-          motionObservationBracketed: true,
-          motionCapturePaused: capturePaused,
+          captureObservationPreserved: true,
+          captureObservationBracketed: true,
+          rendererCapturePaused: capturePaused,
           playbackCapturePaused,
-          motionLatchAtomic: Boolean(observedMotion.capturePauseResult),
-          motionLatchDelayMs: Number(observedMotion.requestedLatchDelayMs || 0),
-          motionLatchProgress: observedMotion.requestedLatchProgress,
-          observedMotionProgress: observedMotion.motionProgress,
-          motionMatchPolicy: observedMotion.motionMatchPolicy,
-          motionRequiredEventType: observedMotion.requiredEventType,
-          motionEventCorrelationVerified: observedMotion.eventCorrelationVerified,
-          motionActiveEventId: observedMotion.activeEventId,
-          matchedMotionActorIds: observedMotion.matchedMotionActorIds,
-          matchedMotionOccurrenceIds: observedMotion.matchedMotionOccurrenceIds,
-          matchedMotionSourceEventIds: observedMotion.matchedMotionSourceEventIds,
-          motionObservationSource: "renderer-frame-snapshot",
-          activeBeforeCapture,
-          activeAfterCapture
+          captureLatchAtomic: Boolean(observedMotion.capturePauseResult),
+          ...(observedRole ? {
+            observedMotionRole: observedRole,
+            firstObservedAtMs: observedMotion.firstObservedAtMs ?? observedMotion.observedAtMs,
+            activeCount: activeAfterCapture,
+            motionObservationPreserved: true,
+            motionObservationBracketed: true,
+            motionCapturePaused: capturePaused,
+            motionLatchAtomic: Boolean(observedMotion.capturePauseResult),
+            motionLatchDelayMs: Number(observedMotion.requestedLatchDelayMs || 0),
+            motionLatchProgress: observedMotion.requestedLatchProgress,
+            observedMotionProgress: observedMotion.motionProgress,
+            motionMatchPolicy: observedMotion.motionMatchPolicy,
+            motionRequiredEventType: observedMotion.requiredEventType,
+            motionEventCorrelationVerified: observedMotion.eventCorrelationVerified,
+            motionRequiredOccurrenceIds: observedMotion.requiredOccurrenceIds,
+            motionOccurrenceCorrelationVerified: observedMotion.occurrenceCorrelationVerified,
+            motionActiveEventId: observedMotion.activeEventId,
+            matchedMotionActorIds: observedMotion.matchedMotionActorIds,
+            matchedMotionOccurrenceIds: observedMotion.matchedMotionOccurrenceIds,
+            matchedMotionSourceEventIds: observedMotion.matchedMotionSourceEventIds,
+            motionObservationSource: "renderer-frame-snapshot",
+            activeBeforeCapture,
+            activeAfterCapture
+          } : {}),
+          ...(observedEventType ? {
+            observedEventType,
+            observedEventId: observedMotion.observedEventId,
+            observedEffectEventType: observedMotion.observedEffectEventType,
+            observedEffectOccurrenceId: observedMotion.observedEffectOccurrenceId,
+            observedEffectSourceEventId: observedMotion.observedEffectSourceEventId,
+            observedEffectProgress: observedMotion.observedEffectProgress,
+            eventRequiredEffectProgress: observedMotion.requiredEffectProgress,
+            eventEffectCorrelationVerified: observedMotion.eventEffectCorrelationVerified,
+            eventRequiredTypes: observedMotion.requiredEventTypes,
+            eventObservationPreserved: true,
+            eventObservationBracketed: true,
+            eventCapturePaused: capturePaused,
+            eventLatchAtomic: Boolean(observedMotion.capturePauseResult),
+            eventObservationSource: "renderer-frame-snapshot"
+          } : {})
         }
       : afterCaptureDiagnostics;
     const dimensions = { width: diagnostics.canvasWidth, height: diagnostics.canvasHeight };
@@ -1242,7 +1701,7 @@ async function pageMotionCapture(
         (element) => element.__gauntletCaptureControl?.resume?.() || null
       );
       if (
-        observedRole
+        hasAtomicObservation
         && (
           Number(resumeResult?.depth || 0) !== 0
           || Number(resumeResult?.playbackDepth || 0) !== 0
