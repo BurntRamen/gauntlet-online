@@ -16,8 +16,8 @@ add or depend on production test/fixture routes.
 - The local eight-card fan stays clear of the contextual action panel.
 - Opponent hand, both lane rows, deck, discard, payment, and combat use distinct
   anchors.
-- The camera fits normalized table anchors instead of stretching lanes on wider
-  screens.
+- The camera selects authored desktop, ultrawide, portrait, and short-landscape
+  module compositions instead of stretching one board across every ratio.
 - All visible local, opponent-attack, payment, blocker, and faction card fronts
   and all lettered card backs are normalized upright to the current viewer.
 
@@ -31,6 +31,12 @@ It writes a browsable matrix, manifest, final poses, and motion samples to
 `artifacts/babylon-visual-review/current/`. The complete capture and
 ordinary-player requirements live in `PRODUCTION_REVIEW_MATRIX.md`; the
 fillable observer record lives in `HUMAN_PLAYTEST_SESSION_TEMPLATE.md`.
+
+The full 2026-08-26 review candidate is preserved separately at
+`artifacts/babylon-visual-review/full-babylon-2026-08-26/`: 40 states, 91
+captures, four responsive profiles, 91 native-scene contracts, zero duplicate
+visible identities, and zero structural composite rasters. Its qualification
+record is `FULL_BABYLON_VISUAL_QUALIFICATION_2026-08-26.md`.
 
 ## Repeatable production-path states
 
