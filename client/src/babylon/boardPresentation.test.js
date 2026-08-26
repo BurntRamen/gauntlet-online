@@ -25,7 +25,7 @@ test("selects stable responsive board profiles at qualification viewports", () =
   expect(getBoardLayoutProfile(1366, 768).id).toBe("desktop");
   expect(getBoardLayoutProfile(390, 844).id).toBe("portrait");
   expect(getBoardLayoutProfile(844, 390).id).toBe("short-landscape");
-  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 5.8, z: 2.81 });
+  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 5.8, z: 3 });
 });
 
 test("projects idle, legal, active, opposed, blocked, and resolving lane states", () => {

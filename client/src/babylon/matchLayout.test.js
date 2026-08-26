@@ -191,7 +191,7 @@ describe("battlefield safe frame", () => {
     expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.tableBounds.left);
     expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.tableBounds.top);
     expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.tableBounds.bottom);
-    expect(["desktop", "portrait", "short-landscape"]).toContain(camera.profile);
+    expect(["desktop", "portrait", "short-landscape", "ultrawide"]).toContain(camera.profile);
   });
 });
 

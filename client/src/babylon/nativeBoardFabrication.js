@@ -129,77 +129,77 @@ export function createNativeBoardPalette(scene) {
   }
 
   return Object.freeze({
-    graphite: nativeMaterial("native-graphite", "#26333c", {
+    graphite: nativeMaterial("native-graphite", "#1b2329", {
       metallic: 0.01,
       roughness: 0.86,
       emissive: "#020405"
     }),
-    graphiteDeep: nativeMaterial("native-graphite-deep", "#10171d", {
+    graphiteDeep: nativeMaterial("native-graphite-deep", "#0b1014", {
       metallic: 0,
       roughness: 0.94,
       emissive: "#010203"
     }),
-    stone: nativeMaterial("native-engraved-stone", "#2b3942", {
+    stone: nativeMaterial("native-engraved-stone", "#212a2f", {
       metallic: 0.01,
       roughness: 0.92,
       emissive: "#020405"
     }),
-    stoneRaised: nativeMaterial("native-raised-stone", "#465762", {
+    stoneRaised: nativeMaterial("native-raised-stone", "#334047", {
       metallic: 0.03,
       roughness: 0.76,
-      emissive: "#0a1115"
+      emissive: "#030506"
     }),
-    well: nativeMaterial("native-card-well", "#0d151b", {
+    well: nativeMaterial("native-card-well", "#080d10", {
       metallic: 0,
       roughness: 0.98,
       emissive: "#010203"
     }),
     wellShadow: nativeMaterial("native-well-shadow", "#020509", { metallic: 0, roughness: 1 }),
-    bronze: nativeMaterial("native-aged-bronze", "#c38b49", {
-      metallic: 0.24,
-      roughness: 0.38,
-      emissive: "#1b0f05"
-    }),
-    bronzeBright: nativeMaterial("native-bronze-highlight", "#efb865", {
-      metallic: 0.3,
-      roughness: 0.26,
-      emissive: "#170c04"
-    }),
-    bronzeDark: nativeMaterial("native-bronze-shadow", "#84572a", {
-      metallic: 0.16,
-      roughness: 0.58,
-      emissive: "#140a04"
-    }),
-    steel: nativeMaterial("native-dark-steel", "#637681", {
+    bronze: nativeMaterial("native-aged-bronze", "#8c6a3e", {
       metallic: 0.2,
-      roughness: 0.4,
-      emissive: "#0a1216"
+      roughness: 0.52,
+      emissive: "#070402"
     }),
-    steelDark: nativeMaterial("native-steel-shadow", "#354751", {
+    bronzeBright: nativeMaterial("native-bronze-highlight", "#b89157", {
+      metallic: 0.25,
+      roughness: 0.42,
+      emissive: "#080502"
+    }),
+    bronzeDark: nativeMaterial("native-bronze-shadow", "#5a432b", {
       metallic: 0.14,
-      roughness: 0.58,
-      emissive: "#0b1116"
+      roughness: 0.66,
+      emissive: "#050302"
     }),
-    parchment: nativeMaterial("native-parchment-inlay", "#d8c9a9", { metallic: 0.08, roughness: 0.68 }),
-    sapphire: nativeMaterial("native-sapphire-inlay", "#155bb6", {
-      metallic: 0.24,
-      roughness: 0.26,
-      emissive: "#082a55"
+    steel: nativeMaterial("native-dark-steel", "#59656b", {
+      metallic: 0.18,
+      roughness: 0.5,
+      emissive: "#020405"
     }),
-    crimson: nativeMaterial("native-crimson-inlay", "#8c2630", {
+    steelDark: nativeMaterial("native-steel-shadow", "#2d383e", {
+      metallic: 0.14,
+      roughness: 0.66,
+      emissive: "#020405"
+    }),
+    parchment: nativeMaterial("native-parchment-inlay", "#d5c9af", { metallic: 0.06, roughness: 0.72 }),
+    sapphire: nativeMaterial("native-sapphire-inlay", "#1d527a", {
       metallic: 0.2,
-      roughness: 0.3,
-      emissive: "#3d0c13"
+      roughness: 0.42,
+      emissive: "#03111b"
     }),
-    violet: nativeMaterial("native-violet-inlay", "#5f3d89", {
-      metallic: 0.22,
-      roughness: 0.3,
-      emissive: "#241238"
+    crimson: nativeMaterial("native-crimson-inlay", "#7c3036", {
+      metallic: 0.18,
+      roughness: 0.42,
+      emissive: "#160507"
     }),
-    resolving: nativeMaterial("native-resolving-inlay", "#a6712e", {
-      metallic: 0.45,
-      roughness: 0.28,
-      emissive: "#4a2a08"
+    violet: nativeMaterial("native-violet-inlay", "#514161", {
+      metallic: 0.18,
+      roughness: 0.44,
+      emissive: "#0d0712"
+    }),
+    resolving: nativeMaterial("native-resolving-inlay", "#8b6838", {
+      metallic: 0.34,
+      roughness: 0.42,
+      emissive: "#120b03"
     })
   });
 }

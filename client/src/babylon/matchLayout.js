@@ -157,8 +157,8 @@ export function getBattlefieldSafeFrame(width, height) {
   const portraitPhone = viewportWidth <= 600 && viewportHeight > viewportWidth;
   const shortLandscape = viewportHeight <= 520 && viewportWidth > viewportHeight;
   const tablet = viewportWidth <= 1024;
-  const top = portraitPhone ? 64 : shortLandscape ? 64 : tablet && viewportWidth <= 900 ? 82 : 96;
-  const bottom = portraitPhone ? 140 : shortLandscape ? 104 : tablet ? 158 : 152;
+  const top = portraitPhone ? 60 : shortLandscape ? 50 : tablet && viewportWidth <= 900 ? 76 : 88;
+  const bottom = portraitPhone ? 132 : shortLandscape ? 104 : tablet && viewportWidth <= 900 ? 132 : tablet ? 142 : 136;
   const side = viewportWidth <= 600 ? 4 : viewportWidth <= 1024 ? 6 : 8;
   const battlefield = {
     x: side,

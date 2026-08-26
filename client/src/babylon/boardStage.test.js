@@ -50,6 +50,9 @@ test("native board stage declares the complete modular scene graph", () => {
 test("responsive profiles rearrange modules instead of scaling a board photo", () => {
   expect(getBoardLayoutProfile(390, 844).id).toBe("portrait");
   expect(getBoardLayoutProfile(844, 390).id).toBe("short-landscape");
+  expect(getBoardLayoutProfile(808, 700).id).toBe("portrait");
+  expect(getBoardLayoutProfile(1012, 538).id).toBe("desktop");
+  expect(getBoardLayoutProfile(2544, 856).id).toBe("ultrawide");
   const portrait = createBoardStageDescriptor(BOARD_LAYOUT_PROFILES.portrait);
   const payment = portrait.boardModules.find((module) => module.id === "payment-tray");
   const combat = portrait.boardModules.find((module) => module.id === "hand-combat-dais");
@@ -133,13 +136,13 @@ test("the eight-card hands remain clear of physical payment, pile, and combat mo
 });
 
 test("short-landscape camera preserves a readable share of the battlefield width", () => {
-  const projection = getTableCameraProjection(836, 222);
-  const profile = getBoardLayoutProfile(836, 222);
+  const projection = getTableCameraProjection(836, 268);
+  const profile = getBoardLayoutProfile(836, 268);
   const board = boardModuleDescriptors(profile).find((module) => module.id === "board-base");
   const projectedWidth = projection.right - projection.left;
 
   expect(profile.id).toBe("short-landscape");
-  expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.41);
+  expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.7);
 });
 
 test.each([

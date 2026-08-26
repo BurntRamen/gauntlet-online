@@ -179,8 +179,11 @@ async function waitForActiveEvent(page, eventType) {
 
 function expectedLayoutProfile(viewport) {
   const aspect = viewport.width / Math.max(1, viewport.height);
-  if (viewport.height <= 520 && aspect > 1) return "short-landscape";
-  if (aspect <= 0.72) return "portrait";
+  if (viewport.height <= 420 && aspect > 1.45) return "short-landscape";
+  if (aspect >= 2.7) return "ultrawide";
+  if (aspect <= 0.72 || (viewport.width <= 920 && viewport.height >= 560 && aspect <= 1.25)) {
+    return "portrait";
+  }
   return "desktop";
 }
 
@@ -448,14 +451,16 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(laneAttacker, manifest, "lane-attack-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await laneAttacker.setViewportSize(VIEWPORTS[0]);
   await payUntilEnabled(laneAttacker, "Confirm Attack");
+  const laneAttackMotionReady = waitForMotionRole(laneAttacker, "attack-enter");
   await currentAction(laneAttacker).getByRole("button", { name: "Confirm Attack" }).click();
-  await waitForMotionRole(laneAttacker, "attack-enter");
+  await laneAttackMotionReady;
   await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-start", 60);
   await pageMotionCapture(laneAttacker, manifest, "lane-attack-transition-midpoint", 420);
   await expect(currentAction(laneDefender)).toContainText(/attacked from Lane 1.*may block or decline/i);
+  const laneDiscardMotionReady = waitForMotionRole(laneDefender, "discard-exit");
   await currentAction(laneDefender).getByRole("button", { name: "Take Damage" }).click();
+  await laneDiscardMotionReady;
   await pageMotionCapture(laneDefender, manifest, "lane-damage-resolution", 100);
-  await waitForMotionRole(laneDefender, "discard-exit");
   await pageMotionCapture(laneDefender, manifest, "lane-discard-departure", 120);
   await waitForPlaybackSettled(laneDefender);
   const laneDamageFinal = await captureState(laneDefender, manifest, "lane-damage-final", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
@@ -472,8 +477,9 @@ test("capture real live and replay match presentation states", async ({ browser,
   await captureState(secondLaneDefender, manifest, "lane-block-selected", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await secondLaneDefender.setViewportSize(VIEWPORTS[0]);
   await payUntilEnabled(secondLaneDefender, "Confirm Block");
+  const laneBlockMotionReady = waitForMotionRole(secondLaneDefender, "block-enter");
   await currentAction(secondLaneDefender).getByRole("button", { name: "Confirm Block" }).click();
-  await waitForMotionRole(secondLaneDefender, "block-enter");
+  await laneBlockMotionReady;
   await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-start", 60);
   await pageMotionCapture(secondLaneDefender, manifest, "lane-block-transition-midpoint", 450);
   await waitForPlaybackSettled(secondLaneDefender);

@@ -30,8 +30,8 @@
 }
 
 .production-match-experience {
-  --battlefield-top-reserve: 96px;
-  --battlefield-bottom-reserve: 152px;
+  --battlefield-top-reserve: 88px;
+  --battlefield-bottom-reserve: 136px;
   --battlefield-side-reserve: 8px;
 }
 
@@ -1775,8 +1775,8 @@
 /* The HTML rails reserve a stable rectangle before Babylon performs camera fit. */
 @media (max-width: 1024px) {
   .production-match-experience {
-    --battlefield-top-reserve: 96px;
-    --battlefield-bottom-reserve: 158px;
+    --battlefield-top-reserve: 88px;
+    --battlefield-bottom-reserve: 142px;
     --battlefield-side-reserve: 6px;
   }
 
@@ -1804,7 +1804,12 @@
 
 @media (max-width: 900px) {
   .production-match-experience {
-    --battlefield-top-reserve: 82px;
+    --battlefield-top-reserve: 76px;
+    --battlefield-bottom-reserve: 132px;
+  }
+
+  .production-combat-recap {
+    display: none;
   }
 }
 
@@ -1835,7 +1840,7 @@
   }
 
   .production-match-experience {
-    --battlefield-top-reserve: 64px;
+    --battlefield-top-reserve: 50px;
     --battlefield-bottom-reserve: 104px;
     --battlefield-side-reserve: 4px;
   }
@@ -1854,7 +1859,22 @@
 
   .production-context-panel {
     bottom: 4px;
-    min-height: 94px;
+    min-height: 64px;
+  }
+
+  .production-match-feed {
+    top: 7px;
+    left: 50%;
+    width: min(470px, max(220px, calc(100% - 446px)));
+  }
+
+  .production-match-feed-current {
+    min-height: 46px;
+  }
+
+  .production-match-feed-current small,
+  .production-match-feed-history {
+    display: none;
   }
 
   .production-context-copy strong,
@@ -1868,10 +1888,16 @@
   }
 }
 
+@media (max-width: 680px) and (max-height: 520px) and (orientation: landscape) {
+  .production-match-feed {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) and (orientation: portrait) {
   .production-match-experience {
-    --battlefield-top-reserve: 64px;
-    --battlefield-bottom-reserve: 140px;
+    --battlefield-top-reserve: 60px;
+    --battlefield-bottom-reserve: 132px;
     --battlefield-side-reserve: 4px;
     min-height: 0;
   }
@@ -1888,13 +1914,15 @@
     left: 4px;
     width: calc(100% - 92px);
     min-height: 56px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-left: 10px;
   }
 
   .production-player-plate-bottom {
     bottom: 4px;
     left: 4px;
-    width: 132px;
-    min-height: 132px;
+    width: min(168px, 42vw);
+    min-height: 124px;
     grid-template-columns: minmax(0, 1fr) auto;
     align-content: center;
   }
@@ -1916,8 +1944,8 @@
   .production-context-panel {
     right: 4px;
     bottom: 4px;
-    width: calc(100% - 144px);
-    min-height: 132px;
+    width: calc(58vw - 16px);
+    min-height: 124px;
     box-sizing: border-box;
     gap: 5px;
     padding: 6px;
@@ -1938,6 +1966,13 @@
 
   .production-action-buttons button {
     min-height: 40px;
+    padding: 5px 6px;
+    font-size: 10px;
+  }
+
+  .production-action-buttons.has-selection {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr);
+    gap: 4px;
   }
 
   .production-context-abilities {
