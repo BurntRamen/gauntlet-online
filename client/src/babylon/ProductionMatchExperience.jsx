@@ -1093,7 +1093,6 @@ function CombatRecap({ events }) {
           damage: null,
           status: "Waiting for defense"
         };
-        changed = true;
       }
       if (entry.type === "block.declared" && currentRef.current) {
         currentRef.current = {
@@ -1101,7 +1100,6 @@ function CombatRecap({ events }) {
           blockCount: (entry.cardIds || []).length || 1,
           status: "Defense committed"
         };
-        changed = true;
       }
       if (entry.type === "damage.calculated") {
         currentRef.current = {
@@ -1119,7 +1117,7 @@ function CombatRecap({ events }) {
         dismissRef.current = window.setTimeout(() => {
           currentRef.current = null;
           setRecap(null);
-        }, 7500);
+        }, 4200);
       }
     });
     if (changed) setRecap(currentRef.current);
@@ -1184,7 +1182,10 @@ function MatchFeed({ entries, statusNotice, catchingUp }) {
   const currentContent = eventCalloutContent(currentEntry);
   const priorEntries = visibleEntries.slice(0, -1).reverse();
   return (
-    <section className="production-match-feed" aria-label="Live match feed">
+    <section
+      className={`production-match-feed ${catchingUp || statusNotice ? "is-active" : "is-quiescent"}`}
+      aria-label="Live match feed"
+    >
       <div className="production-match-feed-current" role="status" aria-live="polite" aria-atomic="true">
         <span>{catchingUp ? "Resolving" : "Live"}</span>
         {currentContent && <GameIcon name={currentContent[0]} size={17} />}
@@ -1314,6 +1315,7 @@ export default function ProductionMatchExperience({
 
   const battlefieldViewModel = update?.viewModel;
   const viewModel = authoritativeUpdate?.viewModel || battlefieldViewModel;
+  const visualViewModel = battlefieldViewModel || viewModel;
   const transportUpdate = authoritativeUpdate || update;
   const commands = useMemo(
     () => transportUpdate?.commands || {},
@@ -1517,6 +1519,12 @@ export default function ProductionMatchExperience({
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
   ].filter(Boolean).join(" "), [playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  const resultPresentationReady = Boolean(
+    update?.source !== "replay"
+    && viewModel?.phase === "gameOver"
+    && battlefieldViewModel?.phase === "gameOver"
+    && (!playbackState.catchingUp || battlefieldViewModel?.presentationPlayback?.finalReconcile)
+  );
 
   if (adapterError) {
     return (
@@ -1563,6 +1571,8 @@ export default function ProductionMatchExperience({
       data-queued-transition-count={sceneMetrics?.queuedTransitionCount ?? ""}
       data-active-effects={sceneMetrics?.activeEffects ?? ""}
       data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
+      data-cadence-tier={canvasViewModel?.presentationCues?.[0]?.cadence?.tier || "rest"}
+      data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
     >
       <div
@@ -1584,14 +1594,14 @@ export default function ProductionMatchExperience({
 
         <div className="production-table-vignette" aria-hidden="true" />
         <PlayerPlate
-          player={presentedViewModel.top}
-          priority={presentedViewModel.priority}
+          player={visualViewModel.top}
+          priority={visualViewModel.priority}
           position="top"
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
         />
         <PlayerPlate
-          player={presentedViewModel.bottom}
-          priority={presentedViewModel.priority}
+          player={visualViewModel.bottom}
+          priority={visualViewModel.priority}
           position="bottom"
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
@@ -1611,12 +1621,12 @@ export default function ProductionMatchExperience({
           />
         )}
 
-        <div className="production-turn-marker" aria-label={`${viewModel.currentTurnLabel}, ${viewModel.phaseLabel}`}>
-          <span>{viewModel.currentTurnLabel}</span>
-          <strong>{viewModel.phaseLabel}</strong>
+        <div className="production-turn-marker" aria-label={`${visualViewModel.currentTurnLabel}, ${visualViewModel.phaseLabel}`}>
+          <span>{visualViewModel.currentTurnLabel}</span>
+          <strong>{visualViewModel.phaseLabel}</strong>
         </div>
         <MatchModeMarker descriptor={update?.descriptor} />
-        <BroadcastMarker broadcast={update?.broadcast} viewModel={presentedViewModel} />
+        <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
 
         {transportUpdate?.connected === false && (
@@ -1642,7 +1652,7 @@ export default function ProductionMatchExperience({
           commands={interactionCommands}
           onClose={() => setReferencePanel(null)}
         />
-        {update?.source !== "replay" && (
+        {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}
             controls={update?.controls || {}}

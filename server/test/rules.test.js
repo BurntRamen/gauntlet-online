@@ -61,6 +61,46 @@ function makeGame(faction1 = "basic", faction2 = "basic") {
   };
 }
 
+function makeSharedCombatGame(roomCode, seed) {
+  const roomState = {
+    roomCode,
+    lobby: {
+      gameMode: "basic",
+      players: {
+        1: { accountName: "Attacker" },
+        2: { accountName: "Defender" }
+      }
+    }
+  };
+  createGameFromLobby(roomState, { seed });
+  const game = roomState.game;
+  game.phase = "priority";
+  game.priority = 1;
+  game.priorityPassed = { 1: false, 2: false };
+  game.handAttacks = [];
+  for (const player of [1, 2]) {
+    game.players[player].hand = [];
+    game.players[player].discard = [];
+  }
+  game.lanes.forEach((lane) => {
+    lane.attack = null;
+    lane.block = [];
+    lane.facedown[1] = null;
+    lane.facedown[2] = null;
+  });
+  return game;
+}
+
+function assertEventMetadata(events, type, expected) {
+  const actual = events.find((entry) => entry.type === type);
+  assert.ok(actual, `Expected ${type} event`);
+  assert.deepEqual(
+    Object.fromEntries(Object.keys(expected).map((key) => [key, actual[key]])),
+    expected
+  );
+  return actual;
+}
+
 test("normalizes numbered and face-card values", () => {
   assert.equal(getBaseCardValue({ value: 7 }), 7);
   assert.equal(getBaseCardValue({ value: "J" }), 11);
@@ -398,6 +438,136 @@ test("server-authored constructed state accepts the shared semantic choice contr
   assert.equal(result.state.handAttacks[0].card.definitionId, definitionId);
   assert.match(result.state.handAttacks[0].notes.join(" "), /Forum Ledger Runner payment \+1/);
   assert.equal(result.revision, 1);
+});
+
+test("shared duel events retain hand attack identity through unblocked damage resolution", () => {
+  const game = makeSharedCombatGame("EVENT1", "hand-event-metadata");
+  const attacker = { id: "hand-attacker", value: 5, rank: "5", suit: "spades" };
+  const payment = { id: "hand-payment", value: 5, rank: "5", suit: "clubs" };
+  game.players[1].hand = [attacker, payment];
+
+  const declared = applySharedDuelCommand(game, {
+    commandId: "hand-attack-command",
+    baseRevision: game.revision,
+    actorPlayerId: 1,
+    command: {
+      type: "declareHandAttack",
+      cardId: attacker.id,
+      paymentCardIds: [payment.id]
+    }
+  });
+
+  assert.equal(declared.accepted, true);
+  const attackId = declared.state.handAttacks[0].id;
+  assertEventMetadata(declared.animationEvents, "attack.declared", {
+    targetPlayer: 2,
+    attackId,
+    cardId: attacker.id,
+    source: "hand",
+    sourceLane: null,
+    laneIndex: null
+  });
+
+  const resolved = applySharedDuelCommand(declared.state, {
+    commandId: "hand-decline-command",
+    baseRevision: declared.revision,
+    actorPlayerId: 2,
+    command: { type: "declineBlock" }
+  });
+
+  assert.equal(resolved.accepted, true);
+  assertEventMetadata(resolved.animationEvents, "damage.calculated", {
+    attacker: 1,
+    targetPlayer: 2,
+    attackId,
+    cardId: attacker.id,
+    source: "hand",
+    laneIndex: null
+  });
+  assertEventMetadata(resolved.animationEvents, "damage.dealt", {
+    attacker: 1,
+    attackId,
+    laneIndex: null
+  });
+  assertEventMetadata(resolved.animationEvents, "combat.resolutionCompleted", {
+    player: 2,
+    attacker: 1,
+    attackId,
+    laneIndex: null,
+    damage: 5
+  });
+});
+
+test("shared duel events retain lane attack identity through block resolution", () => {
+  const game = makeSharedCombatGame("EVENT2", "lane-event-metadata");
+  const attacker = { id: "lane-attacker", value: 4, rank: "4", suit: "spades" };
+  const attackPayment = { id: "lane-attack-payment", value: 4, rank: "4", suit: "clubs" };
+  const blocker = { id: "lane-blocker", value: 5, rank: "5", suit: "hearts" };
+  const blockPayment = { id: "lane-block-payment", value: 5, rank: "5", suit: "diamonds" };
+  game.players[1].hand = [attackPayment];
+  game.players[2].hand = [blockPayment];
+  game.lanes[1].facedown[1] = attacker;
+  game.lanes[1].facedown[2] = blocker;
+
+  const declared = applySharedDuelCommand(game, {
+    commandId: "lane-attack-command",
+    baseRevision: game.revision,
+    actorPlayerId: 1,
+    command: {
+      type: "declareLaneAttack",
+      laneIndex: 1,
+      paymentCardIds: [attackPayment.id]
+    }
+  });
+
+  assert.equal(declared.accepted, true);
+  const attackId = declared.state.lanes[1].attack.id;
+  assertEventMetadata(declared.animationEvents, "attack.declared", {
+    targetPlayer: 2,
+    attackId,
+    source: "lane",
+    sourceLane: 1,
+    laneIndex: 1
+  });
+
+  const resolved = applySharedDuelCommand(declared.state, {
+    commandId: "lane-block-command",
+    baseRevision: declared.revision,
+    actorPlayerId: 2,
+    command: {
+      type: "declareLaneBlock",
+      laneIndex: 1,
+      paymentCardIds: [blockPayment.id]
+    }
+  });
+
+  assert.equal(resolved.accepted, true);
+  assertEventMetadata(resolved.animationEvents, "block.declared", {
+    targetPlayer: 1,
+    attackId,
+    laneIndex: 1
+  });
+  assertEventMetadata(resolved.animationEvents, "damage.calculated", {
+    attacker: 1,
+    targetPlayer: 2,
+    attackId,
+    cardId: attacker.id,
+    source: "lane",
+    laneIndex: 1
+  });
+  assertEventMetadata(resolved.animationEvents, "attack.fullyBlocked", {
+    player: 2,
+    attacker: 1,
+    attackId,
+    laneIndex: 1
+  });
+  assertEventMetadata(resolved.animationEvents, "combat.resolutionCompleted", {
+    player: 2,
+    attacker: 1,
+    attackId,
+    laneIndex: 1,
+    damage: 0
+  });
 });
 
 test("never includes hidden hand, deck, or lane-card fronts in sanitized snapshots", () => {

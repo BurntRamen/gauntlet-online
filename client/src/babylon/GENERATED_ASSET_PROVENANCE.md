@@ -7,6 +7,23 @@ before public cutover.
 They are registered as `provisional` in the `gauntlet-core-v1` presentation
 manifest. Their presence is a runtime fallback, not production-art approval.
 
+## Visual candidate evaluation 2026-08-26
+
+Two generated visual candidates were reviewed for the cadence pass and neither
+was installed. One was too ornate and visually loud for the restrained board;
+the other contained a checkerboard baked into its RGB image instead of true
+transparency. The runtime therefore continues to use the cohesive native and
+procedural renderer plus the existing registered art-kit assets.
+
+The repository's ElevenLabs Image & Video pipeline was then used to submit the
+restrained priority-transfer keyframe candidate. ElevenLabs rejected the image
+request before generation because the connected account does not have the Pro
+plan required by that endpoint, so no credit was consumed and no candidate was
+published. The dependent four-second, 16:9 priority video was not submitted: a
+full-frame video would not fit the renderer's localized, independently
+addressable feedback path. No ElevenLabs visual or video asset entered the
+runtime, and the audio delivery and audio worktree were not changed.
+
 ## Gameplay effects
 
 The six source images were generated with the built-in OpenAI image-generation

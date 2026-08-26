@@ -12,6 +12,7 @@ import {
   sampleCardMotion,
   sampleCardTravelPath,
   semanticCardTravelCorridors,
+  shouldAllowElevatedSourceEgress,
   shouldHoldCombatCard
 } from "./cardMotion";
 
@@ -45,8 +46,8 @@ describe("shared Babylon card motion", () => {
   });
 
   test("uses one profile contract for live and replay staging", () => {
-    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBeGreaterThanOrEqual(950);
-    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBeGreaterThanOrEqual(1000);
+    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBe(680);
+    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBe(720);
     expect(CARD_MOTION_PROFILES["replay-stage"].durationMs).toBe(
       CARD_MOTION_PROFILES["attack-enter"].durationMs
     );
@@ -54,8 +55,10 @@ describe("shared Babylon card motion", () => {
     expect(CARD_MOTION_PROFILES["block-enter"].lift).toBeGreaterThan(
       CARD_MOTION_PROFILES["placement-enter"].lift
     );
-    expect(COMBAT_RESOLUTION_HOLD_MS).toBeGreaterThanOrEqual(1400);
-    expect(PAYMENT_SETTLE_HOLD_MS).toBeGreaterThanOrEqual(450);
+    expect(CARD_MOTION_PROFILES["lane-shift"].durationMs).toBe(600);
+    expect(CARD_MOTION_PROFILES["swap-return"].durationMs).toBe(600);
+    expect(COMBAT_RESOLUTION_HOLD_MS).toBe(160);
+    expect(PAYMENT_SETTLE_HOLD_MS).toBe(180);
     expect(shouldHoldCombatCard("attack")).toBe(true);
     expect(shouldHoldCombatCard("block")).toBe(true);
     expect(shouldHoldCombatCard("replay-action", "primary")).toBe(true);
@@ -93,6 +96,42 @@ describe("shared Babylon card motion", () => {
       start: { x: 0 },
       destination: { x: 1 }
     }).cueHooks).toEqual([]);
+    expect(createCardMotion({
+      role: "block-enter",
+      pathIndex: 1,
+      start: { x: 0 },
+      destination: { x: 1 }
+    }).cueHooks).toEqual([]);
+  });
+
+  test("uses distinct restrained posture for commitment motions", () => {
+    const pose = (role, progress = 0.5) => {
+      const motion = createCardMotion({
+        role,
+        start: { x: 0, y: 0.2, z: 0, rotationX: Math.PI / 2, rotationY: 0, scale: 1 },
+        destination: { x: 4, y: 0.2, z: 4, rotationX: Math.PI / 2, rotationY: 0, scale: 1 }
+      });
+      return sampleCardMotion(motion, motion.durationMs * progress);
+    };
+
+    const attack = pose("attack-enter");
+    const block = pose("block-enter");
+    const payment = pose("payment-enter");
+    const placement = pose("placement-enter", 0.86);
+    const laneShift = pose("lane-shift");
+
+    expect(attack.rotationX).toBeLessThan(Math.PI / 2);
+    expect(block.rotationY).toBeGreaterThan(0);
+    expect(payment.scale).toBeLessThan(1);
+    expect(placement.scale).toBeLessThan(1);
+    expect(laneShift.rotationY).toBeGreaterThan(0);
+    expect(laneShift.y).toBeLessThan(attack.y);
+    expect(pose("attack-enter", 1)).toMatchObject({
+      rotationX: Math.PI / 2,
+      rotationY: 0,
+      scale: 1,
+      complete: true
+    });
   });
 
   test("lets payment reach and settle in its tray before discard departure", () => {
@@ -232,6 +271,19 @@ describe("shared Babylon card motion", () => {
     expect(cardTravelPathCollides(path, obstacles, 0.82)).toBe(false);
   });
 
+  test("gives an anonymous in-place lane mutation a restrained physical loop", () => {
+    const corridors = semanticCardTravelCorridors({
+      role: "lane-shift",
+      start: { x: -3, z: 2 },
+      destination: { x: -3, z: 2 }
+    });
+    expect(corridors).toEqual([[
+      { x: -3, z: 2 },
+      { x: -2.66, z: 1.92 },
+      { x: -3, z: 2 }
+    ]]);
+  });
+
   test("seats a shrinking payment card beside an occupied tray slot without overlap or board-wide routing", () => {
     const start = { x: -3.02, y: 0.62, z: -6.294, scale: 0.82 };
     const destination = { x: 9.168, y: 0.34, z: -5.59, scale: 0.55 };
@@ -293,6 +345,85 @@ describe("shared Babylon card motion", () => {
     expect(cardTravelPathCollides(motion.path, obstacles, {
       start: start.scale,
       end: destination.scale
+    })).toBe(false);
+  });
+
+  test("keeps the captured paid-block payment on its lower rail past concurrent blocker sources", () => {
+    const start = { x: -5.35, y: 0.62, z: -7.207, scale: 0.9 };
+    const destination = { x: 10.75, y: 0.34, z: -6.35, scale: 0.6 };
+    const destinationZone = { kind: "payment", side: "local" };
+    const sourceHandZone = { kind: "hand", side: "local" };
+    const combatZone = { kind: "combat", side: "local" };
+    const obstacles = [
+      ...[-7.25, -1.55, 0.35, 2.25, 6.05].map((x, index) => ({
+        id: `wide-hand-${index}`,
+        x,
+        z: -7.05,
+        scale: 0.9,
+        allowElevatedSourceEgress: shouldAllowElevatedSourceEgress({
+          destinationZone,
+          obstacleZone: sourceHandZone
+        })
+      })),
+      ...[-3.45, 4.15].map((x, index) => ({
+        id: `concurrent-blocker-source-${index}`,
+        x,
+        z: index === 0 ? -7.144 : -7.207,
+        scale: 0.9,
+        allowElevatedSourceEgress: shouldAllowElevatedSourceEgress({
+          destinationZone,
+          obstacleZone: combatZone,
+          obstacleSourceZone: sourceHandZone,
+          obstacleMotionRole: "block-enter",
+          obstacleKind: "current"
+        })
+      })),
+      ...[-7.35, 0, 7.35].map((x, index) => ({
+        id: `wide-lane-${index}`,
+        x,
+        z: -3.15,
+        scale: 0.64
+      }))
+    ];
+    const motion = createCardMotion({
+      role: "payment-enter",
+      start,
+      destination,
+      obstacles,
+      bounds: { left: -13, right: 13, bottom: -8.3, top: 8.3 }
+    });
+
+    expect(motion.path).toEqual(semanticCardTravelCorridors({
+      role: "payment-enter",
+      start,
+      destination
+    })[0]);
+    expect(motion.path).toHaveLength(4);
+    expect(Math.max(...motion.path.map((point) => point.z))).toBeLessThan(0);
+    expect(cardTravelPathCollides(motion.path, obstacles, {
+      start: start.scale,
+      end: destination.scale
+    })).toBe(false);
+    expect(shouldAllowElevatedSourceEgress({
+      destinationZone,
+      obstacleZone: combatZone,
+      obstacleSourceZone: sourceHandZone,
+      obstacleMotionRole: "attack-enter",
+      obstacleKind: "current"
+    })).toBe(true);
+    expect(shouldAllowElevatedSourceEgress({
+      destinationZone,
+      obstacleZone: combatZone,
+      obstacleSourceZone: sourceHandZone,
+      obstacleMotionRole: "block-enter",
+      obstacleKind: "target"
+    })).toBe(false);
+    expect(shouldAllowElevatedSourceEgress({
+      destinationZone,
+      obstacleZone: combatZone,
+      obstacleSourceZone: sourceHandZone,
+      obstacleMotionRole: "block-enter",
+      obstacleKind: "reserved-path"
     })).toBe(false);
   });
 

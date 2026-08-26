@@ -40,3 +40,14 @@ The 2026-08-26 full visual pass did not add a generated bitmap. It retained the
 native fabrication system and independently addressable approved cue assets,
 then qualified 91 production-path captures with zero structural composite
 rasters. See `FULL_BABYLON_VISUAL_QUALIFICATION_2026-08-26.md`.
+
+The subsequent 2026-08-26 art-direction and cadence pass also leaves the asset
+approval table unchanged. Two generated surface candidates were rejected during
+review. An ElevenLabs priority-transfer keyframe request was also submitted,
+but the service rejected it before generation because the connected account
+lacks the required Pro plan; no visual/video candidate entered the runtime.
+The pass instead subordinates the existing ornaments and approved transient
+assets to a shared native presentation cadence. Native board modules,
+fabrication details, and optional authored replacements remain provisional
+pending independent human art-direction signoff. See
+`BABYLON_ART_DIRECTION_CADENCE_QUALIFICATION_2026-08-26.md`.

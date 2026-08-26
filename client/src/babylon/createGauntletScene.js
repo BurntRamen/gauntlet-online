@@ -30,10 +30,17 @@ import {
   createCardMotion,
   didCardDepartureComplete,
   sampleCardMotion,
-  sampleCardTravelPath
+  sampleCardTravelPath,
+  shouldAllowElevatedSourceEgress
 } from "./cardMotion";
 import { makeMaterial, MATCH_COLORS } from "./matchMaterials";
-import { getBoardLayoutProfile, projectBoardPresentation } from "./boardPresentation";
+import {
+  getBoardLayoutProfile,
+  primaryPresentationCue,
+  projectBoardPresentation
+} from "./boardPresentation";
+import { presentationEventDuration } from "./presentationCadence";
+import { planPresentationEffectWindows } from "./presentationEffectWindows";
 import {
   boardModuleIdForPresentationInstance,
   boardStageMotionBounds,
@@ -74,17 +81,6 @@ const MATCH_ASSETS = {
   cardBack: "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
   table: "/assets/gauntlet/match/graphite-table-v1.png"
 };
-const EVENT_DURATIONS = {
-  "attack.declared": 1300,
-  "block.declared": 1450,
-  "payment.discarded": 1000,
-  "damage.calculated": 1400,
-  "card.placedFacedown": 1050,
-  "cards.drawn": 950,
-  "priority.granted": 800,
-  "turn.started": 1150,
-  "match.ended": 1600
-};
 const EVENT_EFFECT_ASSETS = {
   "attack.declare": "/assets/gauntlet/match/effects/attack-declare.webp",
   "block.commit": "/assets/gauntlet/match/effects/block-raise.webp",
@@ -100,13 +96,30 @@ const EVENT_EFFECT_ASSETS = {
   "match.defeat": "/assets/gauntlet/match/effects/damage-impact.webp"
 };
 
+const EVENT_VISUAL_FALLBACKS = Object.freeze({
+  "payment.release": { grammar: "contract", materialRole: "bronze", spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48 },
+  "attack.declare": { grammar: "thrust", materialRole: "sapphire", spriteAlpha: 0.18, ringAlpha: 0, boardResponse: 0.64 },
+  "block.commit": { grammar: "brace", materialRole: "steel", spriteAlpha: 0.16, ringAlpha: 0, boardResponse: 0.68 },
+  "combat.blocked": { grammar: "resist", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82 },
+  "damage.impact": { grammar: "impact", materialRole: "danger", spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86 },
+  "damage.major": { grammar: "major-impact", materialRole: "danger", spriteAlpha: 0.4, ringAlpha: 0.22, boardResponse: 1 },
+  "card.place": { grammar: "seat", materialRole: "bronze", spriteAlpha: 0.1, ringAlpha: 0, boardResponse: 0.54 },
+  "card.draw": { grammar: "draw", materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.18 },
+  "priority.transfer": { grammar: "handoff", materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.26 },
+  "turn.start": { grammar: "sweep", materialRole: "bronze", spriteAlpha: 0.06, ringAlpha: 0, boardResponse: 0.32 },
+  "ability.activate": { grammar: "focus", materialRole: "violet", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.58 },
+  "match.victory": { grammar: "result", materialRole: "bronze", spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88 },
+  "match.defeat": { grammar: "result", materialRole: "danger", spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88 },
+  "match.draw": { grammar: "result", materialRole: "steel", spriteAlpha: 0.18, ringAlpha: 0.1, boardResponse: 0.72 }
+});
+
 const LANE_STATE_LIGHTS = Object.freeze({
-  idle: { assetId: "lane.idle", tint: "#718392", alpha: 0.12 },
-  legal: { assetId: "lane.legal", tint: "#45b9ff", alpha: 0.58 },
-  active: { assetId: "lane.active", tint: "#53c9ff", alpha: 0.84 },
-  opposed: { assetId: "lane.opposed", tint: "#e04c58", alpha: 0.72 },
-  blocked: { assetId: "lane.blocked", tint: "#b695ff", alpha: 0.82 },
-  resolving: { assetId: "lane.resolving", tint: "#f0bd68", alpha: 0.9 }
+  idle: { assetId: "lane.idle", tint: "#718392", alpha: 0.08 },
+  legal: { assetId: "lane.legal", tint: "#45b9ff", alpha: 0.34 },
+  active: { assetId: "lane.active", tint: "#53c9ff", alpha: 0.58 },
+  opposed: { assetId: "lane.opposed", tint: "#e04c58", alpha: 0.52 },
+  blocked: { assetId: "lane.blocked", tint: "#c7d0d7", alpha: 0.62 },
+  resolving: { assetId: "lane.resolving", tint: "#f0bd68", alpha: 0.78 }
 });
 
 function color(hex) {
@@ -280,7 +293,7 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   root.rotation.x = options.rotationX || 0;
   root.rotation.y = options.rotationY || 0;
   root.rotation.z = options.rotationZ || 0;
-  root.material = materials.cardBody;
+  root.material = options.faceDown ? materials.cardBackEdge : materials.cardBody;
   root.renderOutline = false;
   root.isPickable = true;
   root.enablePointerMoveEvents = true;
@@ -303,8 +316,8 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   root.gauntletFace = face;
 
   const halo = CreateBox(`card-halo-${id}`, {
-    width: MATCH_LAYOUT.card.width + 0.2,
-    height: MATCH_LAYOUT.card.height + 0.2,
+    width: MATCH_LAYOUT.card.width + 0.3,
+    height: MATCH_LAYOUT.card.height + 0.3,
     depth: 0.035
   }, scene);
   halo.parent = root;
@@ -332,7 +345,7 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
 function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion = false) {
   const destination = {
     x: position.x,
-    y: position.y + (options.selected && !options.hovered ? 0.07 : 0),
+    y: position.y + (options.selected && !options.hovered ? 0.12 : 0),
     z: position.z,
     rotationX: position.rotationX || 0,
     rotationY: position.rotationY || 0,
@@ -835,6 +848,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     cardBody: makeMaterial(babylonScene, "card-body", "#171b20", {
       emissive: "#07090c",
       specular: "#8c7553"
+    }),
+    cardBackEdge: makeMaterial(babylonScene, "card-back-edge", "#493c2a", {
+      emissive: "#100d09",
+      specular: "#a98752"
     }),
     selectionBlue: selectionMaterials.blue,
     contactShadow: contactShadowMaterial
@@ -1695,6 +1712,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     sapphire: sapphireMaterial,
     bronze: bronzeMaterial,
     steel: paleSteelMaterial,
+    violet: purpleMaterial,
     danger: dangerMaterial
   };
   const eventRing = CreateTorus("event-ring", {
@@ -1707,6 +1725,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   eventRing.material = eventEffectMaterials.sapphire;
   eventRing.visibility = 0;
   eventRing.isPickable = false;
+
+  const priorityHandoff = CreateBox("priority-handoff", {
+    width: 0.11,
+    height: 0.03,
+    depth: 0.72
+  }, babylonScene);
+  priorityHandoff.position.y = 0.76;
+  priorityHandoff.material = eventEffectMaterials.sapphire;
+  priorityHandoff.visibility = 0;
+  priorityHandoff.isPickable = false;
 
   const turnSweep = CreateBox("turn-sweep", {
     width: MATCH_LAYOUT.table.width - 1.2,
@@ -1894,8 +1922,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let currentViewModel = null;
   let currentBoardPresentation = null;
   let responsiveRecompose = false;
-  let elapsed = 0;
   let motionClockMs = 0;
+  let capturePauseDepth = 0;
+  let deferredCaptureViewModel = null;
   let activeEventAnimation = null;
   let highestAnimationRevision = -1;
   let currentMatchId = null;
@@ -2021,6 +2050,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       ? materials.cardBack
       : getFaceMaterial(artPath, label, id);
     record.mesh.gauntletFace.material = material;
+    record.mesh.material = faceDown ? materials.cardBackEdge : materials.cardBody;
     record.ownedFaceMaterial = faceDown ? null : material;
     record.faceTexturePath = artPath;
     record.faceDown = faceDown;
@@ -2086,9 +2116,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const settleAdjacent = destinationZone?.kind === "payment" && otherZone?.kind === "payment";
       const staggeredPaymentMotion = destinationZone?.kind === "payment"
         && other.motion?.role === "payment-enter";
-      const allowElevatedSourceEgress = destinationZone?.kind === "payment"
-        && otherZone?.kind === "hand"
-        && destinationZone?.side === otherZone?.side;
+      const allowCurrentElevatedSourceEgress = shouldAllowElevatedSourceEgress({
+        destinationZone,
+        obstacleZone: otherZone,
+        obstacleSourceZone: other.motionSourceZone,
+        obstacleMotionRole: other.motion?.role,
+        obstacleKind: "current"
+      });
+      const allowTargetElevatedSourceEgress = shouldAllowElevatedSourceEgress({
+        destinationZone,
+        obstacleZone: otherZone,
+        obstacleSourceZone: other.motionSourceZone,
+        obstacleMotionRole: other.motion?.role,
+        obstacleKind: "target"
+      });
       const vacatingPaymentSlot = destinationZone?.kind === "payment"
         && otherZone?.kind === "payment"
         && (other.departureStarted || other.holdUntilMs != null || other.motion?.role === "discard-exit");
@@ -2108,7 +2149,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           scale: other.mesh.scaling.x,
           allowTargetOverlap,
           settleAdjacent,
-          allowElevatedSourceEgress
+          allowElevatedSourceEgress: allowCurrentElevatedSourceEgress
         });
       }
       if (other.target?.alpha > 0.1) {
@@ -2119,7 +2160,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           scale: other.target.scale,
           allowTargetOverlap,
           settleAdjacent,
-          allowElevatedSourceEgress
+          allowElevatedSourceEgress: allowTargetElevatedSourceEgress
         });
       }
       if (meaningfulMotion && !staggeredPaymentMotion && other.motion?.path?.length >= 2) {
@@ -2246,8 +2287,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     record.mesh.gauntletHalo.material = selectionMaterial(options);
     record.mesh.gauntletHalo.isVisible = !!options.selected || !!options.hovered || !!options.legal;
     record.mesh.gauntletHalo.visibility = options.legal && !options.selected && !options.hovered
-      ? 0.38
-      : 1;
+      ? 0.2
+      : options.hovered
+        ? 0.46
+        : 0.58;
     updateBadge(
       record,
       options.badgeText,
@@ -2327,6 +2370,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function renderPresentationActor(actor, transition, runtime = null) {
     rekeyPresentationRecord(runtime, actor.actorId);
+    if (runtime) runtime.motionSourceZone = transition?.fromZone || null;
     let position = resolveActorPosition(actor, activeLayoutProfile);
     const hovered = hoveredId === actor.actorId && actor.zone.kind === "hand";
     if (hovered) position = getHandHoverPosition(position, currentViewModel?.reducedMotion);
@@ -2369,6 +2413,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }),
       badgeText: ""
     });
+    record.motionSourceZone = transition?.fromZone || null;
     record.presentationActor = actor;
     record.presentationOccurrenceId = transition?.occurrenceId || null;
     return record;
@@ -2387,6 +2432,13 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   actorRegistry = new CardActorRegistry({
+    order: (_actor, transition) => (
+      transition?.motionRole === "payment-enter"
+        ? 0
+        : ["attack-enter", "block-enter"].includes(transition?.motionRole)
+          ? 2
+          : 1
+    ),
     create: (actor, transition) => renderPresentationActor(actor, transition),
     update: (runtime, actor, transition) => renderPresentationActor(actor, transition, runtime),
     depart: (runtime, actor, transition) => departPresentationActor(runtime, actor, transition),
@@ -2412,14 +2464,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     line.position.z = (source + target) / 2;
     line.scaling.z = length;
     line.material = material;
-    line.visibility = 0.72;
+    line.visibility = 0.46;
     arrow.position.z = target;
     arrow.rotation.y = ownerIsLocal ? -Math.PI / 2 : Math.PI / 2;
     arrow.material = material;
-    arrow.visibility = 0.92;
+    arrow.visibility = 0.68;
   }
 
-  function enqueueEventAnimations(events = [], cues = [], revision = 0) {
+  function enqueueEventAnimations(events = [], cues = [], revision = 0, previousPriority = null) {
     const numericRevision = Number(revision || 0);
     highestAnimationRevision = Math.max(highestAnimationRevision, numericRevision);
     const eventById = new Map(events.map((entry) => [entry.id, entry]));
@@ -2429,21 +2481,35 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           entry: {
             ...(eventById.get(cue.sourceEventId) || {}),
             id: cue.occurrenceId,
-            type: cue.eventType,
-            laneIndex: cue.target?.laneIndex,
-            player: cue.target?.side?.replace?.("player-", "")
-          },
+             type: cue.eventType,
+             laneIndex: cue.target?.laneIndex,
+             player: cue.target?.side?.replace?.("player-", ""),
+             fromPlayer: cue.eventType === "priority.granted" ? previousPriority : null
+           },
           durationMs: cue.durationMs
         }))
-      : events.map((entry) => ({ entry, cue: null, durationMs: EVENT_DURATIONS[entry.type] }));
-    presentations.forEach(({ entry, cue, durationMs }) => {
-      if (!entry?.id || animatedEventIds.has(entry.id) || !durationMs) return;
-      animatedEventIds.add(entry.id);
+      : events.map((entry) => ({
+          entry: {
+            ...entry,
+            fromPlayer: entry.type === "priority.granted" ? previousPriority : null
+          },
+          cue: null,
+          durationMs: presentationEventDuration(entry, {
+            reducedMotion: Boolean(currentViewModel?.reducedMotion),
+            playbackRate: presentationPlaybackRate()
+          })
+        }));
+    const acceptedPresentations = presentations.filter(({ entry, durationMs }) => (
+      entry?.id && !animatedEventIds.has(entry.id) && durationMs
+    ));
+    acceptedPresentations.forEach(({ entry }) => animatedEventIds.add(entry.id));
+    planPresentationEffectWindows(acceptedPresentations).forEach(({ entry, cue, effectWindow }) => {
       animationQueue.push({
         entry,
         cue,
         elapsedMs: 0,
-        durationMs
+        delayMs: effectWindow.delayMs,
+        durationMs: effectWindow.effectDurationMs
       });
     });
     if (animatedEventIds.size > 500) {
@@ -2451,6 +2517,28 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       animatedEventIds.clear();
       retained.forEach((id) => animatedEventIds.add(id));
     }
+  }
+
+  function priorityEffectPosition(player) {
+    const bottomPlayer = currentViewModel?.perspective?.player
+      || currentViewModel?.perspective?.bottomPlayer;
+    const local = Number(player) === Number(bottomPlayer);
+    const anchor = resolveBoardAnchor("board-base", local ? "priorityLocal" : "priorityOpponent", activeLayoutProfile);
+    return new Vector3(anchor.x, 0.84, anchor.z);
+  }
+
+  function priorityEffectPath(entry) {
+    if (entry?.type === "priority.passed") {
+      const source = priorityEffectPosition(entry.player);
+      const neutral = resolveBoardAnchor("hand-combat-dais", "fxImpact", activeLayoutProfile);
+      return { source, target: new Vector3(neutral.x, 0.84, neutral.z) };
+    }
+    const target = priorityEffectPosition(entry?.player);
+    const fallbackSourcePlayer = Number(entry?.player) === Number(currentViewModel?.top?.id)
+      ? currentViewModel?.bottom?.id
+      : currentViewModel?.top?.id;
+    const source = priorityEffectPosition(entry?.fromPlayer ?? fallbackSourcePlayer);
+    return { source, target };
   }
 
   function eventEffectPosition(entry) {
@@ -2468,27 +2556,44 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       return new Vector3(anchor.x, anchor.y, anchor.z);
     }
     if (entry?.type === "priority.granted") {
-      const bottomPlayer = currentViewModel?.perspective?.player
-        || currentViewModel?.perspective?.bottomPlayer;
-      const local = Number(entry.player) === Number(bottomPlayer);
-      const anchor = resolveBoardAnchor("board-base", local ? "priorityLocal" : "priorityOpponent", activeLayoutProfile);
-      return new Vector3(anchor.x, 0.84, anchor.z);
+      return priorityEffectPosition(entry.player);
     }
     const anchor = resolveBoardAnchor("hand-combat-dais", "fxImpact", activeLayoutProfile);
     return new Vector3(anchor.x, anchor.y, anchor.z);
   }
 
-  function effectMaterialForEvent(type) {
-    if (type === "damage.calculated" || type === "match.ended") return eventEffectMaterials.danger;
-    if (type === "payment.discarded" || type === "card.placedFacedown" || type === "turn.started") {
-      return eventEffectMaterials.bronze;
-    }
-    if (type === "block.declared") return eventEffectMaterials.steel;
-    return eventEffectMaterials.sapphire;
+  function visualProfileForAnimation(animation) {
+    const cueId = animation?.cue?.cueId;
+    const eventFallbackId = {
+      "payment.discarded": "payment.release",
+      "attack.declared": "attack.declare",
+      "campaign.attackDeclared": "attack.declare",
+      "block.declared": "block.commit",
+      "damage.calculated": "damage.impact",
+      "card.placedFacedown": "card.place",
+      "cards.drawn": "card.draw",
+      "priority.granted": "priority.transfer",
+      "turn.started": "turn.start",
+      "match.ended": "match.draw"
+    }[animation?.entry?.type];
+    const fallback = EVENT_VISUAL_FALLBACKS[cueId]
+      || EVENT_VISUAL_FALLBACKS[eventFallbackId]
+      || EVENT_VISUAL_FALLBACKS["priority.transfer"];
+    const cadence = animation?.cue?.cadence || {};
+    return { ...fallback, ...(cadence.fx || {}), ...cadence };
+  }
+
+  function effectMaterialForAnimation(animation) {
+    const role = visualProfileForAnimation(animation).materialRole;
+    return eventEffectMaterials[role] || eventEffectMaterials.sapphire;
   }
 
   function update(viewModel) {
     if (disposed || !viewModel) return;
+    if (capturePauseDepth > 0) {
+      deferredCaptureViewModel = viewModel;
+      return;
+    }
     const nextMatchId = viewModel.matchId || null;
     if (currentMatchId && nextMatchId && currentMatchId !== nextMatchId) {
       actorRegistry?.clear();
@@ -2501,13 +2606,15 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       eventRing.visibility = 0;
       turnSweep.visibility = 0;
       eventSprite.visibility = 0;
+      priorityHandoff.visibility = 0;
       lastReplayActionId = null;
     }
     currentMatchId = nextMatchId;
+    const previousPriority = currentViewModel?.priority ?? null;
     currentViewModel = viewModel;
     syncPresentationKit(viewModel.presentationKit);
     currentBoardPresentation = projectBoardPresentation(viewModel, {
-      activeCue: viewModel.presentationCues?.[0] || null,
+      activeCue: primaryPresentationCue(viewModel.presentationCues),
       profile: getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight())
     });
     const requestedSnapshot = createPresentationSnapshot(viewModel, {
@@ -2530,7 +2637,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       (viewModel.events || []).forEach((entry) => animatedEventIds.delete(entry.id));
       lastReplayActionId = viewModel.replayAction.id;
     }
-    enqueueEventAnimations(viewModel.events || [], viewModel.presentationCues || [], viewModel.revision);
+    enqueueEventAnimations(
+      viewModel.events || [],
+      viewModel.presentationCues || [],
+      viewModel.revision,
+      previousPriority
+    );
     const top = viewModel.top;
     const bottom = viewModel.bottom;
     const topPriority = !!top && viewModel.priority === top.id;
@@ -2540,9 +2652,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const handCombatActive = viewModel.handAttacks.length > 0
       || viewModel.selection.attackMode?.from === "hand"
       || viewModel.selection.blockMode?.type === "handAttack";
-    handCombatPlate.visibility = 1;
+    const focus = currentBoardPresentation.focus || { region: "board", laneIndex: null, tier: "rest" };
+    const focusedAction = focus.tier !== "rest";
+    handCombatPlate.visibility = focus.region === "combat" ? 1 : focusedAction ? 0.58 : 0.78;
     handCombatRails.forEach((rail) => {
-      rail.visibility = 1;
+      rail.visibility = focus.region === "combat" ? 0.9 : focusedAction ? 0.42 : 0.62;
     });
     ui.combatAttackValue.setValue(String(currentBoardPresentation.combat.attackValue || "—"));
     ui.combatBlockValue.setValue(String(currentBoardPresentation.combat.blockValue || "—"));
@@ -2555,24 +2669,24 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     Object.entries(currentBoardPresentation.piles).forEach(([pile, count]) => {
       if (ui.pileCounts[pile]) ui.pileCounts[pile].setValue(String(count));
     });
-    paymentPlate.visibility = 1;
-    paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.78 : 0;
+    paymentPlate.visibility = focus.region === "payment" ? 1 : focusedAction ? 0.62 : 0.82;
+    paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.46 : 0;
     const paymentTexture = presentationMaskTextures.get("payment.active") || null;
     paymentStateMask.material.diffuseTexture = paymentTexture;
     paymentStateMask.material.opacityTexture = paymentTexture;
-    paymentStateMask.visibility = paymentTexture && currentBoardPresentation.payment.state !== "idle" ? 0.34 : 0;
+    paymentStateMask.visibility = paymentTexture && currentBoardPresentation.payment.state !== "idle" ? 0.22 : 0;
     const priorityTexture = presentationMaskTextures.get("board.priority");
     priorityStateLights.forEach((light, index) => {
       const active = index === 0 ? bottomPriority : topPriority;
       light.mask.material.diffuseTexture = priorityTexture || null;
       light.mask.material.opacityTexture = priorityTexture || null;
-      light.mask.visibility = priorityTexture && active ? 0.72 : 0;
-      light.fallback.visibility = !priorityTexture && active ? 0.72 : 0;
+      light.mask.visibility = priorityTexture && active ? 0.32 : 0;
+      light.fallback.visibility = !priorityTexture && active ? 0.28 : 0;
     });
     combatStateLight.mask.material.diffuseTexture = priorityTexture || null;
     combatStateLight.mask.material.opacityTexture = priorityTexture || null;
-    combatStateLight.mask.visibility = priorityTexture && handCombatActive ? 0.38 : 0;
-    combatStateLight.fallback.visibility = !priorityTexture && handCombatActive ? 0.52 : 0;
+    combatStateLight.mask.visibility = priorityTexture && handCombatActive ? 0.24 : 0;
+    combatStateLight.fallback.visibility = !priorityTexture && handCombatActive ? 0.3 : 0;
 
     const attackByLane = new Map();
     viewModel.attacks
@@ -2608,7 +2722,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                 : ["legal", "active"].includes(state)
                   ? laneLegalRailMaterial
                   : laneRailMaterial;
-          rail.visibility = state === "idle" ? 0.54 : state === "legal" ? 0.88 : 1;
+          const baseVisibility = state === "idle"
+            ? 0.34
+            : state === "legal"
+              ? 0.58
+              : state === "active"
+                ? 0.78
+                : 0.88;
+          const unrelatedLane = focus.region === "lane" && focus.laneIndex !== index;
+          const unrelatedRegion = focusedAction && !["board", "lane"].includes(focus.region);
+          rail.visibility = baseVisibility * (unrelatedLane ? 0.42 : unrelatedRegion ? 0.68 : 1);
         });
       const state = currentBoardPresentation.lanes[index].state;
       const lightConfig = LANE_STATE_LIGHTS[state] || LANE_STATE_LIGHTS.idle;
@@ -2617,10 +2740,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       laneStateMasks[index].material.opacityTexture = stateTexture;
       laneStateMasks[index].material.emissiveColor = color(lightConfig.tint);
       laneStateMasks[index].visibility = stateTexture
-        ? (state === "idle" ? 0 : lightConfig.alpha * 0.22)
+        ? (state === "idle" ? 0 : lightConfig.alpha * 0.16)
         : 0;
       laneStateLights[index].material.emissiveColor = color(lightConfig.tint);
-      laneStateLights[index].visibility = state === "idle" ? 0 : lightConfig.alpha * 0.48;
+      laneStateLights[index].visibility = state === "idle" ? 0 : lightConfig.alpha * 0.34;
 
       const ownerIsLocal = laneAttack?.owner === bottomPlayer;
       setCombatDirection(index, ownerIsLocal, !!laneAttack);
@@ -2649,6 +2772,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   function animate() {
+    if (capturePauseDepth > 0) return;
     const cameraChanged = syncCamera();
     if (cameraChanged && currentViewModel) {
       responsiveRecompose = true;
@@ -2659,17 +2783,25 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
     }
     const deltaMs = babylonScene.getEngine().getDeltaTime();
-    elapsed += deltaMs / 1000;
     motionClockMs += deltaMs;
+    laneRails.forEach((rail) => { rail.scaling.y = 1; });
+    laneStateLights.forEach((light) => light.scaling.setAll(1));
+    laneStateMasks.forEach((mask) => mask.scaling.setAll(1));
+    paymentStateLight.scaling.setAll(1);
+    paymentStateMask.scaling.setAll(1);
+    combatStateLight.mask.scaling.setAll(1);
+    combatStateLight.fallback.scaling.setAll(1);
     if (!activeEventAnimation && animationQueue.length > 0) {
       activeEventAnimation = animationQueue.shift();
-      activeEventAnimation.durationMs = currentViewModel?.reducedMotion
-        ? Math.min(80, activeEventAnimation.durationMs)
-        : activeEventAnimation.durationMs;
+      if (currentViewModel?.reducedMotion) {
+        activeEventAnimation.delayMs = 0;
+        activeEventAnimation.durationMs = Math.min(80, activeEventAnimation.durationMs);
+      }
       eventRing.position.copyFrom(eventEffectPosition(activeEventAnimation.entry));
-      eventRing.material = effectMaterialForEvent(activeEventAnimation.entry.type);
+      eventRing.material = effectMaterialForAnimation(activeEventAnimation);
       eventRing.scaling.setAll(0.72);
-      turnSweep.material = effectMaterialForEvent(activeEventAnimation.entry.type);
+      turnSweep.material = effectMaterialForAnimation(activeEventAnimation);
+      priorityHandoff.material = effectMaterialForAnimation(activeEventAnimation);
       const spriteTexture = eventSpriteTextures.get(
         activeEventAnimation.cue?.visual?.assetId || activeEventAnimation.entry.type
       ) || null;
@@ -2680,43 +2812,101 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
     if (activeEventAnimation) {
       activeEventAnimation.elapsedMs += deltaMs;
-      const progress = Math.min(1, activeEventAnimation.elapsedMs / activeEventAnimation.durationMs);
-      const fadeIn = Math.min(1, progress / 0.16);
-      const fadeOut = progress < 0.72 ? 1 : Math.max(0, 1 - ((progress - 0.72) / 0.28));
-      const pulseValue = fadeIn * fadeOut;
+      const effectElapsedMs = activeEventAnimation.elapsedMs - activeEventAnimation.delayMs;
       const activeCueId = activeEventAnimation.cue?.cueId;
       const visualAssetId = activeEventAnimation.cue?.visual?.assetId || activeEventAnimation.entry.type;
+      const profile = visualProfileForAnimation(activeEventAnimation);
+      const grammar = profile.grammar || "focus";
       const isTurn = activeCueId === "turn.start" || activeEventAnimation.entry.type === "turn.started";
       const isPayment = activeCueId === "payment.release" || activeEventAnimation.entry.type === "payment.discarded";
+      const isPriority = ["priority.transfer", "priority.pass"].includes(activeCueId)
+        || ["priority.granted", "priority.passed"].includes(activeEventAnimation.entry.type);
       const hasSprite = eventSpriteTextures.has(visualAssetId);
-      eventRing.visibility = isTurn || isPayment ? 0 : pulseValue * 0.92;
-      eventRing.scaling.setAll(0.72 + progress * 0.72);
-      turnSweep.visibility = isTurn ? pulseValue * 0.9 : 0;
-      eventSprite.visibility = hasSprite ? pulseValue * 0.76 : 0;
-      if (hasSprite) {
-        const spriteScale = 0.86 + Math.min(1, progress / 0.58) * 0.34;
-        eventSprite.scaling.set(
-          isTurn ? spriteScale * 3.1 : spriteScale,
-          isTurn ? spriteScale * 1.1 : spriteScale,
-          1
-        );
-      }
-      if (isTurn) {
-        turnSweep.position.z = (
-          MATCH_LAYOUT.table.depth / 2 - 0.9
-          - progress * (MATCH_LAYOUT.table.depth - 1.8)
-        );
-      }
-      if (progress >= 1) {
+      if (effectElapsedMs < 0) {
         eventRing.visibility = 0;
         turnSweep.visibility = 0;
         eventSprite.visibility = 0;
-        activeEventAnimation = null;
+        priorityHandoff.visibility = 0;
+      } else {
+        const progress = Math.min(1, effectElapsedMs / activeEventAnimation.durationMs);
+        const impactGrammar = ["impact", "major-impact", "resist"].includes(grammar);
+        const fadeInRatio = impactGrammar ? 0.08 : grammar === "result" ? 0.12 : 0.16;
+        const fadeOutStart = impactGrammar ? 0.46 : grammar === "handoff" ? 0.7 : 0.66;
+        const fadeIn = Math.min(1, progress / fadeInRatio);
+        const fadeOut = progress < fadeOutStart
+          ? 1
+          : Math.max(0, 1 - ((progress - fadeOutStart) / (1 - fadeOutStart)));
+        const response = fadeIn * fadeOut;
+        const boardResponse = Number(profile.boardResponse || 0);
+        const basePosition = eventEffectPosition(activeEventAnimation.entry);
+        eventRing.position.copyFrom(basePosition);
+        eventRing.visibility = response * Number(profile.ringAlpha || 0);
+        eventRing.scaling.setAll(0.78 + progress * (grammar === "major-impact" ? 0.7 : 0.38));
+        turnSweep.visibility = isTurn ? response * 0.42 : 0;
+        eventSprite.visibility = hasSprite ? response * Number(profile.spriteAlpha || 0) : 0;
+        eventSprite.position.copyFrom(basePosition);
+        eventSprite.position.y += 0.08;
+        const spriteScale = 0.78 + Math.min(1, progress / 0.62) * 0.3;
+        eventSprite.scaling.set(
+          grammar === "thrust" ? spriteScale * 1.34 : grammar === "brace" ? spriteScale * 0.86 : isTurn ? spriteScale * 3.1 : spriteScale,
+          grammar === "thrust" ? spriteScale * 0.72 : grammar === "brace" ? spriteScale * 1.18 : isTurn ? spriteScale * 1.1 : spriteScale,
+          1
+        );
+        if (grammar === "thrust") {
+          const bottomPlayer = currentViewModel?.perspective?.player || currentViewModel?.perspective?.bottomPlayer;
+          const direction = Number(activeEventAnimation.entry?.player) === Number(bottomPlayer) ? 1 : -1;
+          eventSprite.position.z += direction * (-0.48 + progress * 0.72);
+        } else if (["brace", "resist"].includes(grammar)) {
+          eventSprite.position.y += Math.sin(Math.PI * progress) * 0.16;
+        } else if (grammar === "seat") {
+          eventSprite.position.y -= Math.sin(Math.PI * progress) * 0.05;
+        }
+        if (isTurn) {
+          turnSweep.position.z = (
+            MATCH_LAYOUT.table.depth / 2 - 0.9
+            - progress * (MATCH_LAYOUT.table.depth - 1.8)
+          );
+        }
+        if (isPriority) {
+          const { source, target } = priorityEffectPath(activeEventAnimation.entry);
+          const travel = 1 - ((1 - progress) ** 3);
+          priorityHandoff.position.set(
+            source.x + (target.x - source.x) * travel,
+            0.76,
+            source.z + (target.z - source.z) * travel
+          );
+          priorityHandoff.scaling.set(1, 1, 0.72 + response * 0.36);
+          priorityHandoff.visibility = response * 0.48;
+        } else {
+          priorityHandoff.visibility = 0;
+        }
+        const laneIndex = normalizePresentationLaneIndex(activeEventAnimation.entry?.laneIndex);
+        if (laneIndex !== null) {
+          laneRails
+            .filter((rail) => rail.metadata?.gauntlet?.laneIndex === laneIndex)
+            .forEach((rail) => { rail.scaling.y = 1 + response * boardResponse * 0.6; });
+          laneStateLights[laneIndex].scaling.setAll(1 + response * boardResponse * 0.08);
+          laneStateMasks[laneIndex].scaling.setAll(1 + response * boardResponse * 0.05);
+        } else if (isPayment) {
+          paymentStateLight.scaling.x = 1 - response * boardResponse * 0.2;
+          paymentStateMask.scaling.setAll(1 - response * boardResponse * 0.08);
+        } else if (["thrust", "brace", "resist", "impact", "major-impact"].includes(grammar)) {
+          combatStateLight.mask.scaling.setAll(1 + response * boardResponse * 0.1);
+          combatStateLight.fallback.scaling.setAll(1 + response * boardResponse * 0.1);
+        }
+        if (progress >= 1) {
+          eventRing.visibility = 0;
+          turnSweep.visibility = 0;
+          eventSprite.visibility = 0;
+          priorityHandoff.visibility = 0;
+          activeEventAnimation = null;
+        }
       }
     } else {
       eventRing.visibility = 0;
       turnSweep.visibility = 0;
       eventSprite.visibility = 0;
+      priorityHandoff.visibility = 0;
     }
     for (const [id, record] of objects.entries()) {
       if (record.holdUntilMs && motionClockMs >= record.holdUntilMs && !record.departureStarted) {
@@ -2775,18 +2965,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         contactShadow.visibility = record.mesh.visibility * Math.max(0.08, 0.42 - lift * 0.14);
       }
       if (record.mesh.gauntletHalo.isVisible) {
-        const haloPulse = currentViewModel?.reducedMotion
-          ? 1
-          : 1 + Math.sin(elapsed * 5) * 0.025;
-        record.mesh.gauntletHalo.scaling.set(haloPulse, haloPulse, 1);
+        record.mesh.gauntletHalo.scaling.set(1, 1, 1);
       }
     }
-    combatLines.forEach((line, index) => {
-      if (line.visibility > 0 && !currentViewModel?.reducedMotion) {
-        const pulseValue = 0.62 + Math.sin(elapsed * 4.2 + index) * 0.15;
-        line.visibility = pulseValue;
-      }
-    });
   }
 
   const beforeRender = babylonScene.onBeforeRenderObservable.add(animate);
@@ -2886,9 +3067,25 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   canvas.addEventListener("pointerleave", handleCanvasPointerLeave);
   canvas.addEventListener("pointerup", handleCanvasPointerUp);
 
+  function setCapturePaused(paused) {
+    if (disposed) return 0;
+    if (paused) {
+      capturePauseDepth += 1;
+      return capturePauseDepth;
+    }
+    capturePauseDepth = Math.max(0, capturePauseDepth - 1);
+    if (capturePauseDepth === 0 && deferredCaptureViewModel) {
+      const nextViewModel = deferredCaptureViewModel;
+      deferredCaptureViewModel = null;
+      update(nextViewModel);
+    }
+    return capturePauseDepth;
+  }
+
   return {
     scene: babylonScene,
     update,
+    setCapturePaused,
     getMetrics() {
       const engine = babylonScene.getEngine();
       const stageMetrics = nativeBoardStage?.getMetrics?.() || {};
@@ -2911,6 +3108,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         ...stageMetrics,
         ...snapshotMetrics,
         ...registryMetrics,
+        matchId: currentPresentationSnapshot?.matchId || currentViewModel?.matchId || null,
+        revision: Number(currentPresentationSnapshot?.revision ?? currentViewModel?.revision ?? 0),
+        activeEventType: currentViewModel?.presentationPlayback?.activeEventType || null,
+        rulesVersion: currentViewModel?.rulesVersion || null,
         duplicateVisibleIdentityCount: registryMetrics.duplicateVisibleIdentityCount
           ?? snapshotMetrics.duplicateVisibleIdentityCount,
         meshes: babylonScene.meshes.length,
@@ -2947,6 +3148,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
+      capturePauseDepth = 0;
+      deferredCaptureViewModel = null;
       babylonScene.onBeforeRenderObservable.remove(beforeRender);
       canvas.removeEventListener("pointermove", handleCanvasPointerMove);
       canvas.removeEventListener("pointerleave", handleCanvasPointerLeave);

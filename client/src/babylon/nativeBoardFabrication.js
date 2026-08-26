@@ -329,6 +329,8 @@ export function createEngravedMedallion(scene, name, {
   diameter = 1,
   palette,
   accentMaterial = null,
+  accentVisibility = 0.72,
+  motifVisibility = 0.58,
   pickable = false,
   metadata = null
 }) {
@@ -357,6 +359,7 @@ export function createEngravedMedallion(scene, name, {
   ring.rotation.x = Math.PI / 2;
   ring.position.set(x, y + 0.112, z);
   ring.material = accentMaterial || palette.bronze;
+  ring.visibility = accentVisibility;
   ring.isPickable = false;
   const diamond = CreateCylinder(`${name}-diamond`, {
     height: 0.045,
@@ -366,6 +369,7 @@ export function createEngravedMedallion(scene, name, {
   diamond.rotation.y = Math.PI / 4;
   diamond.position.set(x, y + 0.126, z);
   diamond.material = accentMaterial || palette.bronzeBright;
+  diamond.visibility = motifVisibility;
   diamond.isPickable = false;
   return { base, field, ring, diamond };
 }
@@ -488,7 +492,14 @@ export function createModuleContactShadow(scene, name, {
   });
 }
 
-export function createSapphireStud(scene, name, { x, y, z, size = 0.22, palette }) {
+export function createSapphireStud(scene, name, {
+  x,
+  y,
+  z,
+  size = 0.22,
+  visibility = 0.58,
+  palette
+}) {
   const stud = CreateCylinder(name, {
     height: 0.08,
     diameter: size,
@@ -497,6 +508,7 @@ export function createSapphireStud(scene, name, { x, y, z, size = 0.22, palette 
   stud.rotation.y = Math.PI / 4;
   stud.position.set(x, y, z);
   stud.material = palette.sapphire;
+  stud.visibility = visibility;
   stud.isPickable = false;
   return stud;
 }

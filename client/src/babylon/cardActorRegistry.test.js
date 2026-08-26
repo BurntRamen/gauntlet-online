@@ -85,6 +85,43 @@ test("registry reflows seated actors before planning a new zone entrant", () => 
   expect(calls).toEqual(["update:card:z-seated", "create:card:a-incoming"]);
 });
 
+test("registry uses semantic priority buckets instead of actor identifiers for motion planning", () => {
+  const calls = [];
+  const motionPriority = (_entry, transition) => (
+    transition?.motionRole === "payment-enter"
+      ? 0
+      : ["attack-enter", "block-enter"].includes(transition?.motionRole)
+        ? 2
+        : 1
+  );
+  const registry = new CardActorRegistry({
+    order: motionPriority,
+    create: (entry) => {
+      calls.push(`create:${entry.actorId}`);
+      return { id: entry.actorId };
+    },
+    update: (_runtime, entry) => calls.push(`update:${entry.actorId}`)
+  });
+
+  registry.reconcile(snapshot([actor("card:z-attacker", "hand")]));
+  calls.length = 0;
+  registry.reconcile(snapshot([
+    actor("card:a-blocker", "combat"),
+    actor("card:z-attacker", "combat"),
+    actor("card:m-payment", "payment")
+  ]), [
+    { actorId: "card:a-blocker", motionRole: "block-enter", animate: true },
+    { actorId: "card:z-attacker", motionRole: "attack-enter", animate: true },
+    { actorId: "card:m-payment", motionRole: "payment-enter", animate: true }
+  ]);
+
+  expect(calls).toEqual([
+    "create:card:m-payment",
+    "update:card:z-attacker",
+    "create:card:a-blocker"
+  ]);
+});
+
 test("registry rekeys a hidden reveal without replacing its runtime", () => {
   const created = [];
   const updated = [];

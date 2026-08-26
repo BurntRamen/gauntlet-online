@@ -239,8 +239,119 @@ test("multiple accepted payments are dealt into the tray with readable stagger",
   next.actorById = new Map(next.actors.map((actor) => [actor.actorId, actor]));
 
   const transitions = planPresentationTransitions(previous, next).transitions;
-  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 320, 640]);
+  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 170, 340]);
   expect(transitions.every((transition) => transition.motionRole === "payment-enter")).toBe(true);
+});
+
+test("a paid hand block exposes payment travel before its staggered brace", () => {
+  const planner = new PresentationTransitionPlanner();
+  const payment = card("payment");
+  const blockerOne = card("blocker-one");
+  const blockerTwo = card("blocker-two");
+  const staged = state({
+    hand: [payment, blockerOne, blockerTwo]
+  });
+  planner.plan(staged);
+
+  const committed = state({
+    hand: [payment, blockerOne, blockerTwo],
+    events: [
+      { id: "paid-block", type: "payment.discarded", player: 1, cardIds: ["payment"] },
+      { id: "declared-block", type: "block.declared", player: 1, cardIds: ["blocker-one", "blocker-two"] }
+    ]
+  });
+  const transitions = planner.plan(committed, { eventGate: true }).transitions;
+
+  expect(transitions).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      actorId: "card:payment",
+      motionRole: "payment-enter",
+      sourceEventId: "paid-block",
+      delayMs: 0,
+      animate: true
+    }),
+    expect.objectContaining({
+      actorId: "card:blocker-one",
+      motionRole: "block-enter",
+      sourceEventId: "declared-block",
+      delayMs: 180,
+      animate: true
+    }),
+    expect.objectContaining({
+      actorId: "card:blocker-two",
+      motionRole: "block-enter",
+      sourceEventId: "declared-block",
+      delayMs: 270,
+      animate: true
+    })
+  ]));
+  expect(transitions.filter(({ motionRole }) => motionRole === "payment-enter")).toHaveLength(1);
+  expect(transitions.filter(({ motionRole }) => motionRole === "block-enter")).toHaveLength(2);
+});
+
+test.each([
+  [
+    "lane shift",
+    { kind: "lane", side: "local", role: "facedown", laneIndex: 0, slotIndex: 0 },
+    { kind: "lane", side: "local", role: "facedown", laneIndex: 2, slotIndex: 0 },
+    { id: "swap-lanes", type: "lanes.swapped", laneA: 0, laneB: 2 },
+    "lane-shift"
+  ],
+  [
+    "lane return to hand",
+    { kind: "lane", side: "local", role: "facedown", laneIndex: 1, slotIndex: 0 },
+    { kind: "hand", side: "local", role: "hand", slotIndex: 0 },
+    { id: "swap-return", type: "laneCard.swappedWithHand", laneIndex: 1 },
+    "swap-return"
+  ],
+  [
+    "hand card entering a swapped lane",
+    { kind: "hand", side: "local", role: "hand", slotIndex: 0 },
+    { kind: "lane", side: "local", role: "facedown", laneIndex: 1, slotIndex: 0 },
+    { id: "swap-enter", type: "laneCard.swappedWithHand", laneIndex: 1 },
+    "lane-shift"
+  ]
+])("accepted %s uses a low, target-specific motion", (_label, from, to, event, motionRole) => {
+  const before = actorSnapshot({ revision: 1, from });
+  const after = actorSnapshot({ revision: 2, from: to, events: [event] });
+  expect(planPresentationTransitions(before, after).transitions).toEqual([
+    expect.objectContaining({ motionRole, sourceEventId: event.id, animate: true })
+  ]);
+});
+
+test("hidden lane identities still acknowledge an in-place opponent swap", () => {
+  const actors = [0, 2].map((laneIndex) => ({
+    actorId: `hidden:player-2:lane:${laneIndex}`,
+    visibleIdentity: `hidden:player-2:lane:${laneIndex}`,
+    cardId: null,
+    anonymous: true,
+    zone: { kind: "lane", side: "opponent", role: "facedown", laneIndex, slotIndex: 0 }
+  }));
+  const snapshot = (revision, events = []) => ({
+    matchId: "match",
+    revision,
+    source: "live",
+    transitionMode: "animate",
+    traversalGeneration: 0,
+    events,
+    actors,
+    actorById: new Map(actors.map((actor) => [actor.actorId, actor]))
+  });
+  const transitions = planPresentationTransitions(snapshot(1), snapshot(2, [{
+    id: "hidden-swap",
+    type: "lanes.swapped",
+    player: 2,
+    laneA: 0,
+    laneB: 2
+  }])).transitions;
+
+  expect(transitions).toHaveLength(2);
+  expect(transitions.every((transition) => (
+    transition.motionRole === "lane-shift"
+    && transition.sourceEventId === "hidden-swap"
+    && transition.animate
+  ))).toBe(true);
+  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 90]);
 });
 
 test("live stale revisions are rejected and replay seeks reconcile statically", () => {

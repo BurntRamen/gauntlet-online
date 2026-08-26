@@ -1,8 +1,8 @@
 export const CARD_ACTOR_REGISTRY_VERSION = "gauntlet.card-actor-registry.v1";
 
 export class CardActorRegistry {
-  constructor({ create, update, depart, dispose } = {}) {
-    this.callbacks = { create, update, depart, dispose };
+  constructor({ create, update, depart, dispose, order } = {}) {
+    this.callbacks = { create, update, depart, dispose, order };
     this.records = new Map();
   }
 
@@ -17,7 +17,16 @@ export class CardActorRegistry {
       this.records.delete(transition.rebindFromActorId);
       this.records.set(transition.actorId, existing);
     });
-    (snapshot?.actors || []).forEach((actor) => nextIds.add(actor.actorId));
+    const actorEntries = (snapshot?.actors || []).map((actor, index) => {
+      const transition = transitionByActor.get(actor.actorId) || null;
+      return {
+        actor,
+        index,
+        transition,
+        priority: Number(this.callbacks.order?.(actor, transition)) || 0
+      };
+    });
+    actorEntries.forEach(({ actor }) => nextIds.add(actor.actorId));
 
     // Mark physical departures before planning incoming actors. The renderer
     // can then reserve an orderly handoff instead of treating a tray/combat
@@ -33,24 +42,30 @@ export class CardActorRegistry {
       this.records.delete(actorId);
     }
 
-    const incomingActors = [];
-    (snapshot?.actors || []).forEach((actor) => {
-      const transition = transitionByActor.get(actor.actorId) || null;
-      const existing = this.records.get(actor.actorId);
-      if (existing) {
-        existing.actor = actor;
-        existing.departing = false;
-        this.callbacks.update?.(existing.runtime, actor, transition);
-        return;
-      }
-      incomingActors.push({ actor, transition });
-    });
-    // Reflow actors already seated in a multi-card zone before an incoming
-    // actor plans its route. That makes the newly assigned slot physically
-    // available and avoids routing around a stale center target.
-    incomingActors.forEach(({ actor, transition }) => {
-      const runtime = this.callbacks.create?.(actor, transition);
-      this.records.set(actor.actorId, { actor, runtime, departing: false });
+    const priorities = Array.from(new Set(actorEntries.map(({ priority }) => priority))).sort((a, b) => a - b);
+    priorities.forEach((priority) => {
+      const incomingActors = [];
+      actorEntries
+        .filter((entry) => entry.priority === priority)
+        .sort((left, right) => left.index - right.index)
+        .forEach(({ actor, transition }) => {
+          const existing = this.records.get(actor.actorId);
+          if (existing) {
+            existing.actor = actor;
+            existing.departing = false;
+            this.callbacks.update?.(existing.runtime, actor, transition);
+            return;
+          }
+          incomingActors.push({ actor, transition });
+        });
+      // Reflow actors already seated in a multi-card zone before an incoming
+      // actor at the same semantic priority plans its route. That makes newly
+      // assigned slots available without letting identifier order decide
+      // which commitment motion reserves the board first.
+      incomingActors.forEach(({ actor, transition }) => {
+        const runtime = this.callbacks.create?.(actor, transition);
+        this.records.set(actor.actorId, { actor, runtime, departing: false });
+      });
     });
   }
 

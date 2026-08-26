@@ -1,4 +1,5 @@
 import { normalizePresentationActorSlots, presentationZoneKey } from "./presentationSnapshot";
+import { PRESENTATION_MOTION_PROFILES } from "./presentationCadence";
 
 export const PRESENTATION_TRANSITION_CONTRACT_VERSION = "gauntlet.presentation-transitions.v1";
 
@@ -25,7 +26,9 @@ const EVENT_TYPES_BY_ROUTE = Object.freeze({
     "campaign.attackDeclared",
     "block.declared"
   ],
-  "hand>lane:facedown": ["card.placedFacedown"],
+  "hand>lane:facedown": ["card.placedFacedown", "laneCard.swappedWithHand"],
+  "lane>lane:facedown": ["lanes.swapped"],
+  "lane>hand:hand": ["laneCard.swappedWithHand"],
   "none>hand:hand": ["cards.drawn"]
 });
 
@@ -53,12 +56,25 @@ function sourceEventFor(previousActor, nextActor, events = []) {
     || null;
 }
 
+function inPlaceHiddenMutationEvent(actor, events = []) {
+  if (!actor?.anonymous || actor.zone?.kind !== "lane") return null;
+  const laneIndex = Number(actor.zone.laneIndex);
+  return [...events].reverse().find((event) => {
+    if (event.player != null && !String(actor.actorId).includes(`player-${event.player}:`)) return false;
+    if (event.type === "lanes.swapped") {
+      return [Number(event.laneA), Number(event.laneB)].includes(laneIndex);
+    }
+    return event.type === "laneCard.swappedWithHand" && Number(event.laneIndex) === laneIndex;
+  }) || null;
+}
+
 function compatibleRebindOrigin(previousActor, nextActor) {
   if (!previousActor || !nextActor || previousActor.zone?.side !== nextActor.zone?.side) return false;
   const from = previousActor.zone?.kind;
   const to = nextActor.zone?.kind;
   if (to === "payment") return from === "hand";
-  if (to === "lane") return from === "hand";
+  if (to === "lane") return from === "hand" || from === "lane";
+  if (to === "hand") return from === "lane";
   if (to !== "combat") return false;
   if (nextActor.zone?.laneIndex == null) return from === "hand";
   return from === "lane"
@@ -93,12 +109,15 @@ function findRebindPairs(previousById, nextById, events) {
   return pairs;
 }
 
-export function motionRoleForTransition(previousActor, nextActor) {
+export function motionRoleForTransition(previousActor, nextActor, sourceEvent = null) {
   const from = previousActor?.zone?.kind || "none";
   const to = nextActor?.zone?.kind || "none";
   const role = nextActor?.zone?.role || previousActor?.zone?.role;
   if (from === "none" && to === "hand") return "draw-enter";
   if (to === "payment") return "payment-enter";
+  if (from === "lane" && to === "lane") return "lane-shift";
+  if (from === "lane" && to === "hand") return "swap-return";
+  if (from === "hand" && to === "lane" && sourceEvent?.type === "laneCard.swappedWithHand") return "lane-shift";
   if (to === "lane") return "placement-enter";
   if (to === "combat" && role === "blocker") return "block-enter";
   if (to === "combat" && role === "attacker") return "attack-enter";
@@ -144,10 +163,22 @@ export function planPresentationTransitions(previousSnapshot, nextSnapshot, opti
     const rebind = rebindPairs.get(actorId) || null;
     const previousActor = rebind?.previousActor || previousById.get(actorId) || null;
     const nextActor = nextById.get(actorId) || null;
-    if (previousActor && nextActor && presentationZoneKey(previousActor.zone) === presentationZoneKey(nextActor.zone)) return;
-    const sourceEvent = rebind?.sourceEvent || sourceEventFor(previousActor, nextActor, nextSnapshot.events);
-    const motionRole = motionRoleForTransition(previousActor, nextActor);
+    const sameZone = previousActor && nextActor
+      && presentationZoneKey(previousActor.zone) === presentationZoneKey(nextActor.zone);
+    const inPlaceMutation = sameZone
+      ? inPlaceHiddenMutationEvent(nextActor, nextSnapshot.events)
+      : null;
+    if (sameZone && !inPlaceMutation) return;
+    const sourceEvent = rebind?.sourceEvent
+      || inPlaceMutation
+      || sourceEventFor(previousActor, nextActor, nextSnapshot.events);
+    const motionRole = motionRoleForTransition(previousActor, nextActor, sourceEvent);
     const animate = !reconcile && motionRole !== "state-correction" && Boolean(sourceEvent || !previousActor || !nextActor);
+    const hasPaymentMotion = nextSnapshot.events.some((entry) => (
+      entry.type === "payment.discarded" && entry.cardIds?.length
+    ));
+    const profile = PRESENTATION_MOTION_PROFILES[motionRole]
+      || PRESENTATION_MOTION_PROFILES["state-correction"];
     transitions.push({
       contract: PRESENTATION_TRANSITION_CONTRACT_VERSION,
       actorId,
@@ -162,11 +193,16 @@ export function planPresentationTransitions(previousSnapshot, nextSnapshot, opti
       animate,
       reconcile,
       delayMs: motionRole === "block-enter"
-        ? Math.max(0, Number(nextActor?.zone?.slotIndex || 0)) * 130
-        : motionRole === "payment-enter"
-          ? Math.max(0, Number(nextActor?.zone?.slotIndex || 0)) * 320
-          : motionRole === "draw-enter"
-            ? Math.max(0, Number(nextActor?.zone?.slotIndex || 0)) * 70
+        ? Math.max(0, Number(nextActor?.zone?.slotIndex || 0)) * Number(profile.staggerMs || 0)
+          + (hasPaymentMotion ? Number(profile.paymentLeadMs || 0) : 0)
+        : motionRole === "attack-enter"
+          ? (hasPaymentMotion ? Number(profile.paymentLeadMs || 0) : 0)
+          : ["payment-enter", "draw-enter", "lane-shift"].includes(motionRole)
+            ? Math.max(0, Number(
+              motionRole === "lane-shift" && sourceEvent?.type === "lanes.swapped"
+                ? nextActor?.zone?.laneIndex
+                : nextActor?.zone?.slotIndex
+            ) || 0) * Number(profile.staggerMs || 0)
             : 0
     });
   });

@@ -63,6 +63,20 @@ export default function GauntletMatchCanvas({
         throw new Error("The Babylon match scene did not assign an active camera.");
       }
       rendererRef.current = renderer;
+      if (process.env.NODE_ENV !== "production") {
+        const captureMetrics = () => ({
+          ...renderer.getMetrics?.(),
+          initializationMs: initializationMsRef.current
+        });
+        canvas.__gauntletCaptureControl = {
+          pause: () => ({
+            depth: renderer.setCapturePaused?.(true) || 0,
+            metrics: captureMetrics()
+          }),
+          snapshot: captureMetrics,
+          resume: () => renderer.setCapturePaused?.(false) || 0
+        };
+      }
       renderer.scene.render();
       initializationMsRef.current = performance.now() - initializationStartedAt;
       const emitMetrics = () => onSceneMetricsRef.current?.({
@@ -96,6 +110,7 @@ export default function GauntletMatchCanvas({
         canvas.removeEventListener("webglcontextlost", contextLost);
         if (metricsInterval) window.clearInterval(metricsInterval);
         engine.stopRenderLoop();
+        delete canvas.__gauntletCaptureControl;
         renderer.dispose();
         rendererRef.current = null;
         engineRef.current = null;

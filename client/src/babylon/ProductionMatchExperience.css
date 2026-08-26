@@ -116,8 +116,8 @@
 .production-player-plate.has-priority {
   border-color: var(--gauntlet-sapphire);
   box-shadow:
-    0 0 0 1px rgba(30, 107, 255, 0.3),
-    0 0 28px rgba(30, 107, 255, 0.35),
+    0 0 0 1px rgba(30, 107, 255, 0.22),
+    0 0 14px rgba(30, 107, 255, 0.16),
     0 14px 32px rgba(0, 0, 0, 0.52);
 }
 
@@ -220,7 +220,7 @@
 .has-priority .production-priority {
   border-color: var(--gauntlet-sapphire);
   color: #d8e7ff;
-  background: rgba(30, 107, 255, 0.28);
+  background: rgba(30, 107, 255, 0.16);
 }
 
 .production-context-panel {
@@ -613,6 +613,21 @@
   width: min(590px, calc(100% - 32px));
   transform: translateX(-50%);
   pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.production-match-feed.is-quiescent {
+  transform: translateX(-50%) translateY(-2px) scale(0.97);
+}
+
+.production-match-feed.is-quiescent .production-match-feed-current {
+  border-color: rgba(112, 145, 171, 0.24);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.26);
+}
+
+.production-match-feed.is-quiescent .production-match-feed-current > span {
+  color: #b8c4cf;
+  background: rgba(50, 69, 86, 0.88);
 }
 
 .production-match-feed-current {
@@ -1824,7 +1839,8 @@
 .source-replay .production-turn-marker,
 .source-replay .production-mode-marker,
 .source-replay .production-campaign-encounter,
-.source-replay .production-match-utilities {
+.source-replay .production-match-utilities,
+.source-replay .production-match-feed {
   display: none;
 }
 
