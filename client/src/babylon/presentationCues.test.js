@@ -42,8 +42,36 @@ test("the contract reserves hooks for every requested board action", () => {
     "card.lift", "card.travel", "card.settle", "card.draw", "card.place",
     "payment.commit", "payment.release", "card.discard", "attack.declare",
     "block.commit", "combat.resolve", "damage.impact", "priority.transfer",
-    "turn.start", "ability.activate", "match.victory", "match.defeat"
+    "combat.blocked", "damage.major", "turn.start", "ability.activate",
+    "match.victory", "match.defeat", "match.draw"
   ]));
+});
+
+test("damage resolution distinguishes a stopped attack, ordinary damage, and major damage", () => {
+  const cueFor = (damage) => projectPresentationCues({
+    id: `damage-${damage}`,
+    type: "damage.calculated",
+    damage
+  })[0];
+  expect(cueFor(0)).toMatchObject({
+    cueId: "combat.blocked",
+    visual: { assetId: "block.commit" },
+    audio: { assetId: "combat.blocked" }
+  });
+  expect(cueFor(4).cueId).toBe("damage.impact");
+  expect(cueFor(8)).toMatchObject({
+    cueId: "damage.major",
+    visual: { assetId: "damage.impact" },
+    audio: { assetId: "damage.major" }
+  });
+});
+
+test("match resolution is derived from the authoritative winner and local perspective", () => {
+  const event = { id: "end", type: "match.ended", winner: 2 };
+  expect(projectPresentationCues(event, { perspectivePlayer: 2 })[0].cueId).toBe("match.victory");
+  expect(projectPresentationCues(event, { perspectivePlayer: 1 })[0].cueId).toBe("match.defeat");
+  expect(projectPresentationCues(event, { perspectivePlayer: 2, spectator: true })[0].cueId).toBe("match.draw");
+  expect(projectPresentationCues({ ...event, winner: null }, { perspectivePlayer: 2 })[0].cueId).toBe("match.draw");
 });
 
 test("events without a lane remain board-targeted instead of coercing to lane zero", () => {

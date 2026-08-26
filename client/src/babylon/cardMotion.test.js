@@ -65,7 +65,7 @@ describe("shared Babylon card motion", () => {
     expect(shouldHoldCombatCard("hand")).toBe(false);
   });
 
-  test("gives every meaningful movement stable visual and audio cue hooks", () => {
+  test("gives committed movements stable cues without layering every travel and settle", () => {
     Object.keys(CARD_MOTION_CUE_HOOKS).forEach((role) => {
       const motion = createCardMotion({
         role,
@@ -78,6 +78,21 @@ describe("shared Babylon card motion", () => {
       expect(motion.cueHooks.every((cue) => cue.visual && cue.audio)).toBe(true);
       expect(Math.max(...motion.cueHooks.map((cue) => cue.offsetMs))).toBeLessThanOrEqual(motion.durationMs);
     });
+    expect(createCardMotion({
+      role: "draw-enter",
+      start: { x: 0 },
+      destination: { x: 1 }
+    }).cueHooks).toEqual([]);
+    expect(createCardMotion({
+      role: "replay-stage",
+      start: { x: 0 },
+      destination: { x: 1 }
+    }).cueHooks).toEqual([]);
+    expect(createCardMotion({
+      role: "discard-exit",
+      start: { x: 0 },
+      destination: { x: 1 }
+    }).cueHooks).toEqual([]);
   });
 
   test("lets payment reach and settle in its tray before discard departure", () => {

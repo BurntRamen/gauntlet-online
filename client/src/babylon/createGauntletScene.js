@@ -22,6 +22,7 @@ import {
   getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
+  normalizePresentationLaneIndex,
   normalizeVisibleCardRotation
 } from "./matchLayout";
 import {
@@ -55,6 +56,17 @@ import {
   loadAuthoredPresentationTexture
 } from "./presentationKitBabylon";
 import { PresentationAssetCache, resolvePresentationAsset } from "./presentationKit";
+import {
+  createBoardDial,
+  createChamferedPlate,
+  createEngravingDecal,
+  createEngravedMedallion,
+  createModuleContactShadow,
+  createNativeBoardPalette,
+  createRaisedFrame,
+  createRecessedCardWell,
+  createSapphireStud
+} from "./nativeBoardFabrication";
 
 const CARD_BACK_COLOR = "#102437";
 const CARD_FACE_COLOR = "#f3ead9";
@@ -180,23 +192,16 @@ function createZoneLabelTexture(scene, name, label, accent = MATCH_COLORS.bronze
   texture.hasAlpha = true;
   const context = texture.getContext();
   context.clearRect(0, 0, 512, 128);
-  const gradient = context.createLinearGradient(0, 0, 512, 0);
-  gradient.addColorStop(0, "rgba(4, 9, 15, 0)");
-  gradient.addColorStop(0.2, "rgba(4, 9, 15, 0.88)");
-  gradient.addColorStop(0.8, "rgba(4, 9, 15, 0.88)");
-  gradient.addColorStop(1, "rgba(4, 9, 15, 0)");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 512, 128);
   context.strokeStyle = accent;
-  context.lineWidth = 3;
+  context.lineWidth = 2;
   context.beginPath();
-  context.moveTo(84, 102);
-  context.lineTo(428, 102);
+  context.moveTo(118, 100);
+  context.lineTo(394, 100);
   context.stroke();
-  context.fillStyle = "#e6e1d1";
+  context.fillStyle = accent;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = "700 42px Arial";
+  context.font = "700 39px Arial";
   context.fillText(label, 256, 57);
   texture.update(true);
   return texture;
@@ -400,9 +405,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const babylonScene = new Scene(engine);
   babylonScene.clearColor = new Color4(0.008, 0.015, 0.022, 1);
 
-  const camera = new FreeCamera("gauntlet-camera", new Vector3(0, 22, -0.01), babylonScene);
-  camera.upVector = new Vector3(0, 0, 1);
-  camera.setTarget(Vector3.Zero());
+  const camera = new FreeCamera("gauntlet-camera", new Vector3(0, 22, -15.5), babylonScene);
+  camera.upVector = new Vector3(0, 0.576, 0.817);
+  camera.setTarget(new Vector3(0, 0, 0.35));
   camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
   camera.minZ = 0.1;
   camera.maxZ = 60;
@@ -431,55 +436,57 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   syncCamera();
 
   const hemi = new HemisphericLight("table-fill", new Vector3(0, 1, 0), babylonScene);
-  hemi.intensity = 0.54;
-  hemi.diffuse = color("#b8d4e6");
-  hemi.groundColor = color("#071019");
-  const key = new DirectionalLight("table-key", new Vector3(0.28, -1, 0.3), babylonScene);
-  key.position = new Vector3(-7, 14, -6);
-  key.intensity = 0.72;
-  key.diffuse = color("#e7d3ae");
-  const shadowGenerator = new ShadowGenerator(1024, key);
+  hemi.intensity = 0.58;
+  hemi.diffuse = color("#a9c1d3");
+  hemi.groundColor = color("#03070b");
+  const key = new DirectionalLight("table-key", new Vector3(0.34, -1, 0.27), babylonScene);
+  key.position = new Vector3(-9, 16, -7);
+  key.intensity = 1.42;
+  key.diffuse = color("#f2d5a5");
+  const rim = new DirectionalLight("table-rim", new Vector3(-0.42, -1, -0.22), babylonScene);
+  rim.position = new Vector3(11, 13, 8);
+  rim.intensity = 0.82;
+  rim.diffuse = color("#79b9e6");
+  const shadowGenerator = new ShadowGenerator(2048, key);
   shadowGenerator.useBlurExponentialShadowMap = true;
-  shadowGenerator.blurKernel = 18;
-  shadowGenerator.darkness = 0.38;
+  shadowGenerator.blurKernel = 24;
+  shadowGenerator.darkness = 0.5;
+  babylonScene.imageProcessingConfiguration.contrast = 1.24;
+  babylonScene.imageProcessingConfiguration.exposure = 1.1;
 
-  const surfaceMaterial = makeMaterial(babylonScene, "palette-surface", "#0a171f", {
-    emissive: "#010509",
-    specular: "#263946"
-  });
-  const steelMaterial = makeMaterial(babylonScene, "palette-steel", "#294353", {
-    emissive: "#030a10",
-    specular: "#70859a"
-  });
-  const bronzeMaterial = makeMaterial(babylonScene, "palette-bronze", "#9f7841", {
-    emissive: "#3b260d",
-    specular: "#f2d497"
-  });
-  const sapphireMaterial = makeMaterial(babylonScene, "palette-sapphire", "#68c7f1", {
-    emissive: "#247ba2",
-    specular: "#e6f8ff"
-  });
-  const dangerMaterial = makeMaterial(babylonScene, "palette-danger", "#d75561", {
-    emissive: "#651b25",
-    specular: "#ffd0d4"
-  });
-  const paleSteelMaterial = makeMaterial(babylonScene, "palette-pale-steel", MATCH_COLORS.paleSteel, {
-    emissive: "#344454",
-    specular: "#ffffff"
-  });
-  const purpleMaterial = makeMaterial(babylonScene, "palette-purple", "#c5a7f4", {
-    emissive: "#593d84",
-    specular: "#f2eaff"
-  });
-  const engravedMaterial = makeMaterial(babylonScene, "palette-engraved", "#101b24", {
-    emissive: "#010407",
-    specular: "#3b4d59"
-  });
-  engravedMaterial.specularPower = 112;
-  const wellMaterial = makeMaterial(babylonScene, "palette-card-well", "#050b10", {
-    emissive: "#010203",
-    specular: "#1d2c36"
-  });
+  const nativePalette = createNativeBoardPalette(babylonScene);
+  const nativeStoneTexture = new Texture(
+    MATCH_ASSETS.table,
+    babylonScene,
+    true,
+    true,
+    Texture.TRILINEAR_SAMPLINGMODE
+  );
+  nativeStoneTexture.anisotropicFilteringLevel = 12;
+  nativeStoneTexture.level = 0.78;
+  nativePalette.graphite.diffuseTexture = nativeStoneTexture;
+  nativePalette.graphiteDeep.diffuseTexture = nativeStoneTexture;
+  nativePalette.stone.diffuseTexture = nativeStoneTexture;
+  nativePalette.well.diffuseTexture = nativeStoneTexture;
+  nativePalette.graphite.emissiveTexture = nativeStoneTexture;
+  nativePalette.graphiteDeep.emissiveTexture = nativeStoneTexture;
+  nativePalette.stone.emissiveTexture = nativeStoneTexture;
+  nativePalette.well.emissiveTexture = nativeStoneTexture;
+  nativePalette.graphite.diffuseColor = color("#a8b8c2");
+  nativePalette.graphiteDeep.diffuseColor = color("#65727b");
+  nativePalette.stone.diffuseColor = color("#86959f");
+  nativePalette.well.diffuseColor = color("#73838d");
+  nativePalette.graphite.emissiveColor = color("#1a2a34");
+  nativePalette.graphiteDeep.emissiveColor = color("#101a21");
+  nativePalette.stone.emissiveColor = color("#17262f");
+  nativePalette.well.emissiveColor = color("#1c2a32");
+  const surfaceMaterial = nativePalette.graphite;
+  const steelMaterial = nativePalette.steel;
+  const bronzeMaterial = nativePalette.bronze;
+  const sapphireMaterial = nativePalette.sapphire;
+  const dangerMaterial = nativePalette.crimson;
+  const paleSteelMaterial = nativePalette.parchment;
+  const purpleMaterial = nativePalette.violet;
   const contactShadowMaterial = makeMaterial(babylonScene, "card-contact-shadow", "#000000", {
     emissive: "#000000",
     specular: "#000000",
@@ -495,33 +502,23 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth,
     accent = steelMaterial,
     rail = 0.075,
-    floorVisibility = 0.88,
-    railVisibility = 0.72
+    floorVisibility = 1,
+    railVisibility = 1
   }) {
-    const floor = CreateBox(`${name}-floor`, { width, height: 0.055, depth }, babylonScene);
-    floor.position = new Vector3(x, y, z);
-    floor.material = wellMaterial;
-    floor.visibility = floorVisibility;
-    floor.receiveShadows = true;
-    floor.isPickable = false;
-    const rails = [
-      { x, z: z - depth / 2, width, depth: rail },
-      { x, z: z + depth / 2, width, depth: rail },
-      { x: x - width / 2, z, width: rail, depth },
-      { x: x + width / 2, z, width: rail, depth }
-    ].map((edge, index) => {
-      const mesh = CreateBox(`${name}-inlay-${index}`, {
-        width: edge.width,
-        height: 0.035,
-        depth: edge.depth
-      }, babylonScene);
-      mesh.position = new Vector3(edge.x, y + 0.042, edge.z);
-      mesh.material = accent;
-      mesh.visibility = railVisibility;
-      mesh.isPickable = false;
-      return mesh;
+    const well = createRecessedCardWell(babylonScene, name, {
+      x,
+      y,
+      z,
+      width,
+      depth,
+      palette: nativePalette,
+      accentMaterial: accent,
+      railThickness: Math.max(0.065, rail),
+      rivets: width > 2.2
     });
-    return { floor, rails };
+    well.bed.visibility = floorVisibility;
+    well.rails.forEach((mesh) => { mesh.visibility = railVisibility; });
+    return { ...well, floor: well.bed };
   }
 
   function createMountedFrame(name, {
@@ -532,39 +529,42 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     depth,
     material = bronzeMaterial,
     thickness = 0.12,
-    visibility = 0.68
+    height = 0.12,
+    visibility = 1
   }) {
-    return [
-      { x, z: z - depth / 2, width, depth: thickness },
-      { x, z: z + depth / 2, width, depth: thickness },
-      { x: x - width / 2, z, width: thickness, depth },
-      { x: x + width / 2, z, width: thickness, depth }
-    ].map((edge, index) => {
-      const mesh = CreateBox(`${name}-${index}`, { width: edge.width, height: 0.11, depth: edge.depth }, babylonScene);
-      mesh.position = new Vector3(edge.x, y, edge.z);
-      mesh.material = material;
-      mesh.visibility = visibility;
-      mesh.isPickable = false;
-      return mesh;
+    const frame = createRaisedFrame(babylonScene, name, {
+      x,
+      y,
+      z,
+      width,
+      depth,
+      thickness,
+      height,
+      material
     });
+    frame.forEach((mesh) => { mesh.visibility = visibility; });
+    return frame;
   }
 
-  const table = CreateBox("tabletop", {
-    width: MATCH_LAYOUT.table.width,
-    height: 0.55,
-    depth: MATCH_LAYOUT.table.depth
-  }, babylonScene);
-  table.position.y = MATCH_LAYOUT.table.y;
-  table.material = surfaceMaterial;
-  table.receiveShadows = true;
-
-  const inlay = CreateBox("table-inlay", {
-    width: MATCH_LAYOUT.table.width - 0.45,
-    height: 0.08,
-    depth: MATCH_LAYOUT.table.depth - 0.45
-  }, babylonScene);
-  inlay.position.y = -0.115;
-  inlay.material = materialFromStaticTexture(
+  createModuleContactShadow(babylonScene, "board-contact-shadow", {
+    x: 0,
+    y: MATCH_LAYOUT.table.y - 0.34,
+    z: 0.18,
+    width: MATCH_LAYOUT.table.width + 1.15,
+    depth: MATCH_LAYOUT.table.depth + 1.05,
+    cornerCut: 0.78,
+    alpha: 0.54
+  });
+  createChamferedPlate(babylonScene, "tabletop", {
+    width: MATCH_LAYOUT.table.width + 0.7,
+    height: 0.62,
+    depth: MATCH_LAYOUT.table.depth + 0.65,
+    cornerCut: 0.72,
+    bevel: 0.14,
+    material: surfaceMaterial,
+    position: { x: 0, y: MATCH_LAYOUT.table.y, z: 0 }
+  });
+  const tableSurfaceMaterial = materialFromStaticTexture(
     babylonScene,
     "table-inlay-material",
     MATCH_ASSETS.table,
@@ -577,14 +577,23 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       level: 0.92
     }
   );
-  inlay.material.specularPower = 96;
-  inlay.material.ambientColor = color("#111b25");
-  inlay.material.diffuseColor = color("#cbd5df");
-  inlay.material.emissiveColor = color("#010407");
-  inlay.material.specularColor = color("#263b4c");
-  inlay.material.alpha = 1;
-  inlay.material.backFaceCulling = false;
-  inlay.receiveShadows = true;
+  tableSurfaceMaterial.specularPower = 96;
+  tableSurfaceMaterial.ambientColor = color("#111b25");
+  tableSurfaceMaterial.diffuseColor = color("#eef3f5");
+  tableSurfaceMaterial.emissiveTexture = tableSurfaceMaterial.diffuseTexture;
+  tableSurfaceMaterial.emissiveColor = color("#a9b8c2");
+  tableSurfaceMaterial.specularColor = color("#263b4c");
+  tableSurfaceMaterial.alpha = 1;
+  tableSurfaceMaterial.backFaceCulling = false;
+  createChamferedPlate(babylonScene, "table-inlay", {
+    width: MATCH_LAYOUT.table.width - 0.45,
+    height: 0.09,
+    depth: MATCH_LAYOUT.table.depth - 0.45,
+    cornerCut: 0.52,
+    bevel: 0.025,
+    material: tableSurfaceMaterial,
+    position: { x: 0, y: -0.095, z: 0 }
+  });
 
   createMountedFrame("board-inner-frame", {
     x: 0,
@@ -595,6 +604,113 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     material: steelMaterial,
     thickness: 0.09
   }).forEach((mesh) => { mesh.visibility = 0.9; });
+
+  createMountedFrame("board-bronze-frame", {
+    x: 0,
+    y: 0.02,
+    z: 0,
+    width: MATCH_LAYOUT.table.width - 0.24,
+    depth: MATCH_LAYOUT.table.depth - 0.24,
+    material: nativePalette.bronze,
+    thickness: 0.16,
+    visibility: 1
+  });
+
+  [-1, 1].forEach((side) => {
+    const x = side * 15.85;
+    createModuleContactShadow(babylonScene, `board-side-console-${side}-contact`, {
+      x,
+      y: MATCH_LAYOUT.table.y - 0.25,
+      z: 0.18,
+      width: 3.55,
+      depth: MATCH_LAYOUT.table.depth - 0.2,
+      cornerCut: 0.52,
+      alpha: 0.5
+    });
+    createChamferedPlate(babylonScene, `board-side-console-${side}`, {
+      width: 3.48,
+      height: 0.48,
+      depth: MATCH_LAYOUT.table.depth - 0.3,
+      cornerCut: 0.55,
+      bevel: 0.13,
+      material: nativePalette.steelDark,
+      position: { x, y: MATCH_LAYOUT.table.y + 0.05, z: 0 }
+    });
+    createChamferedPlate(babylonScene, `board-side-console-${side}-field`, {
+      width: 2.78,
+      height: 0.09,
+      depth: MATCH_LAYOUT.table.depth - 1.02,
+      cornerCut: 0.34,
+      bevel: 0.025,
+      material: nativePalette.graphiteDeep,
+      position: { x, y: -0.1, z: 0 }
+    });
+    createMountedFrame(`board-side-console-${side}-frame`, {
+      x,
+      y: 0,
+      z: 0,
+      width: 3.08,
+      depth: MATCH_LAYOUT.table.depth - 0.68,
+      material: nativePalette.bronze,
+      thickness: 0.13,
+      visibility: 1
+    });
+    [-5.4, 0, 5.4].forEach((panelZ, panelIndex) => {
+      createChamferedPlate(babylonScene, `board-side-console-${side}-panel-${panelIndex}`, {
+        width: 2.28,
+        height: 0.1,
+        depth: 4.15,
+        cornerCut: 0.28,
+        bevel: 0.026,
+        material: panelIndex === 1 ? nativePalette.stoneRaised : nativePalette.stone,
+        position: { x, y: 0.02, z: panelZ }
+      });
+      createMountedFrame(`board-side-console-${side}-panel-frame-${panelIndex}`, {
+        x,
+        y: 0.095,
+        z: panelZ,
+        width: 2.12,
+        depth: 3.95,
+        material: panelIndex === 1 ? nativePalette.bronze : nativePalette.bronzeDark,
+        thickness: 0.085,
+        visibility: 1
+      });
+      createEngravingDecal(babylonScene, `board-side-console-${side}-engraving-${panelIndex}`, {
+        x,
+        y: 0.165,
+        z: panelZ,
+        width: 1.66,
+        depth: 3.15,
+        tint: panelIndex === 1 ? "#9a7742" : "#536675",
+        alpha: panelIndex === 1 ? 0.52 : 0.36
+      });
+    });
+    createEngravedMedallion(babylonScene, `board-side-console-${side}-center-medallion`, {
+      x,
+      y: 0.18,
+      z: 0,
+      diameter: 1.18,
+      palette: nativePalette,
+      accentMaterial: side < 0 ? nativePalette.sapphire : nativePalette.bronzeBright
+    });
+    [-1, 1].forEach((railSide) => {
+      const channel = createChamferedPlate(
+        babylonScene,
+        `board-side-console-${side}-channel-${railSide}`,
+        {
+          width: 0.065,
+          height: 0.04,
+          depth: MATCH_LAYOUT.table.depth - 2.2,
+          cornerCut: 0.02,
+          bevel: 0.008,
+          material: nativePalette.sapphire,
+          position: { x: x + railSide * 1.2, y: 0.12, z: 0 },
+          visibility: 0.3
+        }
+      );
+      channel.isPickable = false;
+    });
+  });
 
   [
     [-MATCH_LAYOUT.table.width / 2 + 0.62, -MATCH_LAYOUT.table.depth / 2 + 0.62],
@@ -610,23 +726,76 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   const tableEdgeMaterial = steelMaterial;
   const bronzeTrimMaterial = bronzeMaterial;
-  [
-    { width: MATCH_LAYOUT.table.width - 0.12, depth: 0.17, x: 0, z: -MATCH_LAYOUT.table.depth / 2 + 0.15, material: bronzeTrimMaterial },
-    { width: MATCH_LAYOUT.table.width - 0.12, depth: 0.17, x: 0, z: MATCH_LAYOUT.table.depth / 2 - 0.15, material: bronzeTrimMaterial },
-    { width: 0.17, depth: MATCH_LAYOUT.table.depth - 0.12, x: -MATCH_LAYOUT.table.width / 2 + 0.15, z: 0, material: tableEdgeMaterial },
-    { width: 0.17, depth: MATCH_LAYOUT.table.depth - 0.12, x: MATCH_LAYOUT.table.width / 2 - 0.15, z: 0, material: tableEdgeMaterial }
-  ].forEach((edge, index) => {
-    const mesh = CreateBox(`table-edge-${index}`, {
-      width: edge.width,
-      height: 0.17,
-      depth: edge.depth
-    }, babylonScene);
-    mesh.position = new Vector3(edge.x, -0.01, edge.z);
-    mesh.material = edge.material;
-    mesh.isPickable = false;
+  createMountedFrame("table-edge", {
+    x: 0,
+    y: 0.09,
+    z: 0,
+    width: MATCH_LAYOUT.table.width + 0.32,
+    depth: MATCH_LAYOUT.table.depth + 0.26,
+    material: tableEdgeMaterial,
+    thickness: 0.2,
+    visibility: 1
+  });
+  createMountedFrame("table-edge-bronze", {
+    x: 0,
+    y: 0.155,
+    z: 0,
+    width: MATCH_LAYOUT.table.width + 0.08,
+    depth: MATCH_LAYOUT.table.depth + 0.02,
+    material: bronzeTrimMaterial,
+    thickness: 0.075,
+    visibility: 1
   });
 
-  const laneMaterial = engravedMaterial;
+  [-8.16, 8.16].forEach((z, index) => {
+    createChamferedPlate(babylonScene, `board-transverse-beam-${index}`, {
+      width: 18.8,
+      height: 0.17,
+      depth: 0.48,
+      cornerCut: 0.18,
+      bevel: 0.045,
+      material: nativePalette.steelDark,
+      position: { x: 0, y: 0.02, z }
+    });
+    createChamferedPlate(babylonScene, `board-transverse-beam-${index}-bronze`, {
+      width: 17.65,
+      height: 0.075,
+      depth: 0.08,
+      cornerCut: 0.03,
+      bevel: 0.015,
+      material: nativePalette.bronze,
+      position: { x: 0, y: 0.135, z: z + (index === 0 ? 0.08 : -0.08) }
+    });
+    createSapphireStud(babylonScene, `board-transverse-beam-${index}-stud`, {
+      x: 0,
+      y: 0.205,
+      z,
+      size: 0.25,
+      palette: nativePalette
+    });
+  });
+  [-10.68, 10.68].forEach((x, index) => {
+    createChamferedPlate(babylonScene, `board-lane-buttress-${index}`, {
+      width: 0.34,
+      height: 0.16,
+      depth: 9.15,
+      cornerCut: 0.1,
+      bevel: 0.04,
+      material: nativePalette.steelDark,
+      position: { x, y: 0, z: -0.1 }
+    });
+    createChamferedPlate(babylonScene, `board-lane-buttress-${index}-inlay`, {
+      width: 0.07,
+      height: 0.05,
+      depth: 8.25,
+      cornerCut: 0.02,
+      bevel: 0.008,
+      material: nativePalette.bronzeDark,
+      position: { x, y: 0.12, z: -0.1 }
+    });
+  });
+
+  const laneMaterial = nativePalette.steelDark;
   const laneMaterials = [laneMaterial, laneMaterial, laneMaterial];
   const laneCombatMaterial = dangerMaterial;
   const laneCombatMaterials = [laneCombatMaterial, laneCombatMaterial, laneCombatMaterial];
@@ -635,9 +804,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const anchorMaterial = steelMaterial;
   const combatLocalMaterial = sapphireMaterial;
   const combatOpponentMaterial = dangerMaterial;
-  const localSlotMaterial = sapphireMaterial;
-  const opponentSlotMaterial = dangerMaterial;
-  const resolutionMaterial = surfaceMaterial;
+  const localSlotMaterial = nativePalette.steelDark;
+  const opponentSlotMaterial = nativePalette.steelDark;
   const selectionMaterials = {
     blue: sapphireMaterial,
     bronze: bronzeMaterial,
@@ -677,19 +845,152 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const combatLines = [];
   const combatArrows = [];
   [0, 1, 2].forEach((index) => {
-    const lane = CreateBox(`lane-${index}`, {
+    const laneX = MATCH_LAYOUT.lanes.x[index];
+    createModuleContactShadow(babylonScene, `lane-${index}-contact`, {
+      x: laneX,
+      y: -0.095,
+      z: MATCH_LAYOUT.lanes.z + 0.08,
+      width: MATCH_LAYOUT.lanes.width + 0.28,
+      depth: MATCH_LAYOUT.lanes.depth + 0.34,
+      cornerCut: 0.34,
+      alpha: 0.48
+    });
+    const lane = createChamferedPlate(babylonScene, `lane-${index}`, {
       width: MATCH_LAYOUT.lanes.width,
-      height: 0.1,
-      depth: MATCH_LAYOUT.lanes.depth
-    }, babylonScene);
-    lane.position = new Vector3(MATCH_LAYOUT.lanes.x[index], -0.045, MATCH_LAYOUT.lanes.z);
-    lane.material = laneMaterials[index];
-    lane.visibility = 0.92;
-    lane.isPickable = true;
+      height: 0.34,
+      depth: MATCH_LAYOUT.lanes.depth,
+      cornerCut: 0.34,
+      bevel: 0.09,
+      material: laneMaterials[index],
+      position: { x: laneX, y: 0.025, z: MATCH_LAYOUT.lanes.z },
+      pickable: true,
+      metadata: { gauntlet: { type: "lane", laneIndex: index } }
+    });
+    lane.visibility = 1;
     lane.enablePointerMoveEvents = true;
-    lane.receiveShadows = true;
-    lane.metadata = { gauntlet: { type: "lane", laneIndex: index } };
     laneMeshes.push(lane);
+
+    createChamferedPlate(babylonScene, `lane-${index}-field`, {
+      width: MATCH_LAYOUT.lanes.width - 0.46,
+      height: 0.09,
+      depth: MATCH_LAYOUT.lanes.depth - 0.48,
+      cornerCut: 0.24,
+      bevel: 0.018,
+      material: nativePalette.stone,
+      position: { x: laneX, y: 0.205, z: MATCH_LAYOUT.lanes.z }
+    });
+    createMountedFrame(`lane-frame-${index}`, {
+      x: laneX,
+      y: 0.255,
+      z: MATCH_LAYOUT.lanes.z,
+      width: MATCH_LAYOUT.lanes.width - 0.12,
+      depth: MATCH_LAYOUT.lanes.depth - 0.12,
+      material: nativePalette.bronzeDark,
+      thickness: 0.21,
+      height: 0.17,
+      visibility: 1
+    });
+    createMountedFrame(`lane-frame-${index}-inset`, {
+      x: laneX,
+      y: 0.345,
+      z: MATCH_LAYOUT.lanes.z,
+      width: MATCH_LAYOUT.lanes.width - 0.38,
+      depth: MATCH_LAYOUT.lanes.depth - 0.38,
+      material: index === 1 ? nativePalette.bronzeBright : nativePalette.bronze,
+      thickness: 0.06,
+      height: 0.075,
+      visibility: 1
+    });
+    [-1, 1].forEach((side) => {
+      createChamferedPlate(babylonScene, `lane-${index}-crown-${side}`, {
+        width: 2.25,
+        height: 0.11,
+        depth: 0.32,
+        cornerCut: 0.12,
+        bevel: 0.028,
+        material: nativePalette.bronzeDark,
+        position: {
+          x: laneX,
+          y: 0.405,
+          z: MATCH_LAYOUT.lanes.z + side * (MATCH_LAYOUT.lanes.depth / 2 - 0.27)
+        }
+      });
+      createSapphireStud(babylonScene, `lane-${index}-crown-${side}-stud`, {
+        x: laneX,
+        y: 0.49,
+        z: MATCH_LAYOUT.lanes.z + side * (MATCH_LAYOUT.lanes.depth / 2 - 0.25),
+        size: 0.19,
+        palette: nativePalette
+      });
+    });
+    [-0.72, 0.72].forEach((spineZ, spineIndex) => {
+      createChamferedPlate(babylonScene, `lane-${index}-resolution-spine-${spineIndex}`, {
+        width: 0.07,
+        height: 0.045,
+        depth: 0.62,
+        cornerCut: 0.02,
+        bevel: 0.008,
+        material: nativePalette.bronzeDark,
+        position: { x: laneX, y: 0.415, z: spineZ }
+      });
+    });
+
+    createChamferedPlate(babylonScene, `lane-${index}-resolution-bridge`, {
+      width: 4.72,
+      height: 0.12,
+      depth: 0.82,
+      cornerCut: 0.22,
+      bevel: 0.035,
+      material: nativePalette.graphiteDeep,
+      position: { x: laneX, y: 0.27, z: MATCH_LAYOUT.anchors.resolution }
+    });
+    createMountedFrame(`lane-${index}-resolution-bridge-frame`, {
+      x: laneX,
+      y: 0.37,
+      z: MATCH_LAYOUT.anchors.resolution,
+      width: 4.54,
+      depth: 0.7,
+      material: nativePalette.bronzeDark,
+      thickness: 0.07,
+      height: 0.06,
+      visibility: 1
+    });
+    const resolutionDiamond = CreateCylinder(`lane-${index}-resolution-diamond`, {
+      height: 0.14,
+      diameter: 1.72,
+      tessellation: 4
+    }, babylonScene);
+    resolutionDiamond.rotation.y = 0;
+    resolutionDiamond.position.set(laneX, 0.405, MATCH_LAYOUT.anchors.resolution);
+    resolutionDiamond.material = nativePalette.bronzeDark;
+    resolutionDiamond.isPickable = false;
+    const resolutionDiamondField = CreateCylinder(`lane-${index}-resolution-diamond-field`, {
+      height: 0.1,
+      diameter: 1.25,
+      tessellation: 4
+    }, babylonScene);
+    resolutionDiamondField.rotation.y = 0;
+    resolutionDiamondField.position.set(laneX, 0.48, MATCH_LAYOUT.anchors.resolution);
+    resolutionDiamondField.material = nativePalette.stoneRaised;
+    resolutionDiamondField.isPickable = false;
+    [-1, 1].forEach((sideX) => {
+      [-1, 1].forEach((sideZ) => {
+        const brace = createChamferedPlate(babylonScene, `lane-${index}-brace-${sideX}-${sideZ}`, {
+          width: 1.05,
+          height: 0.085,
+          depth: 0.15,
+          cornerCut: 0.05,
+          bevel: 0.02,
+          material: nativePalette.bronzeDark,
+          position: {
+            x: laneX + sideX * 2.34,
+            y: 0.41,
+            z: MATCH_LAYOUT.lanes.z + sideZ * 2.95
+          }
+        });
+        brace.rotation.y = sideX * sideZ * 0.62;
+      });
+    });
 
     [
       {
@@ -698,49 +999,86 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         material: opponentSlotMaterial
       },
       {
-        name: "resolution",
-        z: MATCH_LAYOUT.anchors.resolution,
-        material: resolutionMaterial
-      },
-      {
         name: "local",
         z: MATCH_LAYOUT.anchors.localFacedown,
         material: localSlotMaterial
       }
     ].forEach((slot) => {
-      const dimensions = {
-        width: slot.name === "resolution" ? MATCH_LAYOUT.lanes.width - 0.62 : 3.25,
-        depth: slot.name === "resolution" ? 2.28 : 2.78
-      };
+      const dimensions = { width: 4.15, depth: 2.5 };
       const well = createInsetWell(`lane-${index}-${slot.name}-slot`, {
-        x: MATCH_LAYOUT.lanes.x[index],
-        y: 0.006,
+        x: laneX,
+        y: 0.205,
         z: slot.z,
         ...dimensions,
         accent: slot.material,
-        floorVisibility: 0.82,
-        railVisibility: slot.name === "resolution" ? 0.58 : 0.72
+        floorVisibility: 1,
+        railVisibility: 1
       });
-      well.rails.forEach((rail) => {
-        rail.visibility = slot.name === "resolution" ? 0.58 : 0.72;
+      well.rails.forEach((rail) => { rail.visibility = 1; });
+      createEngravingDecal(babylonScene, `lane-${index}-${slot.name}-engraving`, {
+        x: laneX,
+        y: 0.235,
+        z: slot.z,
+        width: 2.42,
+        depth: 1.82,
+        tint: slot.name === "local" ? "#6c8fa4" : "#9a7748",
+        alpha: 0.5
+      });
+    });
+
+    [
+      { name: "opponent-combat", z: 1.25, accent: nativePalette.bronzeDark },
+      { name: "local-combat", z: -1.25, accent: nativePalette.steelDark }
+    ].forEach((slot) => {
+      createInsetWell(`lane-${index}-${slot.name}-slot`, {
+        x: laneX,
+        y: 0.205,
+        z: slot.z,
+        width: 3.55,
+        depth: 1.55,
+        accent: slot.accent,
+        rail: 0.065,
+        floorVisibility: 1,
+        railVisibility: 0.92
+      });
+    });
+
+    [-1, 1].forEach((sideX) => {
+      [-1, 1].forEach((sideZ) => {
+        createChamferedPlate(babylonScene, `lane-${index}-corner-${sideX}-${sideZ}`, {
+          width: 0.62,
+          height: 0.13,
+          depth: 0.42,
+          cornerCut: 0.13,
+          bevel: 0.035,
+          material: nativePalette.bronzeDark,
+          position: {
+            x: laneX + sideX * (MATCH_LAYOUT.lanes.width / 2 - 0.37),
+            y: 0.405,
+            z: MATCH_LAYOUT.lanes.z + sideZ * (MATCH_LAYOUT.lanes.depth / 2 - 0.34)
+          }
+        });
       });
     });
 
     [-1, 1].forEach((side) => {
-      const rail = CreateBox(`lane-rail-${index}-${side}`, {
-        width: 0.1,
-        height: 0.1,
-        depth: MATCH_LAYOUT.lanes.depth
-      }, babylonScene);
-      rail.position = new Vector3(
-        MATCH_LAYOUT.lanes.x[index] + side * (MATCH_LAYOUT.lanes.width / 2 - 0.05),
-        0.04,
-        MATCH_LAYOUT.lanes.z
-      );
+      const rail = createChamferedPlate(babylonScene, `lane-rail-${index}-${side}`, {
+        width: 0.075,
+        height: 0.045,
+        depth: MATCH_LAYOUT.lanes.depth - 0.72,
+        cornerCut: 0.02,
+        bevel: 0.008,
+        material: laneRailMaterial,
+        position: {
+          x: laneX + side * (MATCH_LAYOUT.lanes.width / 2 - 0.27),
+          y: 0.405,
+          z: MATCH_LAYOUT.lanes.z
+        }
+      });
       rail.material = laneRailMaterial;
       rail.metadata = { gauntlet: { type: "lane-rail", laneIndex: index } };
       rail.isPickable = false;
-    laneRails.push(rail);
+      laneRails.push(rail);
     });
 
     const stateLightMaterial = new StandardMaterial(`lane-state-light-material-${index}`, babylonScene);
@@ -756,7 +1094,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       tessellation: 36
     }, babylonScene);
     stateLight.rotation.x = Math.PI / 2;
-    stateLight.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.105, MATCH_LAYOUT.lanes.z);
+    stateLight.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.5, MATCH_LAYOUT.anchors.resolution);
     stateLight.material = stateLightMaterial;
     stateLight.visibility = 0;
     stateLight.isPickable = false;
@@ -770,11 +1108,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     stateMaskMaterial.useAlphaFromDiffuseTexture = true;
     stateMaskMaterial.backFaceCulling = false;
     const stateMask = CreatePlane(`lane-state-light-${index}-mask`, {
-      width: MATCH_LAYOUT.lanes.width - 0.28,
-      height: MATCH_LAYOUT.lanes.depth - 0.24
+      width: 1.55,
+      height: 1.55
     }, babylonScene);
     stateMask.rotation.x = Math.PI / 2;
-    stateMask.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.095, MATCH_LAYOUT.lanes.z);
+    stateMask.position = new Vector3(laneX, 0.47, MATCH_LAYOUT.anchors.resolution);
     stateMask.material = stateMaskMaterial;
     stateMask.visibility = 0;
     stateMask.isPickable = false;
@@ -797,7 +1135,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       height: 0.045,
       depth: 1
     }, babylonScene);
-    combatLine.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.18, MATCH_LAYOUT.anchors.resolution);
+    combatLine.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.43, MATCH_LAYOUT.anchors.resolution);
     combatLine.material = combatOpponentMaterial;
     combatLine.visibility = 0;
     combatLine.isPickable = false;
@@ -808,39 +1146,41 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       diameter: 0.56,
       tessellation: 3
     }, babylonScene);
-    arrow.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.2, MATCH_LAYOUT.anchors.localAttack);
+    arrow.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.44, MATCH_LAYOUT.anchors.localAttack);
     arrow.rotation.y = Math.PI;
     arrow.material = combatOpponentMaterial;
     arrow.visibility = 0;
     arrow.isPickable = false;
     combatArrows.push(arrow);
 
-    createMountedFrame(`lane-frame-${index}`, {
-      x: MATCH_LAYOUT.lanes.x[index],
-      y: 0.035,
-      z: MATCH_LAYOUT.lanes.z,
-      width: MATCH_LAYOUT.lanes.width,
-      depth: MATCH_LAYOUT.lanes.depth,
-      material: index === 1 ? bronzeMaterial : steelMaterial,
-      thickness: 0.1
-    }).forEach((mesh) => { mesh.visibility = index === 1 ? 0.78 : 0.66; });
-
-    const sigil = CreateTorus(`lane-sigil-${index}`, {
-      diameter: 1.15,
-      thickness: 0.055,
-      tessellation: 32
-    }, babylonScene);
-    sigil.rotation.x = Math.PI / 2;
-    sigil.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.09, MATCH_LAYOUT.anchors.resolution);
-    sigil.material = bronzeMaterial;
-    sigil.visibility = 0.72;
-    sigil.isPickable = false;
+    createEngravedMedallion(babylonScene, `lane-sigil-${index}`, {
+      x: laneX,
+      y: 0.43,
+      z: MATCH_LAYOUT.anchors.resolution,
+      diameter: 1.28,
+      palette: nativePalette,
+      accentMaterial: nativePalette.bronze
+    });
+    createSapphireStud(babylonScene, `lane-sigil-${index}-north-stud`, {
+      x: laneX,
+      y: 0.49,
+      z: MATCH_LAYOUT.anchors.resolution + 0.82,
+      size: 0.17,
+      palette: nativePalette
+    });
+    createSapphireStud(babylonScene, `lane-sigil-${index}-south-stud`, {
+      x: laneX,
+      y: 0.49,
+      z: MATCH_LAYOUT.anchors.resolution - 0.82,
+      size: 0.17,
+      palette: nativePalette
+    });
 
     const laneLabel = CreatePlane(`lane-label-${index}`, {
       width: 2.8,
       height: 0.55
     }, babylonScene);
-    laneLabel.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.145, 3.75);
+    laneLabel.position = new Vector3(laneX, 0.49, 3.72);
     laneLabel.rotation.x = Math.PI / 2;
     laneLabel.material = materialFromTexture(
       babylonScene,
@@ -852,114 +1192,260 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     laneLabel.isPickable = false;
   });
 
-  const handCombatMaterial = engravedMaterial;
+  const handCombatMaterial = nativePalette.steelDark;
   const handCombatRailMaterial = bronzeMaterial;
-  const handCombatPlate = CreateBox("independent-hand-combat", {
-    width: MATCH_LAYOUT.handCombat.width,
+  createModuleContactShadow(babylonScene, "hand-combat-contact", {
+    x: MATCH_LAYOUT.handCombat.x,
+    y: MATCH_LAYOUT.handCombat.y - 0.19,
+    z: MATCH_LAYOUT.handCombat.z + 0.05,
+    width: MATCH_LAYOUT.handCombat.width + 0.52,
+    depth: MATCH_LAYOUT.handCombat.depth + 0.42,
+    cornerCut: 0.36,
+    alpha: 0.52
+  });
+  const handCombatPlate = createChamferedPlate(babylonScene, "independent-hand-combat", {
+    width: MATCH_LAYOUT.handCombat.width + 1.08,
+    height: 0.38,
+    depth: MATCH_LAYOUT.handCombat.depth + 0.58,
+    cornerCut: 0.5,
+    bevel: 0.1,
+    material: handCombatMaterial,
+    position: {
+      x: MATCH_LAYOUT.handCombat.x,
+      y: MATCH_LAYOUT.handCombat.y,
+      z: MATCH_LAYOUT.handCombat.z
+    }
+  });
+  createChamferedPlate(babylonScene, "hand-combat-mounted-field", {
+    width: MATCH_LAYOUT.handCombat.width - 0.02,
     height: 0.09,
-    depth: MATCH_LAYOUT.handCombat.depth
-  }, babylonScene);
-  handCombatPlate.position = new Vector3(
-    MATCH_LAYOUT.handCombat.x,
-    MATCH_LAYOUT.handCombat.y,
-    MATCH_LAYOUT.handCombat.z
-  );
-  handCombatPlate.material = handCombatMaterial;
-  handCombatPlate.receiveShadows = true;
-  handCombatPlate.isPickable = false;
+    depth: MATCH_LAYOUT.handCombat.depth - 0.1,
+    cornerCut: 0.24,
+    bevel: 0.018,
+    material: nativePalette.stone,
+    position: {
+      x: MATCH_LAYOUT.handCombat.x,
+      y: MATCH_LAYOUT.handCombat.y + 0.235,
+      z: MATCH_LAYOUT.handCombat.z
+    }
+  });
   createMountedFrame("hand-combat-frame", {
     x: MATCH_LAYOUT.handCombat.x,
-    y: MATCH_LAYOUT.handCombat.y + 0.04,
+    y: MATCH_LAYOUT.handCombat.y + 0.31,
     z: MATCH_LAYOUT.handCombat.z,
     width: MATCH_LAYOUT.handCombat.width,
     depth: MATCH_LAYOUT.handCombat.depth,
     material: bronzeMaterial,
-    thickness: 0.11,
-    visibility: 0.74
+    thickness: 0.19,
+    height: 0.15,
+    visibility: 1
   });
   createInsetWell("hand-combat-attacker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
-    y: MATCH_LAYOUT.handCombat.y + 0.055,
+    y: MATCH_LAYOUT.handCombat.y + 0.235,
     z: MATCH_LAYOUT.handCombat.z,
-    width: 4.7,
-    depth: 1.92,
-    accent: sapphireMaterial,
-    floorVisibility: 0.84,
-    railVisibility: 0.72
+    width: 4.6,
+    depth: 1.78,
+    accent: nativePalette.steel,
+    floorVisibility: 1,
+    railVisibility: 1
   });
   createInsetWell("hand-combat-blocker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX,
-    y: MATCH_LAYOUT.handCombat.y + 0.055,
+    y: MATCH_LAYOUT.handCombat.y + 0.235,
     z: MATCH_LAYOUT.handCombat.z,
-    width: 6.4,
-    depth: 1.92,
-    accent: dangerMaterial,
-    floorVisibility: 0.84,
-    railVisibility: 0.72
+    width: 4.65,
+    depth: 1.78,
+    accent: nativePalette.bronzeDark,
+    floorVisibility: 1,
+    railVisibility: 1
   });
-  const versusMedallion = CreateCylinder("hand-combat-versus-medallion", {
-    height: 0.11,
-    diameter: 0.72,
-    tessellation: 32
+  createEngravedMedallion(babylonScene, "hand-combat-versus-medallion", {
+    x: -0.58,
+    y: MATCH_LAYOUT.handCombat.y + 0.34,
+    z: MATCH_LAYOUT.handCombat.z,
+    diameter: 1.04,
+    palette: nativePalette,
+    accentMaterial: nativePalette.bronzeBright
+  });
+  const combatCrest = CreateCylinder("hand-combat-versus-crest", {
+    height: 0.12,
+    diameter: 1.46,
+    tessellation: 4
   }, babylonScene);
-  versusMedallion.position = new Vector3(-0.15, MATCH_LAYOUT.handCombat.y + 0.13, MATCH_LAYOUT.handCombat.z);
-  versusMedallion.material = bronzeMaterial;
-  versusMedallion.visibility = 0.76;
-  versusMedallion.isPickable = false;
+  combatCrest.rotation.y = 0;
+  combatCrest.position.set(-0.58, MATCH_LAYOUT.handCombat.y + 0.37, MATCH_LAYOUT.handCombat.z);
+  combatCrest.material = nativePalette.bronzeDark;
+  combatCrest.isPickable = false;
+  createEngravingDecal(babylonScene, "hand-combat-attacker-engraving", {
+    x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
+    y: MATCH_LAYOUT.handCombat.y + 0.275,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: 3.7,
+    depth: 1.18,
+    tint: "#648ba2",
+    alpha: 0.48,
+    motif: "rail"
+  });
+  createEngravingDecal(babylonScene, "hand-combat-blocker-engraving", {
+    x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX,
+    y: MATCH_LAYOUT.handCombat.y + 0.275,
+    z: MATCH_LAYOUT.handCombat.z,
+    width: 3.72,
+    depth: 1.18,
+    tint: "#976057",
+    alpha: 0.48,
+    motif: "rail"
+  });
+  [-1, 1].forEach((side) => {
+    const wingX = side * (MATCH_LAYOUT.handCombat.width / 2 + 0.24);
+    createChamferedPlate(babylonScene, `hand-combat-wing-${side}`, {
+      width: 1.18,
+      height: 0.26,
+      depth: 2.08,
+      cornerCut: 0.28,
+      bevel: 0.07,
+      material: nativePalette.bronzeDark,
+      position: { x: wingX, y: MATCH_LAYOUT.handCombat.y + 0.19, z: MATCH_LAYOUT.handCombat.z }
+    });
+    createSapphireStud(babylonScene, `hand-combat-wing-${side}-stud`, {
+      x: wingX,
+      y: MATCH_LAYOUT.handCombat.y + 0.38,
+      z: MATCH_LAYOUT.handCombat.z,
+      size: 0.24,
+      palette: nativePalette
+    });
+  });
   const handCombatRails = [];
   [-1, 1].forEach((side) => {
-    const rail = CreateBox(`hand-combat-rail-${side}`, {
-      width: MATCH_LAYOUT.handCombat.width,
-      height: 0.06,
-      depth: 0.06
-    }, babylonScene);
-    rail.position = new Vector3(
-      MATCH_LAYOUT.handCombat.x,
-      MATCH_LAYOUT.handCombat.y + 0.08,
-      MATCH_LAYOUT.handCombat.z + side * (MATCH_LAYOUT.handCombat.depth / 2 - 0.04)
-    );
+    const rail = createChamferedPlate(babylonScene, `hand-combat-rail-${side}`, {
+      width: MATCH_LAYOUT.handCombat.width - 0.48,
+      height: 0.09,
+      depth: 0.09,
+      cornerCut: 0.02,
+      bevel: 0.008,
+      material: handCombatRailMaterial,
+      position: {
+        x: MATCH_LAYOUT.handCombat.x,
+        y: MATCH_LAYOUT.handCombat.y + 0.48,
+        z: MATCH_LAYOUT.handCombat.z + side * (MATCH_LAYOUT.handCombat.depth / 2 - 0.15)
+      }
+    });
     rail.material = handCombatRailMaterial;
     rail.isPickable = false;
     handCombatRails.push(rail);
   });
+  [
+    { x: MATCH_LAYOUT.handCombat.attackX, material: nativePalette.sapphire },
+    { x: MATCH_LAYOUT.handCombat.blockX, material: nativePalette.crimson }
+  ].forEach((channel, index) => {
+    const inlay = createChamferedPlate(babylonScene, `hand-combat-state-inlay-${index}`, {
+      width: 3.55,
+      height: 0.045,
+      depth: 0.075,
+      cornerCut: 0.025,
+      bevel: 0.008,
+      material: channel.material,
+      position: {
+        x: MATCH_LAYOUT.handCombat.x + channel.x,
+        y: MATCH_LAYOUT.handCombat.y + 0.51,
+        z: MATCH_LAYOUT.handCombat.z - MATCH_LAYOUT.handCombat.depth / 2 + 0.28
+      },
+      visibility: 0.42
+    });
+    inlay.isPickable = false;
+  });
 
-  const paymentPlateMaterial = engravedMaterial;
-  const paymentPlate = CreateBox("payment-tray", {
-    width: MATCH_LAYOUT.payment.width,
-    height: 0.08,
-    depth: MATCH_LAYOUT.payment.depth
-  }, babylonScene);
-  paymentPlate.position = new Vector3(
-    MATCH_LAYOUT.payment.x,
-    0.02,
-    MATCH_LAYOUT.payment.z
-  );
-  paymentPlate.material = paymentPlateMaterial;
-  paymentPlate.visibility = 0.94;
-  paymentPlate.receiveShadows = true;
-  paymentPlate.isPickable = false;
+  const paymentPlateMaterial = nativePalette.steelDark;
+  createModuleContactShadow(babylonScene, "payment-tray-contact", {
+    x: MATCH_LAYOUT.payment.x,
+    y: -0.12,
+    z: MATCH_LAYOUT.payment.z + 0.08,
+    width: MATCH_LAYOUT.payment.width + 0.48,
+    depth: MATCH_LAYOUT.payment.depth + 0.42,
+    cornerCut: 0.36,
+    alpha: 0.5
+  });
+  const paymentPlate = createChamferedPlate(babylonScene, "payment-tray", {
+    width: MATCH_LAYOUT.payment.width + 0.28,
+    height: 0.36,
+    depth: MATCH_LAYOUT.payment.depth + 0.24,
+    cornerCut: 0.34,
+    bevel: 0.095,
+    material: paymentPlateMaterial,
+    position: { x: MATCH_LAYOUT.payment.x, y: 0.035, z: MATCH_LAYOUT.payment.z }
+  });
+  paymentPlate.visibility = 1;
+  createChamferedPlate(babylonScene, "payment-tray-field", {
+    width: MATCH_LAYOUT.payment.width - 0.18,
+    height: 0.085,
+    depth: MATCH_LAYOUT.payment.depth - 0.16,
+    cornerCut: 0.24,
+    bevel: 0.016,
+    material: nativePalette.stone,
+    position: { x: MATCH_LAYOUT.payment.x, y: 0.23, z: MATCH_LAYOUT.payment.z }
+  });
   createMountedFrame("payment-tray-frame", {
     x: MATCH_LAYOUT.payment.x,
-    y: 0.07,
+    y: 0.31,
     z: MATCH_LAYOUT.payment.z,
     width: MATCH_LAYOUT.payment.width,
     depth: MATCH_LAYOUT.payment.depth,
     material: bronzeMaterial,
-    thickness: 0.11,
-    visibility: 0.74
+    thickness: 0.18,
+    height: 0.14,
+    visibility: 1
   });
   Array.from({ length: 8 }, (_, slotIndex) => getPaymentPosition(slotIndex, 8, true)).forEach((slot, slotIndex) => {
     createInsetWell(`payment-slot-${slotIndex}`, {
       x: slot.x,
-      y: 0.075,
+      y: 0.225,
       z: slot.z,
       width: MATCH_LAYOUT.card.width * MATCH_LAYOUT.payment.scale + 0.12,
       depth: MATCH_LAYOUT.card.height * MATCH_LAYOUT.payment.scale + 0.12,
-      accent: bronzeMaterial,
+      accent: nativePalette.bronzeDark,
       rail: 0.045,
-      floorVisibility: 0.82,
-      railVisibility: 0.68
-    }).rails.forEach((rail) => { rail.visibility = 0.68; });
+      floorVisibility: 1,
+      railVisibility: 0.92
+    }).rails.forEach((rail) => { rail.visibility = 0.92; });
+  });
+
+  [-1, 1].forEach((sideX) => {
+    [-1, 1].forEach((sideZ) => {
+      createChamferedPlate(babylonScene, `payment-tray-corner-${sideX}-${sideZ}`, {
+        width: 0.68,
+        height: 0.13,
+        depth: 0.5,
+        cornerCut: 0.14,
+        bevel: 0.035,
+        material: nativePalette.bronzeDark,
+        position: {
+          x: MATCH_LAYOUT.payment.x + sideX * (MATCH_LAYOUT.payment.width / 2 - 0.34),
+          y: 0.43,
+          z: MATCH_LAYOUT.payment.z + sideZ * (MATCH_LAYOUT.payment.depth / 2 - 0.3)
+        }
+      });
+      createSapphireStud(babylonScene, `payment-tray-corner-${sideX}-${sideZ}-stud`, {
+        x: MATCH_LAYOUT.payment.x + sideX * (MATCH_LAYOUT.payment.width / 2 - 0.34),
+        y: 0.53,
+        z: MATCH_LAYOUT.payment.z + sideZ * (MATCH_LAYOUT.payment.depth / 2 - 0.3),
+        size: 0.18,
+        palette: nativePalette
+      });
+    });
+  });
+  createChamferedPlate(babylonScene, "payment-tray-title-plinth", {
+    width: 2.35,
+    height: 0.1,
+    depth: 0.42,
+    cornerCut: 0.18,
+    bevel: 0.025,
+    material: nativePalette.bronzeDark,
+    position: {
+      x: MATCH_LAYOUT.payment.x,
+      y: 0.43,
+      z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.25
+    }
   });
 
   const paymentLabel = CreatePlane("payment-tray-label", {
@@ -968,7 +1454,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }, babylonScene);
   paymentLabel.position = new Vector3(
     MATCH_LAYOUT.payment.x,
-    0.145,
+    0.5,
     MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.3
   );
   paymentLabel.rotation.x = Math.PI / 2;
@@ -985,14 +1471,45 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   Object.entries(MATCH_LAYOUT.piles).forEach(([name, position]) => {
     const isDiscard = name.toLowerCase().includes("discard");
     const dimensions = isDiscard ? MATCH_LAYOUT.pilePads.discard : MATCH_LAYOUT.pilePads.deck;
-    const pad = CreateBox(`pile-pad-${name}`, {
+    createModuleContactShadow(babylonScene, `pile-pad-${name}-contact`, {
+      x: position.x,
+      y: -0.11,
+      z: position.z + 0.05,
+      width: dimensions.width + 0.5,
+      depth: dimensions.depth + 0.5,
+      cornerCut: 0.24,
+      alpha: 0.48
+    });
+    const dock = createChamferedPlate(babylonScene, `pile-pad-${name}-plinth`, {
+      width: dimensions.width + 0.42,
+      height: 0.32,
+      depth: dimensions.depth + 0.42,
+      cornerCut: 0.24,
+      bevel: 0.085,
+      material: isDiscard ? nativePalette.bronzeDark : nativePalette.steelDark,
+      position: { x: position.x, y: 0.035, z: position.z },
+      pickable: isDiscard,
+      metadata: isDiscard
+        ? { gauntlet: { type: "pile", pile: name.toLowerCase() } }
+        : null
+    });
+    const well = createRecessedCardWell(babylonScene, `pile-pad-${name}`, {
+      x: position.x,
+      y: 0.19,
+      z: position.z,
       width: dimensions.width,
-      height: 0.055,
-      depth: dimensions.depth
-    }, babylonScene);
-    pad.position = new Vector3(position.x, 0.01, position.z);
-    pad.material = wellMaterial;
-    pad.visibility = 0.88;
+      depth: dimensions.depth,
+      palette: nativePalette,
+      accentMaterial: isDiscard ? nativePalette.bronze : nativePalette.steel,
+      railThickness: 0.075,
+      rivets: false,
+      pickable: isDiscard,
+      metadata: isDiscard
+        ? { gauntlet: { type: "pile", pile: name.toLowerCase() } }
+        : null
+    });
+    const pad = well.bed;
+    pad.visibility = 1;
     pad.isPickable = isDiscard;
     if (isDiscard) {
       pad.metadata = {
@@ -1004,24 +1521,80 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
     createMountedFrame(`pile-frame-${name}`, {
       x: position.x,
-      y: 0.055,
+      y: 0.36,
       z: position.z,
       width: dimensions.width + 0.28,
       depth: dimensions.depth + 0.28,
       material: isDiscard ? bronzeMaterial : steelMaterial,
-      thickness: 0.1,
-      visibility: 0.68
+      thickness: 0.11,
+      height: 0.13,
+      visibility: 1
     });
-    const medallion = CreateCylinder(`pile-medallion-${name}`, {
-      height: 0.09,
-      diameter: 0.62,
-      tessellation: 28
-    }, babylonScene);
-    medallion.position = new Vector3(position.x, 0.13, position.z - dimensions.depth / 2 - 0.34);
-    medallion.material = isDiscard ? bronzeMaterial : steelMaterial;
-    medallion.visibility = 0.74;
-    medallion.isPickable = false;
-    pileDockMeshes.set(name, medallion);
+    createSapphireStud(babylonScene, `pile-frame-${name}-stud`, {
+      x: position.x,
+      y: 0.49,
+      z: position.z + dimensions.depth / 2 + 0.12,
+      size: 0.17,
+      palette: nativePalette
+    });
+    const medallionZ = position.z - dimensions.depth / 2 - 0.46;
+    createChamferedPlate(babylonScene, `pile-medallion-${name}-bridge`, {
+      width: 0.86,
+      height: 0.13,
+      depth: 0.92,
+      cornerCut: 0.2,
+      bevel: 0.035,
+      material: nativePalette.bronzeDark,
+      position: { x: position.x, y: 0.27, z: medallionZ + 0.22 }
+    });
+    const dial = createBoardDial(babylonScene, `pile-medallion-${name}`, {
+      x: position.x,
+      y: 0.3,
+      z: medallionZ,
+      diameter: 0.98,
+      label: isDiscard ? "Discard" : "Deck",
+      value: "0",
+      accent: isDiscard ? MATCH_COLORS.bronze : MATCH_COLORS.blue,
+      palette: nativePalette,
+      active: false
+    });
+    pileDockMeshes.set(name, { dock, dial });
+  });
+
+  const combatDials = {
+    attack: createBoardDial(babylonScene, "hand-combat-attack-dial", {
+      x: -6.28,
+      y: MATCH_LAYOUT.handCombat.y + 0.36,
+      z: MATCH_LAYOUT.handCombat.z,
+      diameter: 0.94,
+      label: "Attack",
+      value: "—",
+      accent: MATCH_COLORS.blue,
+      palette: nativePalette,
+      active: false
+    }),
+    block: createBoardDial(babylonScene, "hand-combat-block-dial", {
+      x: 6.28,
+      y: MATCH_LAYOUT.handCombat.y + 0.36,
+      z: MATCH_LAYOUT.handCombat.z,
+      diameter: 0.94,
+      label: "Block",
+      value: "—",
+      accent: MATCH_COLORS.danger,
+      palette: nativePalette,
+      active: false
+    })
+  };
+  const paymentDial = createBoardDial(babylonScene, "payment-tray-dial", {
+    x: MATCH_LAYOUT.payment.x,
+    y: 0.42,
+    z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.38,
+    diameter: 0.82,
+    label: "Paid",
+    value: "—",
+    accent: MATCH_COLORS.bronze,
+    palette: nativePalette,
+    active: false
   });
 
   function createPresentationLight(name, { x, y, z, width, height, tint, fallbackMaterial }) {
@@ -1059,7 +1632,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }, babylonScene);
   paymentStateLight.position = new Vector3(
     MATCH_LAYOUT.payment.x,
-    0.15,
+    0.39,
     MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.22
   );
   paymentStateLight.material = bronzeMaterial;
@@ -1073,17 +1646,21 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   paymentStateMaskMaterial.useAlphaFromDiffuseTexture = true;
   paymentStateMaskMaterial.backFaceCulling = false;
   const paymentStateMask = CreatePlane("payment-state-light-mask", {
-    width: MATCH_LAYOUT.payment.width - 0.5,
-    height: (MATCH_LAYOUT.payment.width - 0.5) / 2
+    width: 1.1,
+    height: 1.1
   }, babylonScene);
   paymentStateMask.rotation.x = Math.PI / 2;
-  paymentStateMask.position = new Vector3(MATCH_LAYOUT.payment.x, 0.105, MATCH_LAYOUT.payment.z);
+  paymentStateMask.position = new Vector3(
+    MATCH_LAYOUT.payment.x,
+    0.42,
+    MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.38
+  );
   paymentStateMask.material = paymentStateMaskMaterial;
   paymentStateMask.visibility = 0;
   paymentStateMask.isPickable = false;
   const combatStateLight = createPresentationLight("combat-state-light", {
-    x: -0.15,
-    y: MATCH_LAYOUT.handCombat.y + 0.17,
+    x: -0.58,
+    y: MATCH_LAYOUT.handCombat.y + 0.4,
     z: MATCH_LAYOUT.handCombat.z,
     width: 1.25,
     height: 1.25,
@@ -1159,6 +1736,23 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return [type, texture];
   }));
   const eventSpritePaths = new Map(Object.entries(EVENT_EFFECT_ASSETS));
+  const manufacturedPrefixes = [
+    "lane-",
+    "hand-combat-",
+    "independent-hand-combat",
+    "payment-tray",
+    "pile-pad-",
+    "pile-frame-",
+    "pile-medallion-",
+    "board-side-console-",
+    "board-transverse-beam-",
+    "board-lane-buttress-"
+  ];
+  babylonScene.meshes.forEach((mesh) => {
+    if (!manufacturedPrefixes.some((prefix) => mesh.name.startsWith(prefix))) return;
+    if (mesh.name.includes("engraving") || mesh.name.includes("label") || mesh.name.includes("state-light")) return;
+    shadowGenerator.addShadowCaster(mesh);
+  });
   nativeBoardStage = createBabylonBoardStage(babylonScene, activeLayoutProfile);
   const presentationAssetCache = new PresentationAssetCache();
   const presentationMaskTextures = new Map();
@@ -1326,88 +1920,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   fullscreenUi.addControl(ui.handCombatLabel);
   ui.handCombatLabel.linkWithMesh(handCombatPlate);
 
-  function createBoardReadout(name, mesh, { offsetX = 0, offsetY = 0, accent = MATCH_COLORS.bronze } = {}) {
-    const frame = new Rectangle(`${name}-frame`);
-    frame.width = "52px";
-    frame.height = "30px";
-    frame.cornerRadius = 7;
-    frame.thickness = 1;
-    frame.color = accent;
-    frame.background = "#050b10ee";
-    frame.linkOffsetX = offsetX;
-    frame.linkOffsetY = offsetY;
-    const value = textBlock("0", {
-      name: `${name}-value`,
-      width: "100%",
-      height: "100%",
-      color: MATCH_COLORS.text,
-      fontFamily: "Georgia",
-      fontSize: 19,
-      fontWeight: "bold",
-      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-    });
-    frame.addControl(value);
-    fullscreenUi.addControl(frame);
-    frame.linkWithMesh(mesh);
-    return { frame, value };
-  }
-
-  function createPileReadout(name, mesh, label, accent) {
-    const frame = new Rectangle(`${name}-frame`);
-    frame.width = "64px";
-    frame.height = "42px";
-    frame.cornerRadius = 9;
-    frame.thickness = 1;
-    frame.color = accent;
-    frame.background = "#050b10ee";
-    frame.linkOffsetY = -5;
-    const title = textBlock(label, {
-      name: `${name}-label`,
-      width: "100%",
-      height: "16px",
-      top: "-10px",
-      color: MATCH_COLORS.muted,
-      fontSize: 8,
-      fontWeight: "bold",
-      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-    });
-    const value = textBlock("0", {
-      name: `${name}-value`,
-      width: "100%",
-      height: "24px",
-      top: "7px",
-      color: MATCH_COLORS.text,
-      fontFamily: "Georgia",
-      fontSize: 17,
-      fontWeight: "bold",
-      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_CENTER
-    });
-    frame.addControl(title);
-    frame.addControl(value);
-    fullscreenUi.addControl(frame);
-    frame.linkWithMesh(mesh);
-    return { frame, value, title };
-  }
-
-  ui.combatAttackValue = createBoardReadout("combat-attack-readout", handCombatPlate, {
-    offsetX: -54,
-    offsetY: -72,
-    accent: MATCH_COLORS.blue
-  });
-  ui.combatBlockValue = createBoardReadout("combat-block-readout", handCombatPlate, {
-    offsetX: 54,
-    offsetY: -72,
-    accent: MATCH_COLORS.danger
-  });
-  ui.paymentReadout = createBoardReadout("payment-readout", paymentPlate, {
-    offsetY: -66,
-    accent: MATCH_COLORS.bronze
-  });
+  ui.combatAttackValue = combatDials.attack;
+  ui.combatBlockValue = combatDials.block;
+  ui.paymentReadout = paymentDial;
   ui.pileCounts = {
-    localDeck: createPileReadout("local-deck-readout", pileDockMeshes.get("localDeck"), "DECK", MATCH_COLORS.blue),
-    localDiscard: createPileReadout("local-discard-readout", pileDockMeshes.get("localDiscard"), "DISCARD", MATCH_COLORS.bronze),
-    opponentDeck: createPileReadout("opponent-deck-readout", pileDockMeshes.get("opponentDeck"), "DECK", MATCH_COLORS.danger),
-    opponentDiscard: createPileReadout("opponent-discard-readout", pileDockMeshes.get("opponentDiscard"), "DISCARD", MATCH_COLORS.bronze)
+    localDeck: pileDockMeshes.get("localDeck").dial,
+    localDiscard: pileDockMeshes.get("localDiscard").dial,
+    opponentDeck: pileDockMeshes.get("opponentDeck").dial,
+    opponentDiscard: pileDockMeshes.get("opponentDiscard").dial
   };
 
   ui.loading = textBlock("", {
@@ -1944,8 +2464,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   function eventEffectPosition(entry) {
-    const laneIndex = Number(entry?.laneIndex);
-    if (Number.isInteger(laneIndex) && laneIndex >= 0 && laneIndex < 3) {
+    const laneIndex = normalizePresentationLaneIndex(entry?.laneIndex);
+    if (laneIndex !== null) {
       const anchor = resolveBoardAnchor(`lane-${laneIndex}`, "fxCenter", activeLayoutProfile);
       return new Vector3(anchor.x, anchor.y, anchor.z);
     }
@@ -2030,24 +2550,24 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const handCombatActive = viewModel.handAttacks.length > 0
       || viewModel.selection.attackMode?.from === "hand"
       || viewModel.selection.blockMode?.type === "handAttack";
-    handCombatPlate.visibility = handCombatActive ? 1 : 0.9;
+    handCombatPlate.visibility = 1;
     handCombatRails.forEach((rail) => {
-      rail.visibility = handCombatActive ? 1 : 0.72;
+      rail.visibility = 1;
     });
     ui.handCombatLabel.alpha = handCombatActive ? 1 : 0.82;
-    ui.combatAttackValue.value.text = String(currentBoardPresentation.combat.attackValue || "—");
-    ui.combatBlockValue.value.text = String(currentBoardPresentation.combat.blockValue || "—");
-    ui.combatAttackValue.frame.alpha = handCombatActive ? 1 : 0.38;
-    ui.combatBlockValue.frame.alpha = currentBoardPresentation.combat.blockValue ? 1 : 0.38;
-    ui.paymentReadout.value.text = currentBoardPresentation.payment.occupiedSlots
+    ui.combatAttackValue.setValue(String(currentBoardPresentation.combat.attackValue || "—"));
+    ui.combatBlockValue.setValue(String(currentBoardPresentation.combat.blockValue || "—"));
+    ui.combatAttackValue.setActive(handCombatActive);
+    ui.combatBlockValue.setActive(Boolean(currentBoardPresentation.combat.blockValue));
+    ui.paymentReadout.setValue(currentBoardPresentation.payment.occupiedSlots
       ? String(currentBoardPresentation.payment.occupiedSlots)
-      : "—";
-    ui.paymentReadout.frame.alpha = currentBoardPresentation.payment.state === "idle" ? 0.38 : 1;
+      : "—");
+    ui.paymentReadout.setActive(currentBoardPresentation.payment.state !== "idle");
     Object.entries(currentBoardPresentation.piles).forEach(([pile, count]) => {
-      if (ui.pileCounts[pile]) ui.pileCounts[pile].value.text = String(count);
+      if (ui.pileCounts[pile]) ui.pileCounts[pile].setValue(String(count));
     });
-    paymentPlate.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 1 : 0.9;
-    paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.82 : 0;
+    paymentPlate.visibility = 1;
+    paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.78 : 0;
     const paymentTexture = presentationMaskTextures.get("payment.active") || null;
     paymentStateMask.material.diffuseTexture = paymentTexture;
     paymentStateMask.material.opacityTexture = paymentTexture;
@@ -2099,7 +2619,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                 : ["legal", "active"].includes(state)
                   ? laneLegalRailMaterial
                   : laneRailMaterial;
-          rail.visibility = state === "idle" ? 0.68 : state === "legal" ? 0.9 : 1;
+          rail.visibility = 1;
         });
       const state = currentBoardPresentation.lanes[index].state;
       const lightConfig = LANE_STATE_LIGHTS[state] || LANE_STATE_LIGHTS.idle;
@@ -2108,10 +2628,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       laneStateMasks[index].material.opacityTexture = stateTexture;
       laneStateMasks[index].material.emissiveColor = color(lightConfig.tint);
       laneStateMasks[index].visibility = stateTexture
-        ? (state === "idle" ? 0.035 : lightConfig.alpha * 0.42)
+        ? (state === "idle" ? 0 : lightConfig.alpha * 0.3)
         : 0;
       laneStateLights[index].material.emissiveColor = color(lightConfig.tint);
-      laneStateLights[index].visibility = state === "idle" ? 0.08 : lightConfig.alpha * 0.72;
+      laneStateLights[index].visibility = state === "idle" ? 0 : lightConfig.alpha * 0.62;
 
       const ownerIsLocal = laneAttack?.owner === bottomPlayer;
       setCombatDirection(index, ownerIsLocal, !!laneAttack);

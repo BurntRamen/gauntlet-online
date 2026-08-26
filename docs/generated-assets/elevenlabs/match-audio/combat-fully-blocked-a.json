@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "combat-fully-blocked-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A short premium tabletop card-game defense resolution: one firm laminated card and leather shield contact, a compact low wooden thud, then a restrained pale-steel resonance that dies immediately. The attack is completely stopped. Physical, deliberate, tense, dry close-mic sound. No explosion, no sword clash, no crowd, no voice, no music, no casino or arcade tones, no long reverb.",
+  "parameters": {
+    "duration_seconds": 0.65,
+    "prompt_influence": 0.72,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:246aa183fa3e6e0f",
+  "generatedAt": "2026-08-26T04:50:12.644Z",
+  "publishedAt": "2026-08-26T04:54:15.411Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/combat_fully_blocked.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 61484,
+  "sha256": "de629ea3f0636137f1011f710d3c67b0bbafb0dbdfa31798b71a7b761608b09d"
+}

@@ -317,6 +317,12 @@ test("capture real live and replay match presentation states", async ({ browser,
   const defender = opened[defenderNumber].page;
 
   await captureState(attacker, manifest, "live-priority");
+  if (process.env.BABYLON_IDLE_ONLY === "true") {
+    fs.writeFileSync(path.join(OUTPUT_DIRECTORY, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+    fs.writeFileSync(path.join(OUTPUT_DIRECTORY, "index.html"), buildIndex(manifest));
+    await Promise.all(Object.values(opened).map(({ context }) => context.close()));
+    return;
+  }
   await attacker.setViewportSize(VIEWPORTS[0]);
   await openHandControls(attacker);
   await clickHandCardByValue(attacker, "lowest");

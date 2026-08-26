@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "ability-activate-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A brief premium tabletop strategy-game ability commitment: a small physical token locks into an engraved card-table socket, followed by a restrained sapphire electrical resonance and a soft bronze mechanical click. Deliberate and readable, less forceful than attack or damage. No voice, no melody, no reward chime, no fantasy explosion, no arcade sound, no long reverb.",
+  "parameters": {
+    "duration_seconds": 0.55,
+    "prompt_influence": 0.74,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:6b0559d749c54590",
+  "generatedAt": "2026-08-26T04:50:19.686Z",
+  "publishedAt": "2026-08-26T04:54:15.429Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 49964,
+  "sha256": "716748f9b07adda52157509835dd511f9695995af670abb2b73e444fff72ac68"
+}

@@ -19,39 +19,16 @@ export const CARD_MOTION_CONTRACT_VERSION = "gauntlet.card-motion.collision-safe
 export const CARD_MOTION_CUE_HOOKS = Object.freeze({
   "payment-enter": Object.freeze([
     { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.12 },
-    { cueId: "payment.commit", phase: "settle", at: 0.78 },
-    { cueId: "card.settle", phase: "settle", at: 0.9 }
-  ]),
-  "draw-enter": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.12 },
-    { cueId: "card.settle", phase: "settle", at: 0.9 }
+    { cueId: "payment.commit", phase: "settle", at: 0.78 }
   ]),
   "placement-enter": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.12 },
-    { cueId: "card.settle", phase: "settle", at: 0.92 }
+    { cueId: "card.lift", phase: "anticipate", at: 0 }
   ]),
   "attack-enter": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.1 },
-    { cueId: "card.settle", phase: "settle", at: 0.92 }
+    { cueId: "card.lift", phase: "anticipate", at: 0 }
   ]),
   "block-enter": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.1 },
-    { cueId: "card.settle", phase: "settle", at: 0.92 }
-  ]),
-  "replay-stage": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.1 },
-    { cueId: "card.settle", phase: "settle", at: 0.92 }
-  ]),
-  "discard-exit": Object.freeze([
-    { cueId: "card.lift", phase: "anticipate", at: 0 },
-    { cueId: "card.travel", phase: "travel", at: 0.12 },
-    { cueId: "card.discard", phase: "release", at: 0.82 }
+    { cueId: "card.lift", phase: "anticipate", at: 0 }
   ])
 });
 

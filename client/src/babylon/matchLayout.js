@@ -9,7 +9,7 @@ export const MATCH_LAYOUT = {
     width: 6.35,
     depth: 7.95
   },
-  opponentHand: { x: 0, z: 7.95, y: 0.88, scale: 0.54, spread: 1.22 },
+  opponentHand: { x: 0, z: 8.15, y: 0.88, scale: 0.46, spread: 1.08 },
   playerHand: { x: -0.6, z: -7.05, y: 0.62, scale: 0.9, spread: 1.9 },
   handCombat: {
     x: 0,
@@ -28,7 +28,7 @@ export const MATCH_LAYOUT = {
   payment: {
     x: 10.75,
     z: -6.35,
-    y: 0.3,
+    y: 0.55,
     width: 6.05,
     depth: 4.25,
     spread: 1.5,
@@ -64,7 +64,7 @@ export function getHandCombatPosition(role, index = 0, count = 1, ownerIsLocal =
     x: MATCH_LAYOUT.handCombat.x
       + (isBlocker ? MATCH_LAYOUT.handCombat.blockX : MATCH_LAYOUT.handCombat.attackX)
       + centered * (isBlocker ? 1.56 : MATCH_LAYOUT.handCombat.spread),
-    y: MATCH_LAYOUT.handCombat.y + (isBlocker ? 0.24 : 0.3) + index * 0.012,
+    y: MATCH_LAYOUT.handCombat.y + 0.4 + index * 0.012,
     z: MATCH_LAYOUT.handCombat.z,
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
@@ -86,7 +86,7 @@ export function getHandCombatTickerPosition(index = 0, count = 1, role = "attack
   const spread = safeCount <= 1 ? 0 : visibleCardWidth + gap;
   return {
     x: MATCH_LAYOUT.handCombat.x + centered * spread,
-    y: MATCH_LAYOUT.handCombat.y + (role === "blocker" ? 0.22 : 0.3) + index * 0.012,
+    y: MATCH_LAYOUT.handCombat.y + 0.4 + index * 0.012,
     z: MATCH_LAYOUT.handCombat.z + (role === "blocker" ? -0.16 : 0.16),
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
@@ -99,7 +99,7 @@ export function getHandCombatAttachmentPosition(index = 0, count = 1, ownerIsLoc
   const centered = index - (safeCount - 1) / 2;
   return {
     x: -6.3 + centered * 1.22,
-    y: MATCH_LAYOUT.handCombat.y + 0.18 + index * 0.012,
+    y: MATCH_LAYOUT.handCombat.y + 0.34 + index * 0.012,
     z: MATCH_LAYOUT.handCombat.z + (ownerIsLocal ? -0.08 : 0.08),
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
@@ -143,7 +143,7 @@ export function getLaneCombatPosition(laneIndex, role, index = 0, count = 1, own
   );
   return {
     x: (MATCH_LAYOUT.lanes.x[laneIndex] || 0) + centered * (MATCH_LAYOUT.card.width * scale + gap),
-    y: 0.42 + index * 0.012,
+    y: 0.53 + index * 0.012,
     z: MATCH_LAYOUT.anchors.resolution + (isBlocker ? -1.25 : 1.25),
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
@@ -188,18 +188,52 @@ export function getTableCameraProjection(width, height) {
   // combat zones) rather than shrinking it to preserve decorative table ends.
   const requiredWidthHalf = profile.cameraWidth / 2;
   const boardTransform = profile.modules?.["board-base"] || { z: 0, scaleZ: 1 };
+  // The production camera is deliberately pitched to expose the board's
+  // fabrication depth. Only the camera-up projection of the physical table
+  // consumes vertical frame space; using the full top-down depth left large,
+  // accidental gutters around the native assembly.
+  const projectedDepthFactor = 0.84;
+  const projectedElevationFactor = 0.576;
+  const cameraTargetZ = 0.35;
+  const maxSettledElevation = 1.2;
   const boardHalfHeight = Math.abs(Number(boardTransform.z || 0))
-    + MATCH_LAYOUT.table.depth * Number(boardTransform.scaleZ || 1) / 2
-    + 0.4;
+    + MATCH_LAYOUT.table.depth * Number(boardTransform.scaleZ || 1) * projectedDepthFactor / 2
+    + 0.62;
   const halfHeight = Math.max(boardHalfHeight, requiredWidthHalf / Math.max(0.1, aspect));
+  const left = -halfHeight * aspect;
+  const right = halfHeight * aspect;
   return {
     aspect,
     profile: profile.id,
     top: halfHeight,
     bottom: -halfHeight,
-    left: -halfHeight * aspect,
-    right: halfHeight * aspect
+    left,
+    right,
+    // `top` and `bottom` are camera-space orthographic limits. Consumers
+    // validating table-space geometry must use these bounds because the
+    // pitched camera foreshortens world Z and projects raised cards upward.
+    tableBounds: {
+      left,
+      right,
+      bottom: cameraTargetZ - halfHeight / projectedDepthFactor,
+      top: cameraTargetZ
+        + (halfHeight - maxSettledElevation * projectedElevationFactor) / projectedDepthFactor
+    },
+    tableProjection: {
+      cameraTargetZ,
+      projectedDepthFactor,
+      projectedElevationFactor,
+      maxSettledElevation
+    }
   };
+}
+
+export function normalizePresentationLaneIndex(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const laneIndex = Number(value);
+  return Number.isInteger(laneIndex) && laneIndex >= 0 && laneIndex < 3
+    ? laneIndex
+    : null;
 }
 
 export function getHandHoverPosition(position, reducedMotion = false) {
@@ -223,7 +257,7 @@ export function getLanePosition(index, side = "center") {
       : MATCH_LAYOUT.anchors.resolution;
   return {
     x,
-    y: 0.16,
+    y: 0.43,
     z,
     rotationX: Math.PI / 2,
     rotationZ: side === "opponent" ? Math.PI : 0

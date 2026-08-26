@@ -10,6 +10,7 @@ import {
   getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
+  normalizePresentationLaneIndex,
   normalizeVisibleCardRotation
 } from "./matchLayout";
 import { createBoardStageDescriptor, getBoardLayoutProfile } from "./boardStage";
@@ -186,10 +187,19 @@ describe("battlefield safe frame", () => {
     expect(frame.battlefield.y + frame.battlefield.height).toBeLessThanOrEqual(frame.bottomHud.y);
     const profile = getBoardLayoutProfile(frame.battlefield.width, frame.battlefield.height);
     const stage = createBoardStageDescriptor(profile);
-    expect(Math.max(...stage.boardModules.map((module) => module.bounds.right))).toBeLessThanOrEqual(camera.right);
-    expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.left);
-    expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.top);
-    expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.bottom);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.right))).toBeLessThanOrEqual(camera.tableBounds.right);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.tableBounds.left);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.tableBounds.top);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.tableBounds.bottom);
     expect(["desktop", "portrait", "short-landscape"]).toContain(camera.profile);
   });
+});
+
+test("presentation lane targeting never coerces an absent hand-combat lane to lane zero", () => {
+  expect(normalizePresentationLaneIndex(null)).toBeNull();
+  expect(normalizePresentationLaneIndex(undefined)).toBeNull();
+  expect(normalizePresentationLaneIndex("")).toBeNull();
+  expect(normalizePresentationLaneIndex("0")).toBe(0);
+  expect(normalizePresentationLaneIndex(2)).toBe(2);
+  expect(normalizePresentationLaneIndex(3)).toBeNull();
 });

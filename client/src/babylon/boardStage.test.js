@@ -153,19 +153,19 @@ test.each([
   const projection = getTableCameraProjection(safe.width, safe.height);
   const profile = getBoardLayoutProfile(safe.width, safe.height);
   boardModuleDescriptors(profile).forEach((module) => {
-    expect(module.bounds.left).toBeGreaterThanOrEqual(projection.left - 0.01);
-    expect(module.bounds.right).toBeLessThanOrEqual(projection.right + 0.01);
-    expect(module.bounds.bottom).toBeGreaterThanOrEqual(projection.bottom - 0.01);
-    expect(module.bounds.top).toBeLessThanOrEqual(projection.top + 0.01);
+    expect(module.bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left - 0.01);
+    expect(module.bounds.right).toBeLessThanOrEqual(projection.tableBounds.right + 0.01);
+    expect(module.bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom - 0.01);
+    expect(module.bounds.top).toBeLessThanOrEqual(projection.tableBounds.top + 0.01);
   });
   ["local", "opponent"].forEach((side) => {
     Array.from({ length: 8 }, (_, slotIndex) => actorBoundsAt(resolveActorPosition({
       zone: { kind: "hand", side, role: "hand", slotIndex, count: 8 }
     }, profile))).forEach((bounds) => {
-      expect(bounds.left).toBeGreaterThanOrEqual(projection.left - 0.01);
-      expect(bounds.right).toBeLessThanOrEqual(projection.right + 0.01);
-      expect(bounds.bottom).toBeGreaterThanOrEqual(projection.bottom - 0.01);
-      expect(bounds.top).toBeLessThanOrEqual(projection.top + 0.01);
+      expect(bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left - 0.01);
+      expect(bounds.right).toBeLessThanOrEqual(projection.tableBounds.right + 0.01);
+      expect(bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom - 0.01);
+      expect(bounds.top).toBeLessThanOrEqual(projection.tableBounds.top + 0.01);
     });
   });
 });

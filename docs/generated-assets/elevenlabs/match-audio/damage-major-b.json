@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "damage-major-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A concise severe damage cue for a competitive physical card table: one broad muted impact, layered with a tight leather-and-wood slam and restrained sub-bass weight, followed by a very short dry debris texture. Serious pressure and consequence without spectacle. No explosion, no magic spell, no weapon, no voice, no music, no arcade hit, no long reverb.",
+  "parameters": {
+    "duration_seconds": 0.8,
+    "prompt_influence": 0.76,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:f45b81e96a1b8d57",
+  "generatedAt": "2026-08-26T04:50:18.028Z",
+  "publishedAt": "2026-08-26T04:54:15.426Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/candidates/damage_impact_major_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 76844,
+  "sha256": "70017e16a5d48845ae86f66136b1545974b6bf7be6622155f4bff9719378dcb8"
+}

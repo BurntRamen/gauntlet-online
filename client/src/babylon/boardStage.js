@@ -67,11 +67,11 @@ function moduleAnchors(profile, moduleId, bounds) {
     const laneIndex = Number(moduleId.slice(-1));
     const x = profile.anchors.laneX[laneIndex];
     return {
-      opponentFacedown: { x, y: 0.16, z: profile.anchors.lane.opponent },
-      opponentCombat: { x, y: 0.46, z: profile.anchors.lane.attacker },
-      resolution: { x, y: 0.42, z: profile.anchors.lane.center },
-      localCombat: { x, y: 0.46, z: profile.anchors.lane.blocker },
-      localFacedown: { x, y: 0.16, z: profile.anchors.lane.local },
+      opponentFacedown: { x, y: 0.43, z: profile.anchors.lane.opponent },
+      opponentCombat: { x, y: 0.53, z: profile.anchors.lane.attacker },
+      resolution: { x, y: 0.5, z: profile.anchors.lane.center },
+      localCombat: { x, y: 0.53, z: profile.anchors.lane.blocker },
+      localFacedown: { x, y: 0.43, z: profile.anchors.lane.local },
       fxCenter: { x, y: 0.84, z: profile.anchors.lane.center },
       readout: { x, y: 0.28, z: profile.anchors.lane.center },
       interactionBounds: { ...bounds }
@@ -79,9 +79,9 @@ function moduleAnchors(profile, moduleId, bounds) {
   }
   if (moduleId === "hand-combat-dais") {
     return {
-      attackerGroup: { x: profile.anchors.combat.attackerX, y: 0.5, z: profile.anchors.combat.z },
-      blockerGroup: { x: profile.anchors.combat.blockerX, y: 0.5, z: profile.anchors.combat.z },
-      attachmentGroup: { x: profile.anchors.combat.attachmentX, y: 0.4, z: profile.anchors.combat.z },
+      attackerGroup: { x: profile.anchors.combat.attackerX, y: 0.62, z: profile.anchors.combat.z },
+      blockerGroup: { x: profile.anchors.combat.blockerX, y: 0.62, z: profile.anchors.combat.z },
+      attachmentGroup: { x: profile.anchors.combat.attachmentX, y: 0.56, z: profile.anchors.combat.z },
       attackValue: { x: profile.anchors.combat.attackerX, y: 0.78, z: profile.anchors.combat.z },
       blockValue: { x: profile.anchors.combat.blockerX, y: 0.78, z: profile.anchors.combat.z },
       fxImpact: { x: profile.anchors.combat.x, y: 0.84, z: profile.anchors.combat.z },
@@ -90,7 +90,7 @@ function moduleAnchors(profile, moduleId, bounds) {
   }
   if (moduleId === "payment-tray") {
     return {
-      center: { x: profile.anchors.payment.x, y: 0.34, z: profile.anchors.payment.z },
+      center: { x: profile.anchors.payment.x, y: 0.55, z: profile.anchors.payment.z },
       readout: { x: profile.anchors.payment.x, y: 0.5, z: profile.anchors.payment.z },
       fxDischarge: { x: profile.anchors.payment.x, y: 0.84, z: profile.anchors.payment.z },
       interactionBounds: { ...bounds }
@@ -105,7 +105,7 @@ function moduleAnchors(profile, moduleId, bounds) {
     }[moduleId];
     const position = profile.anchors.piles[pileKey];
     return {
-      cardAnchor: { x: position.x, y: 0.44, z: position.z },
+      cardAnchor: { x: position.x, y: 0.54, z: position.z },
       countMedallion: { x: position.x, y: 0.5, z: bounds.bottom - 0.22 },
       interactionBounds: { ...bounds }
     };
@@ -130,7 +130,7 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-7.35, 0, 7.35],
       lane: { local: -3.15, opponent: 3.05, attacker: 1.25, blocker: -1.25, center: -0.05 },
-      hand: { localX: -0.6, localZ: -7.05, opponentX: 0, opponentZ: 7.95, localScale: 0.9, opponentScale: 0.54 },
+      hand: { localX: -0.6, localZ: -7.05, opponentX: 0, opponentZ: 8.15, localScale: 0.9, opponentScale: 0.46 },
       combat: { x: 0, z: 5.25, attackerX: -3.65, blockerX: 2.35, attachmentX: -5.45 },
       payment: { x: 10.75, z: -6.35 },
       piles: {
@@ -170,7 +170,7 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-6.76, 0, 6.76],
       lane: { local: -2.78, opponent: 2.68, attacker: 1.1, blocker: -1.1, center: -0.04 },
-      hand: { localX: -0.5, localZ: -6.2, opponentX: 0, opponentZ: 7, localScale: 0.82, opponentScale: 0.48 },
+      hand: { localX: -0.5, localZ: -6.2, opponentX: 0, opponentZ: 7.28, localScale: 0.82, opponentScale: 0.43 },
       combat: { x: 0, z: 4.62, attackerX: -3.36, blockerX: 2.16, attachmentX: -5.01 },
       payment: { x: 9.89, z: -5.59 },
       piles: {

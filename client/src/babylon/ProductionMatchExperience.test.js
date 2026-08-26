@@ -848,4 +848,12 @@ test("names hand and lane combat events without implying a fourth lane", () => {
     type: "block.declared",
     laneIndex: 2
   })).toEqual(["block", "Lane 3 block committed"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 0
+  })).toEqual(["block", "Attack stopped"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 8
+  })).toEqual(["damage", "Major damage · 8"]);
 });
