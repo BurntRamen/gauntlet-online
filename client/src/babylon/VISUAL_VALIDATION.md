@@ -64,6 +64,15 @@ captures, four responsive profiles, 91 native-scene contracts, zero duplicate
 visible identities, and zero structural composite rasters. Its qualification
 record is `FULL_BABYLON_VISUAL_QUALIFICATION_2026-08-26.md`.
 
+The subsequent art-direction and cadence candidate is preserved at
+`artifacts/babylon-visual-review/cadence-art-direction-2026-08-26-r13/`: 52
+states, 114 captures, six responsive sizes plus semantic motion viewports, 24
+atomic motion/effect captures, zero duplicate visible identities, and zero
+structural composite rasters. The two standalone comparison packages live under
+`artifacts/babylon-visual-comparison/` with names ending in `cadence-r13`. Its
+qualification record is
+`BABYLON_ART_DIRECTION_CADENCE_QUALIFICATION_2026-08-26.md`.
+
 ## Repeatable production-path states
 
 The capture script creates a real Basic room, reconnects both players through

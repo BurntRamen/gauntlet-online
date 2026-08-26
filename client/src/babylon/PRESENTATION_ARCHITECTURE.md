@@ -93,6 +93,13 @@ contract, kind, tier, grammar, material role, alpha limits, board response, and
 effect duration to Babylon. Live play and replay consume that common projection
 and therefore preserve the same event ordering, emphasis, and visual cadence.
 
+While live playback is presenting a queued beat, the product shell temporarily
+gates gameplay input across React controls, keyboard shortcuts, accessible
+controls, and Babylon hit targets. Networking, legality, and authoritative state
+remain immediate, while read-only inspection and Match-menu information remain
+available. The gate releases with the presented frame so the visible action and
+the next accepted command cannot contradict one another.
+
 ## Authored-asset boundary
 
 The active kit is loaded from
