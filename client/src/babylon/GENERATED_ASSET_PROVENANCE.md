@@ -4,6 +4,20 @@ These assets were created for the Babylon production match renderer on
 2026-08-03. They are original provisional assets and require project approval
 before public cutover.
 
+## Basic playing-card family 2026-08-27
+
+The Basic Gauntlet deck now has a complete neutral 52-card face family. The
+built-in OpenAI image-generation tool created one original 5:7 master after
+visual comparison with the four existing faction families. The generated
+master contains no rank, suit, faction emblem, text, or logo. The deterministic
+`scripts/generate-basic-card-art.js` pipeline adds the four suit palettes,
+mirrored corners, and thirteen ranks, then writes 500x700 WebP runtime faces.
+
+The master, runtime family checksum, reference filenames, and exact generation
+prompt are recorded in `docs/generated-assets/basic-card-art-2026-08-27.json`.
+The generated family is production runtime art for ordinary Basic-mode cards;
+draft and replacement cards retain their separate existing treatment.
+
 They are registered as `provisional` in the `gauntlet-core-v1` presentation
 manifest. Their presence is a runtime fallback, not production-art approval.
 

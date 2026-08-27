@@ -1,4 +1,8 @@
-import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
+import {
+  expectsPlayingCardArt,
+  getPlayingCardArtPath,
+  normalizeCardDisplayText
+} from "./cardArt";
 
 test("maps an ordinary card to its faction playing-card face", () => {
   expect(getPlayingCardArtPath({ rank: "A", value: 14, suit: "diamonds" }, "rumin"))
@@ -7,10 +11,23 @@ test("maps an ordinary card to its faction playing-card face", () => {
     .toBe("/assets/gauntlet/playing-cards/frumo-k-clubs.webp");
 });
 
-test("keeps replacement cards and Basic mode on their existing treatment", () => {
+test("maps Basic Gauntlet cards to the neutral production family", () => {
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "basic"))
+    .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
+  expect(getPlayingCardArtPath({ value: 10, suit: "spades", factionId: "basic" }))
+    .toBe("/assets/gauntlet/playing-cards/basic-10-spades.webp");
+});
+
+test("keeps replacement cards on their existing treatment", () => {
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", draftCard: true }, "sheen")).toBe("");
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", type: "weapon" }, "sheen")).toBe("");
-  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "basic")).toBe("");
+  expect(expectsPlayingCardArt({ value: 8, suit: "hearts", draftCard: true })).toBe(false);
+  expect(expectsPlayingCardArt({ value: 8, suit: "hearts" })).toBe(true);
+});
+
+test("does not silently substitute an unsupported faction", () => {
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "unknown-faction")).toBe("");
+  expect(expectsPlayingCardArt({ value: 8, suit: "hearts" })).toBe(true);
 });
 
 test("normalizes malformed suit text used by legacy match messages", () => {

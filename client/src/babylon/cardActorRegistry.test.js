@@ -167,6 +167,32 @@ test("equivalent revisions preserve the mesh, contact shadow, and texture runtim
   expect(registry.get("card:stable").runtime).toBe(created[0]);
 });
 
+test("one art-backed runtime survives hand, combat, payment, and lane transitions", () => {
+  const created = [];
+  const updatedArtPaths = [];
+  const artPath = "/assets/gauntlet/playing-cards/basic-q-diamonds.webp";
+  const registry = new CardActorRegistry({
+    create: (entry) => {
+      const runtime = { mesh: {}, texturePath: entry.artPath };
+      created.push(runtime);
+      return runtime;
+    },
+    update: (runtime, entry) => {
+      updatedArtPaths.push(entry.artPath);
+      runtime.texturePath = entry.artPath;
+    }
+  });
+
+  ["hand", "combat", "payment", "lane"].forEach((zone) => {
+    registry.reconcile(snapshot([{ ...actor("card:journey", zone), artPath }]));
+  });
+
+  expect(created).toHaveLength(1);
+  expect(updatedArtPaths).toEqual([artPath, artPath, artPath]);
+  expect(registry.get("card:journey").runtime).toEqual(created[0]);
+  expect(registry.get("card:journey").runtime.texturePath).toBe(artPath);
+});
+
 test("runtime diagnostics detect duplicate visible identities even under different actor keys", () => {
   const registry = new CardActorRegistry({ create: (entry) => ({ id: entry.actorId }) });
   registry.reconcile(snapshot([

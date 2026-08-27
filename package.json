@@ -22,6 +22,7 @@
     "report:match-audio": "node scripts/report-match-audio.js",
     "generate:match-icons": "node scripts/generate-match-icons.js",
     "generate:match-sfx": "node scripts/generate-match-sfx.js",
+    "generate:basic-card-art": "node scripts/generate-basic-card-art.js",
     "assets:elevenlabs": "node scripts/elevenlabs-assets.js",
     "test:elevenlabs-assets": "node --test scripts/elevenlabs-assets.test.js",
     "prepare:experience-gate": "node scripts/prepare-babylon-qualification.js",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.62.0",
+    "sharp": "^0.35.3",
     "socket.io-client": "^4.8.3"
   }
 }

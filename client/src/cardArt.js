@@ -1,4 +1,6 @@
-const SUPPORTED_FACTIONS = new Set(["rumin", "bizi", "sheen", "frumo"]);
+export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
+
+const SUPPORTED_FACTIONS = new Set(PLAYING_CARD_ART_FACTIONS);
 
 const SUIT_NAMES = {
   "\u2666": "diamonds",
@@ -37,7 +39,7 @@ export function normalizeCardDisplayText(value) {
   );
 }
 
-function getRankSlug(card) {
+export function getPlayingCardRankSlug(card) {
   const raw = card?.rank ?? card?.value;
   const normalized = String(raw || "").trim().toLowerCase();
   if (normalized === "a" || normalized === "1" || normalized === "14") return "a";
@@ -48,13 +50,23 @@ function getRankSlug(card) {
   return value >= 2 && value <= 10 ? String(value) : "";
 }
 
-export function getPlayingCardArtPath(card, factionId) {
-  const faction = String(factionId || "").toLowerCase();
+export function isOrdinaryPlayingCard(card) {
+  return Boolean(card && !card.draftCard && !card.type && !card.rarity);
+}
+
+export function expectsPlayingCardArt(card) {
+  if (!isOrdinaryPlayingCard(card)) return false;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
-  const rank = getRankSlug(card);
+  return Boolean(suit && getPlayingCardRankSlug(card));
+}
+
+export function getPlayingCardArtPath(card, factionId) {
+  const faction = String(factionId || card?.factionId || "basic").toLowerCase();
+  const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
+  const rank = getPlayingCardRankSlug(card);
 
   // Collection and draft replacements retain their existing faction-card treatment.
-  if (!card || card.draftCard || card.type || card.rarity) return "";
+  if (!isOrdinaryPlayingCard(card)) return "";
   if (!SUPPORTED_FACTIONS.has(faction) || !suit || !rank) return "";
   return `/assets/gauntlet/playing-cards/${faction}-${rank}-${suit}.webp`;
 }

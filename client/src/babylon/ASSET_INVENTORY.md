@@ -6,7 +6,7 @@ runtime images remain independently addressable.
 
 | Purpose | Runtime source | Status |
 | --- | --- | --- |
-| Visible 5:7 fronts | `/assets/gauntlet/playing-cards/{faction}-*.webp` through the card-art resolver | Integrated and cached by path |
+| Visible 5:7 fronts | `/assets/gauntlet/playing-cards/{faction}-*.webp` through the card-art resolver, including the complete neutral `basic-*` family | Integrated and cached by path; Basic master and deterministic overlay provenance recorded |
 | Hidden cards | `/assets/gauntlet/match/gauntlet-card-back-official.jpg` | Approved; deterministic card back remains the failure fallback |
 | Board base | Babylon tabletop slab, inset field, frame, edges, and corner caps | Integrated visual baseline; native modular geometry; independent human signoff pending |
 | Lane modules | One Babylon lane definition instanced three times with wells, rails, sigil, anchors, bounds, and interaction volume | Integrated visual baseline; native modular geometry; independent human signoff pending |
