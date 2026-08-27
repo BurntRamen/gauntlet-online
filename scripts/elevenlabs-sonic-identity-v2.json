@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/sonic-identity-v2",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/sonic-identity-v2",
+  "jobs": [
+    {
+      "id": "apparatus-card-seat-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One thick card slides a few centimeters, seats firmly in a leather-lined lane, then makes a tiny bronze registration click. Tactile, understated, deliberate. No magic, casino, arcade chirp, sci-fi beep, cartoon, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.6, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -10 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/card_seat_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-card-seat-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A crisp thick-card edge contact, short felt-and-leather seating scrape, then one muted mechanical detent. Compact, physical, quieter than combat. No magic, casino, arcade chirp, sci-fi beep, cartoon, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.6, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -10 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/card_seat_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-payment-commit-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen cards, leather and aged bronze; dry close-mic. Two or three dense cards press into a recessed tray, then one firm bronze latch closes. Irrevocable commitment, not reward; short, tactile, restrained. No coins, cash register, casino, chirp, magic, voice, music or reverb tail.",
+      "parameters": { "duration_seconds": 0.65, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -8 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/payment_commit_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-payment-commit-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen cards, leather and aged bronze; dry close-mic. A compact thick-card stack drops briefly into a leather-lined tray, then a hidden weighty mechanism locks beneath it with one low click. Deliberate and final, not rewarding. No coins, cash register, casino, chirp, magic, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.65, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -8 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/payment_commit_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-attack-commit-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A card mechanism drives forward across the table and ends in one firm walnut-and-bronze lock. Directional, assertive commitment with a short low-pressure accent, but no damage impact. No weapon, explosion, fantasy, trailer boom, arcade, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.8, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/attack_commit_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-attack-commit-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A fast controlled card thrust crosses leather and wood, then a compact bronze pawl snaps forward into its stop. Clear forward intent, ending cleanly before damage. No sword, explosion, fantasy, trailer boom, arcade, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.8, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/attack_commit_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-block-commit-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A thick card plants into a leather-lined lane, then two tightly coupled bronze supports lock outward. Resistant, stable and defensive, clearly unlike a forward attack. No weapon clash, explosion, fantasy, arcade, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.8, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/block_commit_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-block-commit-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One firm downward card placement into leather, then a broad muted graphite brace engages with a short low clack. Planted and resistant, with no forward sweep or damage. No shield clang, explosion, fantasy, arcade, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.8, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/block_commit_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-fully-blocked-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Incoming force meets a leather-and-graphite brace, compresses into a dense muted thud, then releases one tiny bronze tension tick. Completely absorbed: no crack, injury or damage. Controlled, not triumphant. No explosion, weapon clang, magic, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.85, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/fully_blocked_absorption_a.wav"
+    },
+    {
+      "id": "apparatus-fully-blocked-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A compact forward force is caught by a heavy padded tabletop stop: a short compressed wood-and-leather knock, then restrained mechanical settling. Clearly absorbed and intact, unlike damage. No breakage, explosion, weapon, magic, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.85, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/fully_blocked_absorption_b.wav"
+    },
+    {
+      "id": "apparatus-damage-a",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One decisive dense impact transfers through graphite, with a brief dry card-edge snap and controlled low wooden consequence. Heavier than attack commitment, clearly harmful, compact for repeated play. No explosion, bone, weapon, fantasy, trailer boom, voice, music or reverb tail.",
+      "parameters": { "duration_seconds": 0.85, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/damage_consequence_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-damage-b",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A compact weighted strike lands on graphite and walnut, followed by a very short stressed-card texture and immediate mechanical decay. Physical consequence without spectacle, readable in repetition. No explosion, bone, weapon, fantasy, trailer boom, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 0.85, "prompt_influence": 0.84, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/damage_consequence_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-major-damage-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Major damage uses the ordinary damage language at greater mass: broad dense graphite-and-walnut impact, one stressed bronze restraint, short controlled low-pressure aftershock. Severe, heavier, never cinematic. No explosion, debris, weapon, fantasy, trailer boom, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 1.05, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -4.5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/major_damage_consequence_a.wav"
+    },
+    {
+      "id": "apparatus-major-damage-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One very heavy compact impact pushes through layered wood, leather and graphite; the apparatus gives a brief low structural groan and locks still. Serious consequence, immediate controlled decay. No explosion, destruction, weapon, fantasy, trailer boom, voice, music or long reverb.",
+      "parameters": { "duration_seconds": 1.05, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -4.5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/major_damage_consequence_b.wav"
+    },
+    {
+      "id": "apparatus-ability-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. An engraved bronze token rotates and locks into the table, waking restrained glass-and-metal resonance inside the mechanism. Ceremonial but mechanical, deliberate, less forceful than combat. No spell, sparkle, reward chime, sci-fi beep, voice, melody or long reverb.",
+      "parameters": { "duration_seconds": 0.75, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -8 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/ability_token_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-ability-b",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A small bronze control presses into an engraved socket; quiet resonant tension travels through glass and metal, resolving into one firm detent. Slightly ceremonial, physical, not magical. No spell, sparkle, reward chime, sci-fi beep, voice, melody or long reverb.",
+      "parameters": { "duration_seconds": 0.75, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -8 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/ability_token_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-ability-c",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. An engraved bronze token turns under resistance, engages a hidden walnut mechanism, then ends with a short leather-damped low bronze resonance. Deliberate, slightly ceremonial, never bright. No glass, bell, chime, spell, sparkle, sci-fi beep, voice, melody or long reverb.",
+      "parameters": { "duration_seconds": 0.75, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -8 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/ability_token_apparatus_c.wav"
+    },
+    {
+      "id": "apparatus-priority-accept-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, leather and aged bronze; dry close-mic. One small bronze index pin moves across the mechanism and settles into the next notch. Subtle, neutral, short, non-rewarding and quieter than card placement. No beep, chirp, coin, casino, magic, voice, music or reverb.",
+      "parameters": { "duration_seconds": 0.5, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -11 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/priority_index_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-victory-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. The final lock closes, then three restrained ascending bronze-and-glass resonances bloom briefly and settle with confident tension release. Premium, slightly ceremonial, strongest moment but not fanfare. No orchestra, crowd, casino, reward jingle, fantasy, voice, trailer boom or long reverb.",
+      "parameters": { "duration_seconds": 1.5, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_victory_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-victory-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Victory: the final lock closes, followed by three progressively stronger damped bronze mechanism engagements and a confident walnut tension release. Premium and ceremonial through rhythm, not melody. No glass, bell, chime, orchestra, crowd, reward jingle, fantasy, voice, trailer boom or long reverb.",
+      "parameters": { "duration_seconds": 1.5, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_victory_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-defeat-a",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Final tension releases with a dense low wooden closure, followed by two restrained descending bronze-and-glass resonances. Conclusive, sober, not punitive. No orchestra, crowd, failure buzzer, casino, fantasy, voice, trailer boom or long reverb.",
+      "parameters": { "duration_seconds": 1.4, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_defeat_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-defeat-b",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Defeat: a loaded bronze cam releases under resistance, a heavy walnut mechanism closes, then one leather-damped low resonance settles. Conclusive, sober, not punitive. No glass, bell, melody, orchestra, crowd, failure buzzer, fantasy, voice, trailer boom or long reverb.",
+      "parameters": { "duration_seconds": 1.4, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_defeat_apparatus_b.wav"
+    },
+    {
+      "id": "apparatus-draw-a",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Two balanced bronze stops engage together, making a centered dense closure and one short neutral glass-and-metal resonance that neither rises nor falls. Conclusive, balanced, restrained. No fanfare, buzzer, casino, fantasy, voice, melody or long reverb.",
+      "parameters": { "duration_seconds": 1.15, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_draw_apparatus_a.wav"
+    },
+    {
+      "id": "apparatus-draw-b",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Draw: two balanced bronze stops engage simultaneously, followed by one centered walnut closure and a short leather-damped mechanical settle. Conclusive and neutral, expressed without melody. No glass, bell, chime, fanfare, buzzer, casino, fantasy, voice or long reverb.",
+      "parameters": { "duration_seconds": 1.15, "prompt_influence": 0.86, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -6 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_draw_apparatus_b.wav"
+    }
+  ]
+}

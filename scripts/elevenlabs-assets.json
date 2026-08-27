@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs",
+  "jobs": [
+    {
+      "id": "priority-transfer-keyframe",
+      "kind": "image",
+      "modelId": "gpt-image-2",
+      "prompt": "Original game VFX keyframe for Gauntlet Online: an abstract sapphire energy current travels horizontally between two pale-steel geometric priority sigils over deep graphite negative space, with a restrained bronze accent, centered composition, clean premium digital card-game art direction, no text, no logos, no cards, no characters, no imitation of any existing game, suitable as the first frame of a subtle UI animation.",
+      "parameters": {
+        "aspect_ratio": "16:9",
+        "resolution": "2K",
+        "quality": "high"
+      },
+      "clientOutput": "client/public/assets/gauntlet/match/generated/priority-transfer-keyframe.png"
+    },
+    {
+      "id": "priority-transfer-animation",
+      "kind": "video",
+      "modelId": "veo-3.1-fast-generate-001",
+      "prompt": "Animate only the sapphire current and tiny pale-steel particles as they travel smoothly from left to right. Keep the camera locked, the graphite background stable, motion restrained and readable, and preserve the first-frame composition. Seamless-feeling ending, no cuts, no zoom, no text, no logos, no added objects.",
+      "parameters": {
+        "duration_secs": 4,
+        "aspect_ratio": "16:9",
+        "resolution": "720p",
+        "generate_audio": false
+      },
+      "references": {
+        "start_frame": {
+          "job": "priority-transfer-keyframe"
+        }
+      },
+      "clientOutput": "client/public/assets/gauntlet/match/generated/priority-transfer-animation.mp4"
+    }
+  ]
+}

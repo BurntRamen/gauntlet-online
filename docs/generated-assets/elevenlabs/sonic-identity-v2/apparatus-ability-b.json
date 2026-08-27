@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-ability-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A small bronze control presses into an engraved socket; quiet resonant tension travels through glass and metal, resolving into one firm detent. Slightly ceremonial, physical, not magical. No spell, sparkle, reward chime, sci-fi beep, voice, melody or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.75,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:c5486a5bd5dfafa6",
+  "generatedAt": "2026-08-26T05:47:32.560Z",
+  "publishedAt": "2026-08-26T05:47:59.054Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/ability_token_apparatus_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 69164,
+  "sha256": "d5153a2189501adedc86db14945cc96e2ac58e7a1eabf83dcc8b87974e7519c1"
+}

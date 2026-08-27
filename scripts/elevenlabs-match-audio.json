@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/match-audio",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/match-audio",
+  "jobs": [
+    {
+      "id": "combat-fully-blocked-a",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A short premium tabletop card-game defense resolution: one firm laminated card and leather shield contact, a compact low wooden thud, then a restrained pale-steel resonance that dies immediately. The attack is completely stopped. Physical, deliberate, tense, dry close-mic sound. No explosion, no sword clash, no crowd, no voice, no music, no casino or arcade tones, no long reverb.",
+      "parameters": {
+        "duration_seconds": 0.65,
+        "prompt_influence": 0.72,
+        "loop": false
+      },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/combat_fully_blocked.wav"
+    },
+    {
+      "id": "combat-fully-blocked-b",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A restrained defensive stop for a premium physical card game: a dense card snaps into a tabletop lane, followed by a muted metal brace locking and a very short low-pressure release. Clearly defensive and successful, distinct from an offensive hit. Dry, tactile, compact. No fantasy blast, no weapon clang, no reward chime, no voice, no music, no long tail.",
+      "parameters": {
+        "duration_seconds": 0.65,
+        "prompt_influence": 0.72,
+        "loop": false
+      },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -7 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/candidates/combat_fully_blocked_b.wav"
+    },
+    {
+      "id": "damage-major-a",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A major but restrained life-damage resolution for a premium tabletop strategy card game: a heavy card-driven impact into dense wood and graphite, a short low-frequency pressure hit, tiny bronze fragments settling, and an immediate controlled decay. Weighty and decisive, not cinematic. No explosion, no monster, no sword, no voice, no music, no casino or mobile reward sound, no long reverb.",
+      "parameters": {
+        "duration_seconds": 0.8,
+        "prompt_influence": 0.76,
+        "loop": false
+      },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact_major.wav"
+    },
+    {
+      "id": "damage-major-b",
+      "kind": "sound-effect",
+      "reviewStatus": "candidate",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A concise severe damage cue for a competitive physical card table: one broad muted impact, layered with a tight leather-and-wood slam and restrained sub-bass weight, followed by a very short dry debris texture. Serious pressure and consequence without spectacle. No explosion, no magic spell, no weapon, no voice, no music, no arcade hit, no long reverb.",
+      "parameters": {
+        "duration_seconds": 0.8,
+        "prompt_influence": 0.76,
+        "loop": false
+      },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -5 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/candidates/damage_impact_major_b.wav"
+    },
+    {
+      "id": "ability-activate-a",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A brief premium tabletop strategy-game ability commitment: a small physical token locks into an engraved card-table socket, followed by a restrained sapphire electrical resonance and a soft bronze mechanical click. Deliberate and readable, less forceful than attack or damage. No voice, no melody, no reward chime, no fantasy explosion, no arcade sound, no long reverb.",
+      "parameters": {
+        "duration_seconds": 0.55,
+        "prompt_influence": 0.74,
+        "loop": false
+      },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -9 },
+      "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav"
+    }
+  ]
+}

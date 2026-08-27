@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/menu-music-2026-08-27",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/menu-music-2026-08-27",
+  "jobs": [
+    {
+      "id": "gauntlet-menu-living-table-v1",
+      "kind": "music",
+      "modelId": "music_v2",
+      "prompt": "Create a seamless 40-second instrumental loop for the main menu of Gauntlet, a premium competitive tabletop card game. Timeless, calm, thoughtful, and quietly alive: evoke growth, creation, gradual change, and entropy as natural cycles rather than as a dramatic story. Use an understated organic-electronic palette: muted wooden plucks, soft felted or prepared-piano textures used sparingly, a warm low analog pulse, faint granular air, and subtle evolving harmonics. Approximately 72 BPM with a steady unhurried cyclic pattern, restrained dynamics, ample negative space, no dominant lead melody, and no large climax. The opening and ending must share compatible harmony, pulse, texture, ambience, and energy so the file can loop cleanly without a noticeable restart. No vocals, spoken words, choir, ballad structure, faction anthem, fantasy magic, medieval tavern music, orchestral bombast, trailer hits, heroic brass, casino sounds, sci-fi beeps, arcade energy, aggressive drums, heavy percussion, preachy emotion, or fade-out. It should sit behind menu decisions for repeated listening and feel purpose-built for Gauntlet's tactile, deliberate identity.",
+      "parameters": {
+        "music_length_ms": 40000,
+        "force_instrumental": true
+      },
+      "outputFormat": "mp3_48000_192",
+      "reviewStatus": "approved",
+      "clientOutput": "client/public/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 export const PRESENTATION_CUE_CONTRACT_VERSION = "gauntlet.presentation-cues.v1";
+export const MAJOR_DAMAGE_THRESHOLD = 8;
 
 export const PRESENTATION_CUE_DEFINITIONS = Object.freeze({
   "payment.discarded": Object.freeze({ cueId: "payment.release", phase: "release", durationMs: 1000, offsetMs: 620, visualAssetId: "payment.release", audioAssetId: "payment.release", gain: 0.46 }),
@@ -34,6 +35,9 @@ export const BOARD_ACTION_CUE_IDS = Object.freeze([
   "ability.activate",
   "match.victory",
   "match.defeat",
+  "match.draw",
+  "combat.blocked",
+  "damage.major",
   "ui.select",
   "ui.confirm",
   "ui.cancel"
@@ -70,7 +74,9 @@ export function projectPresentationCues(entry, {
   matchId = "match",
   traversalId = "live",
   durationMs,
-  result = null
+  result = null,
+  perspectivePlayer = null,
+  spectator = false
 } = {}) {
   const definition = PRESENTATION_CUE_DEFINITIONS[entry?.type];
   if (!definition) return [];
@@ -78,11 +84,30 @@ export function projectPresentationCues(entry, {
   let cueId = definition.cueId;
   let audioAssetId = definition.audioAssetId;
   let visualAssetId = definition.visualAssetId;
+  let gain = definition.gain;
+  if (entry.type === "damage.calculated") {
+    const damage = Math.max(0, Number(entry.damage || 0));
+    if (damage === 0) {
+      cueId = "combat.blocked";
+      audioAssetId = cueId;
+      visualAssetId = "block.commit";
+      gain = 0.46;
+    } else if (damage >= MAJOR_DAMAGE_THRESHOLD) {
+      cueId = "damage.major";
+      audioAssetId = cueId;
+      visualAssetId = "damage.impact";
+      gain = 0.54;
+    }
+  }
   if (entry.type === "match.ended") {
+    const winner = entry.winner ?? result?.winner ?? null;
     const localWon = result?.localWon ?? entry.localWon;
-    cueId = localWon === false ? "match.defeat" : "match.victory";
+    if (winner == null && localWon == null) cueId = "match.draw";
+    else if (spectator || perspectivePlayer == null) cueId = "match.draw";
+    else if (winner != null) cueId = Number(winner) === Number(perspectivePlayer) ? "match.victory" : "match.defeat";
+    else cueId = localWon ? "match.victory" : "match.defeat";
     audioAssetId = cueId;
-    visualAssetId = cueId;
+    visualAssetId = cueId === "match.draw" ? "turn.start" : cueId;
   }
   const cue = {
     contract: PRESENTATION_CUE_CONTRACT_VERSION,
@@ -102,7 +127,7 @@ export function projectPresentationCues(entry, {
     offsetMs: Math.min(Number(durationMs ?? definition.durationMs), Number(definition.offsetMs || 0)),
     durationMs: Number(durationMs ?? definition.durationMs),
     visual: { assetId: visualAssetId, fallback: `procedural.${cueId}` },
-    audio: { assetId: audioAssetId, gain: definition.gain, variant: "stable-hash", fallback: `tone.${cueId}` }
+    audio: { assetId: audioAssetId, gain, variant: "stable-hash", fallback: `tone.${cueId}` }
   };
   return [cue];
 }

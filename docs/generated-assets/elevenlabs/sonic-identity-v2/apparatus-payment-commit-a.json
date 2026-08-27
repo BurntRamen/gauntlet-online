@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-payment-commit-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen cards, leather and aged bronze; dry close-mic. Two or three dense cards press into a recessed tray, then one firm bronze latch closes. Irrevocable commitment, not reward; short, tactile, restrained. No coins, cash register, casino, chirp, magic, voice, music or reverb tail.",
+  "parameters": {
+    "duration_seconds": 0.65,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:45b3672953d3da18",
+  "generatedAt": "2026-08-26T05:47:09.336Z",
+  "publishedAt": "2026-08-26T05:47:58.969Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/payment_commit_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 61484,
+  "sha256": "9bbf86ed5de3a3f0a92f6e3de67d8fe828a3e13d5f354de33544c3f555424918"
+}

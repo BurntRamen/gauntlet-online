@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-attack-commit-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A card mechanism drives forward across the table and ends in one firm walnut-and-bronze lock. Directional, assertive commitment with a short low-pressure accent, but no damage impact. No weapon, explosion, fantasy, trailer boom, arcade, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.8,
+    "prompt_influence": 0.84,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:9cf00d0e5be9dd0b",
+  "generatedAt": "2026-08-26T05:47:12.978Z",
+  "publishedAt": "2026-08-26T05:47:58.981Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/attack_commit_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 76844,
+  "sha256": "15bfff410a2c783294b957f3f6cfe10f9c72b57bb3a84dc71c320a43fdb30be4"
+}

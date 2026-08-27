@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-block-commit-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One firm downward card placement into leather, then a broad muted graphite brace engages with a short low clack. Planted and resistant, with no forward sweep or damage. No shield clang, explosion, fantasy, arcade, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.8,
+    "prompt_influence": 0.84,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:0cdc2df86618a1f1",
+  "generatedAt": "2026-08-26T05:47:18.004Z",
+  "publishedAt": "2026-08-26T05:51:59.524Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/block_commit_apparatus_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 76844,
+  "sha256": "a2ba84f1f553a8d4d1a949caa299f65f40792ac256dd35893bc32a5e0700000e"
+}

@@ -1,0 +1,43 @@
+{
+  "deliveryId": "elevenlabs-match-audio-2026-08-26",
+  "generatedOn": "2026-08-26",
+  "generator": "ElevenLabs Sound Effects API",
+  "model": "eleven_text_to_sound_v2",
+  "format": "mono 48000 Hz 16-bit PCM WAV",
+  "status": "approved-selected-assets-with-retained-candidates",
+  "selected": [
+    {
+      "jobId": "combat-fully-blocked-a",
+      "file": "../audio/combat_fully_blocked.wav",
+      "sha256": "de629ea3f0636137f1011f710d3c67b0bbafb0dbdfa31798b71a7b761608b09d",
+      "purpose": "Successful full-block resolution distinct from damage"
+    },
+    {
+      "jobId": "damage-major-a",
+      "file": "../audio/damage_impact_major.wav",
+      "sha256": "3e8389a7b87f39e076788e27416c069ec666a4d8b47722ed346b6bea0e2d0e69",
+      "purpose": "Damage tier for eight or more resolved damage"
+    },
+    {
+      "jobId": "ability-activate-a",
+      "file": "../audio/ability_activate.wav",
+      "sha256": "716748f9b07adda52157509835dd511f9695995af670abb2b73e444fff72ac68",
+      "purpose": "Ability commitment distinct from priority transfer"
+    }
+  ],
+  "candidates": [
+    {
+      "jobId": "combat-fully-blocked-b",
+      "file": "../audio/candidates/combat_fully_blocked_b.wav",
+      "sha256": "d75a99c8038d2ebe002baac900aafa17e3250e53349030ab3f16715b8a614e00",
+      "decision": "Retained for review; brighter transient was less defensive than selected A"
+    },
+    {
+      "jobId": "damage-major-b",
+      "file": "../audio/candidates/damage_impact_major_b.wav",
+      "sha256": "70017e16a5d48845ae86f66136b1545974b6bf7be6622155f4bff9719378dcb8",
+      "decision": "Retained for review; lower impact and level than selected A"
+    }
+  ],
+  "detailedProvenance": "../../../../../../../../docs/generated-assets/elevenlabs/match-audio/"
+}

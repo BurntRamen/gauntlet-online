@@ -74,7 +74,9 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
       matchId: update.viewModel.matchId || update.snapshot?.id,
       traversalId: options.traversalId || (update.source === "replay" ? "replay-0" : "live"),
       durationMs,
-      result: update.viewModel.result
+      result: update.viewModel.result,
+      perspectivePlayer: update.viewModel.perspective?.player,
+      spectator: update.viewModel.perspective?.spectator
     });
     return {
       event: entry,

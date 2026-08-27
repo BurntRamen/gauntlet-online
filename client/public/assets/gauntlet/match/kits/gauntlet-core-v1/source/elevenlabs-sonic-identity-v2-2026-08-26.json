@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "gauntlet.generated-audio-provenance.v1",
+  "generatedAt": "2026-08-26",
+  "provider": "ElevenLabs Sound Effects API",
+  "modelId": "eleven_text_to_sound_v2",
+  "manifest": "scripts/elevenlabs-sonic-identity-v2.json",
+  "runtimeGeneration": false,
+  "successfulGenerationCalls": 24,
+  "rejectedValidationAttempts": 1,
+  "reportedCharacterCost": 244,
+  "output": {
+    "format": "wav",
+    "sampleRate": 48000,
+    "channels": 1,
+    "sourceFormat": "pcm_44100"
+  },
+  "offlineMastering": {
+    "script": "scripts/master-match-audio.js",
+    "method": "instant-attack, release-smoothed downward compression followed by deterministic peak normalization",
+    "runtimeProcessing": false,
+    "rawGeneratedCandidatesPreserved": true
+  },
+  "sonicLanguage": {
+    "materials": [
+      "dark walnut",
+      "graphite stone",
+      "dense linen-laminated cards",
+      "dark leather",
+      "aged bronze mechanisms"
+    ],
+    "character": [
+      "dry close-mic",
+      "tactile",
+      "deliberate",
+      "controlled tension and release",
+      "premium competitive tabletop apparatus"
+    ],
+    "excluded": [
+      "generic fantasy magic",
+      "casino and reward sounds",
+      "sci-fi beeps",
+      "cartoon impacts",
+      "trailer booms",
+      "voice and music"
+    ]
+  },
+  "activeSelections": [
+    { "cueId": "card.place", "jobId": "apparatus-card-seat-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/card_seat_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/card_seat_apparatus_b.wav", "previousFile": "audio/lane_placement.wav" },
+    { "cueId": "payment.commit", "jobId": "apparatus-payment-commit-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/payment_commit_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/payment_commit_apparatus_b.wav", "previousFile": "audio/payment_commit.wav" },
+    { "cueId": "payment.release", "jobId": "apparatus-payment-commit-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/payment_commit_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/payment_commit_apparatus_b.wav", "previousFile": "audio/payment_commit.wav" },
+    { "cueId": "attack.declare", "jobId": "apparatus-attack-commit-b", "file": "audio/elevenlabs/sonic-identity-v2/attack_commit_apparatus_b.wav", "previousFile": "audio/attack_declare.wav" },
+    { "cueId": "block.commit", "jobId": "apparatus-block-commit-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/block_commit_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/block_commit_apparatus_b.wav", "previousFile": "audio/block_commit.wav" },
+    { "cueId": "combat.blocked", "jobId": "apparatus-fully-blocked-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/fully_blocked_absorption_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/fully_blocked_absorption_b.wav", "previousFile": "audio/combat_fully_blocked.wav" },
+    { "cueId": "combat.resolve", "jobId": "apparatus-damage-a", "file": "audio/elevenlabs/sonic-identity-v2/mastered/damage_consequence_apparatus_a_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/damage_consequence_apparatus_a.wav", "previousFile": "audio/damage_impact.wav" },
+    { "cueId": "damage.impact", "jobId": "apparatus-damage-a", "file": "audio/elevenlabs/sonic-identity-v2/mastered/damage_consequence_apparatus_a_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/damage_consequence_apparatus_a.wav", "previousFile": "audio/damage_impact.wav" },
+    { "cueId": "damage.major", "jobId": "apparatus-major-damage-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/major_damage_consequence_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/major_damage_consequence_b.wav", "previousFile": "audio/damage_impact_major.wav" },
+    { "cueId": "match.victory", "jobId": "apparatus-victory-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/match_victory_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/match_victory_apparatus_b.wav", "previousFile": "audio/victory_stinger.wav" },
+    { "cueId": "match.defeat", "jobId": "apparatus-defeat-a", "file": "audio/elevenlabs/sonic-identity-v2/mastered/match_defeat_apparatus_a_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/match_defeat_apparatus_a.wav", "previousFile": "audio/defeat_stinger.wav" },
+    { "cueId": "match.draw", "jobId": "apparatus-draw-b", "file": "audio/elevenlabs/sonic-identity-v2/mastered/match_draw_apparatus_b_master.wav", "generatedSource": "audio/elevenlabs/sonic-identity-v2/match_draw_apparatus_b.wav", "previousFile": "audio/turn_transition.wav" }
+  ],
+  "retainedAfterComparison": [
+    { "cueId": "ability.activate", "file": "audio/ability_activate.wav", "reason": "The active generated token/socket cue remained shorter, darker, and less fatiguing than all three v2 ability candidates." },
+    { "cueId": "priority.transfer", "file": "audio/priority_change.wav", "reason": "The original neutral transfer cue remained less bright and less chirp-like than the generated priority-index candidate." }
+  ],
+  "candidateProvenanceDirectory": "docs/generated-assets/elevenlabs/sonic-identity-v2"
+}

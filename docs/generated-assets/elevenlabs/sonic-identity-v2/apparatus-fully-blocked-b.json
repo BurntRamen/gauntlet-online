@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-fully-blocked-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A compact forward force is caught by a heavy padded tabletop stop: a short compressed wood-and-leather knock, then restrained mechanical settling. Clearly absorbed and intact, unlike damage. No breakage, explosion, weapon, magic, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.85,
+    "prompt_influence": 0.84,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:97fe98b75181287d",
+  "generatedAt": "2026-08-26T05:47:21.671Z",
+  "publishedAt": "2026-08-26T05:51:59.531Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/fully_blocked_absorption_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 80684,
+  "sha256": "718a9e5f4c76bbd805ce646cc5ae9bc7699e154c4234e9ff4b61c0ed11bcdf4e"
+}

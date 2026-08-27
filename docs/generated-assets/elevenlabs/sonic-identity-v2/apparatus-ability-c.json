@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-ability-c",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. An engraved bronze token turns under resistance, engages a hidden walnut mechanism, then ends with a short leather-damped low bronze resonance. Deliberate, slightly ceremonial, never bright. No glass, bell, chime, spell, sparkle, sci-fi beep, voice, melody or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.75,
+    "prompt_influence": 0.86,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:aa4665214c78df53",
+  "generatedAt": "2026-08-26T05:50:34.886Z",
+  "publishedAt": "2026-08-26T05:50:52.017Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/ability_token_apparatus_c.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 69164,
+  "sha256": "dffdad08f8bc1f9e3fce68bf610c7dc877154a675f59989fbadf978431af748c"
+}

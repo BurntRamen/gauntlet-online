@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-draw-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Two balanced bronze stops engage together, making a centered dense closure and one short neutral glass-and-metal resonance that neither rises nor falls. Conclusive, balanced, restrained. No fanfare, buzzer, casino, fantasy, voice, melody or long reverb.",
+  "parameters": {
+    "duration_seconds": 1.15,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:b63236ca66a1f89e",
+  "generatedAt": "2026-08-26T05:47:42.275Z",
+  "publishedAt": "2026-08-26T05:47:59.080Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_draw_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 107564,
+  "sha256": "1bcf09631c7cad8afa2ec682670eac1e556a157bde9161b84c592b56031f8855"
+}

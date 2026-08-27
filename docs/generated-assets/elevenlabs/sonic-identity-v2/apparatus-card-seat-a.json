@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-card-seat-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One thick card slides a few centimeters, seats firmly in a leather-lined lane, then makes a tiny bronze registration click. Tactile, understated, deliberate. No magic, casino, arcade chirp, sci-fi beep, cartoon, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.6,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:8a23625ca217f983",
+  "generatedAt": "2026-08-26T05:47:05.725Z",
+  "publishedAt": "2026-08-26T05:47:58.953Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/card_seat_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 57644,
+  "sha256": "6345af53401dd87f03cf05bba3e1616fa65f92c0ebcda63e42a1e5ac29e4d034"
+}

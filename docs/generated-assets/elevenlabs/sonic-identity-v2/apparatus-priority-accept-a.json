@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-priority-accept-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, leather and aged bronze; dry close-mic. One small bronze index pin moves across the mechanism and settles into the next notch. Subtle, neutral, short, non-rewarding and quieter than card placement. No beep, chirp, coin, casino, magic, voice, music or reverb.",
+  "parameters": {
+    "duration_seconds": 0.5,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:1bfc04e97be403bd",
+  "generatedAt": "2026-08-26T05:47:34.524Z",
+  "publishedAt": "2026-08-26T05:47:59.061Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/priority_index_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 46124,
+  "sha256": "bc1434fb39f417ed51b50eaf536a73fa1dad147e7652114bbf2f4f0bd7cc9ad0"
+}

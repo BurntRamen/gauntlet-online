@@ -11,6 +11,7 @@ playwright-report/
 test-results/
 .playwright-data/
 artifacts/
+scripts/elevenlabs-assets.local.json
 client/src/babylon/validation/
 
 # generated builds

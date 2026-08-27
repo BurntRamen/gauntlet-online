@@ -750,7 +750,7 @@ test("ignores a completion outcome for a different player perspective", async ()
   expect(screen.queryByRole("heading", { name: "Victory" })).not.toBeInTheDocument();
 });
 
-test("plays accepted event IDs once and disposes its audio context", async () => {
+test("plays accepted event IDs once, cancels pending cues when muted, and disposes its audio context", async () => {
   jest.useFakeTimers();
   const oscillator = {
     connect: jest.fn(),
@@ -816,6 +816,14 @@ test("plays accepted event IDs once and disposes its audio context", async () =>
   act(() => jest.advanceTimersByTime(260));
   expect(audioContext.createOscillator).toHaveBeenCalledTimes(2);
 
+  publishEvents([{ id: "accepted-3", type: "attack.declared" }]);
+  rendered.rerender(
+    <ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />
+  );
+  act(() => jest.runOnlyPendingTimers());
+  expect(audioContext.createOscillator).toHaveBeenCalledTimes(2);
+  expect(oscillator.stop).toHaveBeenCalled();
+
   rendered.unmount();
   expect(audioContext.close).toHaveBeenCalledTimes(1);
   window.AudioContext = originalAudioContext;
@@ -848,4 +856,12 @@ test("names hand and lane combat events without implying a fourth lane", () => {
     type: "block.declared",
     laneIndex: 2
   })).toEqual(["block", "Lane 3 block committed"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 0
+  })).toEqual(["block", "Attack stopped"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 8
+  })).toEqual(["damage", "Major damage · 8"]);
 });

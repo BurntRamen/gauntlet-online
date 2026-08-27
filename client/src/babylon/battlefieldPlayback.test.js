@@ -142,6 +142,19 @@ describe("queued battlefield playback", () => {
     jest.useRealTimers();
   });
 
+  test("projects match results from the player perspective carried by the live view", () => {
+    const event = { id: "ended", type: "match.ended", winner: 2 };
+    const update = updateFor([event], {
+      viewModel: {
+        ...updateFor([event]).viewModel,
+        events: [event],
+        perspective: { player: 1, spectator: false }
+      }
+    });
+    const [frame] = createBattlefieldPlaybackFrames(update, new Set());
+    expect(frame.update.presentation.cues[0].cueId).toBe("match.defeat");
+  });
+
   test("does not delay authoritative input while visual frames catch up", () => {
     jest.useFakeTimers();
     const states = [];

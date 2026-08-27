@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-major-damage-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One very heavy compact impact pushes through layered wood, leather and graphite; the apparatus gives a brief low structural groan and locks still. Serious consequence, immediate controlled decay. No explosion, destruction, weapon, fantasy, trailer boom, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 1.05,
+    "prompt_influence": 0.86,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:df9ca1a6406115b6",
+  "generatedAt": "2026-08-26T05:47:28.901Z",
+  "publishedAt": "2026-08-26T05:51:59.541Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/major_damage_consequence_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 99884,
+  "sha256": "1a48fe9f48c86d5e56d695413f021761d1d05a0207956b1fc868ccd44f84ca53"
+}

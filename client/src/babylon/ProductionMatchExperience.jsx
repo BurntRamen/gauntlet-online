@@ -10,6 +10,12 @@ import {
   resolvePresentationAsset
 } from "./presentationKit";
 import { createInteractionCue } from "./presentationCues";
+import {
+  matchAudioCanPlay,
+  matchAudioGain,
+  matchAudioPolicy,
+  matchAudioShouldSuppress
+} from "./matchAudioSystem";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
@@ -19,11 +25,14 @@ const EVENT_TONES = {
   "payment.release": [230, 0.09],
   "attack.declare": [520, 0.13],
   "block.commit": [350, 0.12],
+  "combat.blocked": [245, 0.14],
   "damage.impact": [150, 0.18],
+  "damage.major": [105, 0.24],
   "priority.transfer": [680, 0.12],
   "turn.start": [780, 0.18],
   "match.victory": [880, 0.32],
   "match.defeat": [170, 0.32],
+  "match.draw": [470, 0.24],
   "card.place": [300, 0.1],
   "card.draw": [460, 0.1],
   "card.lift": [390, 0.055],
@@ -42,11 +51,32 @@ function useEventAudio(cues, enabled, presentationKit) {
   const audioRef = useRef({
     buffers: new Map(),
     context: null,
+    activeByAsset: new Map(),
+    enabled,
+    lastPlayedAt: new Map(),
     loading: new Map(),
+    suppressedUntilByTier: new Map(),
     played: new Set(),
     timers: new Set(),
     unlocked: false
   });
+
+  const stopActiveSound = useCallback((assetId, nodes) => {
+    nodes.forEach((node) => {
+      try { node.stop?.(); } catch { /* The source may already have ended. */ }
+    });
+    audioRef.current.activeByAsset.delete(assetId);
+  }, []);
+
+  useEffect(() => {
+    const state = audioRef.current;
+    state.enabled = enabled;
+    if (enabled) return;
+    state.timers.forEach((timer) => window.clearTimeout(timer));
+    state.timers.clear();
+    state.activeByAsset.forEach((nodes, assetId) => stopActiveSound(assetId, nodes));
+    state.suppressedUntilByTier.clear();
+  }, [enabled, stopActiveSound]);
 
   const preloadSound = useCallback((assetId) => {
     const path = resolvePresentationAsset(presentationKit, "audio", assetId)?.path;
@@ -92,18 +122,54 @@ function useEventAudio(cues, enabled, presentationKit) {
   }, [enabled, preloadSound, presentationKit]);
 
   const playTone = useCallback((cueOrAssetId) => {
-    if (!enabled || !audioRef.current.unlocked || !audioRef.current.context) return;
+    const state = audioRef.current;
+    if (!state.enabled || !state.unlocked || !state.context) return;
     const cue = typeof cueOrAssetId === "string" ? null : cueOrAssetId;
     const assetId = cue?.audio?.assetId || cueOrAssetId;
-    const context = audioRef.current.context;
-    const sample = audioRef.current.buffers.get(assetId);
+    const nowMs = Date.now();
+    const policy = matchAudioPolicy(assetId);
+    const lastPlayedAt = Number(state.lastPlayedAt.get(assetId) || -Infinity);
+    const suppressedUntil = Number(state.suppressedUntilByTier.get(policy.tier) || 0);
+    if (!matchAudioCanPlay(assetId, { nowMs, lastPlayedAt, suppressedUntil })) return;
+
+    const suppressionMs = Number(policy.suppressionMs || 0);
+    if (suppressionMs > 0) {
+      for (const [activeAssetId, nodes] of state.activeByAsset.entries()) {
+        if (matchAudioShouldSuppress(assetId, activeAssetId)) stopActiveSound(activeAssetId, nodes);
+      }
+      for (let tier = 0; tier < policy.suppressesBelowTier; tier += 1) {
+        state.suppressedUntilByTier.set(tier, Math.max(
+          Number(state.suppressedUntilByTier.get(tier) || 0),
+          nowMs + suppressionMs
+        ));
+      }
+    }
+
+    const context = state.context;
+    const sample = state.buffers.get(assetId);
+    const registerActive = (node) => {
+      const existing = state.activeByAsset.get(assetId) || new Set();
+      while (existing.size >= policy.maxPolyphony) {
+        const active = existing.values().next().value;
+        try { active.stop?.(); } catch { /* The source may already have ended. */ }
+        existing.delete(active);
+      }
+      existing.add(node);
+      state.activeByAsset.set(assetId, existing);
+      node.onended = () => {
+        existing.delete(node);
+        if (existing.size === 0) state.activeByAsset.delete(assetId);
+      };
+      state.lastPlayedAt.set(assetId, nowMs);
+    };
     if (sample && typeof context.createBufferSource === "function") {
       const source = context.createBufferSource();
       const gain = context.createGain();
       source.buffer = sample;
-      gain.gain.setValueAtTime(Number(cue?.audio?.gain ?? 0.48), context.currentTime);
+      gain.gain.setValueAtTime(matchAudioGain(assetId, cue?.audio?.gain ?? 0.48), context.currentTime);
       source.connect(gain);
       gain.connect(context.destination);
+      registerActive(source);
       source.start();
       return;
     }
@@ -113,16 +179,18 @@ function useEventAudio(cues, enabled, presentationKit) {
     const [frequency, duration] = tone;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = assetId === "damage.impact" ? "triangle" : "sine";
+    oscillator.type = ["damage.impact", "damage.major", "combat.blocked"].includes(assetId) ? "triangle" : "sine";
     oscillator.frequency.setValueAtTime(frequency, context.currentTime);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.012);
+    const fallbackGain = 0.055 * Math.min(1.6, matchAudioGain(assetId, cue?.audio?.gain ?? 0.48) / 0.48);
+    gain.gain.exponentialRampToValueAtTime(fallbackGain, context.currentTime + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
     oscillator.connect(gain);
     gain.connect(context.destination);
+    registerActive(oscillator);
     oscillator.start();
     oscillator.stop(context.currentTime + duration + 0.02);
-  }, [enabled, preloadSound]);
+  }, [preloadSound, stopActiveSound]);
 
   useEffect(() => {
     if (!enabled || !audioRef.current.unlocked || !audioRef.current.context) return;
@@ -144,6 +212,12 @@ function useEventAudio(cues, enabled, presentationKit) {
     audioRef.current.context?.close?.();
     audioRef.current.timers.forEach((timer) => window.clearTimeout(timer));
     audioRef.current.timers.clear();
+    audioRef.current.activeByAsset.forEach((nodes) => nodes.forEach((node) => {
+      try { node.stop?.(); } catch { /* The source may already have ended. */ }
+    }));
+    audioRef.current.activeByAsset.clear();
+    audioRef.current.lastPlayedAt.clear();
+    audioRef.current.suppressedUntilByTier.clear();
     audioRef.current.buffers.clear();
     audioRef.current.loading.clear();
     audioRef.current.context = null;
@@ -1084,7 +1158,11 @@ export function eventCalloutContent(entry) {
     "attack.declared": ["attack", laneNumber ? `Lane ${laneNumber} attack committed` : "Hand attack committed"],
     "block.declared": ["block", laneNumber ? `Lane ${laneNumber} block committed` : "Hand block committed"],
     "payment.discarded": ["payment", "Payment discarded"],
-    "damage.calculated": ["damage", `${entry.damage || 0} damage`],
+    "damage.calculated": Number(entry.damage || 0) <= 0
+      ? ["block", "Attack stopped"]
+      : Number(entry.damage || 0) >= 8
+        ? ["damage", `Major damage · ${entry.damage}`]
+        : ["damage", `${entry.damage} damage`],
     "card.placedFacedown": ["placement", "Card placed"],
     "cards.drawn": ["placement", "Hand refilled"],
     "priority.granted": ["priority", `Priority · Player ${entry.player}`],
@@ -1267,7 +1345,7 @@ export default function ProductionMatchExperience({
       activateHandCard: withTone("ui.select", commands.activateHandCard),
       activateLane: withTone("ui.select", commands.activateLane),
       activateAbility: withTone("ui.select", commands.activateAbility),
-      passPriority: withTone("priority.pass", commands.passPriority),
+      passPriority: commands.passPriority,
       confirmCurrentAction: withTone("ui.confirm", commands.confirmCurrentAction),
       cancelCurrentAction: withTone("ui.cancel", commands.cancelCurrentAction),
       inspectCard: withTone("ui.select", commands.inspectCard),

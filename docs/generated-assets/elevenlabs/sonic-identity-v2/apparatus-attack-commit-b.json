@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-attack-commit-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. A fast controlled card thrust crosses leather and wood, then a compact bronze pawl snaps forward into its stop. Clear forward intent, ending cleanly before damage. No sword, explosion, fantasy, trailer boom, arcade, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.8,
+    "prompt_influence": 0.84,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:acccc2a7c43a68f3",
+  "generatedAt": "2026-08-26T05:47:14.644Z",
+  "publishedAt": "2026-08-26T05:51:59.520Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/attack_commit_apparatus_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 76844,
+  "sha256": "e39d37a448c6d27d8b2e2a33d5ea961da4cdc67bc75f24f36d1208e0ec297e62"
+}

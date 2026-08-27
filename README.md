@@ -57,6 +57,33 @@ REACT_APP_SOCKET_URL=http://localhost:4000
 
 Always set `REACT_APP_SOCKET_URL` for local development. Without it, the current client fallback is the production Render backend.
 
+### Offline ElevenLabs media generation
+
+Sound effects, visual keyframes, and MP4 animation sources can be generated through the
+development-only ElevenLabs pipeline. API calls run from a root Node script,
+stage results outside the client, and require a separate review/publish step;
+the React bundle and production server never receive the API key.
+
+```powershell
+npm run assets:elevenlabs -- plan
+```
+
+See [docs/elevenlabs-development-assets.md](docs/elevenlabs-development-assets.md)
+for key setup, paid-generation safeguards, chained image-to-video jobs, and
+client publication.
+
+The v2 ElevenLabs apparatus sound family is active in the normal match screen:
+open **Play**, select the **Practice** tab, then start **Basic vs AI**. Use
+**Factions vs AI** to exercise ability audio. The current cue inventory and
+before/after decisions are recorded in
+[docs/match-audio-audit-2026-08-26.md](docs/match-audio-audit-2026-08-26.md).
+The runtime hierarchy, trims, cooldowns, silence rules, and suppression windows
+are data-owned in `client/src/babylon/matchAudioPolicy.json`; run
+`npm run report:match-audio` to inspect the active kit and post-mix level proxy.
+Raw ElevenLabs candidates remain under the kit's `audio/elevenlabs` directory;
+`npm run master:match-audio` deterministically rebuilds the checked-in runtime
+masters without an API call.
+
 ## Environment variables
 
 Client variables are compiled into the browser bundle and must never contain secrets.

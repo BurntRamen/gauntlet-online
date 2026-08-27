@@ -116,7 +116,15 @@ const TABLETOP_THEME = {
 };
 
 const MUSIC_TRACKS = {
-  menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
+  menu: {
+    label: "The Living Table",
+    sources: ["/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3"],
+    // Retained as an offline/browser-load fallback; the generated file is the active menu source.
+    pad: [55, 82.41, 110],
+    notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
+    tempo: 650,
+    wave: "sawtooth"
+  },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "March of the Rumin",
@@ -797,12 +805,12 @@ function ActionIconButton({ icon, label, onClick, disabled = false, danger = fal
   );
 }
 
-function startProceduralTrack(trackKey, volume) {
+function startProceduralTrack(trackKey, volume, trackOverride = null) {
   if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {} };
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return { stop: () => {}, setVolume: () => {} };
 
-  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  const track = trackOverride || MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   const context = new AudioContext();
   const master = context.createGain();
   master.gain.value = volume;
@@ -870,10 +878,12 @@ function startProceduralTrack(trackKey, volume) {
   };
 }
 
-function startAudioPlaylist(track, volume) {
+function startAudioPlaylist(track, volume, fallbackFactory = null) {
   if (typeof window === "undefined" || !track?.sources?.length) return { stop: () => {}, setVolume: () => {} };
 
   let stopped = false;
+  let sourceUnavailable = false;
+  let fallbackPlayback = null;
   let failedSources = 0;
   let trackIndex = Math.floor(Math.random() * track.sources.length);
   const audio = new Audio(resolveAssetPath(track.sources[trackIndex]));
@@ -882,12 +892,25 @@ function startAudioPlaylist(track, volume) {
   audio.loop = track.sources.length === 1;
 
   const play = () => {
-    if (stopped) return;
+    if (stopped || sourceUnavailable) return;
     audio.play().catch(() => {});
   };
 
+  const activateFallback = () => {
+    if (stopped || sourceUnavailable || !fallbackFactory) return;
+    sourceUnavailable = true;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    fallbackPlayback = fallbackFactory();
+  };
+
   const playNext = () => {
-    if (stopped || track.sources.length <= 1) return;
+    if (stopped) return;
+    if (track.sources.length <= 1) {
+      activateFallback();
+      return;
+    }
     failedSources++;
     if (failedSources > track.sources.length * 2) return;
     trackIndex = (trackIndex + 1) % track.sources.length;
@@ -911,6 +934,7 @@ function startAudioPlaylist(track, volume) {
   return {
     setVolume: (nextVolume) => {
       audio.volume = nextVolume;
+      fallbackPlayback?.setVolume(nextVolume);
     },
     stop: () => {
       stopped = true;
@@ -922,13 +946,20 @@ function startAudioPlaylist(track, volume) {
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
+      fallbackPlayback?.stop();
+      fallbackPlayback = null;
     }
   };
 }
 
 function startMusicTrack(trackKey, volume) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
-  if (track.sources?.length) return startAudioPlaylist(track, volume);
+  if (track.sources?.length) {
+    const fallbackFactory = trackKey === "menu"
+      ? () => startProceduralTrack(trackKey, volume, track)
+      : null;
+    return startAudioPlaylist(track, volume, fallbackFactory);
+  }
   return startProceduralTrack(trackKey, volume);
 }
 

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-defeat-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Defeat: a loaded bronze cam releases under resistance, a heavy walnut mechanism closes, then one leather-damped low resonance settles. Conclusive, sober, not punitive. No glass, bell, melody, orchestra, crowd, failure buzzer, fantasy, voice, trailer boom or long reverb.",
+  "parameters": {
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.86,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:251a6c1c47443417",
+  "generatedAt": "2026-08-26T05:50:38.515Z",
+  "publishedAt": "2026-08-26T05:50:52.029Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/match_defeat_apparatus_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 130604,
+  "sha256": "d1f8301d8e87c8885024ac2a13b0c111cf28db43839018c73dd01c687c021efa"
+}

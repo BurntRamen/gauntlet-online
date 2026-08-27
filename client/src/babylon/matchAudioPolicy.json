@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "gauntlet.match-audio.v1",
+  "tiers": {
+    "SILENCE": 0,
+    "INTERACTION": 1,
+    "COMMITMENT": 2,
+    "RESOLUTION": 3,
+    "MAJOR": 4
+  },
+  "policies": {
+    "ui.hover": { "tier": 0, "silent": true },
+    "card.travel": { "tier": 0, "silent": true },
+    "card.settle": { "tier": 0, "silent": true },
+    "card.discard": { "tier": 0, "silent": true },
+    "priority.pass": { "tier": 0, "silent": true },
+
+    "ui.select": { "tier": 1, "cooldownMs": 90, "referenceGain": 0.34 },
+    "ui.confirm": { "tier": 1, "cooldownMs": 120, "gainTrimDb": -3, "referenceGain": 0.34 },
+    "ui.cancel": { "tier": 1, "cooldownMs": 120, "gainTrimDb": -6, "referenceGain": 0.34 },
+    "card.lift": { "tier": 1, "cooldownMs": 120, "referenceGain": 0.34 },
+    "card.draw": { "tier": 1, "cooldownMs": 220, "referenceGain": 0.38 },
+    "card.place": { "tier": 1, "cooldownMs": 320, "gainTrimDb": 2.8, "referenceGain": 0.4 },
+    "priority.transfer": { "tier": 1, "cooldownMs": 300, "gainTrimDb": -3, "referenceGain": 0.38 },
+    "turn.start": { "tier": 1, "cooldownMs": 400, "gainTrimDb": -2, "referenceGain": 0.42 },
+
+    "payment.commit": { "tier": 2, "cooldownMs": 420, "gainTrimDb": 4.1, "referenceGain": 0.34 },
+    "payment.release": { "tier": 2, "cooldownMs": 420, "gainTrimDb": 2.6, "referenceGain": 0.46 },
+    "attack.declare": { "tier": 2, "cooldownMs": 500, "gainTrimDb": 5.5, "referenceGain": 0.48 },
+    "block.commit": { "tier": 2, "cooldownMs": 500, "gainTrimDb": 2.6, "referenceGain": 0.48 },
+    "ability.activate": { "tier": 2, "cooldownMs": 300, "gainTrimDb": 4, "referenceGain": 0.4 },
+
+    "combat.blocked": { "tier": 3, "cooldownMs": 520, "gainTrimDb": -3, "referenceGain": 0.46, "suppressionMs": 520, "suppressesBelowTier": 2 },
+    "combat.resolve": { "tier": 3, "cooldownMs": 520, "gainTrimDb": 2.6, "referenceGain": 0.5, "suppressionMs": 520, "suppressesBelowTier": 2 },
+    "damage.impact": { "tier": 3, "cooldownMs": 520, "gainTrimDb": 2.6, "referenceGain": 0.5, "suppressionMs": 520, "suppressesBelowTier": 2 },
+
+    "damage.major": { "tier": 4, "cooldownMs": 800, "gainTrimDb": 0.9, "referenceGain": 0.54, "suppressionMs": 800, "suppressesBelowTier": 4 },
+    "match.victory": { "tier": 4, "cooldownMs": 2000, "gainTrimDb": 6, "referenceGain": 0.5, "suppressionMs": 1600, "suppressesBelowTier": 4 },
+    "match.defeat": { "tier": 4, "cooldownMs": 2000, "gainTrimDb": -0.3, "referenceGain": 0.5, "suppressionMs": 1450, "suppressesBelowTier": 4 },
+    "match.draw": { "tier": 4, "cooldownMs": 2000, "gainTrimDb": 6, "referenceGain": 0.5, "suppressionMs": 1200, "suppressesBelowTier": 4 }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-major-damage-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. Major damage uses the ordinary damage language at greater mass: broad dense graphite-and-walnut impact, one stressed bronze restraint, short controlled low-pressure aftershock. Severe, heavier, never cinematic. No explosion, debris, weapon, fantasy, trailer boom, voice, music or long reverb.",
+  "parameters": {
+    "duration_seconds": 1.05,
+    "prompt_influence": 0.86,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:4b3c0e9ae0331c54",
+  "generatedAt": "2026-08-26T05:47:27.087Z",
+  "publishedAt": "2026-08-26T05:47:59.035Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/major_damage_consequence_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 99884,
+  "sha256": "dd6043d3a740ed99296bd730cf3a92994ec582e3e2e8114e912932e7ad74ecca"
+}

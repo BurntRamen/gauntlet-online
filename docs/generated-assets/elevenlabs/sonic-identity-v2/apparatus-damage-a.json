@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "apparatus-damage-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "Gauntlet tabletop apparatus: dark walnut, graphite, dense linen card, leather and aged bronze; dry close-mic. One decisive dense impact transfers through graphite, with a brief dry card-edge snap and controlled low wooden consequence. Heavier than attack commitment, clearly harmful, compact for repeated play. No explosion, bone, weapon, fantasy, trailer boom, voice, music or reverb tail.",
+  "parameters": {
+    "duration_seconds": 0.85,
+    "prompt_influence": 0.84,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:7ad22a948820c076",
+  "generatedAt": "2026-08-26T05:47:23.455Z",
+  "publishedAt": "2026-08-26T05:51:59.536Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/elevenlabs/sonic-identity-v2/damage_consequence_apparatus_a.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 80684,
+  "sha256": "a3b9355387270a27dd9cbfe87d592fa8f4c10aab0079312bf90d464a5c0d58c0"
+}
