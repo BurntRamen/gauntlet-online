@@ -124,7 +124,8 @@ test("the eight-card hands remain clear of physical payment, pile, and combat mo
       localHand.forEach((bounds) => expect(overlaps(bounds, modules.get(moduleId).bounds)).toBe(false));
     });
     opponentHand.forEach((bounds) => {
-      expect(overlaps(bounds, modules.get("hand-combat-dais").bounds)).toBe(false);
+      expect({ profile: profile.id, overlapsCombat: overlaps(bounds, modules.get("hand-combat-dais").bounds) })
+        .toEqual({ profile: profile.id, overlapsCombat: false });
       [
         "pile-local-deck",
         "pile-local-discard",
@@ -162,13 +163,14 @@ test.each([
     expect(module.bounds.top).toBeLessThanOrEqual(projection.tableBounds.top + 0.01);
   });
   ["local", "opponent"].forEach((side) => {
-    Array.from({ length: 8 }, (_, slotIndex) => actorBoundsAt(resolveActorPosition({
+    Array.from({ length: 8 }, (_, slotIndex) => ({ slotIndex, bounds: actorBoundsAt(resolveActorPosition({
       zone: { kind: "hand", side, role: "hand", slotIndex, count: 8 }
-    }, profile))).forEach((bounds) => {
+    }, profile)) })).forEach(({ slotIndex, bounds }) => {
       expect(bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left - 0.01);
       expect(bounds.right).toBeLessThanOrEqual(projection.tableBounds.right + 0.01);
       expect(bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom - 0.01);
-      expect(bounds.top).toBeLessThanOrEqual(projection.tableBounds.top + 0.01);
+      expect({ profile: profile.id, side, slotIndex, withinTop: bounds.top <= projection.tableBounds.top + 0.01 })
+        .toEqual({ profile: profile.id, side, slotIndex, withinTop: true });
     });
   });
 });

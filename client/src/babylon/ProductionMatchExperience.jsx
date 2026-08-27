@@ -478,9 +478,9 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
         <div className="production-context-copy" aria-live="polite">
           <span className="production-context-kicker">
             <GameIcon name="priority" size={15} />
-            {viewModel?.currentTurnLabel} · Resolving
+            Resolution
           </span>
-          <strong>Current action is resolving.</strong>
+          <strong>Resolving the committed action…</strong>
         </div>
       </section>
     );
@@ -490,7 +490,7 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
       <div className="production-context-copy" aria-live="polite">
         <span className="production-context-kicker">
           <GameIcon name={actionIcon} size={15} />
-          {viewModel?.currentTurnLabel} · {viewModel?.phaseLabel}
+          {hasSelection ? "Confirm action" : "Your action"}
         </span>
         <strong>{viewModel?.instruction || "Choose an action."}</strong>
         {viewModel?.payment?.active && (
@@ -1190,43 +1190,34 @@ export function eventCalloutContent(entry) {
 }
 
 function MatchFeed({ entries, statusNotice, catchingUp }) {
+  const [visibleNotice, setVisibleNotice] = useState(statusNotice || "");
+  useEffect(() => {
+    if (!statusNotice) {
+      setVisibleNotice("");
+      return undefined;
+    }
+    setVisibleNotice(statusNotice);
+    const timeout = window.setTimeout(() => setVisibleNotice(""), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [statusNotice]);
   const visibleEntries = entries.filter((entry) => eventCalloutContent(entry));
   const currentEntry = visibleEntries.at(-1) || null;
   const currentContent = eventCalloutContent(currentEntry);
-  const priorEntries = visibleEntries.slice(0, -1).reverse();
+  if (!catchingUp && !visibleNotice) return null;
   return (
     <section
-      className={`production-match-feed ${catchingUp || statusNotice ? "is-active" : "is-quiescent"}`}
-      aria-label="Live match feed"
+      className="production-match-feed is-active"
+      aria-label="Transient match status"
     >
       <div className="production-match-feed-current" role="status" aria-live="polite" aria-atomic="true">
-        <span>{catchingUp ? "Resolving" : "Live"}</span>
-        {currentContent && <GameIcon name={currentContent[0]} size={17} />}
+        <span>{catchingUp ? "Resolving" : "Notice"}</span>
+        {catchingUp && currentContent && <GameIcon name={currentContent[0]} size={17} />}
         <div>
-          <strong key={currentEntry?.id || statusNotice || "ready"}>
-            {currentContent?.[1] || statusNotice || "The table is ready."}
+          <strong key={currentEntry?.id || visibleNotice || "ready"}>
+            {visibleNotice || currentContent?.[1] || "Resolving the current action…"}
           </strong>
-          {currentContent && statusNotice && <small>{statusNotice}</small>}
         </div>
       </div>
-      {priorEntries.length > 0 && (
-        <details className="production-match-feed-history">
-          <summary aria-label={`Show ${priorEntries.length} recent match events`}>
-            Recent <b>{priorEntries.length}</b>
-          </summary>
-          <ol>
-            {priorEntries.map((entry, index) => {
-              const content = eventCalloutContent(entry);
-              return (
-                <li key={entry.id || `${entry.type}-${index}`}>
-                  <GameIcon name={content[0]} size={15} />
-                  <span>{content[1]}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </details>
-      )}
     </section>
   );
 }
@@ -1600,8 +1591,11 @@ export default function ProductionMatchExperience({
       data-actors-by-zone={JSON.stringify(sceneMetrics?.actorsByZone || {})}
       data-known-actor-count={sceneMetrics?.knownActorCount ?? ""}
       data-anonymous-actor-count={sceneMetrics?.anonymousActorCount ?? ""}
+      data-face-art-actor-count={sceneMetrics?.faceArtActorCount ?? ""}
+      data-basic-face-art-actor-count={sceneMetrics?.basicFaceArtActorCount ?? ""}
       data-departing-actor-count={sceneMetrics?.departingActorCount ?? ""}
       data-duplicate-visible-identity-count={sceneMetrics?.duplicateVisibleIdentityCount ?? ""}
+      data-missing-face-art-count={sceneMetrics?.missingFaceArtCount ?? ""}
       data-structural-composite-raster-count={sceneMetrics?.structuralCompositeRasterCount ?? ""}
       data-active-transition-count={sceneMetrics?.activeTransitionCount ?? ""}
       data-active-motions-by-role={JSON.stringify(sceneMetrics?.activeMotionsByRole || {})}
@@ -1614,6 +1608,7 @@ export default function ProductionMatchExperience({
       data-playback-queued-frames={playbackState.queuedFrames}
       data-cadence-tier={canvasViewModel?.presentationCues?.[0]?.cadence?.tier || "rest"}
       data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
+      data-hand-combat-module-active={sceneMetrics?.handCombatModuleActive ? "true" : "false"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
     >
       <div

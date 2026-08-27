@@ -14,7 +14,7 @@ const DESKTOP_MOUNTS = Object.freeze({
   "lane-0": { x: -7.35, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-1": { x: 0, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-2": { x: 7.35, z: -0.15, width: 6.35, depth: 7.95 },
-  "hand-combat-dais": { x: 0, z: 5.25, width: 13.6, depth: 2.45 },
+  "hand-combat-dais": { x: 0, z: 5.95, width: 10.2, depth: 2.65 },
   "payment-tray": { x: 10.75, z: -6.35, width: 6.05, depth: 4.25 },
   "pile-local-deck": { x: -12.6, z: -6.75, width: 1.68, depth: 2.26 },
   "pile-local-discard": { x: -10.4, z: -6.75, width: 2.08, depth: 2.72 },
@@ -53,12 +53,14 @@ const desktopModules = scaledDesktopModules();
 // very shallow battlefield left by browser chrome and the action rail.
 const shortLandscapeModules = scaledDesktopModules(0.92, 0.62);
 const ultrawideModules = scaledDesktopModules(0.94, 0.66);
+shortLandscapeModules["hand-combat-dais"] = { x: 0, z: 3.2, scaleX: 0.92, scaleZ: 0.62 };
+ultrawideModules["hand-combat-dais"] = { x: 0, z: 3.45, scaleX: 0.94, scaleZ: 0.66 };
 const portraitModules = {
   "board-base": { x: 0, z: 0, scaleX: 0.58, scaleZ: 1.5 },
   "lane-0": { x: -4.35, z: 0, scaleX: 0.68, scaleZ: 1.1 },
   "lane-1": { x: 0, z: 0, scaleX: 0.68, scaleZ: 1.1 },
   "lane-2": { x: 4.35, z: 0, scaleX: 0.68, scaleZ: 1.1 },
-  "hand-combat-dais": { x: 0, z: 9.5, scaleX: 0.72, scaleZ: 0.9 },
+  "hand-combat-dais": { x: 0, z: 9.8, scaleX: 0.76, scaleZ: 0.9 },
   "payment-tray": { x: 0, z: -8.3, scaleX: 0.82, scaleZ: 0.8 },
   "pile-local-deck": { x: -6.15, z: 12, scaleX: 0.68, scaleZ: 0.68 },
   "pile-local-discard": { x: -6.15, z: 9.5, scaleX: 0.68, scaleZ: 0.68 },
@@ -134,8 +136,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-7.35, 0, 7.35],
       lane: { local: -3.15, opponent: 3.05, attacker: 1.25, blocker: -1.25, center: -0.05 },
-      hand: { localX: -0.6, localZ: -7.05, opponentX: 0, opponentZ: 8.15, localScale: 0.9, opponentScale: 0.46 },
-      combat: { x: 0, z: 5.25, attackerX: -3.65, blockerX: 2.35, attachmentX: -5.45 },
+      hand: { localX: -0.35, localZ: -7.05, opponentX: 0, opponentZ: 8.25, localScale: 0.98, opponentScale: 0.52 },
+      combat: { x: 0, z: 5.95, attackerX: -1.55, blockerX: 2.05, attachmentX: -3.85 },
       payment: { x: 10.75, z: -6.35 },
       piles: {
         localDeck: { x: -12.6, z: -6.75 },
@@ -154,8 +156,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-4.35, 0, 4.35],
       lane: { local: -3.25, opponent: 3.25, attacker: 1.3, blocker: -1.05, center: 0 },
-      hand: { localX: 0, localZ: -12, opponentX: 0, opponentZ: 12.85, localScale: 0.92, opponentScale: 0.45 },
-      combat: { x: 0, z: 9.5, attackerX: -2.63, blockerX: 1.69, attachmentX: -3.92 },
+      hand: { localX: 0, localZ: -12, opponentX: 0, opponentZ: 12.85, localScale: 0.96, opponentScale: 0.5 },
+      combat: { x: 0, z: 9.8, attackerX: -1.18, blockerX: 1.56, attachmentX: -2.93 },
       payment: { x: 0, z: -8.3 },
       piles: {
         localDeck: { x: -6.15, z: 12 },
@@ -174,8 +176,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-6.76, 0, 6.76],
       lane: { local: -1.95, opponent: 1.89, attacker: 1.02, blocker: -1.02, center: -0.03 },
-      hand: { localX: -0.5, localZ: -4.15, opponentX: 0, opponentZ: 4.95, localScale: 0.94, opponentScale: 0.5 },
-      combat: { x: 0, z: 3.1, attackerX: -3.36, blockerX: 2.16, attachmentX: -5.01 },
+      hand: { localX: -0.25, localZ: -4.14, opponentX: 0, opponentZ: 5.03, localScale: 0.98, opponentScale: 0.5 },
+      combat: { x: 0, z: 3.2, attackerX: -1.43, blockerX: 1.89, attachmentX: -3.54 },
       payment: { x: 9.89, z: -3.94 },
       piles: {
         localDeck: { x: -11.59, z: -4.18 },
@@ -194,8 +196,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-6.91, 0, 6.91],
       lane: { local: -2.08, opponent: 2.01, attacker: 1.08, blocker: -1.08, center: -0.03 },
-      hand: { localX: -0.4, localZ: -4.55, opponentX: 0, opponentZ: 5.15, localScale: 0.72, opponentScale: 0.42 },
-      combat: { x: 0, z: 3.47, attackerX: -3.43, blockerX: 2.21, attachmentX: -5.12 },
+      hand: { localX: -0.25, localZ: -4.55, opponentX: 0, opponentZ: 5.28, localScale: 0.82, opponentScale: 0.48 },
+      combat: { x: 0, z: 3.45, attackerX: -1.46, blockerX: 1.93, attachmentX: -3.62 },
       payment: { x: 10.11, z: -4.19 },
       piles: {
         localDeck: { x: -11.84, z: -4.46 },

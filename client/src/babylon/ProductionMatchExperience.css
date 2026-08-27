@@ -30,9 +30,9 @@
 }
 
 .production-match-experience {
-  --battlefield-top-reserve: 88px;
-  --battlefield-bottom-reserve: 136px;
-  --battlefield-side-reserve: 8px;
+  --battlefield-top-reserve: 68px;
+  --battlefield-bottom-reserve: 112px;
+  --battlefield-side-reserve: 4px;
 }
 
 .production-battlefield-safe-frame {
@@ -85,32 +85,32 @@
   position: absolute;
   z-index: 5;
   display: grid;
-  grid-template-columns: 58px minmax(112px, 1fr) auto;
+  grid-template-columns: 42px minmax(104px, 1fr) auto;
   grid-template-rows: auto auto;
-  width: clamp(250px, 24vw, 350px);
-  min-height: 76px;
+  width: clamp(218px, 20vw, 294px);
+  min-height: 58px;
   align-items: center;
-  column-gap: 10px;
-  padding: 8px 12px 8px 8px;
-  border: 1px solid rgba(114, 137, 156, 0.58);
-  border-radius: 12px;
+  column-gap: 8px;
+  padding: 5px 9px 5px 5px;
+  border: 1px solid rgba(114, 137, 156, 0.42);
+  border-radius: 7px;
   background:
-    linear-gradient(145deg, rgba(27, 38, 50, 0.96), rgba(7, 13, 21, 0.96));
+    linear-gradient(145deg, rgba(25, 36, 47, 0.88), rgba(5, 11, 18, 0.9));
   box-shadow:
-    0 14px 32px rgba(0, 0, 0, 0.45),
+    0 8px 20px rgba(0, 0, 0, 0.38),
     inset 0 1px rgba(255, 255, 255, 0.06);
   transition: border-color 180ms ease, box-shadow 180ms ease;
   pointer-events: none;
 }
 
 .production-player-plate-top {
-  top: max(14px, env(safe-area-inset-top));
-  left: max(14px, env(safe-area-inset-left));
+  top: max(6px, env(safe-area-inset-top));
+  left: max(6px, env(safe-area-inset-left));
 }
 
 .production-player-plate-bottom {
-  bottom: max(14px, env(safe-area-inset-bottom));
-  left: max(14px, env(safe-area-inset-left));
+  bottom: max(6px, env(safe-area-inset-bottom));
+  left: max(6px, env(safe-area-inset-left));
 }
 
 .production-player-plate.has-priority {
@@ -125,17 +125,17 @@
   position: relative;
   grid-row: 1 / span 2;
   display: grid;
-  width: 54px;
-  height: 62px;
+  width: 38px;
+  height: 46px;
   place-items: center;
   border: 1px solid var(--gauntlet-bronze);
-  border-radius: 9px 9px 16px 16px;
+  border-radius: 6px 6px 11px 11px;
   color: #f1d8a8;
   background:
     linear-gradient(145deg, rgba(30, 107, 255, 0.28), transparent 45%),
     var(--gauntlet-navy);
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.58);
-  font: 700 25px/1 Georgia, serif;
+  font: 700 19px/1 Georgia, serif;
   overflow: hidden;
 }
 
@@ -152,8 +152,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   place-items: center;
   border: 1px solid rgba(229, 191, 127, 0.7);
   border-radius: 50%;
@@ -197,7 +197,7 @@
 }
 
 .production-life strong {
-  font: 700 28px/1 Georgia, serif;
+  font: 700 24px/1 Georgia, serif;
 }
 
 .production-priority {
@@ -226,25 +226,25 @@
 .production-context-panel {
   position: absolute;
   z-index: 6;
-  right: max(14px, env(safe-area-inset-right));
-  bottom: max(14px, env(safe-area-inset-bottom));
+  right: max(6px, env(safe-area-inset-right));
+  bottom: max(6px, env(safe-area-inset-bottom));
   display: grid;
-  width: clamp(320px, 30vw, 430px);
-  min-height: 112px;
-  gap: 10px;
-  padding: 13px;
+  width: clamp(292px, 27vw, 386px);
+  min-height: 96px;
+  gap: 7px;
+  padding: 9px;
   border: 1px solid rgba(94, 127, 151, 0.72);
-  border-radius: 13px;
-  background: rgba(6, 13, 21, 0.94);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52);
+  border-radius: 8px;
+  background: rgba(6, 13, 21, 0.9);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.44);
   backdrop-filter: blur(10px);
 }
 
 .production-faction-actions {
   position: absolute;
   z-index: 7;
-  left: calc(max(14px, env(safe-area-inset-left)) + clamp(250px, 24vw, 350px) + 12px);
-  bottom: max(14px, env(safe-area-inset-bottom));
+  left: calc(max(6px, env(safe-area-inset-left)) + clamp(218px, 20vw, 294px) + 8px);
+  bottom: max(6px, env(safe-area-inset-bottom));
   display: grid;
   max-width: min(430px, 45vw);
   gap: 5px;
@@ -385,7 +385,7 @@
 .production-turn-marker {
   position: absolute;
   z-index: 4;
-  top: max(18px, env(safe-area-inset-top));
+  top: max(10px, env(safe-area-inset-top));
   left: 50%;
   display: grid;
   justify-items: center;
@@ -403,7 +403,7 @@
   position: absolute;
   z-index: 7;
   top: clamp(10px, 1.4vh, 18px);
-  left: calc(max(14px, env(safe-area-inset-left)) + clamp(250px, 24vw, 350px) + 12px);
+  left: calc(max(6px, env(safe-area-inset-left)) + clamp(218px, 20vw, 294px) + 8px);
   display: grid;
   gap: 2px;
   min-width: 132px;
@@ -1790,9 +1790,9 @@
 /* The HTML rails reserve a stable rectangle before Babylon performs camera fit. */
 @media (max-width: 1024px) {
   .production-match-experience {
-    --battlefield-top-reserve: 88px;
-    --battlefield-bottom-reserve: 142px;
-    --battlefield-side-reserve: 6px;
+    --battlefield-top-reserve: 68px;
+    --battlefield-bottom-reserve: 122px;
+    --battlefield-side-reserve: 4px;
   }
 
   .production-faction-actions {
@@ -1819,8 +1819,8 @@
 
 @media (max-width: 900px) {
   .production-match-experience {
-    --battlefield-top-reserve: 76px;
-    --battlefield-bottom-reserve: 132px;
+    --battlefield-top-reserve: 66px;
+    --battlefield-bottom-reserve: 118px;
   }
 
   .production-combat-recap {
@@ -1856,8 +1856,8 @@
   }
 
   .production-match-experience {
-    --battlefield-top-reserve: 50px;
-    --battlefield-bottom-reserve: 104px;
+    --battlefield-top-reserve: 44px;
+    --battlefield-bottom-reserve: 92px;
     --battlefield-side-reserve: 4px;
   }
 
@@ -1912,9 +1912,9 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .production-match-experience {
-    --battlefield-top-reserve: 60px;
-    --battlefield-bottom-reserve: 148px;
-    --battlefield-side-reserve: 4px;
+    --battlefield-top-reserve: 58px;
+    --battlefield-bottom-reserve: 142px;
+    --battlefield-side-reserve: 3px;
     min-height: 0;
   }
 

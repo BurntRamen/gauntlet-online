@@ -887,13 +887,13 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       pickable: true,
       metadata: { gauntlet: { type: "lane", laneIndex: index } }
     });
-    lane.visibility = 1;
+    lane.visibility = 0.9;
     lane.enablePointerMoveEvents = true;
     laneMeshes.push(lane);
 
     createChamferedPlate(babylonScene, `lane-${index}-field`, {
       width: MATCH_LAYOUT.lanes.width - 0.46,
-      height: 0.09,
+      height: 0.055,
       depth: MATCH_LAYOUT.lanes.depth - 0.48,
       cornerCut: 0.24,
       bevel: 0.018,
@@ -907,9 +907,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       width: MATCH_LAYOUT.lanes.width - 0.12,
       depth: MATCH_LAYOUT.lanes.depth - 0.12,
       material: nativePalette.bronzeDark,
-      thickness: 0.21,
-      height: 0.17,
-      visibility: 0.72
+      thickness: 0.13,
+      height: 0.08,
+      visibility: 0.32
     });
     createMountedFrame(`lane-frame-${index}-inset`, {
       x: laneX,
@@ -920,7 +920,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       material: nativePalette.bronze,
       thickness: 0.06,
       height: 0.075,
-      visibility: 0.58
+      visibility: 0.12
     });
     [-1, 1].forEach((side) => {
       createChamferedPlate(babylonScene, `lane-${index}-crown-${side}`, {
@@ -930,6 +930,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         cornerCut: 0.12,
         bevel: 0.028,
         material: nativePalette.bronzeDark,
+        visibility: 0.18,
         position: {
           x: laneX,
           y: 0.405,
@@ -940,7 +941,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         x: laneX,
         y: 0.49,
         z: MATCH_LAYOUT.lanes.z + side * (MATCH_LAYOUT.lanes.depth / 2 - 0.25),
-        size: 0.12,
+        size: 0.09,
+        visibility: 0.12,
         palette: nativePalette
       });
     });
@@ -952,17 +954,19 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         cornerCut: 0.02,
         bevel: 0.008,
         material: nativePalette.bronzeDark,
+        visibility: 0.14,
         position: { x: laneX, y: 0.415, z: spineZ }
       });
     });
 
     createChamferedPlate(babylonScene, `lane-${index}-resolution-bridge`, {
       width: 4.72,
-      height: 0.12,
+      height: 0.055,
       depth: 0.82,
       cornerCut: 0.22,
       bevel: 0.035,
-      material: nativePalette.graphiteDeep,
+      material: nativePalette.stone,
+      visibility: 0.32,
       position: { x: laneX, y: 0.27, z: MATCH_LAYOUT.anchors.resolution }
     });
     createMountedFrame(`lane-${index}-resolution-bridge-frame`, {
@@ -974,7 +978,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       material: nativePalette.bronzeDark,
       thickness: 0.07,
       height: 0.06,
-      visibility: 1
+      visibility: 0.18
     });
     const resolutionDiamond = CreateCylinder(`lane-${index}-resolution-diamond`, {
       height: 0.14,
@@ -984,6 +988,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     resolutionDiamond.rotation.y = 0;
     resolutionDiamond.position.set(laneX, 0.405, MATCH_LAYOUT.anchors.resolution);
     resolutionDiamond.material = nativePalette.bronzeDark;
+    resolutionDiamond.visibility = 0.18;
     resolutionDiamond.isPickable = false;
     const resolutionDiamondField = CreateCylinder(`lane-${index}-resolution-diamond-field`, {
       height: 0.1,
@@ -993,6 +998,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     resolutionDiamondField.rotation.y = 0;
     resolutionDiamondField.position.set(laneX, 0.48, MATCH_LAYOUT.anchors.resolution);
     resolutionDiamondField.material = nativePalette.stoneRaised;
+    resolutionDiamondField.visibility = 0.22;
     resolutionDiamondField.isPickable = false;
     [-1, 1].forEach((sideX) => {
       [-1, 1].forEach((sideZ) => {
@@ -1003,6 +1009,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           cornerCut: 0.05,
           bevel: 0.02,
           material: nativePalette.bronzeDark,
+          visibility: 0.12,
           position: {
             x: laneX + sideX * 2.34,
             y: 0.41,
@@ -1032,10 +1039,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         z: slot.z,
         ...dimensions,
         accent: slot.material,
-        floorVisibility: 1,
-        railVisibility: 1
+        floorVisibility: 0.42,
+        railVisibility: 0.34
       });
-      well.rails.forEach((rail) => { rail.visibility = 1; });
+      well.rails.forEach((rail) => { rail.visibility = 0.34; });
       createEngravingDecal(babylonScene, `lane-${index}-${slot.name}-engraving`, {
         x: laneX,
         y: 0.235,
@@ -1043,7 +1050,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         width: 2.42,
         depth: 1.82,
         tint: slot.name === "local" ? "#6c8fa4" : "#9a7748",
-        alpha: 0.5
+        alpha: 0.18
       });
     });
 
@@ -1059,8 +1066,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         depth: 1.55,
         accent: slot.accent,
         rail: 0.065,
-        floorVisibility: 1,
-        railVisibility: 0.92
+        floorVisibility: 0.22,
+        railVisibility: 0.18
       });
     });
 
@@ -1073,6 +1080,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           cornerCut: 0.13,
           bevel: 0.035,
           material: nativePalette.bronzeDark,
+          visibility: 0.1,
           position: {
             x: laneX + sideX * (MATCH_LAYOUT.lanes.width / 2 - 0.37),
             y: 0.405,
@@ -1174,26 +1182,31 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     arrow.isPickable = false;
     combatArrows.push(arrow);
 
-    createEngravedMedallion(babylonScene, `lane-sigil-${index}`, {
+    const laneSigil = createEngravedMedallion(babylonScene, `lane-sigil-${index}`, {
       x: laneX,
       y: 0.43,
       z: MATCH_LAYOUT.anchors.resolution,
       diameter: 0.9,
       palette: nativePalette,
-      accentMaterial: nativePalette.bronze
+      accentMaterial: nativePalette.bronze,
+      accentVisibility: 0.2,
+      motifVisibility: 0.2
     });
+    Object.values(laneSigil).forEach((mesh) => { mesh.visibility = 0.2; });
     createSapphireStud(babylonScene, `lane-sigil-${index}-north-stud`, {
       x: laneX,
       y: 0.49,
       z: MATCH_LAYOUT.anchors.resolution + 0.82,
-      size: 0.1,
+      size: 0.08,
+      visibility: 0.1,
       palette: nativePalette
     });
     createSapphireStud(babylonScene, `lane-sigil-${index}-south-stud`, {
       x: laneX,
       y: 0.49,
       z: MATCH_LAYOUT.anchors.resolution - 0.82,
-      size: 0.1,
+      size: 0.08,
+      visibility: 0.1,
       palette: nativePalette
     });
 
@@ -1210,6 +1223,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       "#07111c"
     );
     laneLabel.material.emissiveColor = color("#101d27");
+    laneLabel.visibility = 0.34;
     laneLabel.isPickable = false;
   });
 
@@ -1222,11 +1236,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: MATCH_LAYOUT.handCombat.width + 0.52,
     depth: MATCH_LAYOUT.handCombat.depth + 0.42,
     cornerCut: 0.36,
-    alpha: 0.52
+    alpha: 0.38
   });
   const handCombatPlate = createChamferedPlate(babylonScene, "independent-hand-combat", {
     width: MATCH_LAYOUT.handCombat.width + 1.08,
-    height: 0.38,
+    height: 0.28,
     depth: MATCH_LAYOUT.handCombat.depth + 0.58,
     cornerCut: 0.5,
     bevel: 0.1,
@@ -1239,7 +1253,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   });
   createChamferedPlate(babylonScene, "hand-combat-mounted-field", {
     width: MATCH_LAYOUT.handCombat.width - 0.02,
-    height: 0.09,
+    height: 0.055,
     depth: MATCH_LAYOUT.handCombat.depth - 0.1,
     cornerCut: 0.24,
     bevel: 0.018,
@@ -1259,7 +1273,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     material: bronzeMaterial,
     thickness: 0.19,
     height: 0.15,
-    visibility: 0.76
+    visibility: 0.44
   });
   createInsetWell("hand-combat-attacker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
@@ -1268,8 +1282,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 4.6,
     depth: 1.78,
     accent: nativePalette.steel,
-    floorVisibility: 1,
-    railVisibility: 1
+    floorVisibility: 0.62,
+    railVisibility: 0.54
   });
   createInsetWell("hand-combat-blocker", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.blockX,
@@ -1278,17 +1292,21 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 4.65,
     depth: 1.78,
     accent: nativePalette.bronzeDark,
-    floorVisibility: 1,
-    railVisibility: 1
+    floorVisibility: 0.62,
+    railVisibility: 0.54
   });
-  createEngravedMedallion(babylonScene, "hand-combat-versus-medallion", {
+  const handCombatMedallion = createEngravedMedallion(babylonScene, "hand-combat-versus-medallion", {
     x: -0.58,
     y: MATCH_LAYOUT.handCombat.y + 0.34,
     z: MATCH_LAYOUT.handCombat.z,
     diameter: 0.82,
     palette: nativePalette,
-    accentMaterial: nativePalette.bronzeBright
+    accentMaterial: nativePalette.bronzeBright,
+    accentVisibility: 0.42,
+    motifVisibility: 0.38
   });
+  handCombatMedallion.base.visibility = 0.5;
+  handCombatMedallion.field.visibility = 0.55;
   const combatCrest = CreateCylinder("hand-combat-versus-crest", {
     height: 0.12,
     diameter: 1.08,
@@ -1297,6 +1315,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   combatCrest.rotation.y = 0;
   combatCrest.position.set(-0.58, MATCH_LAYOUT.handCombat.y + 0.37, MATCH_LAYOUT.handCombat.z);
   combatCrest.material = nativePalette.bronzeDark;
+  combatCrest.visibility = 0.42;
   combatCrest.isPickable = false;
   createEngravingDecal(babylonScene, "hand-combat-attacker-engraving", {
     x: MATCH_LAYOUT.handCombat.x + MATCH_LAYOUT.handCombat.attackX,
@@ -1305,7 +1324,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 3.7,
     depth: 1.18,
     tint: "#648ba2",
-    alpha: 0.48,
+    alpha: 0.22,
     motif: "rail"
   });
   createEngravingDecal(babylonScene, "hand-combat-blocker-engraving", {
@@ -1315,25 +1334,27 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     width: 3.72,
     depth: 1.18,
     tint: "#976057",
-    alpha: 0.48,
+    alpha: 0.22,
     motif: "rail"
   });
   [-1, 1].forEach((side) => {
     const wingX = side * (MATCH_LAYOUT.handCombat.width / 2 + 0.24);
     createChamferedPlate(babylonScene, `hand-combat-wing-${side}`, {
       width: 1.18,
-      height: 0.26,
+      height: 0.18,
       depth: 2.08,
       cornerCut: 0.28,
       bevel: 0.07,
       material: nativePalette.bronzeDark,
+      visibility: 0.48,
       position: { x: wingX, y: MATCH_LAYOUT.handCombat.y + 0.19, z: MATCH_LAYOUT.handCombat.z }
     });
     createSapphireStud(babylonScene, `hand-combat-wing-${side}-stud`, {
       x: wingX,
       y: MATCH_LAYOUT.handCombat.y + 0.38,
       z: MATCH_LAYOUT.handCombat.z,
-      size: 0.14,
+      size: 0.1,
+      visibility: 0.3,
       palette: nativePalette
     });
   });
@@ -1933,6 +1954,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const animatedEventIds = new Set();
   let lastReplayActionId = null;
   let lastDuplicateWarningKey = null;
+  let lastMissingArtWarningKey = null;
   let lastPointerPick = null;
   const identityMatrix = Matrix.Identity();
 
@@ -2690,9 +2712,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       || viewModel.selection.blockMode?.type === "handAttack";
     const focus = currentBoardPresentation.focus || { region: "board", laneIndex: null, tier: "rest" };
     const focusedAction = focus.tier !== "rest";
-    handCombatPlate.visibility = focus.region === "combat" ? 1 : focusedAction ? 0.58 : 0.78;
+    nativeBoardStage?.modules?.get("hand-combat-dais")?.root?.setEnabled(handCombatActive);
+    handCombatPlate.visibility = focus.region === "combat" ? 0.96 : 0.82;
     handCombatRails.forEach((rail) => {
-      rail.visibility = focus.region === "combat" ? 0.9 : focusedAction ? 0.42 : 0.62;
+      rail.visibility = focus.region === "combat" ? 0.72 : 0.46;
     });
     ui.combatAttackValue.setValue(String(currentBoardPresentation.combat.attackValue || "—"));
     ui.combatBlockValue.setValue(String(currentBoardPresentation.combat.blockValue || "—"));
@@ -2759,12 +2782,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
                   ? laneLegalRailMaterial
                   : laneRailMaterial;
           const baseVisibility = state === "idle"
-            ? 0.34
+            ? 0.08
             : state === "legal"
-              ? 0.58
+              ? 0.4
               : state === "active"
-                ? 0.78
-                : 0.88;
+                ? 0.64
+                : 0.82;
           const unrelatedLane = focus.region === "lane" && focus.laneIndex !== index;
           const unrelatedRegion = focusedAction && !["board", "lane"].includes(focus.region);
           rail.visibility = baseVisibility * (unrelatedLane ? 0.42 : unrelatedRegion ? 0.68 : 1);
@@ -2787,6 +2810,22 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
     actorRegistry.reconcile(currentPresentationSnapshot, transitionPlan.transitions);
     if (process.env.NODE_ENV !== "production") {
+      const missingFaceArt = currentPresentationSnapshot.actors.filter((actor) => (
+        actor.expectsFaceArt && !actor.faceDown && !actor.artPath
+      ));
+      if (missingFaceArt.length > 0) {
+        const warningKey = `${currentPresentationSnapshot.matchId}:${currentPresentationSnapshot.revision}`;
+        if (warningKey !== lastMissingArtWarningKey) {
+          lastMissingArtWarningKey = warningKey;
+          console.error("Gauntlet ordinary face-up cards are missing required art", missingFaceArt.map((actor) => ({
+            actorId: actor.actorId,
+            cardId: actor.cardId,
+            factionId: actor.factionId || "unknown",
+            label: actor.label,
+            zone: actor.zone
+          })));
+        }
+      }
       const duplicates = actorRegistry.duplicateVisibleIdentities();
       if (duplicates.length > 0) {
         const warningKey = `${currentPresentationSnapshot.matchId}:${currentPresentationSnapshot.revision}`;
@@ -3175,6 +3214,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         queuedTransitionCount: Math.max(0, queuedTransitionCount),
         activeEffects: Number(Boolean(activeEventAnimation)) + animationQueue.length,
         layoutProfile: activeLayoutProfile.id,
+        handCombatModuleActive: Boolean(
+          nativeBoardStage?.modules?.get("hand-combat-dais")?.root?.isEnabled?.()
+        ),
         moduleBounds: Object.fromEntries((stageMetrics.boardModules || []).map((module) => [module.id, module.bounds])),
         structuralCompositeRasterCount: 0,
         pendingTextures: pendingTexturePaths.size,

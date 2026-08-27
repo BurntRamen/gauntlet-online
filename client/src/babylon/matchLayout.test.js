@@ -52,7 +52,7 @@ describe("production card orientation contract", () => {
     const outerEdge = Math.max(...positions.map((position) => Math.abs(position.x))) + visibleCardWidth / 2;
 
     expect(smallestGap).toBeGreaterThanOrEqual(1.8);
-    expect(smallestGap / visibleCardWidth).toBeGreaterThan(0.9);
+    expect(smallestGap / visibleCardWidth).toBeGreaterThan(0.8);
     expect(outerEdge).toBeLessThan(MATCH_LAYOUT.table.width / 2);
   });
 
@@ -109,7 +109,8 @@ describe("combat tableau geometry", () => {
       getHandCombatPosition("blocker", index, 3, false)
     ));
 
-    expect(blockers[1].x - attacker.x).toBeGreaterThan(4);
+    expect(blockers[1].x - attacker.x).toBeGreaterThan(3);
+    expect(attacker.scale).toBeGreaterThan(0.8);
     expect(new Set(blockers.map((position) => position.x)).size).toBe(3);
     expect(blockers.every((position) => position.z === attacker.z)).toBe(true);
   });

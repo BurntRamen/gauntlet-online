@@ -291,7 +291,8 @@ async function pageWithBottomAction(pages, pattern) {
       const page = pages[index];
       const ownsAction = await page.locator(".production-player-plate-bottom.has-priority").isVisible();
       const text = await currentAction(page).textContent();
-      if (ownsAction && pattern.test(text || "")) {
+      const turnMarkerText = await page.locator(".production-turn-marker").textContent();
+      if (ownsAction && (pattern.test(text || "") || pattern.test(turnMarkerText || ""))) {
         matchingIndex = index;
         break;
       }
@@ -639,6 +640,9 @@ async function captureLiveSceneSample(page) {
         revision: Number(match.dataset.revision || 0),
         boardModuleCount: Number(match.dataset.boardModuleCount || 0),
         duplicateVisibleIdentityCount: Number(match.dataset.duplicateVisibleIdentityCount || 0),
+        missingFaceArtCount: Number(match.dataset.missingFaceArtCount || 0),
+        faceArtActorCount: Number(match.dataset.faceArtActorCount || 0),
+        basicFaceArtActorCount: Number(match.dataset.basicFaceArtActorCount || 0),
         structuralCompositeRasterCount: Number(match.dataset.structuralCompositeRasterCount || 0),
         actorCount: Number(match.dataset.cardActorCount || 0),
         actorsByZone: JSON.parse(match.dataset.actorsByZone || "{}"),
@@ -660,6 +664,7 @@ async function captureLiveSceneSample(page) {
           || window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         layoutProfile: match.dataset.layoutProfile || null,
         focusRegion: match.dataset.focusRegion || null,
+        handCombatModuleActive: match.dataset.handCombatModuleActive === "true",
         canvasWidth: element.clientWidth,
         canvasHeight: element.clientHeight
       }
@@ -709,6 +714,7 @@ async function expectNativeSceneDiagnostics(page) {
   await expect(match).toHaveAttribute("data-scene-contract", "gauntlet.board-stage.native.v1");
   await expect(match).toHaveAttribute("data-board-module-count", "10");
   await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
+  await expect(match).toHaveAttribute("data-missing-face-art-count", "0");
   await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
   return match;
 }
@@ -739,6 +745,9 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
       "duplicateVisibleIdentityCount",
       attributes.duplicateVisibleIdentityCount
     ),
+    missingFaceArtCount: rendererValue("missingFaceArtCount", attributes.missingFaceArtCount),
+    faceArtActorCount: rendererValue("faceArtActorCount", attributes.faceArtActorCount),
+    basicFaceArtActorCount: rendererValue("basicFaceArtActorCount", attributes.basicFaceArtActorCount),
     structuralCompositeRasterCount: rendererValue(
       "structuralCompositeRasterCount",
       attributes.structuralCompositeRasterCount
@@ -769,6 +778,10 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
     focusRegion: Object.prototype.hasOwnProperty.call(rendererMetrics, "boardPresentation")
       ? rendererMetrics.boardPresentation?.focus?.region || null
       : attributes.focusRegion,
+    handCombatModuleActive: rendererValue(
+      "handCombatModuleActive",
+      attributes.handCombatModuleActive
+    ),
     rendererRevision: rendererValue("revision", null),
     rootRevision: attributes.revision,
     playbackCatchingUp: attributes.playbackCatchingUp,
@@ -786,6 +799,7 @@ async function captureDiagnostics(page, rendererMetrics = null) {
   expect(diagnostics.sceneContract).toBe("gauntlet.board-stage.native.v1");
   expect(diagnostics.boardModuleCount).toBe(10);
   expect(diagnostics.duplicateVisibleIdentityCount).toBe(0);
+  expect(diagnostics.missingFaceArtCount).toBe(0);
   expect(diagnostics.structuralCompositeRasterCount).toBe(0);
   expect(diagnostics.actorCount).toBe(diagnostics.knownActorCount + diagnostics.anonymousActorCount);
   return diagnostics;
@@ -882,6 +896,9 @@ async function captureMajorDamageScenario(browser, baseURL, manifest) {
   const defenderNumber = attackerNumber === 1 ? 2 : 1;
   const attacker = opened[attackerNumber].page;
   const defender = opened[defenderNumber].page;
+
+  await expect(attacker.getByTestId("production-babylon-match"))
+    .toHaveAttribute("data-basic-face-art-actor-count", /^[1-9]\d*$/);
   const mobileSpectator = await openSpectator(browser, baseURL, duel, VIEWPORTS[4]);
   try {
     await openHandControls(attacker);
@@ -1028,8 +1045,11 @@ test("capture real live and replay match presentation states", async ({ browser,
   const attacker = opened[attackerNumber].page;
   const defender = opened[defenderNumber].page;
 
+  await expect(attacker.getByTestId("production-babylon-match"))
+    .toHaveAttribute("data-basic-face-art-actor-count", /^[1-9]\d*$/);
   await waitForPlaybackSettled(defender);
-  await captureState(defender, manifest, "neutral-rest", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  const neutralRest = await captureState(defender, manifest, "neutral-rest", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
+  neutralRest.captures.forEach((capture) => expect(capture.diagnostics.handCombatModuleActive).toBe(false));
   await captureState(attacker, manifest, "attack-available", [VIEWPORTS[0], VIEWPORTS[4], VIEWPORTS[5]]);
   await captureState(attacker, manifest, "live-priority");
   if (process.env.BABYLON_IDLE_ONLY === "true") {
@@ -1135,7 +1155,8 @@ test("capture real live and replay match presentation states", async ({ browser,
   await waitForPlaybackSettled(attacker);
   const settledAttack = await captureState(attacker, manifest, "attack-settled", [VIEWPORTS[0]]);
   expectZonesEmpty(settledAttack, ["payment"]);
-  await captureState(defender, manifest, "incoming-hand-attack", VIEWPORTS.slice(0, 4));
+  const incomingHandAttack = await captureState(defender, manifest, "incoming-hand-attack", VIEWPORTS.slice(0, 4));
+  incomingHandAttack.captures.forEach((capture) => expect(capture.diagnostics.handCombatModuleActive).toBe(true));
   await defender.setViewportSize(VIEWPORTS[0]);
   await openHandControls(defender);
   await clickHandCardByValue(defender, "lowest");

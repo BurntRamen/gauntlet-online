@@ -9,21 +9,21 @@ export const MATCH_LAYOUT = {
     width: 6.35,
     depth: 7.95
   },
-  opponentHand: { x: 0, z: 8.15, y: 0.88, scale: 0.46, spread: 1.08 },
-  playerHand: { x: -0.6, z: -7.05, y: 0.62, scale: 0.9, spread: 1.9 },
+  opponentHand: { x: 0, z: 8.25, y: 0.88, scale: 0.52, spread: 1.22 },
+  playerHand: { x: -0.35, z: -7.05, y: 0.62, scale: 0.98, spread: 1.86 },
   handCombat: {
     x: 0,
     y: 0.22,
-    z: 5.25,
-    width: 13.6,
-    depth: 2.45,
-    spread: 1.82,
-    attackX: -3.65,
-    blockX: 2.35,
-    localRow: 5.25,
-    opponentRow: 5.25,
-    localBlockRow: 5.25,
-    opponentBlockRow: 5.25
+    z: 5.95,
+    width: 10.2,
+    depth: 2.65,
+    spread: 2.08,
+    attackX: -1.55,
+    blockX: 2.05,
+    localRow: 5.95,
+    opponentRow: 5.95,
+    localBlockRow: 5.95,
+    opponentBlockRow: 5.95
   },
   payment: {
     x: 10.75,
@@ -68,7 +68,7 @@ export function getHandCombatPosition(role, index = 0, count = 1, ownerIsLocal =
     z: MATCH_LAYOUT.handCombat.z,
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
-    scale: isBlocker ? 0.62 : 0.68
+    scale: isBlocker ? 0.8 : 0.88
   };
 }
 
@@ -98,12 +98,12 @@ export function getHandCombatAttachmentPosition(index = 0, count = 1, ownerIsLoc
   const safeCount = Math.max(1, count);
   const centered = index - (safeCount - 1) / 2;
   return {
-    x: -6.3 + centered * 1.22,
+    x: MATCH_LAYOUT.handCombat.x - 4.2 + centered * 1.08,
     y: MATCH_LAYOUT.handCombat.y + 0.34 + index * 0.012,
     z: MATCH_LAYOUT.handCombat.z + (ownerIsLocal ? -0.08 : 0.08),
     rotationX: Math.PI / 2,
     rotationZ: ownerIsLocal ? 0 : Math.PI,
-    scale: 0.48
+    scale: 0.46
   };
 }
 
@@ -157,9 +157,9 @@ export function getBattlefieldSafeFrame(width, height) {
   const portraitPhone = viewportWidth <= 600 && viewportHeight > viewportWidth;
   const shortLandscape = viewportHeight <= 520 && viewportWidth > viewportHeight;
   const tablet = viewportWidth <= 1024;
-  const top = portraitPhone ? 60 : shortLandscape ? 50 : tablet && viewportWidth <= 900 ? 76 : 88;
-  const bottom = portraitPhone ? 132 : shortLandscape ? 104 : tablet && viewportWidth <= 900 ? 132 : tablet ? 142 : 136;
-  const side = viewportWidth <= 600 ? 4 : viewportWidth <= 1024 ? 6 : 8;
+  const top = portraitPhone ? 58 : shortLandscape ? 44 : tablet && viewportWidth <= 900 ? 66 : 68;
+  const bottom = portraitPhone ? 142 : shortLandscape ? 92 : tablet && viewportWidth <= 900 ? 118 : tablet ? 122 : 112;
+  const side = viewportWidth <= 600 ? 3 : 4;
   const battlefield = {
     x: side,
     y: top,

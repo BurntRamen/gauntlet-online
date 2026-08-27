@@ -209,7 +209,7 @@ test("presents transport notices in a ticker without replacing action guidance",
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
 });
 
-test("coalesces payment with attack, then presents the next combat beat and feed history", async () => {
+test("coalesces payment with attack and only presents the current combat beat", async () => {
   jest.useFakeTimers();
   let publish;
   const initialUpdate = {
@@ -254,8 +254,8 @@ test("coalesces payment with attack, then presents the next combat beat and feed
   act(() => jest.advanceTimersByTime(attackFrame.durationMs));
   expect(screen.getByText("Lane 1 block committed")).toBeVisible();
 
-  fireEvent.click(screen.getByLabelText("Show 1 recent match events"));
-  expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
+  expect(screen.queryByLabelText(/recent match events/i)).not.toBeInTheDocument();
+  expect(screen.queryByText("Lane 1 attack committed")).not.toBeInTheDocument();
   act(() => jest.runOnlyPendingTimers());
   expect(match).toHaveAttribute("data-active-event-id", "");
   expect(match).toHaveAttribute("data-playback-catching-up", "false");
@@ -383,7 +383,7 @@ test("keeps player guidance on the current beat while presentation playback reso
   }));
 
   const resolvingPanel = screen.getByLabelText("Current match action");
-  expect(within(resolvingPanel).getByText("Current action is resolving.")).toBeVisible();
+  expect(within(resolvingPanel).getByText("Resolving the committed action…")).toBeVisible();
   expect(within(resolvingPanel).queryByText("Player 2 has priority.")).not.toBeInTheDocument();
   expect(within(resolvingPanel).queryByRole("button")).not.toBeInTheDocument();
   expect(screen.getByTestId("mock-interaction-status")).toHaveTextContent("Current action is resolving.");
@@ -537,7 +537,7 @@ test("keeps HUD projection and authoritative commands aligned with presentation 
   expect(within(broadcast).getByText("Qualifier")).toBeVisible();
   expect(within(broadcast).getByText("Turn 3")).toBeVisible();
   expect(within(broadcast).getByText("12 watching")).toBeVisible();
-  expect(within(screen.getByLabelText("Current match action")).getByText("Current action is resolving.")).toBeVisible();
+  expect(within(screen.getByLabelText("Current match action")).getByText("Resolving the committed action…")).toBeVisible();
   expect(screen.queryByRole("button", { name: "Yield New Priority" })).not.toBeInTheDocument();
   expect(newPassPriority).not.toHaveBeenCalled();
   expect(oldPassPriority).not.toHaveBeenCalled();
@@ -556,7 +556,7 @@ test("keeps HUD projection and authoritative commands aligned with presentation 
   jest.useRealTimers();
 });
 
-test("exposes quiescent and active feed states plus cadence and scene focus metadata", async () => {
+test("keeps status chrome absent at rest and exposes it during active playback", async () => {
   jest.useFakeTimers();
   let publish;
   const initialViewModel = {
@@ -582,8 +582,7 @@ test("exposes quiescent and active feed states plus cadence and scene focus meta
 
   render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
   const match = await screen.findByTestId("production-babylon-match");
-  const feed = screen.getByLabelText("Live match feed");
-  expect(feed).toHaveClass("is-quiescent");
+  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
   expect(match).toHaveAttribute("data-cadence-tier", "attention");
   expect(match).toHaveAttribute("data-focus-region", "board");
   fireEvent.click(screen.getByTestId("mock-report-combat-focus"));
@@ -596,11 +595,11 @@ test("exposes quiescent and active feed states plus cadence and scene focus meta
     events: [attackEvent],
     viewModel: { ...createViewModel(), revision: 5, events: [attackEvent] }
   }));
-  expect(feed).toHaveClass("is-active");
+  expect(screen.getByLabelText("Transient match status")).toHaveClass("is-active");
   expect(screen.getByTestId("mock-canvas-cadence-tier")).toHaveTextContent("commitment");
 
   act(() => jest.runOnlyPendingTimers());
-  expect(feed).toHaveClass("is-quiescent");
+  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
   jest.useRealTimers();
 });
 
