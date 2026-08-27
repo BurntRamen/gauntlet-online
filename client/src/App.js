@@ -120,7 +120,14 @@ const TABLETOP_THEME = {
 };
 
 const MUSIC_TRACKS = {
-  menu: { label: "Command Menu", pad: [55, 82.41, 110], notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94], tempo: 650, wave: "sawtooth" },
+  menu: {
+    label: "The Living Table",
+    sources: ["/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3"],
+    pad: [55, 82.41, 110],
+    notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
+    tempo: 650,
+    wave: "sawtooth"
+  },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "March of the Rumin",
