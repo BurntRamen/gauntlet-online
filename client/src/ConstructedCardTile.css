@@ -1,0 +1,270 @@
+.constructed-card-tile {
+  --rarity-color: #dbeafe;
+  --rarity-border: rgba(191, 219, 254, 0.5);
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 9px;
+  background: linear-gradient(125deg, rgba(13, 29, 43, 0.96), rgba(6, 13, 21, 0.97));
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26), inset 0 0 0 1px var(--rarity-border);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.constructed-card-tile:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.34), inset 0 0 0 1px var(--rarity-border);
+}
+
+.constructed-card-tile.is-selected {
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.38), inset 4px 0 0 var(--rarity-color), inset 0 0 0 1px var(--rarity-border);
+}
+
+.constructed-card-art {
+  position: relative;
+  min-height: 218px;
+  overflow: hidden;
+  background: #08131d;
+}
+
+.constructed-card-art > img,
+.constructed-card-art > .faction-artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.constructed-card-art > .faction-artwork {
+  position: absolute;
+  inset: 0;
+}
+
+.constructed-card-art-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 8, 14, 0.04), rgba(3, 8, 14, 0.18) 46%, rgba(3, 8, 14, 0.94));
+}
+
+.constructed-card-value {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  display: grid;
+  width: 32px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 228, 0.72);
+  border-radius: 50%;
+  background: rgba(3, 8, 14, 0.82);
+  color: #fff4d7;
+  font: 700 17px Georgia, serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.42);
+}
+
+.constructed-card-art-status {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  overflow: hidden;
+  color: #d8c99f;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.constructed-card-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 11px 12px;
+}
+
+.constructed-card-content > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.constructed-card-kicker {
+  display: block;
+  color: var(--rarity-color);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.constructed-card-content h5 {
+  margin: 3px 0 0;
+  color: #fffaf0;
+  font: 700 17px/1.08 Georgia, serif;
+}
+
+.constructed-card-owned {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 3px;
+  color: #8fa9b7;
+  font-size: 10px;
+}
+
+.constructed-card-owned strong {
+  color: #fff4d7;
+  font-size: 17px;
+}
+
+.constructed-card-rules {
+  margin: 8px 0 10px;
+  color: #d6e0e4;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.constructed-card-usage {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(150, 188, 203, 0.16);
+}
+
+.constructed-card-usage > span {
+  color: #9db4bf;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.constructed-card-quantity {
+  display: grid;
+  grid-template-columns: 30px 28px 30px;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(2, 7, 12, 0.68);
+}
+
+.constructed-card-quantity button {
+  min-height: 29px;
+  border: 0;
+  background: rgba(125, 166, 184, 0.12);
+  color: #f8fafc;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.constructed-card-quantity button:last-child {
+  background: color-mix(in srgb, var(--rarity-color) 22%, rgba(13, 29, 43, 0.9));
+}
+
+.constructed-card-quantity button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.constructed-card-quantity strong {
+  color: #fff4d7;
+  font-size: 11px;
+  text-align: center;
+}
+
+.constructed-card-suits {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.constructed-card-suits > span {
+  color: #f1c779;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.constructed-card-suits > div {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.constructed-card-suits select,
+.constructed-card-presentation select {
+  border: 1px solid rgba(146, 184, 201, 0.28);
+  border-radius: 4px;
+  background: #08131e;
+  color: #edf4f6;
+}
+
+.constructed-card-suits select {
+  min-width: 38px;
+  padding: 4px 6px;
+  font-weight: 900;
+}
+
+.constructed-card-presentation {
+  margin-top: 8px;
+  border-top: 1px solid rgba(150, 188, 203, 0.13);
+}
+
+.constructed-card-presentation summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 0 0;
+  color: #93acb8;
+  cursor: pointer;
+  font-size: 9px;
+  list-style: none;
+}
+
+.constructed-card-presentation summary::-webkit-details-marker { display: none; }
+.constructed-card-presentation summary::after { color: #f1c779; content: "+"; }
+.constructed-card-presentation[open] summary::after { content: "−"; }
+.constructed-card-presentation summary strong {
+  margin-left: auto;
+  overflow: hidden;
+  color: #d9e5e8;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.constructed-card-presentation > label {
+  display: grid;
+  gap: 4px;
+  margin-top: 7px;
+  color: #d8c99f;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.constructed-card-presentation select { width: 100%; padding: 5px; }
+.constructed-card-presentation small { color: #8fa9b7; font-weight: 500; line-height: 1.3; }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 520px) {
+  .constructed-card-tile { grid-template-columns: 92px minmax(0, 1fr); }
+  .constructed-card-art { min-height: 224px; }
+  .constructed-card-content h5 { font-size: 15px; }
+}

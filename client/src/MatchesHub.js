@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SeasonStandings } from "./SeasonZero";
+import { MatchThumbnail } from "./GauntletVisuals";
 import {
   downloadCanonicalMatch,
   localEntryToMatch,
@@ -40,28 +41,48 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
   const player = perspective.player || match.participants?.[0] || {};
   const opponent = perspective.opponent || perspective.opponents?.[0]
     || match.participants?.find((entry) => entry.participantId !== player.participantId) || {};
+  const previewPlayer = match.preview?.participants?.find((entry) => entry.displayName === player.displayName)
+    || match.preview?.participants?.[0];
+  const previewOpponent = match.preview?.participants?.find((entry) => entry.displayName === opponent.displayName)
+    || match.preview?.participants?.find((entry) => entry.displayName !== previewPlayer?.displayName);
   const outcome = perspective.outcome || player.result || "recorded";
   const saved = !!match.local?.saved;
+  const playerFaction = player.faction || previewPlayer?.faction;
+  const opponentFaction = opponent.faction || previewOpponent?.faction;
+  const playerFactionName = playerFaction?.name || "Basic Gauntlet";
+  const opponentFactionName = opponentFaction?.name || "Basic Gauntlet";
+  const matchupLabel = `${playerFactionName} versus ${opponentFactionName}`;
   return (
     <article className="matches-row" data-replay-state={match.replay?.available ? "available" : "unavailable"} data-local-match={saved ? "true" : "false"}>
-      <div className={`matches-result is-${outcome}`}><span>{String(outcome).toUpperCase()}</span></div>
+      <MatchThumbnail
+        playerFaction={playerFaction}
+        opponentFaction={opponentFaction}
+        outcome={outcome}
+        explicitThumbnail={match.thumbnail || match.preview?.thumbnail || match.replay?.thumbnail}
+        campaignImage={match.campaignEncounterImage || match.preview?.campaignEncounterImage}
+        label={`${String(outcome).toUpperCase()} ${matchupLabel}`}
+      />
       <div className="matches-row-main">
         <span>{titleCase(match.mode)}{match.season?.displayName ? ` · ${match.season.displayName}` : ""}</span>
-        <h3>{player.faction?.name || "Basic Gauntlet"} vs {opponent.displayName || "Opponent"}</h3>
-        <p>{formatDate(match.completedAt)} · {match.turnCount || 1} turns</p>
-        <small className={saved ? "is-available" : "is-unavailable"}>{saved ? "Saved on this device" : "Replay file not saved on this device"}</small>
+        <h3>{`${playerFactionName} vs ${opponent.displayName || opponentFactionName}`}</h3>
+        <p>{player.displayName || "You"} · opponent faction {opponentFactionName} · {formatDate(match.completedAt)} · {match.turnCount || 1} turns</p>
+        <div className="matches-availability">
+        <small className={saved ? "is-available" : "is-unavailable"}>{saved ? "Saved locally" : "Not saved locally"}</small>
         <small className={match.replay?.available ? "is-available" : "is-unavailable"}>
           {match.replay?.available
-            ? match.replay.mode === "public-state-frames" ? "Replay available · exact public battlefield" : "Replay available · event timeline"
+            ? match.replay.mode === "public-state-frames" ? "Exact battlefield replay" : "Event timeline replay"
             : match.replay?.unavailableReason || "Replay unavailable"}
         </small>
+        </div>
       </div>
       <div className="matches-row-actions">
-        <button type="button" onClick={onTogglePreview}>{previewOpen ? "Hide Preview" : "Preview"}</button>
         {match.replay?.available && <button type="button" className="matches-primary-action" onClick={() => onOpenReplay(match)}>Watch Replay</button>}
         {!match.replay?.available && <span className="matches-unavailable-label">Replay unavailable</span>}
-        <button type="button" onClick={() => onOpenMatch(match)}>Match Record</button>
-        {saved && <button type="button" onClick={() => onDownload(match.matchId)}>Export JSON</button>}
+        <button type="button" className="matches-preview-action" aria-label={previewOpen ? "Hide Preview" : "Preview"} onClick={onTogglePreview}>{previewOpen ? "Hide Preview" : "Preview Record"}</button>
+        <div className="matches-tertiary-actions">
+          <button type="button" onClick={() => onOpenMatch(match)}>Match Record</button>
+          {saved && <button type="button" onClick={() => onDownload(match.matchId)}>Export JSON</button>}
+        </div>
       </div>
       {previewOpen && <MatchPreview preview={match.preview} sha256={saved ? match.local.sha256 : null} />}
     </article>
@@ -71,7 +92,7 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
 function UnavailableReferenceRow({ reference }) {
   return (
     <article className="matches-row matches-reference" data-replay-state="unavailable">
-      <div className="matches-result is-recorded"><span>RECORDED</span></div>
+      <MatchThumbnail outcome="recorded" label="Recorded match without faction information" />
       <div className="matches-row-main">
         <span>Result saved to your account</span>
         <h3>Match {String(reference.matchId || "").slice(0, 8)}</h3>

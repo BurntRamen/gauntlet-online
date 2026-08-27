@@ -1,24 +1,27 @@
 import "./HomeNavigation.css";
+import { FactionArtwork } from "./GauntletVisuals";
 
 const AREAS = [
-  { id: "play", label: "Play", detail: "Games and tables" },
-  { id: "journey", label: "Journey", detail: "Learn and campaign" },
-  { id: "matches", label: "Matches", detail: "Records and replays" },
-  { id: "build", label: "Build", detail: "Collection and decks" },
-  { id: "identity", label: "Identity", detail: "Profile and community" }
+  { id: "play", label: "Play", detail: "Games and tables", sigil: "✦" },
+  { id: "journey", label: "Journey", detail: "Learn and campaign", sigil: "⌁" },
+  { id: "matches", label: "Matches", detail: "Records and replays", sigil: "◫" },
+  { id: "build", label: "Build", detail: "Collection and decks", sigil: "◇" },
+  { id: "identity", label: "Identity", detail: "Profile and community", sigil: "◉" }
 ];
 
 export default function HomeNavigation({ activeArea, onSelectArea, nextStep, showStudio = false, children }) {
-  const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations" }] : AREAS;
+  const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations", sigil: "◆" }] : AREAS;
   const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
   return (
     <>
       <section className="journey-next-step" aria-labelledby="journey-next-title">
-        <div>
-          <div className="journey-next-label">Continue Journey</div>
+        <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art" />
+        <div className="journey-next-copy">
+          <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
           <h2 id="journey-next-title">{nextStep.title}</h2>
           <p>{nextStep.description}</p>
+          {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
         </div>
         <button type="button" className="journey-next-action" onClick={nextStep.onClick}>
           {nextStep.actionLabel}
@@ -35,8 +38,8 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
             aria-current={activeArea === area.id ? "page" : undefined}
             onClick={() => onSelectArea(area.id)}
           >
-            <strong>{area.label}</strong>
-            <span>{area.detail}</span>
+            <span className="home-area-sigil" aria-hidden="true">{area.sigil}</span>
+            <span className="home-area-nav-copy"><strong>{area.label}</strong><small>{area.detail}</small></span>
           </button>
         ))}
       </nav>
