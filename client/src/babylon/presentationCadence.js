@@ -11,24 +11,24 @@ export const CADENCE_TIERS = Object.freeze({
 
 export const CADENCE_TIER_TIMINGS = Object.freeze({
   [CADENCE_TIERS.REST]: Object.freeze({ durationMs: 0, reducedMotionMs: 0 }),
-  [CADENCE_TIERS.ATTENTION]: Object.freeze({ durationMs: 520, reducedMotionMs: 220 }),
-  [CADENCE_TIERS.COMMITMENT]: Object.freeze({ durationMs: 820, reducedMotionMs: 280 }),
-  [CADENCE_TIERS.RESOLUTION]: Object.freeze({ durationMs: 1050, reducedMotionMs: 360 }),
-  [CADENCE_TIERS.MAJOR]: Object.freeze({ durationMs: 1350, reducedMotionMs: 480 })
+  [CADENCE_TIERS.ATTENTION]: Object.freeze({ durationMs: 380, reducedMotionMs: 180 }),
+  [CADENCE_TIERS.COMMITMENT]: Object.freeze({ durationMs: 620, reducedMotionMs: 230 }),
+  [CADENCE_TIERS.RESOLUTION]: Object.freeze({ durationMs: 760, reducedMotionMs: 280 }),
+  [CADENCE_TIERS.MAJOR]: Object.freeze({ durationMs: 920, reducedMotionMs: 340 })
 });
 
 export const PRESENTATION_MOTION_PROFILES = Object.freeze({
-  hover: Object.freeze({ durationMs: 130, easing: "ease-out" }),
-  "payment-enter": Object.freeze({ durationMs: 520, staggerMs: 170, easing: "ease-in-out", lift: 0.72 }),
-  "draw-enter": Object.freeze({ durationMs: 420, staggerMs: 55, easing: "ease-out", lift: 0.58 }),
-  "placement-enter": Object.freeze({ durationMs: 560, easing: "ease-in-out", lift: 0.54 }),
-  "attack-enter": Object.freeze({ durationMs: 680, paymentLeadMs: 180, easing: "ease-in-out", lift: 0.7 }),
-  "block-enter": Object.freeze({ durationMs: 720, staggerMs: 90, paymentLeadMs: 180, easing: "ease-in-out", lift: 0.82 }),
-  "lane-shift": Object.freeze({ durationMs: 600, staggerMs: 45, easing: "ease-in-out", lift: 0.28 }),
-  "swap-return": Object.freeze({ durationMs: 600, easing: "ease-in-out", lift: 0.42 }),
-  "replay-stage": Object.freeze({ durationMs: 680, easing: "ease-in-out", lift: 0.7 }),
-  "discard-exit": Object.freeze({ durationMs: 420, easing: "ease-in", lift: 0.28 }),
-  "state-correction": Object.freeze({ durationMs: 180, easing: "ease-out" })
+  hover: Object.freeze({ durationMs: 110, easing: "ease-out" }),
+  "payment-enter": Object.freeze({ durationMs: 360, staggerMs: 70, easing: "ease-in-out", lift: 0.72 }),
+  "draw-enter": Object.freeze({ durationMs: 300, staggerMs: 35, easing: "ease-out", lift: 0.58 }),
+  "placement-enter": Object.freeze({ durationMs: 420, easing: "ease-in-out", lift: 0.54 }),
+  "attack-enter": Object.freeze({ durationMs: 500, paymentLeadMs: 120, easing: "ease-in-out", lift: 0.7 }),
+  "block-enter": Object.freeze({ durationMs: 540, staggerMs: 55, paymentLeadMs: 120, easing: "ease-in-out", lift: 0.82 }),
+  "lane-shift": Object.freeze({ durationMs: 420, staggerMs: 30, easing: "ease-in-out", lift: 0.28 }),
+  "swap-return": Object.freeze({ durationMs: 420, easing: "ease-in-out", lift: 0.42 }),
+  "replay-stage": Object.freeze({ durationMs: 500, easing: "ease-in-out", lift: 0.7 }),
+  "discard-exit": Object.freeze({ durationMs: 300, easing: "ease-in", lift: 0.28 }),
+  "state-correction": Object.freeze({ durationMs: 140, easing: "ease-out" })
 });
 
 const CADENCE_TIER_LEVELS = Object.freeze({
@@ -71,103 +71,103 @@ const EFFECTS = Object.freeze({
 export const PRESENTATION_BEAT_RECIPES = Object.freeze({
   "payment.commit": freezeRecipe({
     tier: CADENCE_TIERS.COMMITMENT,
-    durationMs: 700,
-    reducedMotionMs: 280,
-    phases: { anticipate: 0, travel: 80, impact: 420, consequence: 500, settle: 580, release: 700 },
-    motions: [{ role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 120 }],
+    durationMs: 500,
+    reducedMotionMs: 220,
+    phases: { anticipate: 0, travel: 50, impact: 280, consequence: 340, settle: 420, release: 500 },
+    motions: [{ role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 80 }],
     cue: { cueId: "payment.release", phase: "release", atPhase: "impact", visualAssetId: "payment.release", audioAssetId: "payment.release", gain: 0.46, effect: EFFECTS.payment }
   }),
   "attack.commit": freezeRecipe({
     tier: CADENCE_TIERS.COMMITMENT,
-    durationMs: 860,
-    reducedMotionMs: 280,
-    phases: { anticipate: 0, travel: 80, payment: 420, impact: 560, consequence: 640, settle: 720, release: 860 },
+    durationMs: 620,
+    reducedMotionMs: 230,
+    phases: { anticipate: 0, travel: 50, payment: 260, impact: 390, consequence: 450, settle: 540, release: 620 },
     motions: [
-      { role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 120 },
-      { role: "attack", countKey: "attackers", durationMs: PRESENTATION_MOTION_PROFILES["attack-enter"].durationMs, staggerMs: 0, settleMs: 120, leadMs: PRESENTATION_MOTION_PROFILES["attack-enter"].paymentLeadMs, leadWhenCountKey: "paymentCards" }
+      { role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 80 },
+      { role: "attack", countKey: "attackers", durationMs: PRESENTATION_MOTION_PROFILES["attack-enter"].durationMs, staggerMs: 0, settleMs: 80, leadMs: PRESENTATION_MOTION_PROFILES["attack-enter"].paymentLeadMs, leadWhenCountKey: "paymentCards" }
     ],
     cue: { cueId: "attack.declare", phase: "settle", atPhase: "impact", visualAssetId: "attack.declare", audioAssetId: "attack.declare", gain: 0.48, effect: EFFECTS.attack }
   }),
   "block.commit": freezeRecipe({
     tier: CADENCE_TIERS.COMMITMENT,
-    durationMs: 920,
-    reducedMotionMs: 300,
-    phases: { anticipate: 0, travel: 80, payment: 420, impact: 610, consequence: 700, settle: 790, release: 920 },
+    durationMs: 650,
+    reducedMotionMs: 240,
+    phases: { anticipate: 0, travel: 50, payment: 260, impact: 420, consequence: 490, settle: 570, release: 650 },
     motions: [
-      { role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 120 },
-      { role: "block", countKey: "blockers", durationMs: PRESENTATION_MOTION_PROFILES["block-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["block-enter"].staggerMs, settleMs: 110, leadMs: PRESENTATION_MOTION_PROFILES["block-enter"].paymentLeadMs, leadWhenCountKey: "paymentCards" }
+      { role: "payment", countKey: "paymentCards", durationMs: PRESENTATION_MOTION_PROFILES["payment-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs, settleMs: 80 },
+      { role: "block", countKey: "blockers", durationMs: PRESENTATION_MOTION_PROFILES["block-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["block-enter"].staggerMs, settleMs: 80, leadMs: PRESENTATION_MOTION_PROFILES["block-enter"].paymentLeadMs, leadWhenCountKey: "paymentCards" }
     ],
     cue: { cueId: "block.commit", phase: "settle", atPhase: "impact", visualAssetId: "block.commit", audioAssetId: "block.commit", gain: 0.48, effect: EFFECTS.block }
   }),
   "card.place": freezeRecipe({
     tier: CADENCE_TIERS.COMMITMENT,
-    durationMs: 700,
-    reducedMotionMs: 280,
-    phases: { anticipate: 0, travel: 60, impact: 470, consequence: 530, settle: 590, release: 700 },
-    motions: [{ role: "placement", countKey: "placements", durationMs: PRESENTATION_MOTION_PROFILES["placement-enter"].durationMs, staggerMs: 0, settleMs: 100 }],
+    durationMs: 500,
+    reducedMotionMs: 220,
+    phases: { anticipate: 0, travel: 40, impact: 300, consequence: 360, settle: 430, release: 500 },
+    motions: [{ role: "placement", countKey: "placements", durationMs: PRESENTATION_MOTION_PROFILES["placement-enter"].durationMs, staggerMs: 0, settleMs: 70 }],
     cue: { cueId: "card.place", phase: "settle", atPhase: "impact", visualAssetId: "card.place", audioAssetId: "card.place", gain: 0.4, effect: EFFECTS.placement }
   }),
   "card.draw": freezeRecipe({
     tier: CADENCE_TIERS.ATTENTION,
-    durationMs: 520,
-    reducedMotionMs: 220,
-    phases: { anticipate: 0, travel: 60, impact: 90, consequence: 180, settle: 420, release: 520 },
-    motions: [{ role: "draw", countKey: "drawCards", durationMs: PRESENTATION_MOTION_PROFILES["draw-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs, settleMs: 80 }],
+    durationMs: 380,
+    reducedMotionMs: 180,
+    phases: { anticipate: 0, travel: 40, impact: 70, consequence: 130, settle: 310, release: 380 },
+    motions: [{ role: "draw", countKey: "drawCards", durationMs: PRESENTATION_MOTION_PROFILES["draw-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs, settleMs: 50 }],
     cue: { cueId: "card.draw", phase: "travel", atPhase: "impact", visualAssetId: "card.draw", audioAssetId: "card.draw", gain: 0.38, effect: EFFECTS.draw }
   }),
   "turn.start": freezeRecipe({
     tier: CADENCE_TIERS.ATTENTION,
-    durationMs: 620,
-    reducedMotionMs: 240,
-    phases: { anticipate: 0, travel: 60, draw: 90, impact: 120, ability: 260, consequence: 320, settle: 500, release: 620 },
-    motions: [{ role: "draw", countKey: "drawCards", durationMs: PRESENTATION_MOTION_PROFILES["draw-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs, settleMs: 80 }],
+    durationMs: 440,
+    reducedMotionMs: 200,
+    phases: { anticipate: 0, travel: 40, draw: 60, impact: 90, ability: 180, consequence: 230, settle: 360, release: 440 },
+    motions: [{ role: "draw", countKey: "drawCards", durationMs: PRESENTATION_MOTION_PROFILES["draw-enter"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs, settleMs: 50 }],
     cue: { cueId: "turn.start", phase: "impact", atPhase: "impact", visualAssetId: "turn.start", audioAssetId: "turn.start", gain: 0.42, effect: EFFECTS.turn }
   }),
   "priority.transfer": freezeRecipe({
     tier: CADENCE_TIERS.ATTENTION,
-    durationMs: 360,
-    reducedMotionMs: 220,
-    phases: { anticipate: 0, travel: 40, impact: 80, consequence: 160, settle: 260, release: 360 },
+    durationMs: 260,
+    reducedMotionMs: 160,
+    phases: { anticipate: 0, travel: 30, impact: 60, consequence: 110, settle: 200, release: 260 },
     motions: [],
     cue: { cueId: "priority.transfer", phase: "impact", atPhase: "impact", visualAssetId: "priority.transfer", audioAssetId: "priority.transfer", gain: 0.38, effect: EFFECTS.attention }
   }),
   "ability.activate": freezeRecipe({
     tier: CADENCE_TIERS.COMMITMENT,
-    durationMs: 820,
-    reducedMotionMs: 280,
-    phases: { anticipate: 0, travel: 80, impact: 180, consequence: 560, settle: 700, release: 820 },
-    motions: [{ role: "ability", countKey: "abilityTargets", durationMs: PRESENTATION_MOTION_PROFILES["lane-shift"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["lane-shift"].staggerMs, settleMs: 100 }],
+    durationMs: 600,
+    reducedMotionMs: 230,
+    phases: { anticipate: 0, travel: 50, impact: 130, consequence: 390, settle: 520, release: 600 },
+    motions: [{ role: "ability", countKey: "abilityTargets", durationMs: PRESENTATION_MOTION_PROFILES["lane-shift"].durationMs, staggerMs: PRESENTATION_MOTION_PROFILES["lane-shift"].staggerMs, settleMs: 70 }],
     cue: { cueId: "ability.activate", phase: "impact", atPhase: "impact", visualAssetId: "ability.activate", audioAssetId: "ability.activate", gain: 0.4, effect: EFFECTS.ability }
   }),
   "combat.blocked": freezeRecipe({
     tier: CADENCE_TIERS.RESOLUTION,
-    durationMs: 1000,
-    reducedMotionMs: 360,
-    phases: { anticipate: 0, travel: 80, impact: 200, consequence: 360, settle: 780, release: 1000 },
+    durationMs: 720,
+    reducedMotionMs: 280,
+    phases: { anticipate: 0, travel: 50, impact: 140, consequence: 250, settle: 570, release: 720 },
     motions: [],
     cue: { cueId: "combat.blocked", phase: "impact", atPhase: "impact", visualAssetId: "block.commit", audioAssetId: "combat.blocked", gain: 0.46, effect: EFFECTS.blocked }
   }),
   "damage.impact": freezeRecipe({
     tier: CADENCE_TIERS.RESOLUTION,
-    durationMs: 1050,
-    reducedMotionMs: 360,
-    phases: { anticipate: 0, travel: 80, impact: 190, consequence: 320, settle: 800, release: 1050 },
+    durationMs: 740,
+    reducedMotionMs: 280,
+    phases: { anticipate: 0, travel: 50, impact: 140, consequence: 240, settle: 580, release: 740 },
     motions: [],
     cue: { cueId: "damage.impact", phase: "impact", atPhase: "impact", visualAssetId: "damage.impact", audioAssetId: "damage.impact", gain: 0.5, effect: EFFECTS.damage }
   }),
   "damage.major": freezeRecipe({
     tier: CADENCE_TIERS.MAJOR,
-    durationMs: 1350,
-    reducedMotionMs: 480,
-    phases: { anticipate: 0, travel: 80, impact: 220, consequence: 420, settle: 1050, release: 1350 },
+    durationMs: 920,
+    reducedMotionMs: 340,
+    phases: { anticipate: 0, travel: 50, impact: 170, consequence: 310, settle: 720, release: 920 },
     motions: [],
     cue: { cueId: "damage.major", phase: "impact", atPhase: "impact", visualAssetId: "damage.impact", audioAssetId: "damage.major", gain: 0.54, effect: EFFECTS.major }
   }),
   "match.result": freezeRecipe({
     tier: CADENCE_TIERS.MAJOR,
-    durationMs: 1700,
-    reducedMotionMs: 480,
-    phases: { anticipate: 0, travel: 80, impact: 160, consequence: 500, reveal: 900, settle: 1320, release: 1700 },
+    durationMs: 1250,
+    reducedMotionMs: 400,
+    phases: { anticipate: 0, travel: 60, impact: 130, consequence: 360, reveal: 680, settle: 980, release: 1250 },
     motions: [],
     cue: { cueId: "match.result", phase: "impact", atPhase: "impact", visualAssetId: "match.victory", audioAssetId: "match.victory", gain: 0.5, effect: EFFECTS.victory }
   })

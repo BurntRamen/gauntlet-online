@@ -298,7 +298,7 @@ test("multiple accepted payments are dealt into the tray with readable stagger",
   next.actorById = new Map(next.actors.map((actor) => [actor.actorId, actor]));
 
   const transitions = planPresentationTransitions(previous, next).transitions;
-  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 170, 340]);
+  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 70, 140]);
   expect(transitions.every((transition) => transition.motionRole === "payment-enter")).toBe(true);
 });
 
@@ -333,14 +333,14 @@ test("a paid hand block exposes payment travel before its staggered brace", () =
       actorId: "card:blocker-one",
       motionRole: "block-enter",
       sourceEventId: "declared-block",
-      delayMs: 180,
+      delayMs: 120,
       animate: true
     }),
     expect.objectContaining({
       actorId: "card:blocker-two",
       motionRole: "block-enter",
       sourceEventId: "declared-block",
-      delayMs: 270,
+      delayMs: 175,
       animate: true
     })
   ]));
@@ -410,7 +410,7 @@ test("hidden lane identities still acknowledge an in-place opponent swap", () =>
     && transition.sourceEventId === "hidden-swap"
     && transition.animate
   ))).toBe(true);
-  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 90]);
+  expect(transitions.map((transition) => transition.delayMs)).toEqual([0, 60]);
 });
 
 test("live stale revisions are rejected and replay seeks reconcile statically", () => {

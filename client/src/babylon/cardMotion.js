@@ -4,8 +4,8 @@ import { PRESENTATION_MOTION_PROFILES } from "./presentationCadence";
 // the only authority for motion duration and easing.
 export const CARD_MOTION_PROFILES = PRESENTATION_MOTION_PROFILES;
 
-export const COMBAT_RESOLUTION_HOLD_MS = 160;
-export const PAYMENT_SETTLE_HOLD_MS = 180;
+export const COMBAT_RESOLUTION_HOLD_MS = 100;
+export const PAYMENT_SETTLE_HOLD_MS = 120;
 export const CARD_PATH_CLEARANCE = 0.16;
 export const CARD_PATH_FOOTPRINT = Object.freeze({ width: 2.3, height: 3.22 });
 export const CARD_MOTION_CONTRACT_VERSION = "gauntlet.card-motion.collision-safe.v1";

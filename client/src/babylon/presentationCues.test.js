@@ -43,8 +43,8 @@ test("a coalesced attack carries centrally offset payment and thrust cues", () =
   ]);
   const cues = projectPresentationCues(beat, { matchId: "m" });
   expect(cues.map(({ cueId, offsetMs }) => [cueId, offsetMs])).toEqual([
-    ["payment.release", 420],
-    ["attack.declare", 560]
+    ["payment.release", 260],
+    ["attack.declare", 390]
   ]);
   expect(cues.map(({ cadence }) => [cadence.kind, cadence.grammar])).toEqual([
     ["payment.commit", "contract"],

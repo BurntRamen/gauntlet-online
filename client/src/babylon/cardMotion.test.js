@@ -46,8 +46,8 @@ describe("shared Babylon card motion", () => {
   });
 
   test("uses one profile contract for live and replay staging", () => {
-    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBe(680);
-    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBe(720);
+    expect(CARD_MOTION_PROFILES["attack-enter"].durationMs).toBe(500);
+    expect(CARD_MOTION_PROFILES["block-enter"].durationMs).toBe(540);
     expect(CARD_MOTION_PROFILES["replay-stage"].durationMs).toBe(
       CARD_MOTION_PROFILES["attack-enter"].durationMs
     );
@@ -55,10 +55,10 @@ describe("shared Babylon card motion", () => {
     expect(CARD_MOTION_PROFILES["block-enter"].lift).toBeGreaterThan(
       CARD_MOTION_PROFILES["placement-enter"].lift
     );
-    expect(CARD_MOTION_PROFILES["lane-shift"].durationMs).toBe(600);
-    expect(CARD_MOTION_PROFILES["swap-return"].durationMs).toBe(600);
-    expect(COMBAT_RESOLUTION_HOLD_MS).toBe(160);
-    expect(PAYMENT_SETTLE_HOLD_MS).toBe(180);
+    expect(CARD_MOTION_PROFILES["lane-shift"].durationMs).toBe(420);
+    expect(CARD_MOTION_PROFILES["swap-return"].durationMs).toBe(420);
+    expect(COMBAT_RESOLUTION_HOLD_MS).toBe(100);
+    expect(PAYMENT_SETTLE_HOLD_MS).toBe(120);
     expect(shouldHoldCombatCard("attack")).toBe(true);
     expect(shouldHoldCombatCard("block")).toBe(true);
     expect(shouldHoldCombatCard("replay-action", "primary")).toBe(true);

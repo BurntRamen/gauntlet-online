@@ -644,6 +644,9 @@ async function captureLiveSceneSample(page) {
         faceArtActorCount: Number(match.dataset.faceArtActorCount || 0),
         basicFaceArtActorCount: Number(match.dataset.basicFaceArtActorCount || 0),
         structuralCompositeRasterCount: Number(match.dataset.structuralCompositeRasterCount || 0),
+        sceneMeshCount: Number(match.dataset.sceneMeshCount || 0),
+        shadowMapSize: Number(match.dataset.shadowMapSize || 0),
+        shadowMapRefreshRate: Number(match.dataset.shadowMapRefreshRate ?? -1),
         actorCount: Number(match.dataset.cardActorCount || 0),
         actorsByZone: JSON.parse(match.dataset.actorsByZone || "{}"),
         knownActorCount: Number(match.dataset.knownActorCount || 0),
@@ -752,6 +755,9 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
       "structuralCompositeRasterCount",
       attributes.structuralCompositeRasterCount
     ),
+    sceneMeshCount: rendererValue("sceneMeshCount", attributes.sceneMeshCount),
+    shadowMapSize: rendererValue("shadowMapSize", attributes.shadowMapSize),
+    shadowMapRefreshRate: rendererValue("shadowMapRefreshRate", attributes.shadowMapRefreshRate),
     actorCount: rendererValue("cardActorCount", attributes.actorCount),
     actorsByZone: rendererValue("actorsByZone", attributes.actorsByZone),
     knownActorCount: rendererValue("knownActorCount", attributes.knownActorCount),
@@ -801,6 +807,8 @@ async function captureDiagnostics(page, rendererMetrics = null) {
   expect(diagnostics.duplicateVisibleIdentityCount).toBe(0);
   expect(diagnostics.missingFaceArtCount).toBe(0);
   expect(diagnostics.structuralCompositeRasterCount).toBe(0);
+  expect(diagnostics.shadowMapSize).toBe(1024);
+  expect(diagnostics.shadowMapRefreshRate).toBe(0);
   expect(diagnostics.actorCount).toBe(diagnostics.knownActorCount + diagnostics.anonymousActorCount);
   return diagnostics;
 }

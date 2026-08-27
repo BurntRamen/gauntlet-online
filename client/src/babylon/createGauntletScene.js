@@ -6,6 +6,7 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight.js";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight.js";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator.js";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture.js";
+import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture.js";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture.js";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial.js";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
@@ -338,7 +339,7 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   contactShadow.visibility = 0.42;
   contactShadow.isPickable = false;
   root.gauntletContactShadow = contactShadow;
-  shadowGenerator.addShadowCaster(root);
+  if (options.castShadow) shadowGenerator.addShadowCaster(root);
   return root;
 }
 
@@ -419,6 +420,12 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
 export function createGauntletScene(engine, canvas, commands = {}) {
   const babylonScene = new Scene(engine);
   babylonScene.clearColor = new Color4(0.008, 0.015, 0.022, 1);
+  // Pointer interaction is handled by the explicit canvas hit-test path below.
+  // Disable Babylon's parallel automatic picks so pointer movement never pays
+  // for the same scene traversal twice.
+  babylonScene.skipPointerMovePicking = true;
+  babylonScene.skipPointerDownPicking = true;
+  babylonScene.skipPointerUpPicking = true;
 
   const camera = new FreeCamera("gauntlet-camera", new Vector3(0, 22, -15.5), babylonScene);
   camera.upVector = new Vector3(0, 0.576, 0.817);
@@ -462,10 +469,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   rim.position = new Vector3(11, 13, 8);
   rim.intensity = 0.42;
   rim.diffuse = color("#6086a0");
-  const shadowGenerator = new ShadowGenerator(2048, key);
+  const shadowGenerator = new ShadowGenerator(1024, key);
   shadowGenerator.useBlurExponentialShadowMap = true;
-  shadowGenerator.blurKernel = 24;
+  shadowGenerator.blurKernel = 16;
   shadowGenerator.darkness = 0.62;
+  // Board geometry is static and cards already have lightweight contact
+  // shadows. Render the structural shadow map once instead of rebuilding and
+  // blurring it on every frame.
+  shadowGenerator.getShadowMap().refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
   babylonScene.imageProcessingConfiguration.contrast = 1.12;
   babylonScene.imageProcessingConfiguration.exposure = 1.08;
 
@@ -1956,6 +1967,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let lastDuplicateWarningKey = null;
   let lastMissingArtWarningKey = null;
   let lastPointerPick = null;
+  let pointerMoveFrame = null;
+  let queuedPointerMove = null;
+  let lastPreviewKey = null;
+  let pointerPickCount = 0;
   const identityMatrix = Matrix.Identity();
 
   const fullscreenUi = AdvancedDynamicTexture.CreateFullscreenUI("gauntlet-ui", true, babylonScene);
@@ -2984,6 +2999,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       priorityHandoff.visibility = 0;
     }
     for (const [id, record] of objects.entries()) {
+      if (!record.motion && !record.holdUntilMs) continue;
       if (record.holdUntilMs && motionClockMs >= record.holdUntilMs && !record.departureStarted) {
         record.departureStarted = true;
         setCardTarget(record, record.departureTarget, {
@@ -3052,6 +3068,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     if (!rect.width || !rect.height) return null;
     const x = (event.clientX - rect.left) * (engine.getRenderWidth() / rect.width);
     const y = (event.clientY - rect.top) * (engine.getRenderHeight() / rect.height);
+    pointerPickCount += 1;
     const pickInfo = babylonScene.pickWithBoundingInfo(
       x,
       y,
@@ -3100,7 +3117,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return metadata;
   }
 
-  function handleCanvasPointerMove(event) {
+  function previewKey(metadata) {
+    if (!metadata?.preview) return null;
+    return [
+      metadata.actorId || metadata.card?.id || metadata.preview.label || "card",
+      metadata.preview.stateLabel || "",
+      metadata.preview.value ?? ""
+    ].join(":");
+  }
+
+  function applyPointerMove(event) {
     const metadata = pickCanvasMetadata(event);
     const nextHover = metadata?.type === "hand"
       ? metadata.actorId || null
@@ -3109,19 +3135,47 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       hoveredId = nextHover;
       if (currentViewModel) update(currentViewModel);
     }
-    commands.previewCard?.(metadata?.preview || null);
+    const nextPreviewKey = previewKey(metadata);
+    if (nextPreviewKey !== lastPreviewKey) {
+      lastPreviewKey = nextPreviewKey;
+      commands.previewCard?.(metadata?.preview || null);
+    }
+  }
+
+  function handleCanvasPointerMove(event) {
+    queuedPointerMove = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      type: event.type
+    };
+    if (pointerMoveFrame != null) return;
+    pointerMoveFrame = window.requestAnimationFrame(() => {
+      pointerMoveFrame = null;
+      const nextEvent = queuedPointerMove;
+      queuedPointerMove = null;
+      if (nextEvent && !disposed) applyPointerMove(nextEvent);
+    });
   }
 
   function handleCanvasPointerLeave() {
+    if (pointerMoveFrame != null) window.cancelAnimationFrame(pointerMoveFrame);
+    pointerMoveFrame = null;
+    queuedPointerMove = null;
     if (hoveredId) {
       hoveredId = null;
       if (currentViewModel) update(currentViewModel);
     }
-    commands.previewCard?.(null);
+    if (lastPreviewKey != null) {
+      lastPreviewKey = null;
+      commands.previewCard?.(null);
+    }
   }
 
   function handleCanvasPointerUp(event) {
     if (event.button != null && event.button !== 0) return;
+    if (pointerMoveFrame != null) window.cancelAnimationFrame(pointerMoveFrame);
+    pointerMoveFrame = null;
+    queuedPointerMove = null;
     const metadata = pickCanvasMetadata(event);
     if (!metadata) return;
     if (metadata.type === "hand") {
@@ -3162,6 +3216,13 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     scene: babylonScene,
     update,
     setCapturePaused,
+    isAnimationActive() {
+      return Boolean(
+        activeEventAnimation
+        || animationQueue.length > 0
+        || Array.from(objects.values()).some((record) => record.motion || record.holdUntilMs)
+      );
+    },
     getMetrics() {
       const engine = babylonScene.getEngine();
       const stageMetrics = nativeBoardStage?.getMetrics?.() || {};
@@ -3227,6 +3288,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         renderSize: `${engine.getRenderWidth()}x${engine.getRenderHeight()}`,
         canvasSize: `${Math.round(canvas.clientWidth)}x${Math.round(canvas.clientHeight)}`,
         lastPointerPick,
+        pointerPickCount,
+        shadowMapSize: shadowGenerator.getShadowMap()?.getSize?.().width || 0,
+        shadowMapRefreshRate: shadowGenerator.getShadowMap()?.refreshRate ?? null,
         boardPresentation: currentBoardPresentation,
         presentationKit: currentViewModel?.presentationKit
           ? {
@@ -3243,6 +3307,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       disposed = true;
       capturePauseDepth = 0;
       deferredCaptureViewModel = null;
+      if (pointerMoveFrame != null) window.cancelAnimationFrame(pointerMoveFrame);
+      pointerMoveFrame = null;
+      queuedPointerMove = null;
       babylonScene.onBeforeRenderObservable.remove(beforeRender);
       canvas.removeEventListener("pointermove", handleCanvasPointerMove);
       canvas.removeEventListener("pointerleave", handleCanvasPointerLeave);

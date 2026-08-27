@@ -21,10 +21,10 @@ describe("tiered presentation cadence", () => {
     ]);
     expect(Object.values(CADENCE_TIER_TIMINGS).map(({ durationMs }) => durationMs)).toEqual([
       0,
-      520,
-      820,
-      1050,
-      1350
+      380,
+      620,
+      760,
+      920
     ]);
     Object.values(PRESENTATION_BEAT_RECIPES).forEach((recipe) => {
       const offsets = Object.values(recipe.phases);
@@ -35,24 +35,24 @@ describe("tiered presentation cadence", () => {
       role,
       profile.durationMs
     ]))).toEqual({
-      hover: 130,
-      "payment-enter": 520,
-      "draw-enter": 420,
-      "placement-enter": 560,
-      "attack-enter": 680,
-      "block-enter": 720,
-      "lane-shift": 600,
-      "swap-return": 600,
-      "replay-stage": 680,
-      "discard-exit": 420,
-      "state-correction": 180
+      hover: 110,
+      "payment-enter": 360,
+      "draw-enter": 300,
+      "placement-enter": 420,
+      "attack-enter": 500,
+      "block-enter": 540,
+      "lane-shift": 420,
+      "swap-return": 420,
+      "replay-stage": 500,
+      "discard-exit": 300,
+      "state-correction": 140
     });
-    expect(PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs).toBe(170);
-    expect(PRESENTATION_MOTION_PROFILES["block-enter"].staggerMs).toBe(90);
-    expect(PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs).toBe(55);
-    expect(PRESENTATION_MOTION_PROFILES["lane-shift"].staggerMs).toBe(45);
-    expect(PRESENTATION_MOTION_PROFILES["attack-enter"].paymentLeadMs).toBe(180);
-    expect(PRESENTATION_MOTION_PROFILES["block-enter"].paymentLeadMs).toBe(180);
+    expect(PRESENTATION_MOTION_PROFILES["payment-enter"].staggerMs).toBe(70);
+    expect(PRESENTATION_MOTION_PROFILES["block-enter"].staggerMs).toBe(55);
+    expect(PRESENTATION_MOTION_PROFILES["draw-enter"].staggerMs).toBe(35);
+    expect(PRESENTATION_MOTION_PROFILES["lane-shift"].staggerMs).toBe(30);
+    expect(PRESENTATION_MOTION_PROFILES["attack-enter"].paymentLeadMs).toBe(120);
+    expect(PRESENTATION_MOTION_PROFILES["block-enter"].paymentLeadMs).toBe(120);
   });
 
   test("coalesces payment, attack, and its trailing priority into one commitment beat", () => {
@@ -83,15 +83,15 @@ describe("tiered presentation cadence", () => {
       { id: "block", type: "block.declared", cardIds: ["b1", "b2", "b3"] }
     ]);
     expect(beat.kind).toBe("block.commit");
-    expect(beat.durationMs).toBe(1190);
+    expect(beat.durationMs).toBe(850);
     expect(beat.timing.motionWindows.find(({ role }) => role === "block")).toMatchObject({
       count: 3,
-      startMs: 180,
-      durationMs: 720,
-      staggerMs: 90,
-      endMs: 1190
+      startMs: 120,
+      durationMs: 540,
+      staggerMs: 55,
+      endMs: 850
     });
-    expect(resolvePresentationBeatTiming(beat, { playbackRate: 2 }).durationMs).toBe(595);
+    expect(resolvePresentationBeatTiming(beat, { playbackRate: 2 }).durationMs).toBe(425);
     expect(resolvePresentationBeatTiming(beat, { reducedMotion: true }).durationMs).toBeGreaterThanOrEqual(
       PRESENTATION_BEAT_RECIPES["block.commit"].reducedMotionMs
     );
@@ -133,8 +133,8 @@ describe("tiered presentation cadence", () => {
       offsetMs,
       grammar: cadence.grammar
     }))).toEqual([
-      { cueId: "damage.major", offsetMs: 220, grammar: "major-impact" },
-      { cueId: "priority.transfer", offsetMs: 420, grammar: "handoff" }
+      { cueId: "damage.major", offsetMs: 170, grammar: "major-impact" },
+      { cueId: "priority.transfer", offsetMs: 310, grammar: "handoff" }
     ]);
 
     const [passedResolution] = projectPresentationBeats([
@@ -166,7 +166,7 @@ describe("tiered presentation cadence", () => {
     ]);
     expect(turn.kind).toBe("turn.start");
     expect(turn.motionCounts.drawCards).toBe(5);
-    expect(turn.durationMs).toBe(720);
+    expect(turn.durationMs).toBe(490);
     expect(projectPresentationCueMetadata(turn).map(({ cueId }) => cueId)).toEqual([
       "card.draw",
       "turn.start"

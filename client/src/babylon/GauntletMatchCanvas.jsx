@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Engine } from "@babylonjs/core/Engines/engine.js";
 import { createGauntletScene } from "./createGauntletScene";
 import AccessibleMatchControls from "./AccessibleMatchControls";
-import { renderMatchFrame } from "./rendererLifecycle";
+import { renderMatchFrame, shouldRenderMatchFrame } from "./rendererLifecycle";
 import "./GauntletMatchCanvas.css";
 
 export default function GauntletMatchCanvas({
@@ -155,14 +155,23 @@ export default function GauntletMatchCanvas({
         initializationMs: initializationMsRef.current
       });
       emitMetrics();
+      let lastRenderedAt = Number.NEGATIVE_INFINITY;
       engine.runRenderLoop(() => {
         if (rendererFailedRef.current) return;
+        const now = performance.now();
+        if (!shouldRenderMatchFrame({
+          now,
+          lastRenderedAt,
+          animationActive: renderer.isAnimationActive?.() !== false,
+          hidden: document.hidden
+        })) return;
+        lastRenderedAt = now;
         renderMatchFrame(renderer, (error) => {
           reportRendererFailure(error, "The Babylon renderer stopped while drawing the match.");
         });
       });
       const metricsInterval = onSceneMetricsRef.current
-        ? window.setInterval(emitMetrics, 1000)
+        ? window.setInterval(emitMetrics, 2000)
         : null;
 
       const resize = () => engine.resize();

@@ -966,6 +966,9 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   );
 
   fireEvent.click(await screen.findByText("Match"));
+  expect(screen.getByRole("complementary", { name: "Recent play order" })).toHaveTextContent(
+    "Player 1 declared a lane attack."
+  );
   fireEvent.click(screen.getByRole("button", { name: "Discard piles" }));
   expect(screen.getByRole("dialog", { name: "Discard piles" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /Seven of Hearts/ }));
@@ -1055,6 +1058,13 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   expect(recap).toHaveTextContent("Block 3");
   expect(recap).toHaveTextContent("Damage 6");
   expect(recap).toHaveTextContent("6 damage dealt");
+  const ledger = screen.getByRole("complementary", { name: "Recent play order" });
+  expect(ledger).toHaveTextContent("9 attack − 3 block − 0 prevention = 6 damage");
+  fireEvent.click(within(ledger).getByRole("button", { name: /Full log/ }));
+  const log = screen.getByRole("dialog", { name: "Match log" });
+  expect(log).toHaveTextContent("Latest calculation details");
+  expect(log).toHaveTextContent("Values shown in resolution order");
+  expect(log).toHaveTextContent("9 attack − 3 block − 0 prevention = 6 damage");
   act(() => jest.runOnlyPendingTimers());
   jest.useRealTimers();
 });

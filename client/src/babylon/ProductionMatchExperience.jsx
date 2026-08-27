@@ -10,6 +10,11 @@ import {
   resolvePresentationAsset
 } from "./presentationKit";
 import { createInteractionCue } from "./presentationCues";
+import {
+  authoritativeMatchHistory,
+  formatMatchLogEntry,
+  matchLogSequence
+} from "./matchLog";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
@@ -721,12 +726,59 @@ function factionProfile(value, fallbackName) {
   };
 }
 
-function MatchReferencePanel({ kind, snapshot, viewModel, commands, onClose }) {
+function MatchLogRow({ entry, index, players, compact = false }) {
+  const content = formatMatchLogEntry(entry, { players });
+  return (
+    <li>
+      <span className="production-match-log-sequence">#{matchLogSequence(entry, index)}</span>
+      <GameIcon name={content.icon} size={compact ? 13 : 16} />
+      <div>
+        <strong>{content.title}</strong>
+        {content.detail && <small>{content.detail}</small>}
+      </div>
+    </li>
+  );
+}
+
+function MatchLedger({ entries, snapshot, onOpen }) {
+  const players = snapshot?.players || {};
+  const history = authoritativeMatchHistory(snapshot);
+  const source = entries.length > 0 ? entries : history;
+  const recent = source.slice(-3);
+  if (recent.length === 0) return null;
+  const sequenceOffset = Math.max(0, source.length - recent.length);
+  return (
+    <aside className="production-match-ledger" aria-label="Recent play order">
+      <header>
+        <span>Play order</span>
+        <button type="button" onClick={onOpen}>
+          Full log · {Math.max(history.length, entries.length)}
+        </button>
+      </header>
+      <ol>
+        {recent.map((entry, index) => (
+          <MatchLogRow
+            key={entry.id || `${entry.type || "history"}-${sequenceOffset + index}`}
+            entry={entry}
+            index={sequenceOffset + index}
+            players={players}
+            compact
+          />
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
+function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose }) {
   if (!kind) return null;
   const players = Object.entries(snapshot?.players || {})
     .map(([playerId, player]) => ({ id: Number(playerId), ...player }))
     .sort((left, right) => left.id - right.id);
-  const history = (snapshot?.eventLog?.length ? snapshot.eventLog : snapshot?.actionHistory || []).slice(-80).reverse();
+  const playersById = snapshot?.players || {};
+  const history = authoritativeMatchHistory(snapshot);
+  const numericalEvents = recentEvents.slice(-16);
+  const numericalSequenceOffset = Math.max(0, recentEvents.length - numericalEvents.length);
   const titles = {
     discard: "Discard piles",
     log: "Match log",
@@ -763,15 +815,45 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, onClose }) {
           </div>
         )}
         {kind === "log" && (
-          history.length === 0 ? <p>No match actions recorded yet.</p> : (
-            <ol className="production-match-log">
-              {history.map((entry, index) => (
-                <li key={entry.id || `${entry.turn}-${index}`}>
-                  <span>Turn {entry.turn || 1}{entry.phase ? ` · ${entry.phase}` : ""}</span>
-                  <strong>{entry.text || entry.label || "Match state updated."}</strong>
-                </li>
-              ))}
-            </ol>
+          history.length === 0 && numericalEvents.length === 0 ? <p>No match actions recorded yet.</p> : (
+            <div className="production-match-log-sections">
+              {numericalEvents.length > 0 && (
+                <section aria-label="Latest numerical resolution details">
+                  <header>
+                    <h3>Latest calculation details</h3>
+                    <span>Values shown in resolution order</span>
+                  </header>
+                  <ol className="production-match-log is-numerical">
+                    {numericalEvents.map((entry, index) => (
+                      <MatchLogRow
+                        key={entry.id || `${entry.type}-${index}`}
+                        entry={entry}
+                        index={numericalSequenceOffset + index}
+                        players={playersById}
+                      />
+                    ))}
+                  </ol>
+                </section>
+              )}
+              {history.length > 0 && (
+                <section aria-label="Authoritative chronological match record">
+                  <header>
+                    <h3>Complete play order</h3>
+                    <span>Oldest → newest · {history.length} recorded actions</span>
+                  </header>
+                  <ol className="production-match-log">
+                    {history.map((entry, index) => (
+                      <MatchLogRow
+                        key={entry.id || `${entry.turn}-${index}`}
+                        entry={entry}
+                        index={index}
+                        players={playersById}
+                      />
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </div>
           )
         )}
         {kind === "factions" && (
@@ -1249,6 +1331,7 @@ export default function ProductionMatchExperience({
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
   const [sceneMetrics, setSceneMetrics] = useState(null);
   const adapterRef = useRef(adapter);
+  const sceneMetricsSignatureRef = useRef("");
   const inspectionReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
   const playbackRef = useRef(null);
@@ -1292,7 +1375,7 @@ export default function ProductionMatchExperience({
         if (frame.event) {
           setFeedEntries((current) => {
             if (current.some((entry) => entry.id && entry.id === frame.event.id)) return current;
-            return [...current, frame.event].slice(-12);
+            return [...current, frame.event].slice(-80);
           });
         }
       },
@@ -1341,7 +1424,29 @@ export default function ProductionMatchExperience({
     options.onAudioEnabledChange?.(Boolean(enabled));
   }, [options]);
   const handleSceneMetrics = useCallback((metrics) => {
-    setSceneMetrics(metrics);
+    const signature = JSON.stringify({
+      matchId: metrics?.matchId,
+      revision: metrics?.revision,
+      sceneContract: metrics?.sceneContract,
+      boardModuleCount: metrics?.boardModuleCount,
+      cardActorCount: metrics?.cardActorCount,
+      actorsByZone: metrics?.actorsByZone,
+      missingFaceArtCount: metrics?.missingFaceArtCount,
+      duplicateVisibleIdentityCount: metrics?.duplicateVisibleIdentityCount,
+      activeTransitionCount: metrics?.activeTransitionCount,
+      activeMotionsByRole: metrics?.activeMotionsByRole,
+      queuedTransitionCount: metrics?.queuedTransitionCount,
+      activeEffects: metrics?.activeEffects,
+      focusRegion: metrics?.boardPresentation?.focus?.region,
+      handCombatModuleActive: metrics?.handCombatModuleActive,
+      layoutProfile: metrics?.layoutProfile,
+      shadowMapSize: metrics?.shadowMapSize,
+      shadowMapRefreshRate: metrics?.shadowMapRefreshRate
+    });
+    if (signature !== sceneMetricsSignatureRef.current) {
+      sceneMetricsSignatureRef.current = signature;
+      setSceneMetrics(metrics);
+    }
     onSceneMetrics?.(metrics);
   }, [onSceneMetrics]);
   const capturePlaybackControl = useMemo(() => ({
@@ -1610,6 +1715,10 @@ export default function ProductionMatchExperience({
       data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
       data-hand-combat-module-active={sceneMetrics?.handCombatModuleActive ? "true" : "false"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
+      data-render-fps={sceneMetrics?.fps ?? ""}
+      data-scene-mesh-count={sceneMetrics?.meshes ?? ""}
+      data-shadow-map-size={sceneMetrics?.shadowMapSize ?? ""}
+      data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
     >
       <div
         className="production-match-surface"
@@ -1696,6 +1805,13 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
+        {update?.source !== "replay" && !referencePanel && (
+          <MatchLedger
+            entries={feedEntries}
+            snapshot={transportUpdate?.snapshot || update?.snapshot}
+            onOpen={() => setReferencePanel("log")}
+          />
+        )}
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
         <CardPreview preview={previewCard} />
         <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
@@ -1704,6 +1820,7 @@ export default function ProductionMatchExperience({
           snapshot={update?.snapshot}
           viewModel={presentedViewModel}
           commands={interactionCommands}
+          recentEvents={feedEntries}
           onClose={() => setReferencePanel(null)}
         />
         {resultPresentationReady && (
