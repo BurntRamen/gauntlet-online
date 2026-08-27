@@ -74,12 +74,15 @@
 .collector-claim-redeem { width: 100%; margin-top: 18px; font-size: 16px; }
 .collector-claim-confirmation { padding: 12px; border-left: 4px solid #34d399; color: #d1fae5; background: rgba(6, 78, 59, 0.3); }
 .collector-claim-rewards ul { display: grid; gap: 8px; padding: 0; list-style: none; }
-.collector-claim-rewards li { display: flex; justify-content: space-between; gap: 12px; padding: 9px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
-.collector-claim-rewards li span { color: #cbd5e1; }
+.collector-claim-rewards li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+.collector-claim-rewards li > img { width: 62px; height: 78px; border-radius: 5px; object-fit: cover; }
+.collector-claim-reward-copy { display: grid; gap: 4px; color: #cbd5e1; }
+.collector-claim-reward-copy strong { color: #f8fafc; }
 .collector-claim-dismiss { margin-top: 20px; }
 
 @media (max-width: 580px) {
   .collector-claim-card { padding: 18px; }
   .collector-claim-summary dl { grid-template-columns: 1fr; }
-  .collector-claim-rewards li { flex-direction: column; }
+  .collector-claim-rewards li { grid-template-columns: 52px minmax(0, 1fr); }
+  .collector-claim-rewards li > img { width: 52px; height: 66px; }
 }

@@ -50,6 +50,7 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
       factionId: record.campaign.factionId,
       chapterId: record.campaign.chapterId,
       title: record.campaign.title,
+      image: record.campaign.image || null,
       outcome: consequence?.campaign?.outcome || "not-cleared",
       clearType: consequence?.campaign?.clearType || null,
       firstClear: consequence?.campaign?.firstClear === true,

@@ -1,20 +1,32 @@
-export const CARD_MOTION_PROFILES = Object.freeze({
-  hover: Object.freeze({ durationMs: 150, easing: "ease-out" }),
-  "payment-enter": Object.freeze({ durationMs: 760, easing: "ease-in-out", lift: 0.72 }),
-  "draw-enter": Object.freeze({ durationMs: 720, easing: "ease-out", lift: 0.58 }),
-  "placement-enter": Object.freeze({ durationMs: 880, easing: "ease-in-out", lift: 0.54 }),
-  "attack-enter": Object.freeze({ durationMs: 1000, easing: "ease-in-out", lift: 0.7 }),
-  "block-enter": Object.freeze({ durationMs: 1100, easing: "ease-in-out", lift: 0.82 }),
-  "replay-stage": Object.freeze({ durationMs: 1000, easing: "ease-in-out", lift: 0.7 }),
-  "discard-exit": Object.freeze({ durationMs: 720, easing: "ease-in", lift: 0.28 }),
-  "state-correction": Object.freeze({ durationMs: 280, easing: "ease-out" })
-});
+import { PRESENTATION_MOTION_PROFILES } from "./presentationCadence";
 
-export const COMBAT_RESOLUTION_HOLD_MS = 1500;
-export const PAYMENT_SETTLE_HOLD_MS = 500;
+// Keep the established export for adapters while making the cadence contract
+// the only authority for motion duration and easing.
+export const CARD_MOTION_PROFILES = PRESENTATION_MOTION_PROFILES;
+
+export const COMBAT_RESOLUTION_HOLD_MS = 100;
+export const PAYMENT_SETTLE_HOLD_MS = 120;
 export const CARD_PATH_CLEARANCE = 0.16;
 export const CARD_PATH_FOOTPRINT = Object.freeze({ width: 2.3, height: 3.22 });
 export const CARD_MOTION_CONTRACT_VERSION = "gauntlet.card-motion.collision-safe.v1";
+
+export function shouldAllowElevatedSourceEgress({
+  destinationZone = null,
+  obstacleZone = null,
+  obstacleSourceZone = null,
+  obstacleMotionRole = null,
+  obstacleKind = "current"
+} = {}) {
+  if (destinationZone?.kind !== "payment" || destinationZone?.side == null) return false;
+  const sourceHandZone = obstacleZone?.kind === "hand"
+    ? obstacleZone
+    : obstacleKind === "current"
+      && ["attack-enter", "block-enter"].includes(obstacleMotionRole)
+      && obstacleSourceZone?.kind === "hand"
+      ? obstacleSourceZone
+      : null;
+  return sourceHandZone?.side != null && destinationZone.side === sourceHandZone.side;
+}
 
 export const CARD_MOTION_CUE_HOOKS = Object.freeze({
   "payment-enter": Object.freeze([
@@ -38,6 +50,8 @@ const COLLISION_PLANNED_ROLES = new Set([
   "placement-enter",
   "attack-enter",
   "block-enter",
+  "lane-shift",
+  "swap-return",
   "replay-stage",
   "discard-exit"
 ]);
@@ -87,6 +101,27 @@ function pathLength(points) {
   ), 0);
 }
 
+function elevatedSourceEgressEndProgress(points) {
+  const fallbackProgress = 0.78;
+  if (!Array.isArray(points) || points.length !== 4) return fallbackProgress;
+  const [origin, liftPoint, railPoint, destination] = points;
+  const followsLowerRail = (
+    Math.abs(Number(liftPoint.x) - Number(origin.x)) < 0.01
+    && Math.abs(Number(railPoint.z) - Number(liftPoint.z)) < 0.01
+    && Math.abs(Number(destination.x) - Number(railPoint.x)) < 0.01
+    && Number(liftPoint.z) < 0
+    && Number(railPoint.z) < 0
+  );
+  if (!followsLowerRail) return fallbackProgress;
+  const totalLength = pathLength(points);
+  const finalDescentLength = Math.hypot(
+    Number(destination.x) - Number(railPoint.x),
+    Number(destination.z) - Number(railPoint.z)
+  );
+  if (totalLength <= 0 || finalDescentLength <= 0.001) return fallbackProgress;
+  return Math.max(fallbackProgress, (totalLength - finalDescentLength) / totalLength);
+}
+
 export function sampleCardTravelPath(points, progress) {
   const safePoints = Array.isArray(points) && points.length >= 2 ? points : [{ x: 0, z: 0 }, { x: 0, z: 0 }];
   const lengths = safePoints.slice(1).map((point, index) => (
@@ -113,6 +148,7 @@ export function cardTravelPathCollides(points, obstacles = [], movingScale = 1, 
   const destination = points.at(-1) || origin;
   const originScale = travelScaleAt(movingScale, 0);
   const destinationScale = travelScaleAt(movingScale, 1);
+  const elevatedSourceEgressProgress = elevatedSourceEgressEndProgress(points);
   const relevant = obstacles
     .filter((obstacle) => (
       obstacle && Number.isFinite(Number(obstacle.x)) && Number.isFinite(Number(obstacle.z))
@@ -132,9 +168,12 @@ export function cardTravelPathCollides(points, obstacles = [], movingScale = 1, 
       const sampleScale = travelScaleAt(movingScale, progress);
       // A card leaving its own fanned hand first lifts above that source fan.
       // The semantic payment corridor keeps the lifted card on the local
-      // lower rail; source-hand projection overlap during that elevated
-      // egress is preferable to routing it through lanes or combat.
-      if (entry.obstacle.allowElevatedSourceEgress === true && progress <= 0.78) return false;
+      // lower rail through its cross-board leg; source-hand projection overlap
+      // while elevated is preferable to routing it through lanes or combat.
+      if (
+        entry.obstacle.allowElevatedSourceEgress === true
+        && progress <= elevatedSourceEgressProgress
+      ) return false;
       // Adjacent tray slots retain full physical collision checks while the
       // extra travel clearance eases away near settlement. This permits a
       // shrinking hand card to seat beside another payment card without ever
@@ -226,9 +265,17 @@ export function planCardTravelPath({
 }
 
 export function semanticCardTravelCorridors({ role, start, destination } = {}) {
-  if (role !== "payment-enter") return [];
   const origin = { x: Number(start?.x || 0), z: Number(start?.z || 0) };
   const target = { x: Number(destination?.x || 0), z: Number(destination?.z || 0) };
+  if (
+    role === "lane-shift"
+    && Math.abs(origin.x - target.x) < 0.01
+    && Math.abs(origin.z - target.z) < 0.01
+  ) {
+    const direction = origin.x <= 0 ? 1 : -1;
+    return [[origin, { x: origin.x + direction * 0.34, z: origin.z - 0.08 }, target]];
+  }
+  if (role !== "payment-enter") return [];
   const movingScale = Math.max(Number(start?.scale || 1), Number(destination?.scale || 1));
   const sourceClearance = CARD_PATH_FOOTPRINT.height * movingScale + CARD_PATH_CLEARANCE * 2.4;
   if (origin.z <= 0) {
@@ -275,6 +322,7 @@ export function createCardMotion({
   delayMs = 0,
   bounds = null,
   occurrenceId = null,
+  sourceEventId = null,
   playbackRate = 1
 }) {
   const profile = CARD_MOTION_PROFILES[role] || CARD_MOTION_PROFILES["state-correction"];
@@ -305,6 +353,8 @@ export function createCardMotion({
   ].join(":");
   return {
     role,
+    occurrenceId: stableOccurrenceId,
+    sourceEventId,
     start: { ...start },
     destination: { ...destination },
     startTimeMs: (Number(startTimeMs) || 0) + (reducedMotion ? 0 : Number(delayMs || 0) / rate),
@@ -312,7 +362,9 @@ export function createCardMotion({
     easing: profile.easing,
     lift: reducedMotion ? 0 : Number(profile.lift || 0),
     path,
-    cueHooks: (CARD_MOTION_CUE_HOOKS[role] || []).map((hook) => ({
+    // A grouped motion has one physical lift voice. Staggered followers keep
+    // their visual path without layering identical presentation cues.
+    cueHooks: (Number(pathIndex || 0) === 0 ? CARD_MOTION_CUE_HOOKS[role] || [] : []).map((hook) => ({
       contract: "gauntlet.presentation-cues.v1",
       ...hook,
       occurrenceId: `${stableOccurrenceId}:${hook.cueId}:${hook.phase}`,
@@ -344,6 +396,22 @@ export function sampleCardMotion(motion, nowMs) {
   }
   if (Number.isFinite(sampled.y) && motion.lift) {
     sampled.y += Math.sin(Math.PI * linearProgress) * motion.lift;
+  }
+  const travelEnvelope = Math.sin(Math.PI * linearProgress);
+  const directionZ = Math.sign(Number(motion.destination?.z || 0) - Number(motion.start?.z || 0)) || 1;
+  if (motion.role === "attack-enter" && Number.isFinite(sampled.rotationX)) {
+    sampled.rotationX -= directionZ * travelEnvelope * 0.14;
+  } else if (motion.role === "block-enter" && Number.isFinite(sampled.rotationY)) {
+    const braceDirection = Number(motion.destination?.x || 0) < Number(motion.start?.x || 0) ? -1 : 1;
+    sampled.rotationY += braceDirection * travelEnvelope * 0.12;
+  } else if (motion.role === "payment-enter" && Number.isFinite(sampled.scale)) {
+    sampled.scale *= 1 - travelEnvelope * 0.035;
+  } else if (motion.role === "placement-enter" && Number.isFinite(sampled.scale)) {
+    const contactEnvelope = Math.max(0, 1 - Math.abs(linearProgress - 0.86) / 0.14);
+    sampled.scale *= 1 - contactEnvelope * 0.03;
+  } else if (["lane-shift", "swap-return"].includes(motion.role) && Number.isFinite(sampled.rotationY)) {
+    const shiftDirection = Number(motion.destination?.x || 0) < Number(motion.start?.x || 0) ? -1 : 1;
+    sampled.rotationY += shiftDirection * travelEnvelope * 0.045;
   }
   return { ...sampled, progress: linearProgress, complete: linearProgress >= 1 };
 }

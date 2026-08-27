@@ -1,0 +1,1023 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "gauntlet-content-v1",
+  "generatedFrom": "server/gameContent.js collectorVariants[].art",
+  "summary": {
+    "gameplayCardCount": 72,
+    "collectorVariantCount": 144,
+    "variantsWithArt": 36,
+    "variantsMissingArt": 108,
+    "gameplayCardsWithAnyDedicatedArt": 18,
+    "gameplayCardsMissingAllDedicatedArt": 54
+  },
+  "cards": [
+    {
+      "gameplayCardId": "rumin-gilded-scale-legionary",
+      "faction": "rumin",
+      "name": "Gilded Scale Legionary",
+      "type": "unit",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "rumin-gilded-scale-legionary:standard",
+      "collectorVariantId": "rumin-gilded-scale-legionary:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-forum-ledger-runner",
+      "faction": "rumin",
+      "name": "Forum Ledger Runner",
+      "type": "unit",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "rumin-forum-ledger-runner:standard",
+      "collectorVariantId": "rumin-forum-ledger-runner:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-forum-ledger-runner.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-forum-ledger-runner.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-vault-shield-bearer",
+      "faction": "rumin",
+      "name": "Vault Shield Bearer",
+      "type": "unit",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "rumin-vault-shield-bearer:standard",
+      "collectorVariantId": "rumin-vault-shield-bearer:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-vault-shield-bearer.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-vault-shield-bearer.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-coin-scale-spear",
+      "faction": "rumin",
+      "name": "Coin-Scale Spear",
+      "type": "weapon",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "rumin-coin-scale-spear:standard",
+      "collectorVariantId": "rumin-coin-scale-spear:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-coin-scale-spear.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-coin-scale-spear.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-senate-vault-guard",
+      "faction": "rumin",
+      "name": "Senate Vault Guard",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "rumin-senate-vault-guard:standard",
+      "collectorVariantId": "rumin-senate-vault-guard:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-senate-vault-guard.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-senate-vault-guard.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-marble-market-tribune",
+      "faction": "rumin",
+      "name": "Marble Market Tribune",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "rumin-marble-market-tribune:standard",
+      "collectorVariantId": "rumin-marble-market-tribune:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-marble-market-tribune.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-marble-market-tribune.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-rumie-vault-shield",
+      "faction": "rumin",
+      "name": "Rumie Vault Shield",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "rumin-rumie-vault-shield:standard",
+      "collectorVariantId": "rumin-rumie-vault-shield:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-rumie-vault-shield.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-rumie-vault-shield.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-imperial-scale-pike",
+      "faction": "rumin",
+      "name": "Imperial Scale Pike",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "rumin-imperial-scale-pike:standard",
+      "collectorVariantId": "rumin-imperial-scale-pike:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-imperial-scale-pike.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-imperial-scale-pike.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-aurelian-clawblade",
+      "faction": "rumin",
+      "name": "Aurelian Clawblade",
+      "type": "weapon",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "rumin-aurelian-clawblade:standard",
+      "collectorVariantId": "rumin-aurelian-clawblade:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-aurelian-clawblade.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-aurelian-clawblade.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-basilisk-standard",
+      "faction": "rumin",
+      "name": "Basilisk Standard",
+      "type": "standard",
+      "rarity": "rare",
+      "value": 6,
+      "standardVariantId": "rumin-basilisk-standard:standard",
+      "collectorVariantId": "rumin-basilisk-standard:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-basilisk-standard.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-basilisk-standard.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-jewel-bank-contract",
+      "faction": "rumin",
+      "name": "Jewel-Bank Contract",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 5,
+      "standardVariantId": "rumin-jewel-bank-contract:standard",
+      "collectorVariantId": "rumin-jewel-bank-contract:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-jewel-bank-contract.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-jewel-bank-contract.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-tax-road-scout",
+      "faction": "rumin",
+      "name": "Tax-Road Scout",
+      "type": "unit",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "rumin-tax-road-scout:standard",
+      "collectorVariantId": "rumin-tax-road-scout:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-tax-road-scout.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-tax-road-scout.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-marble-phalanx",
+      "faction": "rumin",
+      "name": "Marble Phalanx",
+      "type": "unit",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "rumin-marble-phalanx:standard",
+      "collectorVariantId": "rumin-marble-phalanx:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-marble-phalanx.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-marble-phalanx.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-counting-house-aegis",
+      "faction": "rumin",
+      "name": "Counting-House Aegis",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 7,
+      "standardVariantId": "rumin-counting-house-aegis:standard",
+      "collectorVariantId": "rumin-counting-house-aegis:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-counting-house-aegis.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-counting-house-aegis.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-triumphal-ram",
+      "faction": "rumin",
+      "name": "Triumphal Ram",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "value": 8,
+      "standardVariantId": "rumin-triumphal-ram:standard",
+      "collectorVariantId": "rumin-triumphal-ram:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-triumphal-ram.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-triumphal-ram.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-edict-of-the-vault",
+      "faction": "rumin",
+      "name": "Edict of the Vault",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "rumin-edict-of-the-vault:standard",
+      "collectorVariantId": "rumin-edict-of-the-vault:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-edict-of-the-vault.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-edict-of-the-vault.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-kaisers-gold-claw",
+      "faction": "rumin",
+      "name": "Kaiser's Gold Claw",
+      "type": "weapon",
+      "rarity": "mythic",
+      "value": 9,
+      "standardVariantId": "rumin-kaisers-gold-claw:standard",
+      "collectorVariantId": "rumin-kaisers-gold-claw:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-kaisers-gold-claw.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-kaisers-gold-claw.webp"
+      }
+    },
+    {
+      "gameplayCardId": "rumin-rumie-market-colossus",
+      "faction": "rumin",
+      "name": "Rumie Market Colossus",
+      "type": "unit",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "rumin-rumie-market-colossus:standard",
+      "collectorVariantId": "rumin-rumie-market-colossus:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-rumie-market-colossus.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-rumie-market-colossus.webp"
+      }
+    },
+    {
+      "gameplayCardId": "sheen-rootwatch-initiate",
+      "faction": "sheen",
+      "name": "Rootwatch Initiate",
+      "type": "unit",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "sheen-rootwatch-initiate:standard",
+      "collectorVariantId": "sheen-rootwatch-initiate:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-quiet-grove-sentinel",
+      "faction": "sheen",
+      "name": "Quiet Grove Sentinel",
+      "type": "unit",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "sheen-quiet-grove-sentinel:standard",
+      "collectorVariantId": "sheen-quiet-grove-sentinel:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-mossbound-staff",
+      "faction": "sheen",
+      "name": "Mossbound Staff",
+      "type": "relic",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "sheen-mossbound-staff:standard",
+      "collectorVariantId": "sheen-mossbound-staff:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-living-bark-guard",
+      "faction": "sheen",
+      "name": "Living Bark Guard",
+      "type": "unit",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "sheen-living-bark-guard:standard",
+      "collectorVariantId": "sheen-living-bark-guard:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-beli-vinebinder",
+      "faction": "sheen",
+      "name": "Beli Vinebinder",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "sheen-beli-vinebinder:standard",
+      "collectorVariantId": "sheen-beli-vinebinder:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-harmony-ward",
+      "faction": "sheen",
+      "name": "Harmony Ward",
+      "type": "ward",
+      "rarity": "uncommon",
+      "value": 4,
+      "standardVariantId": "sheen-harmony-ward:standard",
+      "collectorVariantId": "sheen-harmony-ward:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-thornroot-counterstroke",
+      "faction": "sheen",
+      "name": "Thornroot Counterstroke",
+      "type": "tactic",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "sheen-thornroot-counterstroke:standard",
+      "collectorVariantId": "sheen-thornroot-counterstroke:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-beli-canopy-shield",
+      "faction": "sheen",
+      "name": "Beli Canopy Shield",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "sheen-beli-canopy-shield:standard",
+      "collectorVariantId": "sheen-beli-canopy-shield:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-nus-verdant-edict",
+      "faction": "sheen",
+      "name": "Nu's Verdant Edict",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "sheen-nus-verdant-edict:standard",
+      "collectorVariantId": "sheen-nus-verdant-edict:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-roots-that-remember",
+      "faction": "sheen",
+      "name": "Roots That Remember",
+      "type": "relic",
+      "rarity": "rare",
+      "value": 5,
+      "standardVariantId": "sheen-roots-that-remember:standard",
+      "collectorVariantId": "sheen-roots-that-remember:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-tangs-patient-hand",
+      "faction": "sheen",
+      "name": "Tang's Patient Hand",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 6,
+      "standardVariantId": "sheen-tangs-patient-hand:standard",
+      "collectorVariantId": "sheen-tangs-patient-hand:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-seedwall-acolyte",
+      "faction": "sheen",
+      "name": "Seedwall Acolyte",
+      "type": "unit",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "sheen-seedwall-acolyte:standard",
+      "collectorVariantId": "sheen-seedwall-acolyte:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-raincall-mender",
+      "faction": "sheen",
+      "name": "Raincall Mender",
+      "type": "unit",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "sheen-raincall-mender:standard",
+      "collectorVariantId": "sheen-raincall-mender:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-ringroot-bastion",
+      "faction": "sheen",
+      "name": "Ringroot Bastion",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 7,
+      "standardVariantId": "sheen-ringroot-bastion:standard",
+      "collectorVariantId": "sheen-ringroot-bastion:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-sapling-chorus",
+      "faction": "sheen",
+      "name": "Sapling Chorus",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 3,
+      "standardVariantId": "sheen-sapling-chorus:standard",
+      "collectorVariantId": "sheen-sapling-chorus:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-nus-calm-command",
+      "faction": "sheen",
+      "name": "Nu's Calm Command",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "sheen-nus-calm-command:standard",
+      "collectorVariantId": "sheen-nus-calm-command:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-emperors-heartwood",
+      "faction": "sheen",
+      "name": "Emperor's Heartwood",
+      "type": "relic",
+      "rarity": "mythic",
+      "value": 9,
+      "standardVariantId": "sheen-emperors-heartwood:standard",
+      "collectorVariantId": "sheen-emperors-heartwood:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "sheen-beli-awakened",
+      "faction": "sheen",
+      "name": "Beli Awakened",
+      "type": "unit",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "sheen-beli-awakened:standard",
+      "collectorVariantId": "sheen-beli-awakened:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-deckhand-diver",
+      "faction": "frumo",
+      "name": "Deckhand Diver",
+      "type": "unit",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "frumo-deckhand-diver:standard",
+      "collectorVariantId": "frumo-deckhand-diver:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-tideglass-cutlass",
+      "faction": "frumo",
+      "name": "Tideglass Cutlass",
+      "type": "weapon",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "frumo-tideglass-cutlass:standard",
+      "collectorVariantId": "frumo-tideglass-cutlass:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-sunken-coin",
+      "faction": "frumo",
+      "name": "Sunken Coin",
+      "type": "relic",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "frumo-sunken-coin:standard",
+      "collectorVariantId": "frumo-sunken-coin:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-coral-hull-guard",
+      "faction": "frumo",
+      "name": "Coral-Hull Guard",
+      "type": "unit",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "frumo-coral-hull-guard:standard",
+      "collectorVariantId": "frumo-coral-hull-guard:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-riptide-smuggler",
+      "faction": "frumo",
+      "name": "Riptide Smuggler",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "frumo-riptide-smuggler:standard",
+      "collectorVariantId": "frumo-riptide-smuggler:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-lafayettes-chart",
+      "faction": "frumo",
+      "name": "Lafayette's Chart",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 4,
+      "standardVariantId": "frumo-lafayettes-chart:standard",
+      "collectorVariantId": "frumo-lafayettes-chart:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-pressure-lock-pistol",
+      "faction": "frumo",
+      "name": "Pressure-Lock Pistol",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "frumo-pressure-lock-pistol:standard",
+      "collectorVariantId": "frumo-pressure-lock-pistol:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-ristus-blackwake",
+      "faction": "frumo",
+      "name": "Ristus Blackwake",
+      "type": "tactic",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "frumo-ristus-blackwake:standard",
+      "collectorVariantId": "frumo-ristus-blackwake:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-captains-bad-wager",
+      "faction": "frumo",
+      "name": "Captain's Bad Wager",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "frumo-captains-bad-wager:standard",
+      "collectorVariantId": "frumo-captains-bad-wager:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-poleas-sunken-order",
+      "faction": "frumo",
+      "name": "Polea's Sunken Order",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 6,
+      "standardVariantId": "frumo-poleas-sunken-order:standard",
+      "collectorVariantId": "frumo-poleas-sunken-order:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-leviathan-salvage",
+      "faction": "frumo",
+      "name": "Leviathan Salvage",
+      "type": "relic",
+      "rarity": "rare",
+      "value": 5,
+      "standardVariantId": "frumo-leviathan-salvage:standard",
+      "collectorVariantId": "frumo-leviathan-salvage:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-kelpcloak-trickster",
+      "faction": "frumo",
+      "name": "Kelpcloak Trickster",
+      "type": "unit",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "frumo-kelpcloak-trickster:standard",
+      "collectorVariantId": "frumo-kelpcloak-trickster:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-ballast-hook",
+      "faction": "frumo",
+      "name": "Ballast Hook",
+      "type": "weapon",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "frumo-ballast-hook:standard",
+      "collectorVariantId": "frumo-ballast-hook:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-tide-debt-ledger",
+      "faction": "frumo",
+      "name": "Tide-Debt Ledger",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 4,
+      "standardVariantId": "frumo-tide-debt-ledger:standard",
+      "collectorVariantId": "frumo-tide-debt-ledger:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-abyssal-switchboard",
+      "faction": "frumo",
+      "name": "Abyssal Switchboard",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 7,
+      "standardVariantId": "frumo-abyssal-switchboard:standard",
+      "collectorVariantId": "frumo-abyssal-switchboard:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-poleas-moonlit-map",
+      "faction": "frumo",
+      "name": "Polea's Moonlit Map",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "frumo-poleas-moonlit-map:standard",
+      "collectorVariantId": "frumo-poleas-moonlit-map:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-the-last-gamble",
+      "faction": "frumo",
+      "name": "The Last Gamble",
+      "type": "tactic",
+      "rarity": "mythic",
+      "value": 9,
+      "standardVariantId": "frumo-the-last-gamble:standard",
+      "collectorVariantId": "frumo-the-last-gamble:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "frumo-ristus-rises",
+      "faction": "frumo",
+      "name": "Ristus Rises",
+      "type": "unit",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "frumo-ristus-rises:standard",
+      "collectorVariantId": "frumo-ristus-rises:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-copperline-technician",
+      "faction": "bizi",
+      "name": "Copperline Technician",
+      "type": "unit",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "bizi-copperline-technician:standard",
+      "collectorVariantId": "bizi-copperline-technician:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-voltage-ration",
+      "faction": "bizi",
+      "name": "Voltage Ration",
+      "type": "tactic",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "bizi-voltage-ration:standard",
+      "collectorVariantId": "bizi-voltage-ration:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-dune-circuit-runner",
+      "faction": "bizi",
+      "name": "Dune Circuit Runner",
+      "type": "unit",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "bizi-dune-circuit-runner:standard",
+      "collectorVariantId": "bizi-dune-circuit-runner:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-gearplate-shield",
+      "faction": "bizi",
+      "name": "Gearplate Shield",
+      "type": "relic",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "bizi-gearplate-shield:standard",
+      "collectorVariantId": "bizi-gearplate-shield:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-heras-calibration",
+      "faction": "bizi",
+      "name": "Hera's Calibration",
+      "type": "tactic",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "bizi-heras-calibration:standard",
+      "collectorVariantId": "bizi-heras-calibration:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-solar-array-adept",
+      "faction": "bizi",
+      "name": "Solar Array Adept",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "bizi-solar-array-adept:standard",
+      "collectorVariantId": "bizi-solar-array-adept:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-constanti-conduit",
+      "faction": "bizi",
+      "name": "Constanti Conduit",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "bizi-constanti-conduit:standard",
+      "collectorVariantId": "bizi-constanti-conduit:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-sandstorm-processor",
+      "faction": "bizi",
+      "name": "Sandstorm Processor",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "bizi-sandstorm-processor:standard",
+      "collectorVariantId": "bizi-sandstorm-processor:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-focus-overclock",
+      "faction": "bizi",
+      "name": "Focus Overclock",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "bizi-focus-overclock:standard",
+      "collectorVariantId": "bizi-focus-overclock:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-regnum-voltage-bank",
+      "faction": "bizi",
+      "name": "Regnum Voltage Bank",
+      "type": "relic",
+      "rarity": "rare",
+      "value": 6,
+      "standardVariantId": "bizi-regnum-voltage-bank:standard",
+      "collectorVariantId": "bizi-regnum-voltage-bank:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-desert-logic-engine",
+      "faction": "bizi",
+      "name": "Desert Logic Engine",
+      "type": "relic",
+      "rarity": "rare",
+      "value": 5,
+      "standardVariantId": "bizi-desert-logic-engine:standard",
+      "collectorVariantId": "bizi-desert-logic-engine:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-brass-spark",
+      "faction": "bizi",
+      "name": "Brass Spark",
+      "type": "tactic",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "bizi-brass-spark:standard",
+      "collectorVariantId": "bizi-brass-spark:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-railspike-marshal",
+      "faction": "bizi",
+      "name": "Railspike Marshal",
+      "type": "unit",
+      "rarity": "common",
+      "value": 5,
+      "standardVariantId": "bizi-railspike-marshal:standard",
+      "collectorVariantId": "bizi-railspike-marshal:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-heat-sink-matrix",
+      "faction": "bizi",
+      "name": "Heat-Sink Matrix",
+      "type": "relic",
+      "rarity": "uncommon",
+      "value": 4,
+      "standardVariantId": "bizi-heat-sink-matrix:standard",
+      "collectorVariantId": "bizi-heat-sink-matrix:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-clockwork-caravan",
+      "faction": "bizi",
+      "name": "Clockwork Caravan",
+      "type": "unit",
+      "rarity": "uncommon",
+      "value": 7,
+      "standardVariantId": "bizi-clockwork-caravan:standard",
+      "collectorVariantId": "bizi-clockwork-caravan:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-voltaric-ultimatum",
+      "faction": "bizi",
+      "name": "Voltaric Ultimatum",
+      "type": "tactic",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "bizi-voltaric-ultimatum:standard",
+      "collectorVariantId": "bizi-voltaric-ultimatum:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-focus-prime-signal",
+      "faction": "bizi",
+      "name": "Focus Prime Signal",
+      "type": "tactic",
+      "rarity": "mythic",
+      "value": 9,
+      "standardVariantId": "bizi-focus-prime-signal:standard",
+      "collectorVariantId": "bizi-focus-prime-signal:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    },
+    {
+      "gameplayCardId": "bizi-constanti-sunforge",
+      "faction": "bizi",
+      "name": "Constanti Sunforge",
+      "type": "unit",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "bizi-constanti-sunforge:standard",
+      "collectorVariantId": "bizi-constanti-sunforge:collector-foil",
+      "currentArt": {
+        "standard": null,
+        "collector": null
+      }
+    }
+  ]
+}

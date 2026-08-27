@@ -59,7 +59,7 @@ test("builds a public competitive profile without private account data", () => {
           currentVersionId: "version-1",
           createdAt: "2026-07-03T12:00:00.000Z",
           updatedAt: "2026-07-04T12:00:00.000Z",
-          versions: [{ id: "version-1", source: "constructed-editor", cardQuantities: { privateCard: 1 } }],
+          versions: [{ id: "version-1", source: "constructed-editor", cardQuantities: { "rumin-gilded-scale-legionary": 1 } }],
           record: { wins: 1, losses: 0, draws: 0, recentMatchIds: ["match-1"] }
         }]
       }
@@ -97,13 +97,14 @@ test("builds a public competitive profile without private account data", () => {
   assert.equal(profile.competitiveRecord.activeSeason.recentMatchReferences[0].matchId, "season-match");
   assert.equal(profile.factionRecords[0].wins, 1);
   assert.equal(profile.featuredDecks[0].currentVersionId, "version-1");
+  assert.deepEqual(profile.featuredDecks[0].featuredArt, ["/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp"]);
   assert.equal(profile.notableStats.largestAttack.value, 12);
   assert.equal(profile.recentMatches[0].perspective.outcome, "win");
   assert.equal(profile.recentMatches[0].perspective.player.faction.id, "rumin");
   assert.equal(profile.recentMatches[0].perspective.player.finalLife, 5);
   assert.deepEqual(profile.unavailableMatchReferences, []);
   assert.equal(serialized.includes("private-hash"), false);
-  assert.equal(serialized.includes("privateCard"), false);
+  assert.equal(serialized.includes("gameplayCardQuantities"), false);
   assert.equal(serialized.includes("wrong-faction"), false);
   assert.equal(serialized.includes("Wrong Opponent"), false);
 });

@@ -1,0 +1,194 @@
+.faction-artwork {
+  --faction-accent: #d0a863;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background-color: #0a1520;
+  background-position: center 24%;
+  background-size: cover;
+  isolation: isolate;
+}
+
+.faction-artwork::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background:
+    radial-gradient(circle at 50% 24%, color-mix(in srgb, var(--faction-accent) 30%, transparent), transparent 44%),
+    linear-gradient(145deg, #14283a, #050b12 72%);
+}
+
+.faction-artwork.is-neutral::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  opacity: 0.22;
+  background:
+    linear-gradient(45deg, transparent 46%, var(--faction-accent) 47% 49%, transparent 50%),
+    linear-gradient(-45deg, transparent 46%, var(--faction-accent) 47% 49%, transparent 50%);
+  background-size: 32px 32px;
+}
+
+.faction-artwork-sigil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 44px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--faction-accent) 72%, white);
+  border-radius: 50%;
+  background: rgba(3, 8, 14, 0.76);
+  color: #fff4d7;
+  font: 700 22px Georgia, serif;
+  transform: translate(-50%, -50%);
+}
+
+.deck-visual {
+  min-height: 118px;
+  border-radius: 7px;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.38), inset 0 0 0 1px color-mix(in srgb, var(--faction-accent) 68%, white 12%);
+}
+
+.deck-visual-card-stack {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.deck-visual-card-stack img {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  object-fit: cover;
+  filter: saturate(.86) contrast(1.05);
+}
+
+.deck-visual-card-stack.count-2 img:first-child,
+.deck-visual-card-stack.count-3 img:first-child { object-position: 34% center; }
+.deck-visual-card-stack.count-2 img:last-child,
+.deck-visual-card-stack.count-3 img:last-child { object-position: 66% center; }
+
+.deck-visual-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 8, 14, 0.05), rgba(3, 8, 14, 0.86));
+}
+
+.deck-visual-mark {
+  z-index: 2;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  width: 30px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 228, 0.62);
+  border-radius: 50%;
+  background: rgba(3, 8, 14, 0.72);
+  color: #fff4d7;
+  font: 700 15px Georgia, serif;
+}
+
+.deck-visual-caption {
+  z-index: 2;
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  left: 10px;
+  overflow: hidden;
+  color: #fffaf0;
+  font: 700 13px Georgia, serif;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 7px #000;
+  white-space: nowrap;
+}
+
+.match-thumbnail {
+  --result-accent: #94a3b8;
+  position: relative;
+  min-height: 132px;
+  overflow: hidden;
+  background: #07111b;
+  isolation: isolate;
+}
+
+.match-thumbnail.is-win { --result-accent: #63c78c; }
+.match-thumbnail.is-loss { --result-accent: #db7272; }
+.match-thumbnail.is-draw { --result-accent: #d8b95f; }
+
+.match-thumbnail::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--result-accent) 18%, transparent), transparent 35%),
+    linear-gradient(180deg, transparent 36%, rgba(3, 8, 14, 0.88));
+  pointer-events: none;
+}
+
+.match-thumbnail > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.match-thumbnail-side {
+  position: absolute;
+  inset-block: 0;
+  width: 61%;
+  filter: saturate(0.84) contrast(1.08);
+}
+
+.match-thumbnail-player {
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 72% 100%, 0 100%);
+}
+
+.match-thumbnail-opponent {
+  right: 0;
+  background-position-x: 62%;
+  clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.match-thumbnail-vs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  width: 34px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(241, 199, 121, 0.72);
+  border-radius: 50%;
+  background: rgba(3, 8, 14, 0.86);
+  color: #f1c779;
+  font-size: 9px;
+  font-weight: 900;
+  transform: translate(-50%, -50%);
+}
+
+.match-thumbnail-result {
+  position: absolute;
+  bottom: 9px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 7px;
+  border-left: 3px solid var(--result-accent);
+  background: rgba(3, 8, 14, 0.8);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}

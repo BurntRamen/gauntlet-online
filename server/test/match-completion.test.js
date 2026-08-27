@@ -19,7 +19,7 @@ function makeRecord(matchId, chapterId = "first-march") {
       { playerNum: 1, accountId: "account-1", displayName: "Commander", result: "win", finalLife: 12, faction: { id: "rumin", name: "Rumin" } },
       { playerNum: 2, accountId: null, displayName: "The Brass Regent", result: "loss", finalLife: -1, faction: { id: "rumin", name: "Rumin" } }
     ],
-    campaign: { factionId: "rumin", chapterId, title: "The First March" },
+    campaign: { factionId: "rumin", chapterId, title: "The First March", image: "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp" },
     auditEvents: [{ publicPayload: { message: "Player 1 wins the game." } }],
     notableMoments: { largestAttack: null }
   };
@@ -73,6 +73,7 @@ test("finalizes a campaign victory once and returns the durable completion envel
 
   assert.equal(first.envelope.matchId, "match-1");
   assert.equal(first.envelope.campaign.firstClear, true);
+  assert.equal(first.envelope.campaign.image, "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp");
   assert.equal(first.envelope.rewards.boosterCreditDelta, 1);
   assert.equal(first.envelope.campaign.nextMission.chapterId, "second-march");
   assert.equal(retry.alreadyFinalized, true);

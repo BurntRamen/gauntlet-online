@@ -1,0 +1,18 @@
+{
+  "assetFamily": "Basic Gauntlet playing-card faces",
+  "created": "2026-08-27",
+  "generator": "OpenAI built-in imagegen plus deterministic Sharp overlays",
+  "sourceMaster": "client/public/assets/gauntlet/playing-cards/basic-card-master.png",
+  "sourceMasterSha256": "c8b5cfb1e4a545cd0a6e69e796738e254e91fa40218249e4e40bf08a8d9a533d",
+  "runtimePattern": "client/public/assets/gauntlet/playing-cards/basic-{rank}-{suit}.webp",
+  "runtimeFileCount": 52,
+  "runtimeDimensions": "500x700",
+  "runtimeFamilyHash": "638caa2748ffc98be9f2d3a169e683cdfc36d9a8bf0cbc80d991402190942b72",
+  "referenceCards": [
+    "rumin-j-diamonds.webp",
+    "bizi-j-diamonds.webp",
+    "sheen-j-diamonds.webp",
+    "frumo-j-diamonds.webp"
+  ],
+  "prompt": "Use case: stylized-concept\nAsset type: master background for a production 5:7 playing-card face in the Gauntlet Online game\nInput images: Images 1–4 are style references only for the existing card family’s framing, parchment softness, rounded black outer edge, restrained fantasy illustration, and printed-card finish\nPrimary request: create one original neutral ‘Basic Gauntlet’ card-face master with no faction identity, suitable as the common background for all 52 ranks and suits\nScene/backdrop: a dark physical Gauntlet tabletop viewed through subtle atmospheric haze, with three understated parallel territories converging toward a small central gauntlet spiral/arena motif; abstract enough to remain legible beneath large rank and suit marks\nStyle/medium: premium illustrated playing-card art, restrained painterly realism, aged printed texture, visually cohesive with the four references but clearly neutral\nComposition/framing: exact portrait 5:7 card proportions; rounded black outer frame; thin muted bronze inner border; warm parchment vignette fading inward; central artwork leaves calm negative space at upper-left, center, and lower-right for deterministic rank/suit overlays\nLighting/mood: near-black graphite, muted aged bronze, one restrained sapphire accent; calm and tactile, not glowing\nColor palette: graphite, charcoal, parchment, oxidized bronze, restrained sapphire\nMaterials/textures: printed paper grain, subtle worn edge, physical card stock\nConstraints: absolutely no letters, numbers, rank marks, suit symbols, words, logos, watermarks, faction emblems, signatures, UI, or mockup background; one flat front-facing card only; no perspective tilt; no cast shadow outside the card; keep the central art low-contrast so overlaid card markings will dominate\nAvoid: bright emissive glow, ornate machinery, busy details, recognizable faction settings, duplicated borders, text-like glyphs"
+}

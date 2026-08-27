@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "runId": "gauntlet-menu-backgrounds-2026-08-27",
+  "status": "frozen-candidate-brief",
+  "artifactApprovalStatus": "Approved by Giuseppe on 2026-08-27 for the current Gauntlet digital implementation and public deployment. This approval does not create lore canon, manufacturing clearance, or blanket third-party rights status.",
+  "humanReview": {
+    "reviewer": "Giuseppe",
+    "decision": "APPROVED",
+    "authorization": "Push the exact five selected background files to the live Gauntlet deployment.",
+    "date": "2026-08-27"
+  },
+  "generationMethod": "OpenAI built-in image generation; Play v1 is the style anchor and Journey, Matches, Build, and Identity use it only as a style/material reference.",
+  "authorityChain": [
+    {
+      "id": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "title": "00-00 Creative OS Governance Directive — Operational",
+      "role": "Company-level authority, inheritance, status, conflict, and approval rules"
+    },
+    {
+      "id": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "title": "Gauntlet — Project Dossier & Generation Contract — Operational v1",
+      "role": "Controlling Gauntlet C-30 identity, visual language, avoid list, and digital-implementation boundary"
+    },
+    {
+      "id": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "title": "Gauntlet Rules — Operational v1",
+      "role": "Mechanics boundary; no background may imply a different rules mode"
+    },
+    {
+      "id": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#gid=0",
+      "title": "Gauntlet Card Registry — Operational v1 / Card Registry — Operational v1",
+      "role": "Card-content boundary; no registered card or faction appearance is inferred into universal shell art"
+    },
+    {
+      "id": "1PyyLFGEiYCrxnkHh1Ahh1P87SbW-pwio2No9gGu3znc",
+      "title": "Creative OS — Generation Hub",
+      "role": "Brief, prompt, generation, visual-QA, review, lineage, and delivery-gate workflow"
+    },
+    {
+      "id": "repo:client/src/App.js@main",
+      "title": "Current digital shell implementation",
+      "role": "Current menu destinations and background consumption behavior"
+    }
+  ],
+  "conflictLedger": [
+    {
+      "id": "CONFLICT-NOMINAL-BACKGROUNDS-NOT-SHELL-ART",
+      "conflict": "The implementation maps Play, Journey, Matches, Build, and Identity to character or campaign images and then obscures them under a nearly opaque shell. They do not operate as a coherent Gauntlet background set.",
+      "resolutionForThisPass": "Generate five universal C-30 shell plates, bind one to each destination, reuse them on matching subpages, and keep the UI readable through controlled overlays rather than hiding the art."
+    }
+  ],
+  "globalVisualGrammar": {
+    "factionAuthority": "Universal Gauntlet. No faction or civilization governs these five assets.",
+    "culturalArchitecturalMaterialLanguage": "Modern tactical arena infrastructure: blackened steel, charcoal composite, worn graphite, bone enamel, restrained brass, signal orange/red/yellow, lane geometry, gates, shields, damage marks, boundary rails, and compact control hardware.",
+    "mustPreserve": [
+      "direct competitive arena identity",
+      "sharp modern game-first presentation",
+      "limited grit and readable silhouettes",
+      "dark central field for application UI",
+      "strong visible environmental detail in the top and side gutters",
+      "desktop cover crop and centered mobile cover crop"
+    ],
+    "mustAvoid": [
+      "heavy fantasy ornament",
+      "medieval crests, castles, heraldry, or manuscript styling",
+      "poker chips, casino tables, suits, or gambling-room imagery",
+      "faction characters, faction architecture, or civilization lore",
+      "cute mascots",
+      "luxury gloss or ornate gold",
+      "readable text, fake lettering, logos, UI panels, card faces, or watermarks"
+    ],
+    "intendedReusableCropsSurfaces": [
+      "16:9 desktop page background",
+      "centered portrait/mobile cover crop",
+      "menu side gutters",
+      "header atmosphere",
+      "matching destination subpages"
+    ]
+  },
+  "assets": [
+    {
+      "assetId": "gauntlet-menu-bg-play-v1",
+      "selectedFile": "client/public/assets/gauntlet/backgrounds/gauntlet-menu-play-v1.jpg",
+      "contentId": "home:play",
+      "visualSubject": "An empty competitive Gauntlet arena immediately before a duel, with three parallel combat lanes running toward opposed armored gates, boundary rails, shield-like barriers, and restrained signal-orange readiness lights.",
+      "factionAuthority": "Universal Gauntlet / C-30",
+      "culturalArchitecturalMaterialLanguage": "Graphite arena floor, blackened steel gates, bone-white lane markers, worn composite barriers, orange-red warning lamps.",
+      "mustPreserve": ["exactly three readable lane paths", "pre-match tension", "empty center for UI", "opposed competitive geometry"],
+      "mustAvoid": ["fighters", "spectacle crowd", "sports stadium branding", "fantasy coliseum", "card suits"],
+      "intendedReusableCropsSurfaces": ["Play menu", "lobby", "practice/tables/ranked/draft surfaces"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "C-30", "repo:client/src/App.js@main#home:play"]
+    },
+    {
+      "assetId": "gauntlet-menu-bg-journey-v1",
+      "selectedFile": "client/public/assets/gauntlet/backgrounds/gauntlet-menu-journey-v1.jpg",
+      "contentId": "home:journey",
+      "visualSubject": "A tactical training corridor opening into the commander archives, where three lane diagrams continue from a scored practice floor toward tall sealed archive gates and suspended blank record plates.",
+      "factionAuthority": "Universal Gauntlet / C-30",
+      "culturalArchitecturalMaterialLanguage": "Charcoal training floor, bone diagram marks, steel archive shutters, restrained brass clips, muted signal-yellow path lights.",
+      "mustPreserve": ["progression from training to archive", "three-lane rhythm", "institutional rather than lore-heavy archive", "clear central UI field"],
+      "mustAvoid": ["library manuscripts", "scrolls", "faction portraits", "temples", "readable records"],
+      "intendedReusableCropsSurfaces": ["Journey menu", "tutorial", "campaign selection and briefing shell"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "C-30", "repo:client/src/App.js@main#home:journey"]
+    },
+    {
+      "assetId": "gauntlet-menu-bg-matches-v1",
+      "selectedFile": "client/public/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg",
+      "revisionNote": "v2 removes generated numeric labels from the observation-room plaques; all plates are blank.",
+      "contentId": "home:matches",
+      "visualSubject": "An after-action record chamber overlooking a dark arena, with layered replay rails, blank result plaques, damage-threshold markers, and a distant three-lane field under cold steel-blue light.",
+      "factionAuthority": "Universal Gauntlet / C-30",
+      "culturalArchitecturalMaterialLanguage": "Black steel record racks, slate glass, bone enamel markers, scored graphite, muted blue-gray depth, small red result lights.",
+      "mustPreserve": ["record and replay atmosphere", "arena continuity", "quiet analytical mood", "clear central UI field"],
+      "mustAvoid": ["readable statistics", "trophies", "sports broadcast graphics", "characters", "casino boards"],
+      "intendedReusableCropsSurfaces": ["Matches menu", "records", "replays", "public match summaries"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "C-30", "repo:client/src/App.js@main#home:matches"]
+    },
+    {
+      "assetId": "gauntlet-menu-bg-build-v1",
+      "selectedFile": "client/public/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg",
+      "contentId": "home:build",
+      "visualSubject": "A compact deck armory and fabrication bench beside the arena, with blank card-sized graphite plates, precision clamps, lane-calibration rails, shield materials, and a restrained signal-green inspection light.",
+      "factionAuthority": "Universal Gauntlet / C-30",
+      "culturalArchitecturalMaterialLanguage": "Worn black workbench, steel tools, bone composite blanks, brass fasteners, graphite card plates, muted green inspection light.",
+      "mustPreserve": ["practical preparation", "deck construction without card content", "arena-grade materials", "clear central UI field"],
+      "mustAvoid": ["readable card faces", "fantasy forge", "treasure vault", "faction ornaments", "luxury workshop"],
+      "intendedReusableCropsSurfaces": ["Build menu", "collection", "deck workshop", "draft deck surfaces"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "C-30", "repo:client/src/App.js@main#home:build"]
+    },
+    {
+      "assetId": "gauntlet-menu-bg-identity-v1",
+      "selectedFile": "client/public/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg",
+      "revisionNote": "v2 removes the generated humanoid silhouette; the identity station is visibly unoccupied.",
+      "contentId": "home:identity",
+      "visualSubject": "A restrained player-ready chamber at the arena boundary with an empty commander silhouette station, blank identification plates, shield racks, opposing gate light, and a narrow blue-gray victory glow.",
+      "factionAuthority": "Universal Gauntlet / C-30",
+      "culturalArchitecturalMaterialLanguage": "Charcoal wall panels, black steel frame, bone enamel identity plates, worn shield surfaces, muted blue-gray light with a small signal-yellow accent.",
+      "mustPreserve": ["player identity without depicting a person", "competitive readiness", "profile and community neutrality", "clear central UI field"],
+      "mustAvoid": ["portraits", "royal throne room", "hero shrine", "faction heraldry", "readable names or badges"],
+      "intendedReusableCropsSurfaces": ["Identity menu", "profile", "community", "competitive record surfaces"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "C-30", "repo:client/src/App.js@main#home:identity"]
+    }
+  ]
+}

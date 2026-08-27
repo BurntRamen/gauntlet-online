@@ -28,16 +28,25 @@ async function collectSample(browser, baseURL, viewport, sampleId) {
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await expect(page.locator(".production-context-panel")).toBeVisible();
+  await expect(page.getByTestId("production-babylon-match")).not.toHaveAttribute("data-scene-mesh-count", "");
   const usableSceneMs = Date.now() - startedAt;
   await page.waitForTimeout(250);
   const browserMetrics = await page.evaluate(() => {
     const resources = performance.getEntriesByType("resource");
+    const match = document.querySelector('[data-testid="production-babylon-match"]');
+    const canvas = document.querySelector("canvas.babylon-match-canvas");
     return {
       heapBytes: performance.memory?.usedJSHeapSize || 0,
       scriptEncodedBytes: resources
         .filter((entry) => entry.initiatorType === "script")
         .reduce((total, entry) => total + (entry.encodedBodySize || 0), 0),
-      scriptResourceCount: resources.filter((entry) => entry.initiatorType === "script").length
+      scriptResourceCount: resources.filter((entry) => entry.initiatorType === "script").length,
+      sceneMeshCount: Number(match?.dataset.sceneMeshCount || 0),
+      frozenBoardMeshCount: Number(match?.dataset.frozenBoardMeshCount || 0),
+      graphicsQuality: match?.dataset.graphicsQuality || "",
+      hardwareScalingLevel: Number(match?.dataset.hardwareScalingLevel || 0),
+      canvasBufferPixels: Number(canvas?.width || 0) * Number(canvas?.height || 0),
+      canvasCssPixels: Number(canvas?.clientWidth || 0) * Number(canvas?.clientHeight || 0)
     };
   });
   await context.close();
@@ -78,9 +87,16 @@ test("compiled Babylon client meets local cold-load performance safeguards", asy
       p95UsableSceneMs,
       maxHeapBytes: Math.max(...samples.map((sample) => sample.heapBytes)),
       maxScriptEncodedBytes: Math.max(...samples.map((sample) => sample.scriptEncodedBytes)),
+      maxSceneMeshCount: Math.max(...samples.map((sample) => sample.sceneMeshCount)),
+      minFrozenBoardMeshCount: Math.min(...samples.map((sample) => sample.frozenBoardMeshCount)),
+      maxCanvasBufferPixels: Math.max(...samples.map((sample) => sample.canvasBufferPixels)),
       samples
     });
     expect(p95UsableSceneMs).toBeLessThan(profile.p95BudgetMs);
+    expect(Math.max(...samples.map((sample) => sample.sceneMeshCount))).toBeLessThan(520);
+    expect(Math.min(...samples.map((sample) => sample.frozenBoardMeshCount))).toBeGreaterThan(300);
+    expect(Math.max(...samples.map((sample) => sample.canvasBufferPixels))).toBeLessThanOrEqual(910000);
+    expect(samples.every((sample) => sample.graphicsQuality === "balanced")).toBe(true);
   }
 
   fs.mkdirSync(OUTPUT_DIRECTORY, { recursive: true });

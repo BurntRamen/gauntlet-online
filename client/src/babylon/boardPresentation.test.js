@@ -2,6 +2,7 @@ import {
   BOARD_LAYOUT_PROFILES,
   BOARD_PRESENTATION_CONTRACT_VERSION,
   getBoardLayoutProfile,
+  primaryPresentationCue,
   projectBoardPresentation,
   transformBoardAnchor
 } from "./boardPresentation";
@@ -25,7 +26,7 @@ test("selects stable responsive board profiles at qualification viewports", () =
   expect(getBoardLayoutProfile(1366, 768).id).toBe("desktop");
   expect(getBoardLayoutProfile(390, 844).id).toBe("portrait");
   expect(getBoardLayoutProfile(844, 390).id).toBe("short-landscape");
-  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 5.8, z: 2.81 });
+  expect(transformBoardAnchor({ x: 10, z: 2 }, BOARD_LAYOUT_PROFILES.portrait)).toEqual({ x: 5.8, z: 3 });
 });
 
 test("projects idle, legal, active, opposed, blocked, and resolving lane states", () => {
@@ -37,17 +38,25 @@ test("projects idle, legal, active, opposed, blocked, and resolving lane states"
   const blocked = model({ attacks: [{ id: "a", laneIndex: 0, value: 4, blocks: [{ value: 3 }] }] });
   expect(projectBoardPresentation(blocked).lanes[0].state).toBe("blocked");
   expect(projectBoardPresentation(attacked, { activeCue: { cueId: "damage.impact", target: { laneIndex: 0 } } }).lanes[0].state).toBe("resolving");
+  expect(projectBoardPresentation(attacked, { activeCue: { cueId: "combat.blocked", target: { laneIndex: 0 } } }).lanes[0].state).toBe("resolving");
+  expect(projectBoardPresentation(attacked, { activeCue: { cueId: "damage.major", target: { laneIndex: 0 } } }).lanes[0].state).toBe("resolving");
 });
 
 test("projects board-native combat, payment, pile, and priority information", () => {
   const projected = projectBoardPresentation(model({
     attacks: [{ laneIndex: null, value: 7, blocks: [{ value: 4 }, { value: 2 }] }],
-    payment: { active: true },
+    payment: { active: true, total: 4, required: 7 },
     selection: { payments: [0, 1] }
   }));
   expect(projected.contract).toBe(BOARD_PRESENTATION_CONTRACT_VERSION);
   expect(projected.combat).toEqual({ state: "blocked", attackValue: 7, blockValue: 6 });
-  expect(projected.payment).toEqual({ state: "active", occupiedSlots: 2 });
+  expect(projected.payment).toEqual({
+    state: "active",
+    occupiedSlots: 2,
+    total: 4,
+    required: 7,
+    remaining: 3
+  });
   expect(projected.piles.localDeck).toBe(44);
   expect(projected.priority).toBe("local");
 });
@@ -59,9 +68,15 @@ test("selection lights destinations without changing a card's physical zone", ()
   expect(attackIntent.combat.state).toBe("legal");
 
   const committedPayment = projectBoardPresentation(model({
-    publicPayments: [{ cards: [{ id: "a" }, { id: "b" }, { id: "c" }] }]
+    publicPayments: [{ cards: [{ id: "a" }, { id: "b" }, { id: "c" }], total: 8, required: 7 }]
   }));
-  expect(committedPayment.payment).toEqual({ state: "committed", occupiedSlots: 3 });
+  expect(committedPayment.payment).toEqual({
+    state: "committed",
+    occupiedSlots: 3,
+    total: 8,
+    required: 7,
+    remaining: 0
+  });
 });
 
 test("presentation geometry is source-agnostic for local, live, and replay adapters", () => {
@@ -81,4 +96,35 @@ test("a board-wide cue does not incorrectly light lane zero", () => {
     activeCue: { cueId: "damage.impact", target: { laneIndex: null } }
   });
   expect(board.lanes[0].state).toBe("idle");
+});
+
+test("projects one semantic focus region and cadence tier at a time", () => {
+  expect(projectBoardPresentation(model()).focus).toEqual({
+    region: "board",
+    laneIndex: null,
+    tier: "rest"
+  });
+  expect(projectBoardPresentation(model({ payment: { active: true } })).focus.region).toBe("payment");
+  expect(projectBoardPresentation(model(), {
+    activeCue: {
+      cueId: "damage.major",
+      target: { laneIndex: 2 },
+      cadence: { tier: "major" }
+    }
+  }).focus).toEqual({ region: "lane", laneIndex: 2, tier: "major" });
+});
+
+test("selects the dominant semantic cue for a grouped presentation beat", () => {
+  const payment = { cueId: "payment.release", cadence: { tier: "commitment", level: 2 } };
+  const attack = {
+    cueId: "attack.declare",
+    target: { laneIndex: 1 },
+    cadence: { tier: "commitment", level: 2 }
+  };
+  const priority = { cueId: "priority.transfer", cadence: { tier: "attention", level: 1 } };
+
+  expect(primaryPresentationCue([payment, attack, priority])).toBe(attack);
+  expect(projectBoardPresentation(model(), {
+    activeCue: primaryPresentationCue([payment, attack, priority])
+  }).focus).toEqual({ region: "lane", laneIndex: 1, tier: "commitment" });
 });

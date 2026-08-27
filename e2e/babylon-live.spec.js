@@ -261,6 +261,8 @@ test("reduced motion and portrait accessibility preserve one native live scene",
   await expect(match).toHaveAttribute("data-scene-contract", "gauntlet.board-stage.native.v1");
   await expect(match).toHaveAttribute("data-board-module-count", "10");
   await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
+  await expect(match).toHaveAttribute("data-missing-face-art-count", "0");
+  await expect(match).toHaveAttribute("data-basic-face-art-actor-count", /^[1-9]\d*$/);
   await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
 
   await page.setViewportSize({ width: 390, height: 844 });

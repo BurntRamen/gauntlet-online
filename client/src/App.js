@@ -4,6 +4,10 @@ import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
+import ConstructedCardTile from "./ConstructedCardTile";
+import CampaignChapterBriefing from "./CampaignChapterBriefing";
+import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
@@ -214,6 +218,24 @@ const MENU_THEME = {
     fontWeight: "bold",
     cursor: "pointer"
   }
+};
+
+const AREA_BACKGROUNDS = {
+  play: "/assets/gauntlet/backgrounds/gauntlet-menu-play-v1.jpg",
+  journey: "/assets/gauntlet/backgrounds/gauntlet-menu-journey-v1.jpg",
+  matches: "/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg",
+  build: "/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg",
+  identity: "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg",
+  studio: "/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg"
+};
+
+const HOME_AREA_CONTEXT = {
+  play: "Battle tables",
+  journey: "Commander archives",
+  matches: "Battle records",
+  build: "Card vault",
+  identity: "Player dossier",
+  studio: "Owner operations"
 };
 
 const BOARD_BACKGROUNDS = {
@@ -1098,9 +1120,11 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
 function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   if (!account) {
     return (
-      <MenuCard title="Progression">
-        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to unlock titles, card backs, faction badges, achievements, campaign progress, and match history.</p>
-      </MenuCard>
+      <section className="identity-progression identity-progression-empty">
+        <span>Gauntlet Progression</span>
+        <h3>Your honors wait in the archive</h3>
+        <p>Sign in to unlock titles, card backs, faction badges, achievements, campaign progress, and match history.</p>
+      </section>
     );
   }
 
@@ -1114,7 +1138,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
     <select
       value={selected || ids?.[0] || ""}
       onChange={(event) => onSelectCosmetic({ [field]: event.target.value })}
-      style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box" }}
+      className="identity-cosmetic-select"
     >
       {(ids || []).map((id) => {
         const entry = definitions[bucket]?.[id] || { name: id };
@@ -1124,56 +1148,87 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   );
 
   return (
-    <MenuCard title="Progression">
-      <div style={{ display: "grid", gap: 14 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+    <section className="identity-progression" aria-labelledby="identity-progression-title">
+      <header className="identity-section-heading">
+        <div><span>Personalization</span><h3 id="identity-progression-title">Honors & progression</h3></div>
+        <p>Your selected insignia shapes how your dossier appears.</p>
+      </header>
+      <div className="identity-cosmetic-controls">
+          <label>
             Title
             {renderOptions(cosmetics.unlockedTitles, "titles", cosmetics.selectedTitle, "title")}
           </label>
-          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+          <label>
             Card Back
             {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
           </label>
-          <label style={{ display: "grid", gap: 5, color: "#bfdbfe", fontSize: 12 }}>
+          <label>
             Faction Badge
             {renderOptions(cosmetics.unlockedFactionBadges, "factionBadges", cosmetics.selectedFactionBadge, "factionBadge")}
           </label>
-        </div>
+      </div>
 
-        <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Achievements</h4>
+      <div className="identity-achievement-section">
+          <div className="identity-subheading"><span>Collected Honors</span><strong>{achievements.length} earned</strong></div>
           {achievements.length === 0 ? (
-            <p style={{ margin: 0, color: "#bfdbfe", fontSize: 13 }}>No achievements yet.</p>
+            <p className="identity-empty-copy">No achievements yet. Your first victory will begin the collection.</p>
           ) : (
-            <div style={{ display: "grid", gap: 6 }}>
+            <div className="achievement-grid">
               {achievements.slice(0, 8).map((achievement) => (
-                <div key={achievement.id} style={{ border: "1px solid rgba(250,204,21,0.28)", borderRadius: 6, padding: 8, background: "rgba(245,158,11,0.12)" }}>
-                  <strong style={{ color: "#fde68a" }}>{achievement.name}</strong>
-                  <div style={{ color: "#bfdbfe", fontSize: 12 }}>{achievement.description}</div>
-                </div>
+                <article className="achievement-tile is-earned" key={achievement.id}>
+                  <span className="achievement-emblem" aria-hidden="true">✦</span>
+                  <div><strong>{achievement.name}</strong><p>{achievement.description}</p></div>
+                  <span className="achievement-state">Earned</span>
+                </article>
               ))}
             </div>
           )}
-        </div>
+      </div>
 
-        <div>
-          <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Campaign Progress</h4>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+      <div className="identity-campaign-section">
+          <div className="identity-subheading"><span>Campaign Archives</span><strong>Faction progress</strong></div>
+          <div className="identity-campaign-grid">
             {Object.entries(campaigns).map(([factionId, entry]) => {
               const completed = campaign[factionId]?.length || 0;
+              const total = entry.chapters.length;
+              const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
               return (
-                <div key={factionId} style={{ border: "1px solid rgba(125,211,252,0.25)", borderRadius: 6, padding: 8, color: "#dbeafe" }}>
-                  <strong>{entry.factionName}</strong>
-                  <div style={{ fontSize: 12 }}>{completed}/{entry.chapters.length} chapters</div>
-                </div>
+                <article className={`identity-campaign-progress ${completed === total && total > 0 ? "is-complete" : ""}`} key={factionId} style={{ "--faction-accent": FACTION_VISUALS[factionId]?.accent }}>
+                  <FactionArtwork factionId={factionId} art={entry.coverImage} decorative />
+                  <div><strong>{entry.factionName}</strong><span>{completed}/{total} chapters</span><span className="identity-progress-track"><i style={{ width: `${percent}%` }} /></span></div>
+                </article>
               );
             })}
           </div>
-        </div>
-
       </div>
-    </MenuCard>
+    </section>
+  );
+}
+
+function IdentityDossierHero({ account, featuredDecks }) {
+  const progression = account?.progression || {};
+  const cosmetics = progression.cosmetics || {};
+  const definitions = progression.definitions || {};
+  const badgeId = cosmetics.selectedFactionBadge && cosmetics.selectedFactionBadge !== "none"
+    ? cosmetics.selectedFactionBadge
+    : featuredDecks?.[0]?.factionId || "basic";
+  const title = definitions.titles?.[cosmetics.selectedTitle]?.name || cosmetics.selectedTitle || (account ? "Recruit" : "Guest Operative");
+  const achievements = Object.keys(progression.achievements || {}).length;
+  const chapters = Object.values(progression.campaign || {}).reduce((total, entries) => total + (entries?.length || 0), 0);
+  return (
+    <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
+      <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />
+      <div className="identity-dossier-copy">
+        <span>{title}</span>
+        <h3>{account?.name || "Guest Identity"}</h3>
+        <p>{account ? "Your Gauntlet honors, chosen insignia, and represented decks." : "Choose a guest name or sign in to establish a persistent Gauntlet dossier."}</p>
+      </div>
+      <div className="identity-dossier-stats" aria-label="Identity summary">
+        <span><strong>{achievements}</strong><small>Honors</small></span>
+        <span><strong>{chapters}</strong><small>Chapters</small></span>
+        <span><strong>{featuredDecks?.length || 0}</strong><small>Featured</small></span>
+      </div>
+    </section>
   );
 }
 
@@ -1183,6 +1238,27 @@ const RARITY_STYLES = {
   rare: { label: "Rare", color: "#fde68a", border: "rgba(253,230,138,0.62)" },
   mythic: { label: "Mythic", color: "#fca5a5", border: "rgba(252,165,165,0.65)" }
 };
+
+function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owned = 0, compact = false }) {
+  if (!card) return null;
+  const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+  const variant = findCollectorVariant(card.id, collectorCatalog, selectedVariantId);
+  const art = resolveVisualAsset(variant?.art);
+  return (
+    <aside className={`card-art-inspector${compact ? " is-compact" : ""}`} style={{ "--rarity-color": rarity.color, "--rarity-border": rarity.border }} aria-label={`${card.name} selected card preview`}>
+      <div className="card-art-inspector-image">
+        {art ? <img src={art} alt={`${card.name} illustration`} decoding="async" /> : <FactionArtwork factionId={card.factionId} decorative />}
+        <span>{card.value}</span>
+      </div>
+      <div className="card-art-inspector-copy">
+        <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
+        <h4>{card.name}</h4>
+        <p>{card.text}</p>
+        <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
+      </div>
+    </aside>
+  );
+}
 
 const PACK_THEMES = {
   rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
@@ -1343,6 +1419,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
+  const [inspectedConstructedCardId, setInspectedConstructedCardId] = useState("");
+  const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectionView, setCollectionView] = useState("packs");
 
   useEffect(() => {
@@ -1410,6 +1488,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     return byCard;
   }, {});
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
+  const inspectedConstructedCard = constructedCardsById[inspectedConstructedCardId] || ownedConstructedCards[0] || null;
+  const inspectedConstructedVariantId = inspectedConstructedCard
+    ? constructedVariantSelections[inspectedConstructedCard.id] || inspectedConstructedCard.defaultVariantId || ""
+    : "";
+  const inspectedCatalogCard = allCatalogCards.find((card) => card.id === inspectedCatalogCardId) || filteredCatalogCards[0] || null;
+  const activeDeckFeaturedArt = getDeckFeaturedArt({
+    gameplayCardQuantities: constructedQuantities,
+    collectorVariantSelections: constructedVariantSelections
+  }, collectorCatalog);
   const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
     const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
@@ -1823,48 +1910,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           font-size: 10px;
           line-height: 1.35;
         }
-        .deck-faction-picker {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 6px;
-          margin-bottom: 10px;
-        }
-        .deck-faction-picker button {
-          display: grid;
-          grid-template-columns: 46px minmax(0, 1fr);
-          gap: 7px;
-          align-items: center;
-          min-width: 0;
-          min-height: 54px;
-          padding: 5px;
-          border: 1px solid rgba(148,163,184,0.34);
-          border-bottom: 3px solid var(--faction-accent);
-          border-radius: 4px;
-          background: rgba(8,16,25,0.76);
-          color: #bfdbfe;
-          cursor: pointer;
-          text-align: left;
-        }
-        .deck-faction-picker button[aria-pressed="true"] {
-          border-color: var(--faction-accent);
-          background: linear-gradient(90deg, color-mix(in srgb, var(--faction-accent) 22%, #07101a), rgba(8,16,25,0.88));
-          color: #fff4d7;
-          box-shadow: inset 0 0 0 1px var(--faction-accent);
-        }
-        .deck-faction-picker span {
-          width: 44px;
-          height: 44px;
-          border: 1px solid var(--faction-accent);
-          background-position: center 24%;
-          background-size: cover;
-        }
-        .deck-faction-picker strong {
-          overflow: hidden;
-          font-family: Georgia, serif;
-          font-size: 15px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
         @media (max-width: 700px) {
           .collection-summary-bar {
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1872,9 +1917,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           .collection-summary-note {
             grid-column: 1 / -1;
             border-top: 1px solid rgba(101,168,126,0.22);
-          }
-          .deck-faction-picker {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
         .collection-view-heading {
@@ -1934,8 +1976,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
               {lastOpenedPack.map((card, index) => {
                 const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+                const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
                 return (
                   <div className="opened-card-reveal" key={`${card.id}-${index}`} style={{ animationDelay: `${index * 90}ms`, border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
+                    {art && <img src={art} alt="" loading="lazy" decoding="async" />}
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
                   </div>
@@ -1953,148 +1997,111 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         <DeckLibraryPanel
           library={deckLibrary}
           selectedDeckId={selectedConstructedDeckId}
+          collectorCatalog={collectorCatalog}
           onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
           onNew={startNewConstructedDeck}
           onAction={runDeckAction}
           onOpenMatch={onOpenMatch}
         />
-        <div style={{ border: "1px solid rgba(125,211,252,0.24)", borderRadius: 8, padding: 12, background: "rgba(2,6,23,0.36)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
-            <div>
-              <h4 style={{ color: "#facc15", margin: "0 0 4px" }}>Constructed Deck</h4>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>The standard 52-card playing deck is included automatically. Swap earned gameplay cards into matching values while keeping exactly 4 cards of each value. An owned collector variant can change presentation, never mechanics.</div>
+        <section className="constructed-workbench" style={{ "--faction-accent": PACK_THEMES[constructedFactionId]?.accent }}>
+          <header className="active-deck-header">
+            <DeckVisual deck={{ name: constructedDeckName, factionId: constructedFactionId }} art={activeDeckFeaturedArt} decorative className="active-deck-art" />
+            <div className="active-deck-identity">
+              <span>{PACK_THEMES[constructedFactionId]?.name || constructedFactionId} · Constructed · version {selectedConstructedRecord?.versions?.length || 1}</span>
+              <label>
+                <span className="sr-only">Deck name</span>
+                <input value={constructedDeckName} onChange={(event) => { setConstructedDeckName(event.target.value); setConstructedSaveMessage(""); }} maxLength={80} aria-label="Deck name" />
+              </label>
+              <p>The standard 52-card deck stays intact. Earned gameplay cards replace matching values; collector variants change presentation only.</p>
             </div>
-            <div style={{ color: constructedCurveWarning ? "#fca5a5" : "#86efac", fontWeight: 900 }}>
-              {constructedDeckCount}/{MAX_CONSTRUCTED_DECK_SIZE} - {constructedReplacementCount} swap{constructedReplacementCount === 1 ? "" : "s"}
+            <div className="active-deck-readouts" aria-label="Deck status">
+              <span><strong>{constructedDeckCount} / {MAX_CONSTRUCTED_DECK_SIZE}</strong><small>Cards</small></span>
+              <span><strong>{constructedReplacementCount}</strong><small>Swap{constructedReplacementCount === 1 ? "" : "s"}</small></span>
+              <span className={constructedCurveWarning || constructedSlotWarning ? "is-invalid" : "is-legal"}><strong>{constructedCurveWarning || constructedSlotWarning ? "Invalid" : "Legal"}</strong><small>Deck state</small></span>
             </div>
-          </div>
-          <label style={{ display: "grid", gap: 4, maxWidth: 420, marginBottom: 10, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
-            Deck name
-            <input
-              value={constructedDeckName}
-              onChange={(event) => {
-                setConstructedDeckName(event.target.value);
-                setConstructedSaveMessage("");
-              }}
-              maxLength={80}
-              style={{ border: "1px solid rgba(125,211,252,0.34)", borderRadius: 5, padding: "8px 9px", background: "rgba(15,23,42,0.72)", color: "#f8fafc" }}
-            />
-          </label>
-          <div className="deck-faction-picker" aria-label="Deck faction">
-            {Object.values(PACK_THEMES).map((theme) => {
-              const factionId = theme.name.toLowerCase();
-              const active = constructedFactionId === factionId;
-              return (
-                <button
-                  key={factionId}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => {
+            <div className="active-deck-actions">
+              <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
+              <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Reset Swaps</MenuButton>
+              {savedConstructedDeck && <button type="button" className="active-deck-tertiary" onClick={loadSavedConstructedDeck}>Restore saved version</button>}
+            </div>
+          </header>
+
+          {(constructedSaveMessage || constructedCurveWarning || constructedSlotWarning) && (
+            <div className={`active-deck-message ${constructedSaveMessage.includes("Could not") || constructedCurveWarning || constructedSlotWarning ? "is-error" : "is-success"}`} role="status">
+              {constructedSaveMessage || (constructedCurveWarning ? `Too many value ${constructedCurveWarning[0]} cards.` : `Two cards are replacing the same ${constructedSlotWarning[0].replace(":", " of ")}.`)}
+            </div>
+          )}
+
+          <section className="workbench-section" aria-labelledby="deck-faction-title">
+            <div className="workbench-section-heading"><div><span>Deck identity</span><h4 id="deck-faction-title">Choose a faction vault</h4></div><p>Changing faction clears unsaved swaps.</p></div>
+            <div className="deck-faction-picker" aria-label="Deck faction">
+              {Object.values(PACK_THEMES).map((theme) => {
+                const factionId = theme.name.toLowerCase();
+                const active = constructedFactionId === factionId;
+                return (
+                  <button key={factionId} type="button" aria-pressed={active} onClick={() => {
+                    if (active) return;
                     setConstructedFactionId(factionId);
                     setConstructedQuantities({});
                     setConstructedSuitChoices({});
                     setConstructedVariantSelections({});
                     setConstructedSaveMessage("");
-                  }}
-                  style={{ "--faction-accent": theme.accent }}
-                >
-                  <span aria-hidden="true" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
-                  <strong>{theme.name}</strong>
-                </button>
-              );
-            })}
-          </div>
-          <div className="replacement-map-wrap" aria-label="52-card replacement map">
-            <div className="replacement-map">
-              <div className="replacement-map-cell">Suit</div>
-              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => <div className="replacement-map-cell" key={`head-${value}`}>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</div>)}
-              {REPLACEMENT_SUITS.flatMap((suit) => [
-                <div className="replacement-map-cell" key={`label-${suit.id}`}>{suit.label}</div>,
-                ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => {
-                  const replaced = !!constructedSlotCounts[`${value}:${suit.id}`];
-                  return <div className={`replacement-map-cell ${replaced ? "replaced" : ""}`} title={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} key={`${suit.id}-${value}`}>{replaced ? "Swap" : "Base"}</div>;
-                })
-              ])}
+                  }} style={{ "--faction-accent": theme.accent }}>
+                    <FactionArtwork factionId={factionId} decorative />
+                    <span><strong>{theme.name}</strong><small>{active ? "Selected vault" : "Open vault"}</small></span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 10, color: "#bfdbfe", fontSize: 12 }}>
-            <span><strong style={{ color: "#f8fafc" }}>Value curve:</strong> {Object.entries(constructedValueCounts).map(([value, count]) => `${value}:${count}`).join(" ") || "No swaps"}</span>
-            <span><strong style={{ color: "#f8fafc" }}>Suit swaps:</strong> {REPLACEMENT_SUITS.map((suit) => `${suit.label}:${Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length}`).join(" ")}</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
-            {ownedConstructedCards.length === 0 ? (
-              <div style={{ color: "#bfdbfe", fontSize: 13 }}>Earn and open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} gameplay packs to unlock cards for this faction.</div>
-            ) : ownedConstructedCards.map((card) => {
-              const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
-              const count = Number(constructedQuantities[card.id] || 0);
-              const owned = Number(cardsOwned[card.id] || 0);
-              const availableVariants = availableVariantsByGameplayCard[card.id] || [];
-              const selectedVariantId = constructedVariantSelections[card.id] || card.defaultVariantId || availableVariants[0]?.variantId || "";
-              const value = getReplacementValue(card, PLAYING_DECK_VALUES);
-              const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
-              const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
-              return (
-                <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.78)" : "rgba(15,23,42,0.44)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <strong style={{ color: rarity.color }}>{card.name}</strong>
-                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>{count}/{owned}</span>
-                  </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{rarity.label} {card.type} - value {card.value} ({valueCount}/{MAX_REPLACEMENTS_PER_VALUE} at this value)</div>
-                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35, minHeight: 32 }}>{card.text}</div>
-                  <label style={{ display: "grid", gap: 4, marginTop: 8, color: "#fde68a", fontSize: 11, fontWeight: 900 }}>
-                    Collector presentation
-                    <select
-                      value={selectedVariantId}
-                      onChange={(event) => {
-                        setConstructedVariantSelections((current) => ({ ...current, [card.id]: event.target.value }));
-                        setConstructedSaveMessage("");
-                      }}
-                      style={{ border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 6px", background: "rgba(2,6,23,0.62)", color: "#e5e7eb" }}
-                    >
-                      {availableVariants.map((variant) => (
-                        <option key={variant.variantId} value={variant.variantId}>
-                          {variant.paid ? `${variant.edition} ${variant.finish}` : "Standard earned presentation"}
-                        </option>
-                      ))}
-                    </select>
-                    <span style={{ color: "#bfdbfe", fontWeight: 500 }}>Presentation only; deck legality and card rules use {card.gameplayCardId || card.id}.</span>
-                  </label>
-                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    <button type="button" onClick={() => setConstructedCardQuantity(card.id, count - 1)} disabled={count <= 0} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: count <= 0 ? "not-allowed" : "pointer" }}>-</button>
-                    <button type="button" onClick={() => setConstructedCardQuantity(card.id, count + 1)} disabled={!canAdd} style={{ flex: 1, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "5px 7px", background: "rgba(2,6,23,0.5)", color: "#e5e7eb", cursor: canAdd ? "pointer" : "not-allowed" }}>+</button>
-                  </div>
-                  {count > 0 && (
-                    <div style={{ display: "grid", gap: 5, marginTop: 8 }}>
-                      <div style={{ color: "#fde68a", fontSize: 11, fontWeight: 900 }}>Replace suits</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                        {Array.from({ length: count }, (_, copyIndex) => (
-                          <select
-                            key={`${card.id}-suit-${copyIndex}`}
-                            value={normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex])}
-                            onChange={(event) => setConstructedCardSuit(card.id, copyIndex, event.target.value)}
-                            aria-label={`${card.name} replacement suit ${copyIndex + 1}`}
-                            style={{ border: "1px solid rgba(255,255,255,0.22)", borderRadius: 5, padding: "4px 6px", background: "rgba(2,6,23,0.62)", color: "#e5e7eb", fontWeight: 900 }}
-                          >
-                            {REPLACEMENT_SUITS.map((suit) => <option key={suit.id} value={suit.id}>{suit.label}</option>)}
-                          </select>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-            <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
-            <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Clear Swaps</MenuButton>
-            {savedConstructedDeck && <MenuButton variant="secondary" onClick={loadSavedConstructedDeck}>Load Saved Deck</MenuButton>}
-            {savedConstructedDeck && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Saved: {savedConstructedDeck.factionName || savedConstructedDeck.factionId} ({savedConstructedDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedConstructedDeck.replacementCount || savedConstructedDeck.additionCount || 0} swaps)</span>}
-            {constructedSaveMessage && <span style={{ color: constructedSaveMessage.includes("Could not") ? "#fca5a5" : "#86efac", fontSize: 13, fontWeight: 900 }}>{constructedSaveMessage}</span>}
-            {constructedCurveWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Too many value {constructedCurveWarning[0]} cards.</span>}
-            {constructedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: 900 }}>Two cards are replacing the same {constructedSlotWarning[0].replace(":", " of ")}.</span>}
-          </div>
-        </div>
+          </section>
+
+          <section className="workbench-section deck-composition" aria-labelledby="deck-composition-title">
+            <div className="workbench-section-heading"><div><span>52-card composition</span><h4 id="deck-composition-title">Replacement matrix</h4></div><p>Default slots stay quiet. Replaced rank/suit slots carry the signal.</p></div>
+            <div className="replacement-map-wrap" aria-label="52-card replacement map">
+              <div className="replacement-map">
+                <div className="replacement-map-cell is-heading">Suit</div>
+                {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => <div className="replacement-map-cell is-heading" key={`head-${value}`}>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</div>)}
+                {REPLACEMENT_SUITS.flatMap((suit) => [
+                  <div className={`replacement-map-cell is-suit ${suit.id === "hearts" || suit.id === "diamonds" ? "is-red-suit" : ""}`} aria-label={suit.id} key={`label-${suit.id}`}>{suit.label}</div>,
+                  ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => {
+                    const replaced = !!constructedSlotCounts[`${value}:${suit.id}`];
+                    return <div className={`replacement-map-cell ${replaced ? "replaced" : ""}`} aria-label={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} title={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} key={`${suit.id}-${value}`}>{replaced ? <span>Swap</span> : <span className="sr-only">Base</span>}</div>;
+                  })
+                ])}
+              </div>
+            </div>
+            <div className="deck-visual-summaries">
+              <div className="deck-curve-summary"><span>Value curve</span><div>{PLAYING_DECK_VALUES.map((value) => { const count = constructedValueCounts[value] || 0; return <i key={value} title={`${count} value ${value} swaps`} className={count ? "has-swaps" : ""} style={{ "--curve-height": `${Math.max(12, count * 22)}%` }}><b>{count}</b><small>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</small></i>; })}</div></div>
+              <div className="deck-suit-summary"><span>Suit swaps</span><div>{REPLACEMENT_SUITS.map((suit) => { const count = Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length; return <i key={suit.id} className={suit.id === "hearts" || suit.id === "diamonds" ? "is-red-suit" : ""}><b>{suit.label}</b><strong>{count}</strong></i>; })}</div></div>
+              <div className="deck-summary-status"><span>Workbench status</span><strong>{constructedReplacementCount === 0 ? "Standard deck" : `${constructedReplacementCount} active swap${constructedReplacementCount === 1 ? "" : "s"}`}</strong><small>{constructedCurveWarning || constructedSlotWarning ? "Resolve highlighted conflicts before saving." : "All replacement slots are within limits."}</small></div>
+            </div>
+          </section>
+
+          <section className="workbench-section replacement-collection" aria-labelledby="replacement-collection-title">
+            <div className="workbench-section-heading"><div><span>Replacement collection</span><h4 id="replacement-collection-title">Owned {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} cards</h4></div><p>{ownedConstructedCards.length} candidate{ownedConstructedCards.length === 1 ? "" : "s"} · art follows the selected collector variant</p></div>
+            <CardArtInspector
+              card={inspectedConstructedCard ? { ...inspectedConstructedCard, factionId: constructedFactionId } : null}
+              collectorCatalog={collectorCatalog}
+              selectedVariantId={inspectedConstructedVariantId}
+              owned={Number(cardsOwned[inspectedConstructedCard?.id] || 0)}
+            />
+            <div className="constructed-card-grid">
+              {ownedConstructedCards.length === 0 ? (
+                <div className="constructed-card-empty">Earn and open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} gameplay packs to unlock cards for this faction.</div>
+              ) : ownedConstructedCards.map((card) => {
+                const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+                const count = Number(constructedQuantities[card.id] || 0);
+                const owned = Number(cardsOwned[card.id] || 0);
+                const availableVariants = availableVariantsByGameplayCard[card.id] || [];
+                const selectedVariantId = constructedVariantSelections[card.id] || card.defaultVariantId || availableVariants[0]?.variantId || "";
+                const value = getReplacementValue(card, PLAYING_DECK_VALUES);
+                const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
+                const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
+                return <ConstructedCardTile key={card.id} card={{ ...card, factionId: constructedFactionId }} rarity={rarity} count={count} owned={owned} availableVariants={availableVariants} selectedVariantId={selectedVariantId} valueCount={valueCount} maxReplacementsPerValue={MAX_REPLACEMENTS_PER_VALUE} canAdd={canAdd} suitChoices={Array.from({ length: count }, (_, copyIndex) => normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex]))} replacementSuits={REPLACEMENT_SUITS} inspected={inspectedConstructedCard?.id === card.id} onInspect={() => setInspectedConstructedCardId(card.id)} onQuantityChange={(quantity) => setConstructedCardQuantity(card.id, quantity)} onVariantChange={(variantId) => { setConstructedVariantSelections((current) => ({ ...current, [card.id]: variantId })); setConstructedSaveMessage(""); }} onSuitChange={(copyIndex, suit) => setConstructedCardSuit(card.id, copyIndex, suit)} />;
+              })}
+            </div>
+          </section>
+        </section>
         </>}
         {collectionView === "catalog" && <div>
           <div className="collection-view-heading" style={{ marginBottom: 8 }}>
@@ -2123,6 +2130,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               </label>
             </div>
           </div>
+          <CardArtInspector
+            card={inspectedCatalogCard}
+            collectorCatalog={collectorCatalog}
+            selectedVariantId={inspectedCatalogCard?.defaultVariantId}
+            owned={Number(cardsOwned[inspectedCatalogCard?.id] || 0)}
+            compact
+          />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
             {filteredCatalogCards.length === 0 && (
               <div style={{ color: "#bfdbfe", fontSize: 13 }}>No cards match those filters.</div>
@@ -2133,8 +2147,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               const collectorCount = (collectorCatalog || [])
                 .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
                 .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
+              const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
               return (
-                <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.7)" : "rgba(15,23,42,0.36)", opacity: count > 0 ? 1 : 0.72 }}>
+                <button type="button" className="catalog-card-tile" onClick={() => setInspectedCatalogCardId(card.id)} aria-pressed={inspectedCatalogCard?.id === card.id} key={card.id} style={{ "--rarity-border": rarity.border, opacity: count > 0 ? 1 : 0.72 }}>
+                  {art && <img src={art} alt="" loading="lazy" decoding="async" />}
+                  <div className="catalog-card-copy">
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
@@ -2142,7 +2159,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
-                </div>
+                  </div>
+                </button>
               );
             })}
           </div>
@@ -2155,7 +2173,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
 function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
-    <div className="collection-page menu-page" style={MENU_THEME.page}>
+    <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
         <header className="collection-header">
           <div>
@@ -3375,7 +3393,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   ];
 
   return (
-    <div className="tutorial-page menu-page" style={MENU_THEME.page}>
+    <div className="tutorial-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
         <header className="tutorial-header">
           <div>
@@ -3463,15 +3481,24 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
+  const [briefingChapterId, setBriefingChapterId] = useState("");
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
   const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
   const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
   const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
+  const briefingChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => chapter.id === briefingChapterId) ?? -1;
+  const briefingChapter = briefingChapterIndex >= 0 ? activeCampaign.chapters[briefingChapterIndex] : null;
+  const briefingUnlocked = briefingChapterIndex === 0 || completedChapters.includes(activeCampaign?.chapters?.[briefingChapterIndex - 1]?.id);
+  const briefingCompleted = briefingChapter ? completedChapters.includes(briefingChapter.id) : false;
+  const changeBriefing = (chapterId = "") => {
+    setBriefingChapterId(chapterId);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="campaign-page menu-page" style={MENU_THEME.page}>
+    <div className="campaign-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
         <div className="campaign-header">
           <div className="campaign-heading">
@@ -3492,8 +3519,8 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 role="tab"
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
-                onClick={() => setSelectedFactionId(factionId)}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+                onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`)})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3501,9 +3528,27 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
             );
           })}
         </div>
-        {activeCampaign && (
+        {activeCampaign && (briefingChapter ? (
+          <CampaignChapterBriefing
+            campaign={activeCampaign}
+            factionId={activeFactionId}
+            theme={activeTheme}
+            chapter={briefingChapter}
+            chapterIndex={briefingChapterIndex}
+            difficulty={getCampaignDifficulty(activeFactionId, briefingChapterIndex)}
+            complexity={getCampaignComplexityPreview(activeFactionId, briefingChapterIndex, briefingChapter.opponentName)}
+            unlocked={briefingUnlocked}
+            completed={briefingCompleted}
+            current={briefingChapterIndex === nextChapterIndex}
+            canPlayAsPlayer={canPlayAsPlayer}
+            onBack={() => changeBriefing("")}
+            onStartChapter={onStartChapter}
+            onPrevious={briefingChapterIndex > 0 ? () => changeBriefing(activeCampaign.chapters[briefingChapterIndex - 1].id) : null}
+            onNext={briefingChapterIndex < activeCampaign.chapters.length - 1 ? () => changeBriefing(activeCampaign.chapters[briefingChapterIndex + 1].id) : null}
+          />
+        ) : (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
-            <header className="campaign-archive-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveAssetPath(`/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+            <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
               <div className="campaign-archive-copy">
                 <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
                 <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
@@ -3514,7 +3559,10 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                   <span>Next Battle / Chapter {nextChapterIndex + 1}</span>
                   <strong>{nextChapter.title}</strong>
                   <small>Face {nextChapter.opponentName} at {nextDifficulty.bossLife} life.</small>
-                  <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                  <div className="campaign-next-battle-actions">
+                    <button type="button" onClick={() => changeBriefing(nextChapter.id)}>View Briefing</button>
+                    <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                  </div>
                 </div>
               ) : (
                 <div className="campaign-next-battle is-complete">
@@ -3531,33 +3579,28 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
                 const difficulty = getCampaignDifficulty(activeFactionId, index);
-                const complexity = getCampaignComplexityPreview(activeFactionId, index, chapter.opponentName);
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
                   <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
+                    <div className="campaign-chapter-art" data-art-state={chapter.image ? "chapter-art" : "faction-fallback"}>
+                      {chapter.image ? <img src={resolveVisualAsset(chapter.image)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
+                    </div>
                     <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
                     <h3>{chapter.title}</h3>
                     <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
                     <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
                     <p>{chapter.story}</p>
-                    {(complexity.length > 0 || chapter.beforeBattle || chapter.afterBattle || chapter.dialogue?.length > 0) && (
-                      <details className="campaign-story-details">
-                        <summary>Story & encounter notes</summary>
-                        {chapter.playableName && <div><strong>Playable:</strong> {chapter.playableName}</div>}
-                        {complexity.length > 0 && <div><strong>Advanced rules:</strong> {complexity.join(" ")}</div>}
-                        {chapter.beforeBattle && <div><strong>Before Battle:</strong> {chapter.beforeBattle}</div>}
-                        {chapter.afterBattle && <div><strong>After Battle:</strong> {chapter.afterBattle}</div>}
-                        {chapter.dialogue?.slice(0, 3).map((line) => <div key={line}>{line}</div>)}
-                      </details>
-                    )}
-                    <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                    <div className="campaign-chapter-actions">
+                      <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)}>View Briefing</button>
+                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                    </div>
                   </article>
                 );
               })}
             </div>
           </section>
-        )}
+        ))}
       </div>
     </div>
   );
@@ -4980,12 +5023,19 @@ export default function App() {
     || null;
   const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
+  const enrichedFeaturedDecks = featuredDecks.map((deck) => ({
+    ...deck,
+    featuredArt: getDeckFeaturedArt(deck, account?.collection?.collectorCatalog || [])
+  }));
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
   const canCustomizeConstructedDeck = ownedCardCount > 0;
+  const nextCampaignStep = getNextCampaignChapter(gameContent?.campaigns || {}, account?.progression?.campaign || {}, "rumin");
   let journeyNextStep;
 
   if (hasSavedRoom) {
     journeyNextStep = {
+      eyebrow: "Battle Net Active",
+      factionId: buildDeckFactionId,
       title: `Resume room ${savedRoomCode}`,
       description: "Return to your saved player seat or spectator view.",
       actionLabel: "Resume Match",
@@ -4993,6 +5043,7 @@ export default function App() {
     };
   } else if (!canPlayAsPlayer) {
     journeyNextStep = {
+      eyebrow: "Establish Identity",
       title: "Choose your player identity",
       description: "Sign in for progression or enter a named guest identity to begin.",
       actionLabel: "Open Identity",
@@ -5000,6 +5051,7 @@ export default function App() {
     };
   } else if (!tutorialComplete) {
     journeyNextStep = {
+      eyebrow: "Training Route",
       title: "Learn the core game",
       description: "Start with Basic Gauntlet before adding faction powers.",
       actionLabel: "Learn Gauntlet",
@@ -5007,6 +5059,9 @@ export default function App() {
     };
   } else if (completedCampaignChapters === 0) {
     journeyNextStep = {
+      eyebrow: "Commander Archives",
+      factionId: nextCampaignStep?.factionId || buildDeckFactionId,
+      image: nextCampaignStep?.chapter?.image,
       title: "Choose a faction",
       description: "Meet the four factions and begin your first campaign chapter.",
       actionLabel: "Choose Campaign",
@@ -5014,6 +5069,9 @@ export default function App() {
     };
   } else if (packCredits > 0) {
     journeyNextStep = {
+      eyebrow: "Vault Reward",
+      factionId: buildDeckFactionId,
+      progress: `${packCredits} credit${packCredits === 1 ? "" : "s"} ready to claim`,
       title: `Open ${packCredits} earned pack${packCredits === 1 ? "" : "s"}`,
       description: "Claim faction cards earned from campaign victories.",
       actionLabel: "Open Collection",
@@ -5021,13 +5079,28 @@ export default function App() {
     };
   } else if (!hasSavedDeck) {
     journeyNextStep = {
+      eyebrow: "Deck Workbench",
+      factionId: buildDeckFactionId,
       title: "Personalize your 52-card deck",
       description: "Replace ordinary playing cards with faction cards from your collection.",
       actionLabel: "Build a Deck",
       onClick: () => setShowCollection(true)
     };
+  } else if (nextCampaignStep) {
+    journeyNextStep = {
+      eyebrow: "Continue Journey",
+      factionId: nextCampaignStep.factionId,
+      image: nextCampaignStep.chapter.image,
+      progress: `Chapter ${nextCampaignStep.chapterIndex + 1} of ${nextCampaignStep.campaign.chapters.length}`,
+      title: nextCampaignStep.chapter.title,
+      description: nextCampaignStep.chapter.story,
+      actionLabel: "Continue Campaign",
+      onClick: () => setShowCampaign(true)
+    };
   } else {
     journeyNextStep = {
+      eyebrow: "Ready for Battle",
+      factionId: buildDeckFactionId,
       title: "Take your deck to the table",
       description: "Create a room, invite another player, or enter matchmaking.",
       actionLabel: "Find a Game",
@@ -5106,14 +5179,23 @@ export default function App() {
 
   if (!gameContent) {
     return (
-      <main style={MENU_THEME.page}>
-        <div style={{ ...MENU_THEME.frame, maxWidth: 620, margin: "10vh auto" }}>
-          <h1 style={{ marginTop: 0 }}>Loading Gauntlet</h1>
-          <p style={{ color: gameContentError ? "#fca5a5" : "#bfdbfe" }}>
+      <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath("/assets/gauntlet/kaiser-gauntlet.webp")})` }}>
+        <section className="gauntlet-loading-shell" aria-labelledby="gauntlet-loading-title">
+          <div className="gauntlet-loading-cards" aria-hidden="true">
+            <FactionArtwork factionId="sheen" decorative />
+            <FactionArtwork factionId="rumin" decorative />
+            <FactionArtwork factionId="frumo" decorative />
+          </div>
+          <div className="gauntlet-loading-copy">
+            <span>Battle Net Terminal</span>
+            <h1 id="gauntlet-loading-title">Loading Gauntlet</h1>
+            <p className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
-          </p>
-          {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
-        </div>
+            </p>
+            {!gameContentError && <span className="gauntlet-loading-pulse" aria-hidden="true"><i /><i /><i /></span>}
+            {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
+          </div>
+        </section>
       </main>
     );
   }
@@ -5182,7 +5264,7 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div className="menu-page" style={MENU_THEME.page}>
+      <div className={`menu-page area-${homeArea}`} style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS[homeArea] || AREA_BACKGROUNDS.play)})` }}>
         <div className="menu-frame" style={MENU_THEME.frame}>
         <div className="home-command-header">
           <div className="home-brand">
@@ -5209,19 +5291,27 @@ export default function App() {
               ))}
             </div>
           </div>
-          <div className="home-command-tools">
-            <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
-            <MusicControl
-              trackKey={activeMusicTrack}
-              enabled={musicEnabled}
-              volume={musicVolume}
-              onToggle={() => setMusicEnabled((value) => !value)}
-              onVolumeChange={setMusicVolume}
-              account={account}
-              soundMuted={accountSoundMuted}
-              onSoundMutedChange={setSignedInSoundMuted}
-            />
-            <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
+          <div className="home-current-context">
+            <span>{account?.name || (playAsGuest ? guestName || "Guest" : "No player selected")}</span>
+            <strong>{HOME_AREA_CONTEXT[homeArea] || "Command area"}</strong>
+            <small>Current destination</small>
+          </div>
+          <div className="home-command-utilities">
+            <span className="home-utility-label">Utilities</span>
+            <div className="home-command-tools">
+              <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
+              <MusicControl
+                trackKey={activeMusicTrack}
+                enabled={musicEnabled}
+                volume={musicVolume}
+                onToggle={() => setMusicEnabled((value) => !value)}
+                onVolumeChange={setMusicVolume}
+                account={account}
+                soundMuted={accountSoundMuted}
+                onSoundMutedChange={setSignedInSoundMuted}
+              />
+              <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
+            </div>
           </div>
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
@@ -5465,39 +5555,38 @@ export default function App() {
                   <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => setIdentityView(viewId)}>{label}</button>
                 ))}
               </div>
-              {identityView === "profile" && <div className="identity-profile-grid">
-              <AccountPanel
-                account={account}
-                mode={authMode}
-                form={authForm}
-                error={authError}
-                onModeChange={setAuthMode}
-                onFormChange={setAuthForm}
-                onSubmit={submitAuth}
-                onSignOut={signOut}
-              />
-              <MenuCard title="Guest Identity">
-                <label style={{ display: "block", marginBottom: 10 }}>
-                  <input
-                    type="checkbox"
-                    checked={playAsGuest}
-                    onChange={(e) => setPlayAsGuest(e.target.checked)}
-                    disabled={!!account}
-                    style={{ marginRight: 8 }}
+              {identityView === "profile" && <>
+              <IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} />
+              <div className="identity-profile-layout">
+                <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
+                <aside className="identity-admin-rail" aria-label="Identity administration">
+                  <AccountPanel
+                    account={account}
+                    mode={authMode}
+                    form={authForm}
+                    error={authError}
+                    onModeChange={setAuthMode}
+                    onFormChange={setAuthForm}
+                    onSubmit={submitAuth}
+                    onSignOut={signOut}
                   />
-                  Play as guest
-                </label>
-                <input
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  placeholder="Guest name"
-                  disabled={!!account || !playAsGuest}
-                  style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", opacity: !!account || !playAsGuest ? 0.58 : 1 }}
-                />
-                {account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Signed-in games use {account.name}.</p>}
-              </MenuCard>
-              <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
-              </div>}
+                  <MenuCard title="Guest Identity">
+                    <label className="identity-guest-toggle">
+                      <input type="checkbox" checked={playAsGuest} onChange={(e) => setPlayAsGuest(e.target.checked)} disabled={!!account} />
+                      Play as guest
+                    </label>
+                    <input
+                      className="identity-guest-input"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="Guest name"
+                      disabled={!!account || !playAsGuest}
+                    />
+                    {account && <p className="identity-admin-note">Signed-in games use {account.name}.</p>}
+                  </MenuCard>
+                </aside>
+              </div>
+              </>}
               {identityView === "record" && (
               <Suspense fallback={<SurfaceLoading label="competitive record" />}>
                 <CompetitiveIdentityPanel
@@ -5511,15 +5600,18 @@ export default function App() {
               </Suspense>
               )}
               {identityView === "profile" && (
-              <MenuCard title="Featured Decks">
-                {featuredDecks.length > 0 ? featuredDecks.map((deck) => (
-                  <div key={deck.id} style={{ borderBottom: "1px solid rgba(125, 211, 252, 0.18)", padding: "7px 0", color: "#dbeafe" }}>
-                    <strong>{deck.name}</strong>
-                    <div style={{ color: "#93c5fd", fontSize: 12 }}>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"} · {deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</div>
-                  </div>
-                )) : <p style={{ marginTop: 0, color: "#bfdbfe" }}>Feature up to three decks from Build to make them part of your identity.</p>}
-                <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account} style={{ marginTop: 8 }}>Manage Decks</MenuButton>
-              </MenuCard>
+              <section className="identity-featured-decks" aria-labelledby="identity-featured-title">
+                <header className="identity-section-heading">
+                  <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
+                  <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>Manage Decks</MenuButton>
+                </header>
+                {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
+                  <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
+                    <DeckVisual deck={deck} decorative />
+                    <div><span>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
+                  </article>
+                ))}</div> : <p className="identity-empty-copy">Feature up to three decks from Build to make them part of your identity.</p>}
+              </section>
               )}
               {identityView === "community" && <div className="identity-community-grid">
               <FriendsPanel
@@ -5589,7 +5681,7 @@ export default function App() {
     );
 
     return (
-      <div className="lobby-page menu-page" style={MENU_THEME.page}>
+      <div className="lobby-page menu-page area-play" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.play)})` }}>
         <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>

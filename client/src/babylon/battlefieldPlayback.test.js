@@ -6,6 +6,9 @@ import {
   battlefieldEventDuration,
   createBattlefieldPlaybackFrames
 } from "./battlefieldPlayback";
+import { PRESENTATION_BEAT_RECIPES } from "./presentationCadence";
+import { createPresentationSnapshot } from "./presentationSnapshot";
+import { planPresentationTransitions } from "./presentationTransitionPlanner";
 
 function updateFor(events, overrides = {}) {
   return {
@@ -33,30 +36,34 @@ describe("queued battlefield playback", () => {
     ];
     const frames = createBattlefieldPlaybackFrames(updateFor(events), seen);
 
-    expect(frames.map((frame) => frame.event?.id || null)).toEqual(["paid", "attack", "priority", null]);
-    expect(frames.map((frame) => frame.durationMs)).toEqual([
-      BATTLEFIELD_EVENT_PACING["payment.discarded"],
-      BATTLEFIELD_EVENT_PACING["attack.declared"],
-      BATTLEFIELD_EVENT_PACING["priority.granted"],
-      0
-    ]);
-    expect(frames.reduce((total, frame) => total + frame.durationMs, 0)).toBeGreaterThan(3000);
-    expect(frames[1].update.viewModel.events).toEqual([events[1]]);
-    expect(frames[1].update.presentation.playbackContract).toBe(
+    expect(frames.map((frame) => frame.event?.id || null)).toEqual(["attack", null]);
+    expect(frames.map((frame) => frame.durationMs)).toEqual([frames[0].beat.timing.durationMs, 0]);
+    expect(frames[0].durationMs).toBeGreaterThan(BATTLEFIELD_EVENT_PACING["attack.declared"]);
+    expect(frames[0].beat.kind).toBe("attack.commit");
+    expect(frames[0].update.viewModel.events).toEqual(events);
+    expect(frames[0].update.presentation.playbackContract).toBe(
       BATTLEFIELD_PLAYBACK_CONTRACT_VERSION
     );
-    expect(frames[1].update.presentation.cues[0]).toEqual(expect.objectContaining({
+    expect(frames[0].update.presentation.cues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ cueId: "payment.release", sourceEventId: "paid" }),
+      expect.objectContaining({
       cueId: "attack.declare",
       sourceEventId: "attack"
-    }));
-    expect(frames[1].update.viewModel.presentationCues).toEqual(frames[1].update.presentation.cues);
+      })
+    ]));
+    expect(frames[0].update.viewModel.presentationCues).toEqual(frames[0].update.presentation.cues);
   });
 
   test("keeps authoritative state current while presentation events are gated sequentially", () => {
     const seen = new Set();
     const previous = updateFor([], {
       revision: 1,
-      viewModel: { ...updateFor([]).viewModel, revision: 1, instruction: "Attack awaiting a response" }
+      viewModel: {
+        ...updateFor([]).viewModel,
+        revision: 1,
+        instruction: "Attack awaiting a response",
+        bottom: { life: 20 }
+      }
     });
     const blockEvents = [
       { id: "block-paid", type: "payment.discarded" },
@@ -66,17 +73,130 @@ describe("queued battlefield playback", () => {
     ];
     const resolved = updateFor(blockEvents, {
       revision: 2,
-      viewModel: { ...updateFor(blockEvents).viewModel, revision: 2, instruction: "Combat resolved" }
+      viewModel: {
+        ...updateFor(blockEvents).viewModel,
+        revision: 2,
+        instruction: "Combat resolved",
+        bottom: { life: 16 }
+      }
     });
     const frames = createBattlefieldPlaybackFrames(resolved, seen, { baseUpdate: previous });
 
     expect(battlefieldCommitEventIndex(blockEvents)).toBe(2);
-    expect(frames[0].update.viewModel.instruction).toBe("Combat resolved");
-    expect(frames[1].update.viewModel.instruction).toBe("Combat resolved");
+    expect(frames.map((frame) => frame.beat?.kind || null)).toEqual([
+      "block.commit",
+      null,
+      "damage.impact",
+      null
+    ]);
+    expect(frames[0].update.viewModel.instruction).toBe("Attack awaiting a response");
+    expect(frames[0].update.viewModel.bottom.life).toBe(20);
+    expect(frames[0].update.viewModel.presentationPlayback.stateCommitted).toBe(false);
+    expect(frames[1].update.viewModel.instruction).toBe("Attack awaiting a response");
+    expect(frames[1].update.viewModel.bottom.life).toBe(20);
+    expect(frames[1].update.viewModel.presentationPlayback).toMatchObject({
+      activeBeatPhase: "anticipation",
+      activeEventType: null,
+      stateCommitted: false
+    });
     expect(frames[2].update.viewModel.instruction).toBe("Combat resolved");
+    expect(frames[2].update.viewModel.bottom.life).toBe(16);
+    expect(frames[2].update.viewModel.presentationPlayback).toMatchObject({
+      activeBeatPhase: "consequence",
+      activeEventId: "block-damage",
+      activeEventType: "damage.calculated",
+      stateCommitted: true
+    });
+    expect(frames[2].update.viewModel.presentationCues[0].offsetMs).toBe(0);
+    expect(frames[1].durationMs + frames[2].durationMs).toBe(
+      frames[2].beat.timing.durationMs
+    );
+    expect(frames[3].update.viewModel.instruction).toBe("Combat resolved");
     expect(frames.slice(0, -1).every((frame) => frame.update.viewModel.presentationEventGate)).toBe(true);
     expect(frames.at(-1).update.viewModel.presentationPlayback.finalReconcile).toBe(true);
-    expect(frames[2].update.viewModel.presentationPlayback.stateCommitted).toBe(true);
+    expect(frames.at(-1).update.viewModel.presentationPlayback.activeEventId).toBeNull();
+    expect(frames[3].update.viewModel.presentationPlayback.stateCommitted).toBe(true);
+  });
+
+  test("a resolved paid block presents payment and blockers before committing damage", () => {
+    const card = (id) => ({
+      id,
+      label: `Real ${id}`,
+      value: 5,
+      artPath: `/cards/${id}.png`,
+      raw: { id },
+      interactionEnabled: true
+    });
+    const baseViewModel = {
+      matchId: "match-1",
+      revision: 1,
+      perspective: { player: 1, bottomPlayer: 1, opponent: 2, topPlayer: 2 },
+      bottom: { id: 1, handCount: 3, deckCount: 49, discardCount: 0 },
+      top: { id: 2, handCount: 0, deckCount: 52, discardCount: 0 },
+      hand: [card("payment"), card("blocker-one"), card("blocker-two")],
+      lanes: [],
+      attacks: [],
+      publicPayments: [],
+      selection: {},
+      interactions: { legalLanes: [] },
+      visibleCardCatalog: {},
+      instruction: "Choose a block payment.",
+      events: []
+    };
+    const previous = updateFor([], {
+      revision: 1,
+      viewModel: baseViewModel
+    });
+    const events = [
+      { id: "paid-block", type: "payment.discarded", player: 1, cardIds: ["payment"] },
+      { id: "declared-block", type: "block.declared", player: 1, cardIds: ["blocker-one", "blocker-two"] },
+      { id: "resolved-block", type: "damage.calculated", player: 1, damage: 0 },
+      { id: "fully-blocked", type: "attack.fullyBlocked", player: 1 }
+    ];
+    const resolved = updateFor(events, {
+      revision: 2,
+      viewModel: {
+        ...baseViewModel,
+        revision: 2,
+        hand: [],
+        visibleCardCatalog: {
+          payment: card("payment"),
+          "blocker-one": card("blocker-one"),
+          "blocker-two": card("blocker-two")
+        },
+        events,
+        instruction: "Attack stopped."
+      }
+    });
+    const frames = createBattlefieldPlaybackFrames(resolved, new Set(), { baseUpdate: previous });
+    const commitmentFrame = frames[0];
+
+    expect(commitmentFrame.beat.kind).toBe("block.commit");
+    expect(commitmentFrame.update.viewModel.presentationPlayback.stateCommitted).toBe(false);
+    expect(commitmentFrame.update.viewModel.events.map(({ id }) => id)).toEqual([
+      "paid-block",
+      "declared-block"
+    ]);
+    expect(commitmentFrame.update.viewModel.visibleCardCatalog).toEqual(
+      resolved.viewModel.visibleCardCatalog
+    );
+
+    const before = createPresentationSnapshot(baseViewModel, { source: "local" });
+    const duringCommitment = createPresentationSnapshot(commitmentFrame.update.viewModel, { source: "local" });
+    const transitions = planPresentationTransitions(before, duringCommitment, { eventGate: true }).transitions;
+    expect(transitions.filter(({ motionRole }) => motionRole === "payment-enter")).toEqual([
+      expect.objectContaining({ actorId: "card:payment", sourceEventId: "paid-block", animate: true })
+    ]);
+    expect(transitions.filter(({ motionRole }) => motionRole === "block-enter")).toEqual([
+      expect.objectContaining({ actorId: "card:blocker-one", sourceEventId: "declared-block", animate: true }),
+      expect.objectContaining({ actorId: "card:blocker-two", sourceEventId: "declared-block", animate: true })
+    ]);
+    ["payment", "blocker-one", "blocker-two"].forEach((id) => {
+      expect(duringCommitment.actorById.get(`card:${id}`)).toEqual(expect.objectContaining({
+        label: `Real ${id}`,
+        artPath: `/cards/${id}.png`
+      }));
+    });
   });
 
   test("never replays duplicate authoritative events", () => {
@@ -90,7 +210,9 @@ describe("queued battlefield playback", () => {
 
   test("preserves readable text dwell under reduced motion and honors replay speed", () => {
     const event = { type: "block.declared" };
-    expect(battlefieldEventDuration(event, { reducedMotion: true })).toBe(420);
+    expect(battlefieldEventDuration(event, { reducedMotion: true })).toBe(
+      PRESENTATION_BEAT_RECIPES["block.commit"].reducedMotionMs
+    );
     expect(battlefieldEventDuration(event, { playbackRate: 4 })).toBe(
       Math.round(BATTLEFIELD_EVENT_PACING["block.declared"] / 4)
     );
@@ -116,6 +238,40 @@ describe("queued battlefield playback", () => {
     jest.advanceTimersByTime(1);
     expect(presented.map(({ frame }) => frame.event?.id || null)).toEqual(["attack", null, "block"]);
     expect(states.some((state) => state.queuedFrames >= 2)).toBe(true);
+
+    queue.dispose();
+    jest.useRealTimers();
+  });
+
+  test("pauses and resumes the active presentation frame with nested capture leases", () => {
+    jest.useFakeTimers();
+    const presented = [];
+    const queue = new BattlefieldPlaybackQueue({
+      onPresent: (_update, frame) => presented.push(frame.event?.id || null),
+      onStateChange: () => {}
+    });
+    queue.push(updateFor([{ id: "attack", type: "attack.declared" }]));
+    const activeDurationMs = queue.activeFrame.durationMs;
+
+    jest.advanceTimersByTime(100);
+    expect(queue.pause()).toBe(1);
+    expect(queue.pause()).toBe(2);
+    queue.push(updateFor(
+      [{ id: "block", type: "block.declared" }],
+      { revision: 3, viewModel: { ...updateFor([]).viewModel, revision: 3 } }
+    ));
+    jest.advanceTimersByTime(activeDurationMs * 3);
+    expect(presented).toEqual(["attack"]);
+
+    expect(queue.resume()).toBe(1);
+    jest.advanceTimersByTime(activeDurationMs * 3);
+    expect(presented).toEqual(["attack"]);
+    expect(queue.resume()).toBe(0);
+    jest.advanceTimersByTime(activeDurationMs - 101);
+    expect(presented).toEqual(["attack"]);
+    jest.advanceTimersByTime(1);
+    expect(presented).toEqual(expect.arrayContaining(["attack", "block"]));
+    expect(queue.resume()).toBe(0);
 
     queue.dispose();
     jest.useRealTimers();

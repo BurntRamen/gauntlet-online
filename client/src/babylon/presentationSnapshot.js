@@ -54,14 +54,17 @@ export function normalizePresentationActorSlots(actors = []) {
 }
 
 function actorFromCard(card, actorId, zone, options = {}) {
+  const faceDown = Boolean(options.faceDown);
   return {
     actorId,
     visibleIdentity: actorId,
     cardId: knownCardId(card),
     card: card || null,
     label: card?.label || card?.name || (options.faceDown ? "Face-down card" : "Card"),
-    artPath: options.faceDown ? "" : (card?.artPath || card?.collector?.art || ""),
-    faceDown: Boolean(options.faceDown),
+    artPath: faceDown ? "" : (card?.artPath || card?.collector?.art || ""),
+    factionId: faceDown ? "" : (card?.factionId || card?.raw?.factionId || ""),
+    expectsFaceArt: !faceDown && Boolean(card?.expectsFaceArt),
+    faceDown,
     anonymous: actorId.startsWith("hidden:"),
     zone,
     selected: Boolean(options.selected),
@@ -537,6 +540,13 @@ export function presentationSnapshotMetrics(snapshot) {
     actorsByZone,
     anonymousActorCount: (snapshot?.actors || []).filter((actor) => actor.anonymous).length,
     knownActorCount: (snapshot?.actors || []).filter((actor) => !actor.anonymous).length,
+    faceArtActorCount: (snapshot?.actors || []).filter((actor) => !actor.faceDown && actor.artPath).length,
+    basicFaceArtActorCount: (snapshot?.actors || []).filter((actor) => (
+      !actor.faceDown && actor.artPath?.includes("/playing-cards/basic-")
+    )).length,
+    missingFaceArtCount: (snapshot?.actors || []).filter((actor) => (
+      actor.expectsFaceArt && !actor.faceDown && !actor.artPath
+    )).length,
     duplicateVisibleIdentityCount: Array.from(identities.values()).filter((count) => count > 1).length
   };
 }

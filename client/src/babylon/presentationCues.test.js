@@ -5,6 +5,10 @@ import {
   PresentationCueLedger,
   projectPresentationCues
 } from "./presentationCues";
+import {
+  PRESENTATION_CADENCE_CONTRACT_VERSION,
+  projectPresentationBeats
+} from "./presentationCadence";
 
 test("projects stable visual and audio cue records from accepted event IDs", () => {
   const event = { id: "event-7", type: "block.declared", player: 2, laneIndex: 1, cardId: "card-b" };
@@ -18,6 +22,34 @@ test("projects stable visual and audio cue records from accepted event IDs", () 
   expect(first.audio.assetId).toBe("block.commit");
   expect(first.offsetMs).toBeGreaterThan(0);
   expect(first.offsetMs).toBeLessThan(first.durationMs);
+  expect(first.effectDurationMs).toBe(first.durationMs);
+  expect(first.cadence).toEqual(expect.objectContaining({
+    contract: PRESENTATION_CADENCE_CONTRACT_VERSION,
+    kind: "block.commit",
+    tier: "commitment",
+    level: 2,
+    grammar: "brace",
+    materialRole: "steel",
+    spriteAlpha: 0.16,
+    ringAlpha: 0,
+    boardResponse: 0.68
+  }));
+});
+
+test("a coalesced attack carries centrally offset payment and thrust cues", () => {
+  const [beat] = projectPresentationBeats([
+    { id: "paid", type: "payment.discarded", cardIds: ["p1"] },
+    { id: "attack", type: "attack.declared", laneIndex: 2 }
+  ]);
+  const cues = projectPresentationCues(beat, { matchId: "m" });
+  expect(cues.map(({ cueId, offsetMs }) => [cueId, offsetMs])).toEqual([
+    ["payment.release", 260],
+    ["attack.declare", 390]
+  ]);
+  expect(cues.map(({ cadence }) => [cadence.kind, cadence.grammar])).toEqual([
+    ["payment.commit", "contract"],
+    ["attack.commit", "thrust"]
+  ]);
 });
 
 test("replay traversal generation permits deliberate replay without duplicate snapshot playback", () => {

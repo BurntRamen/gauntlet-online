@@ -8,6 +8,7 @@ const {
   COLLECTOR_VARIANTS,
   CONTENT_VERSION,
   DECK_RULES,
+  RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   getPublicGameContent,
   validateGameContent
@@ -36,6 +37,28 @@ test("validates the authoritative versioned game content registry", () => {
 test("keeps the legacy faction adapter on the canonical registry", () => {
   const publicFactions = getPublicGameContent().factions;
   assert.deepEqual(Object.values(FACTIONS), publicFactions);
+});
+
+test("publishes canonical Rumin card and campaign illustrations", () => {
+  const content = getPublicGameContent();
+  const ruminCardIds = new Set(RUMIN_COLLECTION_CARDS.map((card) => card.id));
+  const variants = content.collectorVariants.filter((variant) => ruminCardIds.has(variant.gameplayCardId));
+  assert.equal(variants.length, 36);
+
+  for (const card of RUMIN_COLLECTION_CARDS) {
+    const cardVariants = variants.filter((variant) => variant.gameplayCardId === card.id);
+    assert.equal(cardVariants.length, 2);
+    assert.equal(new Set(cardVariants.map((variant) => variant.art)).size, 1);
+    assert.match(cardVariants[0].art, /^\/assets\/gauntlet\/constructed\/rumin\/.+\.webp$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", cardVariants[0].art)), true);
+  }
+
+  assert.match(content.campaigns.rumin.coverImage, /^\/assets\/gauntlet\/campaigns\/rumin\/.+\.webp$/);
+  assert.equal(content.campaigns.rumin.chapters.length, 12);
+  for (const chapter of content.campaigns.rumin.chapters) {
+    assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/rumin\/.+\.webp$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
+  }
 });
 
 test("maps every catalog constructed card into the shared deterministic rules", () => {

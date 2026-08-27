@@ -34,6 +34,24 @@ viewport, dimensions, scene contract, module counts, actor counts, duplicate
 identity count, active motions, structural-raster count, and responsive
 profile for each capture.
 
+Set `BABYLON_REVIEW_OUTPUT` to a new path under
+`artifacts/babylon-visual-review/` for any evidence that must be retained. A
+named output will not be overwritten accidentally. The manifest includes Git,
+rules, reduced-motion, output, and discovered real-match seed provenance.
+
+For art-direction review, generate a side-by-side package after both matrices
+exist:
+
+```text
+npm run compare:babylon-review -- --before artifacts/babylon-visual-review/<baseline> --after artifacts/babylon-visual-review/<candidate> --output artifacts/babylon-visual-comparison/<new-package>
+```
+
+Default mappings cover neutral/rest, priority, attack availability and
+commitment, legal and committed blocks, fully blocked resolution, ordinary and
+major damage, ability activation, placement, victory, and mobile combat. A
+missing source frame is reported as unavailable and remains a visible review
+gap.
+
 ## Required visual and motion states
 
 | State | Production path | Required evidence |

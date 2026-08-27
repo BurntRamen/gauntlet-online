@@ -4,8 +4,39 @@ These assets were created for the Babylon production match renderer on
 2026-08-03. They are original provisional assets and require project approval
 before public cutover.
 
+## Basic playing-card family 2026-08-27
+
+The Basic Gauntlet deck now has a complete neutral 52-card face family. The
+built-in OpenAI image-generation tool created one original 5:7 master after
+visual comparison with the four existing faction families. The generated
+master contains no rank, suit, faction emblem, text, or logo. The deterministic
+`scripts/generate-basic-card-art.js` pipeline adds the four suit palettes,
+mirrored corners, and thirteen ranks, then writes 500x700 WebP runtime faces.
+
+The master, runtime family checksum, reference filenames, and exact generation
+prompt are recorded in `docs/generated-assets/basic-card-art-2026-08-27.json`.
+The generated family is production runtime art for ordinary Basic-mode cards;
+draft and replacement cards retain their separate existing treatment.
+
 They are registered as `provisional` in the `gauntlet-core-v1` presentation
 manifest. Their presence is a runtime fallback, not production-art approval.
+
+## Visual candidate evaluation 2026-08-26
+
+Two generated visual candidates were reviewed for the cadence pass and neither
+was installed. One was too ornate and visually loud for the restrained board;
+the other contained a checkerboard baked into its RGB image instead of true
+transparency. The runtime therefore continues to use the cohesive native and
+procedural renderer plus the existing registered art-kit assets.
+
+The repository's ElevenLabs Image & Video pipeline was then used to submit the
+restrained priority-transfer keyframe candidate. ElevenLabs rejected the image
+request before generation because the connected account does not have the Pro
+plan required by that endpoint, so no credit was consumed and no candidate was
+published. The dependent four-second, 16:9 priority video was not submitted: a
+full-frame video would not fit the renderer's localized, independently
+addressable feedback path. No ElevenLabs visual or video asset entered the
+runtime, and the audio delivery and audio worktree were not changed.
 
 ## Gameplay effects
 

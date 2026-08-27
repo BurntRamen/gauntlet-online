@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { resolveVisualAsset } from "./GauntletVisuals";
 import "./CollectorClaimScreen.css";
 
 async function readJson(response) {
@@ -163,8 +164,11 @@ export default function CollectorClaimScreen({
                 <ul>
                   {variants.map((variant, index) => (
                     <li key={`${variant.variantId}-${index}`}>
-                      <strong>{variant.name || variant.variantId}</strong>
-                      <span>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}</span>
+                      {variant.art && <img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" />}
+                      <span className="collector-claim-reward-copy">
+                        <strong>{variant.name || variant.variantId}</strong>
+                        <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}</small>
+                      </span>
                     </li>
                   ))}
                 </ul>

@@ -10,6 +10,8 @@ function card(id, value = 7, selected = {}) {
     label: `${value}C`,
     value,
     artPath: `/cards/${id}.webp`,
+    factionId: "basic",
+    expectsFaceArt: true,
     raw: { id, value },
     selected,
     interactionEnabled: true,
@@ -84,6 +86,41 @@ test("confirmed attacks reuse the known card identity exactly once", () => {
   expect(matching).toHaveLength(1);
   expect(matching[0].zone).toEqual(expect.objectContaining({ kind: "combat", role: "attacker" }));
   expect(presentationSnapshotMetrics(snapshot).duplicateVisibleIdentityCount).toBe(0);
+  expect(matching[0].artPath).toBe("/cards/attacker.webp");
+  expect(matching[0].factionId).toBe("basic");
+});
+
+test("keeps face art stable as one actor moves from hand to combat", () => {
+  const source = createPresentationSnapshot(viewModel());
+  const combat = createPresentationSnapshot(viewModel({
+    hand: [card("payment", 4)],
+    bottom: { id: 1, handCount: 1, deckCount: 50, discardCount: 0 },
+    attacks: [{
+      id: "attack-1",
+      owner: 1,
+      laneIndex: null,
+      card: card("attacker", 9),
+      blocks: [],
+      payment: { cards: [] }
+    }]
+  }));
+  const handActor = source.actorById.get("card:attacker");
+  const combatActor = combat.actorById.get("card:attacker");
+
+  expect(combatActor.actorId).toBe(handActor.actorId);
+  expect(combatActor.artPath).toBe(handActor.artPath);
+  expect(combatActor.zone.kind).toBe("combat");
+  expect(presentationSnapshotMetrics(combat).missingFaceArtCount).toBe(0);
+});
+
+test("reports an ordinary face-up actor that lost its required art path", () => {
+  const missing = { ...card("missing"), artPath: "" };
+  const snapshot = createPresentationSnapshot(viewModel({
+    hand: [missing],
+    bottom: { id: 1, handCount: 1, deckCount: 50, discardCount: 0 }
+  }));
+
+  expect(presentationSnapshotMetrics(snapshot).missingFaceArtCount).toBe(1);
 });
 
 test("adding blockers never changes the settled attacker's role-group slot", () => {
@@ -116,7 +153,7 @@ test("hidden opponent cards use privacy-safe stable slot identities", () => {
   expect(snapshot.actorById.has("hidden:player-2:hand:0")).toBe(true);
   expect(snapshot.actorById.has("hidden:player-2:lane:1")).toBe(true);
   expect(snapshot.actors.find((actor) => actor.actorId === "hidden:player-2:hand:0")).toEqual(
-    expect.objectContaining({ anonymous: true, cardId: null, faceDown: true })
+    expect.objectContaining({ anonymous: true, cardId: null, faceDown: true, expectsFaceArt: false })
   );
 });
 

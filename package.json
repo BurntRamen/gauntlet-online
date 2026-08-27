@@ -12,16 +12,19 @@
     "test:e2e:install": "playwright install chromium",
     "test:e2e:usability": "playwright test --config=playwright.usability.config.js",
     "test:e2e:performance": "playwright test --config=playwright.performance.config.js",
-    "test:qualification": "node --test scripts/babylon-experience-gate.test.js scripts/elevenlabs-assets.test.js scripts/master-match-audio.test.js scripts/prune-webgpu-build.test.js scripts/report-match-assets.test.js scripts/report-match-audio.test.js",
+    "test:qualification": "node --test scripts/babylon-experience-gate.test.js scripts/build-babylon-visual-comparison.test.js scripts/elevenlabs-assets.test.js scripts/master-match-audio.test.js scripts/prune-webgpu-build.test.js scripts/report-constructed-card-art.test.js scripts/report-match-assets.test.js scripts/report-match-audio.test.js",
     "capture:babylon-review": "playwright test --config=playwright.visual-review.config.js",
+    "compare:babylon-review": "node scripts/build-babylon-visual-comparison.js",
     "build:client": "npm --prefix client run build",
     "serve:client-build": "node scripts/serve-client-build.js",
     "check:bundle": "node scripts/check-build-budgets.js",
     "report:match-assets": "node scripts/report-match-assets.js",
+    "report:constructed-art": "node scripts/report-constructed-card-art.js",
     "report:match-audio": "node scripts/report-match-audio.js",
     "master:match-audio": "node scripts/master-match-audio.js",
     "generate:match-icons": "node scripts/generate-match-icons.js",
     "generate:match-sfx": "node scripts/generate-match-sfx.js",
+    "generate:basic-card-art": "node scripts/generate-basic-card-art.js",
     "assets:elevenlabs": "node scripts/elevenlabs-assets.js",
     "test:elevenlabs-assets": "node --test scripts/elevenlabs-assets.test.js",
     "prepare:experience-gate": "node scripts/prepare-babylon-qualification.js",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.62.0",
+    "sharp": "^0.35.3",
     "socket.io-client": "^4.8.3"
   }
 }

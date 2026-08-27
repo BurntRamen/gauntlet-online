@@ -16,8 +16,8 @@ add or depend on production test/fixture routes.
 - The local eight-card fan stays clear of the contextual action panel.
 - Opponent hand, both lane rows, deck, discard, payment, and combat use distinct
   anchors.
-- The camera fits normalized table anchors instead of stretching lanes on wider
-  screens.
+- The camera selects authored desktop, ultrawide, portrait, and short-landscape
+  module compositions instead of stretching one board across every ratio.
 - All visible local, opponent-attack, payment, blocker, and faction card fronts
   and all lettered card backs are normalized upright to the current viewer.
 
@@ -32,6 +32,47 @@ It writes a browsable matrix, manifest, final poses, and motion samples to
 ordinary-player requirements live in `PRODUCTION_REVIEW_MATRIX.md`; the
 fillable observer record lives in `HUMAN_PLAYTEST_SESSION_TEMPLATE.md`.
 
+For preserved review candidates, always select a new named directory:
+
+```powershell
+$env:BABYLON_REVIEW_OUTPUT = 'artifacts/babylon-visual-review/cadence-<revision>-<run>'
+npm run capture:babylon-review
+Remove-Item Env:BABYLON_REVIEW_OUTPUT
+```
+
+Named outputs refuse to replace an existing directory unless
+`BABYLON_REVIEW_OVERWRITE=true` is explicitly set. The qualified
+`full-babylon-2026-08-26` directory is protected from the capture command.
+Each manifest records the Git revision and branch, dirty paths, rules version,
+reduced-motion mode, output name, and the real match ID and seed discovered for
+each socket-room scenario.
+
+Build a standalone human-facing before/after package with:
+
+```text
+npm run compare:babylon-review -- --before artifacts/babylon-visual-review/<baseline> --after artifacts/babylon-visual-review/<candidate> --output artifacts/babylon-visual-comparison/<new-package>
+```
+
+The comparison pairs explicit art-direction mappings, copies only the selected
+frames into its own directory, shows exact source state and viewport names, and
+labels unavailable baseline or candidate evidence instead of silently choosing
+an unrelated frame.
+
+The full 2026-08-26 review candidate is preserved separately at
+`artifacts/babylon-visual-review/full-babylon-2026-08-26/`: 40 states, 91
+captures, four responsive profiles, 91 native-scene contracts, zero duplicate
+visible identities, and zero structural composite rasters. Its qualification
+record is `FULL_BABYLON_VISUAL_QUALIFICATION_2026-08-26.md`.
+
+The subsequent art-direction and cadence candidate is preserved at
+`artifacts/babylon-visual-review/cadence-art-direction-2026-08-26-r13/`: 52
+states, 114 captures, six responsive sizes plus semantic motion viewports, 24
+atomic motion/effect captures, zero duplicate visible identities, and zero
+structural composite rasters. The two standalone comparison packages live under
+`artifacts/babylon-visual-comparison/` with names ending in `cadence-r13`. Its
+qualification record is
+`BABYLON_ART_DIRECTION_CADENCE_QUALIFICATION_2026-08-26.md`.
+
 ## Repeatable production-path states
 
 The capture script creates a real Basic room, reconnects both players through
@@ -39,5 +80,9 @@ the normal client entry path, and drives priority, attacker selection, payment,
 incoming combat, blocker/payment selection, immediate block resolution, match
 completion, and public replay. Each stable state is captured at desktop,
 ultrawide, tablet, and phone dimensions; the same-frame block resolution also
-gets an early motion sample. The resulting manifest records the exact captures
-for review without exposing any fixture route in the shipped application.
+gets an early motion sample. Additional real rooms capture a high-value
+unblocked major-damage event and a Frumo Polea ability activation. The matrix
+also names local neutral/rest, attack-available, victory/defeat, and phone-
+landscape combat-motion states explicitly. The resulting manifest records the
+exact captures for review without exposing any fixture route in the shipped
+application.
