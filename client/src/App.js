@@ -5,6 +5,7 @@ import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import ConstructedCardTile from "./ConstructedCardTile";
+import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
@@ -3449,12 +3450,21 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
+  const [briefingChapterId, setBriefingChapterId] = useState("");
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
   const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
   const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
   const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
+  const briefingChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => chapter.id === briefingChapterId) ?? -1;
+  const briefingChapter = briefingChapterIndex >= 0 ? activeCampaign.chapters[briefingChapterIndex] : null;
+  const briefingUnlocked = briefingChapterIndex === 0 || completedChapters.includes(activeCampaign?.chapters?.[briefingChapterIndex - 1]?.id);
+  const briefingCompleted = briefingChapter ? completedChapters.includes(briefingChapter.id) : false;
+  const changeBriefing = (chapterId = "") => {
+    setBriefingChapterId(chapterId);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="campaign-page menu-page" style={MENU_THEME.page}>
@@ -3478,7 +3488,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 role="tab"
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
-                onClick={() => setSelectedFactionId(factionId)}
+                onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
                 style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`)})` }}
               >
                 <span>{campaign.factionName}</span>
@@ -3487,7 +3497,25 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
             );
           })}
         </div>
-        {activeCampaign && (
+        {activeCampaign && (briefingChapter ? (
+          <CampaignChapterBriefing
+            campaign={activeCampaign}
+            factionId={activeFactionId}
+            theme={activeTheme}
+            chapter={briefingChapter}
+            chapterIndex={briefingChapterIndex}
+            difficulty={getCampaignDifficulty(activeFactionId, briefingChapterIndex)}
+            complexity={getCampaignComplexityPreview(activeFactionId, briefingChapterIndex, briefingChapter.opponentName)}
+            unlocked={briefingUnlocked}
+            completed={briefingCompleted}
+            current={briefingChapterIndex === nextChapterIndex}
+            canPlayAsPlayer={canPlayAsPlayer}
+            onBack={() => changeBriefing("")}
+            onStartChapter={onStartChapter}
+            onPrevious={briefingChapterIndex > 0 ? () => changeBriefing(activeCampaign.chapters[briefingChapterIndex - 1].id) : null}
+            onNext={briefingChapterIndex < activeCampaign.chapters.length - 1 ? () => changeBriefing(activeCampaign.chapters[briefingChapterIndex + 1].id) : null}
+          />
+        ) : (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
             <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
               <div className="campaign-archive-copy">
@@ -3500,7 +3528,10 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                   <span>Next Battle / Chapter {nextChapterIndex + 1}</span>
                   <strong>{nextChapter.title}</strong>
                   <small>Face {nextChapter.opponentName} at {nextDifficulty.bossLife} life.</small>
-                  <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                  <div className="campaign-next-battle-actions">
+                    <button type="button" onClick={() => changeBriefing(nextChapter.id)}>View Briefing</button>
+                    <MenuButton onClick={() => onStartChapter(activeFactionId, nextChapter.id)} disabled={!canPlayAsPlayer}>Begin Next Battle</MenuButton>
+                  </div>
                 </div>
               ) : (
                 <div className="campaign-next-battle is-complete">
@@ -3517,7 +3548,6 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
                 const difficulty = getCampaignDifficulty(activeFactionId, index);
-                const complexity = getCampaignComplexityPreview(activeFactionId, index, chapter.opponentName);
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
@@ -3530,23 +3560,16 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                     <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
                     <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
                     <p>{chapter.story}</p>
-                    {(complexity.length > 0 || chapter.beforeBattle || chapter.afterBattle || chapter.dialogue?.length > 0) && (
-                      <details className="campaign-story-details">
-                        <summary>Story & encounter notes</summary>
-                        {chapter.playableName && <div><strong>Playable:</strong> {chapter.playableName}</div>}
-                        {complexity.length > 0 && <div><strong>Advanced rules:</strong> {complexity.join(" ")}</div>}
-                        {chapter.beforeBattle && <div><strong>Before Battle:</strong> {chapter.beforeBattle}</div>}
-                        {chapter.afterBattle && <div><strong>After Battle:</strong> {chapter.afterBattle}</div>}
-                        {chapter.dialogue?.slice(0, 3).map((line) => <div key={line}>{line}</div>)}
-                      </details>
-                    )}
-                    <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                    <div className="campaign-chapter-actions">
+                      <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)}>View Briefing</button>
+                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                    </div>
                   </article>
                 );
               })}
             </div>
           </section>
-        )}
+        ))}
       </div>
     </div>
   );
