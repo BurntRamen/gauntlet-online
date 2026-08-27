@@ -1,7 +1,14 @@
 import "./CompetitiveIdentity.css";
+import { DeckVisual } from "./GauntletVisuals";
 
 function factionArt(factionId) {
   return factionId ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${factionId}-card.webp` : "";
+}
+
+function contentArt(path) {
+  if (!path) return "";
+  if (/^(?:data:|https?:)/i.test(path)) return path;
+  return `${process.env.PUBLIC_URL || ""}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function recordForProfile(profile, match) {
@@ -27,11 +34,12 @@ function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
           || match.participants?.find((entry) => entry.accountId !== profile.accountId)
           || null;
         const participantFactionId = participant?.faction?.id;
+        const matchArt = contentArt(match.campaign?.image) || factionArt(participantFactionId);
         const matchLabel = `${String(participant?.result || "record").toUpperCase()} ${participant?.faction?.name || "Basic"} vs ${opponent?.displayName || "Opponent"}`;
         return (
           <div className="competitive-match-row" key={match.matchId}>
             <button type="button" className="competitive-match-main" aria-label={matchLabel} onClick={() => onOpenMatch(match.matchId)}>
-              <span className="competitive-faction-mark" aria-hidden="true" style={participantFactionId ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.58)), url(${factionArt(participantFactionId)})` } : undefined} />
+              <span className="competitive-faction-mark" aria-hidden="true" style={matchArt ? { backgroundImage: `linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.58)), url(${matchArt})` } : undefined} />
               <span className={`competitive-result ${resultClass(participant?.result)}`}>{String(participant?.result || "record").toUpperCase()}</span>
               <span>
                 <strong>{participant?.faction?.name || "Basic"} vs {opponent?.displayName || "Opponent"}</strong>
@@ -99,7 +107,8 @@ function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
         <section>
           <h2>Featured Decks</h2>
           {profile.featuredDecks?.length ? profile.featuredDecks.map((deck) => (
-            <div className="competitive-line" key={deck.id}>
+            <div className="competitive-featured-deck" key={deck.id}>
+              <DeckVisual deck={deck} art={deck.featuredArt} decorative />
               <span><strong>{deck.name}</strong><small>{deck.factionName} / {deck.format}</small></span>
               <span>{deck.record?.wins || 0}W {deck.record?.losses || 0}L</span>
             </div>

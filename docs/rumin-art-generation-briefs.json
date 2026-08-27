@@ -1,0 +1,593 @@
+{
+  "schemaVersion": 1,
+  "runId": "gauntlet-rumin-vertical-slice-2026-08-27",
+  "status": "frozen-candidate-brief",
+  "artifactApprovalStatus": "Candidate production art for the current Gauntlet implementation; not Creative OS canon, public-release approval, or rights clearance.",
+  "authorityChain": [
+    {
+      "id": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "title": "00-00 Creative OS Governance Directive — Operational",
+      "role": "Company-level authority hierarchy, status, inheritance, conflict, and approval rules"
+    },
+    {
+      "id": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "title": "Gauntlet — Project Dossier & Generation Contract — Operational v1",
+      "role": "Gauntlet identity, visual/voice contract, implementation boundary, and governing source map"
+    },
+    {
+      "id": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "title": "Gauntlet Rules — Operational v1",
+      "role": "Basic Gauntlet mechanics"
+    },
+    {
+      "id": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#gid=0",
+      "title": "Gauntlet Card Registry — Operational v1 / Card Registry — Operational v1",
+      "role": "Controlling registered card content"
+    },
+    {
+      "id": "1PyyLFGEiYCrxnkHh1Ahh1P87SbW-pwio2No9gGu3znc",
+      "title": "Creative OS — Generation Hub",
+      "role": "Operational graph, prompt, review, lineage, and delivery-gate contract"
+    },
+    {
+      "id": "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE",
+      "title": "Rumin Canon Status & Governing Trajectory — Operational v1",
+      "role": "Controlling Rumin Roman anchor, finance transformation, Kaisar contradiction, and imperial trajectory"
+    },
+    {
+      "id": "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ",
+      "title": "Active Source — Rumin Story (C-09 Trajectory)",
+      "role": "Active Rumin narrative texture beneath C-09"
+    },
+    {
+      "id": "19CPGMjUVVAl1Ru-h0clfR3DMVZcSjn4jNgrB2cuBKRk",
+      "title": "Rumin Civilization Playing Card Deck — Product Dossier & Generation Contract — Operational v1",
+      "role": "Adjacent Rumin product precedent; civilization facts and visual principles only, not Gauntlet content authority"
+    },
+    {
+      "id": "1XXNK11duJL8aMnMoKKKLoOIXrGL2afwKzzwZYprXg9M",
+      "title": "Asset Registry",
+      "role": "Faction visual-reference provenance and rights/status gate"
+    },
+    {
+      "id": "ASSET-009",
+      "title": "Rumin deck visual references",
+      "role": "Pending-review internal reference only; consulted but not used as governing identity or direct image reference"
+    },
+    {
+      "id": "ASSET-023",
+      "title": "Recovered Rumin visual family",
+      "role": "Not-canon historical provenance; consulted but excluded from governing style"
+    },
+    {
+      "id": "repo:server/gameContent.js@main",
+      "title": "Current repository game content",
+      "role": "Current implementation behavior, constructed-card definitions, and campaign chapter implementation"
+    }
+  ],
+  "relatedFactionControlsConsulted": [
+    {
+      "id": "1H2MbAIhp_6gmpdxCvta68DtAFy3fJjLNKfqicJgzXgo",
+      "title": "Sheen Canon Status & Controlling Manuscript — Operational v1",
+      "boundary": "Sheen remains non-generic and separate; no Sheen identity is imported into Rumin"
+    },
+    {
+      "id": "1qHlCudp5w24ODs63u0u8kmiJTHa8nUFbznweB-kn93A",
+      "title": "Frumo Canon Status & Controlling Manuscript — Operational v1",
+      "boundary": "Frumo revolutionary/merfolk identity is not imported into Rumin"
+    },
+    {
+      "id": "1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU",
+      "title": "Bizi Canon Status & Structural Spine — Operational v1",
+      "boundary": "Bizi Byzantine sacred machinery and automata are not imported into Rumin"
+    },
+    {
+      "id": "ASSET-008",
+      "title": "Sheen deck visual references",
+      "status": "Pending Review / internal reference only"
+    },
+    {
+      "id": "ASSET-010",
+      "title": "Frumo and botanical visual references",
+      "status": "Pending Review / internal reference only; folder naming/content conflict prevents identity use"
+    },
+    {
+      "id": "ASSET-019",
+      "title": "Recovered Bizi visual family",
+      "status": "Not Canon / historical provenance only"
+    }
+  ],
+  "conflictLedger": [
+    {
+      "id": "CONFLICT-CONSTRUCTED-REGISTRY-GAP",
+      "sources": [
+        "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#gid=0",
+        "repo:server/gameContent.js@main"
+      ],
+      "conflict": "The controlling registry contains Rumin commander, general, and city rows, but none of the 18 constructed replacement cards present in the implementation.",
+      "resolutionForThisPass": "Use repository definitions only to illustrate current implementation behavior. Do not change mechanics, claim registry authority, or promote the cards to canon. Mark every constructed asset as implementation-bound pending registry reconciliation."
+    },
+    {
+      "id": "CONFLICT-KAISAR-KAISER-SPELLING",
+      "sources": [
+        "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE",
+        "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ",
+        "repo:server/gameContent.js@main"
+      ],
+      "conflict": "Creative OS uses Kaisar while the current implementation and requested card title use Kaiser.",
+      "resolutionForThisPass": "Treat them as the same Rumin figure for visual continuity, retain current implementation labels, and bake no name or lettering into art."
+    },
+    {
+      "id": "CONFLICT-FIRST-EMPEROR-IDENTITY",
+      "sources": [
+        "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE",
+        "C-09",
+        "repo:server/gameContent.js@main#first-emperor"
+      ],
+      "conflict": "Verified C-09 says Meerus establishes imperial order; the current chapter implementation names Augustus as the first emperor.",
+      "resolutionForThisPass": "The chapter art depicts the institutional transition to empire and an intentionally non-identifying ruler in republican ceremony. It does not establish Augustus visually or contradict the Meerus trajectory. The content-name mismatch remains visible for a separate governed reconciliation."
+    },
+    {
+      "id": "CONFLICT-NO-APPROVED-RUMIN-VISUAL-BINDING",
+      "sources": ["ASSET-009", "ASSET-023"],
+      "conflict": "The available Rumin visual families are Pending Review or Not Canon with rights status Needs Truth; no Rumin asset family is recorded as an approved governing visual identity.",
+      "resolutionForThisPass": "Do not reference those images directly in generation. Derive candidate style from verified written authorities, the user's explicit direction, and the operational Gauntlet visual contract."
+    }
+  ],
+  "globalVisualGrammar": {
+    "civilization": "A sophisticated Naga civic civilization transformed through Roman republican-to-imperial structures and finance-as-infrastructure.",
+    "people": "Consistent civilized serpent-bodied citizens with two arms, expressive scaled faces, practical draped garments and segmented civic or military armor; no extra limbs, wings, dragon anatomy, or horror-monster posture.",
+    "architecture": "Forums, senate halls, basilicas, banks, vaults, aqueducts, roads, granaries, markets, frontier works, and monumental civic thresholds.",
+    "materials": "Warm marble and travertine, dark basalt, hammered bronze, restrained gold leaf, leather, linen, wax seals, ledger tablets, grain, stone roads, and aged red/ochre/verdigris accents.",
+    "style": "Premium painterly historical illustration with matte pigments, controlled etched edge texture, strong silhouettes, lived-in civic detail, and restrained cinematic light. Cohesive adjacent pieces; not glossy mobile-game splash art.",
+    "mustPreserve": [
+      "Roman structural authority",
+      "finance as civic transformation rather than modern literalism",
+      "Kaisar's generosity and concentrated power as simultaneous truths",
+      "institutional wealth rather than treasure piles",
+      "readable subject silhouettes at card and thumbnail size",
+      "safe central composition for reusable crops",
+      "Gauntlet's sharp, tense, readable, game-first presentation"
+    ],
+    "mustAvoid": [
+      "generic D&D snake monsters",
+      "dragons or winged reptiles",
+      "medieval European knights or castles",
+      "generic fantasy bank interiors",
+      "casino imagery",
+      "cyberpunk or modern Wall Street objects",
+      "Bizi automata or sacred machinery",
+      "humanoid tree or botanical Sheen traits",
+      "Frumo pirate or revolutionary costume language",
+      "readable text, fake letters, logos, card frames, UI, rarity labels, or watermarks",
+      "malformed anatomy, duplicate figures, nonsensical weapons, cropped focal subjects, or plastic gloss"
+    ]
+  },
+  "assets": [
+    {
+      "assetId": "rumin-gilded-scale-legionary",
+      "category": "constructed-card",
+      "styleLock": true,
+      "contentId": "rumin-gilded-scale-legionary",
+      "title": "Gilded Scale Legionary",
+      "contentFacts": { "type": "unit", "rarity": "common", "value": 3, "rules": "When this attacks after a diamond was paid this turn, it gets +1 value." },
+      "visualSubject": "A disciplined Rumin legionary advancing through a monumental civic gate as market officials and supply clerks record the column; restrained gilded scale edges and diamond-shaped bronze inlays connect military service to the public economy.",
+      "factionAuthority": "Rumin Roman military and civic-finance transformation; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Republican legion discipline, triumphal gate, paved road, marble, bronze, leather, linen, red-ochre standard cloth without symbols.",
+      "mustPreserve": ["single readable two-armed serpent-bodied legionary", "disciplined civic soldier rather than monster", "economy and army in one lived scene", "central helmet-and-shield silhouette"],
+      "mustAvoid": ["dragon traits", "medieval knight armor", "hero splash pose", "readable coin or banner text"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4", "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-gilded-scale-legionary", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-forum-ledger-runner",
+      "category": "constructed-card",
+      "contentId": "rumin-forum-ledger-runner",
+      "title": "Forum Ledger Runner",
+      "contentFacts": { "type": "unit", "rarity": "common", "value": 2, "rules": "If this is your first attack this turn, you may treat one payment card as +1 value." },
+      "visualSubject": "A swift civic courier threading through a crowded colonnaded forum at first light, protecting bound ledger tablets while merchants open stalls and magistrates wait on the steps.",
+      "factionAuthority": "Rumin civic administration and market infrastructure; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Forum colonnades, stairways, awnings, wax tablets, leather satchel, marble and morning bronze light.",
+      "mustPreserve": ["motion without superhero posing", "clear courier occupation", "serpent-bodied anatomy", "ledger protected at center"],
+      "mustAvoid": ["modern paperwork", "briefcase", "fake writing", "empty fantasy plaza"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-forum-ledger-runner", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-vault-shield-bearer",
+      "category": "constructed-card",
+      "contentId": "rumin-vault-shield-bearer",
+      "title": "Vault Shield Bearer",
+      "contentFacts": { "type": "unit", "rarity": "common", "value": 4, "rules": "When blocking, prevent 1 damage if you overpaid for this block." },
+      "visualSubject": "A vault guard braces a layered bronze-and-hide shield across a treasury threshold while clerks behind the guard add counterweights and secure public deposits during a breach.",
+      "factionAuthority": "Rumin protection through institutional systems; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Basilica vault entrance, bronze lattice, dark basalt sill, hide straps, measured counterweights, warm marble.",
+      "mustPreserve": ["blocking action", "clear shield silhouette", "collective institutional defense", "two-arm serpent anatomy"],
+      "mustAvoid": ["magic bubble shield", "treasure pile", "medieval tower shield", "extra arms"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-vault-shield-bearer", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-coin-scale-spear",
+      "category": "constructed-card",
+      "contentId": "rumin-coin-scale-spear",
+      "title": "Coin-Scale Spear",
+      "contentFacts": { "type": "weapon", "rarity": "common", "value": 4, "rules": "Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this." },
+      "visualSubject": "A recognizable long spear with a leaf-shaped bronze point and scale-like counterbalance is passed from a civic armory rack to a departing legionary, viewed on a strong diagonal in active preparation.",
+      "factionAuthority": "Rumin military equipment shaped by weights, measures, and civic supply; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Bronze spearhead, ash shaft, coin-scale counterweight, stone armory, inventory racks, controlled daylight.",
+      "mustPreserve": ["weapon readable at thumbnail size", "plausible construction", "active handoff rather than catalog pose", "institutional armory context"],
+      "mustAvoid": ["floating weapon", "ornate magical staff", "nonsensical blade geometry", "readable coin lettering"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-coin-scale-spear", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-senate-vault-guard",
+      "category": "constructed-card",
+      "contentId": "rumin-senate-vault-guard",
+      "title": "Senate Vault Guard",
+      "contentFacts": { "type": "unit", "rarity": "uncommon", "value": 5, "rules": "The first time each turn you overpay for this by 2 or more, gain 1 life." },
+      "visualSubject": "A senior Senate treasury guard holds the line between petitioning citizens and a sealed public vault while an official weighs an unusually large payment behind the guard.",
+      "factionAuthority": "Rumin political hierarchy, public finance, and ambiguous protection; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Senate basilica, bronze vault doors, marble steps, red-black guard armor, scales and sealed deposit jars.",
+      "mustPreserve": ["guard as civic actor", "public/private tension", "readable defensive stance", "restrained wealth"],
+      "mustAvoid": ["villainous dungeon guard", "gold hoard", "modern security uniform", "text on seals"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-senate-vault-guard", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-marble-market-tribune",
+      "category": "constructed-card",
+      "contentId": "rumin-marble-market-tribune",
+      "title": "Marble Market Tribune",
+      "contentFacts": { "type": "unit", "rarity": "uncommon", "value": 6, "rules": "After this attacks, your next Rumin weapon armed from a lane gives an additional +1 value." },
+      "visualSubject": "A forceful market tribune adjudicates a dispute from a low marble rostrum as guild weapons, cargo, citizens, and soldiers converge around the ruling.",
+      "factionAuthority": "Rumin political and economic office expressed through a shared civic arena; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Market basilica, marble rostrum, bronze rail, linen robes over scale armor, amphorae and weapon guild display.",
+      "mustPreserve": ["tribune actively speaking or ruling", "market and military linked", "crowd hierarchy", "central readable face and gesture"],
+      "mustAvoid": ["modern politician podium", "empty throne portrait", "written slogans", "casino luxury"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-marble-market-tribune", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-rumie-vault-shield",
+      "category": "constructed-card",
+      "contentId": "rumin-rumie-vault-shield",
+      "title": "Rumie Vault Shield",
+      "contentFacts": { "type": "weapon", "rarity": "uncommon", "value": 6, "rules": "Arm from lane: attach to a hand attacker. It gets +3 value this combat, then discard this." },
+      "visualSubject": "A distinct round-edged vault shield of overlapping bronze scales protects a treasury convoy in a narrow forum street, carried low and forward as attackers close in.",
+      "factionAuthority": "Rumin weapon design rooted in vault craft and civic logistics; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Overlapping bronze plates, basalt boss, leather grip, locked civic carts, colonnaded street, dust and sunset.",
+      "mustPreserve": ["shield dominates the composition", "active convoy defense", "plausible handle and scale construction", "central safe crop"],
+      "mustAvoid": ["floating heraldic shield", "medieval crest", "magic aura", "fake writing"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-rumie-vault-shield", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-imperial-scale-pike",
+      "category": "constructed-card",
+      "contentId": "rumin-imperial-scale-pike",
+      "title": "Imperial Scale Pike",
+      "contentFacts": { "type": "weapon", "rarity": "uncommon", "value": 5, "rules": "Arm from lane: attach to a hand attacker. It gets +2 value, or +4 if it shares a suit with your previous attack." },
+      "visualSubject": "A long imperial pike rises above a coordinated serpent phalanx advancing down a paved military road, its repeating scale joints visually echoing the formation.",
+      "factionAuthority": "Rumin imperial military coordination and road infrastructure; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Ash-wood pikes, bronze leaf points, articulated scale collars, road milestones without text, legion leather and linen.",
+      "mustPreserve": ["pike length and point readable", "formation rhythm", "road context", "no mixed anatomy"],
+      "mustAvoid": ["single floating pike", "lance joust", "medieval knight", "impossible clustered weapons"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-imperial-scale-pike", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-aurelian-clawblade",
+      "category": "constructed-card",
+      "styleLock": true,
+      "contentId": "rumin-aurelian-clawblade",
+      "title": "Aurelian Clawblade",
+      "contentFacts": { "type": "weapon", "rarity": "rare", "value": 7, "rules": "Arm from lane: attach to a hand attacker. It gets +4 value this combat. If you overpaid by 2 or more, gain 1 life." },
+      "visualSubject": "A master armorer presents a rare bronze clawblade during a civic oath inside an austere state forge; one legionary receives it while witnesses measure the paid offering.",
+      "factionAuthority": "Rumin rare military craft embedded in civic obligation; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Dark state forge, bronze and restrained gold, three practical hooked blades on one gauntlet, marble oath plinth, scales and sealed offerings.",
+      "mustPreserve": ["clear believable clawblade silhouette", "three controlled blades attached to one forearm", "ceremonial and practical use", "institutional witnesses"],
+      "mustAvoid": ["Wolverine-like modern claws", "extra fingers or arms", "glowing fantasy weapon", "product catalog void"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "19CPGMjUVVAl1Ru-h0clfR3DMVZcSjn4jNgrB2cuBKRk", "repo:server/gameContent.js@main#rumin-aurelian-clawblade", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-basilisk-standard",
+      "category": "constructed-card",
+      "contentId": "rumin-basilisk-standard",
+      "title": "Basilisk Standard",
+      "contentFacts": { "type": "standard", "rarity": "rare", "value": 6, "rules": "Your fourth attack each turn gets +2 additional value if a weapon is armed to it." },
+      "visualSubject": "A tall basilisk standard is carried through a crowded military-civic procession, its abstract serpent silhouette visible in worn red cloth while armed cohorts pass banks and public works.",
+      "factionAuthority": "Rumin standard as civic and military signal, not a monster portrait; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Worn red textile, bronze crossbar and serpent finial, forum avenue, citizens, veterans, civic buildings.",
+      "mustPreserve": ["standard readable above the crowd", "procession scale", "abstract non-logo serpent motif", "weapons present but secondary"],
+      "mustAvoid": ["living basilisk monster", "readable lettering", "clean modern flag", "medieval heraldry"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-basilisk-standard", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-jewel-bank-contract",
+      "category": "constructed-card",
+      "styleLock": true,
+      "contentId": "rumin-jewel-bank-contract",
+      "title": "Jewel-Bank Contract",
+      "contentFacts": { "type": "tactic", "rarity": "rare", "value": 5, "rules": "The next Rumin card you play this turn may be paid for with one card as though it had +2 value." },
+      "visualSubject": "At the center of a monumental bank atrium, a merchant and magistrate exchange one heavily weighted sealed contract while guarantors, clerks, guards, and waiting citizens reveal the social stakes.",
+      "factionAuthority": "Rumin contract power, debt, generosity, obligation, and finance as institution; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Bank basilica, marble counters, bronze balance, wax seals without writing, restrained jewel inlay, ledgers and grain receipts.",
+      "mustPreserve": ["single contract exchange as focal action", "institutional crowd", "moral ambiguity rather than villain scene", "one visible weighted payment"],
+      "mustAvoid": ["floating parchment", "modern bank teller windows", "Wall Street imagery", "readable text or signatures", "gold pile"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "19CPGMjUVVAl1Ru-h0clfR3DMVZcSjn4jNgrB2cuBKRk", "repo:server/gameContent.js@main#rumin-jewel-bank-contract", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-tax-road-scout",
+      "category": "constructed-card",
+      "contentId": "rumin-tax-road-scout",
+      "title": "Tax-Road Scout",
+      "contentFacts": { "type": "unit", "rarity": "common", "value": 2, "rules": "If this is your first attack this turn, it costs 1 less to play." },
+      "visualSubject": "A lightly equipped Rumin surveyor races ahead of a trade caravan on a newly laid stone road, checking bridges, toll stations, and supply markers before the column arrives.",
+      "factionAuthority": "Rumin roads, taxation, trade, and expansion as one civic system; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Stone road, arch bridge, modest toll shelter, survey cord, tablet without writing, linen travel gear, dry frontier terrain.",
+      "mustPreserve": ["speed and scouting", "road engineering", "trade caravan scale", "clear occupation"],
+      "mustAvoid": ["modern highway signs", "cowboy scout", "paper map text", "battlefield-only composition"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-tax-road-scout", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-marble-phalanx",
+      "category": "constructed-card",
+      "contentId": "rumin-marble-phalanx",
+      "title": "Marble Phalanx",
+      "contentFacts": { "type": "unit", "rarity": "common", "value": 5, "rules": "When blocking after you have already attacked this turn, this gets +1 value." },
+      "visualSubject": "A disciplined Rumin shield wall pivots from advance to defense at the edge of a marble quarry-city, protecting workers and supply carts behind overlapping shields.",
+      "factionAuthority": "Rumin collective military discipline protecting civic production; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Marble quarry terraces, unfinished columns, bronze-rimmed shields, pikes, dust, pale stone and red cloth.",
+      "mustPreserve": ["coherent formation", "attack-to-block pivot", "workers and civic production behind", "readable shield rhythm"],
+      "mustAvoid": ["Greek hoplite cosplay", "chaotic duplicated limbs", "medieval armor", "empty heroic portrait"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-marble-phalanx", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-counting-house-aegis",
+      "category": "constructed-card",
+      "contentId": "rumin-counting-house-aegis",
+      "title": "Counting-House Aegis",
+      "contentFacts": { "type": "relic", "rarity": "uncommon", "value": 7, "rules": "The first time each turn you overpay for a Rumin card by 2 or more, gain 1 life." },
+      "visualSubject": "A fortified counting house closes its enormous bronze lattice and layered shutters while clerks, guards, and citizens organize deposits behind a protective architectural aegis.",
+      "factionAuthority": "Rumin protection embodied by resilient civic finance architecture; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Basilica counting hall, bronze grille, marble ribs, ledger alcoves, sealed jars, measured counterweights, warm interior against storm light.",
+      "mustPreserve": ["building-as-aegis", "human-scale citizens within institution", "protective closure action", "not a magical object portrait"],
+      "mustAvoid": ["force field", "floating shield", "bank vault cliché", "generic treasure room", "Bizi machinery"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-counting-house-aegis", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-triumphal-ram",
+      "category": "constructed-card",
+      "contentId": "rumin-triumphal-ram",
+      "title": "Triumphal Ram",
+      "contentFacts": { "type": "weapon", "rarity": "uncommon", "value": 8, "rules": "Arm from lane: attach to a hand attacker. It gets +4 value, or +5 if the attacker has value 8 or more." },
+      "visualSubject": "A heavy civic-engineered battering ram with a restrained bronze serpent head is hauled through a breached frontier gate by a coordinated legion, monumental but physically credible.",
+      "factionAuthority": "Rumin expansion through state engineering and disciplined force; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Timber frame, rope rigging, bronze ram head, stone gate, legion crews, road engineers, smoke and pale dust.",
+      "mustPreserve": ["ram mechanism fully understandable", "team effort", "serpent head as restrained craft motif", "breach context"],
+      "mustAvoid": ["living monster ram", "impossible vehicle", "steampunk gears", "glossy siege splash"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-triumphal-ram", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-edict-of-the-vault",
+      "category": "constructed-card",
+      "contentId": "rumin-edict-of-the-vault",
+      "title": "Edict of the Vault",
+      "contentFacts": { "type": "tactic", "rarity": "rare", "value": 8, "rules": "When paid for your fourth attack this turn, this pays +3 additional value." },
+      "visualSubject": "A high magistrate seals a vault edict before gathered guild delegates as guards close the bronze doors and a fourth armed cohort waits beyond the tribunal.",
+      "factionAuthority": "Rumin political authority converting finance law into military action; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Vault tribunal, marble benches, wax seal and blank decree surface, bronze doors, civic robes, armed cohort in sharp backlight.",
+      "mustPreserve": ["law-making action", "vault and army connected", "fourth cohort implied compositionally", "institutional stakes"],
+      "mustAvoid": ["readable decree", "evil sorcerer", "modern courtroom", "floating magical parchment"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#rumin-edict-of-the-vault", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-kaisers-gold-claw",
+      "category": "constructed-card",
+      "contentId": "rumin-kaisers-gold-claw",
+      "title": "Kaiser's Gold Claw",
+      "contentFacts": { "type": "weapon", "rarity": "mythic", "value": 9, "rules": "Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn." },
+      "visualSubject": "Kaiser raises a singular gold-and-bronze claw weapon before the fourth assault, surrounded by fed citizens, loyal veterans, indebted allies, and uneasy senators in one morally divided civic-military tableau.",
+      "factionAuthority": "Kaisar/Kaiser as genuinely generous and power-concentrating; implementation spelling retained without text.",
+      "culturalArchitecturalMaterialLanguage": "Forum command stair, worn gold leaf over bronze, practical claw gauntlet, legion standards, food distribution, marble and storm-red sky.",
+      "mustPreserve": ["same Kaisar/Kaiser figure implied without written name", "single plausible claw gauntlet", "generosity and coercive loyalty visible together", "mythic scale through crowd and composition"],
+      "mustAvoid": ["cartoon villain", "gold suit", "superhero pose", "extra fingers", "pure treasure spectacle"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#rumin-kaisers-gold-claw", "CONFLICT-KAISAR-KAISER-SPELLING", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-rumie-market-colossus",
+      "category": "constructed-card",
+      "contentId": "rumin-rumie-market-colossus",
+      "title": "Rumie Market Colossus",
+      "contentFacts": { "type": "unit", "rarity": "mythic", "value": 10, "rules": "When this attacks, each Rumin weapon you control in a lane may arm to it. Each armed weapon gives an extra +1 value." },
+      "visualSubject": "A towering but living Rumin civic champion rises above Rumie's central market while guilds and cohorts pass up shields, pikes, standards, and a clawblade; the colossus embodies the market system mobilized for war, not a monster or automaton.",
+      "factionAuthority": "Rumin mythic civic-economic power and collective armament; implementation-bound constructed content.",
+      "culturalArchitecturalMaterialLanguage": "Monumental forum, tiered market balconies, bronze and marble, guild awnings, civic champion in layered scale armor, multiple clearly separated weapons.",
+      "mustPreserve": ["one two-armed serpent-bodied giant-scale champion", "market participants arm the champion", "each weapon readable and physically handed up", "monumentality through architecture"],
+      "mustAvoid": ["kaiju", "Bizi robot", "extra arms", "random weapon clutter", "gold hoard", "mobile-game boss splash"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build tile", "Catalog tile", "selected-card preview", "deck visual", "reward reveal"],
+      "sourceAuthorityIds": ["1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "19CPGMjUVVAl1Ru-h0clfR3DMVZcSjn4jNgrB2cuBKRk", "repo:server/gameContent.js@main#rumin-rumie-market-colossus", "CONFLICT-CONSTRUCTED-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "rumin-campaign-01-brothers-of-destiny",
+      "category": "campaign-chapter",
+      "styleLock": true,
+      "contentId": "brothers-of-destiny",
+      "title": "Brothers of Destiny",
+      "contentFacts": { "chapter": 1, "playable": "Rolmus", "opponent": "Remex", "story": "Two brothers found Rumie together, then clash over whether trade or conquest will define the city." },
+      "visualSubject": "Before empire, Rolmus and Remex stand separated within one young frontier city: Rolmus oversees a market road and bridge taking shape while Remex directs a defensive wall and barracks; their personal rivalry is expressed through the city they are founding.",
+      "factionAuthority": "C-09 Roman foundation trajectory and current chapter implementation.",
+      "culturalArchitecturalMaterialLanguage": "Rough early stone, timber scaffolds, nascent forum, road survey, defensive wall, river crossing, dawn earth tones with restrained red cloth.",
+      "mustPreserve": ["two distinct serpent-bodied brothers", "trade-road versus wall-defense divergence", "young unfinished Rumie", "central safe action across 16:9"],
+      "mustAvoid": ["generic face-off duel", "mature imperial capital", "human twins", "readable construction signs"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#brothers-of-destiny", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-02-the-republic",
+      "category": "campaign-chapter",
+      "contentId": "the-republic",
+      "title": "The Republic",
+      "contentFacts": { "chapter": 2, "playable": "The Senate Guard", "opponent": "Tribune Marcell", "story": "Generations pass. Rumie grows wealthy, but corrupt senators, banks, runes, and legions begin shaping a fragile republic." },
+      "visualSubject": "A packed republican forum debates beneath the senate basilica while citizens petition, bankers weigh deposits, legionaries watch, and a narrow stream of wealth quietly enters a senators-only arcade.",
+      "factionAuthority": "C-09 Roman republic as primary skeleton with finance as transformation.",
+      "culturalArchitecturalMaterialLanguage": "Republican senate steps, public rostrum, market stalls, bank counters, marble worn by crowds, bronze scales, civic red and bone.",
+      "mustPreserve": ["public debate", "wealth and civic institutions", "subtle corruption", "multiple social classes"],
+      "mustAvoid": ["empty senate chamber", "modern parliament", "literal voting text", "villain caricatures"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#the-republic", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-03-the-jewel",
+      "category": "campaign-chapter",
+      "contentId": "the-jewel",
+      "title": "The Jewel",
+      "contentFacts": { "chapter": 3, "playable": "Kaiser", "opponent": "Corrupt Governor Severan", "story": "Kaiser rises as a beloved officer who walks among workers, pays debts, and exposes a governor protected by the aristocracy." },
+      "visualSubject": "Young Kaiser walks among workers and debtors in a prosperous but unequal market, publicly paying an obligation and confronting Governor Severan on the steps of a protected jewel-bank enclave.",
+      "factionAuthority": "Kaisar's generosity and power-building contradiction under C-09; implementation spelling retained without text.",
+      "culturalArchitecturalMaterialLanguage": "Marble market, jewel-bank grille, bread and oil distribution, wax-sealed debt tablets, officer's civic armor, crowd and elite balcony.",
+      "mustPreserve": ["Kaiser helping real people", "Severan protected by elite space", "prosperity and inequality together", "no obvious hero-villain flattening"],
+      "mustAvoid": ["charity advertisement", "gold rain", "modern finance", "readable contracts"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#the-jewel", "C-09", "CONFLICT-KAISAR-KAISER-SPELLING"]
+    },
+    {
+      "assetId": "rumin-campaign-04-gaulic-wars",
+      "category": "campaign-chapter",
+      "contentId": "gaulic-wars",
+      "title": "The Gaulic Wars",
+      "contentFacts": { "chapter": 4, "playable": "Kaiser", "opponent": "Gaulic Warchief Vercan", "story": "Northern tribes unite against Rumie. Kaiser turns frontier war into fame, wealth, and open trade routes." },
+      "visualSubject": "On a cold northern frontier, Kaiser leads Rumin legions along a newly cut road toward Vercan's united warbands, with forested hills, supply columns, and contested trade routes widening the scene beyond a duel.",
+      "factionAuthority": "C-09 military expansion and Roman structural anchor; current chapter implementation.",
+      "culturalArchitecturalMaterialLanguage": "Mud and stone road works, frontier earthworks, disciplined bronze-and-red legion, varied northern Rumin tribal materials, overcast green-gray light.",
+      "mustPreserve": ["battlefield scale", "road and logistics", "distinct but same-species Gaulic coalition", "Kaiser as commander within army"],
+      "mustAvoid": ["human barbarians", "horned Viking helmets", "generic fantasy battlefield", "single-character splash"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#gaulic-wars", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-05-three-runes",
+      "category": "campaign-chapter",
+      "contentId": "three-runes",
+      "title": "The Three Runes",
+      "contentFacts": { "chapter": 5, "playable": "Kaiser", "opponent": "Ancient Rune Guardian", "story": "Kaiser discovers vaults of Strength, Protection, and Experience, then begins binding sacred runes to the legions." },
+      "visualSubject": "Deep below conquered land, Kaiser enters an ancient stone vault where a non-humanoid guardian stands between him and three distinct geometric relic-stones; waiting legionaries remain small at the threshold.",
+      "factionAuthority": "Current chapter content bounded by C-09; runes are strategic sacred relics, not generic spell loot.",
+      "culturalArchitecturalMaterialLanguage": "Pre-Rumie cyclopean stone, bronze vault rings, three restrained luminous forms, dust, old water channels, legion lamps.",
+      "mustPreserve": ["exactly three relic-stones", "Kaiser and one guardian", "discovery changes relationship with power", "legions held at distance"],
+      "mustAvoid": ["readable fake runes", "wizard spellcasting", "treasure cave", "extra relics", "dragon guardian"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#three-runes", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-06-first-empire-bank",
+      "category": "campaign-chapter",
+      "contentId": "first-empire-bank",
+      "title": "The First Empire Bank",
+      "contentFacts": { "chapter": 6, "playable": "Kaiser", "opponent": "Market Collapse", "story": "Kaiser returns to build roads, grain systems, public works, and banking reforms while saboteurs try to break Rumie's markets." },
+      "visualSubject": "Rumie's first empire bank operates as a vast civic system: a basilica bank linked to grain depots, aqueducts, paved roads, clerks, carts, and public queues while a small sabotage attempt is contained at the edge.",
+      "factionAuthority": "Finance as imperial infrastructure and Kaisar's genuine prosperity/power contradiction under C-09.",
+      "culturalArchitecturalMaterialLanguage": "Bank basilica, granary arcades, aqueduct, road hub, bronze scales, ledger counters, public works crews, bone marble and verdigris roofs.",
+      "mustPreserve": ["banking shown as infrastructure", "roads, grain, public works, and bureaucracy", "ordinary citizens benefit", "central system remains readable"],
+      "mustAvoid": ["pile of gold", "modern bank", "Wall Street", "casino", "single grand banker portrait"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#first-empire-bank", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-07-the-crossing",
+      "category": "campaign-chapter",
+      "contentId": "the-crossing",
+      "title": "The Crossing",
+      "contentFacts": { "chapter": 7, "playable": "Kaiser", "opponent": "Senate General Cassius", "story": "The Senate orders Kaiser to surrender command. Brutus pleads for restraint, but Kaiser marches and civil war begins." },
+      "visualSubject": "At dusk, Kaiser's legions cross a monumental stone boundary bridge and checkpoint toward Rumie while Brutus remains on the near side and Cassius's Senate force blocks the distant road; the physical threshold makes the political point of no return unmistakable.",
+      "factionAuthority": "Current chapter's law-versus-loyalty threshold within C-09's fall-of-Republic trajectory; no unapproved named river is invented.",
+      "culturalArchitecturalMaterialLanguage": "Stone causeway, civic boundary pillars without text, legion column, Senate standards, river gorge, dark red dusk and steel-blue distance.",
+      "mustPreserve": ["visible crossing in progress", "Kaiser with marching army", "Brutus separated by geography", "Cassius force as destination", "central 70 percent safe action"],
+      "mustAvoid": ["generic bridge battle", "specific real-world Rubicon labels", "single warrior face-off", "modern roadblock"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "repo:server/gameContent.js@main#the-crossing", "C-09", "CONFLICT-KAISAR-KAISER-SPELLING"]
+    },
+    {
+      "assetId": "rumin-campaign-08-last-republic",
+      "category": "campaign-chapter",
+      "styleLock": true,
+      "contentId": "last-republic",
+      "title": "The Last Republic",
+      "contentFacts": { "chapter": 8, "playable": "Kaiser", "opponent": "Brutus", "story": "Rumie burns as legions and senators collide. Kaiser wins the city, but Brutus survives the fall of the old order." },
+      "visualSubject": "Senate Square becomes the final civic battlefield: Kaiser's legions push through broken barricades while Brutus leads the last republican defenders beneath damaged colonnades, with citizens fleeing between institutions both sides claim to save.",
+      "factionAuthority": "C-09 fall of the Republic, morally contradictory power, and current chapter implementation.",
+      "culturalArchitecturalMaterialLanguage": "Senate square, scorched marble, broken rostrum, legion formations, republican civic guards, smoke, ember red against bone stone.",
+      "mustPreserve": ["political collision rather than anonymous war", "Kaiser and Brutus embedded in opposing systems", "civilians and institutions at stake", "Republic visibly ending"],
+      "mustAvoid": ["good-versus-evil poster", "total city destruction", "human soldiers", "glossy explosion spectacle"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#last-republic", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-09-emperor-of-gold",
+      "category": "campaign-chapter",
+      "contentId": "emperor-of-gold",
+      "title": "Emperor of Gold",
+      "contentFacts": { "chapter": 9, "playable": "Kaiser", "opponent": "Rebel Senate Coalition", "story": "At Kaiser's peak, roads, banks, and legions flourish, but prisoners, taxes, and central rule make citizens question the jewel." },
+      "visualSubject": "At Kaiser's imperial peak, one panoramic civic vista holds new roads, strong banks, fed markets, disciplined legions, tax queues, and shadowed prison arches beneath the same golden administration.",
+      "factionAuthority": "Kaisar's prosperity and concentrated coercion must remain simultaneously legible under C-09.",
+      "culturalArchitecturalMaterialLanguage": "Imperial forum terrace, road network, bank and granary, regimented columns, restrained gold light, dark basalt prisons and tax counters.",
+      "mustPreserve": ["real prosperity", "real coercion", "Kaiser at center but not oversized", "system-level view", "citizens with mixed reactions"],
+      "mustAvoid": ["evil golden king", "gold suit", "treasure palace", "uncritical triumph", "modern police state props"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#emperor-of-gold", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-10-ides-of-rumie",
+      "category": "campaign-chapter",
+      "contentId": "ides-of-rumie",
+      "title": "The Ides of Rumie",
+      "contentFacts": { "chapter": 10, "playable": "Kaiser", "opponent": "Brutus and the Conspirators", "story": "Kaiser stabilizes the empire, yet the conspiracy reaches the Senate floor. This chapter frames the tragedy more than the victory." },
+      "visualSubject": "During a public festival inside the Senate Hall, Brutus and the conspirators close around Kaiser in a tragic circular composition while stunned citizens and senators register betrayal; violence is imminent or restrained, not gore-driven.",
+      "factionAuthority": "C-09 requires Kaisar's assassination and preserves the tragedy of generosity, obligation, fear, and concentrated power.",
+      "culturalArchitecturalMaterialLanguage": "Senate hall, festival greenery and red cloth, marble floor, civic robes, concealed bronze blades, cold daylight from high clerestory.",
+      "mustPreserve": ["Kaiser recognizes Brutus", "public civic setting", "betrayal more than combat", "conspirators distinct but not duplicated"],
+      "mustAvoid": ["graphic gore", "human Caesar reenactment", "readable banners", "assassin fantasy costumes", "heroic duel"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#ides-of-rumie", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-11-war-of-successors",
+      "category": "campaign-chapter",
+      "contentId": "war-of-successors",
+      "title": "War of the Successors",
+      "contentFacts": { "chapter": 11, "playable": "Bobei", "opponent": "Brutus", "story": "After Kaiser dies, Bobei seeks vengeance while Brutus tries to restore the Republic from the ruins." },
+      "visualSubject": "In the damaged outskirts of Rumie, Bobei's grieving loyalist army and Brutus's republican survivors converge among broken standards, abandoned debt tablets, refugee carts, and contested roads.",
+      "factionAuthority": "C-09 successor conflict after assassination; current chapter implementation.",
+      "culturalArchitecturalMaterialLanguage": "Ruined civic road, damaged aqueduct, rival legion standards, funeral cloth, field fortifications, muted bronze, ash and winter red.",
+      "mustPreserve": ["Bobei vengeance and Brutus restoration visibly distinct", "civil-war aftermath", "Kaiser's absence felt through broken standard", "Rumie's population displaced"],
+      "mustAvoid": ["generic two-army battlefield", "living Kaiser", "human medieval armies", "fantasy apocalypse"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#war-of-successors", "C-09"]
+    },
+    {
+      "assetId": "rumin-campaign-12-first-emperor",
+      "category": "campaign-chapter",
+      "contentId": "first-emperor",
+      "title": "The First Emperor",
+      "contentFacts": { "chapter": 12, "implementationPlayable": "Augustus", "implementationOpponent": "Bobei the Great", "story": "The victor keeps the bank, legions, and rune program, restores Senate traditions, and leaves Rumie with an empire wearing republican robes." },
+      "visualSubject": "Rumie's new imperial settlement is staged as a Senate restoration ceremony: an intentionally non-identifying serpent ruler stands in restrained profile behind republican robes and ritual screens while the bank, legions, and three-rune program remain visibly centralized and Bobei's defeated standard is lowered.",
+      "factionAuthority": "C-09 controls the visual trajectory: Meerus ultimately establishes imperial order. The repository's Augustus naming is not promoted through the image.",
+      "culturalArchitecturalMaterialLanguage": "Restored Senate basilica, republican ceremonial robes, imperial guard geometry, bank counters, three restrained relic forms, bronze and bone with quiet dawn light.",
+      "mustPreserve": ["empire wearing republican ceremony", "institutional continuity from Kaiser", "ruler not visually named", "Bobei defeat without humiliation", "finality and unease"],
+      "mustAvoid": ["recognizable Roman Augustus portrait", "written ruler name", "triumphant gold coronation", "renewed-Republic ending", "clear face that settles the unresolved identity mismatch"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "Next Battle", "Continue Journey", "match archive", "campaign cover crop", "Identity progress"],
+      "sourceAuthorityIds": ["1Mb8iUL6Iw7lX-JXFaeO10LajMGxwfU4CfWjIt9G9fqE", "1N3C-cbvyxrtiWTt_JXMWcPemz0ZTUsx-njwyooe3ZWQ", "repo:server/gameContent.js@main#first-emperor", "C-09", "CONFLICT-FIRST-EMPEROR-IDENTITY"]
+    }
+  ]
+}

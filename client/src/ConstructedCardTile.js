@@ -13,6 +13,8 @@ export default function ConstructedCardTile({
   canAdd,
   suitChoices,
   replacementSuits,
+  inspected = false,
+  onInspect,
   onQuantityChange,
   onVariantChange,
   onSuitChange
@@ -28,9 +30,14 @@ export default function ConstructedCardTile({
 
   return (
     <article
-      className={`constructed-card-tile ${selected ? "is-selected" : ""} rarity-${card.rarity}`}
+      className={`constructed-card-tile ${selected ? "is-selected" : ""} ${inspected ? "is-inspected" : ""} rarity-${card.rarity}`}
       style={{ "--rarity-color": rarity.color, "--rarity-border": rarity.border }}
       data-art-state={art ? "integrated" : "faction-fallback"}
+      tabIndex={0}
+      onFocusCapture={onInspect}
+      onMouseEnter={onInspect}
+      onClick={onInspect}
+      aria-label={`${card.name} deck-building card`}
     >
       <div className="constructed-card-art">
         {art ? (

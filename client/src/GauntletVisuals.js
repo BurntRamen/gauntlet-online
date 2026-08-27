@@ -27,10 +27,10 @@ export function factionIdFrom(value) {
   return "basic";
 }
 
-export function FactionArtwork({ factionId, className = "", label, decorative = false, children, style = {} }) {
+export function FactionArtwork({ factionId, art: explicitArt = "", className = "", label, decorative = false, children, style = {} }) {
   const id = factionIdFrom(factionId);
   const visual = FACTION_VISUALS[id] || FACTION_VISUALS.basic;
-  const art = resolveVisualAsset(visual.art);
+  const art = resolveVisualAsset(explicitArt || visual.art);
   return (
     <span
       className={`faction-artwork faction-artwork-${id} ${art ? "has-art" : "is-neutral"} ${className}`.trim()}
@@ -45,9 +45,13 @@ export function FactionArtwork({ factionId, className = "", label, decorative = 
   );
 }
 
-export function DeckVisual({ deck, factionId, className = "", decorative = false }) {
+export function DeckVisual({ deck, factionId, art = null, className = "", decorative = false }) {
   const id = factionIdFrom(factionId || deck?.factionId);
   const visual = FACTION_VISUALS[id] || FACTION_VISUALS.basic;
+  const featuredArt = (Array.isArray(art) ? art : Array.isArray(deck?.featuredArt) ? deck.featuredArt : [])
+    .map(resolveVisualAsset)
+    .filter(Boolean)
+    .slice(0, 3);
   return (
     <FactionArtwork
       factionId={id}
@@ -55,6 +59,11 @@ export function DeckVisual({ deck, factionId, className = "", decorative = false
       decorative={decorative}
       label={`${deck?.name || visual.name} deck artwork`}
     >
+      {featuredArt.length > 0 && (
+        <span className={`deck-visual-card-stack count-${featuredArt.length}`} aria-hidden="true">
+          {featuredArt.map((source, index) => <img key={`${source}-${index}`} src={source} alt="" loading="lazy" decoding="async" />)}
+        </span>
+      )}
       <span className="deck-visual-shade" />
       <span className="deck-visual-mark" aria-hidden="true">{visual.name.slice(0, 1)}</span>
       {deck?.name && <span className="deck-visual-caption">{deck.name}</span>}

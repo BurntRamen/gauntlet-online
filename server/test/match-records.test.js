@@ -69,6 +69,7 @@ function makeRoom(options = {}) {
       factionId: "rumin",
       chapterId: "first-march",
       title: "The First March",
+      image: "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",
       opponentName: "The Brass Regent"
     };
   }
@@ -292,6 +293,7 @@ test("captures draw, concession, campaign, draft league, and best-of-three metad
   assert.equal(campaign.mode, "campaign");
   assert.equal(campaign.participants[1].identityType, "ai");
   assert.equal(campaign.campaign.chapterId, "first-march");
+  assert.equal(campaign.campaign.image, "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp");
 
   const draft = buildMatchRecord(makeRoom({ draftLeague: true, ranked: true }), { completionReason: "life_total" });
   assert.equal(draft.mode, "draftLeague");

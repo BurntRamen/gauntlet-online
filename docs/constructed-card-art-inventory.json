@@ -5,10 +5,10 @@
   "summary": {
     "gameplayCardCount": 72,
     "collectorVariantCount": 144,
-    "variantsWithArt": 0,
-    "variantsMissingArt": 144,
-    "gameplayCardsWithAnyDedicatedArt": 0,
-    "gameplayCardsMissingAllDedicatedArt": 72
+    "variantsWithArt": 36,
+    "variantsMissingArt": 108,
+    "gameplayCardsWithAnyDedicatedArt": 18,
+    "gameplayCardsMissingAllDedicatedArt": 54
   },
   "cards": [
     {
@@ -21,8 +21,8 @@
       "standardVariantId": "rumin-gilded-scale-legionary:standard",
       "collectorVariantId": "rumin-gilded-scale-legionary:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp"
       }
     },
     {
@@ -35,8 +35,8 @@
       "standardVariantId": "rumin-forum-ledger-runner:standard",
       "collectorVariantId": "rumin-forum-ledger-runner:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-forum-ledger-runner.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-forum-ledger-runner.webp"
       }
     },
     {
@@ -49,8 +49,8 @@
       "standardVariantId": "rumin-vault-shield-bearer:standard",
       "collectorVariantId": "rumin-vault-shield-bearer:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-vault-shield-bearer.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-vault-shield-bearer.webp"
       }
     },
     {
@@ -63,8 +63,8 @@
       "standardVariantId": "rumin-coin-scale-spear:standard",
       "collectorVariantId": "rumin-coin-scale-spear:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-coin-scale-spear.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-coin-scale-spear.webp"
       }
     },
     {
@@ -77,8 +77,8 @@
       "standardVariantId": "rumin-senate-vault-guard:standard",
       "collectorVariantId": "rumin-senate-vault-guard:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-senate-vault-guard.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-senate-vault-guard.webp"
       }
     },
     {
@@ -91,8 +91,8 @@
       "standardVariantId": "rumin-marble-market-tribune:standard",
       "collectorVariantId": "rumin-marble-market-tribune:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-marble-market-tribune.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-marble-market-tribune.webp"
       }
     },
     {
@@ -105,8 +105,8 @@
       "standardVariantId": "rumin-rumie-vault-shield:standard",
       "collectorVariantId": "rumin-rumie-vault-shield:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-rumie-vault-shield.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-rumie-vault-shield.webp"
       }
     },
     {
@@ -119,8 +119,8 @@
       "standardVariantId": "rumin-imperial-scale-pike:standard",
       "collectorVariantId": "rumin-imperial-scale-pike:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-imperial-scale-pike.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-imperial-scale-pike.webp"
       }
     },
     {
@@ -133,8 +133,8 @@
       "standardVariantId": "rumin-aurelian-clawblade:standard",
       "collectorVariantId": "rumin-aurelian-clawblade:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-aurelian-clawblade.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-aurelian-clawblade.webp"
       }
     },
     {
@@ -147,8 +147,8 @@
       "standardVariantId": "rumin-basilisk-standard:standard",
       "collectorVariantId": "rumin-basilisk-standard:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-basilisk-standard.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-basilisk-standard.webp"
       }
     },
     {
@@ -161,8 +161,8 @@
       "standardVariantId": "rumin-jewel-bank-contract:standard",
       "collectorVariantId": "rumin-jewel-bank-contract:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-jewel-bank-contract.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-jewel-bank-contract.webp"
       }
     },
     {
@@ -175,8 +175,8 @@
       "standardVariantId": "rumin-tax-road-scout:standard",
       "collectorVariantId": "rumin-tax-road-scout:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-tax-road-scout.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-tax-road-scout.webp"
       }
     },
     {
@@ -189,8 +189,8 @@
       "standardVariantId": "rumin-marble-phalanx:standard",
       "collectorVariantId": "rumin-marble-phalanx:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-marble-phalanx.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-marble-phalanx.webp"
       }
     },
     {
@@ -203,8 +203,8 @@
       "standardVariantId": "rumin-counting-house-aegis:standard",
       "collectorVariantId": "rumin-counting-house-aegis:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-counting-house-aegis.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-counting-house-aegis.webp"
       }
     },
     {
@@ -217,8 +217,8 @@
       "standardVariantId": "rumin-triumphal-ram:standard",
       "collectorVariantId": "rumin-triumphal-ram:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-triumphal-ram.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-triumphal-ram.webp"
       }
     },
     {
@@ -231,8 +231,8 @@
       "standardVariantId": "rumin-edict-of-the-vault:standard",
       "collectorVariantId": "rumin-edict-of-the-vault:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-edict-of-the-vault.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-edict-of-the-vault.webp"
       }
     },
     {
@@ -245,8 +245,8 @@
       "standardVariantId": "rumin-kaisers-gold-claw:standard",
       "collectorVariantId": "rumin-kaisers-gold-claw:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-kaisers-gold-claw.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-kaisers-gold-claw.webp"
       }
     },
     {
@@ -259,8 +259,8 @@
       "standardVariantId": "rumin-rumie-market-colossus:standard",
       "collectorVariantId": "rumin-rumie-market-colossus:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/rumin/rumin-rumie-market-colossus.webp",
+        "collector": "/assets/gauntlet/constructed/rumin/rumin-rumie-market-colossus.webp"
       }
     },
     {

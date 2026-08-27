@@ -673,6 +673,11 @@ for (const card of COLLECTION_CARDS) {
   card.defaultVariantId = `${card.id}:standard`;
 }
 
+function getConstructedCardArt(card) {
+  if (card.factionId !== "rumin") return null;
+  return `/assets/gauntlet/constructed/rumin/${card.id}.webp`;
+}
+
 const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
   {
     schemaVersion: COLLECTOR_VARIANT_SCHEMA_VERSION,
@@ -683,7 +688,7 @@ const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
     finish: "standard",
     frame: "faction-standard",
     border: "standard",
-    art: null,
+    art: getConstructedCardArt(card),
     collectorRarity: card.rarity,
     acquisition: FREE_GAMEPLAY_ACQUISITION,
     paid: false
@@ -697,7 +702,7 @@ const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
     finish: "foil",
     frame: "collector-gilded",
     border: "collector",
-    art: null,
+    art: getConstructedCardArt(card),
     collectorRarity: card.rarity,
     acquisition: PAID_COLLECTOR_ACQUISITION,
     paid: true
@@ -847,6 +852,25 @@ const campaignChapters = {
     { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
   ]
 };
+
+const RUMIN_CAMPAIGN_ART = Object.freeze({
+  "brothers-of-destiny": "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",
+  "the-republic": "/assets/gauntlet/campaigns/rumin/02-the-republic.webp",
+  "the-jewel": "/assets/gauntlet/campaigns/rumin/03-the-jewel.webp",
+  "gaulic-wars": "/assets/gauntlet/campaigns/rumin/04-gaulic-wars.webp",
+  "three-runes": "/assets/gauntlet/campaigns/rumin/05-three-runes.webp",
+  "first-empire-bank": "/assets/gauntlet/campaigns/rumin/06-first-empire-bank.webp",
+  "the-crossing": "/assets/gauntlet/campaigns/rumin/07-the-crossing.webp",
+  "last-republic": "/assets/gauntlet/campaigns/rumin/08-last-republic.webp",
+  "emperor-of-gold": "/assets/gauntlet/campaigns/rumin/09-emperor-of-gold.webp",
+  "ides-of-rumie": "/assets/gauntlet/campaigns/rumin/10-ides-of-rumie.webp",
+  "war-of-successors": "/assets/gauntlet/campaigns/rumin/11-war-of-successors.webp",
+  "first-emperor": "/assets/gauntlet/campaigns/rumin/12-first-emperor.webp"
+});
+
+for (const chapter of campaignChapters.rumin) {
+  chapter.image = RUMIN_CAMPAIGN_ART[chapter.id];
+}
 
 const CAMPAIGN_NARRATION = {
   "brothers-of-destiny": {
@@ -1076,7 +1100,7 @@ const CAMPAIGN_NARRATION = {
 };
 
 const CAMPAIGN_METADATA = {
-  rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy." },
+  rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal." },
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
   bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti." },
@@ -1255,6 +1279,7 @@ function validateGameContent() {
       requireText(chapter.id, `campaigns.${factionId}.id`);
       requireText(chapter.title, `campaigns.${factionId}.${chapter.id}.title`);
       requireText(chapter.story, `campaigns.${factionId}.${chapter.id}.story`);
+      if (factionId === "rumin") requireText(chapter.image, `campaigns.${factionId}.${chapter.id}.image`);
       if (chapterIds.has(chapter.id)) throw new Error(`Invalid game content: duplicate chapter ID ${chapter.id}.`);
       chapterIds.add(chapter.id);
       requireText(CAMPAIGN_NARRATION[chapter.id]?.beforeBattle, `narration.${chapter.id}.beforeBattle`);
@@ -1312,6 +1337,7 @@ function getPublicGameContent() {
       factionName: factionsData[factionId].name,
       commanderName: CAMPAIGN_METADATA[factionId].commanderName,
       pitch: CAMPAIGN_METADATA[factionId].pitch,
+      coverImage: CAMPAIGN_METADATA[factionId].coverImage || null,
       characters: CAMPAIGN_CHARACTER_DESCRIPTIONS[factionId] || {},
       chapters: chapters.map((chapter) => ({ ...chapter, ...(CAMPAIGN_NARRATION[chapter.id] || {}) }))
     }
@@ -1350,6 +1376,7 @@ module.exports = {
   MAX_REPLACEMENTS_PER_VALUE,
   PLAYING_DECK_VALUES,
   PAID_COLLECTOR_ACQUISITION,
+  RUMIN_CAMPAIGN_ART,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,

@@ -59,7 +59,7 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
         opponentFaction={opponentFaction}
         outcome={outcome}
         explicitThumbnail={match.thumbnail || match.preview?.thumbnail || match.replay?.thumbnail}
-        campaignImage={match.campaignEncounterImage || match.preview?.campaignEncounterImage}
+        campaignImage={match.campaignEncounterImage || match.campaign?.image || match.preview?.campaignEncounterImage || match.preview?.campaign?.image}
         label={`${String(outcome).toUpperCase()} ${matchupLabel}`}
       />
       <div className="matches-row-main">

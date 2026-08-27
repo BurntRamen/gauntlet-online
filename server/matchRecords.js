@@ -482,6 +482,7 @@ function buildMatchRecord(roomState, options = {}) {
       factionId: game.campaign.factionId,
       chapterId: game.campaign.chapterId,
       title: game.campaign.title,
+      image: game.campaign.image || null,
       opponentName: game.campaign.opponentName
     } : null,
     draft: roomState.draftLeague || game.draftLeague ? {

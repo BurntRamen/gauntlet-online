@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DeckVisual } from "./GauntletVisuals";
+import { getDeckFeaturedArt } from "./contentArt";
 import "./DeckLibraryPanel.css";
 
 const DECK_ACCENTS = {
@@ -10,7 +11,7 @@ const DECK_ACCENTS = {
   basic: "#c89b52"
 };
 
-function DeckRow({ deck, active, selected, onSelect, onAction, onOpenMatch }) {
+function DeckRow({ deck, active, selected, collectorCatalog, onSelect, onAction, onOpenMatch }) {
   const record = deck.record || {};
   const versionCount = deck.versions?.length || 1;
   const latestMatchId = record.recentMatchIds?.[0] || null;
@@ -21,7 +22,7 @@ function DeckRow({ deck, active, selected, onSelect, onAction, onOpenMatch }) {
       style={{ "--deck-accent": DECK_ACCENTS[factionId] || DECK_ACCENTS.basic }}
     >
       <button type="button" className="deck-library-main" aria-label={`${deck.name} ${deck.factionName || deck.factionId} / ${deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"} / version ${versionCount} ${record.wins || 0} wins ${record.losses || 0} losses ${record.draws || 0} draws`} onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
-        <DeckVisual deck={{ ...deck, name: "" }} decorative />
+        <DeckVisual deck={{ ...deck, name: "" }} art={getDeckFeaturedArt(deck, collectorCatalog)} decorative />
         <span className="deck-library-copy">
           <span className="deck-library-format">{deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"}</span>
           <strong>{deck.name}</strong>
@@ -47,7 +48,7 @@ function DeckRow({ deck, active, selected, onSelect, onAction, onOpenMatch }) {
   );
 }
 
-export default function DeckLibraryPanel({ library, selectedDeckId, onSelect, onNew, onAction, onOpenMatch }) {
+export default function DeckLibraryPanel({ library, selectedDeckId, collectorCatalog = [], onSelect, onNew, onAction, onOpenMatch }) {
   const [showArchived, setShowArchived] = useState(false);
   const decks = (library?.decks || []).filter((deck) => showArchived || !deck.archived);
   const activeIds = new Set([
@@ -76,6 +77,7 @@ export default function DeckLibraryPanel({ library, selectedDeckId, onSelect, on
           deck={deck}
           active={activeIds.has(deck.id)}
           selected={deck.id === selectedDeckId}
+          collectorCatalog={collectorCatalog}
           onSelect={onSelect}
           onAction={onAction}
           onOpenMatch={onOpenMatch}

@@ -1,5 +1,5 @@
 import "./HomeNavigation.css";
-import { FactionArtwork } from "./GauntletVisuals";
+import { FactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
 
 const AREAS = [
   { id: "play", label: "Play", detail: "Games and tables", sigil: "✦" },
@@ -16,7 +16,9 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
   return (
     <>
       <section className="journey-next-step" aria-labelledby="journey-next-title">
-        <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art" />
+        <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
+          {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
+        </FactionArtwork>
         <div className="journey-next-copy">
           <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
           <h2 id="journey-next-title">{nextStep.title}</h2>

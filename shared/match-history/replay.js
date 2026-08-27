@@ -97,7 +97,7 @@ function publicFacedown(card, laneIndex, playerNum) {
 
 function publicCampaign(campaign) {
   if (!campaign) return null;
-  const allowed = ["factionId", "chapterId", "title", "opponentName", "afterBattle"];
+  const allowed = ["factionId", "chapterId", "title", "image", "opponentName", "afterBattle"];
   return Object.fromEntries(allowed.filter((key) => campaign[key] != null).map((key) => [key, clonePlain(campaign[key])]));
 }
 

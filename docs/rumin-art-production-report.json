@@ -1,0 +1,302 @@
+[
+  {
+    "assetId": "rumin-gilded-scale-legionary",
+    "output": "constructed/rumin/rumin-gilded-scale-legionary.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 219342,
+    "sha256": "c008568f1bbccc131b62bc24c058f3a86a2d5d6a88280b59e763cbb4d0ff3045"
+  },
+  {
+    "assetId": "rumin-forum-ledger-runner",
+    "output": "constructed/rumin/rumin-forum-ledger-runner.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 233046,
+    "sha256": "3c3f61172d80bc7023bff8f35367ccbeb50138cce6163eafab7df40ff7d99a26"
+  },
+  {
+    "assetId": "rumin-vault-shield-bearer",
+    "output": "constructed/rumin/rumin-vault-shield-bearer.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 190534,
+    "sha256": "f1cb6e5b64f4ee83a1e5b2c232309a76b342402a01cb8b49bb8b353bc3aa09ed"
+  },
+  {
+    "assetId": "rumin-coin-scale-spear",
+    "output": "constructed/rumin/rumin-coin-scale-spear.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 201862,
+    "sha256": "1f748e2515343551cca15885b2d8fb553b5f8f63d19242c0a83dcace4d0ceb71"
+  },
+  {
+    "assetId": "rumin-senate-vault-guard",
+    "output": "constructed/rumin/rumin-senate-vault-guard.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 202398,
+    "sha256": "2e863f89c7df268c3f2803ee47951f486885991d39ecd67b51f577b95cc586a3"
+  },
+  {
+    "assetId": "rumin-marble-market-tribune",
+    "output": "constructed/rumin/rumin-marble-market-tribune.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 206340,
+    "sha256": "036d113c8203a7b9715d5d8260e8a7d0895d21b823f3b6518afe042ed95bc35e"
+  },
+  {
+    "assetId": "rumin-rumie-vault-shield",
+    "output": "constructed/rumin/rumin-rumie-vault-shield.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 222712,
+    "sha256": "3f72fe47f57219f7724f0bd991e2cbb0a9c682e3979e7891ed5b80a479c7361e"
+  },
+  {
+    "assetId": "rumin-imperial-scale-pike",
+    "output": "constructed/rumin/rumin-imperial-scale-pike.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 216118,
+    "sha256": "50a781234f3f9ebdc7a24d9ad163fbdb81e548b4e4aa9f1ccbdfc50a9a4fa8cd"
+  },
+  {
+    "assetId": "rumin-aurelian-clawblade",
+    "output": "constructed/rumin/rumin-aurelian-clawblade.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 170196,
+    "sha256": "7e2529334583fd9c304e39745235145e370e862b67c18a911110510ab6289d77"
+  },
+  {
+    "assetId": "rumin-basilisk-standard",
+    "output": "constructed/rumin/rumin-basilisk-standard.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 204290,
+    "sha256": "468a1d227b0db07cfefa509a47aba09a51b3a7faab127fa4c571cfe966982d07"
+  },
+  {
+    "assetId": "rumin-jewel-bank-contract",
+    "output": "constructed/rumin/rumin-jewel-bank-contract.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 218486,
+    "sha256": "2e693c8e8f0454d0d37987258fc62c38367fb3efd3c9a4fcc2290c1216598b47"
+  },
+  {
+    "assetId": "rumin-tax-road-scout",
+    "output": "constructed/rumin/rumin-tax-road-scout.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 232338,
+    "sha256": "abb22090e3279036be0c24db41aa8d97d2eef0987d5cf30ae8386cbafddda7dd"
+  },
+  {
+    "assetId": "rumin-marble-phalanx",
+    "output": "constructed/rumin/rumin-marble-phalanx.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 277284,
+    "sha256": "e37843001f870e9755b56fba42d79a229b0a21573916e904daa5cb1cdf8a79a4"
+  },
+  {
+    "assetId": "rumin-counting-house-aegis",
+    "output": "constructed/rumin/rumin-counting-house-aegis.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 217488,
+    "sha256": "43ab29888050adb9ec77f6127580d6a46e41e552cfe64d91e653d1719e99fd3b"
+  },
+  {
+    "assetId": "rumin-triumphal-ram",
+    "output": "constructed/rumin/rumin-triumphal-ram.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 219046,
+    "sha256": "c77d193ec210758c4edb764788e6f82b757bb19d478dc8babf0ebe033a2b1d54"
+  },
+  {
+    "assetId": "rumin-edict-of-the-vault",
+    "output": "constructed/rumin/rumin-edict-of-the-vault.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 157178,
+    "sha256": "7b959f69d87e0e37385dc5048220f586631fac491585e9ca25864106be5350fe"
+  },
+  {
+    "assetId": "rumin-kaisers-gold-claw",
+    "output": "constructed/rumin/rumin-kaisers-gold-claw.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 228548,
+    "sha256": "b5507f035cd0739f49793de5ed0be9fa473c2ed1cf9644eb0b5c01bfa429071d"
+  },
+  {
+    "assetId": "rumin-rumie-market-colossus",
+    "output": "constructed/rumin/rumin-rumie-market-colossus.webp",
+    "dimensions": [
+      1024,
+      1280
+    ],
+    "bytes": 258792,
+    "sha256": "369d47d39b3d2d26f69c39a12cf1082aa8c7c294535641b36bee184b957f9174"
+  },
+  {
+    "assetId": "rumin-campaign-01-brothers-of-destiny",
+    "output": "campaigns/rumin/01-brothers-of-destiny.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 201012,
+    "sha256": "61b79805dabed7a2282c4f78619fd4848bcae0d57f31d3c2874ed2511e920603"
+  },
+  {
+    "assetId": "rumin-campaign-02-the-republic",
+    "output": "campaigns/rumin/02-the-republic.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 276918,
+    "sha256": "a60392cc1143ad35862ccb001eefb55e32792fdf9ba01a789c454fd0815daf6b"
+  },
+  {
+    "assetId": "rumin-campaign-03-the-jewel",
+    "output": "campaigns/rumin/03-the-jewel.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 257336,
+    "sha256": "48bc4d87c3e5fba1e26f9d2dfbde00755aaec3da61af1770e2ce8429f692bff5"
+  },
+  {
+    "assetId": "rumin-campaign-04-gaulic-wars",
+    "output": "campaigns/rumin/04-gaulic-wars.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 234140,
+    "sha256": "31fa0c8a2baccc51dc858a4f1c69f86a9f400ad6374e6325b96f040c34314c68"
+  },
+  {
+    "assetId": "rumin-campaign-05-three-runes",
+    "output": "campaigns/rumin/05-three-runes.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 153938,
+    "sha256": "96e3b5418929b17e63a7afbe0f2e4312242aeea57f15de199c9fab3f32dfd8bf"
+  },
+  {
+    "assetId": "rumin-campaign-06-first-empire-bank",
+    "output": "campaigns/rumin/06-first-empire-bank.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 309766,
+    "sha256": "704e0fd8352a6f0ef71beb500361cdb7ac79d6747eaa33c1952da9b7c38b15b4"
+  },
+  {
+    "assetId": "rumin-campaign-07-the-crossing",
+    "output": "campaigns/rumin/07-the-crossing.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 220510,
+    "sha256": "799ea9f0015d1c0f24eb1b68f7c3933129d9c502845fdb72f4c459dbc3b75a60"
+  },
+  {
+    "assetId": "rumin-campaign-08-last-republic",
+    "output": "campaigns/rumin/08-last-republic.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 237842,
+    "sha256": "6133caee60038c018e0d892fcfdfe27dafd2e10c5bc81f9ccad1830e5357847d"
+  },
+  {
+    "assetId": "rumin-campaign-09-emperor-of-gold",
+    "output": "campaigns/rumin/09-emperor-of-gold.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 249868,
+    "sha256": "462b89cac574b041055d047fb29bc83d440509c99fa34aee88e7730d44f8b21b"
+  },
+  {
+    "assetId": "rumin-campaign-10-ides-of-rumie",
+    "output": "campaigns/rumin/10-ides-of-rumie.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 239520,
+    "sha256": "a5a0e1df54836c64b0971b06f59dfecb9d7337cb25c2f724aac97e9164bec3cb"
+  },
+  {
+    "assetId": "rumin-campaign-11-war-of-successors",
+    "output": "campaigns/rumin/11-war-of-successors.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 261580,
+    "sha256": "f45da8c0f5d2d7962b0e4359dda90b69432c72df1b14f4782aca6a764b0b6871"
+  },
+  {
+    "assetId": "rumin-campaign-12-first-emperor",
+    "output": "campaigns/rumin/12-first-emperor.webp",
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 213730,
+    "sha256": "e2a8ab104b45b0b568e3e7558343ff7e6a418b7b82822d4b6a69ee8ba0fd041f"
+  }
+]

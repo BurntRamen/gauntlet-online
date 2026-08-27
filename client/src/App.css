@@ -2390,6 +2390,85 @@ textarea:focus-visible {
 .identity-progress-track { height: 4px; overflow: hidden; border-radius: 999px; background: rgba(125, 154, 168, .18); }
 .identity-progress-track i { display: block; height: 100%; border-radius: inherit; background: var(--faction-accent); }
 .identity-campaign-progress.is-complete { box-shadow: inset 0 0 0 1px #73d69a; }
+
+.card-art-inspector {
+  display: grid;
+  grid-template-columns: minmax(170px, 240px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin: 10px 0 16px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(125deg, rgba(13, 29, 43, .98), rgba(5, 12, 19, .98));
+  box-shadow: inset 0 0 0 1px var(--rarity-border), 0 14px 34px rgba(0, 0, 0, .28);
+}
+
+.campaign-chapter-art {
+  position: relative;
+  height: 106px;
+  margin: -9px -9px 3px;
+  overflow: hidden;
+  border-radius: 4px 4px 0 0;
+  background: #07111b;
+}
+
+.campaign-chapter-art::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, transparent 48%, rgba(4, 9, 15, .78));
+}
+
+.campaign-chapter-art > img,
+.campaign-chapter-art > .faction-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.campaign-chapter.is-locked .campaign-chapter-art { filter: saturate(.4) contrast(.88); }
+
+.card-art-inspector.is-compact { grid-template-columns: minmax(110px, 170px) minmax(0, 1fr); }
+.card-art-inspector-image { position: relative; min-height: 250px; overflow: hidden; background: #07111b; }
+.card-art-inspector.is-compact .card-art-inspector-image { min-height: 180px; }
+.card-art-inspector-image > img,
+.card-art-inspector-image > .faction-artwork { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-art-inspector-image > span { position: absolute; top: 10px; left: 10px; display: grid; width: 36px; aspect-ratio: 1; place-items: center; border: 1px solid #fff3d4; border-radius: 50%; background: rgba(3, 8, 14, .8); color: #fff; font: 700 18px Georgia, serif; }
+.card-art-inspector-copy { display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: 18px 20px 18px 0; }
+.card-art-inspector-copy > span { color: var(--rarity-color); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.card-art-inspector-copy h4 { margin: 5px 0; color: #fffaf0; font: 700 clamp(22px, 3vw, 34px)/1.05 Georgia, serif; }
+.card-art-inspector-copy p { max-width: 680px; margin: 4px 0 12px; color: #d8e3e7; font-size: 13px; line-height: 1.45; }
+.card-art-inspector-copy small { color: #d8c99f; text-transform: capitalize; }
+
+.catalog-card-tile {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 9px;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--rarity-border);
+  border-radius: 8px;
+  background: rgba(15,23,42,.7);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.catalog-card-tile[aria-pressed="true"] { outline: 2px solid #f1c779; outline-offset: -2px; }
+.catalog-card-tile > img { width: 74px; height: 100%; min-height: 138px; object-fit: cover; }
+.catalog-card-copy { min-width: 0; padding: 9px 9px 9px 0; }
+.opened-card-reveal { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 2px 8px; align-items: center; overflow: hidden; }
+.opened-card-reveal > img { width: 54px; height: 68px; grid-row: span 2; border-radius: 4px; object-fit: cover; }
+
+@media (max-width: 640px) {
+  .card-art-inspector,
+  .card-art-inspector.is-compact { grid-template-columns: 110px minmax(0, 1fr); gap: 10px; }
+  .card-art-inspector-image,
+  .card-art-inspector.is-compact .card-art-inspector-image { min-height: 176px; }
+  .card-art-inspector-copy { padding: 12px 12px 12px 0; }
+  .card-art-inspector-copy h4 { font-size: 20px; }
+  .card-art-inspector-copy p { font-size: 11px; }
+}
 .identity-guest-toggle { display: flex; gap: 7px; margin-bottom: 9px; color: #c5d4da; font-size: 11px; }
 .identity-guest-input:disabled { opacity: .48; }
 .identity-admin-note { margin: 9px 0 0; color: #9bb2bc; font-size: 10px; }

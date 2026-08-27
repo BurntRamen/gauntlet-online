@@ -5,7 +5,8 @@ import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import ConstructedCardTile from "./ConstructedCardTile";
-import { DeckVisual, FactionArtwork, FACTION_VISUALS } from "./GauntletVisuals";
+import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
@@ -1161,7 +1162,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
               const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
               return (
                 <article className={`identity-campaign-progress ${completed === total && total > 0 ? "is-complete" : ""}`} key={factionId} style={{ "--faction-accent": FACTION_VISUALS[factionId]?.accent }}>
-                  <FactionArtwork factionId={factionId} decorative />
+                  <FactionArtwork factionId={factionId} art={entry.coverImage} decorative />
                   <div><strong>{entry.factionName}</strong><span>{completed}/{total} chapters</span><span className="identity-progress-track"><i style={{ width: `${percent}%` }} /></span></div>
                 </article>
               );
@@ -1205,6 +1206,27 @@ const RARITY_STYLES = {
   rare: { label: "Rare", color: "#fde68a", border: "rgba(253,230,138,0.62)" },
   mythic: { label: "Mythic", color: "#fca5a5", border: "rgba(252,165,165,0.65)" }
 };
+
+function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owned = 0, compact = false }) {
+  if (!card) return null;
+  const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+  const variant = findCollectorVariant(card.id, collectorCatalog, selectedVariantId);
+  const art = resolveVisualAsset(variant?.art);
+  return (
+    <aside className={`card-art-inspector${compact ? " is-compact" : ""}`} style={{ "--rarity-color": rarity.color, "--rarity-border": rarity.border }} aria-label={`${card.name} selected card preview`}>
+      <div className="card-art-inspector-image">
+        {art ? <img src={art} alt={`${card.name} illustration`} decoding="async" /> : <FactionArtwork factionId={card.factionId} decorative />}
+        <span>{card.value}</span>
+      </div>
+      <div className="card-art-inspector-copy">
+        <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
+        <h4>{card.name}</h4>
+        <p>{card.text}</p>
+        <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
+      </div>
+    </aside>
+  );
+}
 
 const PACK_THEMES = {
   rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
@@ -1365,6 +1387,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
+  const [inspectedConstructedCardId, setInspectedConstructedCardId] = useState("");
+  const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectionView, setCollectionView] = useState("packs");
 
   useEffect(() => {
@@ -1432,6 +1456,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     return byCard;
   }, {});
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
+  const inspectedConstructedCard = constructedCardsById[inspectedConstructedCardId] || ownedConstructedCards[0] || null;
+  const inspectedConstructedVariantId = inspectedConstructedCard
+    ? constructedVariantSelections[inspectedConstructedCard.id] || inspectedConstructedCard.defaultVariantId || ""
+    : "";
+  const inspectedCatalogCard = allCatalogCards.find((card) => card.id === inspectedCatalogCardId) || filteredCatalogCards[0] || null;
+  const activeDeckFeaturedArt = getDeckFeaturedArt({
+    gameplayCardQuantities: constructedQuantities,
+    collectorVariantSelections: constructedVariantSelections
+  }, collectorCatalog);
   const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
     const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
@@ -1911,8 +1944,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
               {lastOpenedPack.map((card, index) => {
                 const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
+                const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
                 return (
                   <div className="opened-card-reveal" key={`${card.id}-${index}`} style={{ animationDelay: `${index * 90}ms`, border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
+                    {art && <img src={art} alt="" loading="lazy" decoding="async" />}
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
                   </div>
@@ -1930,6 +1965,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         <DeckLibraryPanel
           library={deckLibrary}
           selectedDeckId={selectedConstructedDeckId}
+          collectorCatalog={collectorCatalog}
           onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
           onNew={startNewConstructedDeck}
           onAction={runDeckAction}
@@ -1937,7 +1973,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         />
         <section className="constructed-workbench" style={{ "--faction-accent": PACK_THEMES[constructedFactionId]?.accent }}>
           <header className="active-deck-header">
-            <DeckVisual deck={{ name: constructedDeckName, factionId: constructedFactionId }} decorative className="active-deck-art" />
+            <DeckVisual deck={{ name: constructedDeckName, factionId: constructedFactionId }} art={activeDeckFeaturedArt} decorative className="active-deck-art" />
             <div className="active-deck-identity">
               <span>{PACK_THEMES[constructedFactionId]?.name || constructedFactionId} · Constructed · version {selectedConstructedRecord?.versions?.length || 1}</span>
               <label>
@@ -2011,6 +2047,12 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
           <section className="workbench-section replacement-collection" aria-labelledby="replacement-collection-title">
             <div className="workbench-section-heading"><div><span>Replacement collection</span><h4 id="replacement-collection-title">Owned {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} cards</h4></div><p>{ownedConstructedCards.length} candidate{ownedConstructedCards.length === 1 ? "" : "s"} · art follows the selected collector variant</p></div>
+            <CardArtInspector
+              card={inspectedConstructedCard ? { ...inspectedConstructedCard, factionId: constructedFactionId } : null}
+              collectorCatalog={collectorCatalog}
+              selectedVariantId={inspectedConstructedVariantId}
+              owned={Number(cardsOwned[inspectedConstructedCard?.id] || 0)}
+            />
             <div className="constructed-card-grid">
               {ownedConstructedCards.length === 0 ? (
                 <div className="constructed-card-empty">Earn and open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} gameplay packs to unlock cards for this faction.</div>
@@ -2023,7 +2065,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 const value = getReplacementValue(card, PLAYING_DECK_VALUES);
                 const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
                 const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
-                return <ConstructedCardTile key={card.id} card={{ ...card, factionId: constructedFactionId }} rarity={rarity} count={count} owned={owned} availableVariants={availableVariants} selectedVariantId={selectedVariantId} valueCount={valueCount} maxReplacementsPerValue={MAX_REPLACEMENTS_PER_VALUE} canAdd={canAdd} suitChoices={Array.from({ length: count }, (_, copyIndex) => normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex]))} replacementSuits={REPLACEMENT_SUITS} onQuantityChange={(quantity) => setConstructedCardQuantity(card.id, quantity)} onVariantChange={(variantId) => { setConstructedVariantSelections((current) => ({ ...current, [card.id]: variantId })); setConstructedSaveMessage(""); }} onSuitChange={(copyIndex, suit) => setConstructedCardSuit(card.id, copyIndex, suit)} />;
+                return <ConstructedCardTile key={card.id} card={{ ...card, factionId: constructedFactionId }} rarity={rarity} count={count} owned={owned} availableVariants={availableVariants} selectedVariantId={selectedVariantId} valueCount={valueCount} maxReplacementsPerValue={MAX_REPLACEMENTS_PER_VALUE} canAdd={canAdd} suitChoices={Array.from({ length: count }, (_, copyIndex) => normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex]))} replacementSuits={REPLACEMENT_SUITS} inspected={inspectedConstructedCard?.id === card.id} onInspect={() => setInspectedConstructedCardId(card.id)} onQuantityChange={(quantity) => setConstructedCardQuantity(card.id, quantity)} onVariantChange={(variantId) => { setConstructedVariantSelections((current) => ({ ...current, [card.id]: variantId })); setConstructedSaveMessage(""); }} onSuitChange={(copyIndex, suit) => setConstructedCardSuit(card.id, copyIndex, suit)} />;
               })}
             </div>
           </section>
@@ -2056,6 +2098,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               </label>
             </div>
           </div>
+          <CardArtInspector
+            card={inspectedCatalogCard}
+            collectorCatalog={collectorCatalog}
+            selectedVariantId={inspectedCatalogCard?.defaultVariantId}
+            owned={Number(cardsOwned[inspectedCatalogCard?.id] || 0)}
+            compact
+          />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
             {filteredCatalogCards.length === 0 && (
               <div style={{ color: "#bfdbfe", fontSize: 13 }}>No cards match those filters.</div>
@@ -2066,8 +2115,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               const collectorCount = (collectorCatalog || [])
                 .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
                 .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
+              const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
               return (
-                <div key={card.id} style={{ border: `1px solid ${rarity.border}`, borderRadius: 8, padding: 9, background: count > 0 ? "rgba(15,23,42,0.7)" : "rgba(15,23,42,0.36)", opacity: count > 0 ? 1 : 0.72 }}>
+                <button type="button" className="catalog-card-tile" onClick={() => setInspectedCatalogCardId(card.id)} aria-pressed={inspectedCatalogCard?.id === card.id} key={card.id} style={{ "--rarity-border": rarity.border, opacity: count > 0 ? 1 : 0.72 }}>
+                  {art && <img src={art} alt="" loading="lazy" decoding="async" />}
+                  <div className="catalog-card-copy">
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
@@ -2075,7 +2127,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
-                </div>
+                  </div>
+                </button>
               );
             })}
           </div>
@@ -3426,7 +3479,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => setSelectedFactionId(factionId)}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`)})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3436,7 +3489,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
         </div>
         {activeCampaign && (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
-            <header className="campaign-archive-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveAssetPath(`/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+            <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
               <div className="campaign-archive-copy">
                 <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
                 <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
@@ -3469,6 +3522,9 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 const completed = completedChapters.includes(chapter.id);
                 return (
                   <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
+                    <div className="campaign-chapter-art" data-art-state={chapter.image ? "chapter-art" : "faction-fallback"}>
+                      {chapter.image ? <img src={resolveVisualAsset(chapter.image)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
+                    </div>
                     <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
                     <h3>{chapter.title}</h3>
                     <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
@@ -4913,8 +4969,13 @@ export default function App() {
     || null;
   const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
+  const enrichedFeaturedDecks = featuredDecks.map((deck) => ({
+    ...deck,
+    featuredArt: getDeckFeaturedArt(deck, account?.collection?.collectorCatalog || [])
+  }));
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
   const canCustomizeConstructedDeck = ownedCardCount > 0;
+  const nextCampaignStep = getNextCampaignChapter(gameContent?.campaigns || {}, account?.progression?.campaign || {}, "rumin");
   let journeyNextStep;
 
   if (hasSavedRoom) {
@@ -4945,7 +5006,8 @@ export default function App() {
   } else if (completedCampaignChapters === 0) {
     journeyNextStep = {
       eyebrow: "Commander Archives",
-      factionId: buildDeckFactionId,
+      factionId: nextCampaignStep?.factionId || buildDeckFactionId,
+      image: nextCampaignStep?.chapter?.image,
       title: "Choose a faction",
       description: "Meet the four factions and begin your first campaign chapter.",
       actionLabel: "Choose Campaign",
@@ -4969,6 +5031,17 @@ export default function App() {
       description: "Replace ordinary playing cards with faction cards from your collection.",
       actionLabel: "Build a Deck",
       onClick: () => setShowCollection(true)
+    };
+  } else if (nextCampaignStep) {
+    journeyNextStep = {
+      eyebrow: "Continue Journey",
+      factionId: nextCampaignStep.factionId,
+      image: nextCampaignStep.chapter.image,
+      progress: `Chapter ${nextCampaignStep.chapterIndex + 1} of ${nextCampaignStep.campaign.chapters.length}`,
+      title: nextCampaignStep.chapter.title,
+      description: nextCampaignStep.chapter.story,
+      actionLabel: "Continue Campaign",
+      onClick: () => setShowCampaign(true)
     };
   } else {
     journeyNextStep = {
@@ -5429,7 +5502,7 @@ export default function App() {
                 ))}
               </div>
               {identityView === "profile" && <>
-              <IdentityDossierHero account={account} featuredDecks={featuredDecks} />
+              <IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} />
               <div className="identity-profile-layout">
                 <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
                 <aside className="identity-admin-rail" aria-label="Identity administration">
@@ -5478,7 +5551,7 @@ export default function App() {
                   <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
                   <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>Manage Decks</MenuButton>
                 </header>
-                {featuredDecks.length > 0 ? <div className="identity-featured-grid">{featuredDecks.map((deck) => (
+                {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
                   <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
                     <DeckVisual deck={deck} decorative />
                     <div><span>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>

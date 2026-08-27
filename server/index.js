@@ -1518,6 +1518,17 @@ async function supabaseStorageRequest(pathname, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+function getPublicDeckFeaturedArt(deck, limit = 3) {
+  const versions = Array.isArray(deck?.versions) ? deck.versions : [];
+  const version = versions.find((entry) => entry.id === deck.currentVersionId) || versions[versions.length - 1] || deck || {};
+  const quantities = version.gameplayCardQuantities || version.cardQuantities || {};
+  const ids = Object.entries(quantities).filter(([, count]) => Number(count || 0) > 0).map(([id]) => id);
+  if (ids.length === 0 && Array.isArray(version.cards)) {
+    ids.push(...version.cards.map((card) => card?.gameplayCardId || card?.definitionId || card?.id).filter(Boolean));
+  }
+  return [...new Set(ids.map((id) => getCollectorVariantById(`${id}:standard`)?.art).filter(Boolean))].slice(0, limit);
+}
+
 function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   const stats = account?.stats || {};
   const library = normalizeDeckLibrary(stats, account?.id);
@@ -1598,6 +1609,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       draftType: deck.draftType,
       coverId: deck.coverId,
       currentVersionId: deck.currentVersionId,
+      featuredArt: getPublicDeckFeaturedArt(deck),
       updatedAt: deck.updatedAt,
       record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
     })),
@@ -7591,6 +7603,7 @@ io.on("connection", (socket) => {
       factionId,
       chapterId,
       title: chapter.title,
+      image: chapter.image || null,
       story: chapter.story,
       beforeBattle: chapter.beforeBattle || chapter.story,
       afterBattle: chapter.afterBattle || "",

@@ -174,6 +174,10 @@
 .competitive-history h2 { color: #facc15; font-size: 17px; letter-spacing: 0; }
 .competitive-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(125, 211, 252, 0.17); }
 .competitive-line small { display: block; margin-top: 2px; color: #93c5fd; }
+.competitive-featured-deck { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(125, 211, 252, .17); }
+.competitive-featured-deck > .deck-visual { min-height: 66px; border-radius: 4px; }
+.competitive-featured-deck > span { min-width: 0; }
+.competitive-featured-deck small { display: block; margin-top: 2px; color: #93c5fd; }
 .competitive-history { padding: 8px 0 30px; }
 
 .competitive-participants { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; padding: 18px 0; }
