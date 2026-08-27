@@ -213,12 +213,12 @@ const MENU_THEME = {
 };
 
 const AREA_BACKGROUNDS = {
-  play: "/assets/gauntlet/kaiser-gauntlet.webp",
-  journey: "/assets/gauntlet/meerus-gauntlet-2.webp",
-  matches: "/assets/gauntlet/focus.jpg",
-  build: "/assets/gauntlet/rumie.webp",
-  identity: "/assets/gauntlet/hera.webp",
-  studio: "/assets/gauntlet/field-rulebook.png"
+  play: "/assets/gauntlet/backgrounds/gauntlet-menu-play-v1.jpg",
+  journey: "/assets/gauntlet/backgrounds/gauntlet-menu-journey-v1.jpg",
+  matches: "/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg",
+  build: "/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg",
+  identity: "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg",
+  studio: "/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg"
 };
 
 const HOME_AREA_CONTEXT = {
@@ -2142,7 +2142,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
 function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
-    <div className="collection-page menu-page" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath("/assets/gauntlet/rumie.webp")})` }}>
+    <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
         <header className="collection-header">
           <div>
@@ -3362,7 +3362,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   ];
 
   return (
-    <div className="tutorial-page menu-page" style={MENU_THEME.page}>
+    <div className="tutorial-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
         <header className="tutorial-header">
           <div>
@@ -3467,7 +3467,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   };
 
   return (
-    <div className="campaign-page menu-page" style={MENU_THEME.page}>
+    <div className="campaign-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
         <div className="campaign-header">
           <div className="campaign-heading">
@@ -5650,7 +5650,7 @@ export default function App() {
     );
 
     return (
-      <div className="lobby-page menu-page" style={MENU_THEME.page}>
+      <div className="lobby-page menu-page area-play" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.play)})` }}>
         <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>

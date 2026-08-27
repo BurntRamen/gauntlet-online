@@ -2215,18 +2215,25 @@ textarea:focus-visible {
 
 /* Product shell visual pass */
 .menu-page {
-  background: linear-gradient(135deg, #07131f, #091824 58%, #17130f) !important;
+  --area-glow: rgba(128, 183, 205, .2);
+  background: #03080e !important;
 }
 
 .menu-page::before {
   z-index: 0;
-  opacity: .13;
+  opacity: .28;
   background-image:
-    radial-gradient(circle at 50% 20%, rgba(128, 183, 205, .18), transparent 36%),
+    radial-gradient(circle at 50% 12%, var(--area-glow), transparent 42%),
     linear-gradient(rgba(130, 177, 196, .08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(130, 177, 196, .05) 1px, transparent 1px);
   background-size: auto, 52px 52px, 52px 52px;
 }
+
+.menu-page.area-play { --area-glow: rgba(217, 134, 78, .3); --area-mobile-x: 18%; }
+.menu-page.area-journey { --area-glow: rgba(226, 187, 98, .25); --area-mobile-x: 16%; }
+.menu-page.area-matches { --area-glow: rgba(87, 153, 191, .25); --area-mobile-x: 13%; }
+.menu-page.area-build { --area-glow: rgba(101, 168, 126, .24); --area-mobile-x: 16%; }
+.menu-page.area-identity { --area-glow: rgba(112, 169, 210, .26); --area-mobile-x: 14%; }
 
 .menu-page::after {
   position: fixed;
@@ -2234,14 +2241,14 @@ textarea:focus-visible {
   z-index: 0;
   pointer-events: none;
   content: "";
-  opacity: .29;
+  opacity: 1;
   background-image:
-    linear-gradient(90deg, rgba(3, 8, 14, .98) 0%, rgba(3, 8, 14, .7) 45%, rgba(3, 8, 14, .94) 100%),
-    linear-gradient(180deg, rgba(3, 8, 14, .2), #07101a 86%),
+    linear-gradient(90deg, rgba(3, 8, 14, .24) 0%, rgba(3, 8, 14, .56) 26%, rgba(3, 8, 14, .66) 50%, rgba(3, 8, 14, .56) 74%, rgba(3, 8, 14, .24) 100%),
+    linear-gradient(180deg, rgba(3, 8, 14, .08) 0%, rgba(3, 8, 14, .24) 45%, rgba(3, 8, 14, .78) 100%),
     var(--area-image);
-  background-position: center, center, center 24%;
+  background-position: center, center, center 22%;
   background-size: cover;
-  filter: saturate(.72) contrast(1.04);
+  filter: saturate(.86) contrast(1.08);
   transition: background-image 180ms ease;
 }
 
@@ -2250,9 +2257,9 @@ textarea:focus-visible {
   padding: 20px !important;
   border: 0 !important;
   border-radius: 12px !important;
-  background: linear-gradient(180deg, rgba(8, 19, 30, .91), rgba(5, 13, 21, .93)) !important;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, .46), inset 0 0 0 1px rgba(151, 194, 211, .18), inset 0 1px rgba(255, 255, 255, .05) !important;
-  backdrop-filter: blur(7px);
+  background: linear-gradient(180deg, rgba(8, 19, 30, .8), rgba(5, 13, 21, .88)) !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(151, 194, 211, .23), inset 0 1px rgba(255, 255, 255, .07) !important;
+  backdrop-filter: blur(4px);
 }
 
 .home-command-header {
@@ -2756,7 +2763,14 @@ textarea:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .menu-frame { padding: 13px !important; }
+  .menu-page::after {
+    background-position: center, center, var(--area-mobile-x, 20%) 10%;
+  }
+  .menu-frame {
+    padding: 13px !important;
+    background: linear-gradient(180deg, rgba(8, 19, 30, .68), rgba(5, 13, 21, .8)) !important;
+    backdrop-filter: blur(2px);
+  }
   .home-command-header { grid-template-columns: 1fr; gap: 12px; }
   .home-command-utilities { justify-items: start; }
   .home-command-tools { justify-content: flex-start; }
