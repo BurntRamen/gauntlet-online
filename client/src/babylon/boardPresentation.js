@@ -105,6 +105,13 @@ export function projectBoardPresentation(viewModel, { activeCue = null, profile 
     0
   );
   const paymentActive = Boolean(viewModel?.payment?.active);
+  const latestCommittedPayment = publicPayments.at(-1) || null;
+  const paymentTotal = paymentActive
+    ? Number(viewModel?.payment?.total || 0)
+    : Number(latestCommittedPayment?.total || 0);
+  const paymentRequired = paymentActive
+    ? Number(viewModel?.payment?.required || 0)
+    : Number(latestCommittedPayment?.required || 0);
   const paymentState = activeCue?.cueId === "payment.release"
     ? "resolving"
     : paymentActive
@@ -132,7 +139,10 @@ export function projectBoardPresentation(viewModel, { activeCue = null, profile 
     },
     payment: {
       state: paymentState,
-      occupiedSlots: Math.max(committedPaymentCount, viewModel?.selection?.payments?.length || 0)
+      occupiedSlots: Math.max(committedPaymentCount, viewModel?.selection?.payments?.length || 0),
+      total: paymentTotal,
+      required: paymentRequired,
+      remaining: Math.max(0, paymentRequired - paymentTotal)
     },
     piles: {
       localDeck: Number(viewModel?.bottom?.deckCount || 0),

@@ -378,24 +378,27 @@ function drawDial(texture, { label, value, accent, active }) {
   const context = texture.getContext();
   const size = texture.getSize().width;
   context.clearRect(0, 0, size, size);
-  context.fillStyle = active ? "rgba(11, 22, 32, 0.98)" : "rgba(7, 13, 19, 0.98)";
+  context.fillStyle = active ? "rgba(12, 27, 40, 1)" : "rgba(4, 10, 16, 1)";
   context.beginPath();
   context.arc(size / 2, size / 2, size * 0.455, 0, Math.PI * 2);
   context.fill();
-  context.strokeStyle = active ? accent : "#765a36";
-  context.lineWidth = active ? 14 : 10;
+  context.strokeStyle = active ? accent : "#c09351";
+  context.lineWidth = active ? 16 : 13;
   context.stroke();
-  context.strokeStyle = "rgba(220, 229, 233, 0.18)";
-  context.lineWidth = 3;
+  context.strokeStyle = "rgba(224, 234, 242, 0.42)";
+  context.lineWidth = 4;
   context.beginPath();
   context.arc(size / 2, size / 2, size * 0.365, 0, Math.PI * 2);
   context.stroke();
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillStyle = active ? "#f2e3bd" : "#b8b3a7";
-  context.font = `700 ${Math.round(size * 0.145)}px Arial`;
+  context.shadowColor = "rgba(0, 0, 0, 0.9)";
+  context.shadowBlur = 6;
+  context.fillStyle = active ? "#fff0c8" : "#e5d2ad";
+  context.font = `900 ${Math.round(size * 0.17)}px Arial`;
   context.fillText(String(label || "").toUpperCase(), size / 2, size * 0.31);
-  context.font = `700 ${Math.round(size * 0.33)}px Georgia`;
+  context.fillStyle = "#f5f8fa";
+  context.font = `800 ${Math.round(size * 0.38)}px Georgia`;
   context.fillText(String(value ?? "—"), size / 2, size * 0.61);
   texture.update(true);
 }
@@ -434,8 +437,8 @@ export function createBoardDial(scene, name, {
   material.useAlphaFromDiffuseTexture = true;
   material.backFaceCulling = false;
   const face = CreatePlane(`${name}-dial-face`, {
-    width: diameter * 0.78,
-    height: diameter * 0.78
+    width: diameter * 0.88,
+    height: diameter * 0.88
   }, scene);
   face.rotation.x = Math.PI / 2;
   face.position.set(x, y + 0.15, z);

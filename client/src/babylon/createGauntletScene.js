@@ -5,6 +5,7 @@ import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight.js";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight.js";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator.js";
+import { SceneInstrumentation } from "@babylonjs/core/Instrumentation/sceneInstrumentation.js";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture.js";
 import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture.js";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture.js";
@@ -20,7 +21,6 @@ import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle.js";
 import { TextBlock, TextWrapping } from "@babylonjs/gui/2D/controls/textBlock.js";
 import {
   getHandHoverPosition,
-  getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
   normalizePresentationLaneIndex,
@@ -222,6 +222,65 @@ function createZoneLabelTexture(scene, name, label, accent = MATCH_COLORS.bronze
   return texture;
 }
 
+function createPaymentStatusPanel(scene, { x, y, z }) {
+  const texture = new DynamicTexture("payment-status-texture", { width: 1024, height: 192 }, scene, true);
+  texture.hasAlpha = true;
+  const material = new StandardMaterial("payment-status-material", scene);
+  material.disableLighting = true;
+  material.diffuseColor = Color3.White();
+  material.emissiveColor = color("#f0d39b");
+  material.specularColor = Color3.Black();
+  material.diffuseTexture = texture;
+  material.opacityTexture = texture;
+  material.useAlphaFromDiffuseTexture = true;
+  material.backFaceCulling = false;
+  const face = CreatePlane("payment-status-panel", { width: 5.45, height: 1.02 }, scene);
+  face.rotation.x = Math.PI / 2;
+  face.position.set(x, y, z);
+  face.material = material;
+  face.isPickable = false;
+  let signature = "";
+
+  function setState({ state = "idle", total = 0, required = 0, remaining = 0 } = {}) {
+    const nextSignature = `${state}:${total}:${required}:${remaining}`;
+    if (nextSignature === signature) return;
+    signature = nextSignature;
+    const context = texture.getContext();
+    context.clearRect(0, 0, 1024, 192);
+    context.fillStyle = "rgba(5, 12, 19, 0.96)";
+    context.fillRect(3, 3, 1018, 186);
+    context.strokeStyle = state === "active" ? "#e6b961" : "#8f6d3e";
+    context.lineWidth = state === "active" ? 8 : 5;
+    context.strokeRect(6, 6, 1012, 180);
+    context.textBaseline = "middle";
+    context.textAlign = "left";
+    context.fillStyle = "#f0d39b";
+    context.font = "900 43px Arial";
+    context.fillText("PAYMENT CARDS", 34, 61);
+    context.fillStyle = "#b9c7d2";
+    context.font = "700 24px Arial";
+    const instruction = state === "active"
+      ? remaining > 0
+        ? `SELECT CARDS WORTH ${remaining} MORE`
+        : "COST MET • CONFIRM ACTION"
+      : state === "committed" || state === "resolving"
+        ? "COMMITTED PAYMENT"
+        : "SELECT CARDS HERE TO PAY AN ACTION COST";
+    context.fillText(instruction, 34, 132);
+    context.textAlign = "right";
+    context.fillStyle = state === "active" && remaining === 0 ? "#75d6a6" : "#fff1d0";
+    context.font = "900 68px Georgia";
+    context.fillText(required > 0 ? `${total} / ${required}` : "READY", 986, 75);
+    context.fillStyle = "#9aaebe";
+    context.font = "800 20px Arial";
+    context.fillText(required > 0 ? "PAID / COST" : "WAITING", 986, 143);
+    texture.update(true);
+  }
+
+  setState();
+  return { face, texture, setState };
+}
+
 function materialFromTexture(scene, name, texture, fallbackColor) {
   const material = new StandardMaterial(name, scene);
   material.diffuseColor = color(fallbackColor || "#b9b2a7");
@@ -419,6 +478,7 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
 
 export function createGauntletScene(engine, canvas, commands = {}) {
   const babylonScene = new Scene(engine);
+  const sceneInstrumentation = new SceneInstrumentation(babylonScene);
   babylonScene.clearColor = new Color4(0.008, 0.015, 0.022, 1);
   // Pointer interaction is handled by the explicit canvas hit-test path below.
   // Disable Babylon's parallel automatic picks so pointer movement never pays
@@ -438,7 +498,43 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   babylonScene.activeCamera = camera;
   let lastAspect = 0;
   let nativeBoardStage = null;
+  let structuralShadowMap = null;
+  const staticBoardMeshes = new Set();
   let activeLayoutProfile = getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight());
+
+  function isDynamicBoardMesh(mesh) {
+    const name = mesh?.name || "";
+    return name.startsWith("card-")
+      || name.startsWith("lane-rail-")
+      || name.startsWith("lane-state-light-")
+      || name.startsWith("combat-line-")
+      || name.startsWith("combat-arrow-")
+      || name.startsWith("payment-state-")
+      || name.startsWith("combat-state-")
+      || ["event-ring", "event-sprite", "turn-sweep", "priority-handoff"].includes(name);
+  }
+
+  function registerStaticBoardMeshes(meshes = babylonScene.meshes) {
+    meshes.forEach((mesh) => {
+      if (!mesh || mesh.isDisposed?.() || isDynamicBoardMesh(mesh)) return;
+      staticBoardMeshes.add(mesh);
+      mesh.computeWorldMatrix(true);
+      mesh.freezeWorldMatrix();
+    });
+  }
+
+  function refreshStaticBoardTransforms() {
+    staticBoardMeshes.forEach((mesh) => {
+      if (mesh.isDisposed?.()) {
+        staticBoardMeshes.delete(mesh);
+        return;
+      }
+      mesh.unfreezeWorldMatrix();
+      mesh.computeWorldMatrix(true);
+      mesh.freezeWorldMatrix();
+    });
+    if (structuralShadowMap) structuralShadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+  }
 
   function syncCamera() {
     const width = Math.max(1, engine.getRenderWidth());
@@ -453,6 +549,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     camera.orthoRight = projection.right;
     activeLayoutProfile = getBoardLayoutProfile(width, height);
     nativeBoardStage?.applyProfile(activeLayoutProfile);
+    if (nativeBoardStage) refreshStaticBoardTransforms();
     return true;
   }
   syncCamera();
@@ -476,7 +573,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   // Board geometry is static and cards already have lightweight contact
   // shadows. Render the structural shadow map once instead of rebuilding and
   // blurring it on every frame.
-  shadowGenerator.getShadowMap().refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+  structuralShadowMap = shadowGenerator.getShadowMap();
+  structuralShadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
   babylonScene.imageProcessingConfiguration.contrast = 1.12;
   babylonScene.imageProcessingConfiguration.exposure = 1.08;
 
@@ -683,36 +781,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       thickness: 0.13,
       visibility: 0.56
     });
-    [-5.4, 0, 5.4].forEach((panelZ, panelIndex) => {
-      createChamferedPlate(babylonScene, `board-side-console-${side}-panel-${panelIndex}`, {
-        width: 2.28,
-        height: 0.1,
-        depth: 4.15,
-        cornerCut: 0.28,
-        bevel: 0.026,
-        material: panelIndex === 1 ? nativePalette.stoneRaised : nativePalette.stone,
-        position: { x, y: 0.02, z: panelZ }
-      });
-      createMountedFrame(`board-side-console-${side}-panel-frame-${panelIndex}`, {
-        x,
-        y: 0.095,
-        z: panelZ,
-        width: 2.12,
-        depth: 3.95,
-        material: panelIndex === 1 ? nativePalette.bronze : nativePalette.bronzeDark,
-        thickness: 0.085,
-        visibility: panelIndex === 1 ? 0.56 : 0.42
-      });
-      createEngravingDecal(babylonScene, `board-side-console-${side}-engraving-${panelIndex}`, {
-        x,
-        y: 0.165,
-        z: panelZ,
-        width: 1.66,
-        depth: 3.15,
-        tint: panelIndex === 1 ? "#9a7742" : "#536675",
-        alpha: panelIndex === 1 ? 0.3 : 0.2
-      });
-    });
     createEngravedMedallion(babylonScene, `board-side-console-${side}-center-medallion`, {
       x,
       y: 0.18,
@@ -720,23 +788,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       diameter: 0.84,
       palette: nativePalette,
       accentMaterial: side < 0 ? nativePalette.sapphire : nativePalette.bronzeBright
-    });
-    [-1, 1].forEach((railSide) => {
-      const channel = createChamferedPlate(
-        babylonScene,
-        `board-side-console-${side}-channel-${railSide}`,
-        {
-          width: 0.065,
-          height: 0.04,
-          depth: MATCH_LAYOUT.table.depth - 2.2,
-          cornerCut: 0.02,
-          bevel: 0.008,
-          material: nativePalette.sapphire,
-          position: { x: x + railSide * 1.2, y: 0.12, z: 0 },
-          visibility: 0.12
-        }
-      );
-      channel.isPickable = false;
     });
   });
 
@@ -829,7 +880,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const laneCombatMaterials = [laneCombatMaterial, laneCombatMaterial, laneCombatMaterial];
   const laneRailMaterial = steelMaterial;
   const laneLegalRailMaterial = sapphireMaterial;
-  const anchorMaterial = steelMaterial;
   const combatLocalMaterial = sapphireMaterial;
   const combatOpponentMaterial = dangerMaterial;
   const localSlotMaterial = nativePalette.steelDark;
@@ -922,54 +972,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       height: 0.08,
       visibility: 0.32
     });
-    createMountedFrame(`lane-frame-${index}-inset`, {
-      x: laneX,
-      y: 0.345,
-      z: MATCH_LAYOUT.lanes.z,
-      width: MATCH_LAYOUT.lanes.width - 0.38,
-      depth: MATCH_LAYOUT.lanes.depth - 0.38,
-      material: nativePalette.bronze,
-      thickness: 0.06,
-      height: 0.075,
-      visibility: 0.12
-    });
-    [-1, 1].forEach((side) => {
-      createChamferedPlate(babylonScene, `lane-${index}-crown-${side}`, {
-        width: 2.25,
-        height: 0.11,
-        depth: 0.32,
-        cornerCut: 0.12,
-        bevel: 0.028,
-        material: nativePalette.bronzeDark,
-        visibility: 0.18,
-        position: {
-          x: laneX,
-          y: 0.405,
-          z: MATCH_LAYOUT.lanes.z + side * (MATCH_LAYOUT.lanes.depth / 2 - 0.27)
-        }
-      });
-      createSapphireStud(babylonScene, `lane-${index}-crown-${side}-stud`, {
-        x: laneX,
-        y: 0.49,
-        z: MATCH_LAYOUT.lanes.z + side * (MATCH_LAYOUT.lanes.depth / 2 - 0.25),
-        size: 0.09,
-        visibility: 0.12,
-        palette: nativePalette
-      });
-    });
-    [-0.72, 0.72].forEach((spineZ, spineIndex) => {
-      createChamferedPlate(babylonScene, `lane-${index}-resolution-spine-${spineIndex}`, {
-        width: 0.07,
-        height: 0.045,
-        depth: 0.62,
-        cornerCut: 0.02,
-        bevel: 0.008,
-        material: nativePalette.bronzeDark,
-        visibility: 0.14,
-        position: { x: laneX, y: 0.415, z: spineZ }
-      });
-    });
-
     createChamferedPlate(babylonScene, `lane-${index}-resolution-bridge`, {
       width: 4.72,
       height: 0.055,
@@ -980,57 +982,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       visibility: 0.32,
       position: { x: laneX, y: 0.27, z: MATCH_LAYOUT.anchors.resolution }
     });
-    createMountedFrame(`lane-${index}-resolution-bridge-frame`, {
-      x: laneX,
-      y: 0.37,
-      z: MATCH_LAYOUT.anchors.resolution,
-      width: 4.54,
-      depth: 0.7,
-      material: nativePalette.bronzeDark,
-      thickness: 0.07,
-      height: 0.06,
-      visibility: 0.18
-    });
-    const resolutionDiamond = CreateCylinder(`lane-${index}-resolution-diamond`, {
-      height: 0.14,
-      diameter: 1.34,
-      tessellation: 4
-    }, babylonScene);
-    resolutionDiamond.rotation.y = 0;
-    resolutionDiamond.position.set(laneX, 0.405, MATCH_LAYOUT.anchors.resolution);
-    resolutionDiamond.material = nativePalette.bronzeDark;
-    resolutionDiamond.visibility = 0.18;
-    resolutionDiamond.isPickable = false;
-    const resolutionDiamondField = CreateCylinder(`lane-${index}-resolution-diamond-field`, {
-      height: 0.1,
-      diameter: 0.92,
-      tessellation: 4
-    }, babylonScene);
-    resolutionDiamondField.rotation.y = 0;
-    resolutionDiamondField.position.set(laneX, 0.48, MATCH_LAYOUT.anchors.resolution);
-    resolutionDiamondField.material = nativePalette.stoneRaised;
-    resolutionDiamondField.visibility = 0.22;
-    resolutionDiamondField.isPickable = false;
-    [-1, 1].forEach((sideX) => {
-      [-1, 1].forEach((sideZ) => {
-        const brace = createChamferedPlate(babylonScene, `lane-${index}-brace-${sideX}-${sideZ}`, {
-          width: 1.05,
-          height: 0.085,
-          depth: 0.15,
-          cornerCut: 0.05,
-          bevel: 0.02,
-          material: nativePalette.bronzeDark,
-          visibility: 0.12,
-          position: {
-            x: laneX + sideX * 2.34,
-            y: 0.41,
-            z: MATCH_LAYOUT.lanes.z + sideZ * 2.95
-          }
-        });
-        brace.rotation.y = sideX * sideZ * 0.62;
-      });
-    });
-
     [
       {
         name: "opponent",
@@ -1062,42 +1013,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         depth: 1.82,
         tint: slot.name === "local" ? "#6c8fa4" : "#9a7748",
         alpha: 0.18
-      });
-    });
-
-    [
-      { name: "opponent-combat", z: 1.25, accent: nativePalette.bronzeDark },
-      { name: "local-combat", z: -1.25, accent: nativePalette.steelDark }
-    ].forEach((slot) => {
-      createInsetWell(`lane-${index}-${slot.name}-slot`, {
-        x: laneX,
-        y: 0.205,
-        z: slot.z,
-        width: 3.55,
-        depth: 1.55,
-        accent: slot.accent,
-        rail: 0.065,
-        floorVisibility: 0.22,
-        railVisibility: 0.18
-      });
-    });
-
-    [-1, 1].forEach((sideX) => {
-      [-1, 1].forEach((sideZ) => {
-        createChamferedPlate(babylonScene, `lane-${index}-corner-${sideX}-${sideZ}`, {
-          width: 0.62,
-          height: 0.13,
-          depth: 0.42,
-          cornerCut: 0.13,
-          bevel: 0.035,
-          material: nativePalette.bronzeDark,
-          visibility: 0.1,
-          position: {
-            x: laneX + sideX * (MATCH_LAYOUT.lanes.width / 2 - 0.37),
-            y: 0.405,
-            z: MATCH_LAYOUT.lanes.z + sideZ * (MATCH_LAYOUT.lanes.depth / 2 - 0.34)
-          }
-        });
       });
     });
 
@@ -1157,18 +1072,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     stateMask.visibility = 0;
     stateMask.isPickable = false;
     laneStateMasks.push(stateMask);
-
-    Object.values(MATCH_LAYOUT.anchors).forEach((z, anchorIndex) => {
-      const tick = CreateBox(`lane-anchor-${index}-${anchorIndex}`, {
-        width: MATCH_LAYOUT.lanes.width - 0.5,
-        height: 0.025,
-        depth: anchorIndex === 2 ? 0.16 : 0.07
-      }, babylonScene);
-      tick.position = new Vector3(MATCH_LAYOUT.lanes.x[index], 0.025, z);
-      tick.material = anchorMaterial;
-      tick.visibility = 0;
-      tick.isPickable = false;
-    });
 
     const combatLine = CreateBox(`combat-line-${index}`, {
       width: 0.12,
@@ -1449,76 +1352,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     height: 0.14,
     visibility: 0.76
   });
-  Array.from({ length: 8 }, (_, slotIndex) => getPaymentPosition(slotIndex, 8, true)).forEach((slot, slotIndex) => {
-    createInsetWell(`payment-slot-${slotIndex}`, {
-      x: slot.x,
-      y: 0.225,
-      z: slot.z,
-      width: MATCH_LAYOUT.card.width * MATCH_LAYOUT.payment.scale + 0.12,
-      depth: MATCH_LAYOUT.card.height * MATCH_LAYOUT.payment.scale + 0.12,
-      accent: nativePalette.bronzeDark,
-      rail: 0.045,
-      floorVisibility: 1,
-      railVisibility: 0.92
-    }).rails.forEach((rail) => { rail.visibility = 0.92; });
+  const paymentStatusPanel = createPaymentStatusPanel(babylonScene, {
+    x: MATCH_LAYOUT.payment.x,
+    y: 0.5,
+    z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.42
   });
-
-  [-1, 1].forEach((sideX) => {
-    [-1, 1].forEach((sideZ) => {
-      createChamferedPlate(babylonScene, `payment-tray-corner-${sideX}-${sideZ}`, {
-        width: 0.68,
-        height: 0.13,
-        depth: 0.5,
-        cornerCut: 0.14,
-        bevel: 0.035,
-        material: nativePalette.bronzeDark,
-        position: {
-          x: MATCH_LAYOUT.payment.x + sideX * (MATCH_LAYOUT.payment.width / 2 - 0.34),
-          y: 0.43,
-          z: MATCH_LAYOUT.payment.z + sideZ * (MATCH_LAYOUT.payment.depth / 2 - 0.3)
-        }
-      });
-      createSapphireStud(babylonScene, `payment-tray-corner-${sideX}-${sideZ}-stud`, {
-        x: MATCH_LAYOUT.payment.x + sideX * (MATCH_LAYOUT.payment.width / 2 - 0.34),
-        y: 0.53,
-        z: MATCH_LAYOUT.payment.z + sideZ * (MATCH_LAYOUT.payment.depth / 2 - 0.3),
-        size: 0.11,
-        palette: nativePalette
-      });
-    });
-  });
-  createChamferedPlate(babylonScene, "payment-tray-title-plinth", {
-    width: 2.35,
-    height: 0.1,
-    depth: 0.42,
-    cornerCut: 0.18,
-    bevel: 0.025,
-    material: nativePalette.bronzeDark,
-    position: {
-      x: MATCH_LAYOUT.payment.x,
-      y: 0.43,
-      z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.25
-    }
-  });
-
-  const paymentLabel = CreatePlane("payment-tray-label", {
-    width: 5.1,
-    height: 0.52
-  }, babylonScene);
-  paymentLabel.position = new Vector3(
-    MATCH_LAYOUT.payment.x,
-    0.5,
-    MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.3
-  );
-  paymentLabel.rotation.x = Math.PI / 2;
-  paymentLabel.material = materialFromTexture(
-    babylonScene,
-    "payment-tray-label-material",
-    createZoneLabelTexture(babylonScene, "payment-tray-label-texture", "PAYMENT", MATCH_COLORS.bronze),
-    "#15100a"
-  );
-  paymentLabel.material.emissiveColor = color("#22170a");
-  paymentLabel.isPickable = false;
 
   const pileDockMeshes = new Map();
   Object.entries(MATCH_LAYOUT.piles).forEach(([name, position]) => {
@@ -1604,7 +1442,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       x: position.x,
       y: 0.3,
       z: medallionZ,
-      diameter: 0.98,
+      diameter: 1.28,
       label: isDiscard ? "Discard" : "Deck",
       value: "0",
       accent: isDiscard ? MATCH_COLORS.bronze : MATCH_COLORS.blue,
@@ -1638,17 +1476,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     })
   };
-  const paymentDial = createBoardDial(babylonScene, "payment-tray-dial", {
-    x: MATCH_LAYOUT.payment.x,
-    y: 0.42,
-    z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.38,
-    diameter: 0.82,
-    label: "Paid",
-    value: "—",
-    accent: MATCH_COLORS.bronze,
-    palette: nativePalette,
-    active: false
-  });
 
   function createPresentationLight(name, { x, y, z, width, height, tint, fallbackMaterial }) {
     const maskMaterial = new StandardMaterial(`${name}-mask-material`, babylonScene);
@@ -1818,6 +1645,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     shadowGenerator.addShadowCaster(mesh);
   });
   nativeBoardStage = createBabylonBoardStage(babylonScene, activeLayoutProfile);
+  registerStaticBoardMeshes();
   const presentationAssetCache = new PresentationAssetCache();
   const presentationMaskTextures = new Map();
   const presentationMaskPaths = new Map();
@@ -1937,6 +1765,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           mesh.setEnabled(false);
         });
         authoredModuleRoots.push(...attachedRoots);
+        registerStaticBoardMeshes(attachedRoots.flatMap((root) => root.getChildMeshes?.() || []));
       });
     });
   }
@@ -1979,7 +1808,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   ui.combatAttackValue = combatDials.attack;
   ui.combatBlockValue = combatDials.block;
-  ui.paymentReadout = paymentDial;
+  ui.paymentReadout = paymentStatusPanel;
   ui.pileCounts = {
     localDeck: pileDockMeshes.get("localDeck").dial,
     localDiscard: pileDockMeshes.get("localDiscard").dial,
@@ -2736,10 +2565,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     ui.combatBlockValue.setValue(String(currentBoardPresentation.combat.blockValue || "—"));
     ui.combatAttackValue.setActive(handCombatActive);
     ui.combatBlockValue.setActive(Boolean(currentBoardPresentation.combat.blockValue));
-    ui.paymentReadout.setValue(currentBoardPresentation.payment.occupiedSlots
-      ? String(currentBoardPresentation.payment.occupiedSlots)
-      : "—");
-    ui.paymentReadout.setActive(currentBoardPresentation.payment.state !== "idle");
+    ui.paymentReadout.setState(currentBoardPresentation.payment);
     Object.entries(currentBoardPresentation.piles).forEach(([pile, count]) => {
       if (ui.pileCounts[pile]) ui.pileCounts[pile].setValue(String(count));
     });
@@ -3284,6 +3110,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         engineScenes: engine.scenes.length,
         activeMeshes: babylonScene.getActiveMeshes().length,
         fps: Math.round(engine.getFps()),
+        drawCalls: Number(sceneInstrumentation.drawCallsCounter.current || 0),
+        hardwareScalingLevel: Number(engine.getHardwareScalingLevel().toFixed(3)),
+        frozenBoardMeshCount: Array.from(staticBoardMeshes).filter((mesh) => !mesh.isDisposed?.()).length,
         pickableMeshes: babylonScene.meshes.filter((mesh) => mesh.isPickable).length,
         renderSize: `${engine.getRenderWidth()}x${engine.getRenderHeight()}`,
         canvasSize: `${Math.round(canvas.clientWidth)}x${Math.round(canvas.clientHeight)}`,
@@ -3318,6 +3147,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       authoredModuleRoots.forEach((root) => root.dispose?.());
       actorRegistry?.clear();
       presentationAssetCache.dispose();
+      sceneInstrumentation.dispose();
       babylonScene.dispose();
     }
   };

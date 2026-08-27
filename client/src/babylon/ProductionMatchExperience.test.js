@@ -66,8 +66,8 @@ function createViewModel() {
     phaseLabel: "Priority",
     currentTurnLabel: "Turn 3",
     instruction: "Choose an action.",
-    top: { id: 2, name: "Opponent", life: 27, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 5 },
-    bottom: { id: 1, name: "Local", life: 34, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 8 },
+    top: { id: 2, name: "Opponent", life: 27, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 5, deckCount: 37, discardCount: 10 },
+    bottom: { id: 1, name: "Local", life: 34, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 8, deckCount: 44, discardCount: 3 },
     priority: 1,
     perspective: { player: 1, spectator: false },
     interactions: {
@@ -119,6 +119,8 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   );
   expect(screen.getByLabelText(/Local, 34 life, has priority/)).toBeInTheDocument();
   expect(screen.getByLabelText(/Opponent, 27 life/)).toBeInTheDocument();
+  expect(screen.getByText("Deck 44")).toBeVisible();
+  expect(screen.getByText("Discard 3")).toBeVisible();
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
   expect(screen.getAllByText("G", { exact: true })).toHaveLength(2);
   expect(screen.queryByText("Developer tools")).not.toBeInTheDocument();
@@ -156,6 +158,7 @@ test("uses a privacy curtain for local perspective handoff", async () => {
 test("shows the reason a staged action cannot yet be confirmed", async () => {
   const viewModel = createViewModel();
   viewModel.selection.attackMode = { from: "hand" };
+  viewModel.payment = { active: true, total: 5, required: 7 };
   viewModel.interactions.confirmReason = "Select 2 more payment value.";
 
   render(
@@ -166,6 +169,10 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
   );
 
   expect(await screen.findByText("Select 2 more payment value.")).toBeVisible();
+  const payment = screen.getByRole("status");
+  expect(payment).toHaveTextContent("Payment cost");
+  expect(payment).toHaveTextContent("5 / 7");
+  expect(payment).toHaveTextContent("Select highlighted cards worth 2 more.");
   expect(screen.queryByRole("button", { name: "Pass Priority" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();

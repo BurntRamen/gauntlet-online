@@ -45,12 +45,18 @@ test("projects idle, legal, active, opposed, blocked, and resolving lane states"
 test("projects board-native combat, payment, pile, and priority information", () => {
   const projected = projectBoardPresentation(model({
     attacks: [{ laneIndex: null, value: 7, blocks: [{ value: 4 }, { value: 2 }] }],
-    payment: { active: true },
+    payment: { active: true, total: 4, required: 7 },
     selection: { payments: [0, 1] }
   }));
   expect(projected.contract).toBe(BOARD_PRESENTATION_CONTRACT_VERSION);
   expect(projected.combat).toEqual({ state: "blocked", attackValue: 7, blockValue: 6 });
-  expect(projected.payment).toEqual({ state: "active", occupiedSlots: 2 });
+  expect(projected.payment).toEqual({
+    state: "active",
+    occupiedSlots: 2,
+    total: 4,
+    required: 7,
+    remaining: 3
+  });
   expect(projected.piles.localDeck).toBe(44);
   expect(projected.priority).toBe("local");
 });
@@ -62,9 +68,15 @@ test("selection lights destinations without changing a card's physical zone", ()
   expect(attackIntent.combat.state).toBe("legal");
 
   const committedPayment = projectBoardPresentation(model({
-    publicPayments: [{ cards: [{ id: "a" }, { id: "b" }, { id: "c" }] }]
+    publicPayments: [{ cards: [{ id: "a" }, { id: "b" }, { id: "c" }], total: 8, required: 7 }]
   }));
-  expect(committedPayment.payment).toEqual({ state: "committed", occupiedSlots: 3 });
+  expect(committedPayment.payment).toEqual({
+    state: "committed",
+    occupiedSlots: 3,
+    total: 8,
+    required: 7,
+    remaining: 0
+  });
 });
 
 test("presentation geometry is source-agnostic for local, live, and replay adapters", () => {

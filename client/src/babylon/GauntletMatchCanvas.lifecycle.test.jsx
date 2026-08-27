@@ -1,5 +1,6 @@
 import {
   IDLE_RENDER_FPS,
+  matchHardwareScalingLevel,
   renderMatchFrame,
   shouldRenderMatchFrame
 } from "./rendererLifecycle";
@@ -56,4 +57,11 @@ test("renders animations at display cadence while capping an idle or hidden tabl
     animationActive: false,
     hidden: true
   })).toBe(true);
+});
+
+test("keeps ordinary canvases native while bounding oversized render buffers", () => {
+  expect(matchHardwareScalingLevel(1366, 588)).toBe(1);
+  expect(matchHardwareScalingLevel(1904, 740)).toBe(1.251);
+  expect(matchHardwareScalingLevel(2560, 1080)).toBe(1.753);
+  expect(matchHardwareScalingLevel(7680, 4320)).toBe(2);
 });

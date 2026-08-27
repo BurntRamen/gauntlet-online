@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Engine } from "@babylonjs/core/Engines/engine.js";
 import { createGauntletScene } from "./createGauntletScene";
 import AccessibleMatchControls from "./AccessibleMatchControls";
-import { renderMatchFrame, shouldRenderMatchFrame } from "./rendererLifecycle";
+import {
+  matchHardwareScalingLevel,
+  renderMatchFrame,
+  shouldRenderMatchFrame
+} from "./rendererLifecycle";
 import "./GauntletMatchCanvas.css";
 
 export default function GauntletMatchCanvas({
@@ -49,6 +53,7 @@ export default function GauntletMatchCanvas({
         throw new Error("The Babylon match canvas has no visible width or height.");
       }
       engine = new Engine(canvas, true, { stencil: true, preserveDrawingBuffer: false, doNotHandleContextLost: false });
+      engine.setHardwareScalingLevel(matchHardwareScalingLevel(canvas.clientWidth, canvas.clientHeight));
       engineRef.current = engine;
       const renderer = createGauntletScene(engine, canvas, {
         activateHandCard: (...args) => commandsRef.current.activateHandCard?.(...args),
@@ -174,7 +179,10 @@ export default function GauntletMatchCanvas({
         ? window.setInterval(emitMetrics, 2000)
         : null;
 
-      const resize = () => engine.resize();
+      const resize = () => {
+        engine.setHardwareScalingLevel(matchHardwareScalingLevel(canvas.clientWidth, canvas.clientHeight));
+        engine.resize();
+      };
       const contextLost = (event) => {
         event.preventDefault();
         reportRendererFailure(

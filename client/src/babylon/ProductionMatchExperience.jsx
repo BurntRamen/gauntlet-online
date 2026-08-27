@@ -424,7 +424,7 @@ function PlayerPlate({
   return (
     <section
       className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}`}
-      aria-label={`${player.name}, ${player.life} life${activeAria}`}
+      aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
       <div className="production-player-crest" aria-hidden="true">
         <img src={crestPath} alt="" />
@@ -432,7 +432,11 @@ function PlayerPlate({
       </div>
       <div className="production-player-copy">
         <strong>{player.name}</strong>
-        <span>{player.factionName || "Gauntlet"} · {player.handCount} cards</span>
+        <span>{player.factionName || "Gauntlet"} · Hand {player.handCount}</span>
+        <span className="production-player-piles">
+          <b>Deck {player.deckCount ?? 0}</b>
+          <b>Discard {player.discardCount ?? 0}</b>
+        </span>
       </div>
       <div className="production-life" aria-label={`${player.life} life`}>
         <span aria-hidden="true">♥</span>
@@ -498,11 +502,25 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
           {hasSelection ? "Confirm action" : "Your action"}
         </span>
         <strong>{viewModel?.instruction || "Choose an action."}</strong>
-        {viewModel?.payment?.active && (
-          <span className="production-payment-readout">
-            Payment {viewModel.payment.total} / {viewModel.payment.required}
-          </span>
-        )}
+        {viewModel?.payment?.active && (() => {
+          const total = Number(viewModel.payment.total || 0);
+          const required = Number(viewModel.payment.required || 0);
+          const remaining = Math.max(0, required - total);
+          const complete = required === 0 || total >= required;
+          const progress = required > 0 ? Math.min(100, (total / required) * 100) : 100;
+          return (
+            <div className={`production-payment-readout${complete ? " is-complete" : ""}`} role="status">
+              <span>Payment cost</span>
+              <strong>{total} / {required}</strong>
+              <i aria-hidden="true"><b style={{ width: `${progress}%` }} /></i>
+              <small>
+                {complete
+                  ? "Cost met — confirm the action."
+                  : `Select highlighted cards worth ${remaining} more.`}
+              </small>
+            </div>
+          );
+        })()}
         {hasSelection && interactions.confirmDisabled && interactions.confirmReason && (
           <span className="production-action-reason">{interactions.confirmReason}</span>
         )}
@@ -1441,7 +1459,9 @@ export default function ProductionMatchExperience({
       handCombatModuleActive: metrics?.handCombatModuleActive,
       layoutProfile: metrics?.layoutProfile,
       shadowMapSize: metrics?.shadowMapSize,
-      shadowMapRefreshRate: metrics?.shadowMapRefreshRate
+      shadowMapRefreshRate: metrics?.shadowMapRefreshRate,
+      hardwareScalingLevel: metrics?.hardwareScalingLevel,
+      frozenBoardMeshCount: metrics?.frozenBoardMeshCount
     });
     if (signature !== sceneMetricsSignatureRef.current) {
       sceneMetricsSignatureRef.current = signature;
@@ -1716,9 +1736,12 @@ export default function ProductionMatchExperience({
       data-hand-combat-module-active={sceneMetrics?.handCombatModuleActive ? "true" : "false"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
       data-render-fps={sceneMetrics?.fps ?? ""}
+      data-draw-calls={sceneMetrics?.drawCalls ?? ""}
       data-scene-mesh-count={sceneMetrics?.meshes ?? ""}
       data-shadow-map-size={sceneMetrics?.shadowMapSize ?? ""}
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
+      data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
+      data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
       <div
         className="production-match-surface"

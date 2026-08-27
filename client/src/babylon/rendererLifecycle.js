@@ -1,4 +1,11 @@
 export const IDLE_RENDER_FPS = 30;
+export const MAX_MATCH_RENDER_PIXELS = 900000;
+
+export function matchHardwareScalingLevel(width, height, maxPixels = MAX_MATCH_RENDER_PIXELS) {
+  const pixelCount = Math.max(1, Number(width) || 1) * Math.max(1, Number(height) || 1);
+  const budget = Math.max(1, Number(maxPixels) || MAX_MATCH_RENDER_PIXELS);
+  return Number(Math.max(1, Math.min(2, Math.sqrt(pixelCount / budget))).toFixed(3));
+}
 
 export function shouldRenderMatchFrame({
   now,

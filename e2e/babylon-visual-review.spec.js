@@ -645,8 +645,11 @@ async function captureLiveSceneSample(page) {
         basicFaceArtActorCount: Number(match.dataset.basicFaceArtActorCount || 0),
         structuralCompositeRasterCount: Number(match.dataset.structuralCompositeRasterCount || 0),
         sceneMeshCount: Number(match.dataset.sceneMeshCount || 0),
+        drawCalls: Number(match.dataset.drawCalls || 0),
         shadowMapSize: Number(match.dataset.shadowMapSize || 0),
         shadowMapRefreshRate: Number(match.dataset.shadowMapRefreshRate ?? -1),
+        hardwareScalingLevel: Number(match.dataset.hardwareScalingLevel || 0),
+        frozenBoardMeshCount: Number(match.dataset.frozenBoardMeshCount || 0),
         actorCount: Number(match.dataset.cardActorCount || 0),
         actorsByZone: JSON.parse(match.dataset.actorsByZone || "{}"),
         knownActorCount: Number(match.dataset.knownActorCount || 0),
@@ -756,8 +759,11 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
       attributes.structuralCompositeRasterCount
     ),
     sceneMeshCount: rendererValue("sceneMeshCount", attributes.sceneMeshCount),
+    drawCalls: rendererValue("drawCalls", attributes.drawCalls),
     shadowMapSize: rendererValue("shadowMapSize", attributes.shadowMapSize),
     shadowMapRefreshRate: rendererValue("shadowMapRefreshRate", attributes.shadowMapRefreshRate),
+    hardwareScalingLevel: rendererValue("hardwareScalingLevel", attributes.hardwareScalingLevel),
+    frozenBoardMeshCount: rendererValue("frozenBoardMeshCount", attributes.frozenBoardMeshCount),
     actorCount: rendererValue("cardActorCount", attributes.actorCount),
     actorsByZone: rendererValue("actorsByZone", attributes.actorsByZone),
     knownActorCount: rendererValue("knownActorCount", attributes.knownActorCount),
@@ -809,6 +815,10 @@ async function captureDiagnostics(page, rendererMetrics = null) {
   expect(diagnostics.structuralCompositeRasterCount).toBe(0);
   expect(diagnostics.shadowMapSize).toBe(1024);
   expect(diagnostics.shadowMapRefreshRate).toBe(0);
+  expect(diagnostics.sceneMeshCount).toBeLessThan(520);
+  expect(diagnostics.drawCalls).toBeLessThan(520);
+  expect(diagnostics.frozenBoardMeshCount).toBeGreaterThan(300);
+  expect(diagnostics.hardwareScalingLevel).toBeGreaterThanOrEqual(1);
   expect(diagnostics.actorCount).toBe(diagnostics.knownActorCount + diagnostics.anonymousActorCount);
   return diagnostics;
 }
