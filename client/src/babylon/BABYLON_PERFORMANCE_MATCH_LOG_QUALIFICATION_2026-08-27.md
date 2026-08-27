@@ -160,3 +160,35 @@ revision `14e5102121059564b0681c33262edbb6a1fd9688`, branch
 records 424–464 scene meshes, at least 354 frozen structural meshes, and no more
 than 411 draw calls. The manifest SHA-256 is
 `83e6411dd275024b2cd0eac02d66d4d392c6ddeb3a16b8c3afc16520140c7ac4`.
+
+## User-controlled graphics profiles
+
+Commit `0137dc56f0c12fd4bc33b06374d470611edbd841` adds a persistent
+`Graphics quality` selector to the in-match Match menu. It changes Babylon's
+hardware scaling immediately without reconstructing the authoritative match or
+the presentation scene.
+
+| Profile | Rendering policy |
+| --- | --- |
+| Performance | Automatically targets a 550,000-pixel buffer, bounded at 2x hardware scaling |
+| Balanced (recommended) | Automatically targets a 900,000-pixel buffer, bounded at 2x hardware scaling |
+| High | Uses the display's native pixel resolution |
+| Ultra | Uses 0.75x hardware scaling, or approximately 133% supersampled resolution |
+
+The selected profile is stored locally as `gauntlet.graphicsQuality`, applies
+to later matches and reloads, and falls back safely to Balanced for absent or
+invalid values. The menu explains the hardware expectation, shows the current
+effective render percentage, and states that changes apply immediately.
+
+Live localhost validation on a 1272 × 540 CSS canvas measured 549,171 buffer
+pixels in Performance, 686,880 in High, and 1,221,120 in Ultra. Ultra remained
+selected after a full reload; the preview was then restored to Balanced.
+
+The full automated gate remained green: 29 qualification tests, 128 server
+tests, 411 client tests across 37 suites, production build, and bundle budgets.
+The clean compiled-client safeguard measured 1.507 s desktop p95 and 1.510 s
+phone-landscape p95. The subsequent production-path review passed all 52 states
+and 114 captures with Balanced recorded in every diagnostic, 424–464 scene
+meshes, and at most 411 draw calls. Its clean manifest records revision
+`0137dc56f0c12fd4bc33b06374d470611edbd841` and SHA-256
+`90a8d948d536359f5a597bcaee731ab46a406ae98ddebc7e9a852f507c211b59`.
