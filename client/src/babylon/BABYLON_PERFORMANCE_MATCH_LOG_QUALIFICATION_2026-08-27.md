@@ -101,3 +101,62 @@ Checksums:
 The scheduler, cadence, and visual matrix are automated and reproducible, but a
 physical-device pass should still record settled FPS, frame-time percentiles,
 memory, and input latency on the intended minimum desktop and touch targets.
+
+## Legibility and render-cost follow-up
+
+The visibility and remaining client-lag follow-up is preserved at implementation
+commit `14e5102121059564b0681c33262edbb6a1fd9688` on
+`codex/full-babylon-visuals`. `main` was not modified.
+
+### Player-facing changes
+
+- Both player plates now show explicit, high-contrast `Deck` and `Discard`
+  counts beside the hand count instead of relying on the physical board dials.
+- The physical deck and discard dials use larger faces, labels, and numerals with
+  stronger gold contrast.
+- The former decorative payment tray is now a numerical status panel. It names
+  the zone, shows `paid / required`, distinguishes incomplete, ready, and
+  committed states, and gives a short instruction.
+- The confirmation panel repeats the payment equation in a high-contrast card,
+  includes a progress bar, and states either the exact remaining value or that
+  the cost is met.
+- Recent play-order event text increased from 9 px to 12 px, with its secondary
+  line at 10 px. The full log now uses 15 px event text, 13 px explanation text,
+  and 12 px sequence numbers.
+
+### Rendering changes
+
+- Low-value repeated board ornament was removed while preserving the rails,
+  lane wells, combat module, pile modules, payment zone, materials, and authored
+  visual language.
+- The neutral live scene fell from 749 meshes to 444 meshes, a 40.7% reduction.
+- 354 structural meshes now freeze their world matrices. Responsive layout
+  changes explicitly thaw, recompute, and refreeze them.
+- Large canvases use adaptive hardware scaling with a 900,000-pixel render-buffer
+  target and a bounded 1x–2x scale. The ultrawide visual capture used 1.599x.
+- Draw calls are measured per frame through Babylon scene instrumentation. The
+  visual qualification now rejects more than 520 draw calls, more than 519 scene
+  meshes, fewer than 301 frozen structural meshes, or an invalid hardware scale.
+- The compiled-client performance safeguard also enforces a maximum 910,000-pixel
+  render buffer.
+
+### Follow-up qualification
+
+| Check | Result |
+| --- | --- |
+| Focused lifecycle, board-presentation, and match UI tests | 42/42 passed |
+| Qualification tests | 29/29 passed |
+| Server tests | 128/128 passed |
+| Client tests | 411/411 passed across 37 suites |
+| Production build | Passed; no ESLint warnings; 19 WebGPU-only shader chunks pruned |
+| Bundle budgets | Main 151.3 KiB; largest async 311.5 KiB; all JavaScript 681.3 KiB gzip |
+| Production-path visual review | 1/1 passed; 52 states and 114 captures |
+| Compiled desktop cold-load safeguard | 2.122 s p95 / 3.000 s budget |
+| Compiled phone-landscape cold-load safeguard | 1.938 s p95 / 5.000 s budget |
+
+The clean visual manifest in `artifacts/babylon-visual-review/current/` records
+revision `14e5102121059564b0681c33262edbb6a1fd9688`, branch
+`codex/full-babylon-visuals`, and no dirty paths. Across the 114 captures it
+records 424–464 scene meshes, at least 354 frozen structural meshes, and no more
+than 411 draw calls. The manifest SHA-256 is
+`83e6411dd275024b2cd0eac02d66d4d392c6ddeb3a16b8c3afc16520140c7ac4`.
