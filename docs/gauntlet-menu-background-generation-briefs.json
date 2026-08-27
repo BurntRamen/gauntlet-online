@@ -2,7 +2,13 @@
   "schemaVersion": 1,
   "runId": "gauntlet-menu-backgrounds-2026-08-27",
   "status": "frozen-candidate-brief",
-  "artifactApprovalStatus": "Candidate digital implementation art. Exact generated versions require human review before public deployment; no lore-canon or blanket rights status is inferred.",
+  "artifactApprovalStatus": "Approved by Giuseppe on 2026-08-27 for the current Gauntlet digital implementation and public deployment. This approval does not create lore canon, manufacturing clearance, or blanket third-party rights status.",
+  "humanReview": {
+    "reviewer": "Giuseppe",
+    "decision": "APPROVED",
+    "authorization": "Push the exact five selected background files to the live Gauntlet deployment.",
+    "date": "2026-08-27"
+  },
   "generationMethod": "OpenAI built-in image generation; Play v1 is the style anchor and Journey, Matches, Build, and Identity use it only as a style/material reference.",
   "authorityChain": [
     {
