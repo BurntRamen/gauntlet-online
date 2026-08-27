@@ -4,6 +4,7 @@ import { createGauntletScene } from "./createGauntletScene";
 import AccessibleMatchControls from "./AccessibleMatchControls";
 import {
   matchHardwareScalingLevel,
+  normalizeGraphicsQuality,
   renderMatchFrame,
   shouldRenderMatchFrame
 } from "./rendererLifecycle";
@@ -14,6 +15,7 @@ export default function GauntletMatchCanvas({
   commands = {},
   interactionLocked = false,
   interactionStatus = "",
+  graphicsQuality = "balanced",
   capturePlaybackControl = null,
   onRendererError,
   onSceneMetrics
@@ -23,12 +25,14 @@ export default function GauntletMatchCanvas({
   const engineRef = useRef(null);
   const rendererFailedRef = useRef(false);
   const commandsRef = useRef(commands);
+  const graphicsQualityRef = useRef(normalizeGraphicsQuality(graphicsQuality));
   const capturePlaybackControlRef = useRef(capturePlaybackControl);
   const onRendererErrorRef = useRef(onRendererError);
   const onSceneMetricsRef = useRef(onSceneMetrics);
   const initializationMsRef = useRef(null);
   const [rendererError, setRendererError] = useState("");
   commandsRef.current = commands;
+  graphicsQualityRef.current = normalizeGraphicsQuality(graphicsQuality);
   capturePlaybackControlRef.current = capturePlaybackControl;
   onRendererErrorRef.current = onRendererError;
   onSceneMetricsRef.current = onSceneMetrics;
@@ -53,7 +57,11 @@ export default function GauntletMatchCanvas({
         throw new Error("The Babylon match canvas has no visible width or height.");
       }
       engine = new Engine(canvas, true, { stencil: true, preserveDrawingBuffer: false, doNotHandleContextLost: false });
-      engine.setHardwareScalingLevel(matchHardwareScalingLevel(canvas.clientWidth, canvas.clientHeight));
+      engine.setHardwareScalingLevel(matchHardwareScalingLevel(
+        canvas.clientWidth,
+        canvas.clientHeight,
+        graphicsQualityRef.current
+      ));
       engineRef.current = engine;
       const renderer = createGauntletScene(engine, canvas, {
         activateHandCard: (...args) => commandsRef.current.activateHandCard?.(...args),
@@ -180,7 +188,11 @@ export default function GauntletMatchCanvas({
         : null;
 
       const resize = () => {
-        engine.setHardwareScalingLevel(matchHardwareScalingLevel(canvas.clientWidth, canvas.clientHeight));
+        engine.setHardwareScalingLevel(matchHardwareScalingLevel(
+          canvas.clientWidth,
+          canvas.clientHeight,
+          graphicsQualityRef.current
+        ));
         engine.resize();
       };
       const contextLost = (event) => {
@@ -218,6 +230,25 @@ export default function GauntletMatchCanvas({
       return undefined;
     }
   }, []);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    const canvas = canvasRef.current;
+    if (!engine || !canvas) return;
+    const scalingLevel = matchHardwareScalingLevel(
+      canvas.clientWidth,
+      canvas.clientHeight,
+      graphicsQuality
+    );
+    if (engine.getHardwareScalingLevel() !== scalingLevel) {
+      engine.setHardwareScalingLevel(scalingLevel);
+      engine.resize();
+    }
+    onSceneMetricsRef.current?.({
+      ...rendererRef.current?.getMetrics?.(),
+      initializationMs: initializationMsRef.current
+    });
+  }, [graphicsQuality]);
 
   useEffect(() => {
     try {

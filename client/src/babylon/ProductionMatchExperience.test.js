@@ -11,10 +11,11 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
   commands,
   interactionLocked,
   interactionStatus,
+  graphicsQuality,
   onSceneMetrics
 }) {
   return (
-    <div data-testid="mock-gauntlet-canvas">
+    <div data-testid="mock-gauntlet-canvas" data-graphics-quality={graphicsQuality}>
       {viewModel.instruction}
       <span data-testid="mock-canvas-cadence-tier">
         {viewModel.presentationCues?.[0]?.cadence?.tier || "rest"}
@@ -915,9 +916,11 @@ test("keeps live undo, draw, concession, and navigation controls around the Baby
 });
 
 test("keeps discard, match log, keyboard help, faction abilities, and sound in the production shell", async () => {
+  window.localStorage.removeItem("gauntlet.graphicsQuality");
   const inspectCard = jest.fn();
   const activateAbility = jest.fn();
   const onAudioEnabledChange = jest.fn();
+  const onGraphicsQualityChange = jest.fn();
   const viewModel = createViewModel();
   viewModel.interactions.abilities = [
     {
@@ -968,11 +971,18 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
         controls: { canConcede: true },
         commands: { inspectCard, activateAbility }
       })}
-      options={{ audioEnabled: true, onAudioEnabledChange }}
+      options={{ audioEnabled: true, onAudioEnabledChange, onGraphicsQualityChange }}
     />
   );
 
   fireEvent.click(await screen.findByText("Match"));
+  const graphicsQuality = screen.getByRole("combobox", { name: "Graphics quality" });
+  expect(graphicsQuality).toHaveValue("balanced");
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "balanced");
+  fireEvent.change(graphicsQuality, { target: { value: "high" } });
+  expect(onGraphicsQualityChange).toHaveBeenCalledWith("high");
+  expect(window.localStorage.getItem("gauntlet.graphicsQuality")).toBe("high");
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "high");
   expect(screen.getByRole("complementary", { name: "Recent play order" })).toHaveTextContent(
     "Player 1 declared a lane attack."
   );
@@ -1001,6 +1011,7 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   fireEvent.click(screen.getByRole("button", { name: "Mute sound" }));
   expect(onAudioEnabledChange).toHaveBeenCalledWith(false);
+  window.localStorage.removeItem("gauntlet.graphicsQuality");
 });
 
 test("opens keyboard zones without permanent duplicate chrome and exposes the discard shortcut", async () => {

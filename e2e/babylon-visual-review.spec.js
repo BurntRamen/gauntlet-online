@@ -646,6 +646,7 @@ async function captureLiveSceneSample(page) {
         structuralCompositeRasterCount: Number(match.dataset.structuralCompositeRasterCount || 0),
         sceneMeshCount: Number(match.dataset.sceneMeshCount || 0),
         drawCalls: Number(match.dataset.drawCalls || 0),
+        graphicsQuality: match.dataset.graphicsQuality || "",
         shadowMapSize: Number(match.dataset.shadowMapSize || 0),
         shadowMapRefreshRate: Number(match.dataset.shadowMapRefreshRate ?? -1),
         hardwareScalingLevel: Number(match.dataset.hardwareScalingLevel || 0),
@@ -760,6 +761,7 @@ function mergeRendererDiagnostics(attributes, rendererMetrics) {
     ),
     sceneMeshCount: rendererValue("sceneMeshCount", attributes.sceneMeshCount),
     drawCalls: rendererValue("drawCalls", attributes.drawCalls),
+    graphicsQuality: attributes.graphicsQuality,
     shadowMapSize: rendererValue("shadowMapSize", attributes.shadowMapSize),
     shadowMapRefreshRate: rendererValue("shadowMapRefreshRate", attributes.shadowMapRefreshRate),
     hardwareScalingLevel: rendererValue("hardwareScalingLevel", attributes.hardwareScalingLevel),
@@ -817,6 +819,7 @@ async function captureDiagnostics(page, rendererMetrics = null) {
   expect(diagnostics.shadowMapRefreshRate).toBe(0);
   expect(diagnostics.sceneMeshCount).toBeLessThan(520);
   expect(diagnostics.drawCalls).toBeLessThan(520);
+  expect(diagnostics.graphicsQuality).toBe("balanced");
   expect(diagnostics.frozenBoardMeshCount).toBeGreaterThan(300);
   expect(diagnostics.hardwareScalingLevel).toBeGreaterThanOrEqual(1);
   expect(diagnostics.actorCount).toBe(diagnostics.knownActorCount + diagnostics.anonymousActorCount);

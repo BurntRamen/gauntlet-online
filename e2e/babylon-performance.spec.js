@@ -43,6 +43,7 @@ async function collectSample(browser, baseURL, viewport, sampleId) {
       scriptResourceCount: resources.filter((entry) => entry.initiatorType === "script").length,
       sceneMeshCount: Number(match?.dataset.sceneMeshCount || 0),
       frozenBoardMeshCount: Number(match?.dataset.frozenBoardMeshCount || 0),
+      graphicsQuality: match?.dataset.graphicsQuality || "",
       hardwareScalingLevel: Number(match?.dataset.hardwareScalingLevel || 0),
       canvasBufferPixels: Number(canvas?.width || 0) * Number(canvas?.height || 0),
       canvasCssPixels: Number(canvas?.clientWidth || 0) * Number(canvas?.clientHeight || 0)
@@ -95,6 +96,7 @@ test("compiled Babylon client meets local cold-load performance safeguards", asy
     expect(Math.max(...samples.map((sample) => sample.sceneMeshCount))).toBeLessThan(520);
     expect(Math.min(...samples.map((sample) => sample.frozenBoardMeshCount))).toBeGreaterThan(300);
     expect(Math.max(...samples.map((sample) => sample.canvasBufferPixels))).toBeLessThanOrEqual(910000);
+    expect(samples.every((sample) => sample.graphicsQuality === "balanced")).toBe(true);
   }
 
   fs.mkdirSync(OUTPUT_DIRECTORY, { recursive: true });

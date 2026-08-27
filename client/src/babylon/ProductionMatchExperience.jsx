@@ -15,10 +15,26 @@ import {
   formatMatchLogEntry,
   matchLogSequence
 } from "./matchLog";
+import {
+  GRAPHICS_QUALITY_OPTIONS,
+  normalizeGraphicsQuality
+} from "./rendererLifecycle";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
+
+const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
+
+function initialGraphicsQuality(explicitQuality) {
+  if (explicitQuality != null) return normalizeGraphicsQuality(explicitQuality);
+  if (typeof window === "undefined") return normalizeGraphicsQuality();
+  try {
+    return normalizeGraphicsQuality(window.localStorage.getItem(GRAPHICS_QUALITY_STORAGE_KEY));
+  } catch (_error) {
+    return normalizeGraphicsQuality();
+  }
+}
 
 const EVENT_TONES = {
   "payment.release": [230, 0.09],
@@ -613,6 +629,9 @@ function MatchUtilities({
   descriptor,
   audioEnabled,
   onAudioEnabledChange,
+  graphicsQuality,
+  graphicsScalingLevel,
+  onGraphicsQualityChange,
   onOpenReference
 }) {
   const [confirmingConcede, setConfirmingConcede] = useState(false);
@@ -623,6 +642,9 @@ function MatchUtilities({
   const incomingDraw = controls.drawOfferBy && controls.drawOfferBy !== localPlayer;
   const rematch = controls.rematchStatus;
   const controlPending = !!controls.pendingControlType;
+  const graphicsProfile = GRAPHICS_QUALITY_OPTIONS.find((option) => option.id === graphicsQuality)
+    || GRAPHICS_QUALITY_OPTIONS.find((option) => option.id === "balanced");
+  const renderResolutionPercent = Math.round(100 / Math.max(0.01, Number(graphicsScalingLevel) || 1));
   const openReference = (kind) => {
     if (kind === "factions" && utilitiesRef.current) utilitiesRef.current.open = false;
     onOpenReference(kind);
@@ -654,6 +676,24 @@ function MatchUtilities({
       <summary>Match</summary>
       <div className="production-match-utilities-panel">
         {controls.roomCode && <span>Room {controls.roomCode}</span>}
+        <div className="production-graphics-setting">
+          <label htmlFor="gauntlet-graphics-quality">Graphics quality</label>
+          <select
+            id="gauntlet-graphics-quality"
+            value={graphicsQuality}
+            aria-describedby="gauntlet-graphics-quality-help"
+            onChange={(event) => onGraphicsQualityChange(event.target.value)}
+          >
+            {GRAPHICS_QUALITY_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}{option.id === "balanced" ? " (Recommended)" : ""}
+              </option>
+            ))}
+          </select>
+          <small id="gauntlet-graphics-quality-help">
+            {graphicsProfile.description} Rendering at {renderResolutionPercent}% resolution. Changes apply immediately and are saved.
+          </small>
+        </div>
         <div className="production-utility-shortcuts" aria-label="Match information">
           <button type="button" onClick={() => openReference("discard")}>Discard piles</button>
           <button type="button" onClick={() => openReference("log")}>Match log</button>
@@ -1347,6 +1387,7 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
+  const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [sceneMetrics, setSceneMetrics] = useState(null);
   const adapterRef = useRef(adapter);
   const sceneMetricsSignatureRef = useRef("");
@@ -1437,9 +1478,24 @@ export default function ProductionMatchExperience({
   useEffect(() => {
     if (options.audioEnabled != null) setAudioEnabled(Boolean(options.audioEnabled));
   }, [options.audioEnabled]);
+  useEffect(() => {
+    if (options.graphicsQuality != null) {
+      setGraphicsQuality(normalizeGraphicsQuality(options.graphicsQuality));
+    }
+  }, [options.graphicsQuality]);
   const updateAudioEnabled = useCallback((enabled) => {
     setAudioEnabled(Boolean(enabled));
     options.onAudioEnabledChange?.(Boolean(enabled));
+  }, [options]);
+  const updateGraphicsQuality = useCallback((quality) => {
+    const normalized = normalizeGraphicsQuality(quality);
+    setGraphicsQuality(normalized);
+    try {
+      window.localStorage.setItem(GRAPHICS_QUALITY_STORAGE_KEY, normalized);
+    } catch (_error) {
+      // The active match still updates even when browser storage is unavailable.
+    }
+    options.onGraphicsQualityChange?.(normalized);
   }, [options]);
   const handleSceneMetrics = useCallback((metrics) => {
     const signature = JSON.stringify({
@@ -1741,6 +1797,7 @@ export default function ProductionMatchExperience({
       data-shadow-map-size={sceneMetrics?.shadowMapSize ?? ""}
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
       data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
+      data-graphics-quality={graphicsQuality}
       data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
       <div
@@ -1753,6 +1810,7 @@ export default function ProductionMatchExperience({
             viewModel={canvasViewModel}
             commands={gameplayCommands}
             interactionLocked={gameplayInputLocked}
+            graphicsQuality={graphicsQuality}
             interactionStatus={transportUpdate?.connected === false
               ? "Connection interrupted. The current table is preserved while reconnecting."
               : gameplayInputLocked
@@ -1803,6 +1861,9 @@ export default function ProductionMatchExperience({
             descriptor={update?.descriptor}
             audioEnabled={audioEnabled}
             onAudioEnabledChange={updateAudioEnabled}
+            graphicsQuality={graphicsQuality}
+            graphicsScalingLevel={sceneMetrics?.hardwareScalingLevel}
+            onGraphicsQualityChange={updateGraphicsQuality}
             onOpenReference={setReferencePanel}
           />
         )}

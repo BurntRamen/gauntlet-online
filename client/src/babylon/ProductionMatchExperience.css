@@ -1528,6 +1528,48 @@
   color: #ffb7bc;
 }
 
+.production-graphics-setting {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(181, 137, 79, 0.42);
+  border-radius: 6px;
+  background: rgba(17, 30, 44, 0.88);
+}
+
+.production-graphics-setting label {
+  color: #f2c978;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.production-graphics-setting select {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #71859a;
+  border-radius: 5px;
+  color: #fff8e8;
+  background: #14283a;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.production-graphics-setting select:focus-visible {
+  outline: 2px solid #69bfff;
+  outline-offset: 2px;
+}
+
+.production-graphics-setting small {
+  color: #c3ced8;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .production-utility-shortcuts {
   display: grid;
   grid-template-columns: 1fr 1fr;
