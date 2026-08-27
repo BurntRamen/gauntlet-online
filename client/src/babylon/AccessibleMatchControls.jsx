@@ -1,4 +1,9 @@
-export default function AccessibleMatchControls({ viewModel, commands }) {
+export default function AccessibleMatchControls({
+  viewModel,
+  commands,
+  interactionLocked = false,
+  interactionStatus = ""
+}) {
   const spectator = viewModel?.perspective?.spectator;
   const hasSelection = !!(
     viewModel?.selection?.attackMode
@@ -17,10 +22,16 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
     .filter((entry) => entry.reason);
 
   return (
-    <section className="babylon-accessible-controls" aria-label="Keyboard match controls">
+    <section
+      className="babylon-accessible-controls"
+      aria-label="Keyboard match controls"
+      aria-busy={interactionLocked}
+    >
       <div className="babylon-accessible-control-body">
         <strong className="babylon-keyboard-control-title">Keyboard controls</strong>
-        <p role="status" aria-live="polite">{viewModel?.instruction || "Waiting for match state."}</p>
+        <p role="status" aria-live="polite">
+          {interactionStatus || viewModel?.instruction || "Waiting for match state."}
+        </p>
         {!spectator && (
           <>
             {!!viewModel.interactions.abilities?.length && (
@@ -31,7 +42,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                     key={ability.id}
                     data-match-zone="abilities"
                     aria-pressed={ability.active}
-                    disabled={ability.available === false}
+                    disabled={interactionLocked || ability.available === false}
                     onClick={() => commands.activateAbility?.(ability.id)}
                   >
                     {ability.label}
@@ -46,7 +57,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                   key={card.id || index}
                   data-match-zone="hand"
                   data-card-index={index}
-                  disabled={card.unavailable}
+                  disabled={interactionLocked || card.unavailable}
                   aria-pressed={Object.values(card.selected || {}).some(Boolean)}
                   aria-label={`${card.label}, value ${card.value}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}`}
                   onClick={() => commands.activateHandCard?.(index)}
@@ -66,7 +77,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                         type="button"
                         key={`${lane.id}-local`}
                         data-match-zone="lanes"
-                        disabled={!legal}
+                        disabled={interactionLocked || !legal}
                         onClick={() => commands.activateLane?.(lane.index, "local")}
                       >
                         Your Lane {lane.index + 1}
@@ -77,7 +88,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                         type="button"
                         key={`${lane.id}-opponent`}
                         data-match-zone="lanes"
-                        disabled={!legal}
+                        disabled={interactionLocked || !legal}
                         onClick={() => commands.activateLane?.(lane.index, "opponent")}
                       >
                         Opponent Lane {lane.index + 1}
@@ -90,7 +101,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                     type="button"
                     key={lane.id}
                     data-match-zone="lanes"
-                    disabled={!legal}
+                    disabled={interactionLocked || !legal}
                     title={!legal ? viewModel.interactions.laneUnavailableReasons?.[lane.index] || "" : ""}
                     onClick={() => commands.activateLane?.(
                       lane.index,
@@ -121,6 +132,7 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
                       type="button"
                       key={`ability-attack-${attack.id}`}
                       aria-pressed={viewModel.selection.abilityMode?.attackId === attack.id}
+                      disabled={interactionLocked}
                       onClick={() => commands.activateAttackTarget?.(attack.id)}
                     >
                       {attack.laneIndex == null ? "Hand attacker" : `Lane ${attack.laneIndex + 1} attacker`}
@@ -129,9 +141,9 @@ export default function AccessibleMatchControls({ viewModel, commands }) {
               </div>
             )}
             <div className="babylon-accessible-control-row">
-              <button type="button" data-match-zone="actions" disabled={passDisabled} onClick={() => commands.passPriority?.()}>{viewModel.interactions.passLabel || "Pass / Continue"}</button>
-              <button type="button" data-match-zone="actions" disabled={viewModel.interactions.confirmDisabled} onClick={() => commands.confirmCurrentAction?.()}>{viewModel.interactions.confirmLabel || "Confirm"}</button>
-              <button type="button" data-match-zone="actions" disabled={!hasSelection} onClick={() => commands.cancelCurrentAction?.()}>Cancel</button>
+              <button type="button" data-match-zone="actions" disabled={interactionLocked || passDisabled} onClick={() => commands.passPriority?.()}>{viewModel.interactions.passLabel || "Pass / Continue"}</button>
+              <button type="button" data-match-zone="actions" disabled={interactionLocked || viewModel.interactions.confirmDisabled} onClick={() => commands.confirmCurrentAction?.()}>{viewModel.interactions.confirmLabel || "Confirm"}</button>
+              <button type="button" data-match-zone="actions" disabled={interactionLocked || !hasSelection} onClick={() => commands.cancelCurrentAction?.()}>Cancel</button>
             </div>
           </>
         )}

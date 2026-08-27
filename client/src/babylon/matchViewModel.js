@@ -1,4 +1,8 @@
-import { getPlayingCardArtPath, normalizeCardDisplayText } from "../cardArt";
+import {
+  expectsPlayingCardArt,
+  getPlayingCardArtPath,
+  normalizeCardDisplayText
+} from "../cardArt";
 
 const LANE_INDEXES = [0, 1, 2];
 
@@ -38,7 +42,7 @@ function cardLabel(card) {
   return `${cardRank(card)}${cardSuit(card)}`;
 }
 
-function normalizeCard(card, { visible = true, factionId = "basic", id = "hidden" } = {}) {
+function normalizeCard(card, { visible = true, factionId = null, id = "hidden" } = {}) {
   if (!visible || !card) {
     return {
       id,
@@ -47,9 +51,13 @@ function normalizeCard(card, { visible = true, factionId = "basic", id = "hidden
       rank: "",
       suit: "",
       value: null,
-      artPath: ""
+      artPath: "",
+      factionId: "",
+      expectsFaceArt: false
     };
   }
+
+  const resolvedFactionId = String(factionId || card.factionId || "basic").toLowerCase();
 
   return {
     id: card.id || id,
@@ -58,17 +66,23 @@ function normalizeCard(card, { visible = true, factionId = "basic", id = "hidden
     rank: cardRank(card),
     suit: cardSuit(card),
     value: cardValue(card),
-    artPath: getPlayingCardArtPath(card, factionId),
+    artPath: getPlayingCardArtPath(card, resolvedFactionId),
+    factionId: resolvedFactionId,
+    expectsFaceArt: expectsPlayingCardArt(card),
     raw: card
   };
 }
 
-function normalizePayment(payment, owner = null) {
+function factionForPlayer(game, playerNumber) {
+  return game?.players?.[playerNumber]?.faction?.id || "basic";
+}
+
+function normalizePayment(payment, owner = null, factionId = "basic") {
   const cards = Array.isArray(payment) ? payment : payment?.cards || [];
   return {
     owner,
     cards: cards.map((card, index) => normalizeCard(card, {
-      factionId: card?.factionId || "basic",
+      factionId: card?.factionId || factionId,
       id: card?.id || `payment-${owner || "public"}-${index}`
     })),
     total: Number(payment?.total || 0),
@@ -96,7 +110,7 @@ function recentPublicPayments(game, events) {
       if (matchedIndex < 0) return null;
       claimedLogIndexes.add(matchedIndex);
       return {
-        ...normalizePayment(log[matchedIndex], entry.player),
+        ...normalizePayment(log[matchedIndex], entry.player, factionForPlayer(game, entry.player)),
         eventId: entry.id || `payment-event-${entry.player}-${matchedIndex}`,
         type: log[matchedIndex].type || "payment"
       };
@@ -145,19 +159,21 @@ function publicCardCatalog(game) {
   return catalog;
 }
 
-function normalizeAttack(attack, laneIndex, owner) {
+function normalizeAttack(game, attack, laneIndex, owner) {
   if (!attack) return null;
+  const attackOwner = attack.player ?? owner ?? null;
+  const attackFactionId = attack.card?.factionId || factionForPlayer(game, attackOwner);
   return {
     id: attack.id || `lane-attack-${laneIndex}`,
-    owner: attack.player ?? owner ?? null,
+    owner: attackOwner,
     laneIndex,
     targetPlayer: attack.targetPlayer ?? null,
-    card: normalizeCard(attack.card, { factionId: attack.card?.factionId || "basic", id: `attack-${laneIndex}` }),
+    card: normalizeCard(attack.card, { factionId: attackFactionId, id: `attack-${laneIndex}` }),
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
-    payment: normalizePayment(attack.payment, attack.player ?? owner ?? null),
+    payment: normalizePayment(attack.payment, attackOwner, attackFactionId),
     attachments: (attack.attachedCards || []).map((card, index) => normalizeCard(card, {
-      factionId: card?.factionId || "basic",
+      factionId: card?.factionId || attackFactionId,
       id: card?.id || `${attack.id}-attachment-${index}`
     })),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
@@ -165,27 +181,28 @@ function normalizeAttack(attack, laneIndex, owner) {
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
-      payment: normalizePayment(block.payment, block.player ?? null),
+      payment: normalizePayment(block.payment, block.player ?? null, factionForPlayer(game, block.player)),
       card: normalizeCard(block.card, {
-        factionId: block.card?.factionId || "basic",
+        factionId: block.card?.factionId || factionForPlayer(game, block.player),
         id: `${attack.id}-block-${index}`
       })
     }))
   };
 }
 
-function normalizeHandAttack(attack) {
+function normalizeHandAttack(game, attack) {
   if (!attack) return null;
+  const attackFactionId = attack.card?.factionId || factionForPlayer(game, attack.player);
   return {
     id: attack.id,
     owner: attack.player ?? null,
     targetPlayer: attack.targetPlayer ?? null,
-    card: normalizeCard(attack.card, { factionId: attack.card?.factionId || "basic", id: `hand-attack-${attack.id}` }),
+    card: normalizeCard(attack.card, { factionId: attackFactionId, id: `hand-attack-${attack.id}` }),
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
-    payment: normalizePayment(attack.payment, attack.player ?? null),
+    payment: normalizePayment(attack.payment, attack.player ?? null, attackFactionId),
     attachments: (attack.attachedCards || []).map((card, index) => normalizeCard(card, {
-      factionId: card?.factionId || "basic",
+      factionId: card?.factionId || attackFactionId,
       id: card?.id || `${attack.id}-attachment-${index}`
     })),
     blocked: Array.isArray(attack.block) && attack.block.length > 0,
@@ -193,9 +210,9 @@ function normalizeHandAttack(attack) {
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
-      payment: normalizePayment(block.payment, block.player ?? null),
+      payment: normalizePayment(block.payment, block.player ?? null, factionForPlayer(game, block.player)),
       card: normalizeCard(block.card, {
-        factionId: block.card?.factionId || "basic",
+        factionId: block.card?.factionId || factionForPlayer(game, block.player),
         id: `${attack.id}-block-${index}`
       })
     }))
@@ -206,18 +223,25 @@ function normalizeLane(game, laneIndex, bottomPlayer, topPlayer, spectator) {
   const lane = game?.lanes?.[laneIndex] || {};
   const localCard = bottomPlayer ? lane.facedown?.[bottomPlayer] : null;
   const opponentCard = topPlayer ? lane.facedown?.[topPlayer] : null;
-  const attack = normalizeAttack(lane.attack, laneIndex, null);
+  const attack = normalizeAttack(game, lane.attack, laneIndex, null);
   const blocks = (lane.block || []).map((block, index) => ({
     id: block.id || `block-${laneIndex}-${index}`,
     owner: block.player ?? null,
     value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
-    card: normalizeCard(block.card, { factionId: block.card?.factionId || "basic", id: `block-${laneIndex}-${index}` })
+    card: normalizeCard(block.card, {
+      factionId: block.card?.factionId || factionForPlayer(game, block.player),
+      id: `block-${laneIndex}-${index}`
+    })
   }));
 
   return {
     id: `lane-${laneIndex}`,
     index: laneIndex,
-    localCard: normalizeCard(localCard, { visible: !!localCard && !spectator, factionId: localCard?.factionId, id: `local-lane-${laneIndex}` }),
+    localCard: normalizeCard(localCard, {
+      visible: !!localCard && !spectator,
+      factionId: localCard?.factionId || factionForPlayer(game, bottomPlayer),
+      id: `local-lane-${laneIndex}`
+    }),
     opponentCard: normalizeCard(opponentCard, { visible: false, id: `opponent-lane-${laneIndex}` }),
     playerOneCard: normalizeCard(lane.facedown?.[1], { visible: false, id: `p1-lane-${laneIndex}` }),
     playerTwoCard: normalizeCard(lane.facedown?.[2], { visible: false, id: `p2-lane-${laneIndex}` }),
@@ -288,7 +312,7 @@ export function createGauntletMatchViewModel({
     spectator
   ));
   const hand = normalizeSelection(localHand, interaction);
-  const handAttacks = (game?.handAttacks || []).map(normalizeHandAttack);
+  const handAttacks = (game?.handAttacks || []).map((attack) => normalizeHandAttack(game, attack));
   const publicPayments = recentPublicPayments(game, events);
   const visibleCardCatalog = publicCardCatalog(game);
   const legalLanes = new Set(interaction.legalLanes || []);

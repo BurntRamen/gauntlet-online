@@ -33,6 +33,11 @@ test("maps the local player to the bottom and hides the opponent hand", () => {
   expect(view.bottom.hand).toHaveLength(2);
   expect(view.top.hand).toEqual([]);
   expect(view.top.handCount).toBe(3);
+  expect(view.bottom.hand[0]).toEqual(expect.objectContaining({
+    factionId: "basic",
+    expectsFaceArt: true,
+    artPath: "/assets/gauntlet/playing-cards/basic-4-spades.webp"
+  }));
 });
 
 test("keeps exactly three lanes and maps hidden lane occupancy by perspective", () => {
@@ -127,6 +132,21 @@ test("keeps hand-attack blockers paired with the independent attack", () => {
   expect(view.handAttacks[0].laneIndex).toBeUndefined();
   expect(view.handAttacks[0].blocks).toHaveLength(1);
   expect(view.handAttacks[0].blocks[0].card.label).toContain("5");
+  expect(view.handAttacks[0].card.artPath).toBe("/assets/gauntlet/playing-cards/basic-8-spades.webp");
+  expect(view.handAttacks[0].blocks[0].card.artPath).toBe("/assets/gauntlet/playing-cards/basic-5-spades.webp");
+});
+
+test("derives combat art from the authoritative owner faction when cards omit faction ids", () => {
+  const game = makeGame();
+  game.players[2].faction = { id: "frumo", name: "Frumo" };
+  game.lanes[1].attack.card.factionId = undefined;
+  const view = createBasicGauntletMatchViewModel({ game, player: 1, role: "player" });
+
+  expect(view.lanes[1].attack.card).toEqual(expect.objectContaining({
+    factionId: "frumo",
+    expectsFaceArt: true,
+    artPath: "/assets/gauntlet/playing-cards/frumo-10-spades.webp"
+  }));
 });
 
 test("exposes public payment cards from the matching authoritative payment event", () => {

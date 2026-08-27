@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "damage-major-a",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A major but restrained life-damage resolution for a premium tabletop strategy card game: a heavy card-driven impact into dense wood and graphite, a short low-frequency pressure hit, tiny bronze fragments settling, and an immediate controlled decay. Weighty and decisive, not cinematic. No explosion, no monster, no sword, no voice, no music, no casino or mobile reward sound, no long reverb.",
+  "parameters": {
+    "duration_seconds": 0.8,
+    "prompt_influence": 0.76,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:fc4752ac1e26c1f0",
+  "generatedAt": "2026-08-26T04:50:16.255Z",
+  "publishedAt": "2026-08-26T04:54:15.422Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact_major.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 76844,
+  "sha256": "3e8389a7b87f39e076788e27416c069ec666a4d8b47722ed346b6bea0e2d0e69"
+}

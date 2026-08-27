@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "combat-fully-blocked-b",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A restrained defensive stop for a premium physical card game: a dense card snaps into a tabletop lane, followed by a muted metal brace locking and a very short low-pressure release. Clearly defensive and successful, distinct from an offensive hit. Dry, tactile, compact. No fantasy blast, no weapon clang, no reward chime, no voice, no music, no long tail.",
+  "parameters": {
+    "duration_seconds": 0.65,
+    "prompt_influence": 0.72,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:ee8c792b84b71513",
+  "generatedAt": "2026-08-26T04:50:14.424Z",
+  "publishedAt": "2026-08-26T04:54:15.417Z",
+  "clientOutput": "client/public/assets/gauntlet/match/kits/gauntlet-core-v1/audio/candidates/combat_fully_blocked_b.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 61484,
+  "sha256": "d75a99c8038d2ebe002baac900aafa17e3250e53349030ab3f16715b8a614e00"
+}

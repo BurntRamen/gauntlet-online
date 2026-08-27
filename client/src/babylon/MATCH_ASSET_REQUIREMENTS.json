@@ -11,6 +11,7 @@
   "integrated": [
     { "id": "presentation-kit-manifest", "kind": "manifest", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/kit.json" },
     { "id": "delivery-provenance", "kind": "manifest", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/source/delivery-2026-08-10.json" },
+    { "id": "elevenlabs-audio-provenance", "kind": "manifest", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/source/elevenlabs-audio-2026-08-26.json" },
     { "id": "board-concept-reference", "kind": "reference", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp" },
     { "id": "approved-emissive-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/emissive-atlas-candidate.webp" },
     { "id": "approved-fx-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/effects/fx-atlas-candidate.webp" },
@@ -45,9 +46,12 @@
     { "id": "payment-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/payment_commit.wav" },
     { "id": "attack-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/attack_declare.wav" },
     { "id": "block-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/block_commit.wav" },
+    { "id": "fully-blocked-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/combat_fully_blocked.wav" },
     { "id": "damage-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact.wav" },
+    { "id": "major-damage-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact_major.wav" },
     { "id": "priority-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/priority_change.wav" },
     { "id": "turn-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/turn_transition.wav" },
+    { "id": "ability-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav" },
     { "id": "victory-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/victory_stinger.wav" },
     { "id": "defeat-sfx", "kind": "audio", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/defeat_stinger.wav" }
   ],

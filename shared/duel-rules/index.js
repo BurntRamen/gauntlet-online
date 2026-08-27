@@ -1213,15 +1213,34 @@ function resolveAttack(game, attack, laneIndex, events) {
   (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
   events.push(event(game, "damage.calculated", {
     player: defender,
+    attacker: attack.player,
+    targetPlayer: defender,
+    attackId: attack.id,
+    cardId: attack.card?.id || null,
+    source: attack.source || (laneIndex == null ? "hand" : "lane"),
+    laneIndex,
     attackValue: attack.effectiveValue,
     blockValue,
     prevented,
     damage
   }));
   if (damage > 0) {
-    events.push(event(game, "damage.dealt", { player: defender, amount: damage, from: before, to: game.players[defender].life }));
+    events.push(event(game, "damage.dealt", {
+      player: defender,
+      attacker: attack.player,
+      attackId: attack.id,
+      laneIndex,
+      amount: damage,
+      from: before,
+      to: game.players[defender].life
+    }));
   } else {
-    events.push(event(game, "attack.fullyBlocked", { player: defender }));
+    events.push(event(game, "attack.fullyBlocked", {
+      player: defender,
+      attacker: attack.player,
+      attackId: attack.id,
+      laneIndex
+    }));
   }
   if (laneIndex == null) game.handAttacks = game.handAttacks.filter((entry) => entry.id !== attack.id);
   else {
@@ -1233,7 +1252,16 @@ function resolveAttack(game, attack, laneIndex, events) {
   game.mostRecentAttackDefender = null;
   game.priorityPassed = { 1: false, 2: false };
   game.message = `${damage} damage resolved. Player ${defender} has priority.`;
-  events.push(event(game, "combat.resolutionCompleted"), event(game, "priority.granted", { player: defender }));
+  events.push(
+    event(game, "combat.resolutionCompleted", {
+      player: defender,
+      attacker: attack.player,
+      attackId: attack.id,
+      laneIndex,
+      damage
+    }),
+    event(game, "priority.granted", { player: defender })
+  );
 }
 
 function checkVictory(game, events) {
@@ -1599,7 +1627,11 @@ function applyCommand(current, rawCommand) {
       })] : []),
       event(game, "attack.declared", {
         player,
+        targetPlayer: defender,
+        attackId: attack.id,
         cardId: attackCard.id,
+        source: attack.source,
+        sourceLane: attack.sourceLane,
         laneIndex,
         effectiveValue: attack.effectiveValue,
         notes: attack.notes
@@ -1747,7 +1779,13 @@ function applyCommand(current, rawCommand) {
         cardIds: constructedBlockChoices.selectedIds,
         source: "constructed-block"
       })] : []),
-      event(game, "block.declared", { player, cardIds: blockerIds, laneIndex: pending.laneIndex })
+      event(game, "block.declared", {
+        player,
+        targetPlayer: pending.attack.player,
+        attackId: pending.attack.id,
+        cardIds: blockerIds,
+        laneIndex: pending.laneIndex
+      })
     );
     label = `Player ${player} blocked with ${blockCards.map((card) => `${card.rank}${card.suit}`).join(", ")}.`;
     if (game.gameMode === "basic") {

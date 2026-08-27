@@ -1,7 +1,7 @@
 {
   "schemaVersion": "gauntlet.match-presentation.v1",
   "kitId": "gauntlet-core-v1",
-  "revision": "native-board-audio-2026-08-11",
+  "revision": "audio-hierarchy-2026-08-26",
   "status": "approved",
   "provenance": {
     "creator": "Gauntlet engineering",
@@ -26,6 +26,13 @@
       "creator": "User-supplied generated visual delivery",
       "source": "Gauntlet board, module, mask, and FX concept images supplied 2026-08-10",
       "approvalOwner": "Gauntlet art direction",
+      "license": "Project-internal production use approved",
+      "checksum": null
+    },
+    "elevenlabs-match-audio-2026-08-26": {
+      "creator": "ElevenLabs Sound Effects API with Gauntlet audio direction",
+      "source": "source/elevenlabs-audio-2026-08-26.json",
+      "approvalOwner": "Gauntlet audio direction",
       "license": "Project-internal production use approved",
       "checksum": null
     }
@@ -101,13 +108,16 @@
       "card.discard": { "id": "card.discard", "role": "card", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/card_slide.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.payment", "checksum": "sha256:330da8262372025ea907b4d4ada84e1da2a38291d0b4da75e0c72c06ccd5e49f", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
       "attack.declare": { "id": "attack.declare", "role": "attack", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/attack_declare.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.attack", "checksum": "sha256:5030cb2739c3ba94de7f40a8740be063ef12ceb9032b0a1165ba5d1699c2ad6a", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
       "block.commit": { "id": "block.commit", "role": "block", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/block_commit.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.block", "checksum": "sha256:76ad48668bc684ef515a94887cdfeb9d9d82d1294372c574972b70f3ea81d9c7", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
+      "combat.blocked": { "id": "combat.blocked", "role": "block-resolution", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/combat_fully_blocked.wav", "status": "approved", "revision": "production-2026-08-26", "requiredForCutover": true, "fallback": "tone.combat.blocked", "checksum": "sha256:de629ea3f0636137f1011f710d3c67b0bbafb0dbdfa31798b71a7b761608b09d", "provenanceRef": "elevenlabs-match-audio-2026-08-26" },
       "combat.resolve": { "id": "combat.resolve", "role": "combat", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.damage", "checksum": "sha256:5cd13b4de0a6a865b978e56e0ae0ab22e404f355df1bcf60a2ad5bfd729d51d8", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
       "damage.impact": { "id": "damage.impact", "role": "damage", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.damage", "checksum": "sha256:5cd13b4de0a6a865b978e56e0ae0ab22e404f355df1bcf60a2ad5bfd729d51d8", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
+      "damage.major": { "id": "damage.major", "role": "major-damage", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/damage_impact_major.wav", "status": "approved", "revision": "production-2026-08-26", "requiredForCutover": true, "fallback": "tone.damage.major", "checksum": "sha256:3e8389a7b87f39e076788e27416c069ec666a4d8b47722ed346b6bea0e2d0e69", "provenanceRef": "elevenlabs-match-audio-2026-08-26" },
       "priority.transfer": { "id": "priority.transfer", "role": "priority", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/priority_change.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.priority", "checksum": "sha256:625594db758247750024d6d4e795fea074cc9e22f3125c431292543d13e88161", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
       "turn.start": { "id": "turn.start", "role": "turn", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/turn_transition.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.turn", "checksum": "sha256:6799df9c875ced1089b103566fe1c6ca3745e82375ba2a888b8dfbf54498ce71", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
-      "ability.activate": { "id": "ability.activate", "role": "ability", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/priority_change.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.ability", "checksum": "sha256:625594db758247750024d6d4e795fea074cc9e22f3125c431292543d13e88161", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
+      "ability.activate": { "id": "ability.activate", "role": "ability", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav", "status": "approved", "revision": "production-2026-08-26", "requiredForCutover": true, "fallback": "tone.ability", "checksum": "sha256:716748f9b07adda52157509835dd511f9695995af670abb2b73e444fff72ac68", "provenanceRef": "elevenlabs-match-audio-2026-08-26" },
       "match.victory": { "id": "match.victory", "role": "result", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/victory_stinger.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.victory", "checksum": "sha256:4f0b9f71a7fa728f4a5fea33ed32877404507c8d9c8ef558cb52f48c9a90ffca", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
-      "match.defeat": { "id": "match.defeat", "role": "result", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/defeat_stinger.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.defeat", "checksum": "sha256:9c9722d1c83aeb11d7168dfe4b3817e044fdd79ee65d7a234470bc8bcc557212", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" }
+      "match.defeat": { "id": "match.defeat", "role": "result", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/defeat_stinger.wav", "status": "approved", "revision": "production-2026-08-10", "requiredForCutover": true, "fallback": "tone.defeat", "checksum": "sha256:9c9722d1c83aeb11d7168dfe4b3817e044fdd79ee65d7a234470bc8bcc557212", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" },
+      "match.draw": { "id": "match.draw", "role": "neutral-result", "format": "wav", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/turn_transition.wav", "status": "approved", "revision": "production-2026-08-26", "requiredForCutover": true, "fallback": "tone.draw", "checksum": "sha256:6799df9c875ced1089b103566fe1c6ca3745e82375ba2a888b8dfbf54498ce71", "provenanceRef": "gauntlet-core-audio-v1-user-delivery" }
     }
   }
 }

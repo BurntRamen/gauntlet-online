@@ -1,19 +1,64 @@
-export const PRESENTATION_CUE_CONTRACT_VERSION = "gauntlet.presentation-cues.v1";
+import {
+  MAJOR_DAMAGE_THRESHOLD,
+  projectPresentationBeats,
+  projectPresentationCueMetadata,
+  resolvePresentationBeatTiming
+} from "./presentationCadence";
 
-export const PRESENTATION_CUE_DEFINITIONS = Object.freeze({
-  "payment.discarded": Object.freeze({ cueId: "payment.release", phase: "release", durationMs: 1000, offsetMs: 620, visualAssetId: "payment.release", audioAssetId: "payment.release", gain: 0.46 }),
-  "attack.declared": Object.freeze({ cueId: "attack.declare", phase: "settle", durationMs: 1300, offsetMs: 820, visualAssetId: "attack.declare", audioAssetId: "attack.declare", gain: 0.48 }),
-  "block.declared": Object.freeze({ cueId: "block.commit", phase: "settle", durationMs: 1450, offsetMs: 900, visualAssetId: "block.commit", audioAssetId: "block.commit", gain: 0.48 }),
-  "damage.calculated": Object.freeze({ cueId: "damage.impact", phase: "impact", durationMs: 1400, offsetMs: 260, visualAssetId: "damage.impact", audioAssetId: "damage.impact", gain: 0.5 }),
-  "card.placedFacedown": Object.freeze({ cueId: "card.place", phase: "settle", durationMs: 1050, offsetMs: 760, visualAssetId: "card.place", audioAssetId: "card.place", gain: 0.4 }),
-  "cards.drawn": Object.freeze({ cueId: "card.draw", phase: "travel", durationMs: 950, offsetMs: 120, visualAssetId: "card.draw", audioAssetId: "card.draw", gain: 0.38 }),
-  "priority.granted": Object.freeze({ cueId: "priority.transfer", phase: "impact", durationMs: 800, visualAssetId: "priority.transfer", audioAssetId: "priority.transfer", gain: 0.38 }),
-  "turn.started": Object.freeze({ cueId: "turn.start", phase: "impact", durationMs: 1150, visualAssetId: "turn.start", audioAssetId: "turn.start", gain: 0.42 }),
-  "acceleration.gained": Object.freeze({ cueId: "ability.activate", phase: "impact", durationMs: 900, visualAssetId: "ability.activate", audioAssetId: "ability.activate", gain: 0.4 }),
-  "campaign.attackDeclared": Object.freeze({ cueId: "attack.declare", phase: "settle", durationMs: 1300, visualAssetId: "attack.declare", audioAssetId: "attack.declare", gain: 0.48 }),
-  "campaign.bossHealed": Object.freeze({ cueId: "ability.activate", phase: "impact", durationMs: 1000, visualAssetId: "ability.activate", audioAssetId: "ability.activate", gain: 0.4 }),
-  "match.ended": Object.freeze({ cueId: "match.result", phase: "impact", durationMs: 1600, visualAssetId: "match.result", audioAssetId: "match.victory", gain: 0.5 })
+export const PRESENTATION_CUE_CONTRACT_VERSION = "gauntlet.presentation-cues.v1";
+export { MAJOR_DAMAGE_THRESHOLD };
+
+const DEFINITION_FIXTURES = Object.freeze({
+  "payment.discarded": { id: "definition-payment", type: "payment.discarded", cardIds: ["card"] },
+  "attack.declared": { id: "definition-attack", type: "attack.declared" },
+  "block.declared": { id: "definition-block", type: "block.declared", cardIds: ["card"] },
+  "damage.calculated": { id: "definition-damage", type: "damage.calculated", damage: 4 },
+  "damage.dealt": { id: "definition-damage-dealt", type: "damage.dealt", amount: 4 },
+  "attack.fullyBlocked": { id: "definition-blocked", type: "attack.fullyBlocked" },
+  "card.placedFacedown": { id: "definition-place", type: "card.placedFacedown" },
+  "cards.drawn": { id: "definition-draw", type: "cards.drawn", cardIds: ["card"] },
+  "priority.granted": { id: "definition-priority", type: "priority.granted" },
+  "priority.passed": { id: "definition-pass", type: "priority.passed" },
+  "turn.started": { id: "definition-turn", type: "turn.started" },
+  "ability.activated": { id: "definition-ability", type: "ability.activated" },
+  "acceleration.gained": { id: "definition-acceleration", type: "acceleration.gained" },
+  "acceleration.spent": { id: "definition-acceleration-spent", type: "acceleration.spent" },
+  "lanes.swapped": { id: "definition-lane-swap", type: "lanes.swapped" },
+  "card.peeked": { id: "definition-peek", type: "card.peeked" },
+  "card.buffApplied": { id: "definition-buff", type: "card.buffApplied" },
+  "laneCard.swappedWithHand": { id: "definition-hand-swap", type: "laneCard.swappedWithHand" },
+  "choice.committed": { id: "definition-choice", type: "choice.committed" },
+  "campaign.attackDeclared": { id: "definition-campaign-attack", type: "campaign.attackDeclared" },
+  "campaign.bossHealed": { id: "definition-boss-heal", type: "campaign.bossHealed" },
+  "match.ended": { id: "definition-result", type: "match.ended", winner: 1 }
 });
+
+function definitionFromCadence(entry) {
+  const beat = projectPresentationBeats([entry])[0];
+  if (!beat) return null;
+  const timing = resolvePresentationBeatTiming(beat);
+  const metadata = projectPresentationCueMetadata(beat, {
+    timing,
+    perspectivePlayer: entry.type === "match.ended" ? 1 : null
+  })[0];
+  if (!metadata) return null;
+  return Object.freeze({
+    cueId: metadata.cueId,
+    phase: metadata.phase,
+    durationMs: timing.durationMs,
+    offsetMs: metadata.offsetMs,
+    effectDurationMs: metadata.effectDurationMs,
+    visualAssetId: metadata.visualAssetId,
+    audioAssetId: metadata.audioAssetId,
+    gain: metadata.gain,
+    effect: metadata.effect,
+    cadence: metadata.cadence
+  });
+}
+
+export const PRESENTATION_CUE_DEFINITIONS = Object.freeze(Object.fromEntries(
+  Object.entries(DEFINITION_FIXTURES).map(([type, entry]) => [type, definitionFromCadence(entry)])
+));
 
 export const BOARD_ACTION_CUE_IDS = Object.freeze([
   "card.lift",
@@ -34,6 +79,9 @@ export const BOARD_ACTION_CUE_IDS = Object.freeze([
   "ability.activate",
   "match.victory",
   "match.defeat",
+  "match.draw",
+  "combat.blocked",
+  "damage.major",
   "ui.select",
   "ui.confirm",
   "ui.cancel"
@@ -66,45 +114,66 @@ export function presentationCueOccurrenceId({ matchId, sourceEventId, cueId, pha
   ].join(":");
 }
 
-export function projectPresentationCues(entry, {
-  matchId = "match",
-  traversalId = "live",
-  durationMs,
-  result = null
-} = {}) {
-  const definition = PRESENTATION_CUE_DEFINITIONS[entry?.type];
-  if (!definition) return [];
-  const target = cueTargetForEvent(entry);
-  let cueId = definition.cueId;
-  let audioAssetId = definition.audioAssetId;
-  let visualAssetId = definition.visualAssetId;
-  if (entry.type === "match.ended") {
-    const localWon = result?.localWon ?? entry.localWon;
-    cueId = localWon === false ? "match.defeat" : "match.victory";
-    audioAssetId = cueId;
-    visualAssetId = cueId;
-  }
-  const cue = {
-    contract: PRESENTATION_CUE_CONTRACT_VERSION,
-    cueId,
-    occurrenceId: presentationCueOccurrenceId({
-      matchId,
-      sourceEventId: entry.id,
-      cueId,
-      phase: definition.phase,
+export function projectPresentationCues(entryOrBeat, options = {}) {
+  const {
+    matchId = "match",
+    traversalId = "live",
+    durationMs,
+    result = null,
+    perspectivePlayer = null,
+    spectator = false
+  } = options;
+  const beat = Array.isArray(entryOrBeat?.events) && entryOrBeat?.kind
+    ? entryOrBeat
+    : projectPresentationBeats([entryOrBeat], options)[0];
+  if (!beat) return [];
+  const naturalTiming = options.timing || beat.timing || resolvePresentationBeatTiming(beat, options);
+  const requestedDuration = durationMs == null ? naturalTiming.durationMs : Math.max(0, Number(durationMs) || 0);
+  const scale = naturalTiming.durationMs > 0 ? requestedDuration / naturalTiming.durationMs : 1;
+  const timing = requestedDuration === naturalTiming.durationMs
+    ? naturalTiming
+    : {
+        ...naturalTiming,
+        durationMs: requestedDuration,
+        phases: Object.fromEntries(Object.entries(naturalTiming.phases || {}).map(([phase, offset]) => [
+          phase,
+          Math.round(Number(offset || 0) * scale)
+        ]))
+      };
+  return projectPresentationCueMetadata(beat, {
+    ...options,
+    timing,
+    result,
+    perspectivePlayer,
+    spectator
+  }).map((metadata) => {
+    const source = metadata.sourceEvent || beat.event || {};
+    const target = cueTargetForEvent(source);
+    const sourceEventId = source.id || beat.sourceEventIds?.[0] || null;
+    return {
+      contract: PRESENTATION_CUE_CONTRACT_VERSION,
+      cueId: metadata.cueId,
+      occurrenceId: presentationCueOccurrenceId({
+        matchId,
+        sourceEventId,
+        cueId: metadata.cueId,
+        phase: metadata.phase,
+        target,
+        traversalId
+      }),
+      sourceEventId,
+      eventType: source.type || beat.event?.type || beat.kind,
+      phase: metadata.phase,
       target,
-      traversalId
-    }),
-    sourceEventId: entry.id || null,
-    eventType: entry.type,
-    phase: definition.phase,
-    target,
-    offsetMs: Math.min(Number(durationMs ?? definition.durationMs), Number(definition.offsetMs || 0)),
-    durationMs: Number(durationMs ?? definition.durationMs),
-    visual: { assetId: visualAssetId, fallback: `procedural.${cueId}` },
-    audio: { assetId: audioAssetId, gain: definition.gain, variant: "stable-hash", fallback: `tone.${cueId}` }
-  };
-  return [cue];
+      offsetMs: metadata.offsetMs,
+      durationMs: timing.durationMs,
+      effectDurationMs: metadata.effectDurationMs,
+      effect: metadata.effect,
+      cadence: metadata.cadence,
+      visual: { assetId: metadata.visualAssetId, fallback: `procedural.${metadata.cueId}` },
+      audio: { assetId: metadata.audioAssetId, gain: metadata.gain, variant: "stable-hash", fallback: `tone.${metadata.cueId}` }
+    };
+  });
 }
 
 export function createInteractionCue(cueId, {

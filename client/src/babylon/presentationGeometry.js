@@ -17,8 +17,8 @@ function handPosition(actor, profile) {
   const scale = local ? hand.localScale : hand.opponentScale;
   const availableWidth = profile.id === "portrait" ? 14.4 : profile.id === "short-landscape" ? 22.2 : 24.5;
   const maximumSpread = local
-    ? (profile.id === "portrait" ? 1.54 : profile.id === "short-landscape" ? 1.68 : 1.9)
-    : (profile.id === "portrait" ? 0.88 : 1.22);
+    ? (profile.id === "portrait" ? 1.5 : profile.id === "short-landscape" ? 1.62 : 1.86)
+    : (profile.id === "portrait" ? 1.02 : 1.34);
   const spread = count <= 1
     ? 0
     : Math.min(maximumSpread, Math.max(CARD_WIDTH * scale * 0.72, (availableWidth - CARD_WIDTH * scale) / (count - 1)));
@@ -58,8 +58,19 @@ function combatPosition(actor, profile) {
   const index = Number(actor.zone.slotIndex || 0);
   const centered = centeredIndex(index, count);
   const handCombat = actor.zone.laneIndex == null;
-  const baseScale = role === "blocker" ? 0.56 : role === "attachment" ? 0.46 : 0.62;
-  const scale = profile.id === "portrait" ? baseScale * 0.9 : baseScale;
+  const baseScale = handCombat
+    ? role === "blocker" ? 0.8 : role === "attachment" ? 0.56 : 0.88
+    : role === "blocker" ? 0.56 : role === "attachment" ? 0.44 : 0.62;
+  const profileScale = handCombat
+    ? profile.id === "portrait"
+      ? 0.82
+      : profile.id === "short-landscape"
+        ? 0.78
+        : profile.id === "ultrawide"
+          ? 0.84
+          : 1
+    : profile.id === "portrait" ? 0.9 : 1;
+  const scale = baseScale * profileScale;
   const spread = CARD_WIDTH * scale + 0.16;
   const ownerRotation = actor.zone.side === "opponent" ? Math.PI : 0;
   if (handCombat) {
@@ -113,7 +124,7 @@ function attachmentPosition(actor, profile) {
       rotationX: Math.PI / 2,
       rotationY: 0,
       rotationZ: actor.zone.side === "opponent" ? Math.PI : 0,
-      scale: profile.id === "portrait" ? 0.38 : 0.44
+      scale: profile.id === "portrait" ? 0.43 : 0.56
     };
   }
   const anchor = resolveBoardAnchor("hand-combat-dais", "attachmentGroup", profile);
@@ -124,7 +135,7 @@ function attachmentPosition(actor, profile) {
     rotationX: Math.PI / 2,
     rotationY: 0,
     rotationZ: actor.zone.side === "opponent" ? Math.PI : 0,
-    scale: profile.id === "portrait" ? 0.38 : 0.44
+    scale: profile.id === "portrait" ? 0.43 : 0.56
   };
 }
 

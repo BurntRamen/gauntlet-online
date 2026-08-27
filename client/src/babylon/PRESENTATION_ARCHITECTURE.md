@@ -20,6 +20,8 @@ and accessible controls.
   visible actor identity.
 - `gauntlet.presentation-cues.v1` synchronizes actor motion, module lights, FX,
   feed timing, and audio.
+- `gauntlet.presentation-cadence.v1` is the single tier, beat, and timing
+  authority shared by live and replay presentation.
 - `gauntlet.battlefield-playback.queued.v1` gives those cues readable visual
   pacing without delaying networking, legality, or authoritative state.
 
@@ -64,6 +66,39 @@ Live sockets, local/training adapters, authoritative replay, and imported JSON
 replay all produce the same presentation snapshots and use the same transition
 planner, registry, board modules, paths, materials, cues, and scene. Replay seek
 reconciles directly; one-step traversal may animate an evidenced transition.
+
+## Presentation cadence
+
+`gauntlet.presentation-cadence.v1` gives every accepted presentation event one
+of five intensity tiers: rest (0), attention (1), commitment (2), resolution
+(3), or major resolution (4). The tier selects a restrained effect grammar,
+material role, sprite and ring alpha, and local board response. This keeps
+informational beats quiet, gives attack and block different physical language,
+and reserves the strongest response for consequential damage and match results.
+
+Related events are coalesced into one readable beat rather than presented as
+competing notifications. Payment joins the attack or block it commits to;
+damage consequences join the associated priority handoff; draw joins the turn
+handoff; campaign aliases collapse into their canonical events; and supported
+ability mutations resolve as one mutation beat. Empty payment and draw records
+do not create visual beats.
+
+The cadence contract owns event duration, cue offsets, and shared card-motion
+profiles for hover, payment, draw, placement, attack, block, lane shift,
+swap-return, replay staging, discard, and correction. Playback commits the
+projected visual state at the resolution boundary of the beat, so life totals
+and board consequences change when the corresponding impact is shown rather
+than when a queued beat merely begins. The cue projector exposes the same
+contract, kind, tier, grammar, material role, alpha limits, board response, and
+effect duration to Babylon. Live play and replay consume that common projection
+and therefore preserve the same event ordering, emphasis, and visual cadence.
+
+While live playback is presenting a queued beat, the product shell temporarily
+gates gameplay input across React controls, keyboard shortcuts, accessible
+controls, and Babylon hit targets. Networking, legality, and authoritative state
+remain immediate, while read-only inspection and Match-menu information remain
+available. The gate releases with the presented frame so the visible action and
+the next accepted command cannot contradict one another.
 
 ## Authored-asset boundary
 

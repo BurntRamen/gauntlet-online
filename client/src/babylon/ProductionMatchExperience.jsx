@@ -10,20 +10,44 @@ import {
   resolvePresentationAsset
 } from "./presentationKit";
 import { createInteractionCue } from "./presentationCues";
+import {
+  authoritativeMatchHistory,
+  formatMatchLogEntry,
+  matchLogSequence
+} from "./matchLog";
+import {
+  GRAPHICS_QUALITY_OPTIONS,
+  normalizeGraphicsQuality
+} from "./rendererLifecycle";
 import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 
+const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
+
+function initialGraphicsQuality(explicitQuality) {
+  if (explicitQuality != null) return normalizeGraphicsQuality(explicitQuality);
+  if (typeof window === "undefined") return normalizeGraphicsQuality();
+  try {
+    return normalizeGraphicsQuality(window.localStorage.getItem(GRAPHICS_QUALITY_STORAGE_KEY));
+  } catch (_error) {
+    return normalizeGraphicsQuality();
+  }
+}
+
 const EVENT_TONES = {
   "payment.release": [230, 0.09],
   "attack.declare": [520, 0.13],
   "block.commit": [350, 0.12],
+  "combat.blocked": [245, 0.14],
   "damage.impact": [150, 0.18],
+  "damage.major": [105, 0.24],
   "priority.transfer": [680, 0.12],
   "turn.start": [780, 0.18],
   "match.victory": [880, 0.32],
   "match.defeat": [170, 0.32],
+  "match.draw": [470, 0.24],
   "card.place": [300, 0.1],
   "card.draw": [460, 0.1],
   "card.lift": [390, 0.055],
@@ -38,11 +62,47 @@ const EVENT_TONES = {
   "priority.pass": [510, 0.065]
 };
 
+const MINOR_AUDIO_ASSETS = new Set([
+  "ui.select",
+  "ui.confirm",
+  "ui.cancel",
+  "card.lift",
+  "card.travel",
+  "card.settle",
+  "priority.pass",
+  "priority.transfer"
+]);
+
+const AUDIO_CUE_COOLDOWNS = Object.freeze({
+  "ui.select": 70,
+  "ui.confirm": 90,
+  "ui.cancel": 90,
+  "card.lift": 90,
+  "card.travel": 120,
+  "card.settle": 120,
+  "card.draw": 180,
+  "card.place": 180,
+  "priority.pass": 180,
+  "priority.transfer": 220,
+  "ability.activate": 240
+});
+
+const MAJOR_CUE_SUPPRESSION_MS = Object.freeze({
+  "damage.impact": 320,
+  "damage.major": 560,
+  "match.victory": 1400,
+  "match.defeat": 1400,
+  "match.draw": 1000
+});
+
 function useEventAudio(cues, enabled, presentationKit) {
   const audioRef = useRef({
     buffers: new Map(),
     context: null,
+    activeByAsset: new Map(),
+    lastPlayedAt: new Map(),
     loading: new Map(),
+    minorSuppressedUntil: 0,
     played: new Set(),
     timers: new Set(),
     unlocked: false
@@ -92,11 +152,44 @@ function useEventAudio(cues, enabled, presentationKit) {
   }, [enabled, preloadSound, presentationKit]);
 
   const playTone = useCallback((cueOrAssetId) => {
-    if (!enabled || !audioRef.current.unlocked || !audioRef.current.context) return;
+    const state = audioRef.current;
+    if (!enabled || !state.unlocked || !state.context) return;
     const cue = typeof cueOrAssetId === "string" ? null : cueOrAssetId;
     const assetId = cue?.audio?.assetId || cueOrAssetId;
-    const context = audioRef.current.context;
-    const sample = audioRef.current.buffers.get(assetId);
+    const nowMs = Date.now();
+    const cooldownMs = Number(AUDIO_CUE_COOLDOWNS[assetId] || 0);
+    const lastPlayedAt = Number(state.lastPlayedAt.get(assetId) || -Infinity);
+    if (MINOR_AUDIO_ASSETS.has(assetId) && nowMs < state.minorSuppressedUntil) return;
+    if (nowMs - lastPlayedAt < cooldownMs) return;
+
+    const suppressionMs = Number(MAJOR_CUE_SUPPRESSION_MS[assetId] || 0);
+    if (suppressionMs > 0) {
+      state.minorSuppressedUntil = Math.max(state.minorSuppressedUntil, nowMs + suppressionMs);
+      for (const [activeAssetId, nodes] of state.activeByAsset.entries()) {
+        if (!MINOR_AUDIO_ASSETS.has(activeAssetId)) continue;
+        nodes.forEach((node) => {
+          try { node.stop?.(); } catch { /* The source may already have ended. */ }
+        });
+        state.activeByAsset.delete(activeAssetId);
+      }
+    }
+
+    const context = state.context;
+    const sample = state.buffers.get(assetId);
+    const registerActive = (node) => {
+      const existing = state.activeByAsset.get(assetId) || new Set();
+      existing.forEach((active) => {
+        try { active.stop?.(); } catch { /* The source may already have ended. */ }
+      });
+      existing.clear();
+      existing.add(node);
+      state.activeByAsset.set(assetId, existing);
+      node.onended = () => {
+        existing.delete(node);
+        if (existing.size === 0) state.activeByAsset.delete(assetId);
+      };
+      state.lastPlayedAt.set(assetId, nowMs);
+    };
     if (sample && typeof context.createBufferSource === "function") {
       const source = context.createBufferSource();
       const gain = context.createGain();
@@ -104,6 +197,7 @@ function useEventAudio(cues, enabled, presentationKit) {
       gain.gain.setValueAtTime(Number(cue?.audio?.gain ?? 0.48), context.currentTime);
       source.connect(gain);
       gain.connect(context.destination);
+      registerActive(source);
       source.start();
       return;
     }
@@ -113,13 +207,14 @@ function useEventAudio(cues, enabled, presentationKit) {
     const [frequency, duration] = tone;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = assetId === "damage.impact" ? "triangle" : "sine";
+    oscillator.type = ["damage.impact", "damage.major", "combat.blocked"].includes(assetId) ? "triangle" : "sine";
     oscillator.frequency.setValueAtTime(frequency, context.currentTime);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
     oscillator.connect(gain);
     gain.connect(context.destination);
+    registerActive(oscillator);
     oscillator.start();
     oscillator.stop(context.currentTime + duration + 0.02);
   }, [enabled, preloadSound]);
@@ -144,6 +239,11 @@ function useEventAudio(cues, enabled, presentationKit) {
     audioRef.current.context?.close?.();
     audioRef.current.timers.forEach((timer) => window.clearTimeout(timer));
     audioRef.current.timers.clear();
+    audioRef.current.activeByAsset.forEach((nodes) => nodes.forEach((node) => {
+      try { node.stop?.(); } catch { /* The source may already have ended. */ }
+    }));
+    audioRef.current.activeByAsset.clear();
+    audioRef.current.lastPlayedAt.clear();
     audioRef.current.buffers.clear();
     audioRef.current.loading.clear();
     audioRef.current.context = null;
@@ -340,7 +440,7 @@ function PlayerPlate({
   return (
     <section
       className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}`}
-      aria-label={`${player.name}, ${player.life} life${activeAria}`}
+      aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
       <div className="production-player-crest" aria-hidden="true">
         <img src={crestPath} alt="" />
@@ -348,7 +448,11 @@ function PlayerPlate({
       </div>
       <div className="production-player-copy">
         <strong>{player.name}</strong>
-        <span>{player.factionName || "Gauntlet"} · {player.handCount} cards</span>
+        <span>{player.factionName || "Gauntlet"} · Hand {player.handCount}</span>
+        <span className="production-player-piles">
+          <b>Deck {player.deckCount ?? 0}</b>
+          <b>Discard {player.discardCount ?? 0}</b>
+        </span>
       </div>
       <div className="production-life" aria-label={`${player.life} life`}>
         <span aria-hidden="true">♥</span>
@@ -361,7 +465,7 @@ function PlayerPlate({
   );
 }
 
-function ContextActions({ viewModel, commands, connected }) {
+function ContextActions({ viewModel, commands, connected, resolving = false }) {
   const spectator = viewModel?.perspective?.spectator;
   const interactions = viewModel?.interactions || {};
   const hasSelection = !!(
@@ -389,7 +493,20 @@ function ContextActions({ viewModel, commands, connected }) {
     return (
       <section className="production-context-panel spectator">
         <strong>Spectator view</strong>
-        <span>{viewModel?.instruction || "Watching the match."}</span>
+        <span>{resolving ? "Watching the current action resolve." : viewModel?.instruction || "Watching the match."}</span>
+      </section>
+    );
+  }
+  if (resolving) {
+    return (
+      <section className="production-context-panel resolving" aria-label="Current match action">
+        <div className="production-context-copy" aria-live="polite">
+          <span className="production-context-kicker">
+            <GameIcon name="priority" size={15} />
+            Resolution
+          </span>
+          <strong>Resolving the committed action…</strong>
+        </div>
       </section>
     );
   }
@@ -398,14 +515,28 @@ function ContextActions({ viewModel, commands, connected }) {
       <div className="production-context-copy" aria-live="polite">
         <span className="production-context-kicker">
           <GameIcon name={actionIcon} size={15} />
-          {viewModel?.currentTurnLabel} · {viewModel?.phaseLabel}
+          {hasSelection ? "Confirm action" : "Your action"}
         </span>
         <strong>{viewModel?.instruction || "Choose an action."}</strong>
-        {viewModel?.payment?.active && (
-          <span className="production-payment-readout">
-            Payment {viewModel.payment.total} / {viewModel.payment.required}
-          </span>
-        )}
+        {viewModel?.payment?.active && (() => {
+          const total = Number(viewModel.payment.total || 0);
+          const required = Number(viewModel.payment.required || 0);
+          const remaining = Math.max(0, required - total);
+          const complete = required === 0 || total >= required;
+          const progress = required > 0 ? Math.min(100, (total / required) * 100) : 100;
+          return (
+            <div className={`production-payment-readout${complete ? " is-complete" : ""}`} role="status">
+              <span>Payment cost</span>
+              <strong>{total} / {required}</strong>
+              <i aria-hidden="true"><b style={{ width: `${progress}%` }} /></i>
+              <small>
+                {complete
+                  ? "Cost met — confirm the action."
+                  : `Select highlighted cards worth ${remaining} more.`}
+              </small>
+            </div>
+          );
+        })()}
         {hasSelection && interactions.confirmDisabled && interactions.confirmReason && (
           <span className="production-action-reason">{interactions.confirmReason}</span>
         )}
@@ -498,6 +629,9 @@ function MatchUtilities({
   descriptor,
   audioEnabled,
   onAudioEnabledChange,
+  graphicsQuality,
+  graphicsScalingLevel,
+  onGraphicsQualityChange,
   onOpenReference
 }) {
   const [confirmingConcede, setConfirmingConcede] = useState(false);
@@ -508,6 +642,9 @@ function MatchUtilities({
   const incomingDraw = controls.drawOfferBy && controls.drawOfferBy !== localPlayer;
   const rematch = controls.rematchStatus;
   const controlPending = !!controls.pendingControlType;
+  const graphicsProfile = GRAPHICS_QUALITY_OPTIONS.find((option) => option.id === graphicsQuality)
+    || GRAPHICS_QUALITY_OPTIONS.find((option) => option.id === "balanced");
+  const renderResolutionPercent = Math.round(100 / Math.max(0.01, Number(graphicsScalingLevel) || 1));
   const openReference = (kind) => {
     if (kind === "factions" && utilitiesRef.current) utilitiesRef.current.open = false;
     onOpenReference(kind);
@@ -539,6 +676,24 @@ function MatchUtilities({
       <summary>Match</summary>
       <div className="production-match-utilities-panel">
         {controls.roomCode && <span>Room {controls.roomCode}</span>}
+        <div className="production-graphics-setting">
+          <label htmlFor="gauntlet-graphics-quality">Graphics quality</label>
+          <select
+            id="gauntlet-graphics-quality"
+            value={graphicsQuality}
+            aria-describedby="gauntlet-graphics-quality-help"
+            onChange={(event) => onGraphicsQualityChange(event.target.value)}
+          >
+            {GRAPHICS_QUALITY_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}{option.id === "balanced" ? " (Recommended)" : ""}
+              </option>
+            ))}
+          </select>
+          <small id="gauntlet-graphics-quality-help">
+            {graphicsProfile.description} Rendering at {renderResolutionPercent}% resolution. Changes apply immediately and are saved.
+          </small>
+        </div>
         <div className="production-utility-shortcuts" aria-label="Match information">
           <button type="button" onClick={() => openReference("discard")}>Discard piles</button>
           <button type="button" onClick={() => openReference("log")}>Match log</button>
@@ -629,12 +784,59 @@ function factionProfile(value, fallbackName) {
   };
 }
 
-function MatchReferencePanel({ kind, snapshot, viewModel, commands, onClose }) {
+function MatchLogRow({ entry, index, players, compact = false }) {
+  const content = formatMatchLogEntry(entry, { players });
+  return (
+    <li>
+      <span className="production-match-log-sequence">#{matchLogSequence(entry, index)}</span>
+      <GameIcon name={content.icon} size={compact ? 13 : 16} />
+      <div>
+        <strong>{content.title}</strong>
+        {content.detail && <small>{content.detail}</small>}
+      </div>
+    </li>
+  );
+}
+
+function MatchLedger({ entries, snapshot, onOpen }) {
+  const players = snapshot?.players || {};
+  const history = authoritativeMatchHistory(snapshot);
+  const source = entries.length > 0 ? entries : history;
+  const recent = source.slice(-3);
+  if (recent.length === 0) return null;
+  const sequenceOffset = Math.max(0, source.length - recent.length);
+  return (
+    <aside className="production-match-ledger" aria-label="Recent play order">
+      <header>
+        <span>Play order</span>
+        <button type="button" onClick={onOpen}>
+          Full log · {Math.max(history.length, entries.length)}
+        </button>
+      </header>
+      <ol>
+        {recent.map((entry, index) => (
+          <MatchLogRow
+            key={entry.id || `${entry.type || "history"}-${sequenceOffset + index}`}
+            entry={entry}
+            index={sequenceOffset + index}
+            players={players}
+            compact
+          />
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
+function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose }) {
   if (!kind) return null;
   const players = Object.entries(snapshot?.players || {})
     .map(([playerId, player]) => ({ id: Number(playerId), ...player }))
     .sort((left, right) => left.id - right.id);
-  const history = (snapshot?.eventLog?.length ? snapshot.eventLog : snapshot?.actionHistory || []).slice(-80).reverse();
+  const playersById = snapshot?.players || {};
+  const history = authoritativeMatchHistory(snapshot);
+  const numericalEvents = recentEvents.slice(-16);
+  const numericalSequenceOffset = Math.max(0, recentEvents.length - numericalEvents.length);
   const titles = {
     discard: "Discard piles",
     log: "Match log",
@@ -671,15 +873,45 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, onClose }) {
           </div>
         )}
         {kind === "log" && (
-          history.length === 0 ? <p>No match actions recorded yet.</p> : (
-            <ol className="production-match-log">
-              {history.map((entry, index) => (
-                <li key={entry.id || `${entry.turn}-${index}`}>
-                  <span>Turn {entry.turn || 1}{entry.phase ? ` · ${entry.phase}` : ""}</span>
-                  <strong>{entry.text || entry.label || "Match state updated."}</strong>
-                </li>
-              ))}
-            </ol>
+          history.length === 0 && numericalEvents.length === 0 ? <p>No match actions recorded yet.</p> : (
+            <div className="production-match-log-sections">
+              {numericalEvents.length > 0 && (
+                <section aria-label="Latest numerical resolution details">
+                  <header>
+                    <h3>Latest calculation details</h3>
+                    <span>Values shown in resolution order</span>
+                  </header>
+                  <ol className="production-match-log is-numerical">
+                    {numericalEvents.map((entry, index) => (
+                      <MatchLogRow
+                        key={entry.id || `${entry.type}-${index}`}
+                        entry={entry}
+                        index={numericalSequenceOffset + index}
+                        players={playersById}
+                      />
+                    ))}
+                  </ol>
+                </section>
+              )}
+              {history.length > 0 && (
+                <section aria-label="Authoritative chronological match record">
+                  <header>
+                    <h3>Complete play order</h3>
+                    <span>Oldest → newest · {history.length} recorded actions</span>
+                  </header>
+                  <ol className="production-match-log">
+                    {history.map((entry, index) => (
+                      <MatchLogRow
+                        key={entry.id || `${entry.turn}-${index}`}
+                        entry={entry}
+                        index={index}
+                        players={playersById}
+                      />
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </div>
           )
         )}
         {kind === "factions" && (
@@ -1014,7 +1246,6 @@ function CombatRecap({ events }) {
           damage: null,
           status: "Waiting for defense"
         };
-        changed = true;
       }
       if (entry.type === "block.declared" && currentRef.current) {
         currentRef.current = {
@@ -1022,7 +1253,6 @@ function CombatRecap({ events }) {
           blockCount: (entry.cardIds || []).length || 1,
           status: "Defense committed"
         };
-        changed = true;
       }
       if (entry.type === "damage.calculated") {
         currentRef.current = {
@@ -1040,7 +1270,7 @@ function CombatRecap({ events }) {
         dismissRef.current = window.setTimeout(() => {
           currentRef.current = null;
           setRecap(null);
-        }, 7500);
+        }, 4200);
       }
     });
     if (changed) setRecap(currentRef.current);
@@ -1084,7 +1314,11 @@ export function eventCalloutContent(entry) {
     "attack.declared": ["attack", laneNumber ? `Lane ${laneNumber} attack committed` : "Hand attack committed"],
     "block.declared": ["block", laneNumber ? `Lane ${laneNumber} block committed` : "Hand block committed"],
     "payment.discarded": ["payment", "Payment discarded"],
-    "damage.calculated": ["damage", `${entry.damage || 0} damage`],
+    "damage.calculated": Number(entry.damage || 0) <= 0
+      ? ["block", "Attack stopped"]
+      : Number(entry.damage || 0) >= 8
+        ? ["damage", `Major damage · ${entry.damage}`]
+        : ["damage", `${entry.damage} damage`],
     "card.placedFacedown": ["placement", "Card placed"],
     "cards.drawn": ["placement", "Hand refilled"],
     "priority.granted": ["priority", `Priority · Player ${entry.player}`],
@@ -1096,40 +1330,34 @@ export function eventCalloutContent(entry) {
 }
 
 function MatchFeed({ entries, statusNotice, catchingUp }) {
+  const [visibleNotice, setVisibleNotice] = useState(statusNotice || "");
+  useEffect(() => {
+    if (!statusNotice) {
+      setVisibleNotice("");
+      return undefined;
+    }
+    setVisibleNotice(statusNotice);
+    const timeout = window.setTimeout(() => setVisibleNotice(""), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [statusNotice]);
   const visibleEntries = entries.filter((entry) => eventCalloutContent(entry));
   const currentEntry = visibleEntries.at(-1) || null;
   const currentContent = eventCalloutContent(currentEntry);
-  const priorEntries = visibleEntries.slice(0, -1).reverse();
+  if (!catchingUp && !visibleNotice) return null;
   return (
-    <section className="production-match-feed" aria-label="Live match feed">
+    <section
+      className="production-match-feed is-active"
+      aria-label="Transient match status"
+    >
       <div className="production-match-feed-current" role="status" aria-live="polite" aria-atomic="true">
-        <span>{catchingUp ? "Resolving" : "Live"}</span>
-        {currentContent && <GameIcon name={currentContent[0]} size={17} />}
+        <span>{catchingUp ? "Resolving" : "Notice"}</span>
+        {catchingUp && currentContent && <GameIcon name={currentContent[0]} size={17} />}
         <div>
-          <strong key={currentEntry?.id || statusNotice || "ready"}>
-            {currentContent?.[1] || statusNotice || "The table is ready."}
+          <strong key={currentEntry?.id || visibleNotice || "ready"}>
+            {visibleNotice || currentContent?.[1] || "Resolving the current action…"}
           </strong>
-          {currentContent && statusNotice && <small>{statusNotice}</small>}
         </div>
       </div>
-      {priorEntries.length > 0 && (
-        <details className="production-match-feed-history">
-          <summary aria-label={`Show ${priorEntries.length} recent match events`}>
-            Recent <b>{priorEntries.length}</b>
-          </summary>
-          <ol>
-            {priorEntries.map((entry, index) => {
-              const content = eventCalloutContent(entry);
-              return (
-                <li key={entry.id || `${entry.type}-${index}`}>
-                  <GameIcon name={content[0]} size={15} />
-                  <span>{content[1]}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </details>
-      )}
     </section>
   );
 }
@@ -1159,10 +1387,13 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
+  const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [sceneMetrics, setSceneMetrics] = useState(null);
   const adapterRef = useRef(adapter);
+  const sceneMetricsSignatureRef = useRef("");
   const inspectionReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
+  const playbackRef = useRef(null);
   adapterRef.current = adapter;
 
   useEffect(() => {
@@ -1203,7 +1434,7 @@ export default function ProductionMatchExperience({
         if (frame.event) {
           setFeedEntries((current) => {
             if (current.some((entry) => entry.id && entry.id === frame.event.id)) return current;
-            return [...current, frame.event].slice(-12);
+            return [...current, frame.event].slice(-80);
           });
         }
       },
@@ -1211,6 +1442,7 @@ export default function ProductionMatchExperience({
         if (active) setPlaybackState(state);
       }
     });
+    playbackRef.current = playback;
     const unsubscribe = adapter.subscribe((next) => {
       if (!active) return;
       setAuthoritativeUpdate(next);
@@ -1225,12 +1457,14 @@ export default function ProductionMatchExperience({
     return () => {
       active = false;
       unsubscribe?.();
+      if (playbackRef.current === playback) playbackRef.current = null;
       playback.dispose();
     };
   }, [adapter, onRendererFailure, reducedMotion]);
 
   const battlefieldViewModel = update?.viewModel;
   const viewModel = authoritativeUpdate?.viewModel || battlefieldViewModel;
+  const visualViewModel = battlefieldViewModel || viewModel;
   const transportUpdate = authoritativeUpdate || update;
   const commands = useMemo(
     () => transportUpdate?.commands || {},
@@ -1244,14 +1478,57 @@ export default function ProductionMatchExperience({
   useEffect(() => {
     if (options.audioEnabled != null) setAudioEnabled(Boolean(options.audioEnabled));
   }, [options.audioEnabled]);
+  useEffect(() => {
+    if (options.graphicsQuality != null) {
+      setGraphicsQuality(normalizeGraphicsQuality(options.graphicsQuality));
+    }
+  }, [options.graphicsQuality]);
   const updateAudioEnabled = useCallback((enabled) => {
     setAudioEnabled(Boolean(enabled));
     options.onAudioEnabledChange?.(Boolean(enabled));
   }, [options]);
+  const updateGraphicsQuality = useCallback((quality) => {
+    const normalized = normalizeGraphicsQuality(quality);
+    setGraphicsQuality(normalized);
+    try {
+      window.localStorage.setItem(GRAPHICS_QUALITY_STORAGE_KEY, normalized);
+    } catch (_error) {
+      // The active match still updates even when browser storage is unavailable.
+    }
+    options.onGraphicsQualityChange?.(normalized);
+  }, [options]);
   const handleSceneMetrics = useCallback((metrics) => {
-    setSceneMetrics(metrics);
+    const signature = JSON.stringify({
+      matchId: metrics?.matchId,
+      revision: metrics?.revision,
+      sceneContract: metrics?.sceneContract,
+      boardModuleCount: metrics?.boardModuleCount,
+      cardActorCount: metrics?.cardActorCount,
+      actorsByZone: metrics?.actorsByZone,
+      missingFaceArtCount: metrics?.missingFaceArtCount,
+      duplicateVisibleIdentityCount: metrics?.duplicateVisibleIdentityCount,
+      activeTransitionCount: metrics?.activeTransitionCount,
+      activeMotionsByRole: metrics?.activeMotionsByRole,
+      queuedTransitionCount: metrics?.queuedTransitionCount,
+      activeEffects: metrics?.activeEffects,
+      focusRegion: metrics?.boardPresentation?.focus?.region,
+      handCombatModuleActive: metrics?.handCombatModuleActive,
+      layoutProfile: metrics?.layoutProfile,
+      shadowMapSize: metrics?.shadowMapSize,
+      shadowMapRefreshRate: metrics?.shadowMapRefreshRate,
+      hardwareScalingLevel: metrics?.hardwareScalingLevel,
+      frozenBoardMeshCount: metrics?.frozenBoardMeshCount
+    });
+    if (signature !== sceneMetricsSignatureRef.current) {
+      sceneMetricsSignatureRef.current = signature;
+      setSceneMetrics(metrics);
+    }
     onSceneMetrics?.(metrics);
   }, [onSceneMetrics]);
+  const capturePlaybackControl = useMemo(() => ({
+    pause: () => playbackRef.current?.pause?.() || 0,
+    resume: () => playbackRef.current?.resume?.() || 0
+  }), []);
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
       interactionCueTokenRef.current += 1;
@@ -1267,7 +1544,7 @@ export default function ProductionMatchExperience({
       activateHandCard: withTone("ui.select", commands.activateHandCard),
       activateLane: withTone("ui.select", commands.activateLane),
       activateAbility: withTone("ui.select", commands.activateAbility),
-      passPriority: withTone("priority.pass", commands.passPriority),
+      passPriority: commands.passPriority,
       confirmCurrentAction: withTone("ui.confirm", commands.confirmCurrentAction),
       cancelCurrentAction: withTone("ui.cancel", commands.cancelCurrentAction),
       inspectCard: withTone("ui.select", commands.inspectCard),
@@ -1280,8 +1557,26 @@ export default function ProductionMatchExperience({
       concede: withTone("ui.confirm", commands.concede)
     };
   }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision]);
+  const gameplayInputLocked = Boolean(
+    transportUpdate?.connected === false
+    || playbackState.inputLocked
+    || playbackState.catchingUp
+  );
+  const gameplayCommands = useMemo(() => {
+    if (!gameplayInputLocked) return interactionCommands;
+    return {
+      ...interactionCommands,
+      activateHandCard: undefined,
+      activateLane: undefined,
+      activateAttackTarget: undefined,
+      activateAbility: undefined,
+      passPriority: undefined,
+      confirmCurrentAction: undefined,
+      cancelCurrentAction: undefined
+    };
+  }, [gameplayInputLocked, interactionCommands]);
   const presentedViewModel = useMemo(() => {
-    if (!viewModel || (transportUpdate?.connected !== false && !playbackState.inputLocked)) return viewModel;
+    if (!viewModel || !gameplayInputLocked) return viewModel;
     const disconnected = transportUpdate?.connected === false;
     return {
       ...viewModel,
@@ -1305,7 +1600,7 @@ export default function ProductionMatchExperience({
         passDisabled: true
       }
     };
-  }, [playbackState.inputLocked, transportUpdate?.connected, viewModel]);
+  }, [gameplayInputLocked, transportUpdate?.connected, viewModel]);
   const canvasViewModel = useMemo(() => (
     battlefieldViewModel
       ? {
@@ -1339,7 +1634,7 @@ export default function ProductionMatchExperience({
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (!viewModel || event.defaultPrevented) return;
+      if (!presentedViewModel || event.defaultPrevented) return;
       const element = event.target;
       const key = event.key.toLowerCase();
       if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -1383,33 +1678,33 @@ export default function ProductionMatchExperience({
       }
       if (/^[1-8]$/.test(key)) {
         const index = Number(key) - 1;
-        if (viewModel.hand[index] && !viewModel.hand[index].unavailable) {
+        if (presentedViewModel.hand[index] && !presentedViewModel.hand[index].unavailable) {
           event.preventDefault();
-          interactionCommands.activateHandCard?.(index);
+          gameplayCommands.activateHandCard?.(index);
         }
         return;
       }
       const hasStagedSelection = !!(
-        viewModel.selection?.attackMode
-        || viewModel.selection?.blockMode
-        || viewModel.selection?.placementMode
-        || viewModel.selection?.abilityMode
+        presentedViewModel.selection?.attackMode
+        || presentedViewModel.selection?.blockMode
+        || presentedViewModel.selection?.placementMode
+        || presentedViewModel.selection?.abilityMode
       );
-      if (key === "p" && !viewModel.interactions.passDisabled && !hasStagedSelection) {
+      if (key === "p" && !presentedViewModel.interactions.passDisabled && !hasStagedSelection) {
         event.preventDefault();
-        interactionCommands.passPriority?.();
+        gameplayCommands.passPriority?.();
         return;
       }
-      if (key === "c" && !viewModel.interactions.confirmDisabled) {
+      if (key === "c" && !presentedViewModel.interactions.confirmDisabled) {
         event.preventDefault();
-        interactionCommands.confirmCurrentAction?.();
+        gameplayCommands.confirmCurrentAction?.();
         return;
       }
       if (key === "i") {
         const index = Number(document.activeElement?.dataset?.cardIndex);
-        if (Number.isInteger(index) && viewModel.hand[index]) {
+        if (Number.isInteger(index) && presentedViewModel.hand[index]) {
           event.preventDefault();
-          interactionCommands.inspectCard?.(viewModel.hand[index].raw);
+          interactionCommands.inspectCard?.(presentedViewModel.hand[index].raw);
         }
         return;
       }
@@ -1418,14 +1713,14 @@ export default function ProductionMatchExperience({
         setReferencePanel("discard");
         return;
       }
-      if (key === "escape") {
+      if (key === "escape" && !gameplayInputLocked) {
         event.preventDefault();
-        interactionCommands.cancelCurrentAction?.();
+        gameplayCommands.cancelCurrentAction?.();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [interactionCommands, referencePanel, transportUpdate?.inspection, viewModel]);
+  }, [gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.inspection]);
 
   const shellClass = useMemo(() => [
     "production-match-experience",
@@ -1434,6 +1729,12 @@ export default function ProductionMatchExperience({
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
   ].filter(Boolean).join(" "), [playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  const resultPresentationReady = Boolean(
+    update?.source !== "replay"
+    && viewModel?.phase === "gameOver"
+    && battlefieldViewModel?.phase === "gameOver"
+    && (!playbackState.catchingUp || battlefieldViewModel?.presentationPlayback?.finalReconcile)
+  );
 
   if (adapterError) {
     return (
@@ -1471,16 +1772,33 @@ export default function ProductionMatchExperience({
       data-actors-by-zone={JSON.stringify(sceneMetrics?.actorsByZone || {})}
       data-known-actor-count={sceneMetrics?.knownActorCount ?? ""}
       data-anonymous-actor-count={sceneMetrics?.anonymousActorCount ?? ""}
+      data-face-art-actor-count={sceneMetrics?.faceArtActorCount ?? ""}
+      data-basic-face-art-actor-count={sceneMetrics?.basicFaceArtActorCount ?? ""}
       data-departing-actor-count={sceneMetrics?.departingActorCount ?? ""}
       data-duplicate-visible-identity-count={sceneMetrics?.duplicateVisibleIdentityCount ?? ""}
+      data-missing-face-art-count={sceneMetrics?.missingFaceArtCount ?? ""}
       data-structural-composite-raster-count={sceneMetrics?.structuralCompositeRasterCount ?? ""}
       data-active-transition-count={sceneMetrics?.activeTransitionCount ?? ""}
       data-active-motions-by-role={JSON.stringify(sceneMetrics?.activeMotionsByRole || {})}
       data-active-motion-paths={JSON.stringify(sceneMetrics?.activeMotionPaths || [])}
       data-queued-transition-count={sceneMetrics?.queuedTransitionCount ?? ""}
       data-active-effects={sceneMetrics?.activeEffects ?? ""}
+      data-active-event-id={canvasViewModel?.presentationPlayback?.activeEventId || ""}
       data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
+      data-playback-catching-up={playbackState.catchingUp ? "true" : "false"}
+      data-playback-queued-frames={playbackState.queuedFrames}
+      data-cadence-tier={canvasViewModel?.presentationCues?.[0]?.cadence?.tier || "rest"}
+      data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
+      data-hand-combat-module-active={sceneMetrics?.handCombatModuleActive ? "true" : "false"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
+      data-render-fps={sceneMetrics?.fps ?? ""}
+      data-draw-calls={sceneMetrics?.drawCalls ?? ""}
+      data-scene-mesh-count={sceneMetrics?.meshes ?? ""}
+      data-shadow-map-size={sceneMetrics?.shadowMapSize ?? ""}
+      data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
+      data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
+      data-graphics-quality={graphicsQuality}
+      data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
       <div
         className="production-match-surface"
@@ -1490,7 +1808,15 @@ export default function ProductionMatchExperience({
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <GauntletMatchCanvas
             viewModel={canvasViewModel}
-            commands={interactionCommands}
+            commands={gameplayCommands}
+            interactionLocked={gameplayInputLocked}
+            graphicsQuality={graphicsQuality}
+            interactionStatus={transportUpdate?.connected === false
+              ? "Connection interrupted. The current table is preserved while reconnecting."
+              : gameplayInputLocked
+                ? "Current action is resolving."
+                : ""}
+            capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
             onRendererError={(error) => {
               setAdapterError(error?.message || "The Babylon renderer failed.");
@@ -1501,39 +1827,53 @@ export default function ProductionMatchExperience({
 
         <div className="production-table-vignette" aria-hidden="true" />
         <PlayerPlate
-          player={presentedViewModel.top}
-          priority={presentedViewModel.priority}
+          player={visualViewModel.top}
+          priority={visualViewModel.priority}
           position="top"
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
         />
         <PlayerPlate
-          player={presentedViewModel.bottom}
-          priority={presentedViewModel.priority}
+          player={visualViewModel.bottom}
+          priority={visualViewModel.priority}
           position="bottom"
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
         />
-        <FactionActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
-        <ContextActions viewModel={presentedViewModel} commands={interactionCommands} connected={transportUpdate?.connected !== false && !playbackState.inputLocked} />
+        {!playbackState.catchingUp && (
+          <FactionActions
+            viewModel={presentedViewModel}
+            commands={gameplayCommands}
+            connected={!gameplayInputLocked}
+          />
+        )}
+        <ContextActions
+          viewModel={presentedViewModel}
+          commands={gameplayCommands}
+          connected={!gameplayInputLocked}
+          resolving={playbackState.catchingUp}
+        />
         {update?.controls && (
           <MatchUtilities
             viewModel={presentedViewModel}
             controls={update?.controls}
             commands={interactionCommands}
-            connected={transportUpdate?.connected !== false && !playbackState.inputLocked}
+            connected={!gameplayInputLocked}
             descriptor={update?.descriptor}
             audioEnabled={audioEnabled}
             onAudioEnabledChange={updateAudioEnabled}
+            graphicsQuality={graphicsQuality}
+            graphicsScalingLevel={sceneMetrics?.hardwareScalingLevel}
+            onGraphicsQualityChange={updateGraphicsQuality}
             onOpenReference={setReferencePanel}
           />
         )}
 
-        <div className="production-turn-marker" aria-label={`${viewModel.currentTurnLabel}, ${viewModel.phaseLabel}`}>
-          <span>{viewModel.currentTurnLabel}</span>
-          <strong>{viewModel.phaseLabel}</strong>
+        <div className="production-turn-marker" aria-label={`${visualViewModel.currentTurnLabel}, ${visualViewModel.phaseLabel}`}>
+          <span>{visualViewModel.currentTurnLabel}</span>
+          <strong>{visualViewModel.phaseLabel}</strong>
         </div>
         <MatchModeMarker descriptor={update?.descriptor} />
-        <BroadcastMarker broadcast={update?.broadcast} viewModel={presentedViewModel} />
+        <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
 
         {transportUpdate?.connected === false && (
@@ -1549,6 +1889,13 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
+        {update?.source !== "replay" && !referencePanel && (
+          <MatchLedger
+            entries={feedEntries}
+            snapshot={transportUpdate?.snapshot || update?.snapshot}
+            onOpen={() => setReferencePanel("log")}
+          />
+        )}
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
         <CardPreview preview={previewCard} />
         <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
@@ -1557,9 +1904,10 @@ export default function ProductionMatchExperience({
           snapshot={update?.snapshot}
           viewModel={presentedViewModel}
           commands={interactionCommands}
+          recentEvents={feedEntries}
           onClose={() => setReferencePanel(null)}
         />
-        {update?.source !== "replay" && (
+        {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}
             controls={update?.controls || {}}

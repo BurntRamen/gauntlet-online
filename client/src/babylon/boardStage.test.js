@@ -50,6 +50,9 @@ test("native board stage declares the complete modular scene graph", () => {
 test("responsive profiles rearrange modules instead of scaling a board photo", () => {
   expect(getBoardLayoutProfile(390, 844).id).toBe("portrait");
   expect(getBoardLayoutProfile(844, 390).id).toBe("short-landscape");
+  expect(getBoardLayoutProfile(808, 700).id).toBe("portrait");
+  expect(getBoardLayoutProfile(1012, 538).id).toBe("desktop");
+  expect(getBoardLayoutProfile(2544, 856).id).toBe("ultrawide");
   const portrait = createBoardStageDescriptor(BOARD_LAYOUT_PROFILES.portrait);
   const payment = portrait.boardModules.find((module) => module.id === "payment-tray");
   const combat = portrait.boardModules.find((module) => module.id === "hand-combat-dais");
@@ -121,7 +124,8 @@ test("the eight-card hands remain clear of physical payment, pile, and combat mo
       localHand.forEach((bounds) => expect(overlaps(bounds, modules.get(moduleId).bounds)).toBe(false));
     });
     opponentHand.forEach((bounds) => {
-      expect(overlaps(bounds, modules.get("hand-combat-dais").bounds)).toBe(false);
+      expect({ profile: profile.id, overlapsCombat: overlaps(bounds, modules.get("hand-combat-dais").bounds) })
+        .toEqual({ profile: profile.id, overlapsCombat: false });
       [
         "pile-local-deck",
         "pile-local-discard",
@@ -133,13 +137,13 @@ test("the eight-card hands remain clear of physical payment, pile, and combat mo
 });
 
 test("short-landscape camera preserves a readable share of the battlefield width", () => {
-  const projection = getTableCameraProjection(836, 222);
-  const profile = getBoardLayoutProfile(836, 222);
+  const projection = getTableCameraProjection(836, 268);
+  const profile = getBoardLayoutProfile(836, 268);
   const board = boardModuleDescriptors(profile).find((module) => module.id === "board-base");
   const projectedWidth = projection.right - projection.left;
 
   expect(profile.id).toBe("short-landscape");
-  expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.41);
+  expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.7);
 });
 
 test.each([
@@ -153,19 +157,20 @@ test.each([
   const projection = getTableCameraProjection(safe.width, safe.height);
   const profile = getBoardLayoutProfile(safe.width, safe.height);
   boardModuleDescriptors(profile).forEach((module) => {
-    expect(module.bounds.left).toBeGreaterThanOrEqual(projection.left - 0.01);
-    expect(module.bounds.right).toBeLessThanOrEqual(projection.right + 0.01);
-    expect(module.bounds.bottom).toBeGreaterThanOrEqual(projection.bottom - 0.01);
-    expect(module.bounds.top).toBeLessThanOrEqual(projection.top + 0.01);
+    expect(module.bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left - 0.01);
+    expect(module.bounds.right).toBeLessThanOrEqual(projection.tableBounds.right + 0.01);
+    expect(module.bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom - 0.01);
+    expect(module.bounds.top).toBeLessThanOrEqual(projection.tableBounds.top + 0.01);
   });
   ["local", "opponent"].forEach((side) => {
-    Array.from({ length: 8 }, (_, slotIndex) => actorBoundsAt(resolveActorPosition({
+    Array.from({ length: 8 }, (_, slotIndex) => ({ slotIndex, bounds: actorBoundsAt(resolveActorPosition({
       zone: { kind: "hand", side, role: "hand", slotIndex, count: 8 }
-    }, profile))).forEach((bounds) => {
-      expect(bounds.left).toBeGreaterThanOrEqual(projection.left - 0.01);
-      expect(bounds.right).toBeLessThanOrEqual(projection.right + 0.01);
-      expect(bounds.bottom).toBeGreaterThanOrEqual(projection.bottom - 0.01);
-      expect(bounds.top).toBeLessThanOrEqual(projection.top + 0.01);
+    }, profile)) })).forEach(({ slotIndex, bounds }) => {
+      expect(bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left - 0.01);
+      expect(bounds.right).toBeLessThanOrEqual(projection.tableBounds.right + 0.01);
+      expect(bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom - 0.01);
+      expect({ profile: profile.id, side, slotIndex, withinTop: bounds.top <= projection.tableBounds.top + 0.01 })
+        .toEqual({ profile: profile.id, side, slotIndex, withinTop: true });
     });
   });
 });

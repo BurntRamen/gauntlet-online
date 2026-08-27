@@ -1,11 +1,36 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import ProductionMatchExperience, { eventCalloutContent } from "./ProductionMatchExperience";
-import { BATTLEFIELD_EVENT_PACING } from "./battlefieldPlayback";
+import {
+  BATTLEFIELD_EVENT_PACING,
+  createBattlefieldPlaybackFrames
+} from "./battlefieldPlayback";
+import { PRESENTATION_BEAT_RECIPES } from "./presentationCadence";
 
-jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, commands }) {
+jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
+  viewModel,
+  commands,
+  interactionLocked,
+  interactionStatus,
+  graphicsQuality,
+  onSceneMetrics
+}) {
   return (
-    <div data-testid="mock-gauntlet-canvas">
+    <div data-testid="mock-gauntlet-canvas" data-graphics-quality={graphicsQuality}>
       {viewModel.instruction}
+      <span data-testid="mock-canvas-cadence-tier">
+        {viewModel.presentationCues?.[0]?.cadence?.tier || "rest"}
+      </span>
+      <span data-testid="mock-interaction-status">{interactionStatus}</span>
+      <button
+        type="button"
+        data-testid="mock-report-combat-focus"
+        onClick={() => onSceneMetrics?.({
+          sceneContract: "gauntlet.test-scene.v1",
+          boardPresentation: { focus: { region: "combat", tier: 3 } }
+        })}
+      >
+        Report combat focus
+      </button>
       <button
         type="button"
         data-testid="mock-preview-card"
@@ -18,6 +43,14 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ viewModel, comman
         onMouseLeave={() => commands.previewCard?.(null)}
       >
         Preview card
+      </button>
+      <button
+        type="button"
+        data-testid="mock-activate-hand-card"
+        disabled={interactionLocked}
+        onClick={() => commands.activateHandCard?.(0)}
+      >
+        Activate mock card
       </button>
       <button type="button" data-match-zone="hand">Mock card one</button>
       <button type="button" data-match-zone="hand">Mock card two</button>
@@ -34,8 +67,8 @@ function createViewModel() {
     phaseLabel: "Priority",
     currentTurnLabel: "Turn 3",
     instruction: "Choose an action.",
-    top: { id: 2, name: "Opponent", life: 27, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 5 },
-    bottom: { id: 1, name: "Local", life: 34, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 8 },
+    top: { id: 2, name: "Opponent", life: 27, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 5, deckCount: 37, discardCount: 10 },
+    bottom: { id: 1, name: "Local", life: 34, factionId: "rumin", factionName: "Basic Gauntlet", handCount: 8, deckCount: 44, discardCount: 3 },
     priority: 1,
     perspective: { player: 1, spectator: false },
     interactions: {
@@ -87,6 +120,8 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   );
   expect(screen.getByLabelText(/Local, 34 life, has priority/)).toBeInTheDocument();
   expect(screen.getByLabelText(/Opponent, 27 life/)).toBeInTheDocument();
+  expect(screen.getByText("Deck 44")).toBeVisible();
+  expect(screen.getByText("Discard 3")).toBeVisible();
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
   expect(screen.getAllByText("G", { exact: true })).toHaveLength(2);
   expect(screen.queryByText("Developer tools")).not.toBeInTheDocument();
@@ -124,6 +159,7 @@ test("uses a privacy curtain for local perspective handoff", async () => {
 test("shows the reason a staged action cannot yet be confirmed", async () => {
   const viewModel = createViewModel();
   viewModel.selection.attackMode = { from: "hand" };
+  viewModel.payment = { active: true, total: 5, required: 7 };
   viewModel.interactions.confirmReason = "Select 2 more payment value.";
 
   render(
@@ -134,6 +170,10 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
   );
 
   expect(await screen.findByText("Select 2 more payment value.")).toBeVisible();
+  const payment = screen.getByRole("status");
+  expect(payment).toHaveTextContent("Payment cost");
+  expect(payment).toHaveTextContent("5 / 7");
+  expect(payment).toHaveTextContent("Select highlighted cards worth 2 more.");
   expect(screen.queryByRole("button", { name: "Pass Priority" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
@@ -177,7 +217,7 @@ test("presents transport notices in a ticker without replacing action guidance",
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
 });
 
-test("plays rapid battlefield events sequentially and retains prior feed entries", async () => {
+test("coalesces payment with attack and only presents the current combat beat", async () => {
   jest.useFakeTimers();
   let publish;
   const initialUpdate = {
@@ -196,31 +236,378 @@ test("plays rapid battlefield events sequentially and retains prior feed entries
     })
   };
   render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
-  await screen.findByTestId("production-babylon-match");
+  const match = await screen.findByTestId("production-babylon-match");
+  expect(match).toHaveAttribute("data-playback-catching-up", "false");
+  expect(match).toHaveAttribute("data-playback-queued-frames", "0");
 
   const events = [
     { id: "payment-queued", type: "payment.discarded" },
     { id: "attack-queued", type: "attack.declared", laneIndex: 0 },
     { id: "block-queued", type: "block.declared", laneIndex: 0 }
   ];
-  act(() => publish({
+  const queuedUpdate = {
     ...initialUpdate,
     revision: 5,
     events,
     viewModel: { ...createViewModel(), revision: 5, events }
-  }));
+  };
+  const [attackFrame] = createBattlefieldPlaybackFrames(queuedUpdate, new Set(), {
+    baseUpdate: initialUpdate
+  });
+  act(() => publish(queuedUpdate));
 
-  expect(screen.getByText("Payment discarded")).toBeVisible();
-  expect(screen.queryByText("Lane 1 attack committed")).not.toBeInTheDocument();
-  act(() => jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["payment.discarded"]));
+  expect(match).toHaveAttribute("data-playback-catching-up", "true");
+  expect(match).toHaveAttribute("data-active-event-id", attackFrame.event.id);
   expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
-  act(() => jest.advanceTimersByTime(BATTLEFIELD_EVENT_PACING["attack.declared"]));
+  act(() => jest.advanceTimersByTime(attackFrame.durationMs));
   expect(screen.getByText("Lane 1 block committed")).toBeVisible();
 
-  fireEvent.click(screen.getByLabelText("Show 2 recent match events"));
-  expect(screen.getByText("Payment discarded")).toBeVisible();
-  expect(screen.getByText("Lane 1 attack committed")).toBeVisible();
+  expect(screen.queryByLabelText(/recent match events/i)).not.toBeInTheDocument();
+  expect(screen.queryByText("Lane 1 attack committed")).not.toBeInTheDocument();
   act(() => jest.runOnlyPendingTimers());
+  expect(match).toHaveAttribute("data-active-event-id", "");
+  expect(match).toHaveAttribute("data-playback-catching-up", "false");
+  expect(match).toHaveAttribute("data-playback-queued-frames", "0");
+  jest.useRealTimers();
+});
+
+test("keeps spectator guidance neutral while presentation playback resolves", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const spectatorViewModel = {
+    ...createViewModel(),
+    instruction: "Player 1 has priority.",
+    perspective: { player: null, spectator: true }
+  };
+  const initialUpdate = {
+    source: "live",
+    connected: true,
+    viewModel: spectatorViewModel,
+    commands: {},
+    privacy: { required: false, player: null }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  const spectatorPanel = screen.getByText("Spectator view").closest("section");
+  expect(within(spectatorPanel).getByText("Player 1 has priority.")).toBeVisible();
+
+  const damageEvent = {
+    id: "spectator-damage-5",
+    type: "damage.calculated",
+    attackId: "attack-5",
+    damage: 8
+  };
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [damageEvent],
+    viewModel: {
+      ...spectatorViewModel,
+      revision: 5,
+      instruction: "Player 2 has priority.",
+      events: [damageEvent]
+    }
+  }));
+
+  expect(within(spectatorPanel).getByText("Watching the current action resolve.")).toBeVisible();
+  expect(within(spectatorPanel).queryByText(/Player null/)).not.toBeInTheDocument();
+  act(() => jest.runAllTimers());
+  expect(within(spectatorPanel).getByText("Player 2 has priority.")).toBeVisible();
+  jest.useRealTimers();
+});
+
+test("keeps player guidance on the current beat while presentation playback resolves", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const activateHandCard = jest.fn();
+  const passPriority = jest.fn();
+  const confirmCurrentAction = jest.fn();
+  const cancelCurrentAction = jest.fn();
+  const playerViewModel = {
+    ...createViewModel(),
+    instruction: "Player 1 has priority.",
+    hand: [{
+      id: "cadence-card-1",
+      label: "Seven of Hearts",
+      value: 7,
+      raw: { id: "cadence-card-1", value: 7 },
+      unavailable: false
+    }],
+    interactions: {
+      ...createViewModel().interactions,
+      confirmDisabled: false
+    }
+  };
+  const initialUpdate = {
+    source: "live",
+    connected: true,
+    viewModel: playerViewModel,
+    commands: {
+      activateHandCard,
+      passPriority,
+      confirmCurrentAction,
+      cancelCurrentAction
+    },
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  expect(within(screen.getByLabelText("Current match action")).getByText("Player 1 has priority.")).toBeVisible();
+
+  const damageEvent = {
+    id: "player-damage-5",
+    type: "damage.calculated",
+    attackId: "attack-5",
+    damage: 8
+  };
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [damageEvent],
+    viewModel: {
+      ...playerViewModel,
+      revision: 5,
+      instruction: "Player 2 has priority.",
+      events: [damageEvent]
+    }
+  }));
+
+  const resolvingPanel = screen.getByLabelText("Current match action");
+  expect(within(resolvingPanel).getByText("Resolving the committed action…")).toBeVisible();
+  expect(within(resolvingPanel).queryByText("Player 2 has priority.")).not.toBeInTheDocument();
+  expect(within(resolvingPanel).queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.getByTestId("mock-interaction-status")).toHaveTextContent("Current action is resolving.");
+  expect(screen.getByTestId("mock-activate-hand-card")).toBeDisabled();
+  fireEvent.click(screen.getByTestId("mock-activate-hand-card"));
+  fireEvent.keyDown(window, { key: "1" });
+  fireEvent.keyDown(window, { key: "p" });
+  fireEvent.keyDown(window, { key: "c" });
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(activateHandCard).not.toHaveBeenCalled();
+  expect(passPriority).not.toHaveBeenCalled();
+  expect(confirmCurrentAction).not.toHaveBeenCalled();
+  expect(cancelCurrentAction).not.toHaveBeenCalled();
+  act(() => jest.runAllTimers());
+  expect(within(screen.getByLabelText("Current match action")).getByText("Player 2 has priority.")).toBeVisible();
+  expect(screen.getByTestId("mock-interaction-status")).toBeEmptyDOMElement();
+  expect(screen.getByTestId("mock-activate-hand-card")).toBeEnabled();
+  fireEvent.click(screen.getByTestId("mock-activate-hand-card"));
+  expect(activateHandCard).toHaveBeenCalledWith(0);
+  jest.useRealTimers();
+});
+
+test("holds the result modal until the terminal cadence reaches final reconcile", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const initialUpdate = {
+    source: "local",
+    connected: true,
+    viewModel: createViewModel(),
+    commands: {},
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  const match = await screen.findByTestId("production-babylon-match");
+  const terminalEvent = { id: "match-ended-5", type: "match.ended", winner: 1 };
+  const terminalViewModel = {
+    ...createViewModel(),
+    revision: 5,
+    phase: "gameOver",
+    phaseLabel: "Match Complete",
+    winner: 1,
+    message: "Local wins.",
+    events: [terminalEvent]
+  };
+
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [terminalEvent],
+    viewModel: terminalViewModel
+  }));
+
+  expect(match).toHaveClass("is-resolving");
+  expect(screen.queryByRole("heading", { name: "Victory" })).not.toBeInTheDocument();
+  act(() => jest.runOnlyPendingTimers());
+  expect(screen.getByRole("heading", { name: "Victory" })).toBeVisible();
+  expect(match).not.toHaveClass("is-resolving");
+
+  jest.useRealTimers();
+});
+
+test("keeps HUD projection and authoritative commands aligned with presentation release", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const oldPassPriority = jest.fn();
+  const newPassPriority = jest.fn();
+  const initialViewModel = {
+    ...createViewModel(),
+    turn: 3,
+    players: {
+      1: { ...createViewModel().bottom },
+      2: { ...createViewModel().top }
+    }
+  };
+  const initialUpdate = {
+    source: "local",
+    connected: true,
+    viewModel: initialViewModel,
+    broadcast: {
+      label: "Arena cast",
+      season: "Qualifier",
+      spectatorCount: 12,
+      matchId: "match-1"
+    },
+    commands: { passPriority: oldPassPriority },
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  const resolutionEvents = [
+    { id: "block-payment-5", type: "payment.discarded", player: 1, cardIds: ["payment-1"] },
+    { id: "block-5", type: "block.declared", player: 1, laneIndex: 0, cardIds: ["blocker-1"] },
+    { id: "damage-5", type: "damage.calculated", attacker: 2, laneIndex: 0, damage: 4 },
+    { id: "priority-5", type: "priority.granted", player: 2 }
+  ];
+  const resolvedViewModel = {
+    ...createViewModel(),
+    revision: 5,
+    currentTurnLabel: "Turn 4",
+    phaseLabel: "Response Complete",
+    turn: 4,
+    priority: 2,
+    top: { ...createViewModel().top, life: 23 },
+    players: {
+      1: { ...createViewModel().bottom },
+      2: { ...createViewModel().top, life: 23 }
+    },
+    interactions: { ...createViewModel().interactions, passLabel: "Yield New Priority" },
+    events: resolutionEvents
+  };
+
+  const resolvedUpdate = {
+    ...initialUpdate,
+    revision: 5,
+    events: resolutionEvents,
+    viewModel: resolvedViewModel,
+    broadcast: {
+      label: "Arena cast",
+      season: "Final",
+      spectatorCount: 31,
+      matchId: "match-1"
+    },
+    commands: { passPriority: newPassPriority }
+  };
+  const [blockFrame, damageAnticipationFrame] = createBattlefieldPlaybackFrames(resolvedUpdate, new Set(), {
+    baseUpdate: initialUpdate
+  });
+  act(() => publish(resolvedUpdate));
+
+  expect(screen.getByLabelText("Turn 3, Priority")).toBeVisible();
+  expect(screen.getByLabelText(/Opponent, 27 life/)).toBeInTheDocument();
+  const broadcast = screen.getByLabelText("Arena cast match information");
+  expect(within(broadcast).getByText("Qualifier")).toBeVisible();
+  expect(within(broadcast).getByText("Turn 3")).toBeVisible();
+  expect(within(broadcast).getByText("12 watching")).toBeVisible();
+  expect(within(screen.getByLabelText("Current match action")).getByText("Resolving the committed action…")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Yield New Priority" })).not.toBeInTheDocument();
+  expect(newPassPriority).not.toHaveBeenCalled();
+  expect(oldPassPriority).not.toHaveBeenCalled();
+
+  act(() => jest.advanceTimersByTime(blockFrame.durationMs + damageAnticipationFrame.durationMs));
+  expect(screen.getByLabelText("Turn 4, Response Complete")).toBeVisible();
+  expect(screen.getByLabelText(/Opponent, 23 life, has priority/)).toBeInTheDocument();
+  expect(within(broadcast).getByText("Final")).toBeVisible();
+  expect(within(broadcast).getByText("Turn 4")).toBeVisible();
+  expect(within(broadcast).getByText("31 watching")).toBeVisible();
+
+  act(() => jest.runOnlyPendingTimers());
+  fireEvent.click(screen.getByRole("button", { name: "Yield New Priority" }));
+  expect(newPassPriority).toHaveBeenCalledTimes(1);
+  expect(oldPassPriority).not.toHaveBeenCalled();
+  jest.useRealTimers();
+});
+
+test("keeps status chrome absent at rest and exposes it during active playback", async () => {
+  jest.useFakeTimers();
+  let publish;
+  const initialViewModel = {
+    ...createViewModel(),
+    presentationCues: [{ cadence: { tier: "attention" } }]
+  };
+  const initialUpdate = {
+    source: "local",
+    connected: true,
+    viewModel: initialViewModel,
+    presentation: { cues: initialViewModel.presentationCues },
+    commands: {},
+    privacy: { required: false, player: 1 }
+  };
+  const adapter = {
+    connect: jest.fn(() => Promise.resolve()),
+    subscribe: jest.fn((listener) => {
+      publish = listener;
+      listener(initialUpdate);
+      return () => {};
+    })
+  };
+
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  const match = await screen.findByTestId("production-babylon-match");
+  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
+  expect(match).toHaveAttribute("data-cadence-tier", "attention");
+  expect(match).toHaveAttribute("data-focus-region", "board");
+  fireEvent.click(screen.getByTestId("mock-report-combat-focus"));
+  expect(match).toHaveAttribute("data-focus-region", "combat");
+
+  const attackEvent = { id: "attack-active-5", type: "attack.declared", player: 1, laneIndex: 0 };
+  act(() => publish({
+    ...initialUpdate,
+    revision: 5,
+    events: [attackEvent],
+    viewModel: { ...createViewModel(), revision: 5, events: [attackEvent] }
+  }));
+  expect(screen.getByLabelText("Transient match status")).toHaveClass("is-active");
+  expect(screen.getByTestId("mock-canvas-cadence-tier")).toHaveTextContent("commitment");
+
+  act(() => jest.runOnlyPendingTimers());
+  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
   jest.useRealTimers();
 });
 
@@ -529,9 +916,11 @@ test("keeps live undo, draw, concession, and navigation controls around the Baby
 });
 
 test("keeps discard, match log, keyboard help, faction abilities, and sound in the production shell", async () => {
+  window.localStorage.removeItem("gauntlet.graphicsQuality");
   const inspectCard = jest.fn();
   const activateAbility = jest.fn();
   const onAudioEnabledChange = jest.fn();
+  const onGraphicsQualityChange = jest.fn();
   const viewModel = createViewModel();
   viewModel.interactions.abilities = [
     {
@@ -582,11 +971,21 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
         controls: { canConcede: true },
         commands: { inspectCard, activateAbility }
       })}
-      options={{ audioEnabled: true, onAudioEnabledChange }}
+      options={{ audioEnabled: true, onAudioEnabledChange, onGraphicsQualityChange }}
     />
   );
 
   fireEvent.click(await screen.findByText("Match"));
+  const graphicsQuality = screen.getByRole("combobox", { name: "Graphics quality" });
+  expect(graphicsQuality).toHaveValue("balanced");
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "balanced");
+  fireEvent.change(graphicsQuality, { target: { value: "high" } });
+  expect(onGraphicsQualityChange).toHaveBeenCalledWith("high");
+  expect(window.localStorage.getItem("gauntlet.graphicsQuality")).toBe("high");
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "high");
+  expect(screen.getByRole("complementary", { name: "Recent play order" })).toHaveTextContent(
+    "Player 1 declared a lane attack."
+  );
   fireEvent.click(screen.getByRole("button", { name: "Discard piles" }));
   expect(screen.getByRole("dialog", { name: "Discard piles" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /Seven of Hearts/ }));
@@ -612,6 +1011,7 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   fireEvent.click(screen.getByRole("button", { name: "Mute sound" }));
   expect(onAudioEnabledChange).toHaveBeenCalledWith(false);
+  window.localStorage.removeItem("gauntlet.graphicsQuality");
 });
 
 test("opens keyboard zones without permanent duplicate chrome and exposes the discard shortcut", async () => {
@@ -668,6 +1068,7 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   act(() => jest.advanceTimersByTime(
     BATTLEFIELD_EVENT_PACING["attack.declared"]
     + BATTLEFIELD_EVENT_PACING["block.declared"]
+    + PRESENTATION_BEAT_RECIPES["damage.impact"].phases.impact
   ));
   const recap = screen.getByRole("status", { name: "Latest combat summary" });
   expect(recap).toHaveTextContent("Lane 1 attack");
@@ -675,6 +1076,13 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   expect(recap).toHaveTextContent("Block 3");
   expect(recap).toHaveTextContent("Damage 6");
   expect(recap).toHaveTextContent("6 damage dealt");
+  const ledger = screen.getByRole("complementary", { name: "Recent play order" });
+  expect(ledger).toHaveTextContent("9 attack − 3 block − 0 prevention = 6 damage");
+  fireEvent.click(within(ledger).getByRole("button", { name: /Full log/ }));
+  const log = screen.getByRole("dialog", { name: "Match log" });
+  expect(log).toHaveTextContent("Latest calculation details");
+  expect(log).toHaveTextContent("Values shown in resolution order");
+  expect(log).toHaveTextContent("9 attack − 3 block − 0 prevention = 6 damage");
   act(() => jest.runOnlyPendingTimers());
   jest.useRealTimers();
 });
@@ -848,4 +1256,12 @@ test("names hand and lane combat events without implying a fourth lane", () => {
     type: "block.declared",
     laneIndex: 2
   })).toEqual(["block", "Lane 3 block committed"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 0
+  })).toEqual(["block", "Attack stopped"]);
+  expect(eventCalloutContent({
+    type: "damage.calculated",
+    damage: 8
+  })).toEqual(["damage", "Major damage · 8"]);
 });

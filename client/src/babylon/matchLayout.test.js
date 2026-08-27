@@ -10,6 +10,7 @@ import {
   getPaymentPosition,
   getTableCameraProjection,
   MATCH_LAYOUT,
+  normalizePresentationLaneIndex,
   normalizeVisibleCardRotation
 } from "./matchLayout";
 import { createBoardStageDescriptor, getBoardLayoutProfile } from "./boardStage";
@@ -51,7 +52,7 @@ describe("production card orientation contract", () => {
     const outerEdge = Math.max(...positions.map((position) => Math.abs(position.x))) + visibleCardWidth / 2;
 
     expect(smallestGap).toBeGreaterThanOrEqual(1.8);
-    expect(smallestGap / visibleCardWidth).toBeGreaterThan(0.9);
+    expect(smallestGap / visibleCardWidth).toBeGreaterThan(0.8);
     expect(outerEdge).toBeLessThan(MATCH_LAYOUT.table.width / 2);
   });
 
@@ -108,7 +109,8 @@ describe("combat tableau geometry", () => {
       getHandCombatPosition("blocker", index, 3, false)
     ));
 
-    expect(blockers[1].x - attacker.x).toBeGreaterThan(4);
+    expect(blockers[1].x - attacker.x).toBeGreaterThan(3);
+    expect(attacker.scale).toBeGreaterThan(0.8);
     expect(new Set(blockers.map((position) => position.x)).size).toBe(3);
     expect(blockers.every((position) => position.z === attacker.z)).toBe(true);
   });
@@ -186,10 +188,19 @@ describe("battlefield safe frame", () => {
     expect(frame.battlefield.y + frame.battlefield.height).toBeLessThanOrEqual(frame.bottomHud.y);
     const profile = getBoardLayoutProfile(frame.battlefield.width, frame.battlefield.height);
     const stage = createBoardStageDescriptor(profile);
-    expect(Math.max(...stage.boardModules.map((module) => module.bounds.right))).toBeLessThanOrEqual(camera.right);
-    expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.left);
-    expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.top);
-    expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.bottom);
-    expect(["desktop", "portrait", "short-landscape"]).toContain(camera.profile);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.right))).toBeLessThanOrEqual(camera.tableBounds.right);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.left))).toBeGreaterThanOrEqual(camera.tableBounds.left);
+    expect(Math.max(...stage.boardModules.map((module) => module.bounds.top))).toBeLessThanOrEqual(camera.tableBounds.top);
+    expect(Math.min(...stage.boardModules.map((module) => module.bounds.bottom))).toBeGreaterThanOrEqual(camera.tableBounds.bottom);
+    expect(["desktop", "portrait", "short-landscape", "ultrawide"]).toContain(camera.profile);
   });
+});
+
+test("presentation lane targeting never coerces an absent hand-combat lane to lane zero", () => {
+  expect(normalizePresentationLaneIndex(null)).toBeNull();
+  expect(normalizePresentationLaneIndex(undefined)).toBeNull();
+  expect(normalizePresentationLaneIndex("")).toBeNull();
+  expect(normalizePresentationLaneIndex("0")).toBe(0);
+  expect(normalizePresentationLaneIndex(2)).toBe(2);
+  expect(normalizePresentationLaneIndex(3)).toBeNull();
 });

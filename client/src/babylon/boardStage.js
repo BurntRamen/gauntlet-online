@@ -14,7 +14,7 @@ const DESKTOP_MOUNTS = Object.freeze({
   "lane-0": { x: -7.35, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-1": { x: 0, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-2": { x: 7.35, z: -0.15, width: 6.35, depth: 7.95 },
-  "hand-combat-dais": { x: 0, z: 5.25, width: 13.6, depth: 2.45 },
+  "hand-combat-dais": { x: 0, z: 5.95, width: 10.2, depth: 2.65 },
   "payment-tray": { x: 10.75, z: -6.35, width: 6.05, depth: 4.25 },
   "pile-local-deck": { x: -12.6, z: -6.75, width: 1.68, depth: 2.26 },
   "pile-local-discard": { x: -10.4, z: -6.75, width: 2.08, depth: 2.72 },
@@ -48,18 +48,24 @@ function scaledDesktopModules(scaleX = 1, scaleZ = 1) {
 }
 
 const desktopModules = scaledDesktopModules();
-const shortLandscapeModules = scaledDesktopModules(0.92, 0.88);
+// Short landscape is a recomposed physical table, not the desktop board scaled
+// uniformly. Compressing depth keeps the three tactical lanes readable in the
+// very shallow battlefield left by browser chrome and the action rail.
+const shortLandscapeModules = scaledDesktopModules(0.92, 0.62);
+const ultrawideModules = scaledDesktopModules(0.94, 0.66);
+shortLandscapeModules["hand-combat-dais"] = { x: 0, z: 3.2, scaleX: 0.92, scaleZ: 0.62 };
+ultrawideModules["hand-combat-dais"] = { x: 0, z: 3.45, scaleX: 0.94, scaleZ: 0.66 };
 const portraitModules = {
-  "board-base": { x: 0, z: 0.45, scaleX: 0.58, scaleZ: 1.18 },
-  "lane-0": { x: -4.35, z: 0.2, scaleX: 0.68, scaleZ: 0.88 },
-  "lane-1": { x: 0, z: 0.2, scaleX: 0.68, scaleZ: 0.88 },
-  "lane-2": { x: 4.35, z: 0.2, scaleX: 0.68, scaleZ: 0.88 },
-  "hand-combat-dais": { x: 0, z: 7.25, scaleX: 0.72, scaleZ: 0.9 },
-  "payment-tray": { x: 0, z: -5.75, scaleX: 0.82, scaleZ: 0.76 },
-  "pile-local-deck": { x: -6.15, z: 10.35, scaleX: 0.68, scaleZ: 0.68 },
-  "pile-local-discard": { x: -6.15, z: 7.95, scaleX: 0.68, scaleZ: 0.68 },
-  "pile-opponent-deck": { x: 6.15, z: 10.35, scaleX: 0.68, scaleZ: 0.68 },
-  "pile-opponent-discard": { x: 6.15, z: 7.95, scaleX: 0.68, scaleZ: 0.68 }
+  "board-base": { x: 0, z: 0, scaleX: 0.58, scaleZ: 1.5 },
+  "lane-0": { x: -4.35, z: 0, scaleX: 0.68, scaleZ: 1.1 },
+  "lane-1": { x: 0, z: 0, scaleX: 0.68, scaleZ: 1.1 },
+  "lane-2": { x: 4.35, z: 0, scaleX: 0.68, scaleZ: 1.1 },
+  "hand-combat-dais": { x: 0, z: 9.8, scaleX: 0.76, scaleZ: 0.9 },
+  "payment-tray": { x: 0, z: -8.3, scaleX: 0.82, scaleZ: 0.8 },
+  "pile-local-deck": { x: -6.15, z: 12, scaleX: 0.68, scaleZ: 0.68 },
+  "pile-local-discard": { x: -6.15, z: 9.5, scaleX: 0.68, scaleZ: 0.68 },
+  "pile-opponent-deck": { x: 6.15, z: 12, scaleX: 0.68, scaleZ: 0.68 },
+  "pile-opponent-discard": { x: 6.15, z: 9.5, scaleX: 0.68, scaleZ: 0.68 }
 };
 
 function moduleAnchors(profile, moduleId, bounds) {
@@ -67,11 +73,11 @@ function moduleAnchors(profile, moduleId, bounds) {
     const laneIndex = Number(moduleId.slice(-1));
     const x = profile.anchors.laneX[laneIndex];
     return {
-      opponentFacedown: { x, y: 0.16, z: profile.anchors.lane.opponent },
-      opponentCombat: { x, y: 0.46, z: profile.anchors.lane.attacker },
-      resolution: { x, y: 0.42, z: profile.anchors.lane.center },
-      localCombat: { x, y: 0.46, z: profile.anchors.lane.blocker },
-      localFacedown: { x, y: 0.16, z: profile.anchors.lane.local },
+      opponentFacedown: { x, y: 0.43, z: profile.anchors.lane.opponent },
+      opponentCombat: { x, y: 0.53, z: profile.anchors.lane.attacker },
+      resolution: { x, y: 0.5, z: profile.anchors.lane.center },
+      localCombat: { x, y: 0.53, z: profile.anchors.lane.blocker },
+      localFacedown: { x, y: 0.43, z: profile.anchors.lane.local },
       fxCenter: { x, y: 0.84, z: profile.anchors.lane.center },
       readout: { x, y: 0.28, z: profile.anchors.lane.center },
       interactionBounds: { ...bounds }
@@ -79,9 +85,9 @@ function moduleAnchors(profile, moduleId, bounds) {
   }
   if (moduleId === "hand-combat-dais") {
     return {
-      attackerGroup: { x: profile.anchors.combat.attackerX, y: 0.5, z: profile.anchors.combat.z },
-      blockerGroup: { x: profile.anchors.combat.blockerX, y: 0.5, z: profile.anchors.combat.z },
-      attachmentGroup: { x: profile.anchors.combat.attachmentX, y: 0.4, z: profile.anchors.combat.z },
+      attackerGroup: { x: profile.anchors.combat.attackerX, y: 0.62, z: profile.anchors.combat.z },
+      blockerGroup: { x: profile.anchors.combat.blockerX, y: 0.62, z: profile.anchors.combat.z },
+      attachmentGroup: { x: profile.anchors.combat.attachmentX, y: 0.56, z: profile.anchors.combat.z },
       attackValue: { x: profile.anchors.combat.attackerX, y: 0.78, z: profile.anchors.combat.z },
       blockValue: { x: profile.anchors.combat.blockerX, y: 0.78, z: profile.anchors.combat.z },
       fxImpact: { x: profile.anchors.combat.x, y: 0.84, z: profile.anchors.combat.z },
@@ -90,7 +96,7 @@ function moduleAnchors(profile, moduleId, bounds) {
   }
   if (moduleId === "payment-tray") {
     return {
-      center: { x: profile.anchors.payment.x, y: 0.34, z: profile.anchors.payment.z },
+      center: { x: profile.anchors.payment.x, y: 0.55, z: profile.anchors.payment.z },
       readout: { x: profile.anchors.payment.x, y: 0.5, z: profile.anchors.payment.z },
       fxDischarge: { x: profile.anchors.payment.x, y: 0.84, z: profile.anchors.payment.z },
       interactionBounds: { ...bounds }
@@ -105,7 +111,7 @@ function moduleAnchors(profile, moduleId, bounds) {
     }[moduleId];
     const position = profile.anchors.piles[pileKey];
     return {
-      cardAnchor: { x: position.x, y: 0.44, z: position.z },
+      cardAnchor: { x: position.x, y: 0.54, z: position.z },
       countMedallion: { x: position.x, y: 0.5, z: bounds.bottom - 0.22 },
       interactionBounds: { ...bounds }
     };
@@ -130,8 +136,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-7.35, 0, 7.35],
       lane: { local: -3.15, opponent: 3.05, attacker: 1.25, blocker: -1.25, center: -0.05 },
-      hand: { localX: -0.6, localZ: -7.05, opponentX: 0, opponentZ: 7.95, localScale: 0.9, opponentScale: 0.54 },
-      combat: { x: 0, z: 5.25, attackerX: -3.65, blockerX: 2.35, attachmentX: -5.45 },
+      hand: { localX: -0.35, localZ: -7.05, opponentX: 0, opponentZ: 8.25, localScale: 0.98, opponentScale: 0.52 },
+      combat: { x: 0, z: 5.95, attackerX: -1.55, blockerX: 2.05, attachmentX: -3.85 },
       payment: { x: 10.75, z: -6.35 },
       piles: {
         localDeck: { x: -12.6, z: -6.75 },
@@ -149,35 +155,55 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     modules: portraitModules,
     anchors: {
       laneX: [-4.35, 0, 4.35],
-      lane: { local: -2.55, opponent: 2.95, attacker: 1.2, blocker: -0.95, center: 0.2 },
-      hand: { localX: 0, localZ: -10.25, opponentX: 0, opponentZ: 11.55, localScale: 0.72, opponentScale: 0.42 },
-      combat: { x: 0, z: 7.25, attackerX: -2.63, blockerX: 1.69, attachmentX: -3.92 },
-      payment: { x: 0, z: -5.75 },
+      lane: { local: -3.25, opponent: 3.25, attacker: 1.3, blocker: -1.05, center: 0 },
+      hand: { localX: 0, localZ: -12, opponentX: 0, opponentZ: 12.85, localScale: 0.96, opponentScale: 0.5 },
+      combat: { x: 0, z: 9.8, attackerX: -1.18, blockerX: 1.56, attachmentX: -2.93 },
+      payment: { x: 0, z: -8.3 },
       piles: {
-        localDeck: { x: -6.15, z: 10.35 },
-        localDiscard: { x: -6.15, z: 7.95 },
-        opponentDeck: { x: 6.15, z: 10.35 },
-        opponentDiscard: { x: 6.15, z: 7.95 }
+        localDeck: { x: -6.15, z: 12 },
+        localDiscard: { x: -6.15, z: 9.5 },
+        opponentDeck: { x: 6.15, z: 12 },
+        opponentDiscard: { x: 6.15, z: 9.5 }
       }
     }
   }),
   "short-landscape": freezeProfile({
     id: "short-landscape",
-    cameraWidth: 27.2,
+    cameraWidth: 26,
     ornament: "reduced",
     touchTargetScale: 1.16,
     modules: shortLandscapeModules,
     anchors: {
       laneX: [-6.76, 0, 6.76],
-      lane: { local: -2.78, opponent: 2.68, attacker: 1.1, blocker: -1.1, center: -0.04 },
-      hand: { localX: -0.5, localZ: -6.2, opponentX: 0, opponentZ: 7, localScale: 0.82, opponentScale: 0.48 },
-      combat: { x: 0, z: 4.62, attackerX: -3.36, blockerX: 2.16, attachmentX: -5.01 },
-      payment: { x: 9.89, z: -5.59 },
+      lane: { local: -1.95, opponent: 1.89, attacker: 1.02, blocker: -1.02, center: -0.03 },
+      hand: { localX: -0.25, localZ: -4.14, opponentX: 0, opponentZ: 5.03, localScale: 0.98, opponentScale: 0.5 },
+      combat: { x: 0, z: 3.2, attackerX: -1.43, blockerX: 1.89, attachmentX: -3.54 },
+      payment: { x: 9.89, z: -3.94 },
       piles: {
-        localDeck: { x: -11.59, z: -5.94 },
-        localDiscard: { x: -9.57, z: -5.94 },
-        opponentDeck: { x: 9.1, z: 6.18 },
-        opponentDiscard: { x: 7.27, z: 6.18 }
+        localDeck: { x: -11.59, z: -4.18 },
+        localDiscard: { x: -9.57, z: -4.18 },
+        opponentDeck: { x: 9.1, z: 4.35 },
+        opponentDiscard: { x: 7.27, z: 4.35 }
+      }
+    }
+  }),
+  ultrawide: freezeProfile({
+    id: "ultrawide",
+    cameraWidth: 27,
+    ornament: "full",
+    touchTargetScale: 1,
+    modules: ultrawideModules,
+    anchors: {
+      laneX: [-6.91, 0, 6.91],
+      lane: { local: -2.08, opponent: 2.01, attacker: 1.08, blocker: -1.08, center: -0.03 },
+      hand: { localX: -0.25, localZ: -4.55, opponentX: 0, opponentZ: 5.28, localScale: 0.82, opponentScale: 0.48 },
+      combat: { x: 0, z: 3.45, attackerX: -1.46, blockerX: 1.93, attachmentX: -3.62 },
+      payment: { x: 10.11, z: -4.19 },
+      piles: {
+        localDeck: { x: -11.84, z: -4.46 },
+        localDiscard: { x: -9.78, z: -4.46 },
+        opponentDeck: { x: 9.31, z: 4.63 },
+        opponentDiscard: { x: 7.43, z: 4.63 }
       }
     }
   })
@@ -187,8 +213,13 @@ export function getBoardLayoutProfile(width, height) {
   const safeWidth = Math.max(1, Number(width) || 1);
   const safeHeight = Math.max(1, Number(height) || 1);
   const aspect = safeWidth / safeHeight;
-  if (safeHeight <= 520 && aspect > 1) return BOARD_LAYOUT_PROFILES["short-landscape"];
-  if (aspect <= 0.72) return BOARD_LAYOUT_PROFILES.portrait;
+  if (safeHeight <= 420 && aspect > 1.45) {
+    return BOARD_LAYOUT_PROFILES["short-landscape"];
+  }
+  if (aspect >= 2.7) return BOARD_LAYOUT_PROFILES.ultrawide;
+  if (aspect <= 0.72 || (safeWidth <= 920 && safeHeight >= 560 && aspect <= 1.25)) {
+    return BOARD_LAYOUT_PROFILES.portrait;
+  }
   return BOARD_LAYOUT_PROFILES.desktop;
 }
 

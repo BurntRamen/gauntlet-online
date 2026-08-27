@@ -1,49 +1,39 @@
 import { projectPresentationCues } from "./presentationCues";
+import {
+  PRESENTATION_CADENCE_CONTRACT_VERSION,
+  PRESENTATION_EVENT_PACING,
+  isPresentationCadenceEvent,
+  presentationEventDuration,
+  presentationEventIdentity,
+  projectPresentationBeats,
+  resolvePresentationBeatTiming
+} from "./presentationCadence";
 
 export const BATTLEFIELD_PLAYBACK_CONTRACT_VERSION = "gauntlet.battlefield-playback.queued.v1";
 
-export const BATTLEFIELD_EVENT_PACING = Object.freeze({
-  "payment.discarded": 1100,
-  "attack.declared": 1500,
-  "block.declared": 1700,
-  "damage.calculated": 1400,
-  "card.placedFacedown": 1150,
-  "cards.drawn": 1050,
-  "priority.granted": 850,
-  "turn.started": 1200,
-  "match.ended": 1700,
-  "campaign.attackDeclared": 1500,
-  "campaign.bossHealed": 1100
-});
-
-const REDUCED_MOTION_EVENT_MS = 420;
-
-function eventIdentity(entry, fallbackIndex = 0) {
-  if (entry?.id) return entry.id;
-  return [
-    entry?.type || "event",
-    entry?.revision || "revision",
-    entry?.sequence ?? fallbackIndex,
-    entry?.player ?? "player",
-    entry?.cardId || (entry?.cardIds || []).join("-") || "card"
-  ].join(":");
-}
+export const BATTLEFIELD_EVENT_PACING = PRESENTATION_EVENT_PACING;
 
 export function battlefieldEventDuration(entry, { reducedMotion = false, playbackRate = 1 } = {}) {
-  const duration = BATTLEFIELD_EVENT_PACING[entry?.type] || 0;
-  if (!duration) return 0;
-  const rate = Math.max(0.25, Number(playbackRate) || 1);
-  return Math.round((reducedMotion ? REDUCED_MOTION_EVENT_MS : duration) / rate);
+  return presentationEventDuration(entry, { reducedMotion, playbackRate });
 }
 
 export function battlefieldCommitEventIndex(events = []) {
   const preferredCommitTypes = [
-    "match.ended",
     "damage.calculated",
+    "damage.dealt",
+    "attack.fullyBlocked",
+    "match.ended",
     "attack.declared",
     "card.placedFacedown",
     "cards.drawn",
     "block.declared",
+    "ability.activated",
+    "lanes.swapped",
+    "laneCard.swappedWithHand",
+    "card.peeked",
+    "card.buffApplied",
+    "acceleration.gained",
+    "acceleration.spent",
     "priority.granted",
     "turn.started"
   ];
@@ -58,65 +48,166 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
   if (!update?.viewModel) return [];
   const events = update.events || update.viewModel.events || [];
   const freshEvents = events.filter((entry, index) => {
-    const id = eventIdentity(entry, index);
-    if (!battlefieldEventDuration(entry, options) || seenEventIds.has(id)) return false;
+    const id = presentationEventIdentity(entry, index);
+    if (!isPresentationCadenceEvent(entry) || seenEventIds.has(id)) return false;
     seenEventIds.add(id);
     return true;
   });
+  const beats = projectPresentationBeats(freshEvents, options);
 
-  if (freshEvents.length === 0) {
-    return [{ update, event: null, durationMs: 0 }];
+  if (beats.length === 0) {
+    return [{ update, event: null, beat: null, durationMs: 0 }];
   }
 
-  const eventFrames = freshEvents.map((entry, index) => {
-    const durationMs = battlefieldEventDuration(entry, options);
-    const presentationCues = projectPresentationCues(entry, {
+  const commitEvent = freshEvents[battlefieldCommitEventIndex(freshEvents)];
+  const selectedCommitBeatIndex = beats.findIndex((beat) => beat.events.includes(commitEvent));
+  const commitBeatIndex = selectedCommitBeatIndex >= 0 ? selectedCommitBeatIndex : 0;
+  const hasBaseUpdate = Boolean(options.baseUpdate?.viewModel);
+  const eventFrames = beats.flatMap((beat, index) => {
+    const timing = resolvePresentationBeatTiming(beat, options);
+    const durationMs = timing.durationMs;
+    const stateCommitted = !hasBaseUpdate || index >= commitBeatIndex;
+    const visualSource = stateCommitted ? update : options.baseUpdate;
+    const presentationCues = projectPresentationCues(beat, {
       matchId: update.viewModel.matchId || update.snapshot?.id,
       traversalId: options.traversalId || (update.source === "replay" ? "replay-0" : "live"),
+      timing,
       durationMs,
-      result: update.viewModel.result
+      result: update.viewModel.result,
+      perspectivePlayer: update.viewModel.perspective?.player,
+      spectator: update.viewModel.perspective?.spectator
     });
-    return {
-      event: entry,
-      durationMs,
+    const frameForBeat = ({
+      source,
+      frameDurationMs,
+      frameEvents,
+      frameCues,
+      frameEvent,
+      frameTiming,
+      committed,
+      phase
+    }) => ({
+      event: frameEvent,
+      beat: frameEvent ? beat : null,
+      durationMs: frameDurationMs,
       update: {
-      ...update,
-      source: update.source,
-      connected: update.connected,
-      commands: update.commands,
-      events: [entry],
-      presentation: {
-        ...update.presentation,
-        playbackContract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
-        activeEventIndex: index,
-        activeEventCount: freshEvents.length,
-        activeEventType: entry.type,
-        stateCommitted: true,
-        eventGate: true,
-        cues: presentationCues
-      },
-      viewModel: {
-        ...update.viewModel,
-        events: [entry],
-        presentationCues,
-        presentationEventGate: true,
-        presentationPlayback: {
-          contract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
+        ...source,
+        source: update.source,
+        connected: update.connected,
+        commands: update.commands,
+        events: frameEvents,
+        presentation: {
+          ...source.presentation,
+          playbackContract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
           activeEventIndex: index,
-          activeEventCount: freshEvents.length,
-          activeEventType: entry.type,
-          stateCommitted: true,
+          activeEventCount: beats.length,
+          activeEventType: frameEvent?.type || null,
+          activeBeatId: beat.id,
+          activeBeatKind: beat.kind,
+          activeBeatPhase: phase,
+          cadenceContract: PRESENTATION_CADENCE_CONTRACT_VERSION,
+          cadenceTier: beat.tier,
+          cadenceTiming: frameTiming,
+          stateCommitted: committed,
           eventGate: true,
-          playbackRate: Math.max(0.25, Number(options.playbackRate) || 1)
+          cues: frameCues
+        },
+        viewModel: {
+          ...source.viewModel,
+          // Event-gated commitment frames intentionally hold the prior board
+          // state, but cards referenced by accepted events are already public.
+          // Carry the authoritative public catalog forward so their transient
+          // payment/combat actors never fall back to placeholder faces.
+          visibleCardCatalog: {
+            ...(source.viewModel?.visibleCardCatalog || {}),
+            ...(update.viewModel?.visibleCardCatalog || {})
+          },
+          events: frameEvents,
+          presentationCues: frameCues,
+          presentationEventGate: true,
+          presentationPlayback: {
+            contract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
+            activeEventIndex: index,
+            activeEventCount: beats.length,
+            activeEventId: frameEvent?.id || null,
+            activeEventType: frameEvent?.type || null,
+            activeBeatId: beat.id,
+            activeBeatKind: beat.kind,
+            activeBeatPhase: phase,
+            cadenceContract: PRESENTATION_CADENCE_CONTRACT_VERSION,
+            cadenceTier: beat.tier,
+            cadenceTiming: frameTiming,
+            commitBeatIndex,
+            stateCommitted: committed,
+            eventGate: true,
+            playbackRate: Math.max(0.25, Number(options.playbackRate) || 1)
+          }
         }
       }
-      }
-    };
+    });
+    const consequenceKinds = new Set(["combat.blocked", "damage.impact", "damage.major"]);
+    const commitOffsetMs = stateCommitted && hasBaseUpdate && consequenceKinds.has(beat.kind)
+      ? Math.max(0, Math.min(durationMs, Number(timing.phases?.impact || 0)))
+      : 0;
+    if (!commitOffsetMs) {
+      return [frameForBeat({
+        source: visualSource,
+        frameDurationMs: durationMs,
+        frameEvents: beat.events,
+        frameCues: presentationCues,
+        frameEvent: beat.event,
+        frameTiming: timing,
+        committed: stateCommitted,
+        phase: "active"
+      })];
+    }
+    const consequenceDurationMs = durationMs - commitOffsetMs;
+    const segmentTiming = (startMs, segmentDurationMs) => ({
+      ...timing,
+      durationMs: segmentDurationMs,
+      segmentStartMs: startMs,
+      phases: Object.fromEntries(Object.entries(timing.phases || {}).map(([phase, offset]) => [
+        phase,
+        Math.max(0, Math.min(segmentDurationMs, Number(offset || 0) - startMs))
+      ]))
+    });
+    const consequenceCues = presentationCues.map((cue) => ({
+      ...cue,
+      offsetMs: Math.max(0, Number(cue.offsetMs || 0) - commitOffsetMs),
+      durationMs: consequenceDurationMs,
+      effectDurationMs: Math.min(
+        consequenceDurationMs,
+        Number(cue.effectDurationMs || consequenceDurationMs)
+      )
+    }));
+    return [
+      frameForBeat({
+        source: options.baseUpdate,
+        frameDurationMs: commitOffsetMs,
+        frameEvents: [],
+        frameCues: [],
+        frameEvent: null,
+        frameTiming: segmentTiming(0, commitOffsetMs),
+        committed: false,
+        phase: "anticipation"
+      }),
+      frameForBeat({
+        source: update,
+        frameDurationMs: consequenceDurationMs,
+        frameEvents: beat.events,
+        frameCues: consequenceCues,
+        frameEvent: beat.event,
+        frameTiming: segmentTiming(commitOffsetMs, consequenceDurationMs),
+        committed: true,
+        phase: "consequence"
+      })
+    ];
   });
   return [
     ...eventFrames,
     {
       event: null,
+      beat: null,
       durationMs: 0,
       update: {
         ...update,
@@ -126,6 +217,7 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
           playbackContract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
           stateCommitted: true,
           finalReconcile: true,
+          cadenceContract: PRESENTATION_CADENCE_CONTRACT_VERSION,
           cues: []
         },
         viewModel: {
@@ -135,9 +227,14 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
           presentationEventGate: false,
           presentationPlayback: {
             contract: BATTLEFIELD_PLAYBACK_CONTRACT_VERSION,
-            activeEventIndex: freshEvents.length,
-            activeEventCount: freshEvents.length,
+            activeEventIndex: beats.length,
+            activeEventCount: beats.length,
+            activeEventId: null,
             activeEventType: null,
+            activeBeatId: null,
+            activeBeatKind: null,
+            cadenceContract: PRESENTATION_CADENCE_CONTRACT_VERSION,
+            commitBeatIndex,
             stateCommitted: true,
             finalReconcile: true,
             playbackRate: Math.max(0.25, Number(options.playbackRate) || 1)
@@ -154,22 +251,80 @@ export class BattlefieldPlaybackQueue {
     onStateChange = () => {},
     reducedMotion = false,
     setTimer = (callback, duration) => setTimeout(callback, duration),
-    clearTimer = (timer) => clearTimeout(timer)
+    clearTimer = (timer) => clearTimeout(timer),
+    now = () => Date.now()
   }) {
     this.onPresent = onPresent;
     this.onStateChange = onStateChange;
     this.reducedMotion = reducedMotion;
     this.setTimer = setTimer;
     this.clearTimer = clearTimer;
+    this.now = now;
     this.frames = [];
     this.seenEventIds = new Set();
     this.activeFrame = null;
     this.timer = null;
+    this.timerStartedAtMs = null;
+    this.timerDurationMs = 0;
+    this.pausedRemainingMs = null;
+    this.pauseDepth = 0;
     this.matchId = null;
     this.replayIndex = null;
     this.latestUpdate = null;
     this.traversalGeneration = 0;
     this.disposed = false;
+  }
+
+  scheduleActiveFrame(durationMs) {
+    const duration = Math.max(0, Number(durationMs || 0));
+    this.timerStartedAtMs = this.now();
+    this.timerDurationMs = duration;
+    this.timer = this.setTimer(() => {
+      this.timer = null;
+      this.timerStartedAtMs = null;
+      this.timerDurationMs = 0;
+      this.pausedRemainingMs = null;
+      this.activeFrame = null;
+      this.pump();
+    }, duration);
+  }
+
+  pause() {
+    if (this.disposed) return 0;
+    this.pauseDepth += 1;
+    if (this.pauseDepth > 1) return this.pauseDepth;
+    if (this.timer != null) {
+      const elapsedMs = Math.max(0, this.now() - Number(this.timerStartedAtMs || 0));
+      this.pausedRemainingMs = Math.max(0, this.timerDurationMs - elapsedMs);
+      this.clearTimer(this.timer);
+      this.timer = null;
+      this.timerStartedAtMs = null;
+      this.timerDurationMs = 0;
+    }
+    this.notify();
+    return this.pauseDepth;
+  }
+
+  resume() {
+    if (this.disposed) return 0;
+    if (this.pauseDepth <= 0) return 0;
+    this.pauseDepth = Math.max(0, this.pauseDepth - 1);
+    if (this.pauseDepth > 0) return this.pauseDepth;
+    if (this.activeFrame) {
+      const remainingMs = Math.max(0, Number(
+        this.pausedRemainingMs ?? this.activeFrame.durationMs ?? 0
+      ));
+      this.pausedRemainingMs = null;
+      if (remainingMs > 0) this.scheduleActiveFrame(remainingMs);
+      else {
+        this.activeFrame = null;
+        this.pump();
+      }
+    } else {
+      this.pump();
+    }
+    this.notify();
+    return this.pauseDepth;
   }
 
   push(update) {
@@ -207,7 +362,7 @@ export class BattlefieldPlaybackQueue {
   }
 
   pump() {
-    if (this.disposed || this.activeFrame || this.frames.length === 0) {
+    if (this.disposed || this.pauseDepth > 0 || this.activeFrame || this.frames.length === 0) {
       this.notify();
       return;
     }
@@ -225,11 +380,7 @@ export class BattlefieldPlaybackQueue {
       this.pump();
       return;
     }
-    this.timer = this.setTimer(() => {
-      this.timer = null;
-      this.activeFrame = null;
-      this.pump();
-    }, frame.durationMs);
+    this.scheduleActiveFrame(frame.durationMs);
   }
 
   notify() {
@@ -237,6 +388,7 @@ export class BattlefieldPlaybackQueue {
       active: Boolean(this.activeFrame),
       queuedFrames: this.frames.length,
       catchingUp: Boolean(this.activeFrame) || this.frames.length > 0,
+      capturePaused: this.pauseDepth > 0,
       inputLocked: false
     });
   }
@@ -244,6 +396,9 @@ export class BattlefieldPlaybackQueue {
   reset() {
     if (this.timer != null) this.clearTimer(this.timer);
     this.timer = null;
+    this.timerStartedAtMs = null;
+    this.timerDurationMs = 0;
+    this.pausedRemainingMs = null;
     this.frames = [];
     this.activeFrame = null;
     this.seenEventIds.clear();
@@ -255,5 +410,6 @@ export class BattlefieldPlaybackQueue {
   dispose() {
     this.disposed = true;
     this.reset();
+    this.pauseDepth = 0;
   }
 }
