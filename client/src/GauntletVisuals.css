@@ -9,7 +9,7 @@
   isolation: isolate;
 }
 
-.faction-artwork::before {
+.faction-artwork.is-neutral::before {
   position: absolute;
   inset: 0;
   z-index: -1;
