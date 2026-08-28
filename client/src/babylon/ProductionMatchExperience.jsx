@@ -438,7 +438,7 @@ function PlayerPlate({
     : String(player.factionName || player.name || "G").slice(0, 1).toUpperCase();
   const crestPath = player.factionId && player.factionId !== "basic"
     ? `/assets/gauntlet/${player.factionId}-card.webp`
-    : "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp";
+    : "/assets/gauntlet/match/gauntlet-card-back-official.jpg";
   const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
   return (
     <section

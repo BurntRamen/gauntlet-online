@@ -395,7 +395,8 @@ const PROGRESSION_COSMETICS = {
     biziChampion: { id: "biziChampion", name: "Bizi Champion", requirement: "Win with Bizi." }
   },
   cardBacks: {
-    classic: { id: "classic", name: "Classic Gauntlet", requirement: "Default card back.", asset: "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp" },
+    classic: { id: "classic", name: "Classic Gauntlet", requirement: "Default card back.", asset: "/assets/gauntlet/match/gauntlet-card-back-official.jpg" },
+    arenaCircuit: { id: "arenaCircuit", name: "Arena Circuit", requirement: "Complete 10 matches.", asset: "/assets/gauntlet/card-backs/arena-circuit-v1.webp" },
     victorGold: { id: "victorGold", name: "Victor Gold", requirement: "Win your first game.", asset: "/assets/gauntlet/card-backs/victor-gold-v1.webp" },
     campaignMap: { id: "campaignMap", name: "Campaign Map", requirement: "Clear a campaign chapter.", asset: "/assets/gauntlet/card-backs/campaign-map-v1.webp" }
   },
@@ -1387,28 +1388,33 @@ function applyDeckResult(stats = {}, deckVersionId, result, matchId) {
 function normalizeProgression(stats = {}) {
   const base = emptyProgression();
   const progression = stats.progression || {};
+  const matchHistory = [...new Map((Array.isArray(progression.matchHistory) ? progression.matchHistory : [])
+    .map((entry) => {
+      const matchId = entry?.matchId || entry?.id || null;
+      if (!matchId) return null;
+      return [matchId, {
+        matchId,
+        recordVersion: Number(entry.recordVersion || 2),
+        completedAt: entry.completedAt || null,
+        deckVersionId: entry.deckVersionId || null
+      }];
+    })
+    .filter(Boolean)).values()].slice(0, 30);
+  const unlockedCardBacks = [...new Set([...(base.cosmetics.unlockedCardBacks || []), ...((progression.cosmetics || {}).unlockedCardBacks || [])])];
+  if (Math.max(Number(stats.gamesPlayed || 0), matchHistory.length) >= 10 && !unlockedCardBacks.includes("arenaCircuit")) {
+    unlockedCardBacks.push("arenaCircuit");
+  }
   return {
     achievements: { ...base.achievements, ...(progression.achievements || {}) },
     campaign: { ...base.campaign, ...(progression.campaign || {}) },
     // Durable compatibility index only. These references intentionally do not
     // duplicate result, opponent, faction, life, or campaign facts from record v2.
-    matchHistory: [...new Map((Array.isArray(progression.matchHistory) ? progression.matchHistory : [])
-      .map((entry) => {
-        const matchId = entry?.matchId || entry?.id || null;
-        if (!matchId) return null;
-        return [matchId, {
-          matchId,
-          recordVersion: Number(entry.recordVersion || 2),
-          completedAt: entry.completedAt || null,
-          deckVersionId: entry.deckVersionId || null
-        }];
-      })
-      .filter(Boolean)).values()].slice(0, 30),
+    matchHistory,
     cosmetics: {
       ...base.cosmetics,
       ...(progression.cosmetics || {}),
       unlockedTitles: [...new Set([...(base.cosmetics.unlockedTitles || []), ...((progression.cosmetics || {}).unlockedTitles || [])])],
-      unlockedCardBacks: [...new Set([...(base.cosmetics.unlockedCardBacks || []), ...((progression.cosmetics || {}).unlockedCardBacks || [])])],
+      unlockedCardBacks,
       unlockedFactionBadges: [...new Set([...(base.cosmetics.unlockedFactionBadges || []), ...((progression.cosmetics || {}).unlockedFactionBadges || [])])]
     }
   };
@@ -2339,6 +2345,10 @@ function applyProgressionForResult(stats, result, context = {}) {
     });
   }
   progression.matchHistory = progression.matchHistory.slice(0, 30);
+
+  if (Math.max(Number(stats.gamesPlayed || 0), progression.matchHistory.length) >= 10) {
+    unlockProgressionItem(progression, "cardBacks", "arenaCircuit");
+  }
 
   if (result === "win") {
     awardAchievement(progression, "first-win", "First Win", "Win your first account game.", now);

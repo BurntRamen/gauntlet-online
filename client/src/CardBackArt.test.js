@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
 
 test("resolves every earned card back to a production artwork", () => {
-  expect(resolveCardBackAsset("classic")).toContain("classic-gauntlet-v2.webp");
+  expect(resolveCardBackAsset("classic")).toContain("match/gauntlet-card-back-official.jpg");
+  expect(resolveCardBackAsset("arenaCircuit")).toContain("arena-circuit-v1.webp");
   expect(resolveCardBackAsset("victorGold")).toContain("victor-gold-v1.webp");
   expect(resolveCardBackAsset("campaignMap")).toContain("campaign-map-v1.webp");
   expect(getCardBackDefinition("unknown").id).toBe("classic");

@@ -4,7 +4,13 @@ export const CARD_BACK_DEFINITIONS = Object.freeze({
   classic: Object.freeze({
     id: "classic",
     name: "Classic Gauntlet",
-    asset: "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp",
+    asset: "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
+    description: "The original Gauntlet card back."
+  }),
+  arenaCircuit: Object.freeze({
+    id: "arenaCircuit",
+    name: "Arena Circuit",
+    asset: "/assets/gauntlet/card-backs/arena-circuit-v1.webp",
     description: "Three lanes held under pressure around a single clash point."
   }),
   victorGold: Object.freeze({

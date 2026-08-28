@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "presentationKit": {
     "schemaVersion": "gauntlet.match-presentation.v1",
     "kitId": "gauntlet-core-v1",
@@ -15,7 +15,8 @@
     { "id": "board-concept-reference", "kind": "reference", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/materials/board-surface-candidate.webp" },
     { "id": "approved-emissive-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/masks/emissive-atlas-candidate.webp" },
     { "id": "approved-fx-source", "kind": "source-atlas", "path": "/assets/gauntlet/match/kits/gauntlet-core-v1/effects/fx-atlas-candidate.webp" },
-    { "id": "classic-card-back-v2", "kind": "texture", "path": "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp" },
+    { "id": "classic-card-back-original", "kind": "texture", "path": "/assets/gauntlet/match/gauntlet-card-back-official.jpg" },
+    { "id": "arena-circuit-card-back-v1", "kind": "texture", "path": "/assets/gauntlet/card-backs/arena-circuit-v1.webp" },
     { "id": "graphite-depth-texture", "kind": "texture", "path": "/assets/gauntlet/match/graphite-table-v1.png" }
   ],
   "cutoverRequired": [

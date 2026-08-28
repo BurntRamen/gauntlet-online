@@ -263,6 +263,17 @@ test("awards a campaign pack only on the first clear", () => {
   assert.ok(stats.progression.achievements["first-campaign-clear"]);
 });
 
+test("unlocks Arena Circuit after ten completed matches", () => {
+  const stats = { gamesPlayed: 10 };
+  applyProgressionForResult(stats, "loss", {
+    matchId: "33333333-3333-4333-8333-333333333333",
+    completedAt: "2026-07-15T12:20:00.000Z"
+  });
+
+  assert.ok(stats.progression.cosmetics.unlockedCardBacks.includes("classic"));
+  assert.ok(stats.progression.cosmetics.unlockedCardBacks.includes("arenaCircuit"));
+});
+
 test("creates a standard two-player game with 52-card decks", () => {
   const roomState = {
     roomCode: "TEST01",

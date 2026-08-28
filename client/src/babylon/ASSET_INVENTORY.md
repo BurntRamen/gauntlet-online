@@ -7,7 +7,7 @@ runtime images remain independently addressable.
 | Purpose | Runtime source | Status |
 | --- | --- | --- |
 | Visible 5:7 fronts | `/assets/gauntlet/playing-cards/{faction}-*.webp` through the card-art resolver, including the complete neutral `basic-*` family | Integrated and cached by path; Basic master and deterministic overlay provenance recorded |
-| Hidden cards | `/assets/gauntlet/card-backs/classic-gauntlet-v2.webp` plus earned variants | C-30-aligned; selected cosmetic is used with a deterministic Classic fallback |
+| Hidden cards | Original `/assets/gauntlet/match/gauntlet-card-back-official.jpg` Classic plus earned variants | The original card back is the deterministic default; selected cosmetics replace it when equipped |
 | Board base | Babylon tabletop slab, inset field, frame, edges, and corner caps | Integrated visual baseline; native modular geometry; independent human signoff pending |
 | Lane modules | One Babylon lane definition instanced three times with wells, rails, sigil, anchors, bounds, and interaction volume | Integrated visual baseline; native modular geometry; independent human signoff pending |
 | Combat dais | Babylon attacker/blocker wells, versus socket, value/readout anchors, and FX anchor | Integrated visual baseline; independent human signoff pending |

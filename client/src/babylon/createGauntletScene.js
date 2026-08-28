@@ -79,7 +79,7 @@ import {
 const CARD_BACK_COLOR = "#102437";
 const CARD_FACE_COLOR = "#f3ead9";
 const MATCH_ASSETS = {
-  cardBack: "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp",
+  cardBack: "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
   table: "/assets/gauntlet/match/graphite-table-v1.png"
 };
 const EVENT_EFFECT_ASSETS = {

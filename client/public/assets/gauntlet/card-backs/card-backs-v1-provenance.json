@@ -42,7 +42,7 @@
     ]
   },
   "assets": [
-    { "id": "CARD-BACK-CLASSIC-V2", "file": "classic-gauntlet-v2.webp", "subject": "three-lane neutral arena circuit", "accent": "signal orange" },
+    { "id": "CARD-BACK-ARENA-CIRCUIT-V1", "file": "arena-circuit-v1.webp", "subject": "three-lane neutral arena circuit", "accent": "signal orange", "unlock": "Complete 10 matches" },
     { "id": "CARD-BACK-VICTOR-GOLD-V1", "file": "victor-gold-v1.webp", "subject": "earned three-lane victory circuit", "accent": "hammered signal gold" },
     { "id": "CARD-BACK-CAMPAIGN-MAP-V1", "file": "campaign-map-v1.webp", "subject": "three-route campaign command map", "accent": "orange checkpoints and cold-blue nexus" }
   ],
