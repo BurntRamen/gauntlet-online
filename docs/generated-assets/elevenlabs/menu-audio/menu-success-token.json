@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-success-token",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A restrained confirmation cue for a premium tabletop command interface: one small aged-brass token is placed flat onto felt, gives a soft dense contact, and settles with a single faint material resonance. Calm, credible, satisfying, not celebratory. No coin jingle, cash register, casino, chime, sparkle, voice, music, or reverb.",
+  "parameters": {
+    "duration_seconds": 0.7,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:4cb1b76cccbfae4e",
+  "generatedAt": "2026-08-28T07:40:45.327Z",
+  "publishedAt": "2026-08-28T07:41:29.917Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_success_token.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 65324,
+  "sha256": "48a1cd79ab914fec1d1ed583598f7e2c2fec9fd9e3eebfbde4787658e41509a0"
+}

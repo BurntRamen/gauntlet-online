@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-commit",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A meaningful commitment cue for a premium competitive tabletop menu: a dense card packet presses into a graphite table socket, a firm wooden seat, and one controlled low bronze lock. Weighty but restrained, decisive, physical, dry. No explosion, trailer boom, sword, casino reward, mobile-game flourish, voice, music, or long reverb.",
+  "parameters": {
+    "duration_seconds": 0.75,
+    "prompt_influence": 0.8,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:329b1518c4af205e",
+  "generatedAt": "2026-08-28T07:40:43.546Z",
+  "publishedAt": "2026-08-28T07:41:29.913Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_commit.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 69164,
+  "sha256": "5f33faae36da5c131b449c23d8932a4ae6b4a36c913dd357b58c325419bbe679"
+}

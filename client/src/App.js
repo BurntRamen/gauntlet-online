@@ -21,6 +21,7 @@ import {
 } from "./completionAccountRefresh";
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
+import { DEFAULT_MENU_AUDIO_SETTINGS, readMenuAudioSettings, useMenuAudio } from "./MenuAudio";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -98,6 +99,7 @@ const STORAGE_KEYS = {
   guestName: "gauntlet_guest_name",
   friendReadAt: "gauntlet_friend_read_at",
   accountSoundMuted: "gauntlet_account_sound_muted",
+  menuAudioSettings: "gauntlet_menu_audio_settings",
   onboardingDismissed: "gauntlet_onboarding_dismissed",
   tutorialCompletions: "gauntlet_tutorial_completions"
 };
@@ -829,16 +831,43 @@ function ActionIconButton({ icon, label, onClick, disabled = false, danger = fal
   );
 }
 
+function fadeMediaVolume(audio, targetVolume, durationMs = 280) {
+  if (!audio) return () => {};
+  if (audio._gauntletVolumeTimer) window.clearInterval(audio._gauntletVolumeTimer);
+  const target = Math.min(1, Math.max(0, Number(targetVolume) || 0));
+  const start = Number(audio.volume) || 0;
+  const startedAt = performance.now();
+  audio._gauntletVolumeTimer = window.setInterval(() => {
+    const progress = Math.min(1, (performance.now() - startedAt) / Math.max(1, durationMs));
+    audio.volume = Math.min(1, Math.max(0, start + ((target - start) * progress)));
+    if (progress < 1) return;
+    window.clearInterval(audio._gauntletVolumeTimer);
+    audio._gauntletVolumeTimer = null;
+  }, 30);
+  return () => {
+    if (audio._gauntletVolumeTimer) window.clearInterval(audio._gauntletVolumeTimer);
+    audio._gauntletVolumeTimer = null;
+  };
+}
+
 function startProceduralTrack(trackKey, volume) {
-  if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {} };
+  if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {}, duck: () => {} };
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return { stop: () => {}, setVolume: () => {} };
+  if (!AudioContext) return { stop: () => {}, setVolume: () => {}, duck: () => {} };
 
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  const usesMenuTransitions = trackKey === "menu";
   const context = new AudioContext();
   const master = context.createGain();
-  master.gain.value = volume;
+  let baseVolume = volume;
+  let duckScale = 1;
+  let duckTimer = null;
+  let stopped = false;
+  master.gain.value = usesMenuTransitions ? 0.0001 : baseVolume;
   master.connect(context.destination);
+  if (usesMenuTransitions) {
+    master.gain.exponentialRampToValueAtTime(Math.max(0.0001, baseVolume), context.currentTime + 0.6);
+  }
 
   const resumeContext = () => {
     if (context.state === "suspended") {
@@ -888,34 +917,71 @@ function startProceduralTrack(trackKey, volume) {
 
   return {
     setVolume: (nextVolume) => {
-      master.gain.value = nextVolume;
+      baseVolume = nextVolume;
+      if (!usesMenuTransitions) {
+        master.gain.value = baseVolume;
+        return;
+      }
+      master.gain.cancelScheduledValues(context.currentTime);
+      master.gain.setTargetAtTime(Math.max(0.0001, baseVolume * duckScale), context.currentTime, 0.08);
+    },
+    duck: (scale = 0.72, durationMs = 700) => {
+      if (stopped || !usesMenuTransitions) return;
+      duckScale = Math.min(1, Math.max(0.2, scale));
+      if (duckTimer) window.clearTimeout(duckTimer);
+      master.gain.cancelScheduledValues(context.currentTime);
+      master.gain.setTargetAtTime(Math.max(0.0001, baseVolume * duckScale), context.currentTime, 0.035);
+      duckTimer = window.setTimeout(() => {
+        duckScale = 1;
+        master.gain.cancelScheduledValues(context.currentTime);
+        master.gain.setTargetAtTime(Math.max(0.0001, baseVolume), context.currentTime, 0.12);
+      }, durationMs);
     },
     stop: () => {
+      if (stopped) return;
+      stopped = true;
       window.removeEventListener("pointerdown", resumeContext);
       window.removeEventListener("keydown", resumeContext);
       window.clearInterval(intervalId);
-      padNodes.forEach((node) => {
-        try { node.stop(); } catch (_error) {}
-      });
-      context.close();
+      if (duckTimer) window.clearTimeout(duckTimer);
+      if (!usesMenuTransitions) {
+        padNodes.forEach((node) => {
+          try { node.stop(); } catch (_error) {}
+        });
+        context.close().catch(() => {});
+        return;
+      }
+      master.gain.cancelScheduledValues(context.currentTime);
+      master.gain.setTargetAtTime(0.0001, context.currentTime, 0.07);
+      window.setTimeout(() => {
+        padNodes.forEach((node) => {
+          try { node.stop(); } catch (_error) {}
+        });
+        context.close().catch(() => {});
+      }, 260);
     }
   };
 }
 
-function startAudioPlaylist(track, volume) {
-  if (typeof window === "undefined" || !track?.sources?.length) return { stop: () => {}, setVolume: () => {} };
+function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {}) {
+  if (typeof window === "undefined" || !track?.sources?.length) return { stop: () => {}, setVolume: () => {}, duck: () => {} };
 
   let stopped = false;
   let failedSources = 0;
+  let baseVolume = volume;
+  let duckScale = 1;
+  let duckTimer = null;
   let trackIndex = Math.floor(Math.random() * track.sources.length);
   const audio = new Audio(resolveAssetPath(track.sources[trackIndex]));
   audio.preload = "auto";
-  audio.volume = volume;
+  audio.volume = usesMenuTransitions ? 0 : volume;
   audio.loop = track.sources.length === 1;
 
   const play = () => {
     if (stopped) return;
-    audio.play().catch(() => {});
+    audio.play().then(() => {
+      if (usesMenuTransitions) fadeMediaVolume(audio, baseVolume * duckScale, 620);
+    }).catch(() => {});
   };
 
   const playNext = () => {
@@ -942,25 +1008,48 @@ function startAudioPlaylist(track, volume) {
 
   return {
     setVolume: (nextVolume) => {
-      audio.volume = nextVolume;
+      baseVolume = nextVolume;
+      if (usesMenuTransitions) fadeMediaVolume(audio, baseVolume * duckScale, 140);
+      else audio.volume = baseVolume;
+    },
+    duck: (scale = 0.72, durationMs = 700) => {
+      if (stopped || !usesMenuTransitions) return;
+      duckScale = Math.min(1, Math.max(0.2, scale));
+      if (duckTimer) window.clearTimeout(duckTimer);
+      fadeMediaVolume(audio, baseVolume * duckScale, 90);
+      duckTimer = window.setTimeout(() => {
+        duckScale = 1;
+        fadeMediaVolume(audio, baseVolume, 360);
+      }, durationMs);
     },
     stop: () => {
+      if (stopped) return;
       stopped = true;
       window.removeEventListener("pointerdown", resumeAudio);
       window.removeEventListener("keydown", resumeAudio);
       audio.removeEventListener("playing", clearFailureCount);
       audio.removeEventListener("ended", playNext);
       audio.removeEventListener("error", playNext);
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
+      if (duckTimer) window.clearTimeout(duckTimer);
+      if (!usesMenuTransitions) {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+        return;
+      }
+      fadeMediaVolume(audio, 0, 240);
+      window.setTimeout(() => {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      }, 260);
     }
   };
 }
 
 function startMusicTrack(trackKey, volume) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
-  if (track.sources?.length) return startAudioPlaylist(track, volume);
+  if (track.sources?.length) return startAudioPlaylist(track, volume, { usesMenuTransitions: trackKey === "menu" });
   return startProceduralTrack(trackKey, volume);
 }
 
@@ -983,6 +1072,74 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, acc
         style={{ width: 110, opacity: soundMuted ? 0.48 : 1 }}
       />
       {account && soundMuted && <span style={{ color: "#fca5a5", fontWeight: "bold" }}>All sounds muted</span>}
+    </div>
+  );
+}
+
+function MenuAudioControl({
+  trackKey,
+  musicEnabled,
+  musicVolume,
+  onMusicToggle,
+  onMusicVolumeChange,
+  settings,
+  onSettingsChange,
+  accountSoundMuted,
+  onAccountSoundMutedChange,
+  playCue
+}) {
+  const [open, setOpen] = useState(false);
+  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
+  const muted = accountSoundMuted || settings.masterMuted;
+
+  const togglePanel = () => {
+    playCue(open ? "panelClose" : "panelOpen");
+    setOpen((value) => !value);
+  };
+
+  const toggleMaster = () => {
+    if (accountSoundMuted) {
+      onAccountSoundMutedChange(false);
+      window.setTimeout(() => playCue("success"), 0);
+      return;
+    }
+    if (!settings.masterMuted) playCue("panelClose");
+    onSettingsChange({ masterMuted: !settings.masterMuted });
+  };
+
+  return (
+    <div className="menu-audio-control">
+      <button type="button" className="menu-audio-trigger" aria-expanded={open} aria-controls="menu-audio-mixer" onClick={togglePanel}>
+        <span aria-hidden="true">◖</span>
+        <span><strong>Audio</strong><small>{muted ? "Muted" : "Living table mix"}</small></span>
+      </button>
+      {open && (
+        <div id="menu-audio-mixer" className="menu-audio-mixer" role="group" aria-label="Menu audio mix">
+          <div className="menu-audio-heading">
+            <span>Table acoustics</span>
+            <strong>{track.label}</strong>
+          </div>
+          <label>
+            <span><strong>Music</strong><small>Living Table score</small></span>
+            <button type="button" aria-pressed={musicEnabled} disabled={muted} onClick={() => { playCue("tab"); onMusicToggle(); }}>{musicEnabled ? "On" : "Off"}</button>
+            <input type="range" min="0" max="0.3" step="0.01" value={musicVolume} disabled={muted || !musicEnabled} onChange={(event) => onMusicVolumeChange(Number(event.target.value))} aria-label="Music volume" />
+          </label>
+          <label>
+            <span><strong>Interface</strong><small>Navigation and commitments</small></span>
+            <button type="button" aria-pressed={settings.effectsEnabled} disabled={muted} onClick={() => { playCue("tab"); onSettingsChange({ effectsEnabled: !settings.effectsEnabled }); }}>{settings.effectsEnabled ? "On" : "Off"}</button>
+            <input type="range" min="0" max="1" step="0.05" value={settings.effectsVolume} disabled={muted || !settings.effectsEnabled} onChange={(event) => onSettingsChange({ effectsVolume: Number(event.target.value) })} aria-label="Menu effects volume" />
+          </label>
+          <label>
+            <span><strong>Ambience</strong><small>Quiet tabletop chamber</small></span>
+            <button type="button" aria-pressed={settings.ambienceEnabled} disabled={muted} onClick={() => { playCue("tab"); onSettingsChange({ ambienceEnabled: !settings.ambienceEnabled }); }}>{settings.ambienceEnabled ? "On" : "Off"}</button>
+            <input type="range" min="0" max="0.2" step="0.01" value={settings.ambienceVolume} disabled={muted || !settings.ambienceEnabled} onChange={(event) => onSettingsChange({ ambienceVolume: Number(event.target.value) })} aria-label="Menu ambience volume" />
+          </label>
+          <div className="menu-audio-actions">
+            <button type="button" onClick={toggleMaster}>{muted ? "Unmute all" : "Mute all"}</button>
+            <button type="button" disabled={muted || !settings.effectsEnabled} onClick={() => playCue("success")}>Test table</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3623,6 +3780,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
+  const [menuAudioSettings, setMenuAudioSettings] = useState(() => readMenuAudioSettings(typeof window !== "undefined" ? window.localStorage : null));
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
@@ -3702,6 +3860,27 @@ export default function App() {
   if (!completionAccountRefreshRef.current) {
     completionAccountRefreshRef.current = createCompletionAccountRefreshCoordinator();
   }
+  const menuAudioActive = Boolean(gameContent && !game && !lobby && !role && !publicView && !collectorClaimToken && !draftState);
+  const effectiveMenuAudioSettings = useMemo(() => ({
+    ...DEFAULT_MENU_AUDIO_SETTINGS,
+    ...menuAudioSettings,
+    masterMuted: menuAudioSettings.masterMuted || accountSoundMuted
+  }), [accountSoundMuted, menuAudioSettings]);
+  const duckMenuMusic = useCallback((scale, durationMs) => {
+    musicStopRef.current?.duck?.(scale, durationMs);
+  }, []);
+  const playMenuCue = useMenuAudio({
+    active: menuAudioActive,
+    settings: effectiveMenuAudioSettings,
+    onDuck: duckMenuMusic
+  });
+  const menuCueRef = useRef(playMenuCue);
+  const menuQueuePendingRef = useRef(false);
+  menuCueRef.current = playMenuCue;
+  menuQueuePendingRef.current = Boolean(matchmakingStatus.inQueue || draftLeagueStatus.inQueue);
+  const updateMenuAudioSettings = useCallback((patch) => {
+    setMenuAudioSettings((previous) => ({ ...previous, ...patch }));
+  }, []);
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
     : playAsGuest && guestName.trim()
@@ -4094,6 +4273,10 @@ export default function App() {
   }, [friendReadAt]);
 
   useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.menuAudioSettings, JSON.stringify(menuAudioSettings));
+  }, [menuAudioSettings]);
+
+  useEffect(() => {
     musicVolumeRef.current = musicVolume;
     musicStopRef.current?.setVolume(musicVolume);
   }, [musicVolume]);
@@ -4103,7 +4286,8 @@ export default function App() {
       musicStopRef.current.stop();
       musicStopRef.current = null;
     }
-    if (musicEnabled && !accountSoundMuted) {
+    const menuMasterMuted = menuAudioActive && menuAudioSettings.masterMuted;
+    if (musicEnabled && !accountSoundMuted && !menuMasterMuted) {
       musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
     }
     return () => {
@@ -4112,7 +4296,7 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, accountSoundMuted]);
+  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
@@ -4126,6 +4310,7 @@ export default function App() {
 
   useEffect(() => {
     const onAssign = (payload) => {
+      if (menuQueuePendingRef.current) menuCueRef.current("matchReady");
       setError("");
       setRole(payload.role);
       setPlayer(payload.playerNum);
@@ -4178,14 +4363,21 @@ export default function App() {
         setError("");
         return;
       }
+      menuCueRef.current("denied");
       setError(msg);
       setDraftPickPending(false);
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
     const onDraftLeagueStatus = (status) => setDraftLeagueStatus(status);
-    const onAccountUpdated = (updatedAccount) => setAccount(updatedAccount);
-    const onDraftDeckSaved = (payload) => setDraftSaveMessage(payload?.message || "Draft deck saved.");
+    const onAccountUpdated = (updatedAccount) => {
+      setAccount(updatedAccount);
+      menuCueRef.current("success");
+    };
+    const onDraftDeckSaved = (payload) => {
+      setDraftSaveMessage(payload?.message || "Draft deck saved.");
+      menuCueRef.current("success");
+    };
     const onGameEnded = () => {
       loadLeaderboard();
       loadCompetitiveProfile();
@@ -4403,6 +4595,7 @@ export default function App() {
   }
 
   async function submitAuth() {
+    playMenuCue("commit");
     setAuthError("");
     try {
       const response = await fetch(`${SOCKET_URL}/api/auth/${authMode === "register" ? "register" : "login"}`, {
@@ -4416,8 +4609,10 @@ export default function App() {
       setAuthToken(data.token);
       setAccount(data.account);
       setAuthForm({ name: "", password: "" });
+      playMenuCue("success");
     } catch (authSubmitError) {
       setAuthError(authSubmitError.message);
+      playMenuCue("denied");
     }
   }
 
@@ -4432,13 +4627,16 @@ export default function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not update progression.");
       setAccount(data.account);
+      playMenuCue("success");
     } catch (progressionError) {
       setError(progressionError.message);
+      playMenuCue("denied");
     }
   }
 
   async function openBoosterPack(packId) {
     if (!authToken || openingPackId) return;
+    playMenuCue("commit");
     setOpeningPackId(packId);
     setLastOpenedPack([]);
     try {
@@ -4454,8 +4652,10 @@ export default function App() {
       if (!response.ok) throw new Error(data.error || "Could not open booster pack.");
       setAccount(data.account);
       setLastOpenedPack(data.openedCards || []);
+      playMenuCue("success");
     } catch (collectionError) {
       setError(collectionError.message);
+      playMenuCue("denied");
     } finally {
       setOpeningPackId("");
     }
@@ -4463,9 +4663,11 @@ export default function App() {
 
   async function buyBoosterPack(packId) {
     if (!authToken) {
+      playMenuCue("denied");
       setError("Sign in to buy collector variants.");
       return;
     }
+    playMenuCue("commit");
     try {
       const response = await fetch(`${SOCKET_URL}/api/collection/collector-pack-purchase-link`, {
         method: "POST",
@@ -4477,11 +4679,16 @@ export default function App() {
       window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
     } catch (purchaseError) {
       setError(purchaseError.message);
+      playMenuCue("denied");
     }
   }
 
   async function saveConstructedDeck(deckPayload) {
-    if (!authToken) throw new Error("Sign in to save a constructed deck.");
+    if (!authToken) {
+      playMenuCue("denied");
+      throw new Error("Sign in to save a constructed deck.");
+    }
+    playMenuCue("commit");
     const response = await fetch(`${SOCKET_URL}/api/collection/save-constructed-deck`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
@@ -4490,6 +4697,7 @@ export default function App() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not save constructed deck.");
     setAccount(data.account);
+    playMenuCue("success");
     return data.savedConstructedDeck;
   }
 
@@ -4504,6 +4712,7 @@ export default function App() {
     if (!response.ok) throw new Error(data.error || "Could not update deck.");
     setAccount(data.account);
     loadCompetitiveProfile();
+    playMenuCue("success");
     return data.deck;
   }
 
@@ -4585,52 +4794,68 @@ export default function App() {
   }
 
   function createRoom() {
+    playMenuCue("commit");
     clearReconnectInfo();
     socket.emit("createRoom", playerIdentityPayload());
   }
 
   function createFreeForAllRoom() {
+    playMenuCue("commit");
     clearReconnectInfo();
     setError("");
     let answered = false;
     const timeoutId = window.setTimeout(() => {
       if (answered) return;
+      playMenuCue("denied");
       setError("Free-for-all room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
     }, 3500);
     socket.emit("createFreeForAllRoom", playerIdentityPayload(), (response) => {
       answered = true;
       window.clearTimeout(timeoutId);
-      if (response?.error) setError(response.error);
+      if (response?.error) {
+        playMenuCue("denied");
+        setError(response.error);
+      }
     });
   }
 
   function createDraftRoom() {
+    playMenuCue("commit");
     clearReconnectInfo();
     setError("");
     let answered = false;
     const timeoutId = window.setTimeout(() => {
       if (answered) return;
+      playMenuCue("denied");
       setError("Draft room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
     }, 3500);
     socket.emit("createDraftRoom", playerIdentityPayload(), (response) => {
       answered = true;
       window.clearTimeout(timeoutId);
-      if (response?.error) setError(response.error);
+      if (response?.error) {
+        playMenuCue("denied");
+        setError(response.error);
+      }
     });
   }
 
   function createBotDraftRoom() {
+    playMenuCue("commit");
     clearReconnectInfo();
     setError("");
     let answered = false;
     const timeoutId = window.setTimeout(() => {
       if (answered) return;
+      playMenuCue("denied");
       setError("Bot draft creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
     }, 3500);
     socket.emit("createBotDraftRoom", playerIdentityPayload(), (response) => {
       answered = true;
       window.clearTimeout(timeoutId);
-      if (response?.error) setError(response.error);
+      if (response?.error) {
+        playMenuCue("denied");
+        setError(response.error);
+      }
     });
   }
 
@@ -4711,6 +4936,7 @@ export default function App() {
   }
 
   function startTutorialVsAi(mode = "basic") {
+    playMenuCue("commit");
     clearReconnectInfo();
     setShowTutorial(false);
     setError("");
@@ -4722,6 +4948,7 @@ export default function App() {
     const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
     const savedRole = localStorage.getItem(STORAGE_KEYS.role);
     if (!roomCode) return;
+    playMenuCue("commit");
     setError("");
     socket.emit("reconnectToRoom", {
       roomCode,
@@ -4749,6 +4976,7 @@ export default function App() {
   }
 
   function openOnboardingTutorial() {
+    playMenuCue("panelOpen");
     dismissOnboarding();
     setShowTutorial(true);
   }
@@ -4759,6 +4987,7 @@ export default function App() {
   }
 
   function startCampaignChapter(factionId, chapterId) {
+    playMenuCue("commit");
     clearReconnectInfo();
     setShowCampaign(false);
     setError("");
@@ -4777,6 +5006,7 @@ export default function App() {
   }
 
   function joinRoom(asSpectator = false) {
+    playMenuCue("commit");
     clearReconnectInfo();
     setError("");
     socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? { authToken } : playerIdentityPayload()) });
@@ -4790,9 +5020,11 @@ export default function App() {
 
   function joinMatchmaking(bestOf = 1) {
     if (!authToken) {
+      playMenuCue("denied");
       setMatchmakingStatus({ inQueue: false, message: "Sign in to use matchmaking." });
       return;
     }
+    playMenuCue("commit");
     socket.emit("joinMatchmaking", { authToken, bestOf });
   }
 
@@ -4802,9 +5034,11 @@ export default function App() {
 
   function joinDraftLeague(draftType = "player", bestOf = 1) {
     if (!authToken) {
+      playMenuCue("denied");
       setDraftLeagueStatus({ inQueue: false, message: "Sign in to use draft league matchmaking." });
       return;
     }
+    playMenuCue("commit");
     socket.emit("joinDraftLeague", { authToken, draftType, bestOf });
   }
 
@@ -5199,7 +5433,7 @@ export default function App() {
   if (showCampaign) {
     return (
       <CampaignScreen
-        onBack={() => setShowCampaign(false)}
+        onBack={() => { playMenuCue("panelClose"); setShowCampaign(false); }}
         onStartChapter={startCampaignChapter}
         canPlayAsPlayer={canPlayAsPlayer}
         account={account}
@@ -5220,7 +5454,7 @@ export default function App() {
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
         onOpenMatch={(matchId) => openPublicView("match", matchId)}
-        onBack={() => setShowCollection(false)}
+        onBack={() => { playMenuCue("panelClose"); setShowCollection(false); }}
       />
     );
   }
@@ -5228,7 +5462,7 @@ export default function App() {
   if (showTutorial) {
     return (
       <TutorialScreen
-        onBack={() => setShowTutorial(false)}
+        onBack={() => { playMenuCue("panelClose"); setShowTutorial(false); }}
         onPlayBasicAi={() => startTutorialVsAi("basic")}
         onPlayFactionAi={() => startTutorialVsAi("factions")}
         canPlayAsPlayer={canPlayAsPlayer}
@@ -5300,15 +5534,17 @@ export default function App() {
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
               <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
-              <MusicControl
+              <MenuAudioControl
                 trackKey={activeMusicTrack}
-                enabled={musicEnabled}
-                volume={musicVolume}
-                onToggle={() => setMusicEnabled((value) => !value)}
-                onVolumeChange={setMusicVolume}
-                account={account}
-                soundMuted={accountSoundMuted}
-                onSoundMutedChange={setSignedInSoundMuted}
+                musicEnabled={musicEnabled}
+                musicVolume={musicVolume}
+                onMusicToggle={() => setMusicEnabled((value) => !value)}
+                onMusicVolumeChange={setMusicVolume}
+                settings={menuAudioSettings}
+                onSettingsChange={updateMenuAudioSettings}
+                accountSoundMuted={accountSoundMuted}
+                onAccountSoundMutedChange={setSignedInSoundMuted}
+                playCue={playMenuCue}
               />
               <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
             </div>
@@ -5316,12 +5552,12 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"}>
+        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {homeArea === "play" && (
             <div className="play-hub">
               <div className="play-view-tabs" role="tablist" aria-label="Play formats">
                 {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["draft", "Draft"]].map(([viewId, label]) => (
-                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => setPlayView(viewId)}>{label}</button>
+                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => { if (playView !== viewId) playMenuCue("tab"); setPlayView(viewId); }}>{label}</button>
                 ))}
               </div>
 
@@ -5441,7 +5677,7 @@ export default function App() {
                     ))}
                   </div>
                   <div className="journey-panel-actions">
-                    <MenuButton onClick={() => setShowTutorial(true)}>Open Tutorial</MenuButton>
+                    <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowTutorial(true); }}>Open Tutorial</MenuButton>
                     <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
                   </div>
                 </section>
@@ -5461,7 +5697,7 @@ export default function App() {
                     <strong>{completedCampaignChapters}</strong>
                     <small>chapters cleared</small>
                   </div>
-                  <MenuButton onClick={() => setShowCampaign(true)}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
+                  <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCampaign(true); }}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
                 </section>
               </div>
               <details className="journey-rulebook">
@@ -5511,7 +5747,7 @@ export default function App() {
                   <span><small>Earned packs</small><strong>{openedPackCount}</strong></span>
                   <span><small>Credits ready</small><strong>{packCredits}</strong></span>
                 </div>
-                <MenuButton onClick={() => setShowCollection(true)} disabled={!account}>Open Collection Workshop</MenuButton>
+                <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Open Collection Workshop</MenuButton>
               </section>
               <div className="build-deck-stack">
                 <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
@@ -5527,8 +5763,13 @@ export default function App() {
                     <MenuButton
                       variant="secondary"
                       onClick={() => {
-                        if (activeConstructedDeck || canCustomizeConstructedDeck) setShowCollection(true);
-                        else setHomeArea("journey");
+                        if (activeConstructedDeck || canCustomizeConstructedDeck) {
+                          playMenuCue("panelOpen");
+                          setShowCollection(true);
+                        } else {
+                          playMenuCue("area");
+                          setHomeArea("journey");
+                        }
                       }}
                       disabled={!account}
                     >
@@ -5542,7 +5783,7 @@ export default function App() {
                     <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
                     <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
                   </div>
-                  <MenuButton variant="secondary" onClick={() => setHomeArea("play")}>Open Draft Modes</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { playMenuCue("area"); setHomeArea("play"); }}>Open Draft Modes</MenuButton>
                 </section>
               </div>
             </div>
@@ -5552,7 +5793,7 @@ export default function App() {
             <div className="identity-hub">
               <div className="identity-view-tabs" role="tablist" aria-label="Identity views">
                 {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"]].map(([viewId, label]) => (
-                  <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => setIdentityView(viewId)}>{label}</button>
+                  <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => { if (identityView !== viewId) playMenuCue("tab"); setIdentityView(viewId); }}>{label}</button>
                 ))}
               </div>
               {identityView === "profile" && <>
@@ -5561,7 +5802,7 @@ export default function App() {
                 featuredDecks={enrichedFeaturedDecks}
                 authToken={authToken}
                 serverUrl={SOCKET_URL}
-                onAccountUpdated={setAccount}
+                onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
               />
               <div className="identity-profile-layout">
                 <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
@@ -5609,7 +5850,7 @@ export default function App() {
               <section className="identity-featured-decks" aria-labelledby="identity-featured-title">
                 <header className="identity-section-heading">
                   <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
-                  <MenuButton variant="secondary" onClick={() => setShowCollection(true)} disabled={!account}>Manage Decks</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Manage Decks</MenuButton>
                 </header>
                 {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
                   <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>

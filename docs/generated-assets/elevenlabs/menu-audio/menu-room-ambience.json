@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-room-ambience",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A seamless quiet ambience loop inside a timeless premium competitive tabletop chamber: soft room air, distant restrained wood tension, nearly imperceptible felt and card handling, occasional subtle settled brass resonance. Calm, focused, intimate, sparse, no distinct events. No voices, footsteps, fire, weather, melody, rhythm, magic, sci-fi machinery, casino, or dramatic swell.",
+  "parameters": {
+    "duration_seconds": 30,
+    "prompt_influence": 0.68,
+    "loop": true
+  },
+  "references": {},
+  "generationId": "sound-effect:78c775bfd047dfe5",
+  "generatedAt": "2026-08-28T07:40:56.493Z",
+  "publishedAt": "2026-08-28T07:41:29.934Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_room_ambience.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 481115,
+  "sha256": "b2fb446bccc55efbe1857b5de024899362acbf3690ca990ab651e6ce95e05688"
+}

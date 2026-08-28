@@ -2,12 +2,13 @@ import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import HomeNavigation from "./HomeNavigation";
 
-function NavigationHarness({ onContinue }) {
+function NavigationHarness({ onContinue, onSound = () => {} }) {
   const [area, setArea] = useState("journey");
   return (
     <HomeNavigation
       activeArea={area}
       onSelectArea={setArea}
+      onSound={onSound}
       nextStep={{
         title: "Learn the core game",
         description: "Start with Basic Gauntlet.",
@@ -34,4 +35,17 @@ test("shows one next action and switches between all five player product areas",
     expect(button).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { name: area })).toBeInTheDocument();
   }
+});
+
+test("routes restrained sounds for area changes and the featured commitment", () => {
+  const onSound = jest.fn();
+  render(<NavigationHarness onContinue={() => {}} onSound={onSound} />);
+
+  fireEvent.click(screen.getByRole("button", { name: /^Play/ }));
+  expect(onSound).toHaveBeenLastCalledWith("area");
+  fireEvent.click(screen.getByRole("button", { name: /^Play/ }));
+  expect(onSound).toHaveBeenCalledTimes(1);
+
+  fireEvent.click(screen.getByRole("button", { name: "Learn Gauntlet" }));
+  expect(onSound).toHaveBeenLastCalledWith("commit");
 });

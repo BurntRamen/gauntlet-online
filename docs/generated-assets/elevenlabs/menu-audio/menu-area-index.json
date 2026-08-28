@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-area-index",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A very short navigation cue for a premium competitive tabletop command menu: a compact brass index pin slides one notch across dense graphite, followed by a soft laminated-card seat. Tactile, deliberate, dry, understated, and readable. No melody, chime, beep, magic, casino, arcade, voice, impact boom, or reverb tail.",
+  "parameters": {
+    "duration_seconds": 0.55,
+    "prompt_influence": 0.78,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:8f4e42bafa6187f5",
+  "generatedAt": "2026-08-28T07:40:35.982Z",
+  "publishedAt": "2026-08-28T07:41:29.887Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_area_index.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 49964,
+  "sha256": "719dfae574ef9ae3834f4e91893821cb69d26877e545b6b5fee9c4330106663d"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-match-ready",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A concise table-ready signal for a premium competitive tabletop game menu: two substantial table clamps engage in sequence, followed by one short low bronze resonance that resolves cleanly. Ceremonial, tense, unmistakable, restrained, physical. No fanfare, horn, bell, trailer boom, battle cry, voice, music, casino, or long reverb.",
+  "parameters": {
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.8,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:928a88006bcc233b",
+  "generatedAt": "2026-08-28T07:40:49.165Z",
+  "publishedAt": "2026-08-28T07:41:29.928Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_match_ready.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 130604,
+  "sha256": "357af472aec890439bf07efab067082e4e5dff3910a19331bd5ffad71236913f"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/menu-audio",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/menu-audio",
+  "jobs": [
+    {
+      "id": "menu-area-index",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A very short navigation cue for a premium competitive tabletop command menu: a compact brass index pin slides one notch across dense graphite, followed by a soft laminated-card seat. Tactile, deliberate, dry, understated, and readable. No melody, chime, beep, magic, casino, arcade, voice, impact boom, or reverb tail.",
+      "parameters": { "duration_seconds": 0.55, "prompt_influence": 0.78, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -16 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_area_index.wav"
+    },
+    {
+      "id": "menu-tab-seat",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A minimal sub-tab selection sound for a premium physical card-game dossier: one thin card divider moves and settles against felt with a tiny restrained bronze detent. Quiet, precise, close-mic, dry. No chime, clicky mouse, keyboard, beep, reward tone, magic, voice, music, or reverb.",
+      "parameters": { "duration_seconds": 0.5, "prompt_influence": 0.8, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -18 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_tab_seat.wav"
+    },
+    {
+      "id": "menu-panel-open",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A restrained menu panel opening on a premium tabletop apparatus: a small recessed brass latch releases, then a dense leather-and-wood drawer glides open a few inches and stops softly. Controlled, quiet, physical, dry. No door creak, whoosh, sci-fi mechanism, chime, voice, music, or long tail.",
+      "parameters": { "duration_seconds": 0.65, "prompt_influence": 0.76, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -17 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_panel_open.wav"
+    },
+    {
+      "id": "menu-panel-close",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A restrained menu panel closing on a premium tabletop apparatus: a short felt-lined drawer return and one muted brass latch seating securely. Compact, quiet, deliberate, dry, slightly lower than the opening cue. No slam, whoosh, beep, chime, voice, music, or reverb.",
+      "parameters": { "duration_seconds": 0.55, "prompt_influence": 0.78, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -17 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_panel_close.wav"
+    },
+    {
+      "id": "menu-commit",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A meaningful commitment cue for a premium competitive tabletop menu: a dense card packet presses into a graphite table socket, a firm wooden seat, and one controlled low bronze lock. Weighty but restrained, decisive, physical, dry. No explosion, trailer boom, sword, casino reward, mobile-game flourish, voice, music, or long reverb.",
+      "parameters": { "duration_seconds": 0.75, "prompt_influence": 0.8, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -13 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_commit.wav"
+    },
+    {
+      "id": "menu-success-token",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A restrained confirmation cue for a premium tabletop command interface: one small aged-brass token is placed flat onto felt, gives a soft dense contact, and settles with a single faint material resonance. Calm, credible, satisfying, not celebratory. No coin jingle, cash register, casino, chime, sparkle, voice, music, or reverb.",
+      "parameters": { "duration_seconds": 0.7, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -15 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_success_token.wav"
+    },
+    {
+      "id": "menu-denied",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A quiet denied-action cue for a premium physical card-game menu: a brass selector meets a padded mechanical stop and returns a fraction, producing one dry muted knock. Informative, neutral, restrained. No buzzer, error beep, alarm, comedy, voice, music, arcade tone, or reverb.",
+      "parameters": { "duration_seconds": 0.55, "prompt_influence": 0.82, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -16 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_denied.wav"
+    },
+    {
+      "id": "menu-match-ready",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A concise table-ready signal for a premium competitive tabletop game menu: two substantial table clamps engage in sequence, followed by one short low bronze resonance that resolves cleanly. Ceremonial, tense, unmistakable, restrained, physical. No fanfare, horn, bell, trailer boom, battle cry, voice, music, casino, or long reverb.",
+      "parameters": { "duration_seconds": 1.4, "prompt_influence": 0.8, "loop": false },
+      "outputFormat": "pcm_44100",
+      "postProcess": { "targetPeakDbfs": -10 },
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_match_ready.wav"
+    },
+    {
+      "id": "menu-room-ambience",
+      "kind": "sound-effect",
+      "reviewStatus": "approved",
+      "modelId": "eleven_text_to_sound_v2",
+      "prompt": "A seamless quiet ambience loop inside a timeless premium competitive tabletop chamber: soft room air, distant restrained wood tension, nearly imperceptible felt and card handling, occasional subtle settled brass resonance. Calm, focused, intimate, sparse, no distinct events. No voices, footsteps, fire, weather, melody, rhythm, magic, sci-fi machinery, casino, or dramatic swell.",
+      "parameters": { "duration_seconds": 30, "prompt_influence": 0.68, "loop": true },
+      "outputFormat": "mp3_44100_128",
+      "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_room_ambience.mp3"
+    }
+  ]
+}

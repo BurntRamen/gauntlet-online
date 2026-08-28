@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-denied",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A quiet denied-action cue for a premium physical card-game menu: a brass selector meets a padded mechanical stop and returns a fraction, producing one dry muted knock. Informative, neutral, restrained. No buzzer, error beep, alarm, comedy, voice, music, arcade tone, or reverb.",
+  "parameters": {
+    "duration_seconds": 0.55,
+    "prompt_influence": 0.82,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:00ed76f08fb5b977",
+  "generatedAt": "2026-08-28T07:40:47.337Z",
+  "publishedAt": "2026-08-28T07:41:29.921Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_denied.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 49964,
+  "sha256": "73b4443d5944dbcdd541859a62a01b77b17392aca897bd26e19c8d95a5a2b015"
+}

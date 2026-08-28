@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-panel-close",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A restrained menu panel closing on a premium tabletop apparatus: a short felt-lined drawer return and one muted brass latch seating securely. Compact, quiet, deliberate, dry, slightly lower than the opening cue. No slam, whoosh, beep, chime, voice, music, or reverb.",
+  "parameters": {
+    "duration_seconds": 0.55,
+    "prompt_influence": 0.78,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:ed4d0285668bc822",
+  "generatedAt": "2026-08-28T07:40:41.869Z",
+  "publishedAt": "2026-08-28T07:41:29.906Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_panel_close.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 49964,
+  "sha256": "ac474f2f392d69e4a63a2997b0d4aaed08c02a0b9d9c6ad0870760e6cc514025"
+}

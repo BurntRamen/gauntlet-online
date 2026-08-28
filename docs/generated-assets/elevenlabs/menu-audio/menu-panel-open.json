@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-panel-open",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A restrained menu panel opening on a premium tabletop apparatus: a small recessed brass latch releases, then a dense leather-and-wood drawer glides open a few inches and stops softly. Controlled, quiet, physical, dry. No door creak, whoosh, sci-fi mechanism, chime, voice, music, or long tail.",
+  "parameters": {
+    "duration_seconds": 0.65,
+    "prompt_influence": 0.76,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:9d11a52e002f5ec1",
+  "generatedAt": "2026-08-28T07:40:40.035Z",
+  "publishedAt": "2026-08-28T07:41:29.901Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_panel_open.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 61484,
+  "sha256": "6599ebdc7975b1ea94cda7c002f306bb93ca1c15d486d79c3c2d247c60dd6717"
+}

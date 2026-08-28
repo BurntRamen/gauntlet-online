@@ -9,7 +9,7 @@ const AREAS = [
   { id: "identity", label: "Identity", detail: "Profile and community", sigil: "◉" }
 ];
 
-export default function HomeNavigation({ activeArea, onSelectArea, nextStep, showStudio = false, children }) {
+export default function HomeNavigation({ activeArea, onSelectArea, nextStep, showStudio = false, onSound = () => {}, children }) {
   const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations", sigil: "◆" }] : AREAS;
   const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
@@ -25,7 +25,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
           <p>{nextStep.description}</p>
           {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
         </div>
-        <button type="button" className="journey-next-action" onClick={nextStep.onClick}>
+        <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
           {nextStep.actionLabel}
         </button>
       </section>
@@ -38,7 +38,11 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
             data-area={area.id}
             className={activeArea === area.id ? "active" : ""}
             aria-current={activeArea === area.id ? "page" : undefined}
-            onClick={() => onSelectArea(area.id)}
+            onClick={() => {
+              if (area.id === activeArea) return;
+              onSound("area");
+              onSelectArea(area.id);
+            }}
           >
             <span className="home-area-sigil" aria-hidden="true">{area.sigil}</span>
             <span className="home-area-nav-copy"><strong>{area.label}</strong><small>{area.detail}</small></span>

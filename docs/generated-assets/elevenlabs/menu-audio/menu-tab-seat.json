@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvalRequired": false,
+  "creator": "ElevenLabs Sound Effects API",
+  "jobId": "menu-tab-seat",
+  "kind": "sound-effect",
+  "modelId": "eleven_text_to_sound_v2",
+  "prompt": "A minimal sub-tab selection sound for a premium physical card-game dossier: one thin card divider moves and settles against felt with a tiny restrained bronze detent. Quiet, precise, close-mic, dry. No chime, clicky mouse, keyboard, beep, reward tone, magic, voice, music, or reverb.",
+  "parameters": {
+    "duration_seconds": 0.5,
+    "prompt_influence": 0.8,
+    "loop": false
+  },
+  "references": {},
+  "generationId": "sound-effect:c946098c84d58146",
+  "generatedAt": "2026-08-28T07:40:38.008Z",
+  "publishedAt": "2026-08-28T07:41:29.896Z",
+  "clientOutput": "client/public/assets/gauntlet/menu/audio/menu_tab_seat.wav",
+  "contentMimeType": "audio/wav",
+  "bytes": 46124,
+  "sha256": "654db770fd0fb203f51fee19202df5a2fe143bcfdd0b10ba1161978a1abcd2a7"
+}
