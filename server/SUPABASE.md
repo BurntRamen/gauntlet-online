@@ -20,6 +20,8 @@ ACCOUNT_AUTH_SECRET=make-this-a-long-random-secret
 
 Keep `SUPABASE_SERVICE_ROLE_KEY` on the backend only. Do not put it in Vercel or client code.
 
+Player portraits use a private Supabase Storage bucket named `gauntlet-profile-images` by default. The backend service role creates the bucket on the first upload when it does not exist, restricts it to PNG/JPEG/WEBP files up to 1 MB, and proxies public portrait reads through `/api/profiles/:accountId/avatar`. Set `ACCOUNT_AVATAR_BUCKET` only if the project uses a different private bucket name. The browser never receives Supabase credentials or a private object path.
+
 ## Current Code Path
 
 The server currently reports whether Supabase credentials are configured at:

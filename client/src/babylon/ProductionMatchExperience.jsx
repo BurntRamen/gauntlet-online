@@ -23,6 +23,7 @@ import "./ProductionMatchExperience.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
+import { PlayerAvatar, resolveProfileAvatarUrl } from "../ProfileAvatar";
 
 const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
 
@@ -418,6 +419,7 @@ function PlayerPlate({
   player,
   priority,
   position,
+  serverUrl = "",
   activeLabel = "Priority",
   statusOverride = ""
 }) {
@@ -437,14 +439,16 @@ function PlayerPlate({
   const crestPath = player.factionId && player.factionId !== "basic"
     ? `/assets/gauntlet/${player.factionId}-card.webp`
     : "/assets/gauntlet/match/gauntlet-card-back-official.jpg";
+  const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
   return (
     <section
       className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}`}
       aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
       <div className="production-player-crest" aria-hidden="true">
-        <img src={crestPath} alt="" />
-        <span>{initial}</span>
+        {portraitUrl ? (
+          <PlayerAvatar subject={player} name={player.name} serverUrl={serverUrl} size="small" decorative />
+        ) : <><img src={crestPath} alt="" /><span>{initial}</span></>}
       </div>
       <div className="production-player-copy">
         <strong>{player.name}</strong>
@@ -1830,12 +1834,14 @@ export default function ProductionMatchExperience({
           player={visualViewModel.top}
           priority={visualViewModel.priority}
           position="top"
+          serverUrl={options.serverUrl}
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
         />
         <PlayerPlate
           player={visualViewModel.bottom}
           priority={visualViewModel.priority}
           position="bottom"
+          serverUrl={options.serverUrl}
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
         />

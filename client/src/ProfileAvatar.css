@@ -1,0 +1,40 @@
+.player-avatar {
+  position: relative;
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(230, 191, 121, .62);
+  background:
+    radial-gradient(circle at 32% 24%, rgba(115, 178, 207, .35), transparent 38%),
+    linear-gradient(145deg, #183349, #07111b 72%);
+  color: #fff0c9;
+  box-shadow: inset 0 0 0 2px rgba(3, 10, 17, .55), 0 7px 18px rgba(0, 0, 0, .3);
+  font: 800 20px/1 Georgia, serif;
+  clip-path: polygon(12% 0, 88% 0, 100% 10%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 10%);
+}
+
+.player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.player-avatar-small { width: 32px; height: 36px; font-size: 14px; }
+.player-avatar-medium { width: 48px; height: 56px; }
+.player-avatar-large { width: 112px; height: 132px; font-size: 38px; }
+.player-avatar-hero { width: clamp(126px, 12vw, 168px); height: clamp(154px, 15vw, 204px); font-size: 52px; }
+
+.profile-portrait-editor { display: grid; gap: 6px; width: min(230px, 100%); }
+.profile-portrait-input { position: fixed; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.profile-portrait-editor button {
+  min-height: 34px;
+  border: 1px solid rgba(241, 199, 121, .58);
+  border-radius: 4px;
+  padding: 7px 10px;
+  background: linear-gradient(180deg, rgba(126, 73, 36, .92), rgba(74, 38, 18, .96));
+  color: #fff0cf;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.profile-portrait-editor button:disabled { cursor: wait; opacity: .58; }
+.profile-portrait-editor small { color: #8fa8b4; font-size: 8px; line-height: 1.35; }
+.profile-portrait-status { color: #bce8ca; font-size: 9px; line-height: 1.35; }
