@@ -10,7 +10,18 @@ const profile = {
     activeSeason: { season: { displayName: "Season Zero" }, rank: 2, record: { points: 6, wins: 2, losses: 1, draws: 0 } }
   },
   verifiedMatchCount: 1,
+  lastSeenAt: "2026-07-16T12:00:00.000Z",
+  identity: {
+    selectedTitle: "ruminChampion",
+    selectedTitleName: "Rumin Champion",
+    selectedFactionBadge: "rumin",
+    selectedFactionBadgeName: "Rumin Laurel",
+    selectedCardBack: "victorGold",
+    selectedCardBackName: "Victor Gold"
+  },
   notableStats: { largestAttack: { value: 12 }, totalDamageDealt: 8, totalDamagePrevented: 3 },
+  achievements: [{ id: "win-rumin", name: "Rumin Victory", description: "Win with Rumin.", unlockedAt: "2026-07-15T12:00:00.000Z" }],
+  campaignRecords: [{ factionId: "rumin", factionName: "Rumin", title: "The Jewel of Rumie", pitch: "Twelve chapters of command.", completed: 2, total: 12 }],
   recentMatches: [{
     matchId: "match-1",
     ranked: true,
@@ -45,6 +56,10 @@ test("public profile exposes the same direct replay action", () => {
   const onOpenReplay = jest.fn();
   render(<PublicProfileScreen profile={profile} loading={false} error="" onBack={() => {}} onOpenMatch={() => {}} onOpenReplay={onOpenReplay} />);
   expect(screen.getByRole("heading", { name: "Match History" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Campaign progress" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Earned achievements" })).toBeVisible();
+  expect(screen.getByText("Equipped card back")).toBeVisible();
+  expect(screen.getByText("Rumin Victory")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Replay Rumin vs Beta" }));
   expect(onOpenReplay).toHaveBeenCalledWith("match-1");
 });

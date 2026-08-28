@@ -28,10 +28,18 @@ test("builds a public competitive profile without private account data", () => {
         }
       },
       progression: {
+        campaign: { rumin: ["brothers-of-destiny"] },
         achievements: {
           first: { id: "first", name: "First Win", description: "Win once.", unlockedAt: "2026-07-02T12:00:00.000Z" }
         },
-        cosmetics: { selectedTitle: "veteran", selectedFactionBadge: "rumin", selectedCardBack: "classic" },
+        cosmetics: {
+          unlockedTitles: ["recruit", "ruminChampion"],
+          unlockedFactionBadges: ["none", "rumin"],
+          unlockedCardBacks: ["classic", "victorGold"],
+          selectedTitle: "ruminChampion",
+          selectedFactionBadge: "rumin",
+          selectedCardBack: "victorGold"
+        },
         matchHistory: [{
           matchId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
           recordVersion: 1,
@@ -95,6 +103,11 @@ test("builds a public competitive profile without private account data", () => {
   assert.equal(profile.competitiveRecord.activeSeason.rank, 2);
   assert.equal(profile.competitiveRecord.activeSeason.record.points, 6);
   assert.equal(profile.competitiveRecord.activeSeason.recentMatchReferences[0].matchId, "season-match");
+  assert.equal(profile.profileVersion, 2);
+  assert.equal(profile.identity.selectedTitleName, "Rumin Champion");
+  assert.equal(profile.identity.selectedCardBackName, "Victor Gold");
+  assert.equal(profile.campaignRecords.find((entry) => entry.factionId === "rumin").completed, 1);
+  assert.equal(profile.campaignRecords.find((entry) => entry.factionId === "rumin").total, 12);
   assert.equal(profile.factionRecords[0].wins, 1);
   assert.equal(profile.featuredDecks[0].currentVersionId, "version-1");
   assert.deepEqual(profile.featuredDecks[0].featuredArt, ["/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp"]);
@@ -107,4 +120,18 @@ test("builds a public competitive profile without private account data", () => {
   assert.equal(serialized.includes("gameplayCardQuantities"), false);
   assert.equal(serialized.includes("wrong-faction"), false);
   assert.equal(serialized.includes("Wrong Opponent"), false);
+
+  const repaired = buildPublicPlayerProfile({
+    ...account,
+    stats: {
+      ...account.stats,
+      gamesWon: 0,
+      gamesLost: 0,
+      rankedGamesWon: 0,
+      rankedGamesLost: 0
+    }
+  }, [match]);
+  assert.equal(repaired.competitiveRecord.all.wins, 1);
+  assert.equal(repaired.competitiveRecord.ranked.wins, 1);
+  assert.equal(repaired.competitiveRecord.ranked.winRate, 100);
 });

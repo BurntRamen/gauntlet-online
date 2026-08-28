@@ -223,3 +223,235 @@
   background: rgba(30, 58, 138, 0.12);
   color: #bfdbfe;
 }
+
+/* Public commander dossier */
+.competitive-page {
+  background:
+    linear-gradient(90deg, rgba(3, 8, 14, .95), rgba(7, 17, 31, .88) 50%, rgba(20, 18, 15, .94)),
+    var(--dossier-background, none) center 20% / cover fixed;
+}
+
+.competitive-page-inner { max-width: 1240px; }
+
+.competitive-profile-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(155px, auto) 136px;
+  gap: 26px;
+  min-height: 238px;
+  align-items: center;
+  overflow: hidden;
+  padding: 24px 26px;
+  border: 0;
+  border-radius: 10px;
+  background-color: #07121d;
+  background-position: center 24%;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(143, 190, 209, .3), inset 0 -4px #c89b52, 0 24px 54px rgba(0, 0, 0, .36);
+}
+
+.competitive-profile-header::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, .05);
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.competitive-profile-persona {
+  display: flex;
+  min-width: 0;
+  gap: 20px;
+  align-items: center;
+}
+
+.competitive-profile-persona .player-avatar { flex: 0 0 auto; }
+.competitive-profile-persona > div { min-width: 0; }
+.competitive-profile-header h1 { font-size: clamp(42px, 5vw, 62px); line-height: .92; }
+.competitive-profile-header p { color: #c3d3dc; }
+
+.competitive-identity-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.competitive-identity-tags span {
+  padding: 5px 7px;
+  border: 1px solid rgba(153, 197, 216, .23);
+  border-radius: 3px;
+  background: rgba(3, 10, 17, .65);
+  color: #b8cbd4;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.competitive-record-block {
+  align-content: center;
+  padding: 16px;
+  border-left: 1px solid rgba(241, 199, 121, .28);
+  background: linear-gradient(90deg, rgba(3, 10, 17, .44), rgba(3, 10, 17, .76));
+}
+
+.competitive-record-block > span { color: #f1c779; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.competitive-record-block strong { margin: 3px 0; font-size: 27px; }
+.competitive-record-block small { color: #9fb5c0; font-size: 10px; }
+
+.competitive-equipped-back {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.competitive-equipped-back .card-back-art { width: 82px; border-radius: 6px; }
+.competitive-equipped-back > span { margin-top: 8px; color: #f1c779; font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.competitive-equipped-back > strong { margin-top: 3px; color: #fff5dc; font: 700 14px Georgia, serif; }
+.competitive-equipped-back > small { max-width: 124px; margin-top: 3px; color: #9fb5c0; font-size: 8px; line-height: 1.35; }
+
+.competitive-dossier-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 12px 0 0;
+  overflow: hidden;
+  border-radius: 7px;
+  background: rgba(140, 184, 203, .18);
+  box-shadow: inset 0 0 0 1px rgba(140, 184, 203, .17);
+}
+
+.competitive-dossier-ribbon > div { display: grid; gap: 3px; padding: 10px 12px; background: rgba(5, 15, 24, .92); }
+.competitive-dossier-ribbon span { color: #829daa; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.competitive-dossier-ribbon strong { color: #eaf2f5; font-size: 12px; }
+
+.competitive-stat-band { grid-template-columns: repeat(5, minmax(0, 1fr)); border: 0; border-radius: 7px; overflow: hidden; }
+.competitive-stat-band div { min-width: 0; background: rgba(7, 19, 30, .94); }
+.competitive-stat-band strong { font-size: 17px; }
+.competitive-stat-band small { color: #7f9aa7; font-size: 9px; }
+
+.competitive-season {
+  grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(110px, 1fr));
+  gap: 1px;
+  padding: 1px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(200, 155, 82, .38);
+  box-shadow: 0 13px 28px rgba(0, 0, 0, .2);
+}
+
+.competitive-season > div { min-height: 65px; align-content: center; padding: 11px 13px; background: linear-gradient(180deg, rgba(16, 28, 43, .96), rgba(8, 19, 31, .96)); }
+.competitive-season-title h2 { font: 700 22px Georgia, serif; }
+.competitive-season-title small { color: #829daa; font-size: 8px; text-transform: uppercase; }
+
+.competitive-dossier-section {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(10, 26, 39, .94), rgba(5, 15, 24, .96));
+  box-shadow: inset 0 0 0 1px rgba(139, 184, 202, .16), 0 14px 32px rgba(0, 0, 0, .22);
+}
+
+.competitive-section-heading {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.competitive-section-heading > div > span { color: #f1c779; font-size: 8px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.competitive-section-heading h2 { margin: 3px 0 0; color: #fffaf0; font: 700 23px Georgia, serif; }
+.competitive-section-heading > p { max-width: 350px; margin: 0; color: #8ea6b1; font-size: 9px; text-align: right; }
+
+.competitive-campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 8px;
+}
+
+.competitive-campaign-card {
+  display: grid;
+  min-height: 214px;
+  align-content: end;
+  overflow: hidden;
+  padding: 13px;
+  border-radius: 7px;
+  background-color: #091722;
+  background-position: center 24%;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(241, 199, 121, .24), 0 10px 22px rgba(0, 0, 0, .25);
+}
+
+.competitive-campaign-card > span { color: #f1c779; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.competitive-campaign-card > strong { margin-top: 3px; color: #fff8e8; font: 700 17px Georgia, serif; }
+.competitive-campaign-card > p { min-height: 30px; margin: 5px 0 9px; overflow: hidden; color: #bed0d7; font-size: 9px; line-height: 1.45; }
+.competitive-campaign-card > div { display: flex; justify-content: space-between; color: #9eb3bd; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.competitive-campaign-card > div b { color: #fff0c9; }
+.competitive-campaign-card > i { height: 4px; margin-top: 5px; overflow: hidden; border-radius: 999px; background: rgba(143, 177, 192, .2); }
+.competitive-campaign-card > i b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c88442, #f1c779); }
+
+.competitive-honor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; }
+.competitive-honor-card { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 11px; min-height: 90px; align-items: center; padding: 11px; border-radius: 7px; background-color: #091722; background-position: left 22%; background-size: cover; box-shadow: inset 0 0 0 1px rgba(241, 199, 121, .22); }
+.competitive-honor-card > span,
+.competitive-honor-empty > span { display: grid; width: 38px; aspect-ratio: 1; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff2bf, #a56a2e 72%); color: #2a1a0b; font-size: 18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.25), 0 7px 15px rgba(0,0,0,.3); }
+.competitive-honor-card small { color: #e0b969; font-size: 7px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.competitive-honor-card strong { display: block; margin-top: 3px; color: #fff2cf; font: 700 16px Georgia, serif; }
+.competitive-honor-card p { margin: 3px 0 0; color: #afc1c8; font-size: 9px; }
+.competitive-honor-card time { color: #839ba6; font-size: 8px; }
+.competitive-honor-empty { display: flex; min-height: 104px; gap: 14px; align-items: center; padding: 16px; border-radius: 7px; background-color: #091722; background-position: center 24%; background-size: cover; box-shadow: inset 0 0 0 1px rgba(241, 199, 121, .18); }
+.competitive-honor-empty strong { color: #fff1ca; font: 700 17px Georgia, serif; }
+.competitive-honor-empty p { margin: 4px 0 0; color: #aec1c9; font-size: 10px; }
+
+.competitive-columns { gap: 14px; padding: 0; }
+.competitive-columns > .competitive-dossier-section { min-width: 0; }
+.competitive-faction-line { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 68px; margin-top: 6px; padding: 5px 9px 5px 5px; border-radius: 6px; background: rgba(4, 13, 21, .72); box-shadow: inset 0 0 0 1px rgba(134, 177, 194, .14); }
+.competitive-faction-portrait { width: 62px; height: 58px; border-radius: 5px; background-position: center 24%; background-size: cover; }
+.competitive-faction-line strong { display: block; color: #fff6df; font: 700 15px Georgia, serif; }
+.competitive-faction-line small { display: block; margin-top: 3px; color: #8fa7b2; font-size: 8px; }
+.competitive-faction-line > b { color: #f0ce89; font-size: 11px; }
+.competitive-ledger-empty { min-height: 82px; display: grid; align-content: center; padding: 13px; border-left: 3px solid #55788a; background: rgba(5, 15, 24, .7); }
+.competitive-ledger-empty strong { color: #e7f0f3; }
+.competitive-ledger-empty p { margin: 4px 0 0; color: #8ea6b1; font-size: 9px; }
+
+.competitive-featured-deck { padding: 6px; border: 0; border-radius: 6px; background: rgba(4, 13, 21, .7); box-shadow: inset 0 0 0 1px rgba(134, 177, 194, .14); }
+.competitive-deck-empty { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 94px; padding: 10px; border-radius: 7px; background: rgba(4, 13, 21, .72); box-shadow: inset 0 0 0 1px rgba(134, 177, 194, .14); }
+.competitive-deck-empty .card-back-art { width: 58px; border-radius: 5px; }
+.competitive-deck-empty strong { color: #fff1ca; font: 700 16px Georgia, serif; }
+.competitive-deck-empty p { margin: 4px 0 0; color: #8ea6b1; font-size: 9px; line-height: 1.4; }
+
+.competitive-history { padding: 16px; }
+.competitive-history-empty { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 14px; align-items: center; min-height: 104px; padding: 12px; border-radius: 7px; background: linear-gradient(90deg, rgba(4, 13, 21, .92), rgba(12, 28, 41, .74)); box-shadow: inset 0 0 0 1px rgba(134, 177, 194, .14); }
+.competitive-empty-card-back { width: 68px; border-radius: 5px; }
+.competitive-history-empty > div > span { color: #f1c779; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.competitive-history-empty strong { display: block; margin-top: 4px; color: #fff1ca; font: 700 17px Georgia, serif; }
+.competitive-history-empty p { margin: 4px 0 0; color: #91a9b4; font-size: 9px; }
+
+@media (max-width: 900px) {
+  .competitive-profile-header { grid-template-columns: minmax(0, 1fr) 112px; }
+  .competitive-profile-persona { grid-column: 1 / -1; }
+  .competitive-record-block { border-top: 1px solid rgba(241, 199, 121, .22); border-left: 0; }
+  .competitive-stat-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .competitive-season { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .competitive-season-title { grid-column: 1 / -1; }
+}
+
+@media (max-width: 640px) {
+  .competitive-profile-header { grid-template-columns: 1fr; padding: 18px; }
+  .competitive-profile-persona { align-items: flex-start; }
+  .competitive-equipped-back { display: grid; grid-template-columns: 58px minmax(0, 1fr); column-gap: 10px; justify-items: start; text-align: left; }
+  .competitive-equipped-back .card-back-art { grid-row: 1 / 4; width: 58px; }
+  .competitive-equipped-back > span { margin-top: 3px; }
+  .competitive-equipped-back > small { max-width: none; }
+  .competitive-dossier-ribbon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .competitive-stat-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .competitive-campaign-grid,
+  .competitive-honor-grid { grid-template-columns: 1fr; }
+  .competitive-section-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .competitive-section-heading > p { text-align: left; }
+  .competitive-honor-card { grid-template-columns: 44px minmax(0, 1fr); }
+  .competitive-honor-card time { grid-column: 2; }
+}

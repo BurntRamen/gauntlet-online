@@ -79,7 +79,7 @@ import {
 const CARD_BACK_COLOR = "#102437";
 const CARD_FACE_COLOR = "#f3ead9";
 const MATCH_ASSETS = {
-  cardBack: "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
+  cardBack: "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp",
   table: "/assets/gauntlet/match/graphite-table-v1.png"
 };
 const EVENT_EFFECT_ASSETS = {
@@ -897,7 +897,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     cardBack: materialFromStaticTexture(
       babylonScene,
       "card-back",
-      MATCH_ASSETS.cardBack,
+      commands.cardBackAsset || MATCH_ASSETS.cardBack,
       cardBackFallbackTexture,
       CARD_BACK_COLOR,
       {

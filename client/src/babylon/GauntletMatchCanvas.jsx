@@ -16,6 +16,7 @@ export default function GauntletMatchCanvas({
   interactionLocked = false,
   interactionStatus = "",
   graphicsQuality = "balanced",
+  cardBackAsset = "",
   capturePlaybackControl = null,
   onRendererError,
   onSceneMetrics
@@ -75,7 +76,8 @@ export default function GauntletMatchCanvas({
         previewCard: (...args) => commandsRef.current.previewCard?.(...args),
         openDiscard: (...args) => commandsRef.current.openDiscard?.(...args),
         loadPresentationModule: (...args) => commandsRef.current.loadPresentationModule?.(...args),
-        presentationCue: (...args) => commandsRef.current.presentationCue?.(...args)
+        presentationCue: (...args) => commandsRef.current.presentationCue?.(...args),
+        cardBackAsset
       });
       if (!renderer.scene.activeCamera) {
         throw new Error("The Babylon match scene did not assign an active camera.");
@@ -229,7 +231,7 @@ export default function GauntletMatchCanvas({
       engineRef.current = null;
       return undefined;
     }
-  }, []);
+  }, [cardBackAsset]);
 
   useEffect(() => {
     const engine = engineRef.current;

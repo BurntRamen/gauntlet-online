@@ -395,9 +395,9 @@ const PROGRESSION_COSMETICS = {
     biziChampion: { id: "biziChampion", name: "Bizi Champion", requirement: "Win with Bizi." }
   },
   cardBacks: {
-    classic: { id: "classic", name: "Classic Gauntlet", requirement: "Default card back." },
-    victorGold: { id: "victorGold", name: "Victor Gold", requirement: "Win your first game." },
-    campaignMap: { id: "campaignMap", name: "Campaign Map", requirement: "Clear a campaign chapter." }
+    classic: { id: "classic", name: "Classic Gauntlet", requirement: "Default card back.", asset: "/assets/gauntlet/card-backs/classic-gauntlet-v2.webp" },
+    victorGold: { id: "victorGold", name: "Victor Gold", requirement: "Win your first game.", asset: "/assets/gauntlet/card-backs/victor-gold-v1.webp" },
+    campaignMap: { id: "campaignMap", name: "Campaign Map", requirement: "Clear a campaign chapter.", asset: "/assets/gauntlet/card-backs/campaign-map-v1.webp" }
   },
   factionBadges: {
     none: { id: "none", name: "No Badge", requirement: "Default." },
@@ -1436,7 +1436,13 @@ function normalizeAccountAvatar(stats = {}, accountId = "") {
 }
 
 function publicAccountProfile(account) {
-  return { avatar: normalizeAccountAvatar(account?.stats || {}, account?.id) };
+  const progression = normalizeProgression(account?.stats || {});
+  return {
+    avatar: normalizeAccountAvatar(account?.stats || {}, account?.id),
+    cosmetics: {
+      selectedCardBack: progression.cosmetics?.selectedCardBack || "classic"
+    }
+  };
 }
 
 function publicAccountStats(stats = {}) {
@@ -1751,6 +1757,8 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   all.winRate = all.wins + all.losses > 0 ? Math.round((all.wins / (all.wins + all.losses)) * 1000) / 10 : 0;
 
   const factionRecords = {};
+  const verifiedAll = { wins: 0, losses: 0, draws: 0 };
+  const verifiedRanked = { wins: 0, losses: 0, draws: 0 };
   let largestAttack = null;
   let totalDamageDealt = 0;
   let totalDamagePrevented = 0;
@@ -1766,7 +1774,11 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       draws: 0
     };
     const resultField = participant.result === "win" ? "wins" : participant.result === "loss" ? "losses" : participant.result === "draw" ? "draws" : null;
-    if (resultField) factionRecords[factionId][resultField] += 1;
+    if (resultField) {
+      factionRecords[factionId][resultField] += 1;
+      verifiedAll[resultField] += 1;
+      if (record.ranked) verifiedRanked[resultField] += 1;
+    }
     const playerCombat = record.combatStats?.byPlayer?.[String(participant.playerNum)] || {};
     totalDamageDealt += Number(playerCombat.damageDealt || 0);
     totalDamagePrevented += Number(playerCombat.damagePrevented || 0);
@@ -1778,21 +1790,46 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
 
   const progression = normalizeProgression(stats);
   const cosmetics = progression.cosmetics || {};
+  for (const record of [verifiedAll, verifiedRanked]) {
+    record.gamesPlayed = record.wins + record.losses + record.draws;
+    record.winRate = record.wins + record.losses > 0 ? Math.round((record.wins / (record.wins + record.losses)) * 1000) / 10 : 0;
+  }
+  const resolvedAll = all.gamesPlayed === 0 && verifiedAll.gamesPlayed > 0 ? verifiedAll : all;
+  const resolvedRanked = ranked.gamesPlayed === 0 && verifiedRanked.gamesPlayed > 0 ? verifiedRanked : ranked;
+  const publicCampaigns = getPublicGameContent().campaigns || {};
+  const campaignRecords = Object.entries(publicCampaigns).map(([factionId, campaign]) => {
+    const completedChapterIds = [...new Set(progression.campaign?.[factionId] || [])];
+    return {
+      factionId,
+      factionName: campaign.factionName,
+      title: campaign.commanderName,
+      pitch: campaign.pitch,
+      coverImage: campaign.coverImage,
+      completed: completedChapterIds.length,
+      total: campaign.chapters?.length || 0
+    };
+  });
+  const selectedTitle = cosmetics.selectedTitle || "recruit";
+  const selectedFactionBadge = cosmetics.selectedFactionBadge || "none";
+  const selectedCardBack = cosmetics.selectedCardBack || "classic";
   return {
-    profileVersion: 1,
+    profileVersion: 2,
     accountId: account.id,
     displayName: account.name,
     memberSince: account.createdAt,
     lastSeenAt: account.lastSeenAt || null,
     avatar: publicAccountProfile(account).avatar,
     identity: {
-      selectedTitle: cosmetics.selectedTitle || "recruit",
-      selectedFactionBadge: cosmetics.selectedFactionBadge || "none",
-      selectedCardBack: cosmetics.selectedCardBack || "classic"
+      selectedTitle,
+      selectedTitleName: PROGRESSION_COSMETICS.titles[selectedTitle]?.name || selectedTitle,
+      selectedFactionBadge,
+      selectedFactionBadgeName: PROGRESSION_COSMETICS.factionBadges[selectedFactionBadge]?.name || selectedFactionBadge,
+      selectedCardBack,
+      selectedCardBackName: PROGRESSION_COSMETICS.cardBacks[selectedCardBack]?.name || selectedCardBack
     },
     competitiveRecord: {
-      ranked,
-      all,
+      ranked: resolvedRanked,
+      all: resolvedAll,
       activeSeason: buildSeasonProfile(stats, options.seasonStanding || null, options.season || ACTIVE_SEASON)
     },
     verifiedMatchCount: matchRecords.length,
@@ -1804,6 +1841,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       description: achievement.description,
       unlockedAt: achievement.unlockedAt
     })),
+    campaignRecords,
     featuredDecks: library.decks.filter((deck) => deck.featured && !deck.archived).slice(0, 3).map((deck) => ({
       id: deck.id,
       name: deck.name,

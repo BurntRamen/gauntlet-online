@@ -1,0 +1,55 @@
+{
+  "artifactFamily": "Gauntlet digital card backs",
+  "status": "Production candidate integrated by game-owner request",
+  "generatedAt": "2026-08-28",
+  "authorityChain": [
+    "EGGS",
+    "Gauntlet",
+    "digital implementation",
+    "active rules and card registry",
+    "C-30 visual contract",
+    "requested card-back cosmetic"
+  ],
+  "sourceAuthorities": [
+    { "title": "00-00 Creative OS Governance Directive — Operational", "id": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4" },
+    { "title": "Gauntlet — Project Dossier & Generation Contract — Operational v1", "id": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY" },
+    { "title": "Gauntlet Rules — Operational v1", "id": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4" },
+    { "title": "Gauntlet Card Registry — Operational v1", "id": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4" },
+    { "title": "Creative OS — Generation Hub", "id": "1PyyLFGEiYCrxnkHh1Ahh1P87SbW-pwio2No9gGu3znc" },
+    { "title": "Asset Registry", "id": "1XXNK11duJL8aMnMoKKKLoOIXrGL2afwKzzwZYprXg9M" }
+  ],
+  "sharedConstraints": {
+    "mustPreserve": [
+      "direct modern arena identity",
+      "exactly three lanes whenever lane geometry is depicted",
+      "black or charcoal and bone hierarchy",
+      "small-size readability",
+      "symmetric portrait card-back composition"
+    ],
+    "mustAvoid": [
+      "medieval heraldry or crests",
+      "poker imagery or suit marks",
+      "faction ownership",
+      "lore or characters",
+      "substitute logos",
+      "readable generated text"
+    ],
+    "reusableSurfaces": [
+      "face-down Babylon match cards",
+      "identity cosmetic selector",
+      "public player dossier",
+      "collection tiles"
+    ]
+  },
+  "assets": [
+    { "id": "CARD-BACK-CLASSIC-V2", "file": "classic-gauntlet-v2.webp", "subject": "three-lane neutral arena circuit", "accent": "signal orange" },
+    { "id": "CARD-BACK-VICTOR-GOLD-V1", "file": "victor-gold-v1.webp", "subject": "earned three-lane victory circuit", "accent": "hammered signal gold" },
+    { "id": "CARD-BACK-CAMPAIGN-MAP-V1", "file": "campaign-map-v1.webp", "subject": "three-route campaign command map", "accent": "orange checkpoints and cold-blue nexus" }
+  ],
+  "generation": {
+    "tool": "OpenAI image generation",
+    "mode": "three independent text-to-image generations",
+    "sourceDimensions": "1024x1536",
+    "deliveryEncoding": "WebP quality 88"
+  }
+}

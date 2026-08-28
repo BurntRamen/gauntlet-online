@@ -20,6 +20,7 @@ import {
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
+import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -1111,6 +1112,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   const cosmetics = progression.cosmetics || {};
   const achievements = Object.values(progression.achievements || {}).sort((a, b) => String(b.unlockedAt || "").localeCompare(String(a.unlockedAt || "")));
   const campaign = progression.campaign || {};
+  const selectedCardBack = getCardBackDefinition(cosmetics.selectedCardBack);
 
   const renderOptions = (ids, bucket, selected, field) => (
     <select
@@ -1136,9 +1138,15 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
             Title
             {renderOptions(cosmetics.unlockedTitles, "titles", cosmetics.selectedTitle, "title")}
           </label>
-          <label>
-            Card Back
-            {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
+          <label className="identity-card-back-control">
+            <span>Card Back</span>
+            <span className="identity-card-back-choice">
+              <CardBackArt cardBackId={selectedCardBack.id} className="identity-card-back-preview" decorative />
+              <span className="identity-card-back-copy">
+                {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
+                <small>{selectedCardBack.description}</small>
+              </span>
+            </span>
           </label>
           <label>
             Faction Badge
@@ -5811,6 +5819,7 @@ export default function App() {
             onOpenMatches={returnToMatches}
             options={{
               audioEnabled: !accountSoundMuted,
+              cardBackAsset: resolveCardBackAsset(account?.progression?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,
               onAudioEnabledChange: (enabled) => {
                 if (account?.id) setSignedInSoundMuted(!enabled);
