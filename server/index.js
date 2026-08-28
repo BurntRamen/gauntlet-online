@@ -1439,6 +1439,16 @@ function publicAccountProfile(account) {
   return { avatar: normalizeAccountAvatar(account?.stats || {}, account?.id) };
 }
 
+function publicAccountStats(stats = {}) {
+  if (!stats || typeof stats !== "object") return {};
+  const profile = stats.profile && typeof stats.profile === "object" ? { ...stats.profile } : null;
+  if (profile?.avatar && typeof profile.avatar === "object") {
+    const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
+    profile.avatar = avatar;
+  }
+  return profile ? { ...stats, profile } : { ...stats };
+}
+
 function publicAccount(account) {
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
@@ -1448,7 +1458,7 @@ function publicAccount(account) {
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
     profile: publicAccountProfile(account),
-    stats,
+    stats: publicAccountStats(stats),
     progression: progressionSummary(stats),
     collection: collectionSummary(stats)
   };
@@ -1638,10 +1648,41 @@ async function getAccountAvatarStorageStatus() {
       message: error?.message || "Unknown profile image storage error"
     });
     return {
-      mode: "supabase-storage",
-      available: false,
-      code: error?.code || (error?.status ? `HTTP_${error.status}` : "STORAGE_UNAVAILABLE")
+      mode: "account-jsonb-fallback",
+      available: true,
+      primaryAvailable: false,
+      primaryCode: error?.code || (error?.status ? `HTTP_${error.status}` : "STORAGE_UNAVAILABLE")
     };
+  }
+}
+
+function inlineAccountAvatarRecord(avatar, bytes) {
+  return { ...avatar, inlineData: bytes.toString("base64") };
+}
+
+function readInlineAccountAvatar(stats, avatar) {
+  const stored = stats?.profile?.avatar;
+  if (!stored || stored.revision !== avatar.revision || stored.mimeType !== avatar.mimeType) return null;
+  const encoded = String(stored.inlineData || "");
+  if (!encoded || encoded.length > Math.ceil(ACCOUNT_AVATAR_MAX_BYTES / 3) * 4 + 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) return null;
+  const bytes = Buffer.from(encoded, "base64");
+  if (bytes.length < 128 || bytes.length > ACCOUNT_AVATAR_MAX_BYTES) return null;
+  if (Number(stored.byteSize || 0) !== bytes.length || detectAccountAvatarMimeType(bytes) !== avatar.mimeType) return null;
+  return bytes;
+}
+
+async function persistAccountAvatar(accountId, avatar, bytes) {
+  try {
+    await writeAccountAvatar(accountId, avatar, bytes);
+    return avatar;
+  } catch (error) {
+    if (!useSupabaseStore()) throw error;
+    console.warn("[Profiles] Supabase Storage unavailable; using private account-record portrait fallback", {
+      accountId,
+      status: Number(error?.status) || null,
+      code: error?.code || null
+    });
+    return inlineAccountAvatarRecord(avatar, bytes);
   }
 }
 
@@ -1668,7 +1709,9 @@ async function writeAccountAvatar(accountId, avatar, bytes) {
   fs.writeFileSync(target, bytes);
 }
 
-async function readAccountAvatar(accountId, avatar) {
+async function readAccountAvatar(accountId, avatar, stats = {}) {
+  const inlineBytes = readInlineAccountAvatar(stats, avatar);
+  if (inlineBytes) return inlineBytes;
   const objectKey = accountAvatarObjectKey(accountId, avatar);
   if (useSupabaseStore()) {
     await ensureAccountAvatarBucket();
@@ -2348,7 +2391,7 @@ function publicAccountProjection(account) {
     id: account.id,
     name: account.name,
     profile: publicAccountProfile(account),
-    stats: account.stats || {},
+    stats: publicAccountStats(account.stats || {}),
     progression: progressionSummary(account.stats || {}),
     collection: collectionSummary(account.stats || {})
   };
@@ -3102,7 +3145,7 @@ app.get("/api/profiles/:accountId/avatar", async (req, res) => {
       res.status(404).json({ error: "Profile portrait not found." });
       return;
     }
-    const bytes = await readAccountAvatar(accountId, avatar);
+    const bytes = await readAccountAvatar(accountId, avatar, account.stats || {});
     if (!bytes) {
       res.status(404).json({ error: "Profile portrait not found." });
       return;
@@ -3260,10 +3303,13 @@ app.put("/api/account/avatar", async (req, res) => {
       byteSize: bytes.length,
       updatedAt
     };
-    const current = normalizeAccountAvatar(context.account.stats || {}, context.account.id);
-    if (current?.revision !== avatar.revision) await writeAccountAvatar(context.account.id, avatar, bytes);
     const stats = context.account.stats || {};
-    stats.profile = { ...(stats.profile || {}), avatar };
+    const current = normalizeAccountAvatar(stats, context.account.id);
+    const storedAvatar = stats?.profile?.avatar;
+    const avatarRecord = current?.revision === avatar.revision && storedAvatar?.inlineData
+      ? inlineAccountAvatarRecord(avatar, bytes)
+      : await persistAccountAvatar(context.account.id, avatar, bytes);
+    stats.profile = { ...(stats.profile || {}), avatar: avatarRecord };
 
     if (context.source === "supabase") {
       await patchSupabaseAccount(context.account.id, { stats, last_seen_at: updatedAt });
@@ -9655,6 +9701,9 @@ module.exports = {
     advanceEndPlacement,
     validateAuthConfiguration,
     accountAvatarUploadHeaders,
+    inlineAccountAvatarRecord,
+    readInlineAccountAvatar,
+    publicAccountStats,
     supabaseAdminAuthHeaders,
     supabaseStorageAuthHeaders,
     validateConstructedDeckPayload,

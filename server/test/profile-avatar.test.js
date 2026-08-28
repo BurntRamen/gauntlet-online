@@ -101,3 +101,20 @@ test("uses Supabase Storage's raw-upload cache directive for portraits", () => {
     "x-upsert": "false"
   });
 });
+
+test("keeps the account-record portrait fallback private and reconstructable", () => {
+  const pngHeader = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex");
+  const bytes = Buffer.concat([pngHeader, Buffer.alloc(256, 0x31)]);
+  const avatar = {
+    revision: "1234567890abcdef1234",
+    mimeType: "image/png",
+    byteSize: bytes.length,
+    updatedAt: "2026-08-28T00:00:00.000Z"
+  };
+  const stored = __test.inlineAccountAvatarRecord(avatar, bytes);
+  const stats = { gamesPlayed: 2, profile: { avatar: stored } };
+
+  assert.deepEqual(__test.readInlineAccountAvatar(stats, avatar), bytes);
+  assert.equal(Object.hasOwn(__test.publicAccountStats(stats).profile.avatar, "inlineData"), false);
+  assert.equal(__test.publicAccountStats(stats).gamesPlayed, 2);
+});
