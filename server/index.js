@@ -255,10 +255,15 @@ app.get("/", (_req, res) => {
 
 app.get("/api/storage-status", async (_req, res) => {
   try {
-    const [matchStorage, archiveStorage] = await Promise.all([matchPersistence.getMode(), matchArchive.probe()]);
+    const [matchStorage, archiveStorage, profileImages] = await Promise.all([
+      matchPersistence.getMode(),
+      matchArchive.probe(),
+      getAccountAvatarStorageStatus()
+    ]);
     const matchStorageStatus = publicMatchStorageStatus();
     res.json({
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
+      profileImages,
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
       matchArchive: archiveStorage,
@@ -1568,6 +1573,16 @@ function accountAvatarObjectKey(accountId, avatar) {
   return `${accountId}/${avatar.revision}.${accountAvatarExtension(avatar.mimeType)}`;
 }
 
+function accountAvatarUploadHeaders(mimeType) {
+  return {
+    "Content-Type": mimeType,
+    // Supabase Storage expects cacheControl as a duration in seconds. A browser
+    // response directive such as "public, max-age=..." is rejected on upload.
+    "Cache-Control": "31536000",
+    "x-upsert": "false"
+  };
+}
+
 function encodedStorageObjectPath(bucket, objectKey, authenticated = false) {
   const prefix = authenticated ? "object/authenticated" : "object";
   return `${prefix}/${encodeURIComponent(bucket)}/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
@@ -1600,6 +1615,25 @@ async function ensureAccountAvatarBucket() {
   accountAvatarBucketReady = true;
 }
 
+async function getAccountAvatarStorageStatus() {
+  if (!useSupabaseStore()) return { mode: "local-json", available: true };
+  try {
+    await ensureAccountAvatarBucket();
+    return { mode: "supabase-storage", available: true, bucket: ACCOUNT_AVATAR_BUCKET };
+  } catch (error) {
+    console.error("[Profiles] Profile image storage probe failed", {
+      status: Number(error?.status) || null,
+      code: error?.code || null,
+      message: error?.message || "Unknown profile image storage error"
+    });
+    return {
+      mode: "supabase-storage",
+      available: false,
+      code: error?.code || (error?.status ? `HTTP_${error.status}` : "STORAGE_UNAVAILABLE")
+    };
+  }
+}
+
 async function writeAccountAvatar(accountId, avatar, bytes) {
   const objectKey = accountAvatarObjectKey(accountId, avatar);
   if (useSupabaseStore()) {
@@ -1607,7 +1641,7 @@ async function writeAccountAvatar(accountId, avatar, bytes) {
     try {
       await supabaseStorageRequest(encodedStorageObjectPath(ACCOUNT_AVATAR_BUCKET, objectKey), {
         method: "POST",
-        headers: { "Content-Type": avatar.mimeType, "Cache-Control": "public, max-age=31536000, immutable", "x-upsert": "false" },
+        headers: accountAvatarUploadHeaders(avatar.mimeType),
         body: bytes,
         raw: true
       });
@@ -9609,6 +9643,7 @@ module.exports = {
     startEndPhase,
     advanceEndPlacement,
     validateAuthConfiguration,
+    accountAvatarUploadHeaders,
     supabaseAdminAuthHeaders,
     validateConstructedDeckPayload,
     grantPurchasedCollectorPack,

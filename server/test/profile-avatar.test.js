@@ -82,3 +82,11 @@ test("uses the correct Supabase admin headers for legacy and current secret keys
     Authorization: "Bearer legacy-service-role-jwt"
   });
 });
+
+test("uses Supabase Storage's numeric cache duration for portrait uploads", () => {
+  assert.deepEqual(__test.accountAvatarUploadHeaders("image/webp"), {
+    "Content-Type": "image/webp",
+    "Cache-Control": "31536000",
+    "x-upsert": "false"
+  });
+});
