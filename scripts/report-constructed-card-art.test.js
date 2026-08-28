@@ -17,4 +17,11 @@ test("constructed-card art inventory follows the collector variant contract", ()
     assert.ok(Object.hasOwn(card.currentArt, "standard"));
     assert.ok(Object.hasOwn(card.currentArt, "collector"));
   }
+
+  const biziCards = inventory.cards.filter((card) => card.faction === "bizi");
+  assert.equal(biziCards.length, 18);
+  assert.equal(biziCards.every((card) => (
+    card.currentArt.standard?.startsWith("/assets/gauntlet/constructed/bizi/")
+    && card.currentArt.standard === card.currentArt.collector
+  )), true);
 });

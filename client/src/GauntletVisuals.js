@@ -4,7 +4,7 @@ export const FACTION_VISUALS = {
   rumin: { name: "Rumin", accent: "#c97858", art: "/assets/gauntlet/rumin-card.webp" },
   sheen: { name: "Sheen", accent: "#71b187", art: "/assets/gauntlet/sheen-card.webp" },
   frumo: { name: "Frumo", accent: "#69a8dc", art: "/assets/gauntlet/frumo-card.webp" },
-  bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/bizi-card.webp" },
+  bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" },
   xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
   basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
 };

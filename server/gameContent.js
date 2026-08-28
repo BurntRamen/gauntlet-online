@@ -674,8 +674,8 @@ for (const card of COLLECTION_CARDS) {
 }
 
 function getConstructedCardArt(card) {
-  if (card.factionId !== "rumin") return null;
-  return `/assets/gauntlet/constructed/rumin/${card.id}.webp`;
+  if (!new Set(["rumin", "bizi"]).has(card.factionId)) return null;
+  return `/assets/gauntlet/constructed/${card.factionId}/${card.id}.webp`;
 }
 
 const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
@@ -760,10 +760,10 @@ const factionsData = {
   bizi: {
     id: "bizi",
     name: "Bizi",
-    cardImage: "/assets/gauntlet/bizi-card.webp",
-    commander: { name: "Focus, Conductor of Progress", image: "/assets/gauntlet/focus.jpg", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
-    general: { name: "Hera", image: "/assets/gauntlet/hera.webp", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
-    city: { name: "Constanti, Technology Hub", image: "/assets/gauntlet/constanti.webp", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
+    cardImage: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
+    commander: { name: "Focus, Conductor of Progress", image: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
+    general: { name: "Hera", image: "/assets/gauntlet/factions/bizi/hera-general.webp", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
+    city: { name: "Constanti, Technology Hub", image: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
   },
   xendra: {
     id: "xendra",
@@ -868,8 +868,27 @@ const RUMIN_CAMPAIGN_ART = Object.freeze({
   "first-emperor": "/assets/gauntlet/campaigns/rumin/12-first-emperor.webp"
 });
 
+const BIZI_CAMPAIGN_ART = Object.freeze({
+  "kharons-vision": "/assets/gauntlet/campaigns/bizi/01-kharons-vision.webp",
+  "first-titan": "/assets/gauntlet/campaigns/bizi/02-first-titan.webp",
+  "golden-empire": "/assets/gauntlet/campaigns/bizi/03-golden-empire.webp",
+  "riot-of-sparks": "/assets/gauntlet/campaigns/bizi/04-riot-of-sparks.webp",
+  "last-victories": "/assets/gauntlet/campaigns/bizi/05-last-victories.webp",
+  "age-of-focus": "/assets/gauntlet/campaigns/bizi/06-age-of-focus.webp",
+  "great-invasion": "/assets/gauntlet/campaigns/bizi/07-great-invasion.webp",
+  "heras-counterattack": "/assets/gauntlet/campaigns/bizi/08-heras-counterattack.webp",
+  "three-titans": "/assets/gauntlet/campaigns/bizi/09-three-titans.webp",
+  "the-schism": "/assets/gauntlet/campaigns/bizi/10-the-schism.webp",
+  "the-restoration": "/assets/gauntlet/campaigns/bizi/11-the-restoration.webp",
+  "last-gear": "/assets/gauntlet/campaigns/bizi/12-last-gear.webp"
+});
+
 for (const chapter of campaignChapters.rumin) {
   chapter.image = RUMIN_CAMPAIGN_ART[chapter.id];
+}
+
+for (const chapter of campaignChapters.bizi) {
+  chapter.image = BIZI_CAMPAIGN_ART[chapter.id];
 }
 
 const CAMPAIGN_NARRATION = {
@@ -1103,7 +1122,7 @@ const CAMPAIGN_METADATA = {
   rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal." },
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
-  bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti." },
+  bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.", coverImage: BIZI_CAMPAIGN_ART["golden-empire"] },
   xendra: { commanderName: "The Deep Currents", pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual." }
 };
 
@@ -1359,6 +1378,7 @@ validateGameContent();
 module.exports = {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
+  BIZI_CAMPAIGN_ART,
   CAMPAIGN_CHARACTER_DESCRIPTIONS,
   CAMPAIGN_NARRATION,
   COLLECTOR_VARIANT_MECHANICAL_FIELDS,

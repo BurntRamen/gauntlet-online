@@ -5,10 +5,10 @@
   "summary": {
     "gameplayCardCount": 72,
     "collectorVariantCount": 144,
-    "variantsWithArt": 36,
-    "variantsMissingArt": 108,
-    "gameplayCardsWithAnyDedicatedArt": 18,
-    "gameplayCardsMissingAllDedicatedArt": 54
+    "variantsWithArt": 72,
+    "variantsMissingArt": 72,
+    "gameplayCardsWithAnyDedicatedArt": 36,
+    "gameplayCardsMissingAllDedicatedArt": 36
   },
   "cards": [
     {
@@ -777,8 +777,8 @@
       "standardVariantId": "bizi-copperline-technician:standard",
       "collectorVariantId": "bizi-copperline-technician:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-copperline-technician.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-copperline-technician.webp"
       }
     },
     {
@@ -791,8 +791,8 @@
       "standardVariantId": "bizi-voltage-ration:standard",
       "collectorVariantId": "bizi-voltage-ration:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-voltage-ration.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-voltage-ration.webp"
       }
     },
     {
@@ -805,8 +805,8 @@
       "standardVariantId": "bizi-dune-circuit-runner:standard",
       "collectorVariantId": "bizi-dune-circuit-runner:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-dune-circuit-runner.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-dune-circuit-runner.webp"
       }
     },
     {
@@ -819,8 +819,8 @@
       "standardVariantId": "bizi-gearplate-shield:standard",
       "collectorVariantId": "bizi-gearplate-shield:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-gearplate-shield.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-gearplate-shield.webp"
       }
     },
     {
@@ -833,8 +833,8 @@
       "standardVariantId": "bizi-heras-calibration:standard",
       "collectorVariantId": "bizi-heras-calibration:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-heras-calibration.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-heras-calibration.webp"
       }
     },
     {
@@ -847,8 +847,8 @@
       "standardVariantId": "bizi-solar-array-adept:standard",
       "collectorVariantId": "bizi-solar-array-adept:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-solar-array-adept.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-solar-array-adept.webp"
       }
     },
     {
@@ -861,8 +861,8 @@
       "standardVariantId": "bizi-constanti-conduit:standard",
       "collectorVariantId": "bizi-constanti-conduit:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-constanti-conduit.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-constanti-conduit.webp"
       }
     },
     {
@@ -875,8 +875,8 @@
       "standardVariantId": "bizi-sandstorm-processor:standard",
       "collectorVariantId": "bizi-sandstorm-processor:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-sandstorm-processor.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-sandstorm-processor.webp"
       }
     },
     {
@@ -889,8 +889,8 @@
       "standardVariantId": "bizi-focus-overclock:standard",
       "collectorVariantId": "bizi-focus-overclock:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-focus-overclock.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-focus-overclock.webp"
       }
     },
     {
@@ -903,8 +903,8 @@
       "standardVariantId": "bizi-regnum-voltage-bank:standard",
       "collectorVariantId": "bizi-regnum-voltage-bank:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-regnum-voltage-bank.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-regnum-voltage-bank.webp"
       }
     },
     {
@@ -917,8 +917,8 @@
       "standardVariantId": "bizi-desert-logic-engine:standard",
       "collectorVariantId": "bizi-desert-logic-engine:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-desert-logic-engine.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-desert-logic-engine.webp"
       }
     },
     {
@@ -931,8 +931,8 @@
       "standardVariantId": "bizi-brass-spark:standard",
       "collectorVariantId": "bizi-brass-spark:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-brass-spark.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-brass-spark.webp"
       }
     },
     {
@@ -945,8 +945,8 @@
       "standardVariantId": "bizi-railspike-marshal:standard",
       "collectorVariantId": "bizi-railspike-marshal:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-railspike-marshal.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-railspike-marshal.webp"
       }
     },
     {
@@ -959,8 +959,8 @@
       "standardVariantId": "bizi-heat-sink-matrix:standard",
       "collectorVariantId": "bizi-heat-sink-matrix:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-heat-sink-matrix.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-heat-sink-matrix.webp"
       }
     },
     {
@@ -973,8 +973,8 @@
       "standardVariantId": "bizi-clockwork-caravan:standard",
       "collectorVariantId": "bizi-clockwork-caravan:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-clockwork-caravan.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-clockwork-caravan.webp"
       }
     },
     {
@@ -987,8 +987,8 @@
       "standardVariantId": "bizi-voltaric-ultimatum:standard",
       "collectorVariantId": "bizi-voltaric-ultimatum:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp"
       }
     },
     {
@@ -1001,8 +1001,8 @@
       "standardVariantId": "bizi-focus-prime-signal:standard",
       "collectorVariantId": "bizi-focus-prime-signal:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-focus-prime-signal.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-focus-prime-signal.webp"
       }
     },
     {
@@ -1015,8 +1015,8 @@
       "standardVariantId": "bizi-constanti-sunforge:standard",
       "collectorVariantId": "bizi-constanti-sunforge:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp",
+        "collector": "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp"
       }
     }
   ]

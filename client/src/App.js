@@ -2716,9 +2716,9 @@ const CAMPAIGN_SPEAKER_IMAGE_ALIASES = {
   crowd: "/assets/gauntlet/rumie.webp",
   den: "/assets/gauntlet/sheen-card.webp",
   dowan: "/assets/gauntlet/sheen-card.webp",
-  focus: "/assets/gauntlet/focus.jpg",
+  focus: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
   guardian: "/assets/gauntlet/rumin-card.webp",
-  hera: "/assets/gauntlet/hera.webp",
+  hera: "/assets/gauntlet/factions/bizi/hera-general.webp",
   hushan: "/assets/gauntlet/sheen-card.webp",
   kaiser: "/assets/gauntlet/kaiser-gauntlet.webp",
   arel: "/assets/gauntlet/bizi-card.webp",
@@ -3248,7 +3248,7 @@ function getGamePlayerName(game, playerNum) {
 
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
-  const factionArt = resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`);
+  const factionArt = resolveAssetPath(faction.cardImage || `/assets/gauntlet/${faction.id}-card.webp`);
 
   return (
     <div className={`faction-choice-card faction-${faction.id}${selected ? " is-selected" : ""}`} style={{ borderColor: selected ? theme.primary : theme.border, "--faction-accent": theme.primary }}>

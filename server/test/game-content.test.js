@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  BIZI_COLLECTION_CARDS,
   COLLECTION_CARDS,
   COLLECTOR_VARIANTS,
   CONTENT_VERSION,
@@ -57,6 +58,34 @@ test("publishes canonical Rumin card and campaign illustrations", () => {
   assert.equal(content.campaigns.rumin.chapters.length, 12);
   for (const chapter of content.campaigns.rumin.chapters) {
     assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/rumin\/.+\.webp$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
+  }
+});
+
+test("publishes the integrated Bizi identity, constructed-card, and campaign art", () => {
+  const content = getPublicGameContent();
+  const biziCardIds = new Set(BIZI_COLLECTION_CARDS.map((card) => card.id));
+  const variants = content.collectorVariants.filter((variant) => biziCardIds.has(variant.gameplayCardId));
+  assert.equal(variants.length, 36);
+
+  for (const card of BIZI_COLLECTION_CARDS) {
+    const cardVariants = variants.filter((variant) => variant.gameplayCardId === card.id);
+    assert.equal(cardVariants.length, 2);
+    assert.equal(new Set(cardVariants.map((variant) => variant.art)).size, 1);
+    assert.match(cardVariants[0].art, /^\/assets\/gauntlet\/constructed\/bizi\/.+\.webp$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", cardVariants[0].art)), true);
+  }
+
+  const bizi = content.factions.find((faction) => faction.id === "bizi");
+  for (const image of [bizi.cardImage, bizi.commander.image, bizi.general.image, bizi.city.image]) {
+    assert.match(image, /^\/assets\/gauntlet\/factions\/bizi\/.+\.webp$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", image)), true);
+  }
+
+  assert.match(content.campaigns.bizi.coverImage, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
+  assert.equal(content.campaigns.bizi.chapters.length, 12);
+  for (const chapter of content.campaigns.bizi.chapters) {
+    assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
   }
 });

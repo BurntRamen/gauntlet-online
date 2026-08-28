@@ -1,0 +1,350 @@
+{
+  "schemaVersion": 1,
+  "runId": "gauntlet-bizi-vertical-slice-2026-08-27",
+  "status": "generated-and-integrated-candidate",
+  "generationMethod": "OpenAI built-in image generation, one distinct call per asset, with accepted outputs retained in the project as optimized WebP files.",
+  "userDirection": "Giuseppe authorized enactment on 2026-08-27 and directed that the recovered Bizi references be treated as the closest available visual authority for this pass.",
+  "artifactApprovalStatus": "All 33 candidate production images were generated, reviewed as one visual family, optimized, and integrated on 2026-08-27. Exact generated versions still require founder review before any canon promotion or rights-sensitive external use; no lore-canon, manufacturing, or blanket publication status is inferred.",
+  "productionIntegration": {
+    "mode": "generated new images plus three targeted consistency edits",
+    "processingScript": "scripts/process-bizi-art.mjs",
+    "identityDirectory": "client/public/assets/gauntlet/factions/bizi",
+    "constructedDirectory": "client/public/assets/gauntlet/constructed/bizi",
+    "campaignDirectory": "client/public/assets/gauntlet/campaigns/bizi",
+    "outputCounts": { "factionIdentity": 3, "constructedCards": 18, "campaignChapters": 12, "total": 33 },
+    "productionDimensions": { "portrait": "1024x1280 WebP", "landscape": "1600x900 WebP" },
+    "processing": "center-cropped from retained PNG masters and encoded as WebP at quality 86 / effort 6",
+    "runtimeBindings": [
+      "server/gameContent.js#COLLECTOR_VARIANTS",
+      "server/gameContent.js#factionsData.bizi",
+      "server/gameContent.js#BIZI_CAMPAIGN_ART",
+      "client/src/App.js#CAMPAIGN_SPEAKER_IMAGE_ALIASES"
+    ]
+  },
+  "authorityChain": [
+    { "id": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4", "title": "00-00 Creative OS Governance Directive — Operational", "role": "Company authority, inheritance, conflict, and approval rules" },
+    { "id": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "title": "Gauntlet — Project Dossier & Generation Contract — Operational v1", "role": "Gauntlet identity, C-30 visual controls, and implementation boundary" },
+    { "id": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4", "title": "Gauntlet Rules — Operational v1", "role": "Basic Gauntlet mechanics" },
+    { "id": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#gid=0", "title": "Gauntlet Card Registry — Operational v1", "role": "Controlling registered card content" },
+    { "id": "1PyyLFGEiYCrxnkHh1Ahh1P87SbW-pwio2No9gGu3znc", "title": "Creative OS — Generation Hub", "role": "Brief, prompt, QA, review, lineage, and delivery gates" },
+    { "id": "1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "title": "Bizi Canon Status & Structural Spine — Operational v1", "role": "C-49 Byzantine-first chronology, Titan boundary, recurrence, and civic dignity" },
+    { "id": "1zZD3iz1iLXcANpXqxH61RM5Q58dpzwWX8IMrOqPCw90", "title": "Faction Design Bible — Operational Design Guide", "role": "Bizi material language and logistics as subordinate expression" },
+    { "id": "1ImvmlYy-ydVrv9oKPlYnTIUdlbdP1uxCRVV2LcJMMLQ", "title": "Historical Scaffold Transformation Standard — Operational", "role": "Original-world transformation and anti-reenactment boundary" },
+    { "id": "ASSET-019", "title": "Recovered Bizi visual family", "role": "Closest available visual authority for this run by explicit founder direction; original formal status and rights caveats retained" },
+    { "id": "repo:server/gameContent.js@main", "title": "Current repository game content", "role": "Current implementation card definitions, chapter sequence, dialogue, and surfaces" }
+  ],
+  "referenceBinding": {
+    "assetId": "ASSET-019",
+    "driveFolderId": "1EUTSI__wEsks75ET8G5TnGZP1JRCa1Zg",
+    "formalRegistryStatus": "Not Canon / Historical visual reference / Needs Truth / internal reference and archive-informed generation only",
+    "passTreatment": "Positive visual authority for Bizi automaton form, sacred machinery, sepia civic infrastructure, Byzantine-derived architecture, and hand-rendered atmosphere.",
+    "transformationRule": "Synthesize the family rather than copying a single composition. Remove accidental embedded lettering, generic Victorian steampunk, anime or photographic drift, and real-world religious insignia."
+  },
+  "conflictLedger": [
+    {
+      "id": "CONFLICT-BIZI-REGISTRY-GAP",
+      "conflict": "The active Card Registry contains Focus, Hera, and Constanti but none of the 18 constructed replacement cards implemented in the repository.",
+      "resolutionForThisPass": "Illustrate the 18 constructed cards as implementation-bound content. Do not change mechanics or claim registry/canon promotion."
+    },
+    {
+      "id": "CONFLICT-BIZI-BYZANTINE-VS-LOGISTICS",
+      "conflict": "C-49 establishes Bizi as Byzantine first while the lower faction guide emphasizes routes, rails, delivery, bread, and administration.",
+      "resolutionForThisPass": "Byzantine civilization controls architecture, historical scale, institutions, and sacred machinery. Logistics appears as lived civic material culture, never as the replacement identity or a delivery-app joke."
+    },
+    {
+      "id": "CONFLICT-BIZI-VISUAL-STATUS",
+      "conflict": "ASSET-019 is historically Not Canon and rights-unverified, but it is the closest available Bizi visual family.",
+      "resolutionForThisPass": "Use it as the closest governing visual reference by explicit founder instruction while retaining candidate output, rights review, and exact-version approval gates."
+    },
+    {
+      "id": "CONFLICT-BIZI-HISTORICAL-MAPPING",
+      "conflict": "The repository chapters contain Byzantine-derived roles and events that could become one-to-one historical reenactment.",
+      "resolutionForThisPass": "Preserve story function and sequence but transform flags, religious symbols, named Earth places, costume, machinery, and causal detail into original Bizi civilization design."
+    },
+    {
+      "id": "CONFLICT-VOLTARIC-ULTIMATUM",
+      "conflict": "The implementation card name may imply Voltari identity, while C-49 forbids collapsing Bizi Titans or civilization identity into alien aliases.",
+      "resolutionForThisPass": "Depict a Bizi civic-military electrical ultimatum without Voltari beings, insignia, or alien identity."
+    }
+  ],
+  "sharedVisualContract": {
+    "style": "Premium hand-painted historical watercolor and ink illustration, carrying forward the warm authored character of the early Kaiser and Meerus art while preserving the recovered Bizi family's automata, sacred machinery, and sepia infrastructure.",
+    "identity": "A Byzantine-first automata civilization in which maintenance, administration, faith, bread, routes, engineering, repair, and ordinary labor become historical forces.",
+    "palette": "Sun-aged cream, transit blue, tile red, workwear navy, oxidized brass, dark iron, parchment tan, stamped black, and selective electric amber.",
+    "materials": "Brass and copper mechanisms, dark iron, ceramic tesserae, enamel signs without lettering, worn limestone, parchment route sheets without readable text, leather, linen workwear, bread crust, ash, and oil smoke.",
+    "mustPreserve": [
+      "Bizi-specific automaton anatomy and occupational purpose",
+      "Byzantine-derived civic and sacred architecture transformed into an original civilization",
+      "ordinary workers, clerks, engineers, soldiers, and repair crews as dignified historical actors",
+      "Machina, Melech, and Meca as distinct Bizi Titans without alien aliases",
+      "foundation, system-building, overextension, fracture, repair, restoration, and fall",
+      "clear subjects and silhouettes at thumbnail scale"
+    ],
+    "mustAvoid": [
+      "generic Victorian steampunk",
+      "anime mecha or glossy mobile-game splash art",
+      "modern trains, computers, power plants, delivery apps, or factories without transformation",
+      "real-world flags, crosses, crescents, halos, scripture, rulers, or named historical locations",
+      "embedded text, fake lettering, logos, watermarks, card UI, borders, or labels",
+      "random gears used as decoration without functional logic",
+      "repetitive centered robot portraits",
+      "excessive sepia monochrome that erases tile blue and red"
+    ]
+  },
+  "variantPolicy": "One canonical illustration per constructed gameplay card. Standard and collector-foil variants share one art path; finish is presentation-only.",
+  "assets": [
+    {
+      "assetId": "bizi-focus-conductor-of-progress",
+      "category": "faction-identity",
+      "contentId": "focus-conductor-of-progress",
+      "title": "Focus, Conductor of Progress",
+      "styleLock": false,
+      "visualSubject": "Focus as a formidable Bizi automaton ruler-engineer standing inside an imperial control basilica where route mechanisms, clerks, and repair crews make his promised efficiency visible and morally cold.",
+      "factionAuthority": "C-49 Byzantine-first Bizi; registered commander; recovered Focus silhouette as identity reference.",
+      "culturalArchitecturalMaterialLanguage": "Ceremonial brass armor, tile-red mantle, civic control dais, map machinery, domed industrial basilica, watercolor and ink.",
+      "mustPreserve": ["commanding automaton identity", "engineer-ruler rather than generic warrior", "efficiency and civic system visible"],
+      "mustAvoid": ["Pharaoh costume", "anime robot", "embedded name", "evil overlord throne"],
+      "intendedReusableCropsSurfaces": ["4:5 identity master", "faction card", "commander panel", "Identity dossier", "deck and reward surfaces"],
+      "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#Focus", "ASSET-019", "repo:server/gameContent.js@main#bizi"]
+    },
+    {
+      "assetId": "bizi-hera-general",
+      "category": "faction-identity",
+      "contentId": "hera",
+      "title": "Hera",
+      "styleLock": false,
+      "visualSubject": "Hera as a battle-tested Bizi automaton general and field engineer calibrating a campaign engine while exhausted soldiers and mechanics prepare a counterattack behind her.",
+      "factionAuthority": "C-49 Bizi restoration and refusal; registered general; recovered Hera reference as identity anchor.",
+      "culturalArchitecturalMaterialLanguage": "Practical articulated brass body, navy and tile-red field cloth, portable calibration instruments, worn campaign workshop, watercolor and ink.",
+      "mustPreserve": ["recognizable practical general", "engineering and determination", "functional two-arm automaton construction"],
+      "mustAvoid": ["sexualized android", "photo-real mannequin", "pin-up pose", "extra limbs"],
+      "intendedReusableCropsSurfaces": ["4:5 identity master", "general panel", "Identity dossier", "campaign and deck surfaces"],
+      "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#Hera", "ASSET-019", "repo:server/gameContent.js@main#hera"]
+    },
+    {
+      "assetId": "bizi-constanti-technology-hub",
+      "category": "faction-identity",
+      "contentId": "constanti-technology-hub",
+      "title": "Constanti, Technology Hub",
+      "styleLock": false,
+      "visualSubject": "A panoramic lived-in view of Constanti: domed civic halls, tile-roofed workshops, aqueduct-like conduits, route exchanges, repair yards, sacred engine chambers, bread carts, clerks, and automata citizens operating one immense city-system.",
+      "factionAuthority": "C-49 Bizi civic dignity and system-building; registered city; recovered Constanti and place references.",
+      "culturalArchitecturalMaterialLanguage": "Original Byzantine-derived skyline, domes and arcades, cream stone, transit blue tile, tile red, brass conduits, ink-wash atmosphere.",
+      "mustPreserve": ["city as functioning civilization", "Byzantine-first architecture", "workers and routes visible", "central crop safety"],
+      "mustAvoid": ["literal Constantinople", "mosque or church copying", "modern railway terminal", "empty concept-art skyline"],
+      "intendedReusableCropsSurfaces": ["16:9 identity master", "faction selector", "campaign cover", "city panel", "Identity dossier", "menu and match surfaces"],
+      "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4#Constanti", "ASSET-019", "repo:server/gameContent.js@main#constanti"]
+    },
+    {
+      "assetId": "bizi-copperline-technician", "category": "constructed-card", "contentId": "bizi-copperline-technician", "title": "Copperline Technician", "styleLock": true,
+      "visualSubject": "A Bizi automaton line technician suspended over a busy Constanti conduit street, repairing a glowing copper distribution line while citizens and bread carts continue below.",
+      "factionAuthority": "Implementation-bound constructed card under C-49 Bizi visual authority.",
+      "culturalArchitecturalMaterialLanguage": "Articulated brass work body, navy tool sash, copper conduit, ceramic insulators, cream-stone arcade, watercolor and ink.",
+      "mustPreserve": ["clear technician occupation", "functional tools and two arms", "ordinary labor as heroic", "thumbnail silhouette"], "mustAvoid": ["modern electrician", "sci-fi spacesuit", "random sparks", "generic robot portrait"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-copperline-technician", "CONFLICT-BIZI-REGISTRY-GAP"]
+    },
+    {
+      "assetId": "bizi-voltage-ration", "category": "constructed-card", "contentId": "bizi-voltage-ration", "title": "Voltage Ration", "styleLock": false,
+      "visualSubject": "A shift clerk distributes standardized amber energy cells beside bread rations to a queue of Bizi workers at a tiled civic depot, making power allocation feel ordinary and essential.",
+      "factionAuthority": "Implementation-bound constructed card; Bizi supply and ordinary labor beneath C-49.", "culturalArchitecturalMaterialLanguage": "Ceramic ration counter, brass cells, bread rounds, stamped but unreadable papers, transit-blue tile, watercolor and ink.",
+      "mustPreserve": ["energy ration and bread pairing", "civilian civic scene", "single clear amber cell focal point"], "mustAvoid": ["battery branding", "vending machine", "modern cafeteria", "floating potion"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1zZD3iz1iLXcANpXqxH61RM5Q58dpzwWX8IMrOqPCw90", "ASSET-019", "repo:server/gameContent.js@main#bizi-voltage-ration"]
+    },
+    {
+      "assetId": "bizi-dune-circuit-runner", "category": "constructed-card", "contentId": "bizi-dune-circuit-runner", "title": "Dune Circuit Runner", "styleLock": false,
+      "visualSubject": "A swift Bizi courier automaton crosses sun-blown desert relay ruins carrying a sealed circuit cylinder between two distant imperial route towers.",
+      "factionAuthority": "Implementation-bound constructed card; Bizi routes and empire geography beneath C-49.", "culturalArchitecturalMaterialLanguage": "Sand-worn brass chassis, navy wraps, tile-red route markers without text, ancient relay arches, watercolor dust.",
+      "mustPreserve": ["speed and route purpose", "desert wear", "different relay stations readable"], "mustAvoid": ["motorcycle", "cyberpunk runner", "modern power lines", "generic desert assassin"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-dune-circuit-runner"]
+    },
+    {
+      "assetId": "bizi-gearplate-shield", "category": "constructed-card", "contentId": "bizi-gearplate-shield", "title": "Gearplate Shield", "styleLock": true,
+      "visualSubject": "A layered circular shield of interlocking functional brass plates absorbs a heavy blow at a Constanti gate while its internal counterweights visibly redirect the force.",
+      "factionAuthority": "Implementation-bound Bizi relic; recovered sacred machinery translated into practical defense.", "culturalArchitecturalMaterialLanguage": "Overlapping gear-shaped plates with functional pivots, dark iron rim, enamel-blue center, stone gate, watercolor impact.",
+      "mustPreserve": ["shield readable at thumbnail size", "plausible plate mechanism", "active block", "no decorative gear clutter"], "mustAvoid": ["magic bubble", "floating catalog object", "medieval crest", "saw-blade weapon"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-gearplate-shield"]
+    },
+    {
+      "assetId": "bizi-heras-calibration", "category": "constructed-card", "contentId": "bizi-heras-calibration", "title": "Hera's Calibration", "styleLock": false,
+      "visualSubject": "Hera adjusts the paired balance rings of a campaign engine seconds before battle while mechanics align suit-like color channels through the device.",
+      "factionAuthority": "Implementation-bound tactic tied to registered general Hera.", "culturalArchitecturalMaterialLanguage": "Portable brass calibration frame, colored enamel channels, worn military workshop, tile-red and navy cloth, watercolor and ink.",
+      "mustPreserve": ["Hera identity continuity", "calibration rather than spellcasting", "precise hand interaction"], "mustAvoid": ["laboratory computer", "magic rune circle", "extra arms", "readable gauges"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-heras-calibration"]
+    },
+    {
+      "assetId": "bizi-solar-array-adept", "category": "constructed-card", "contentId": "bizi-solar-array-adept", "title": "Solar Array Adept", "styleLock": false,
+      "visualSubject": "A Bizi adept climbs a domed rooftop array of articulated bronze mirrors, turning each panel toward dawn to wake the neighborhood's civic engines.",
+      "factionAuthority": "Implementation-bound unit; Bizi energy infrastructure and civic service.", "culturalArchitecturalMaterialLanguage": "Bronze heliostat petals, tiled dome, linen work cloak, city roofs, sunrise watercolor.",
+      "mustPreserve": ["clear solar collection function", "worker scale against city", "Byzantine-derived roofline"], "mustAvoid": ["modern photovoltaic panels", "sun priest cliché", "floating halo", "science-fiction satellite"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-solar-array-adept"]
+    },
+    {
+      "assetId": "bizi-constanti-conduit", "category": "constructed-card", "contentId": "bizi-constanti-conduit", "title": "Constanti Conduit", "styleLock": false,
+      "visualSubject": "A monumental three-branch power-and-message conduit spans a civic crossroads, directing distinct colored currents toward market, archive, and defense districts as crews monitor the transfer.",
+      "factionAuthority": "Implementation-bound relic rooted in registered Constanti.", "culturalArchitecturalMaterialLanguage": "Brass arterial pipes, ceramic junctions, route-map geometry, arcaded square, watercolor and ink.",
+      "mustPreserve": ["three distinct functional branches", "city-scale infrastructure", "workers visible", "clear central junction"], "mustAvoid": ["modern substation", "neon cyberpunk", "empty pipe maze", "readable signage"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-constanti-conduit"]
+    },
+    {
+      "assetId": "bizi-sandstorm-processor", "category": "constructed-card", "contentId": "bizi-sandstorm-processor", "title": "Sandstorm Processor", "styleLock": false,
+      "visualSubject": "A broad, low Bizi automaton braces in a desert storm, filtering abrasive sand through layered intake vanes to keep a stranded imperial caravan's engines alive.",
+      "factionAuthority": "Implementation-bound unit; Bizi repair resilience and desert routes.", "culturalArchitecturalMaterialLanguage": "Sand-scoured iron, brass filter vanes, blue enamel intake, covered caravan, watercolor storm.",
+      "mustPreserve": ["processor function legible", "caravan survival context", "heavy stable silhouette"], "mustAvoid": ["tank", "robot monster", "modern air purifier", "steampunk locomotive"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-sandstorm-processor"]
+    },
+    {
+      "assetId": "bizi-focus-overclock", "category": "constructed-card", "contentId": "bizi-focus-overclock", "title": "Focus Overclock", "styleLock": false,
+      "visualSubject": "Focus forces the central civic engine beyond its safe rhythm as concentric regulators accelerate and anxious clerks struggle to maintain the route boards around him.",
+      "factionAuthority": "Implementation-bound tactic tied to Focus and C-49's efficiency-without-mercy tension.", "culturalArchitecturalMaterialLanguage": "Control basilica, brass flywheels, amber heat, blue-and-red tile, ink shadows.",
+      "mustPreserve": ["Focus identity continuity", "dangerous acceleration", "civic consequences visible"], "mustAvoid": ["superhero power-up", "computer overclock imagery", "lightning aura", "evil magic"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-focus-overclock"]
+    },
+    {
+      "assetId": "bizi-regnum-voltage-bank", "category": "constructed-card", "contentId": "bizi-regnum-voltage-bank", "title": "Regnum Voltage Bank", "styleLock": true,
+      "visualSubject": "A vaulted public energy bank stores amber charge in giant ceramic-brass cells while clerks allocate power to hospitals, bakeries, workshops, and defense routes through one monumental civic hall.",
+      "factionAuthority": "Implementation-bound relic; Bizi civic logistics subordinated to Byzantine institutional identity.", "culturalArchitecturalMaterialLanguage": "Domed basilica interior, mosaic-like circuit floor without icons, ceramic capacitors, brass rails, public queue, watercolor and ink.",
+      "mustPreserve": ["bank as public infrastructure", "multiple civic uses", "institution larger than any individual", "clear energy cells"], "mustAvoid": ["pile of batteries", "modern power station", "money bank", "generic fantasy temple"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1zZD3iz1iLXcANpXqxH61RM5Q58dpzwWX8IMrOqPCw90", "ASSET-019", "repo:server/gameContent.js@main#bizi-regnum-voltage-bank"]
+    },
+    {
+      "assetId": "bizi-desert-logic-engine", "category": "constructed-card", "contentId": "bizi-desert-logic-engine", "title": "Desert Logic Engine", "styleLock": false,
+      "visualSubject": "An ancient mobile calculating engine chooses among three desert routes by physically reconfiguring colored ceramic logic tiles while navigators watch a storm erase the road ahead.",
+      "factionAuthority": "Implementation-bound relic; Bizi route intelligence and transformed sacred machinery.", "culturalArchitecturalMaterialLanguage": "Brass logic drum, ceramic tesserae, parchment maps without writing, covered route wagon, watercolor desert.",
+      "mustPreserve": ["mechanical decision process visible", "three route alternatives", "no digital screen"], "mustAvoid": ["computer motherboard", "AI hologram", "magic oracle", "modern map"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-desert-logic-engine"]
+    },
+    {
+      "assetId": "bizi-brass-spark", "category": "constructed-card", "contentId": "bizi-brass-spark", "title": "Brass Spark", "styleLock": false,
+      "visualSubject": "A mechanic strikes a small brass ignition wheel and transfers one precise amber spark into a dormant neighborhood engine as nearby workers shield the fragile flame.",
+      "factionAuthority": "Implementation-bound tactic; Bizi beginnings and maintenance labor.", "culturalArchitecturalMaterialLanguage": "Hand-sized brass igniter, oil-dark workshop, cream stone, navy sleeves, amber watercolor glow.",
+      "mustPreserve": ["single small spark", "human-scale maintenance ritual", "clear hand interaction"], "mustAvoid": ["lightning storm", "magic fireball", "welding torch", "explosion"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-brass-spark"]
+    },
+    {
+      "assetId": "bizi-railspike-marshal", "category": "constructed-card", "contentId": "bizi-railspike-marshal", "title": "Railspike Marshal", "styleLock": false,
+      "visualSubject": "A Bizi route marshal drives a heavy locking spike into an imperial guide rail at a fortified junction while rerouting a military convoy away from sabotage.",
+      "factionAuthority": "Implementation-bound unit; route discipline beneath C-49 empire identity.", "culturalArchitecturalMaterialLanguage": "Ceremonial work armor, iron guide rail for carts rather than modern train track, brass spike, tiled junction gate, watercolor action.",
+      "mustPreserve": ["marshal occupation", "spike and guide rail readable", "convoy rerouting"], "mustAvoid": ["railroad cowboy", "steam train", "spear fighter", "modern uniform"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-railspike-marshal"]
+    },
+    {
+      "assetId": "bizi-heat-sink-matrix", "category": "constructed-card", "contentId": "bizi-heat-sink-matrix", "title": "Heat-Sink Matrix", "styleLock": false,
+      "visualSubject": "A folding wall of blue ceramic fins and brass channels blooms around a city gate engine, drawing away attack heat while defenders shelter behind it.",
+      "factionAuthority": "Implementation-bound relic; Bizi functional defensive engineering.", "culturalArchitecturalMaterialLanguage": "Blue glazed ceramic fins, copper heat channels, dark iron frame, cream-stone gate, steam and watercolor haze.",
+      "mustPreserve": ["heat transfer visually legible", "matrix is defensive", "clear blue-and-brass silhouette"], "mustAvoid": ["computer heatsink", "ice magic", "energy shield bubble", "decorative fan"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-heat-sink-matrix"]
+    },
+    {
+      "assetId": "bizi-clockwork-caravan", "category": "constructed-card", "contentId": "bizi-clockwork-caravan", "title": "Clockwork Caravan", "styleLock": false,
+      "visualSubject": "A long Bizi caravan of self-propelled covered wagons climbs an imperial road carrying bread, archive crates, replacement parts, and families while mechanics walk beside the exposed drive train.",
+      "factionAuthority": "Implementation-bound unit; Bizi movement, ordinary survival logistics, and overextension.", "culturalArchitecturalMaterialLanguage": "Brass-and-wood road wagons, tile-red covers, worn limestone road, desert hills, watercolor panorama within portrait crop.",
+      "mustPreserve": ["caravan rather than train", "mixed civic cargo", "maintenance crew", "route scale"], "mustAvoid": ["steam locomotive", "fantasy merchant wagon", "Mad Max", "empty vehicle portrait"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1zZD3iz1iLXcANpXqxH61RM5Q58dpzwWX8IMrOqPCw90", "ASSET-019", "repo:server/gameContent.js@main#bizi-clockwork-caravan"]
+    },
+    {
+      "assetId": "bizi-voltaric-ultimatum", "category": "constructed-card", "contentId": "bizi-voltaric-ultimatum", "title": "Voltaric Ultimatum", "styleLock": false,
+      "visualSubject": "Bizi envoys open a sealed civic capacitor before an enemy gate, revealing a controlled lattice of stored amber force as the final material warning before battle.",
+      "factionAuthority": "Implementation-bound tactic; explicitly Bizi, with no Voltari identity import.", "culturalArchitecturalMaterialLanguage": "Ceramic-brass capacitor chest, disciplined envoys, border gate, storm-dark sky, amber watercolor energy.",
+      "mustPreserve": ["ultimatum as political action", "controlled stored force", "Bizi envoys and machinery"], "mustAvoid": ["Voltari beings or symbols", "nuclear bomb", "magic lightning wizard", "readable treaty"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-voltaric-ultimatum", "CONFLICT-VOLTARIC-ULTIMATUM"]
+    },
+    {
+      "assetId": "bizi-focus-prime-signal", "category": "constructed-card", "contentId": "bizi-focus-prime-signal", "title": "Focus Prime Signal", "styleLock": false,
+      "visualSubject": "From Constanti's highest signal dome, Focus activates a synchronized chain of four distant amber beacons, aligning the entire imperial machine for one decisive coordinated action.",
+      "factionAuthority": "Implementation-bound mythic tactic tied to Focus and empire-wide coordination.", "culturalArchitecturalMaterialLanguage": "Signal dome, mechanical shutters, four distant beacon towers, brass and transit blue, night watercolor.",
+      "mustPreserve": ["four-beacon coordination", "Focus identity", "city-wide scale", "prime signal as system"], "mustAvoid": ["satellite dish", "radio antenna", "magic beam to sky", "logo-shaped signal"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-focus-prime-signal"]
+    },
+    {
+      "assetId": "bizi-constanti-sunforge", "category": "constructed-card", "contentId": "bizi-constanti-sunforge", "title": "Constanti Sunforge", "styleLock": false,
+      "visualSubject": "A colossal but civic Bizi forge-automaton strides from a domed solar foundry, channeling three stored amber charges into its articulated arms while citizens and smiths operate the surrounding institution.",
+      "factionAuthority": "Implementation-bound mythic unit rooted in Constanti and Bizi sacred industry.", "culturalArchitecturalMaterialLanguage": "Monumental brass body, ceramic armor, solar mirror crown as machinery not halo, tile-red foundry, molten amber watercolor.",
+      "mustPreserve": ["mythic scale", "three charge channels", "city institution context", "functional automaton anatomy"], "mustAvoid": ["kaiju robot", "anime mecha", "divine halo", "empty boss splash art"],
+      "intendedReusableCropsSurfaces": ["4:5 card master", "Build", "Catalog", "selected preview", "deck visual", "reward reveal"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#bizi-constanti-sunforge"]
+    },
+    {
+      "assetId": "bizi-campaign-01-kharons-vision", "category": "campaign-chapter", "contentId": "kharons-vision", "title": "Kharon's Vision", "styleLock": true,
+      "visualSubject": "At Iron River, young inventor Kharon directs improvised Bizi machines and builders against Maxor's old royal force; beyond the battle, the first foundations of Constanti rise from his vision.",
+      "factionAuthority": "C-49 foundation sequence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "River crossing, early brass engines, timber-and-stone works, proto-domes, cream and tile-red watercolor.",
+      "mustPreserve": ["builder defeating usurper", "Iron River geography", "future city visible", "invention over kingship"], "mustAvoid": ["literal historical battle", "recognizable royal flag", "solo hero duel", "modern machinery"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#kharons-vision", "CONFLICT-BIZI-HISTORICAL-MAPPING"]
+    },
+    {
+      "assetId": "bizi-campaign-02-first-titan", "category": "campaign-chapter", "contentId": "first-titan", "title": "The First Titan", "styleLock": false,
+      "visualSubject": "Beneath early Constanti, Kharon and the Assembly of Doubt stand around the immense sleeping form of Machina embedded in an ancient engine chamber, divided between reverence and engineering caution.",
+      "factionAuthority": "C-49 Machina boundary and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Subterranean vaulted chamber, monumental sacred automaton, ladders and survey frames, blue tile and brass watercolor.",
+      "mustPreserve": ["Machina sleeps", "debate rather than worship spectacle", "Kharon and Assembly both legible", "Titan is Bizi-specific"], "mustAvoid": ["alien spaceship", "church iconography", "giant humanoid god pose", "readable scripture"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#first-titan"]
+    },
+    {
+      "assetId": "bizi-campaign-03-golden-empire", "category": "campaign-chapter", "contentId": "golden-empire", "title": "The Golden Empire", "styleLock": false,
+      "visualSubject": "At Bizi's dazzling restored peak, Justine, Theo, and Beli overlook a functioning imperial capital of domes, workshops, roads, granaries, and armies while the approaching Vandal Engine exposes wear beneath the splendor.",
+      "factionAuthority": "C-49 restoration and overextension sequence; current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Gold-brass civic skyline, cream domes, blue tile, crowded institutions, distant dark engine, watercolor panorama.",
+      "mustPreserve": ["three leaders with distinct roles", "real civic splendor", "hidden wear and threat", "system-level composition"], "mustAvoid": ["gold palace fantasy", "Roman/Byzantine reenactment", "single emperor portrait", "empty skyline"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "campaign cover", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#golden-empire"]
+    },
+    {
+      "assetId": "bizi-campaign-04-riot-of-sparks", "category": "campaign-chapter", "contentId": "riot-of-sparks", "title": "The Riot of Sparks", "styleLock": false,
+      "visualSubject": "Constanti's factory district burns as workers and citizens overturn route gates; Theo confronts the retreating Justine while Beli opens the city defenses to restore order.",
+      "factionAuthority": "C-49 riot/fracture sequence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Tiled industrial arcades, brass sparks, smoke, broken bread carts, civic gate mechanisms, red-black watercolor.",
+      "mustPreserve": ["rebellion as civic rupture", "Justine, Theo, and Beli roles", "city machinery and trust both damaged"], "mustAvoid": ["faceless robot riot", "modern protest signs", "explosion spectacle", "one-sided villain crowd"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#riot-of-sparks"]
+    },
+    {
+      "assetId": "bizi-campaign-05-last-victories", "category": "campaign-chapter", "contentId": "last-victories", "title": "The Last Victories", "styleLock": false,
+      "visualSubject": "Beli's exhausted army wins across a vast frontier where desert coalition camps, iron fortifications, and sea-raider ships all fall, while an impossibly long Bizi supply road frays behind the advance.",
+      "factionAuthority": "C-49 expansion/overextension sequence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Campaign automata, modular brass siege gear, desert coast, broken route depots, muted victory watercolor.",
+      "mustPreserve": ["victory and exhaustion together", "three-front threat", "supply road visibly overstretched", "Beli leads from within army"], "mustAvoid": ["triumphant conquest poster", "Earth ethnic coding", "generic medieval battlefield", "single combat"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#last-victories"]
+    },
+    {
+      "assetId": "bizi-campaign-06-age-of-focus", "category": "campaign-chapter", "contentId": "age-of-focus", "title": "The Age of Focus", "styleLock": false,
+      "visualSubject": "Focus takes control inside the imperial assembly as old ruler Maurice is removed and the city-system locks into perfect geometric order; workers move faster while compassion disappears from the scene.",
+      "factionAuthority": "C-49 system-rule/atrophy sequence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Assembly basilica, synchronized route machinery, regimented clerks, Focus brass silhouette, cold blue and amber watercolor.",
+      "mustPreserve": ["political seizure through efficiency", "Maurice present", "order becomes colder", "systemic rather than murderous spectacle"], "mustAvoid": ["graphic assassination", "fascist Earth insignia", "supervillain coronation", "computer control room"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#age-of-focus"]
+    },
+    {
+      "assetId": "bizi-campaign-07-great-invasion", "category": "campaign-chapter", "contentId": "great-invasion", "title": "The Great Invasion", "styleLock": false,
+      "visualSubject": "Khosar's transformed conquest engines tear through the eastern Bizi empire, toppling factories, silent Titan shrines, route bridges, and old defenses while Bizi crews evacuate archives and restart smaller machines amid collapse.",
+      "factionAuthority": "C-49 invasion and restart sequence; current implementation chapter; historical transformation required.", "culturalArchitecturalMaterialLanguage": "Burning border city, broken brass infrastructure, archive carts, enemy geometry distinct but not Earth-coded, ash watercolor.",
+      "mustPreserve": ["system failure across city", "Bizi survival through restart", "archives and civilians matter", "Khosar threat"], "mustAvoid": ["real conquest flags", "religious destruction reenactment", "generic orc horde", "apocalypse without civic detail"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "1ImvmlYy-ydVrv9oKPlYnTIUdlbdP1uxCRVV2LcJMMLQ", "ASSET-019", "repo:server/gameContent.js@main#great-invasion"]
+    },
+    {
+      "assetId": "bizi-campaign-08-heras-counterattack", "category": "campaign-chapter", "contentId": "heras-counterattack", "title": "Hera's Counterattack", "styleLock": false,
+      "visualSubject": "Hera leads a compact column of repaired Bizi automata through a storm-broken mountain pass into enemy territory, using mobile workshops and determination to turn one victory into ten.",
+      "factionAuthority": "C-49 counterattack/restoration sequence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Field-repaired brass armor, portable forge carts, mountain route, tile-red standards without symbols, watercolor dawn.",
+      "mustPreserve": ["Hera identity continuity", "repaired rather than pristine army", "mobile workshops", "counterattack movement"], "mustAvoid": ["glamorous warrior queen", "generic cavalry charge", "modern tanks", "single hero splash"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#heras-counterattack"]
+    },
+    {
+      "assetId": "bizi-campaign-09-three-titans", "category": "campaign-chapter", "contentId": "three-titans", "title": "The Three Titans", "styleLock": true,
+      "visualSubject": "In one vast civic-sacred complex, the distinct dormant presences of Machina, Melech, and Meca occupy separate engine apses while Iro, Leon, Nike, and rival cult leaders pull the public square into dangerous ideological conflict.",
+      "factionAuthority": "C-49 Titan independence and schism; current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Three functionally distinct sacred automata, domed civic hall, blue/red/amber tile zones, brass machinery, watercolor crowd.",
+      "mustPreserve": ["three distinct Titans", "Titan identities remain Bizi-specific", "faith becomes civil danger", "public conflict rather than monster battle"], "mustAvoid": ["Christian trinity imagery", "alien aliases", "three identical robots", "readable doctrine banners"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#three-titans"]
+    },
+    {
+      "assetId": "bizi-campaign-10-the-schism", "category": "campaign-chapter", "contentId": "the-schism", "title": "The Schism", "styleLock": false,
+      "visualSubject": "A single Bizi assembly hall and its infrastructure physically split into rival halves as Theo's disciples and Archon Severus turn old shared conduits, archives, and workshops against one another.",
+      "factionAuthority": "C-49 permanent fracture and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Cracked mosaic-like floor without religious images, severed brass conduit, divided arches, opposing work colors, cold watercolor.",
+      "mustPreserve": ["former unity still visible", "ideological split damages infrastructure", "both sides Bizi", "Severus and disciples distinct"], "mustAvoid": ["church schism reenactment", "good-versus-evil poster", "two generic armies", "split-screen graphic"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#the-schism"]
+    },
+    {
+      "assetId": "bizi-campaign-11-the-restoration", "category": "campaign-chapter", "contentId": "the-restoration", "title": "The Restoration", "styleLock": false,
+      "visualSubject": "Xios coordinates the repair of a damaged state in one layered city panorama: corrupt governors removed, army mechanisms rebuilt, workshops relit, route bridges restored, and citizens returning as invaders retreat.",
+      "factionAuthority": "C-49 restoration recurrence and current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Scaffolded domes, repaired brass infrastructure, civic ledgers without text, blue tile returning through soot, sunrise watercolor.",
+      "mustPreserve": ["repair rather than replacement", "economic, military, industrial, and civic recovery", "Xios as coordinator", "visible scars remain"], "mustAvoid": ["instant magical rebuild", "single mechanic portrait", "utopian clean city", "modern construction equipment"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#the-restoration"]
+    },
+    {
+      "assetId": "bizi-campaign-12-last-gear", "category": "campaign-chapter", "contentId": "last-gear", "title": "The Last Gear", "styleLock": true,
+      "visualSubject": "During Constanti's final siege, silent Titan engines and failed city machinery surround divided Bizi defenders who fight together long enough for archivists, children, blueprints, tools, and memory cylinders to escape through a hidden route.",
+      "factionAuthority": "C-49 siege/fall and survival-of-idea sequence; current implementation chapter.", "culturalArchitecturalMaterialLanguage": "Falling domes, silent colossal machinery, broken brass gates, archive caravan, night fire and blue-gray watercolor.",
+      "mustPreserve": ["Constanti falls", "Titans are silent", "divided Bizi reunite", "knowledge survives", "tragic dignity rather than victory spectacle"], "mustAvoid": ["real siege reenactment", "religious conquest symbols", "total extinction", "giant robot battle as focal point"],
+      "intendedReusableCropsSurfaces": ["16:9 campaign master", "campaign hero", "chapter thumbnail", "briefing", "Continue Journey", "match archive", "campaign climax", "Identity progress"], "sourceAuthorityIds": ["1HaISJrLC4J5zI3IecZ1unFe-AecX26Y6NQEz9AqG0OU", "ASSET-019", "repo:server/gameContent.js@main#last-gear", "CONFLICT-BIZI-HISTORICAL-MAPPING"]
+    }
+  ]
+}
