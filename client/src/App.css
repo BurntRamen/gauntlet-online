@@ -22,6 +22,11 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-gutter: stable;
+  overflow-x: clip;
+}
+
 button,
 input,
 select,
@@ -2252,6 +2257,42 @@ textarea:focus-visible {
   transition: background-image 180ms ease;
 }
 
+.menu-page.has-layered-backdrop::after {
+  display: none;
+}
+
+.menu-backdrop-stack {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  background: #03080e;
+}
+
+.menu-backdrop-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-image:
+    linear-gradient(90deg, rgba(3, 8, 14, .24) 0%, rgba(3, 8, 14, .56) 26%, rgba(3, 8, 14, .66) 50%, rgba(3, 8, 14, .56) 74%, rgba(3, 8, 14, .24) 100%),
+    linear-gradient(180deg, rgba(3, 8, 14, .08) 0%, rgba(3, 8, 14, .24) 45%, rgba(3, 8, 14, .78) 100%),
+    var(--menu-backdrop-image);
+  background-position: center, center, center 22%;
+  background-size: cover;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 220ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.menu-backdrop-layer.is-visible {
+  opacity: 1;
+}
+
+.has-layered-backdrop::before {
+  z-index: 1;
+}
+
 .menu-frame {
   max-width: 1440px !important;
   padding: 20px !important;
@@ -2260,6 +2301,12 @@ textarea:focus-visible {
   background: linear-gradient(180deg, rgba(8, 19, 30, .8), rgba(5, 13, 21, .88)) !important;
   box-shadow: 0 30px 90px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(151, 194, 211, .23), inset 0 1px rgba(255, 255, 255, .07) !important;
   backdrop-filter: blur(4px);
+}
+
+.has-layered-backdrop .menu-frame {
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(8, 19, 30, .92), rgba(5, 13, 21, .95)) !important;
+  backdrop-filter: none;
 }
 
 .home-command-header {
@@ -2915,6 +2962,10 @@ textarea:focus-visible {
     padding: 13px !important;
     background: linear-gradient(180deg, rgba(8, 19, 30, .68), rgba(5, 13, 21, .8)) !important;
     backdrop-filter: blur(2px);
+  }
+  .has-layered-backdrop .menu-frame {
+    background: linear-gradient(180deg, rgba(8, 19, 30, .88), rgba(5, 13, 21, .93)) !important;
+    backdrop-filter: none;
   }
   .home-command-header { grid-template-columns: 1fr; gap: 12px; }
   .home-command-utilities { justify-items: start; }

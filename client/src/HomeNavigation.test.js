@@ -2,12 +2,13 @@ import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import HomeNavigation from "./HomeNavigation";
 
-function NavigationHarness({ onContinue, onSound = () => {} }) {
+function NavigationHarness({ onContinue, onSound = () => {}, onPreloadArea = () => {} }) {
   const [area, setArea] = useState("journey");
   return (
     <HomeNavigation
       activeArea={area}
       onSelectArea={setArea}
+      onPreloadArea={onPreloadArea}
       onSound={onSound}
       nextStep={{
         title: "Learn the core game",
@@ -48,4 +49,14 @@ test("routes restrained sounds for area changes and the featured commitment", ()
 
   fireEvent.click(screen.getByRole("button", { name: "Learn Gauntlet" }));
   expect(onSound).toHaveBeenLastCalledWith("commit");
+});
+
+test("preloads an area when its navigation target is approached", () => {
+  const onPreloadArea = jest.fn();
+  render(<NavigationHarness onContinue={() => {}} onPreloadArea={onPreloadArea} />);
+
+  const matchesButton = screen.getByRole("button", { name: /^Matches/ });
+  fireEvent.pointerEnter(matchesButton);
+  fireEvent.focus(matchesButton);
+  expect(onPreloadArea).toHaveBeenCalledWith("matches");
 });

@@ -94,6 +94,17 @@ test("enforces cue cooldown, two-voice polyphony, hierarchy gain, and music duck
   controller.destroy();
 });
 
+test("preloads and reuses retained cue voices without allocating during navigation", () => {
+  const controller = createMenuAudioController({ AudioCtor: FakeAudio, fadeMs: 0 });
+  controller.preload();
+  const preloadedCount = FakeAudio.instances.length;
+  controller.setSettings({ active: true, ambienceEnabled: false });
+
+  expect(controller.play("area")).toBe(true);
+  expect(FakeAudio.instances).toHaveLength(preloadedCount);
+  controller.destroy();
+});
+
 test("loops quiet ambience only while the outer menu is active", () => {
   const controller = createMenuAudioController({ AudioCtor: FakeAudio, fadeMs: 0 });
   controller.setSettings({
@@ -111,8 +122,13 @@ test("loops quiet ambience only while the outer menu is active", () => {
 
   controller.setSettings({ active: false });
   expect(ambience.pauseCount).toBe(1);
-  expect(ambience.src).toBe("");
+  expect(ambience.src).toContain(MENU_AMBIENCE_SOURCE);
   expect(controller.play("commit")).toBe(false);
+
+  controller.setSettings({ active: true });
+  expect(FakeAudio.instances[0]).toBe(ambience);
+  expect(ambience.playCount).toBe(2);
+  controller.destroy();
 });
 
 test("retries ambience after browser autoplay blocking when the player interacts", async () => {

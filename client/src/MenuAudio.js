@@ -83,6 +83,8 @@ export function createMenuAudioController({
   let destroyed = false;
   const lastPlayed = new Map();
   const activeEffects = [];
+  const effectPools = new Map();
+  const effectVoiceCount = 2;
 
   function makeAudio(source) {
     if (!AudioCtor) return null;
@@ -96,14 +98,33 @@ export function createMenuAudioController({
     if (index >= 0) activeEffects.splice(index, 1);
   }
 
+  function ensureEffectPool(cueId) {
+    if (effectPools.has(cueId)) return effectPools.get(cueId);
+    const cue = MENU_AUDIO_CUES[cueId];
+    if (!cue) return [];
+    const voices = Array.from({ length: effectVoiceCount }, () => {
+      const audio = makeAudio(cue.source);
+      audio?.addEventListener?.("ended", () => removeEffect(audio));
+      audio?.addEventListener?.("error", () => removeEffect(audio));
+      return audio;
+    }).filter(Boolean);
+    effectPools.set(cueId, voices);
+    return voices;
+  }
+
+  function ensureAmbience() {
+    if (ambience || destroyed) return ambience;
+    ambience = makeAudio(MENU_AMBIENCE_SOURCE);
+    if (ambience) ambience.loop = true;
+    return ambience;
+  }
+
   function stopAmbience() {
     const current = ambience;
-    ambience = null;
     if (!current) return;
     fadeAudio(current, 0, fadeMs, () => {
       current.pause?.();
-      current.removeAttribute?.("src");
-      current.load?.();
+      try { current.currentTime = 0; } catch (_error) {}
     });
   }
 
@@ -113,15 +134,14 @@ export function createMenuAudioController({
       stopAmbience();
       return;
     }
-    if (!ambience) {
-      ambience = makeAudio(MENU_AMBIENCE_SOURCE);
-      if (!ambience) return;
-      ambience.loop = true;
-      ambience.volume = 0;
-      const playResult = ambience.play?.();
+    const current = ensureAmbience();
+    if (!current) return;
+    if (current.paused) {
+      current.volume = 0;
+      const playResult = current.play?.();
       if (playResult?.catch) playResult.catch(() => {});
     }
-    fadeAudio(ambience, settings.ambienceVolume, fadeMs);
+    fadeAudio(current, settings.ambienceVolume, fadeMs);
   }
 
   function resumeAmbience() {
@@ -134,8 +154,10 @@ export function createMenuAudioController({
   return {
     preload() {
       if (!AudioCtor || destroyed) return;
-      Object.values(MENU_AUDIO_CUES).forEach((cue) => makeAudio(cue.source)?.load?.());
-      makeAudio(MENU_AMBIENCE_SOURCE)?.load?.();
+      Object.keys(MENU_AUDIO_CUES).forEach((cueId) => {
+        ensureEffectPool(cueId).forEach((audio) => audio.load?.());
+      });
+      ensureAmbience()?.load?.();
     },
     setSettings(nextSettings = {}) {
       settings = {
@@ -158,13 +180,16 @@ export function createMenuAudioController({
         const oldest = activeEffects.shift();
         clearFade(oldest);
         oldest.pause?.();
+        try { oldest.currentTime = 0; } catch (_error) {}
       }
-      const audio = makeAudio(cue.source);
+      const voices = ensureEffectPool(cueId);
+      const audio = voices.find((voice) => !activeEffects.includes(voice)) || voices[0];
       if (!audio) return false;
+      removeEffect(audio);
+      if (!audio.paused) audio.pause?.();
+      try { audio.currentTime = 0; } catch (_error) {}
       audio.volume = clamp(settings.effectsVolume * cue.gain);
       activeEffects.push(audio);
-      audio.addEventListener?.("ended", () => removeEffect(audio), { once: true });
-      audio.addEventListener?.("error", () => removeEffect(audio), { once: true });
       const playResult = audio.play?.();
       if (playResult?.catch) playResult.catch(() => removeEffect(audio));
       if (cue.duck) onDuck(...cue.duck);
@@ -173,11 +198,22 @@ export function createMenuAudioController({
     resume: resumeAmbience,
     destroy() {
       destroyed = true;
-      stopAmbience();
+      if (ambience) {
+        clearFade(ambience);
+        ambience.pause?.();
+        ambience.removeAttribute?.("src");
+        ambience.load?.();
+        ambience = null;
+      }
       activeEffects.splice(0).forEach((audio) => {
         clearFade(audio);
         audio.pause?.();
       });
+      effectPools.forEach((voices) => voices.forEach((audio) => {
+        audio.removeAttribute?.("src");
+        audio.load?.();
+      }));
+      effectPools.clear();
     }
   };
 }

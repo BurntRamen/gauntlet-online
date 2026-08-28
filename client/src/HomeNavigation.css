@@ -177,6 +177,40 @@
 
 .home-area-content {
   min-width: 0;
+  min-height: clamp(420px, calc(100dvh - 520px), 620px);
+  overflow-anchor: none;
+  view-transition-name: gauntlet-home-area;
+}
+
+.home-area-content-inner {
+  min-width: 0;
+  animation: home-area-enter 180ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes home-area-enter {
+  from { opacity: 0; transform: translate3d(0, 5px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+::view-transition-group(gauntlet-home-area) {
+  animation-duration: 190ms;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+::view-transition-old(gauntlet-home-area) {
+  animation: 130ms ease-out both fade-out;
+}
+
+::view-transition-new(gauntlet-home-area) {
+  animation: 190ms cubic-bezier(.2, .8, .2, 1) both fade-in;
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
 }
 
 .home-area-heading {
@@ -247,5 +281,14 @@
 
   .home-panel-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-area-content-inner,
+  ::view-transition-group(gauntlet-home-area),
+  ::view-transition-old(gauntlet-home-area),
+  ::view-transition-new(gauntlet-home-area) {
+    animation: none;
   }
 }

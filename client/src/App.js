@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
@@ -22,14 +23,93 @@ import {
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
 import { DEFAULT_MENU_AUDIO_SETTINGS, readMenuAudioSettings, useMenuAudio } from "./MenuAudio";
+import MenuBackdrop from "./MenuBackdrop";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
-const MatchesHub = lazy(() => import("./MatchesHub"));
-const Studio = lazy(() => import("./Studio"));
-const CompetitiveIdentityPanel = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.CompetitiveIdentityPanel })));
-const MatchRecordScreen = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.MatchRecordScreen })));
-const PublicProfileScreen = lazy(() => import("./CompetitiveIdentity").then((module) => ({ default: module.PublicProfileScreen })));
+let matchesHubModule;
+let matchesHubPromise;
+let studioModule;
+let studioPromise;
+let competitiveIdentityModule;
+let competitiveIdentityPromise;
+
+function loadMatchesHub() {
+  if (matchesHubModule) return Promise.resolve(matchesHubModule);
+  if (!matchesHubPromise) matchesHubPromise = import("./MatchesHub").then((module) => {
+    matchesHubModule = module;
+    return module;
+  });
+  return matchesHubPromise;
+}
+
+function loadStudio() {
+  if (studioModule) return Promise.resolve(studioModule);
+  if (!studioPromise) studioPromise = import("./Studio").then((module) => {
+    studioModule = module;
+    return module;
+  });
+  return studioPromise;
+}
+
+function loadCompetitiveIdentity() {
+  if (competitiveIdentityModule) return Promise.resolve(competitiveIdentityModule);
+  if (!competitiveIdentityPromise) competitiveIdentityPromise = import("./CompetitiveIdentity").then((module) => {
+    competitiveIdentityModule = module;
+    return module;
+  });
+  return competitiveIdentityPromise;
+}
+
+const LazyMatchesHub = lazy(loadMatchesHub);
+const LazyStudio = lazy(loadStudio);
+const LazyCompetitiveIdentityPanel = lazy(() => loadCompetitiveIdentity().then((module) => ({ default: module.CompetitiveIdentityPanel })));
+const LazyMatchRecordScreen = lazy(() => loadCompetitiveIdentity().then((module) => ({ default: module.MatchRecordScreen })));
+const LazyPublicProfileScreen = lazy(() => loadCompetitiveIdentity().then((module) => ({ default: module.PublicProfileScreen })));
+
+function MatchesHub(props) {
+  const Component = matchesHubModule?.default;
+  return Component ? <Component {...props} /> : <LazyMatchesHub {...props} />;
+}
+
+function Studio(props) {
+  const Component = studioModule?.default;
+  return Component ? <Component {...props} /> : <LazyStudio {...props} />;
+}
+
+function CompetitiveIdentityPanel(props) {
+  const Component = competitiveIdentityModule?.CompetitiveIdentityPanel;
+  return Component ? <Component {...props} /> : <LazyCompetitiveIdentityPanel {...props} />;
+}
+
+function MatchRecordScreen(props) {
+  const Component = competitiveIdentityModule?.MatchRecordScreen;
+  return Component ? <Component {...props} /> : <LazyMatchRecordScreen {...props} />;
+}
+
+function PublicProfileScreen(props) {
+  const Component = competitiveIdentityModule?.PublicProfileScreen;
+  return Component ? <Component {...props} /> : <LazyPublicProfileScreen {...props} />;
+}
+
+const HOME_AREA_PRELOADERS = {
+  matches: loadMatchesHub,
+  identity: loadCompetitiveIdentity,
+  studio: loadStudio
+};
+
+function preloadHomeArea(areaId) {
+  return HOME_AREA_PRELOADERS[areaId]?.().catch(() => {}) || Promise.resolve();
+}
+
+function retainEquivalentData(current, next) {
+  if (current === next) return current;
+  try {
+    return JSON.stringify(current) === JSON.stringify(next) ? current : next;
+  } catch (_error) {
+    return next;
+  }
+}
 
 function SurfaceLoading({ label }) {
   return <div className="loading" role="status">Loading {label}&hellip;</div>;
@@ -3850,6 +3930,7 @@ export default function App() {
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
+  const homeAreaNavigationRef = useRef(0);
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
   const babylonFallbackPromiseRef = useRef(null);
@@ -3881,6 +3962,32 @@ export default function App() {
   const updateMenuAudioSettings = useCallback((patch) => {
     setMenuAudioSettings((previous) => ({ ...previous, ...patch }));
   }, []);
+  const navigateHomeArea = useCallback((nextArea) => {
+    if (!nextArea) return;
+    if (nextArea === homeArea) {
+      homeAreaNavigationRef.current += 1;
+      return;
+    }
+    const requestId = ++homeAreaNavigationRef.current;
+    const commitNavigation = () => {
+      if (homeAreaNavigationRef.current !== requestId) return;
+      const prefersReducedMotion = typeof window !== "undefined"
+        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (typeof document !== "undefined" && document.startViewTransition && !prefersReducedMotion) {
+        const transition = document.startViewTransition(() => {
+          flushSync(() => setHomeArea(nextArea));
+        });
+        transition.finished?.catch?.(() => {});
+        return;
+      }
+      startTransition(() => setHomeArea(nextArea));
+    };
+    if (HOME_AREA_PRELOADERS[nextArea]) {
+      preloadHomeArea(nextArea).then(commitNavigation);
+      return;
+    }
+    commitNavigation();
+  }, [homeArea]);
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
     : playAsGuest && guestName.trim()
@@ -3915,6 +4022,20 @@ export default function App() {
     && !babylonRendererFailed
     && !hasBabylonSessionFailure(game.matchId)
   );
+
+  useEffect(() => {
+    if (!menuAudioActive) return undefined;
+    preloadHomeArea("matches");
+    preloadHomeArea("identity");
+    if (!ownerAuthorized) return undefined;
+    const idleId = window.requestIdleCallback
+      ? window.requestIdleCallback(() => preloadHomeArea("studio"), { timeout: 800 })
+      : window.setTimeout(() => preloadHomeArea("studio"), 180);
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
+  }, [menuAudioActive, ownerAuthorized]);
 
   useEffect(() => {
     liveMatchSessionRef.current.update({
@@ -4137,10 +4258,10 @@ export default function App() {
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load leaderboard.");
-        setLeaderboard(data.leaderboard || []);
-        setActiveSeason(data.season || null);
-        setPlayerSeasonStanding(data.playerStanding || null);
-        setLifetimeLeaderboard(data.lifetimeLeaderboard || []);
+        setLeaderboard((current) => retainEquivalentData(current, data.leaderboard || []));
+        setActiveSeason((current) => retainEquivalentData(current, data.season || null));
+        setPlayerSeasonStanding((current) => retainEquivalentData(current, data.playerStanding || null));
+        setLifetimeLeaderboard((current) => retainEquivalentData(current, data.lifetimeLeaderboard || []));
         setLeaderboardError("");
       })
       .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
@@ -4151,8 +4272,8 @@ export default function App() {
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load active seasonal matches.");
-        setActiveSeason((current) => data.season || current);
-        setActiveSeasonMatches(data.matches || []);
+        setActiveSeason((current) => retainEquivalentData(current, data.season || current));
+        setActiveSeasonMatches((current) => retainEquivalentData(current, data.matches || []));
         setActiveSeasonMatchesError("");
       })
       .catch((seasonError) => setActiveSeasonMatchesError(seasonError.message));
@@ -4160,14 +4281,25 @@ export default function App() {
 
   useEffect(() => {
     loadLeaderboard();
-    loadActiveSeasonMatches();
-    const intervalId = window.setInterval(loadLeaderboard, 10000);
-    const matchesIntervalId = window.setInterval(loadActiveSeasonMatches, 10000);
+  }, [loadLeaderboard]);
+
+  const seasonDataVisible = homeArea === "matches" || (homeArea === "play" && playView === "ranked");
+
+  useEffect(() => {
+    if (!seasonDataVisible) return undefined;
+    const refreshVisibleSeasonData = () => {
+      if (document.visibilityState === "hidden") return;
+      loadLeaderboard();
+      loadActiveSeasonMatches();
+    };
+    refreshVisibleSeasonData();
+    const intervalId = window.setInterval(refreshVisibleSeasonData, 10000);
+    document.addEventListener("visibilitychange", refreshVisibleSeasonData);
     return () => {
       window.clearInterval(intervalId);
-      window.clearInterval(matchesIntervalId);
+      document.removeEventListener("visibilitychange", refreshVisibleSeasonData);
     };
-  }, [loadActiveSeasonMatches, loadLeaderboard]);
+  }, [loadActiveSeasonMatches, loadLeaderboard, seasonDataVisible]);
 
   const loadCompetitiveProfile = useCallback(async () => {
     if (!account?.id) {
@@ -4190,8 +4322,8 @@ export default function App() {
   }, [account?.id]);
 
   useEffect(() => {
-    loadCompetitiveProfile();
-  }, [loadCompetitiveProfile]);
+    if (homeArea === "identity" && identityView === "record") loadCompetitiveProfile();
+  }, [homeArea, identityView, loadCompetitiveProfile]);
 
   useEffect(() => {
     const handlePopState = () => setPublicView(getPublicViewFromLocation());
@@ -4250,7 +4382,8 @@ export default function App() {
         setAccount(null);
       }
       if (!response.ok) throw new Error(data.error || "Could not load friends.");
-      setFriendsData({ friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] });
+      const nextFriendsData = { friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] };
+      setFriendsData((current) => retainEquivalentData(current, nextFriendsData));
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
@@ -4263,10 +4396,18 @@ export default function App() {
   }, [loadFriends]);
 
   useEffect(() => {
-    if (!authToken) return undefined;
-    const intervalId = window.setInterval(loadFriends, 5000);
-    return () => window.clearInterval(intervalId);
-  }, [authToken, loadFriends]);
+    if (!authToken || homeArea !== "identity" || identityView !== "community") return undefined;
+    const refreshVisibleFriends = () => {
+      if (document.visibilityState !== "hidden") loadFriends();
+    };
+    refreshVisibleFriends();
+    const intervalId = window.setInterval(refreshVisibleFriends, 10000);
+    document.addEventListener("visibilitychange", refreshVisibleFriends);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshVisibleFriends);
+    };
+  }, [authToken, homeArea, identityView, loadFriends]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
@@ -4755,7 +4896,7 @@ export default function App() {
     window.history.replaceState({}, "", url);
     setCollectorClaimToken("");
     if (openCollection) {
-      setHomeArea("build");
+      navigateHomeArea("build");
       setShowCollection(true);
     }
   }
@@ -4790,7 +4931,7 @@ export default function App() {
     url.searchParams.delete("replay");
     window.history.replaceState({}, "", url);
     setPublicView(null);
-    setHomeArea("matches");
+    navigateHomeArea("matches");
   }
 
   function createRoom() {
@@ -5179,12 +5320,12 @@ export default function App() {
 
   function returnToMatches() {
     returnToMainMenu();
-    setHomeArea("matches");
+    navigateHomeArea("matches");
   }
 
   function returnToJourney() {
     returnToMainMenu();
-    setHomeArea("journey");
+    navigateHomeArea("journey");
   }
 
   function togglePayment(i) {
@@ -5207,7 +5348,7 @@ export default function App() {
 
   hotkeyActionsRef.current = {};
 
-  const friendUnreadCounts = (friendsData.friends || []).reduce((counts, friend) => {
+  const friendUnreadCounts = useMemo(() => (friendsData.friends || []).reduce((counts, friend) => {
     const lastRead = Date.parse(friendReadAt?.[account?.id]?.[friend.id] || 0);
     counts[friend.id] = (friendsData.messages || []).filter((message) => (
       message.fromId === friend.id &&
@@ -5215,8 +5356,11 @@ export default function App() {
       Date.parse(message.createdAt || 0) > lastRead
     )).length;
     return counts;
-  }, {});
-  const friendUnreadTotal = Object.values(friendUnreadCounts).reduce((sum, count) => sum + count, 0);
+  }, {}), [account?.id, friendReadAt, friendsData.friends, friendsData.messages]);
+  const friendUnreadTotal = useMemo(
+    () => Object.values(friendUnreadCounts).reduce((sum, count) => sum + count, 0),
+    [friendUnreadCounts]
+  );
 
   function selectFriendWithReadReceipt(friendId) {
     setSelectedFriendId(friendId);
@@ -5275,7 +5419,7 @@ export default function App() {
       title: "Choose your player identity",
       description: "Sign in for progression or enter a named guest identity to begin.",
       actionLabel: "Open Identity",
-      onClick: () => setHomeArea("identity")
+      onClick: () => navigateHomeArea("identity")
     };
   } else if (!tutorialComplete) {
     journeyNextStep = {
@@ -5333,7 +5477,7 @@ export default function App() {
       title: "Take your deck to the table",
       description: "Create a room, invite another player, or enter matchmaking.",
       actionLabel: "Find a Game",
-      onClick: () => setHomeArea("play")
+      onClick: () => navigateHomeArea("play")
     };
   }
 
@@ -5494,7 +5638,8 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div className={`menu-page area-${homeArea}`} style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS[homeArea] || AREA_BACKGROUNDS.play)})` }}>
+      <div className={`menu-page area-${homeArea} has-layered-backdrop`} style={MENU_THEME.page}>
+        <MenuBackdrop activeArea={homeArea} backgrounds={AREA_BACKGROUNDS} />
         <div className="menu-frame" style={MENU_THEME.frame}>
         <div className="home-command-header">
           <div className="home-brand">
@@ -5552,7 +5697,7 @@ export default function App() {
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
-        <HomeNavigation activeArea={homeArea} onSelectArea={setHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
+        <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {homeArea === "play" && (
             <div className="play-hub">
               <div className="play-view-tabs" role="tablist" aria-label="Play formats">
@@ -5723,7 +5868,7 @@ export default function App() {
                 onOpenReplay={openReplay}
                 onOpenRanked={() => {
                   setPlayView("ranked");
-                  setHomeArea("play");
+                  navigateHomeArea("play");
                 }}
               />
             </Suspense>
@@ -5767,8 +5912,8 @@ export default function App() {
                           playMenuCue("panelOpen");
                           setShowCollection(true);
                         } else {
+                          navigateHomeArea("journey");
                           playMenuCue("area");
-                          setHomeArea("journey");
                         }
                       }}
                       disabled={!account}
@@ -5783,7 +5928,7 @@ export default function App() {
                     <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
                     <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
                   </div>
-                  <MenuButton variant="secondary" onClick={() => { playMenuCue("area"); setHomeArea("play"); }}>Open Draft Modes</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
                 </section>
               </div>
             </div>

@@ -9,7 +9,7 @@ const AREAS = [
   { id: "identity", label: "Identity", detail: "Profile and community", sigil: "◉" }
 ];
 
-export default function HomeNavigation({ activeArea, onSelectArea, nextStep, showStudio = false, onSound = () => {}, children }) {
+export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea = () => {}, nextStep, showStudio = false, onSound = () => {}, children }) {
   const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations", sigil: "◆" }] : AREAS;
   const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
@@ -38,10 +38,15 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
             data-area={area.id}
             className={activeArea === area.id ? "active" : ""}
             aria-current={activeArea === area.id ? "page" : undefined}
+            onPointerEnter={() => onPreloadArea(area.id)}
+            onFocus={() => onPreloadArea(area.id)}
             onClick={() => {
-              if (area.id === activeArea) return;
-              onSound("area");
+              if (area.id === activeArea) {
+                onSelectArea(area.id);
+                return;
+              }
               onSelectArea(area.id);
+              onSound("area");
             }}
           >
             <span className="home-area-sigil" aria-hidden="true">{area.sigil}</span>
@@ -55,7 +60,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, nextStep, sho
           <span>Command Area</span>
           <h2 id="home-area-title">{activeLabel}</h2>
         </div>
-        {children}
+        <div className="home-area-content-inner" key={activeArea}>{children}</div>
       </section>
     </>
   );
