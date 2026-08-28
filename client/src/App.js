@@ -18,6 +18,7 @@ import {
   createCompletionAccountRefreshCoordinator,
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
+import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -229,12 +230,12 @@ const AREA_BACKGROUNDS = {
 };
 
 const HOME_AREA_CONTEXT = {
-  play: "Battle tables",
-  journey: "Commander archives",
-  matches: "Battle records",
-  build: "Card vault",
-  identity: "Player dossier",
-  studio: "Owner operations"
+  play: { label: "Battle tables", code: "PLAY / 01" },
+  journey: { label: "Commander archives", code: "JOURNEY / 02" },
+  matches: { label: "Battle records", code: "MATCHES / 03" },
+  build: { label: "Card vault", code: "BUILD / 04" },
+  identity: { label: "Player dossier", code: "IDENTITY / 05" },
+  studio: { label: "Owner operations", code: "STUDIO / 06" }
 };
 
 const BOARD_BACKGROUNDS = {
@@ -1181,7 +1182,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
   );
 }
 
-function IdentityDossierHero({ account, featuredDecks }) {
+function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onAccountUpdated }) {
   const progression = account?.progression || {};
   const cosmetics = progression.cosmetics || {};
   const definitions = progression.definitions || {};
@@ -1194,10 +1195,20 @@ function IdentityDossierHero({ account, featuredDecks }) {
   return (
     <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
       <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />
+      <div className="identity-dossier-portrait">
+        <span className="identity-dossier-portrait-label">Registered likeness</span>
+        <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="hero" />
+        {account ? (
+          <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
+        ) : <small>Sign in to register a portrait.</small>}
+      </div>
       <div className="identity-dossier-copy">
-        <span>{title}</span>
+        <span>{title} · Active dossier</span>
         <h3>{account?.name || "Guest Identity"}</h3>
         <p>{account ? "Your Gauntlet honors, chosen insignia, and represented decks." : "Choose a guest name or sign in to establish a persistent Gauntlet dossier."}</p>
+        <div className="identity-dossier-tags" aria-label="Dossier capabilities">
+          <span>Match identity</span><span>Public record</span><span>Community portrait</span>
+        </div>
       </div>
       <div className="identity-dossier-stats" aria-label="Identity summary">
         <span><strong>{achievements}</strong><small>Honors</small></span>
@@ -2483,7 +2494,7 @@ function FriendsPanel({
                   aria-current={selected ? "true" : undefined}
                   onClick={() => onSelectFriend(friend.id)}
                 >
-                  <span className="friend-avatar" aria-hidden="true">{friend.name.slice(0, 1).toUpperCase()}</span>
+                  <PlayerAvatar subject={friend} name={friend.name} serverUrl={SOCKET_URL} size="small" decorative className="friend-avatar" />
                   <span className="friend-contact-copy"><strong>{friend.name}</strong><small>{selected ? "Conversation open" : "View conversation"}</small></span>
                   {unreadCount > 0 && <span className="friend-unread-count">{unreadCount}</span>}
                 </button>
@@ -3143,6 +3154,7 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
         color: TABLETOP_THEME.text
       }}
     >
+      <PlayerAvatar subject={infoPlayer} name={getGamePlayerName(game, playerNum)} serverUrl={SOCKET_URL} size="small" decorative />
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
           <strong style={{ color: "#f7d99e", fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getGamePlayerName(game, playerNum)}</strong>
@@ -5047,6 +5059,7 @@ export default function App() {
     journeyNextStep = {
       eyebrow: "Vault Reward",
       factionId: buildDeckFactionId,
+      image: "/assets/gauntlet/ui/vault-pack-credits-v1.webp",
       progress: `${packCredits} credit${packCredits === 1 ? "" : "s"} ready to claim`,
       title: `Open ${packCredits} earned pack${packCredits === 1 ? "" : "s"}`,
       description: "Claim faction cards earned from campaign victories.",
@@ -5145,6 +5158,7 @@ export default function App() {
           profile={publicViewData}
           loading={publicViewLoading}
           error={publicViewError}
+          serverUrl={SOCKET_URL}
           onBack={closePublicView}
           onOpenMatch={(matchId) => openPublicView("match", matchId)}
           onOpenReplay={(matchId) => openReplay(matchId)}
@@ -5268,9 +5282,13 @@ export default function App() {
             </div>
           </div>
           <div className="home-current-context">
-            <span>{account?.name || (playAsGuest ? guestName || "Guest" : "No player selected")}</span>
-            <strong>{HOME_AREA_CONTEXT[homeArea] || "Command area"}</strong>
-            <small>Current destination</small>
+            <span className="home-context-notch" aria-hidden="true" />
+            <span className="home-context-player">
+              <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />
+              {account?.name || (playAsGuest ? guestName || "Guest" : "No player selected")}
+            </span>
+            <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
+            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
           </div>
           <div className="home-command-utilities">
             <span className="home-utility-label">Utilities</span>
@@ -5532,7 +5550,13 @@ export default function App() {
                 ))}
               </div>
               {identityView === "profile" && <>
-              <IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} />
+              <IdentityDossierHero
+                account={account}
+                featuredDecks={enrichedFeaturedDecks}
+                authToken={authToken}
+                serverUrl={SOCKET_URL}
+                onAccountUpdated={setAccount}
+              />
               <div className="identity-profile-layout">
                 <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
                 <aside className="identity-admin-rail" aria-label="Identity administration">
@@ -5789,6 +5813,7 @@ export default function App() {
             onOpenMatches={returnToMatches}
             options={{
               audioEnabled: !accountSoundMuted,
+              serverUrl: SOCKET_URL,
               onAudioEnabledChange: (enabled) => {
                 if (account?.id) setSignedInSoundMuted(!enabled);
                 else setAccountSoundMuted(!enabled);
@@ -7838,10 +7863,13 @@ export default function App() {
           border-radius: 6px;
           padding: 9px 10px;
           display: grid;
-          grid-template-columns: minmax(0, 1fr);
+          grid-template-columns: 32px minmax(0, 1fr);
           align-items: start;
           gap: 6px;
           box-shadow: ${TABLETOP_THEME.shadow};
+        }
+        .player-frame > .player-avatar {
+          grid-row: 1 / span 2;
         }
         .player-frame-top {
           border-bottom-width: 3px;
@@ -7850,6 +7878,7 @@ export default function App() {
           border-top-width: 3px;
         }
         .player-frame-stats {
+          grid-column: 2;
           display: flex;
           gap: 6px 10px;
           align-items: center;

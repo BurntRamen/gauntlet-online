@@ -1,5 +1,6 @@
 import "./CompetitiveIdentity.css";
 import { DeckVisual } from "./GauntletVisuals";
+import { PlayerAvatar } from "./ProfileAvatar";
 
 function factionArt(factionId) {
   return factionId ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${factionId}-card.webp` : "";
@@ -57,7 +58,7 @@ function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
   );
 }
 
-function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
+function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
   const ranked = profile.competitiveRecord?.ranked || {};
   const all = profile.competitiveRecord?.all || {};
   const activeSeason = profile.competitiveRecord?.activeSeason || null;
@@ -66,6 +67,7 @@ function ProfileBody({ profile, onOpenMatch, onOpenReplay }) {
   return (
     <>
       <div className="competitive-profile-header" style={identityFactionId ? { backgroundImage: `linear-gradient(90deg, rgba(5,11,18,0.98), rgba(5,11,18,0.72), rgba(5,11,18,0.18)), url(${factionArt(identityFactionId)})` } : undefined}>
+        <PlayerAvatar subject={profile} name={profile.displayName} serverUrl={serverUrl} size="large" />
         <div>
           <span className="competitive-kicker">{profile.identity?.selectedTitle || "Recruit"}</span>
           <h1>{profile.displayName}</h1>
@@ -160,14 +162,14 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
   );
 }
 
-export function PublicProfileScreen({ profile, loading, error, onBack, onOpenMatch, onOpenReplay }) {
+export function PublicProfileScreen({ profile, loading, error, serverUrl, onBack, onOpenMatch, onOpenReplay }) {
   return (
     <main className="competitive-page">
       <div className="competitive-page-inner">
         <button type="button" className="competitive-back" onClick={onBack}>Back</button>
         {loading && <p className="competitive-empty">Loading player profile...</p>}
         {error && <p className="competitive-error">{error}</p>}
-        {profile && <ProfileBody profile={profile} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />}
+        {profile && <ProfileBody profile={profile} serverUrl={serverUrl} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />}
       </div>
     </main>
   );

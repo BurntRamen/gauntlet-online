@@ -15,6 +15,9 @@ const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirn
 const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
 const MATCH_ARCHIVE_DATA_DIR = process.env.MATCH_ARCHIVE_DATA_DIR || `${MATCH_DATA_FILE}.archive`;
 const MATCH_ARCHIVE_BUCKET = process.env.MATCH_ARCHIVE_BUCKET || "gauntlet-match-archives";
+const ACCOUNT_AVATAR_DATA_DIR = process.env.ACCOUNT_AVATAR_DATA_DIR || `${ACCOUNT_DATA_FILE}.avatars`;
+const ACCOUNT_AVATAR_BUCKET = process.env.ACCOUNT_AVATAR_BUCKET || "gauntlet-profile-images";
+const ACCOUNT_AVATAR_MAX_BYTES = 1024 * 1024;
 const ROOM_STATE_DATA_FILE = process.env.ROOM_STATE_DATA_FILE || `${__dirname}/rooms.json`;
 const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
 const DEVELOPMENT_AUTH_SECRETS = new Set([
@@ -175,7 +178,7 @@ const corsOptions = {
   origin(origin, callback) {
     callback(isAllowedOrigin(origin) ? null : new Error("Not allowed by CORS"), isAllowedOrigin(origin));
   },
-  methods: ["GET", "POST", "DELETE", "PATCH"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 };
 
@@ -185,13 +188,14 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
   }
 });
 
 app.use(cors(corsOptions));
 app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
+app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
 app.use(express.json({ limit: "20kb" }));
 
 function getRequestAddress(req) {
@@ -1413,6 +1417,23 @@ function progressionSummary(stats = {}) {
   };
 }
 
+function normalizeAccountAvatar(stats = {}, accountId = "") {
+  const avatar = stats?.profile?.avatar;
+  const revision = String(avatar?.revision || "");
+  const mimeType = String(avatar?.mimeType || "");
+  if (!accountId || !/^[a-f0-9]{20}$/i.test(revision) || !["image/webp", "image/jpeg", "image/png"].includes(mimeType)) return null;
+  return {
+    revision,
+    mimeType,
+    updatedAt: avatar.updatedAt || null,
+    path: `/api/profiles/${encodeURIComponent(accountId)}/avatar?v=${encodeURIComponent(revision)}`
+  };
+}
+
+function publicAccountProfile(account) {
+  return { avatar: normalizeAccountAvatar(account?.stats || {}, account?.id) };
+}
+
 function publicAccount(account) {
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
@@ -1421,6 +1442,7 @@ function publicAccount(account) {
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
+    profile: publicAccountProfile(account),
     stats,
     progression: progressionSummary(stats),
     collection: collectionSummary(stats)
@@ -1431,7 +1453,8 @@ function publicFriend(account) {
   return {
     id: account.id,
     name: account.name,
-    lastSeenAt: account.lastSeenAt || null
+    lastSeenAt: account.lastSeenAt || null,
+    profile: publicAccountProfile(account)
   };
 }
 
@@ -1518,6 +1541,91 @@ async function supabaseStorageRequest(pathname, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+let accountAvatarBucketReady = false;
+
+function detectAccountAvatarMimeType(bytes) {
+  if (!Buffer.isBuffer(bytes) || bytes.length < 12) return "";
+  if (bytes.subarray(0, 4).toString("ascii") === "RIFF" && bytes.subarray(8, 12).toString("ascii") === "WEBP") return "image/webp";
+  if (bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+  return "";
+}
+
+function accountAvatarExtension(mimeType) {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/jpeg") return "jpg";
+  return "webp";
+}
+
+function accountAvatarObjectKey(accountId, avatar) {
+  return `${accountId}/${avatar.revision}.${accountAvatarExtension(avatar.mimeType)}`;
+}
+
+function encodedStorageObjectPath(bucket, objectKey, authenticated = false) {
+  const prefix = authenticated ? "object/authenticated" : "object";
+  return `${prefix}/${encodeURIComponent(bucket)}/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+async function ensureAccountAvatarBucket() {
+  if (accountAvatarBucketReady || !useSupabaseStore()) return;
+  const existing = await supabaseStorageRequest(`bucket/${encodeURIComponent(ACCOUNT_AVATAR_BUCKET)}`, { notFound: true });
+  if (!existing) {
+    try {
+      await supabaseStorageRequest("bucket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: ACCOUNT_AVATAR_BUCKET,
+          name: ACCOUNT_AVATAR_BUCKET,
+          public: false,
+          file_size_limit: ACCOUNT_AVATAR_MAX_BYTES,
+          allowed_mime_types: ["image/webp", "image/jpeg", "image/png"]
+        })
+      });
+    } catch (error) {
+      if (![400, 409].includes(Number(error.status))) throw error;
+      const concurrent = await supabaseStorageRequest(`bucket/${encodeURIComponent(ACCOUNT_AVATAR_BUCKET)}`, { notFound: true });
+      if (!concurrent) throw error;
+    }
+  } else if (existing.public !== false) {
+    throw new Error(`Profile image bucket ${ACCOUNT_AVATAR_BUCKET} must be private.`);
+  }
+  accountAvatarBucketReady = true;
+}
+
+async function writeAccountAvatar(accountId, avatar, bytes) {
+  const objectKey = accountAvatarObjectKey(accountId, avatar);
+  if (useSupabaseStore()) {
+    await ensureAccountAvatarBucket();
+    try {
+      await supabaseStorageRequest(encodedStorageObjectPath(ACCOUNT_AVATAR_BUCKET, objectKey), {
+        method: "POST",
+        headers: { "Content-Type": avatar.mimeType, "Cache-Control": "public, max-age=31536000, immutable", "x-upsert": "false" },
+        body: bytes,
+        raw: true
+      });
+    } catch (error) {
+      if (![400, 409].includes(Number(error.status))) throw error;
+      const existing = await supabaseStorageRequest(encodedStorageObjectPath(ACCOUNT_AVATAR_BUCKET, objectKey, true), { raw: true, notFound: true });
+      if (!existing || !existing.equals(bytes)) throw error;
+    }
+    return;
+  }
+  const target = path.join(ACCOUNT_AVATAR_DATA_DIR, ...objectKey.split("/"));
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, bytes);
+}
+
+async function readAccountAvatar(accountId, avatar) {
+  const objectKey = accountAvatarObjectKey(accountId, avatar);
+  if (useSupabaseStore()) {
+    await ensureAccountAvatarBucket();
+    return supabaseStorageRequest(encodedStorageObjectPath(ACCOUNT_AVATAR_BUCKET, objectKey, true), { raw: true, notFound: true });
+  }
+  const target = path.join(ACCOUNT_AVATAR_DATA_DIR, ...objectKey.split("/"));
+  return fs.existsSync(target) ? fs.readFileSync(target) : null;
+}
+
 function getPublicDeckFeaturedArt(deck, limit = 3) {
   const versions = Array.isArray(deck?.versions) ? deck.versions : [];
   const version = versions.find((entry) => entry.id === deck.currentVersionId) || versions[versions.length - 1] || deck || {};
@@ -1581,6 +1689,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
     displayName: account.name,
     memberSince: account.createdAt,
     lastSeenAt: account.lastSeenAt || null,
+    avatar: publicAccountProfile(account).avatar,
     identity: {
       selectedTitle: cosmetics.selectedTitle || "recruit",
       selectedFactionBadge: cosmetics.selectedFactionBadge || "none",
@@ -2186,6 +2295,7 @@ function publicAccountProjection(account) {
   return {
     id: account.id,
     name: account.name,
+    profile: publicAccountProfile(account),
     stats: account.stats || {},
     progression: progressionSummary(account.stats || {}),
     collection: collectionSummary(account.stats || {})
@@ -2925,6 +3035,37 @@ app.get("/api/profiles/:accountId", async (req, res) => {
   }
 });
 
+app.get("/api/profiles/:accountId/avatar", async (req, res) => {
+  const accountId = String(req.params.accountId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(accountId)) {
+    res.status(400).json({ error: "Invalid profile ID." });
+    return;
+  }
+  try {
+    const account = useSupabaseStore()
+      ? await findSupabaseAccountById(accountId)
+      : loadAccountStore().accounts.find((entry) => entry.id === accountId);
+    const avatar = normalizeAccountAvatar(account?.stats || {}, accountId);
+    if (!account || !avatar || (req.query.v && String(req.query.v) !== avatar.revision)) {
+      res.status(404).json({ error: "Profile portrait not found." });
+      return;
+    }
+    const bytes = await readAccountAvatar(accountId, avatar);
+    if (!bytes) {
+      res.status(404).json({ error: "Profile portrait not found." });
+      return;
+    }
+    res.set("Content-Type", avatar.mimeType);
+    res.set("Content-Length", String(bytes.length));
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.set("ETag", `\"avatar-${avatar.revision}\"`);
+    res.send(bytes);
+  } catch (error) {
+    console.error("[Profiles] Failed to load profile portrait", { accountId, message: error.message });
+    res.status(503).json({ error: "Profile portrait is temporarily unavailable." });
+  }
+});
+
 app.post("/api/auth/register", registerRateLimit, async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
@@ -3042,6 +3183,51 @@ app.get("/api/auth/me", async (req, res) => {
     return;
   }
   res.json({ account });
+});
+
+app.put("/api/account/avatar", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const bytes = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+  const declaredMimeType = String(req.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  const detectedMimeType = detectAccountAvatarMimeType(bytes);
+  if (!detectedMimeType || detectedMimeType !== declaredMimeType) {
+    res.status(415).json({ error: "Upload a valid PNG, JPG, or WEBP portrait." });
+    return;
+  }
+  if (bytes.length < 128 || bytes.length > ACCOUNT_AVATAR_MAX_BYTES) {
+    res.status(413).json({ error: "The prepared portrait must be smaller than 1 MB." });
+    return;
+  }
+
+  try {
+    const updatedAt = new Date().toISOString();
+    const avatar = {
+      revision: crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 20),
+      mimeType: detectedMimeType,
+      byteSize: bytes.length,
+      updatedAt
+    };
+    const current = normalizeAccountAvatar(context.account.stats || {}, context.account.id);
+    if (current?.revision !== avatar.revision) await writeAccountAvatar(context.account.id, avatar, bytes);
+    const stats = context.account.stats || {};
+    stats.profile = { ...(stats.profile || {}), avatar };
+
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: updatedAt });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated) });
+      return;
+    }
+
+    context.account.stats = stats;
+    context.account.lastSeenAt = updatedAt;
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account) });
+  } catch (error) {
+    console.error("[Profiles] Failed to save profile portrait", { accountId: context.account.id, message: error.message });
+    res.status(503).json({ error: "The profile portrait could not be saved." });
+  }
 });
 
 app.patch("/api/account/progression", async (req, res) => {
@@ -4390,6 +4576,7 @@ function createMatchedRoom(entryA, entryB) {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = assignment.entry.accountId;
     lobbyPlayer.accountName = assignment.entry.accountName;
+    lobbyPlayer.profile = clonePlain(assignment.entry.profile || null);
     lobbyPlayer.isGuest = false;
   }
 
@@ -4442,6 +4629,7 @@ function createDraftLeagueRoom(entryA, entryB) {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = assignment.entry.accountId;
     lobbyPlayer.accountName = assignment.entry.accountName;
+    lobbyPlayer.profile = clonePlain(assignment.entry.profile || null);
     lobbyPlayer.isGuest = false;
     lobbyPlayer.factionId = assignment.entry.savedDraftDeck.factionId;
     lobbyPlayer.savedDraftDeck = assignment.entry.savedDraftDeck;
@@ -4628,6 +4816,7 @@ function sanitizeLobbyPlayer(player) {
     connected: player.connected,
     factionId: player.factionId,
     accountName: player.accountName || null,
+    profile: clonePlain(player.profile || null),
     isGuest: !!player.isGuest,
     readyToStart: !!player.readyToStart,
     isAI: !!player.isAI
@@ -5057,12 +5246,12 @@ async function requirePlayerIdentity(socket, authToken, guestName) {
   if (account) {
     socket.data.authToken = authToken || socket.data.authToken;
     socket.data.account = account;
-    return { type: "account", id: account.id, name: account.name };
+    return { type: "account", id: account.id, name: account.name, profile: clonePlain(account.profile || null) };
   }
 
   const normalizedGuestName = normalizeGuestName(guestName);
   if (isValidGuestName(normalizedGuestName)) {
-    return { type: "guest", id: null, name: normalizedGuestName };
+    return { type: "guest", id: null, name: normalizedGuestName, profile: null };
   }
 
   socket.emit("errorMessage", "Sign in, create an account, or enter a 2-24 character guest name.");
@@ -7046,7 +7235,9 @@ function createGameFromLobby(roomState, options = {}) {
     players: {
       1: {
         id: 1,
+        accountId: roomState.lobby.players[1].accountId || null,
         accountName: roomState.lobby.players[1].accountName || null,
+        profile: clonePlain(roomState.lobby.players[1].profile || null),
         faction: faction1,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -7059,7 +7250,9 @@ function createGameFromLobby(roomState, options = {}) {
       },
       2: {
         id: 2,
+        accountId: roomState.lobby.players[2].accountId || null,
         accountName: roomState.lobby.players[2].accountName || null,
+        profile: clonePlain(roomState.lobby.players[2].profile || null),
         faction: faction2,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -7175,7 +7368,9 @@ function createFreeForAllGameFromLobby(roomState) {
     const faction = getFactionById(roomState.lobby.players[playerNum].factionId);
     const addedCards = roomState.lobby.players[playerNum].savedConstructedDeck?.cards || [];
     players[playerNum] = {
+      accountId: roomState.lobby.players[playerNum].accountId || null,
       accountName: roomState.lobby.players[playerNum].accountName || null,
+      profile: clonePlain(roomState.lobby.players[playerNum].profile || null),
       faction,
       life: 42,
       hand: [],
@@ -7286,6 +7481,7 @@ io.on("connection", (socket) => {
       socketId: socket.id,
       accountId: account.id,
       accountName: account.name,
+      profile: publicAccountProfile(account),
       bestOf: requestedBestOf,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
@@ -7349,6 +7545,7 @@ io.on("connection", (socket) => {
       socketId: socket.id,
       accountId: account.id,
       accountName: account.name,
+      profile: publicAccountProfile(account),
       savedDraftDeck,
       draftType: requestedDraftType,
       bestOf: requestedBestOf,
@@ -7393,6 +7590,7 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
     roomState.lobby.players[1].accountId = identity.id;
     roomState.lobby.players[1].accountName = identity.name;
+    roomState.lobby.players[1].profile = clonePlain(identity.profile || null);
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
@@ -7425,6 +7623,7 @@ io.on("connection", (socket) => {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = identity.id;
     lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.profile = clonePlain(identity.profile || null);
     lobbyPlayer.isGuest = false;
     const createdAt = new Date();
     const challenge = {
@@ -7472,6 +7671,7 @@ io.on("connection", (socket) => {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = identity.id;
     lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.profile = clonePlain(identity.profile || null);
     lobbyPlayer.isGuest = identity.type === "guest";
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
@@ -7495,6 +7695,7 @@ io.on("connection", (socket) => {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = identity.id;
     lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.profile = clonePlain(identity.profile || null);
     lobbyPlayer.isGuest = identity.type === "guest";
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
@@ -7519,6 +7720,7 @@ io.on("connection", (socket) => {
     lobbyPlayer.reconnectToken = makeReconnectToken();
     lobbyPlayer.accountId = identity.id;
     lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.profile = clonePlain(identity.profile || null);
     lobbyPlayer.isGuest = identity.type === "guest";
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
@@ -7545,6 +7747,7 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
     roomState.lobby.players[1].accountId = identity.id;
     roomState.lobby.players[1].accountName = identity.name;
+    roomState.lobby.players[1].profile = clonePlain(identity.profile || null);
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
@@ -7627,6 +7830,7 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
     roomState.lobby.players[1].accountId = identity.id;
     roomState.lobby.players[1].accountName = identity.name;
+    roomState.lobby.players[1].profile = clonePlain(identity.profile || null);
     roomState.lobby.players[1].factionId = factionId;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
@@ -7725,6 +7929,7 @@ io.on("connection", (socket) => {
       roomState.lobby.players[openSeat].reconnectToken = makeReconnectToken();
       roomState.lobby.players[openSeat].accountId = identity.id;
       roomState.lobby.players[openSeat].accountName = identity.name;
+      roomState.lobby.players[openSeat].profile = clonePlain(identity.profile || null);
       roomState.lobby.players[openSeat].isGuest = identity.type === "guest";
       await touchAccountStats(identity.id, "gamesJoined");
       attachPlayerSocket(roomState, socket, openSeat);

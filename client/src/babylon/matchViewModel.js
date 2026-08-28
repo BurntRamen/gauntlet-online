@@ -137,6 +137,7 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
     deckCount: Number(source.deckCount ?? 0),
     discardCount: Number(source.discardCount ?? source.discard?.length ?? 0),
     connected: source.connected !== false,
+    profile: source.profile || null,
     isLocal,
     factionId: faction.id || "basic",
     factionName: faction.name || "Basic Gauntlet"
