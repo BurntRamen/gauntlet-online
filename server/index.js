@@ -1530,7 +1530,7 @@ async function supabaseStorageRequest(pathname, options = {}) {
   const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/storage/v1/${pathname}`, {
     method: options.method || "GET",
     headers: {
-      ...supabaseAdminAuthHeaders(),
+      ...supabaseStorageAuthHeaders(),
       ...(options.headers || {})
     },
     body: options.body
@@ -1551,6 +1551,18 @@ async function supabaseStorageRequest(pathname, options = {}) {
   if (response.status === 204) return null;
   const text = await response.text();
   return text ? JSON.parse(text) : null;
+}
+
+function supabaseStorageAuthHeaders(apiKey = SUPABASE_SERVICE_ROLE_KEY) {
+  const normalized = String(apiKey || "").trim();
+  if (!normalized) return {};
+  // Supabase's Storage client uses the backend key as both the project API key
+  // and the bearer token. This differs from Edge Functions, where opaque
+  // sb_secret_* keys must not be sent as bearer tokens.
+  return {
+    apikey: normalized,
+    Authorization: `Bearer ${normalized}`
+  };
 }
 
 let accountAvatarBucketReady = false;
@@ -1576,9 +1588,8 @@ function accountAvatarObjectKey(accountId, avatar) {
 function accountAvatarUploadHeaders(mimeType) {
   return {
     "Content-Type": mimeType,
-    // Supabase Storage expects cacheControl as a duration in seconds. A browser
-    // response directive such as "public, max-age=..." is rejected on upload.
-    "Cache-Control": "31536000",
+    // Match @supabase/storage-js: raw uploads use a single max-age directive.
+    "Cache-Control": "max-age=31536000",
     "x-upsert": "false"
   };
 }
@@ -9645,6 +9656,7 @@ module.exports = {
     validateAuthConfiguration,
     accountAvatarUploadHeaders,
     supabaseAdminAuthHeaders,
+    supabaseStorageAuthHeaders,
     validateConstructedDeckPayload,
     grantPurchasedCollectorPack,
     normalizeCollectorRedemptionReceipts,

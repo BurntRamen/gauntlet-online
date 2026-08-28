@@ -83,10 +83,21 @@ test("uses the correct Supabase admin headers for legacy and current secret keys
   });
 });
 
-test("uses Supabase Storage's numeric cache duration for portrait uploads", () => {
+test("uses Supabase Storage's service-key header contract", () => {
+  assert.deepEqual(__test.supabaseStorageAuthHeaders("sb_secret_current"), {
+    apikey: "sb_secret_current",
+    Authorization: "Bearer sb_secret_current"
+  });
+  assert.deepEqual(__test.supabaseStorageAuthHeaders("legacy-service-role-jwt"), {
+    apikey: "legacy-service-role-jwt",
+    Authorization: "Bearer legacy-service-role-jwt"
+  });
+});
+
+test("uses Supabase Storage's raw-upload cache directive for portraits", () => {
   assert.deepEqual(__test.accountAvatarUploadHeaders("image/webp"), {
     "Content-Type": "image/webp",
-    "Cache-Control": "31536000",
+    "Cache-Control": "max-age=31536000",
     "x-upsert": "false"
   });
 });
