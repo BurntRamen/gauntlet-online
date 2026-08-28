@@ -72,3 +72,13 @@ test("carries safe portrait metadata from the lobby into the match snapshot", ()
   assert.deepEqual(room.game.players[1].profile, room.lobby.players[1].profile);
   assert.deepEqual(room.game.players[2].profile, room.lobby.players[2].profile);
 });
+
+test("uses the correct Supabase admin headers for legacy and current secret keys", () => {
+  assert.deepEqual(__test.supabaseAdminAuthHeaders("sb_secret_current"), {
+    apikey: "sb_secret_current"
+  });
+  assert.deepEqual(__test.supabaseAdminAuthHeaders("legacy-service-role-jwt"), {
+    apikey: "legacy-service-role-jwt",
+    Authorization: "Bearer legacy-service-role-jwt"
+  });
+});

@@ -7,6 +7,7 @@ import DeckLibraryPanel from "./DeckLibraryPanel";
 import ConstructedCardTile from "./ConstructedCardTile";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
@@ -1152,11 +1153,13 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           ) : (
             <div className="achievement-grid">
               {achievements.slice(0, 8).map((achievement) => (
-                <article className="achievement-tile is-earned" key={achievement.id}>
-                  <span className="achievement-emblem" aria-hidden="true">✦</span>
-                  <div><strong>{achievement.name}</strong><p>{achievement.description}</p></div>
-                  <span className="achievement-state">Earned</span>
-                </article>
+                <AchievementHonorCard
+                  key={achievement.id}
+                  achievement={achievement}
+                  campaign={campaign}
+                  selectedFactionBadge={cosmetics.selectedFactionBadge}
+                  campaigns={campaigns}
+                />
               ))}
             </div>
           )}
@@ -1167,13 +1170,8 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           <div className="identity-campaign-grid">
             {Object.entries(campaigns).map(([factionId, entry]) => {
               const completed = campaign[factionId]?.length || 0;
-              const total = entry.chapters.length;
-              const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
               return (
-                <article className={`identity-campaign-progress ${completed === total && total > 0 ? "is-complete" : ""}`} key={factionId} style={{ "--faction-accent": FACTION_VISUALS[factionId]?.accent }}>
-                  <FactionArtwork factionId={factionId} art={entry.coverImage} decorative />
-                  <div><strong>{entry.factionName}</strong><span>{completed}/{total} chapters</span><span className="identity-progress-track"><i style={{ width: `${percent}%` }} /></span></div>
-                </article>
+                <CampaignArchiveCard key={factionId} factionId={factionId} entry={entry} completed={completed} />
               );
             })}
           </div>

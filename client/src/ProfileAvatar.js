@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./ProfileAvatar.css";
 
 const ACCEPTED_PROFILE_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
+const MAX_PREPARED_BYTES = 900 * 1024;
 const PORTRAIT_SIZE = 512;
 
 function avatarRecord(subject) {
@@ -80,9 +81,16 @@ export async function prepareProfilePortrait(file) {
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(loaded.image, sourceX, sourceY, side, side, 0, 0, PORTRAIT_SIZE, PORTRAIT_SIZE);
-    const webp = await canvasBlob(canvas, "image/webp", 0.86);
-    const portrait = webp || await canvasBlob(canvas, "image/jpeg", 0.88);
+    const webp = await canvasBlob(canvas, "image/webp", 0.84);
+    const jpeg = !webp || webp.size > MAX_PREPARED_BYTES
+      ? await canvasBlob(canvas, "image/jpeg", 0.82)
+      : null;
+    const compressedJpeg = jpeg?.size > MAX_PREPARED_BYTES
+      ? await canvasBlob(canvas, "image/jpeg", 0.68)
+      : null;
+    const portrait = compressedJpeg || jpeg || webp;
     if (!portrait) throw new Error("The portrait could not be prepared.");
+    if (portrait.size > MAX_PREPARED_BYTES) throw new Error("That image could not be compressed enough. Try a simpler or smaller image.");
     return portrait;
   } finally {
     loaded.release();
@@ -90,7 +98,6 @@ export async function prepareProfilePortrait(file) {
 }
 
 export function ProfilePortraitEditor({ account, authToken, serverUrl, onAccountUpdated }) {
-  const inputRef = useRef(null);
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -126,17 +133,17 @@ export function ProfilePortraitEditor({ account, authToken, serverUrl, onAccount
 
   return (
     <div className="profile-portrait-editor">
-      <input
-        ref={inputRef}
-        className="profile-portrait-input"
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        onChange={uploadPortrait}
-        disabled={!account || uploading}
-      />
-      <button type="button" onClick={() => inputRef.current?.click()} disabled={!account || uploading}>
-        {uploading ? "Saving portrait…" : account?.profile?.avatar ? "Change portrait" : "Upload portrait"}
-      </button>
+      <label className={`profile-portrait-action${uploading ? " is-busy" : ""}`}>
+        <input
+          className="profile-portrait-input"
+          type="file"
+          accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+          aria-label="Upload profile portrait"
+          onChange={uploadPortrait}
+          disabled={!account || uploading}
+        />
+        <span>{uploading ? "Saving portrait…" : account?.profile?.avatar ? "Change portrait" : "Upload portrait"}</span>
+      </label>
       <small>PNG, JPG, or WEBP · centered square crop · 8 MB max</small>
       {status && <span className="profile-portrait-status" role="status">{status}</span>}
     </div>

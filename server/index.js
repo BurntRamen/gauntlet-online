@@ -28,7 +28,7 @@ const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || DEFAULT_ACCOUNT_A
 const ACCOUNT_SESSION_TTL_MS = Math.max(60 * 1000, Number(process.env.ACCOUNT_SESSION_TTL_MS) || 7 * 24 * 60 * 60 * 1000);
 const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const MATCH_ARCHIVE_REQUIRED = process.env.MATCH_ARCHIVE_REQUIRED === "true" || !(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
@@ -1490,8 +1490,7 @@ async function supabaseRequest(pathname, options = {}) {
   const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${pathname}`, {
     ...options,
     headers: {
-      apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      ...supabaseAdminAuthHeaders(),
       "Content-Type": "application/json",
       ...(options.headers || {})
     }
@@ -1512,13 +1511,21 @@ async function supabaseRequest(pathname, options = {}) {
   return data;
 }
 
+function supabaseAdminAuthHeaders(apiKey = SUPABASE_SERVICE_ROLE_KEY) {
+  const normalized = String(apiKey || "").trim();
+  if (!normalized) return {};
+  return {
+    apikey: normalized,
+    ...(!normalized.startsWith("sb_secret_") ? { Authorization: `Bearer ${normalized}` } : {})
+  };
+}
+
 async function supabaseStorageRequest(pathname, options = {}) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase Storage is not configured.");
   const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/storage/v1/${pathname}`, {
     method: options.method || "GET",
     headers: {
-      apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      ...supabaseAdminAuthHeaders(),
       ...(options.headers || {})
     },
     body: options.body
@@ -9602,6 +9609,7 @@ module.exports = {
     startEndPhase,
     advanceEndPlacement,
     validateAuthConfiguration,
+    supabaseAdminAuthHeaders,
     validateConstructedDeckPayload,
     grantPurchasedCollectorPack,
     normalizeCollectorRedemptionReceipts,
