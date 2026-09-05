@@ -13,6 +13,13 @@ export const MENU_AUDIO_CUES = Object.freeze({
 
 export const MENU_AMBIENCE_SOURCE = "/assets/gauntlet/menu/audio/menu_room_ambience.mp3";
 
+export const MENU_MUSIC_TRACK_STORAGE_KEY = "gauntlet_menu_music_track";
+export const DEFAULT_MENU_MUSIC_TRACK = "menu";
+export const MENU_MUSIC_CHOICES = Object.freeze([
+  Object.freeze({ id: "menu", label: "The Quiet Workshop", detail: "Calm · spacious" }),
+  Object.freeze({ id: "menuLiving", label: "The Living Table", detail: "Kinetic · textured" })
+]);
+
 export const DEFAULT_MENU_AUDIO_SETTINGS = Object.freeze({
   masterMuted: false,
   effectsEnabled: true,
@@ -70,6 +77,12 @@ export function readMenuAudioSettings(storage) {
   } catch {
     return { ...DEFAULT_MENU_AUDIO_SETTINGS };
   }
+}
+
+export function readMenuMusicTrack(storage) {
+  if (!storage) return DEFAULT_MENU_MUSIC_TRACK;
+  const saved = storage.getItem(MENU_MUSIC_TRACK_STORAGE_KEY);
+  return MENU_MUSIC_CHOICES.some((choice) => choice.id === saved) ? saved : DEFAULT_MENU_MUSIC_TRACK;
 }
 
 export function createMenuAudioController({

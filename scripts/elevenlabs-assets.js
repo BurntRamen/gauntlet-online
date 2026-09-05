@@ -107,7 +107,7 @@ function validateManifest(manifest, workspaceRoot) {
     if (!job.id || !/^[a-z0-9][a-z0-9-]*$/.test(job.id)) throw new Error(`Invalid job id: ${job.id || "(missing)"}`);
     if (ids.has(job.id)) throw new Error(`Duplicate job id: ${job.id}`);
     ids.add(job.id);
-    if (!new Set(["image", "video", "sound-effect"]).has(job.kind)) throw new Error(`${job.id}: kind must be image, video, or sound-effect.`);
+    if (!new Set(["image", "video", "sound-effect", "music"]).has(job.kind)) throw new Error(`${job.id}: kind must be image, video, sound-effect, or music.`);
     if (!job.modelId || !job.prompt) throw new Error(`${job.id}: modelId and prompt are required.`);
     if (job.reviewStatus && !new Set(["provisional", "candidate", "approved"]).has(job.reviewStatus)) {
       throw new Error(`${job.id}: reviewStatus must be provisional, candidate, or approved.`);
@@ -116,7 +116,7 @@ function validateManifest(manifest, workspaceRoot) {
     const publicRoot = path.resolve(workspaceRoot, "client/public");
     if (!isWithin(publicRoot, output)) throw new Error(`${job.id}: clientOutput must be inside client/public.`);
     for (const [field, rawReference] of Object.entries(job.references || {})) {
-      if (job.kind === "sound-effect") throw new Error(`${job.id}: sound-effect jobs do not accept media references.`);
+      if (["sound-effect", "music"].includes(job.kind)) throw new Error(`${job.id}: ${job.kind} jobs do not accept media references.`);
       if (!REFERENCE_FIELDS.has(field)) throw new Error(`${job.id}: unsupported reference field ${field}.`);
       for (const reference of [rawReference].flat()) {
         if (!reference || Boolean(reference.job) === Boolean(reference.path)) {
@@ -304,7 +304,7 @@ function extensionForResult(job, mimeType) {
   if (!extension) throw new Error(`${job.id}: unsupported result MIME type ${mimeType}.`);
   if (job.kind === "image" && !mimeType.startsWith("image/")) throw new Error(`${job.id}: expected image output, received ${mimeType}.`);
   if (job.kind === "video" && !mimeType.startsWith("video/")) throw new Error(`${job.id}: expected video output, received ${mimeType}.`);
-  if (job.kind === "sound-effect" && !mimeType.startsWith("audio/")) throw new Error(`${job.id}: expected audio output, received ${mimeType}.`);
+  if (["sound-effect", "music"].includes(job.kind) && !mimeType.startsWith("audio/")) throw new Error(`${job.id}: expected audio output, received ${mimeType}.`);
   return extension;
 }
 
@@ -367,6 +367,41 @@ async function generateSoundEffect({ fetchImpl, apiKey, apiBaseUrl, job, request
   };
 }
 
+async function generateMusic({ fetchImpl, apiKey, apiBaseUrl, job, request, stagingDirectory }) {
+  const outputFormat = job.outputFormat || "mp3_48000_192";
+  const url = `${apiBaseUrl}/music?output_format=${encodeURIComponent(outputFormat)}`;
+  const response = await fetchImpl(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "xi-api-key": apiKey },
+    body: JSON.stringify(request)
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    let detail = text;
+    try {
+      const body = JSON.parse(text);
+      detail = body.detail || body.error_message || body.message || text;
+    } catch {
+      // Retain the response text when the API does not return JSON.
+    }
+    throw new Error(`ElevenLabs API ${response.status}: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
+  }
+  const contentMimeType = String(response.headers.get("content-type") || "audio/mpeg").split(";")[0].trim().toLowerCase();
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) throw new Error(`${job.id}: generated music was empty.`);
+  const stagedPath = path.join(stagingDirectory, `${job.id}${extensionForResult(job, contentMimeType)}`);
+  fs.mkdirSync(path.dirname(stagedPath), { recursive: true });
+  fs.writeFileSync(stagedPath, buffer);
+  return {
+    stagedPath,
+    contentMimeType,
+    sha256: sha256(buffer),
+    bytes: buffer.length,
+    songId: response.headers.get("song-id") || null,
+    requestId: response.headers.get("request-id") || response.headers.get("x-request-id") || null
+  };
+}
+
 async function generateJobs({ manifest, workspaceRoot, selectedIds = [], apiKey, confirmCost, forceGeneration, retryFailed, fetchImpl = fetch, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), apiBaseUrl = API_BASE_URL, timeoutByKind = { image: 300000, video: 1800000 } }) {
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is required for generation and collection.");
   const stagingDirectory = resolveWorkspacePath(workspaceRoot, manifest.stagingDirectory, "stagingDirectory");
@@ -382,12 +417,14 @@ async function generateJobs({ manifest, workspaceRoot, selectedIds = [], apiKey,
     if (reusable && jobState.status === "failed" && !retryFailed) {
       throw new Error(`${job.id}: previous generation failed. Use --retry-failed --confirm-cost to submit it again.`);
     }
-    if (job.kind === "sound-effect") {
+    if (["sound-effect", "music"].includes(job.kind)) {
       if (!confirmCost) throw new Error(`${job.id}: generation may spend ElevenLabs credits. Re-run with --confirm-cost.`);
       try {
-        const generated = await generateSoundEffect({ fetchImpl, apiKey, apiBaseUrl, job, request, stagingDirectory });
+        const generated = job.kind === "music"
+          ? await generateMusic({ fetchImpl, apiKey, apiBaseUrl, job, request, stagingDirectory })
+          : await generateSoundEffect({ fetchImpl, apiKey, apiBaseUrl, job, request, stagingDirectory });
         state.jobs[job.id] = {
-          generationId: generated.requestId || `sound-effect:${requestHash.slice(0, 16)}`,
+          generationId: generated.songId || generated.requestId || `${job.kind}:${requestHash.slice(0, 16)}`,
           requestId: generated.requestId,
           status: "completed",
           kind: job.kind,
@@ -487,7 +524,11 @@ function publishJobs({ manifest, workspaceRoot, selectedIds = [], force = false 
       schemaVersion: 1,
       status: job.reviewStatus || "provisional",
       approvalRequired: job.reviewStatus !== "approved",
-      creator: job.kind === "sound-effect" ? "ElevenLabs Sound Effects API" : "ElevenLabs Image & Video API",
+      creator: job.kind === "sound-effect"
+        ? "ElevenLabs Sound Effects API"
+        : job.kind === "music"
+          ? "ElevenLabs Music API"
+          : "ElevenLabs Image & Video API",
       jobId: job.id,
       kind: job.kind,
       modelId: job.modelId,

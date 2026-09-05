@@ -78,6 +78,24 @@ test("sound effect requests use the ElevenLabs sound-generation shape", () => {
   });
 });
 
+test("music requests use the ElevenLabs compose shape", () => {
+  const root = workspace();
+  const request = buildRequest({
+    id: "quiet-workshop",
+    kind: "music",
+    modelId: "music_v2",
+    prompt: "Calm seamless instrumental menu loop",
+    parameters: { generation_mode: "loop", music_length_ms: 40000, force_instrumental: true }
+  }, root, { jobs: {} });
+  assert.deepEqual(request, {
+    model_id: "music_v2",
+    prompt: "Calm seamless instrumental menu loop",
+    generation_mode: "loop",
+    music_length_ms: 40000,
+    force_instrumental: true
+  });
+});
+
 test("raw ElevenLabs PCM is resampled and wrapped as a 48 kHz mono WAV", () => {
   const raw = Buffer.alloc(44100 * 2);
   for (let index = 0; index < 44100; index += 1) raw.writeInt16LE(Math.round(Math.sin(index / 12) * 12000), index * 2);
@@ -215,6 +233,53 @@ test("sound effect generation downloads the synchronous MP3 response", async () 
   assert.equal(state.jobs.impact.contentMimeType, "audio/mpeg");
   assert.equal(state.jobs.impact.characterCost, "24");
   assert.equal(fs.readFileSync(state.jobs.impact.stagedPath, "utf8"), "mp3-result");
+});
+
+test("music generation downloads the synchronous MP3 response and records Music API provenance", async () => {
+  const root = workspace();
+  const value = validateManifest({
+    schemaVersion: 1,
+    stagingDirectory: "artifacts/elevenlabs/music",
+    provenanceDirectory: "docs/generated-assets/elevenlabs/music",
+    jobs: [{
+      id: "quiet-workshop",
+      kind: "music",
+      reviewStatus: "approved",
+      modelId: "music_v2",
+      prompt: "Calm seamless instrumental menu loop",
+      parameters: { generation_mode: "loop", music_length_ms: 40000, force_instrumental: true },
+      outputFormat: "mp3_48000_192",
+      clientOutput: "client/public/generated/quiet-workshop.mp3"
+    }]
+  }, root);
+  const fetchImpl = async (url, options) => {
+    assert.match(url, /\/music\?output_format=mp3_48000_192$/);
+    assert.deepEqual(JSON.parse(options.body), {
+      model_id: "music_v2",
+      prompt: "Calm seamless instrumental menu loop",
+      generation_mode: "loop",
+      music_length_ms: 40000,
+      force_instrumental: true
+    });
+    return new Response(Buffer.from("music-result"), {
+      status: 200,
+      headers: { "Content-Type": "audio/mpeg", "song-id": "song-quiet-123" }
+    });
+  };
+  const state = await generateJobs({
+    manifest: value,
+    workspaceRoot: root,
+    apiKey: "test-key",
+    confirmCost: true,
+    fetchImpl
+  });
+  assert.equal(state.jobs["quiet-workshop"].generationId, "song-quiet-123");
+  assert.equal(fs.readFileSync(state.jobs["quiet-workshop"].stagedPath, "utf8"), "music-result");
+
+  publishJobs({ manifest: value, workspaceRoot: root });
+  const provenance = JSON.parse(fs.readFileSync(path.join(root, "docs/generated-assets/elevenlabs/music/quiet-workshop.json"), "utf8"));
+  assert.equal(provenance.creator, "ElevenLabs Music API");
+  assert.equal(provenance.status, "approved");
 });
 
 test("manifest rejects client output paths outside client/public", () => {
