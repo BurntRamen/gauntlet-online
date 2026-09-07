@@ -26,6 +26,7 @@
 
 .production-match-surface {
   position: absolute;
+  z-index: 1;
   inset: 0;
 }
 
@@ -33,6 +34,65 @@
   --battlefield-top-reserve: 68px;
   --battlefield-bottom-reserve: 112px;
   --battlefield-side-reserve: 4px;
+  --battlefield-accent: #1e6bff;
+  --battlefield-glow: rgba(30, 107, 255, 0.18);
+  --battlefield-wash: rgba(30, 107, 255, 0.1);
+  --battlefield-shadow: rgba(3, 7, 12, 0.9);
+  --battlefield-plate: rgba(6, 13, 21, 0.9);
+  --battlefield-plate-deep: rgba(2, 5, 8, 0.95);
+  --gauntlet-sapphire: var(--battlefield-accent);
+  background:
+    radial-gradient(circle at 48% 46%, var(--battlefield-glow), transparent 45%),
+    linear-gradient(180deg, var(--battlefield-shadow), #020407);
+}
+
+.production-match-experience::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 28%, var(--battlefield-wash), transparent 30%),
+    radial-gradient(circle at 78% 70%, color-mix(in srgb, var(--battlefield-accent) 24%, transparent), transparent 34%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.025), transparent 38%, rgba(0, 0, 0, 0.22));
+  opacity: 0.9;
+}
+
+.production-match-experience[data-battlefield-faction="rumin"] {
+  --battlefield-accent: #c58a4f;
+  --battlefield-glow: rgba(197, 112, 57, 0.2);
+  --battlefield-wash: rgba(116, 54, 35, 0.28);
+  --battlefield-shadow: rgba(18, 8, 5, 0.94);
+  --battlefield-plate: rgba(31, 16, 9, 0.92);
+  --battlefield-plate-deep: rgba(9, 4, 2, 0.96);
+}
+
+.production-match-experience[data-battlefield-faction="sheen"] {
+  --battlefield-accent: #67a36e;
+  --battlefield-glow: rgba(78, 147, 93, 0.22);
+  --battlefield-wash: rgba(32, 92, 50, 0.3);
+  --battlefield-shadow: rgba(3, 18, 11, 0.94);
+  --battlefield-plate: rgba(8, 27, 16, 0.92);
+  --battlefield-plate-deep: rgba(2, 9, 5, 0.96);
+}
+
+.production-match-experience[data-battlefield-faction="frumo"] {
+  --battlefield-accent: #5aa6cf;
+  --battlefield-glow: rgba(54, 139, 180, 0.24);
+  --battlefield-wash: rgba(24, 80, 115, 0.32);
+  --battlefield-shadow: rgba(2, 10, 18, 0.95);
+  --battlefield-plate: rgba(5, 20, 31, 0.92);
+  --battlefield-plate-deep: rgba(1, 6, 10, 0.96);
+}
+
+.production-match-experience[data-battlefield-faction="bizi"] {
+  --battlefield-accent: #b58ad4;
+  --battlefield-glow: rgba(142, 93, 176, 0.24);
+  --battlefield-wash: rgba(98, 54, 126, 0.3);
+  --battlefield-shadow: rgba(15, 8, 20, 0.95);
+  --battlefield-plate: rgba(24, 13, 31, 0.92);
+  --battlefield-plate-deep: rgba(7, 3, 10, 0.96);
 }
 
 .production-battlefield-safe-frame {
@@ -95,7 +155,7 @@
   border: 1px solid rgba(114, 137, 156, 0.42);
   border-radius: 7px;
   background:
-    linear-gradient(145deg, rgba(25, 36, 47, 0.88), rgba(5, 11, 18, 0.9));
+    linear-gradient(145deg, color-mix(in srgb, var(--battlefield-plate) 82%, rgba(35, 45, 55, 0.88)), var(--battlefield-plate-deep));
   box-shadow:
     0 8px 20px rgba(0, 0, 0, 0.38),
     inset 0 1px rgba(255, 255, 255, 0.06);
@@ -258,7 +318,7 @@
   padding: 9px;
   border: 1px solid rgba(94, 127, 151, 0.72);
   border-radius: 8px;
-  background: rgba(6, 13, 21, 0.9);
+  background: color-mix(in srgb, var(--battlefield-plate) 88%, rgba(6, 13, 21, 0.9));
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.44);
   backdrop-filter: blur(10px);
 }
@@ -274,7 +334,7 @@
   padding: 8px 10px;
   border: 1px solid rgba(181, 137, 79, 0.52);
   border-radius: 10px;
-  background: rgba(6, 13, 21, 0.92);
+  background: color-mix(in srgb, var(--battlefield-plate) 88%, rgba(6, 13, 21, 0.92));
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48);
 }
 
@@ -987,7 +1047,7 @@
   overflow: auto;
   border: 1px solid rgba(181, 137, 79, 0.48);
   border-radius: 10px;
-  background: rgba(6, 13, 21, 0.88);
+  background: color-mix(in srgb, var(--battlefield-plate) 88%, rgba(6, 13, 21, 0.88));
 }
 
 .production-campaign-aftermath {

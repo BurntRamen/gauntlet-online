@@ -82,6 +82,73 @@ const MATCH_ASSETS = {
   cardBack: "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
   table: "/assets/gauntlet/match/graphite-table-v1.png"
 };
+const BATTLEFIELD_THEMES = Object.freeze({
+  basic: {
+    clear: [0.008, 0.015, 0.022],
+    fill: "#aeb4b5",
+    key: "#e8c99a",
+    rim: "#6086a0",
+    graphite: "#b3b0a8",
+    graphiteDeep: "#777874",
+    stone: "#989894",
+    well: "#686b68",
+    glow: "#5a564e",
+    deepGlow: "#202426",
+    tableSpecular: "#1b2326"
+  },
+  rumin: {
+    clear: [0.018, 0.011, 0.007],
+    fill: "#c2aa8f",
+    key: "#ffd39a",
+    rim: "#93533c",
+    graphite: "#b89b7a",
+    graphiteDeep: "#7d6253",
+    stone: "#a88b75",
+    well: "#715446",
+    glow: "#6b4a35",
+    deepGlow: "#2d1c17",
+    tableSpecular: "#49301f"
+  },
+  sheen: {
+    clear: [0.006, 0.018, 0.012],
+    fill: "#a9c5aa",
+    key: "#e4d29b",
+    rim: "#4f8f67",
+    graphite: "#9dac8a",
+    graphiteDeep: "#64745c",
+    stone: "#83977c",
+    well: "#4f644e",
+    glow: "#405c3d",
+    deepGlow: "#162418",
+    tableSpecular: "#203f2b"
+  },
+  frumo: {
+    clear: [0.004, 0.014, 0.024],
+    fill: "#9bbaca",
+    key: "#d5c091",
+    rim: "#4d8db1",
+    graphite: "#93a6ae",
+    graphiteDeep: "#5b717b",
+    stone: "#748d98",
+    well: "#475f6d",
+    glow: "#34576a",
+    deepGlow: "#132531",
+    tableSpecular: "#183e59"
+  },
+  bizi: {
+    clear: [0.018, 0.011, 0.024],
+    fill: "#b8a9c4",
+    key: "#e8c48b",
+    rim: "#8a66a5",
+    graphite: "#a3949d",
+    graphiteDeep: "#71606d",
+    stone: "#8d7c86",
+    well: "#5f4e5c",
+    glow: "#58405d",
+    deepGlow: "#24182c",
+    tableSpecular: "#4b2f59"
+  }
+});
 const EVENT_EFFECT_ASSETS = {
   "attack.declare": "/assets/gauntlet/match/effects/attack-declare.webp",
   "block.commit": "/assets/gauntlet/match/effects/block-raise.webp",
@@ -125,6 +192,11 @@ const LANE_STATE_LIGHTS = Object.freeze({
 
 function color(hex) {
   return Color3.FromHexString(hex);
+}
+
+function battlefieldTheme(themeId) {
+  const normalized = String(themeId || "basic").toLowerCase();
+  return BATTLEFIELD_THEMES[normalized] || BATTLEFIELD_THEMES.basic;
 }
 
 function createLabelTexture(scene, name, label) {
@@ -477,9 +549,10 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
 }
 
 export function createGauntletScene(engine, canvas, commands = {}) {
+  const theme = battlefieldTheme(commands.battlefieldTheme);
   const babylonScene = new Scene(engine);
   const sceneInstrumentation = new SceneInstrumentation(babylonScene);
-  babylonScene.clearColor = new Color4(0.008, 0.015, 0.022, 1);
+  babylonScene.clearColor = new Color4(theme.clear[0], theme.clear[1], theme.clear[2], 1);
   // Pointer interaction is handled by the explicit canvas hit-test path below.
   // Disable Babylon's parallel automatic picks so pointer movement never pays
   // for the same scene traversal twice.
@@ -556,16 +629,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   const hemi = new HemisphericLight("table-fill", new Vector3(0, 1, 0), babylonScene);
   hemi.intensity = 0.58;
-  hemi.diffuse = color("#aeb4b5");
+  hemi.diffuse = color(theme.fill);
   hemi.groundColor = color("#020304");
   const key = new DirectionalLight("table-key", new Vector3(0.34, -1, 0.27), babylonScene);
   key.position = new Vector3(-9, 16, -7);
   key.intensity = 1.28;
-  key.diffuse = color("#e8c99a");
+  key.diffuse = color(theme.key);
   const rim = new DirectionalLight("table-rim", new Vector3(-0.42, -1, -0.22), babylonScene);
   rim.position = new Vector3(11, 13, 8);
   rim.intensity = 0.42;
-  rim.diffuse = color("#6086a0");
+  rim.diffuse = color(theme.rim);
   const shadowGenerator = new ShadowGenerator(1024, key);
   shadowGenerator.useBlurExponentialShadowMap = true;
   shadowGenerator.blurKernel = 16;
@@ -598,14 +671,14 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   nativePalette.graphiteDeep.emissiveTexture = nativeStoneTexture;
   nativePalette.stone.emissiveTexture = nativeStoneTexture;
   nativePalette.well.emissiveTexture = nativeStoneTexture;
-  nativePalette.graphite.diffuseColor = color("#b3b0a8");
-  nativePalette.graphiteDeep.diffuseColor = color("#777874");
-  nativePalette.stone.diffuseColor = color("#989894");
-  nativePalette.well.diffuseColor = color("#686b68");
-  nativePalette.graphite.emissiveColor = color("#464b4c");
-  nativePalette.graphiteDeep.emissiveColor = color("#202426");
-  nativePalette.stone.emissiveColor = color("#343a3c");
-  nativePalette.well.emissiveColor = color("#151819");
+  nativePalette.graphite.diffuseColor = color(theme.graphite);
+  nativePalette.graphiteDeep.diffuseColor = color(theme.graphiteDeep);
+  nativePalette.stone.diffuseColor = color(theme.stone);
+  nativePalette.well.diffuseColor = color(theme.well);
+  nativePalette.graphite.emissiveColor = color(theme.glow);
+  nativePalette.graphiteDeep.emissiveColor = color(theme.deepGlow);
+  nativePalette.stone.emissiveColor = color(theme.glow);
+  nativePalette.well.emissiveColor = color(theme.deepGlow);
   const surfaceMaterial = nativePalette.graphite;
   const steelMaterial = nativePalette.steel;
   const bronzeMaterial = nativePalette.bronze;
@@ -698,17 +771,17 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     "#07131d",
     {
       emissive: "#010407",
-      specular: "#263b4c",
+      specular: theme.tableSpecular,
       anisotropy: 8,
       level: 0.82
     }
   );
   tableSurfaceMaterial.specularPower = 64;
   tableSurfaceMaterial.ambientColor = color("#121314");
-  tableSurfaceMaterial.diffuseColor = color("#c4c0b5");
+  tableSurfaceMaterial.diffuseColor = color(theme.graphite);
   tableSurfaceMaterial.emissiveTexture = tableSurfaceMaterial.diffuseTexture;
-  tableSurfaceMaterial.emissiveColor = color("#5a564e");
-  tableSurfaceMaterial.specularColor = color("#1b2326");
+  tableSurfaceMaterial.emissiveColor = color(theme.glow);
+  tableSurfaceMaterial.specularColor = color(theme.tableSpecular);
   tableSurfaceMaterial.alpha = 1;
   tableSurfaceMaterial.backFaceCulling = false;
   createChamferedPlate(babylonScene, "table-inlay", {

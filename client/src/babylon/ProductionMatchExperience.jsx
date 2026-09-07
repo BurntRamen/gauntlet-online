@@ -1366,6 +1366,15 @@ function MatchFeed({ entries, statusNotice, catchingUp }) {
   );
 }
 
+function normalizeBattlefieldFactionId(viewModel) {
+  const localPlayer = viewModel?.perspective?.player;
+  const localFaction = localPlayer ? viewModel?.players?.[localPlayer]?.factionId : "";
+  const bottomFaction = viewModel?.bottom?.factionId;
+  const topFaction = viewModel?.top?.factionId;
+  const resolved = String(localFaction || bottomFaction || topFaction || "basic").toLowerCase();
+  return ["rumin", "sheen", "frumo", "bizi"].includes(resolved) ? resolved : "basic";
+}
+
 export default function ProductionMatchExperience({
   adapter,
   options = {},
@@ -1579,6 +1588,7 @@ export default function ProductionMatchExperience({
       cancelCurrentAction: undefined
     };
   }, [gameplayInputLocked, interactionCommands]);
+  const battlefieldFactionId = normalizeBattlefieldFactionId(viewModel);
   const presentedViewModel = useMemo(() => {
     if (!viewModel || !gameplayInputLocked) return viewModel;
     const disconnected = transportUpdate?.connected === false;
@@ -1768,6 +1778,7 @@ export default function ProductionMatchExperience({
       data-ruleset={update?.descriptor?.ruleset}
       data-deck-format={update?.descriptor?.deckFormat}
       data-opponent-kind={update?.descriptor?.opponentKind}
+      data-battlefield-faction={battlefieldFactionId}
       data-presentation-kit={presentationKit.kitId}
       data-presentation-status={presentationKit.status}
       data-scene-contract={sceneMetrics?.sceneContract || "initializing"}
@@ -1815,6 +1826,7 @@ export default function ProductionMatchExperience({
             commands={gameplayCommands}
             interactionLocked={gameplayInputLocked}
             graphicsQuality={graphicsQuality}
+            battlefieldTheme={battlefieldFactionId}
             cardBackAsset={options.cardBackAsset}
             interactionStatus={transportUpdate?.connected === false
               ? "Connection interrupted. The current table is preserved while reconnecting."
