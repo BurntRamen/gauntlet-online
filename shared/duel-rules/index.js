@@ -1331,6 +1331,7 @@ function startNextTurn(game, events) {
   let campaignMessage = "";
   if (game.campaign) {
     game.campaign.bossAttacksThisTurn = 0;
+    game.campaign.bossActionsThisTurn = 0;
     const bossHealing = Number(game.campaign.bossAbility?.healAtTurnStart || 0);
     if (bossHealing > 0 && game.players[2]) {
       game.players[2].life += bossHealing;
@@ -1344,6 +1345,32 @@ function startNextTurn(game, events) {
   }
   game.message = `${campaignMessage}Turn ${game.turn}: Player ${next} has starting priority.`;
   events.push(event(game, "startingPriority.rotated", { player: next }), event(game, "turn.started", { player: next }));
+}
+
+function getCampaignBossActionLimit(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.actionsPerTurn ?? campaign.attacksPerTurn ?? 0));
+}
+
+function getCampaignBossActionsThisTurn(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.bossActionsThisTurn ?? campaign.bossAttacksThisTurn ?? 0));
+}
+
+function campaignBossHasAction(game, player) {
+  if (!game?.campaign || Number(player) !== 2) return true;
+  return getCampaignBossActionsThisTurn(game) < getCampaignBossActionLimit(game);
+}
+
+function spendCampaignBossAction(game, player, kind = "action") {
+  if (!game?.campaign || Number(player) !== 2) return;
+  const campaign = game.campaign;
+  campaign.bossActionsThisTurn = getCampaignBossActionsThisTurn(game) + 1;
+  if (kind === "attack") {
+    campaign.bossAttacksThisTurn = Number(campaign.bossAttacksThisTurn || 0) + 1;
+  }
 }
 
 function advancePlacement(game, events) {
@@ -1430,8 +1457,8 @@ function applyCommand(current, rawCommand) {
     }
     const campaign = game.campaign;
     const attackNumber = Number(campaign.bossAttacksThisTurn || 0) + 1;
-    if (attackNumber > Number(campaign.attacksPerTurn || 0)) {
-      return reject(current, command, "The campaign boss has used all scripted attacks this turn.");
+    if (!campaignBossHasAction(game, player)) {
+      return reject(current, command, "The campaign boss has used all actions this turn.");
     }
     const minValue = Number(campaign.minAttackValue || 5);
     const maxValue = Number(campaign.maxAttackValue || 8);
@@ -1491,7 +1518,7 @@ function applyCommand(current, rawCommand) {
         campaignBoss: true
       }
     };
-    campaign.bossAttacksThisTurn = attackNumber;
+    spendCampaignBossAction(game, player, "attack");
     game.handAttacks.push(attack);
     game.priorityPassed = { 1: false, 2: false };
     game.priority = 1;
@@ -1659,6 +1686,9 @@ function applyCommand(current, rawCommand) {
       blockCards = ids.map((id) => findHandCard(actor, id));
       if (blockCards.some((card) => !card)) return reject(current, command, "Every blocker must be in the defender’s hand.");
     }
+    if (!campaignBossHasAction(game, player)) {
+      return reject(current, command, "The campaign boss has used all actions this turn.");
+    }
     const blockerIds = blockCards.map((card) => card.id);
     const required = blockCards.reduce((sum, card) => sum + cardValue(card), 0);
     const paymentIds = Array.isArray(command.paymentCardIds) ? command.paymentCardIds : [];
@@ -1740,6 +1770,7 @@ function applyCommand(current, rawCommand) {
     pending.attack.block.push(...blockEntries);
     if (pending.laneIndex != null) game.lanes[pending.laneIndex].block.push(...blockEntries);
     actor.turnData.blocksDeclaredThisTurn += 1;
+    spendCampaignBossAction(game, player, "block");
     if (hera.bonus) actor.turnData.heraUsed = true;
     consumeConstructedPaymentBonus(actor, constructedPayment.consume);
     addPaymentSuits(actor, payment.cards);

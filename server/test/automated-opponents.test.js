@@ -153,6 +153,97 @@ test("campaign boss only blocks with values available in its scripted attack ran
   __test.deleteRoom(room.roomCode);
 });
 
+test("campaign boss blocks spend the shared scripted action budget", async () => {
+  const room = __test.createRoom();
+  room.lobby.gameMode = "factions";
+  room.lobby.players[1].factionId = "rumin";
+  room.lobby.players[2].factionId = "rumin";
+  __test.createGameFromLobby(room, {
+    matchMetadata: { matchId: "campaign-block-action-budget", gameNumber: 1, seriesId: null },
+    seed: "campaign-block-action-budget"
+  });
+  const game = room.game;
+  game.phase = "priority";
+  game.priority = 2;
+  game.campaign = {
+    chapterId: "block-action-budget",
+    chapterNumber: 4,
+    opponentName: "Budget Warden",
+    attacksPerTurn: 2,
+    bossAttacksThisTurn: 1,
+    bossActionsThisTurn: 1,
+    minAttackValue: 5,
+    maxAttackValue: 8
+  };
+  game.players[2].hand = [
+    { id: "boss-six", rank: "6", value: 6, suit: "H", name: "Budget Six" },
+    { id: "boss-payment", rank: "7", value: 7, suit: "D", name: "Payment Seven" }
+  ];
+  game.handAttacks = [{
+    id: "incoming-budget-attack",
+    player: 1,
+    targetPlayer: 2,
+    card: { id: "player-nine", rank: "9", value: 9, suit: "C", name: "Player Nine" },
+    source: "hand",
+    sourceLane: null,
+    effectiveValue: 9,
+    block: []
+  }];
+
+  const selected = __test.chooseSemanticTrainingAiCommand(game);
+  assert.equal(selected.type, "declareHandBlock");
+  const acknowledgement = await __test.applySemanticAutomatedCommand(room, selected);
+
+  assert.equal(acknowledgement.accepted, true);
+  assert.equal(room.game.campaign.bossAttacksThisTurn, 1);
+  assert.equal(room.game.campaign.bossActionsThisTurn, 2);
+  assert.equal(room.game.handAttacks[0].block.length, 1);
+  __test.deleteRoom(room.roomCode);
+});
+
+test("campaign boss declines blocks after spending all scripted actions", () => {
+  const room = __test.createRoom();
+  room.lobby.gameMode = "factions";
+  room.lobby.players[1].factionId = "rumin";
+  room.lobby.players[2].factionId = "rumin";
+  __test.createGameFromLobby(room, {
+    matchMetadata: { matchId: "campaign-block-action-exhausted", gameNumber: 1, seriesId: null },
+    seed: "campaign-block-action-exhausted"
+  });
+  const game = room.game;
+  game.phase = "priority";
+  game.priority = 2;
+  game.campaign = {
+    chapterId: "block-action-exhausted",
+    chapterNumber: 5,
+    opponentName: "Exhausted Warden",
+    attacksPerTurn: 2,
+    bossAttacksThisTurn: 2,
+    bossActionsThisTurn: 2,
+    minAttackValue: 5,
+    maxAttackValue: 8
+  };
+  game.players[2].hand = [
+    { id: "boss-six", rank: "6", value: 6, suit: "H", name: "Budget Six" },
+    { id: "boss-payment", rank: "7", value: 7, suit: "D", name: "Payment Seven" }
+  ];
+  game.handAttacks = [{
+    id: "incoming-exhausted-attack",
+    player: 1,
+    targetPlayer: 2,
+    card: { id: "player-nine", rank: "9", value: 9, suit: "C", name: "Player Nine" },
+    source: "hand",
+    sourceLane: null,
+    effectiveValue: 9,
+    block: []
+  }];
+
+  const selected = __test.chooseSemanticTrainingAiCommand(game);
+
+  assert.deepEqual(selected, { type: "declineBlock", attackId: "incoming-exhausted-attack" });
+  __test.deleteRoom(room.roomCode);
+});
+
 test("Training AI executes through the acknowledged semantic-command lifecycle", async () => {
   const room = __test.createRoom();
   room.lobby.gameMode = "basic";

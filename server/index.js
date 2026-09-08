@@ -4161,7 +4161,7 @@ function getCampaignBossPowerProfile(faction, chapter = {}, bossAbility = null) 
     general: {
       name: `${opponentName} Tactics`,
       image: faction?.general?.image || faction?.cardImage || null,
-      text: `At the start of the boss turn, ${opponentName} may launch up to ${getCampaignDifficulty(faction?.id, chapter.id).attacksPerTurn} scripted attacks if combat is clear.`
+      text: `Each boss turn, ${opponentName} has up to ${getCampaignDifficulty(faction?.id, chapter.id).attacksPerTurn} scripted actions shared between attacks and blocks.`
     }
   };
 }
@@ -6703,6 +6703,7 @@ async function advanceEndPlacement(roomState) {
     }
     if (game.campaign) {
       game.campaign.bossAttacksThisTurn = 0;
+      game.campaign.bossActionsThisTurn = 0;
       const bossHealing = Number(game.campaign.bossAbility?.healAtTurnStart || 0);
       if (bossHealing > 0 && game.players[2]) {
         game.players[2].life += bossHealing;
@@ -6793,6 +6794,7 @@ function legacyDeclareCampaignBossAttack(roomState) {
   const ai = game.players[2];
   const campaign = game.campaign;
   if (!campaign) return false;
+  if (!campaignBossHasAction(game, 2)) return false;
 
   const attackNumber = (campaign.bossAttacksThisTurn || 0) + 1;
   const minValue = campaign.minAttackValue || 5;
@@ -6827,7 +6829,7 @@ function legacyDeclareCampaignBossAttack(roomState) {
     payment: { player: 2, cards: [], total: 0, required: 0, campaignBoss: true }
   };
 
-  campaign.bossAttacksThisTurn = attackNumber;
+  spendCampaignBossAction(game, 2, "attack");
   game.handAttacks.push(attack);
   resetPriorityPassed(game);
   game.priority = 1;
@@ -6860,6 +6862,32 @@ function campaignBossCanUseBlockerValue(game, card) {
   return value >= minValue && value <= maxValue;
 }
 
+function getCampaignBossActionLimit(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.actionsPerTurn ?? campaign.attacksPerTurn ?? 0));
+}
+
+function getCampaignBossActionsThisTurn(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.bossActionsThisTurn ?? campaign.bossAttacksThisTurn ?? 0));
+}
+
+function campaignBossHasAction(game, playerNum) {
+  if (!game?.campaign || Number(playerNum) !== 2) return true;
+  return getCampaignBossActionsThisTurn(game) < getCampaignBossActionLimit(game);
+}
+
+function spendCampaignBossAction(game, playerNum, kind = "action") {
+  if (!game?.campaign || Number(playerNum) !== 2) return;
+  const campaign = game.campaign;
+  campaign.bossActionsThisTurn = getCampaignBossActionsThisTurn(game) + 1;
+  if (kind === "attack") {
+    campaign.bossAttacksThisTurn = Number(campaign.bossAttacksThisTurn || 0) + 1;
+  }
+}
+
 function chooseSemanticTrainingAiCommand(game) {
   const legalActions = getSharedLegalActions(game, 2);
   if (legalActions.length === 0) return null;
@@ -6874,6 +6902,9 @@ function chooseSemanticTrainingAiCommand(game) {
   }
 
   if (pending?.targetPlayer === 2) {
+    if (game.campaign && !campaignBossHasAction(game, 2)) {
+      return { type: "declineBlock", attackId: pending.id };
+    }
     const laneBlock = legalActions.find((action) => action.type === "declareLaneBlock");
     if (laneBlock) {
       const blocker = game.lanes[laneBlock.laneIndex]?.facedown?.[2];
@@ -6921,7 +6952,7 @@ function chooseSemanticTrainingAiCommand(game) {
 
   if (
     game.campaign
-    && Number(game.campaign.bossAttacksThisTurn || 0) < Number(game.campaign.attacksPerTurn || 0)
+    && campaignBossHasAction(game, 2)
   ) {
     return { type: "declareCampaignBossAttack", system: true };
   }
@@ -7969,7 +8000,8 @@ io.on("connection", (socket) => {
       bossAbility,
       bossPowerProfile,
       ...difficulty,
-      bossAttacksThisTurn: 0
+      bossAttacksThisTurn: 0,
+      bossActionsThisTurn: 0
     };
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
@@ -8003,7 +8035,7 @@ io.on("connection", (socket) => {
       general: bossPowerProfile.general
     };
     roomState.game.players[2].life = difficulty.bossLife;
-    roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and can launch ${difficulty.attacksPerTurn} scripted attacks per turn.${bossAbility ? ` Boss ability: ${bossAbility.text}` : ""} Player ${roomState.game.priority} has priority.`;
+    roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and has ${difficulty.attacksPerTurn} scripted actions per turn shared between attacks and blocks.${bossAbility ? ` Boss ability: ${bossAbility.text}` : ""} Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
   });
