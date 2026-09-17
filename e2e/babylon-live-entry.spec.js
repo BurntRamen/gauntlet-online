@@ -5,6 +5,20 @@ const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
 
+test.beforeAll(async ({ browser }) => {
+  if (process.env.CI !== "true") return;
+  const session = await browser.newBrowserCDPSession();
+  try {
+    const { gpu } = await session.send("SystemInfo.getInfo");
+    console.info("CI graphics backend:", gpu?.auxAttributes?.glRenderer
+      || gpu?.auxAttributes?.gl_renderer || gpu?.devices?.[0]?.deviceString || "unreported");
+  } catch (error) {
+    console.info("CI graphics diagnostic unavailable:", error.message);
+  } finally {
+    await session.detach();
+  }
+});
+
 function waitForEvent(socket, eventName, predicate = () => true, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
