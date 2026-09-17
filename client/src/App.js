@@ -161,18 +161,6 @@ function shouldUseProductionMatchRenderer() {
   return process.env.REACT_APP_MATCH_RENDERER !== "react";
 }
 
-const BABYLON_FAILED_MATCH_KEY = "gauntlet_babylon_failed_match";
-
-function hasBabylonSessionFailure(matchId) {
-  if (typeof window === "undefined" || !matchId) return false;
-  return sessionStorage.getItem(BABYLON_FAILED_MATCH_KEY) === String(matchId);
-}
-
-function rememberBabylonSessionFailure(matchId) {
-  if (typeof window === "undefined" || !matchId) return;
-  sessionStorage.setItem(BABYLON_FAILED_MATCH_KEY, String(matchId));
-}
-
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
 });
@@ -3963,7 +3951,6 @@ export default function App() {
   const [previewedCard, setPreviewedCard] = useState(null);
   const [showDiscardViewer, setShowDiscardViewer] = useState(false);
   const [matchDrawer, setMatchDrawer] = useState(null);
-  const [babylonRendererFailed, setBabylonRendererFailed] = useState(false);
   const [transportConnected, setTransportConnected] = useState(socket.connected);
   const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
@@ -3973,7 +3960,6 @@ export default function App() {
   const homeAreaNavigationRef = useRef(0);
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
-  const babylonFallbackPromiseRef = useRef(null);
   const completionAccountRefreshRef = useRef(null);
   if (!liveMatchSessionRef.current) {
     liveMatchSessionRef.current = createLiveMatchSession({ socket });
@@ -4059,8 +4045,6 @@ export default function App() {
     game
     && ["basic", "factions"].includes(game.gameMode)
     && shouldUseProductionMatchRenderer()
-    && !babylonRendererFailed
-    && !hasBabylonSessionFailure(game.matchId)
   );
 
   useEffect(() => {
@@ -4092,29 +4076,10 @@ export default function App() {
   useEffect(() => () => liveMatchSessionRef.current?.dispose(), []);
 
   useEffect(() => {
-    setBabylonRendererFailed(false);
-    babylonFallbackPromiseRef.current = null;
     setMatchReconnectPending(false);
     liveMatchSessionRef.current?.unfreezeCommands();
   }, [game?.matchId]);
 
-  const activateReactMatchFallback = useCallback(async (rendererError) => {
-    if (babylonFallbackPromiseRef.current) return babylonFallbackPromiseRef.current;
-    const activeMatchId = liveMatchSessionRef.current?.getCurrent()?.game?.matchId || game?.matchId;
-    const handoff = (async () => {
-      const result = await liveMatchSessionRef.current?.prepareRendererFallback(
-        rendererError?.message || "Babylon renderer failure"
-      );
-      const latestSnapshot = result?.snapshot || liveMatchSessionRef.current?.getCurrent()?.game;
-      if (latestSnapshot) setGame(latestSnapshot);
-      resetSelections();
-      rememberBabylonSessionFailure(activeMatchId);
-      setBabylonRendererFailed(true);
-      return result;
-    })();
-    babylonFallbackPromiseRef.current = handoff;
-    return handoff;
-  }, [game?.matchId]);
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
   const [placementMode, setPlacementMode] = useState(null);
@@ -6238,9 +6203,10 @@ export default function App() {
 
   if (useBabylonMatchRenderer) {
     return (
-      <MatchRendererBoundary resetKey={game.matchId} onFailure={activateReactMatchFallback}>
+      <MatchRendererBoundary resetKey={game.matchId} onLeaveMatch={returnToMainMenu}>
         <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
           <LiveBabylonMatchExperience
+            key={game.matchId}
             session={liveMatchSessionRef.current}
             completion={completionEnvelope}
             campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
@@ -6258,7 +6224,6 @@ export default function App() {
               }
             }}
             onLeaveMatch={returnToMainMenu}
-            onRendererFailure={activateReactMatchFallback}
           />
         </Suspense>
       </MatchRendererBoundary>

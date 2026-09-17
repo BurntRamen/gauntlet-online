@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import GauntletMatchCanvas from "./GauntletMatchCanvas";
+import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
@@ -1821,7 +1821,8 @@ export default function ProductionMatchExperience({
         inert={transportUpdate?.privacy?.required ? true : undefined}
       >
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
-          <GauntletMatchCanvas
+          <RecoverableMatchCanvas
+            key={viewModel.matchId}
             viewModel={canvasViewModel}
             commands={gameplayCommands}
             interactionLocked={gameplayInputLocked}
@@ -1835,10 +1836,6 @@ export default function ProductionMatchExperience({
                 : ""}
             capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
-            onRendererError={(error) => {
-              setAdapterError(error?.message || "The Babylon renderer failed.");
-              onRendererFailure?.(error);
-            }}
           />
         </div>
 

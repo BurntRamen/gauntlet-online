@@ -271,7 +271,7 @@ export default function GauntletMatchCanvas({
   if (rendererError) {
     return (
       <div className="babylon-renderer-error" role="alert">
-        <strong>Returning to the standard match screen.</strong>
+        <strong>Recovering the game table…</strong>
         <span>{rendererError}</span>
       </div>
     );

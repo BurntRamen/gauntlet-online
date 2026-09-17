@@ -576,6 +576,53 @@ test("normal Faction Training Grounds entry uses the same production match and s
   )).toBeGreaterThan(initialRevision);
 });
 
+test("later Bizi missions keep the new interface through boss actions", async ({ page, request, baseURL }) => {
+  test.setTimeout(300000);
+  const account = await registerTestAccount(request, `Bizi${Date.now().toString(36)}`);
+  const accountFile = path.resolve(__dirname, "../.playwright-data/accounts.json");
+  const store = JSON.parse(fs.readFileSync(accountFile, "utf8"));
+  const stored = store.accounts.find((entry) => entry.id === account.account.id);
+  const content = await (await request.get(`${SERVER_URL}/api/game-content`)).json();
+  const chapters = content.content.campaigns.bizi.chapters;
+  stored.stats = stored.stats || {};
+  stored.stats.progression = stored.stats.progression || {};
+  stored.stats.progression.campaign = { bizi: chapters.map((chapter) => chapter.id) };
+  fs.writeFileSync(accountFile, JSON.stringify(store, null, 2));
+  await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), account.token);
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  for (const chapter of chapters.slice(-4)) {
+    await page.goto(baseURL);
+    await page.locator('button[data-area="journey"]').click();
+    await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+    await page.getByRole("tab", { name: /^Bizi/ }).click();
+    await page.locator(".campaign-chapter").filter({
+      has: page.getByRole("heading", { name: chapter.title, exact: true })
+    }).getByRole("button", { name: /Battle/ }).click();
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    for (let action = 0; action < 8; action += 1) {
+      await expect(page.getByTestId("production-babylon-match")).not.toHaveClass(/is-resolving/);
+      const button = currentAction(page).getByRole("button", { name: /^(Pass Priority|Take Damage|Confirm Damage|Skip Placement|Continue)$/ }).first();
+      await expect(button).toBeEnabled();
+      await button.click();
+      await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    }
+    await expect(page.locator(".match-table-frame")).toHaveCount(0);
+    await page.locator("canvas.babylon-match-canvas").dispatchEvent("webglcontextlost");
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retry animated table" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeVisible();
+    await page.getByRole("button", { name: "Retry animated table" }).click();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    await page.evaluate(() => {
+      localStorage.removeItem("gauntlet_room_code");
+      localStorage.removeItem("gauntlet_reconnect_token");
+    });
+  }
+  expect(errors).toEqual([]);
+});
+
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
   test.setTimeout(60000);
   await page.goto(baseURL);
