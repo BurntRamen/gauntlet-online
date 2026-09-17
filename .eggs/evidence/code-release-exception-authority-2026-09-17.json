@@ -1,0 +1,136 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "gauntlet-release-exception-authority-2026-09-17",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-09-17T22:42:45Z",
+  "expiresAt": "2026-09-18T05:00:00Z",
+  "resolver": "Codex; fresh connected-account reads of required sources, unchanged revisions; bounded direct-owner release exception.",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://docs.google.com/document/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/edit",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "00-00 Creative OS Governance Directive — Operational; modified 2026-09-03T14:48:52.848Z; live text retrieved 2026-09-17T22:42:45Z",
+      "resolvedAt": "2026-09-17T22:42:45Z",
+      "constraints": [
+        {
+          "id": "authority-hierarchy",
+          "statement": "Use active company/project/rules authorities; no draft or artifact promotion.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        },
+        {
+          "id": "traceable-owner-change",
+          "statement": "Record bounded owner-authorized local reconciliation; do not rewrite unrelated Drive history.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://docs.google.com/document/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/edit",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "00-00 Master System Index; modified 2026-09-17T13:16:05.502Z; live text retrieved 2026-09-17T22:42:45Z",
+      "resolvedAt": "2026-09-17T22:42:45Z",
+      "constraints": [
+        {
+          "id": "navigation-only",
+          "statement": "Index routes authority; it does not confer release approval.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Gauntlet — Project Dossier & Generation Contract — Operational v1; modified 2026-08-21T22:37:47.896Z; live text retrieved 2026-09-17T22:42:45Z",
+      "resolvedAt": "2026-09-17T22:42:45Z",
+      "constraints": [
+        {
+          "id": "identity-preservation",
+          "statement": "Preserve active Gauntlet identity, approved assets, readable tactical implementation and existing rights boundaries.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        },
+        {
+          "id": "intake-reconciliation",
+          "statement": "Owner-authorized release contract resolves local intake: C-21 is separate Creative-Systems1; verified Gauntlet remote/main govern this code-only implementation. Drive text is unchanged.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://docs.google.com/document/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/edit",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Gauntlet Rules — Operational v1; modified 2026-08-19T20:05:18.713Z; live text retrieved 2026-09-17T22:42:45Z",
+      "resolvedAt": "2026-09-17T22:42:45Z",
+      "constraints": [
+        {
+          "id": "single-blocker",
+          "statement": "Exactly one blocker per accepted declaration; preserve array-shaped events and historical replay records.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        },
+        {
+          "id": "no-complete-conformance-claim",
+          "statement": "This release corrects blocker declarations; other documented rule/runtime discrepancies remain separately outstanding.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://docs.google.com/spreadsheets/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/edit",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Gauntlet Card Registry — Operational v1; modified 2026-08-19T20:17:38.785Z; live text retrieved 2026-09-17T22:42:45Z",
+      "resolvedAt": "2026-09-17T22:42:45Z",
+      "constraints": [
+        {
+          "id": "active-tab",
+          "statement": "Only Card Registry Operational v1 sheetId0 controls card facts; sibling tabs are provenance and no text is changed.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI",
+      "canonicalUrl": "https://docs.google.com/document/d/1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI/edit",
+      "role": "provenance-control",
+      "required": false,
+      "revisionEvidence": "AGENT-0062 — Creative OS Agent-Pipeline Provenance Contract — Draft for Review; modified 2026-09-02T00:11:25.210Z; live text retrieved 2026-09-17T21:41:42Z",
+      "resolvedAt": "2026-09-17T21:41:42Z",
+      "constraints": [
+        {
+          "id": "draft-remains-draft",
+          "statement": "Optional visual provenance draft is not operative for this code-only release; no art production, canon or rights promotion is admitted.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    },
+    {
+      "resourceId": "1kzwKzzVV55ZMXa971OBOz-CA1xcaIIt0O47Zpmbh5Yo",
+      "canonicalUrl": "https://drive.google.com/file/d/1kzwKzzVV55ZMXa971OBOz-CA1xcaIIt0O47Zpmbh5Yo/view",
+      "role": "decision-board",
+      "required": false,
+      "revisionEvidence": "Creative OS Decision Board & Changelog; modified 2026-09-02T22:22:59.644Z; live text retrieved 2026-09-17T21:41:42Z",
+      "resolvedAt": "2026-09-17T21:41:42Z",
+      "constraints": [
+        {
+          "id": "c21-exact-scope",
+          "statement": "C-21 is separate Creative-Systems1 migration. Owner approval and verified Gauntlet repository access bind this release; other decisions are unchanged.",
+          "scope": "gauntlet-match-layout-release-2026-09-17"
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}
+
