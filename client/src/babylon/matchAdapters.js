@@ -560,7 +560,7 @@ export class LocalDuelAdapter {
       return { label: "Confirm Attack", disabled: values.total < values.required };
     }
     if (this.selection.kind === "handBlock") {
-      if (!this.selection.blockerCardIds.length) return { label: "Choose Blockers", disabled: true };
+      if (this.selection.blockerCardIds.length !== 1) return { label: "Choose Blocker", disabled: true };
       if (this.selection.selectionRole === "blocker") return { label: "Choose Payment", disabled: false };
       return { label: "Confirm Block", disabled: values.total < values.required };
     }
@@ -580,10 +580,10 @@ export class LocalDuelAdapter {
       return missing > 0 ? `Select ${missing} more payment value.` : "";
     }
     if (this.selection.kind === "handBlock") {
-      if (!this.selection.blockerCardIds.length) return "Choose at least one blocking card.";
+      if (this.selection.blockerCardIds.length !== 1) return "Choose exactly one blocking card.";
       if (this.selection.selectionRole === "blocker") return "Continue to payment before confirming.";
       const missing = Math.max(0, values.required - values.total);
-      return missing > 0 ? `Select ${missing} more payment value for the blockers.` : "";
+      return missing > 0 ? `Select ${missing} more payment value for the blocker.` : "";
     }
     if (this.selection.kind === "laneBlock") {
       const missing = Math.max(0, values.required - values.total);
@@ -679,9 +679,9 @@ export class LocalDuelAdapter {
     if (this.selection.kind === "handAttack") return `Choose ${values.required} payment for this independent hand attack.${heraNote}${meerusNote}${constructedNote}`;
     if (this.selection.kind === "laneAttack") return `Lane ${this.selection.laneIndex + 1} attack · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
-      return "Choose one or more hand blockers, then continue to payment.";
+      return "Choose exactly one hand blocker, then continue to payment. Choosing another card replaces it.";
     }
-    if (this.selection.kind === "handBlock") return `Choose ${values.required} payment for the selected blockers.${heraNote}${constructedNote}`;
+    if (this.selection.kind === "handBlock") return `Choose ${values.required} payment for the selected blocker.${heraNote}${constructedNote}`;
     if (this.selection.kind === "laneBlock") return `Same-lane blocker · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "placement") {
       return `Choose a card for Lane ${this.selection.laneIndex + 1}, or skip this placement.${constructedNote}`;
@@ -932,7 +932,7 @@ export class LocalDuelAdapter {
         ? "Skip Lane"
         : pending
           ? pending.attack.targetPlayer === this.controller
-            ? "Take Damage"
+            ? pending.attack.block?.length ? "Pass Priority" : "Take Damage"
             : "Resolve Combat"
           : "Pass Priority",
       confirmLabel: confirm.label,
@@ -1092,6 +1092,7 @@ export class LocalDuelAdapter {
     const pending = activeAttack(this.game);
     if (pending) {
       if (pending.attack.targetPlayer !== this.controller) return;
+      if (pending.attack.block?.length) return;
       if (pending.laneIndex != null) {
         this.selection = this.normalizeConstructedSelection(freshSelection({
           ...this.selection,
@@ -1120,11 +1121,11 @@ export class LocalDuelAdapter {
         kind: "handBlock",
         selectionRole: role,
         blockerCardIds: role === "blocker"
-          ? toggleId(this.selection.blockerCardIds || [], card.id)
+          ? this.selection.blockerCardIds.includes(card.id) ? [] : [card.id]
           : this.selection.blockerCardIds || [],
         paymentCardIds: role === "payment"
           ? toggleId(this.selection.paymentCardIds || [], card.id)
-          : this.selection.paymentCardIds || []
+          : (this.selection.paymentCardIds || []).filter((id) => id !== card.id)
       }));
       this.emit();
       return;
@@ -1263,7 +1264,7 @@ export class LocalDuelAdapter {
       });
     } else if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
       this.selection = { ...this.selection, selectionRole: "payment" };
-      this.notice = "Blockers staged. Choose payment cards.";
+      this.notice = "Blocker staged. Choose payment cards.";
       this.emit();
     } else if (this.selection.kind === "handBlock") {
       this.dispatch({
@@ -1294,7 +1295,7 @@ export class LocalDuelAdapter {
 
   passOrDecline() {
     const pending = activeAttack(this.game);
-    if (pending && pending.attack.targetPlayer === this.controller) {
+    if (pending && pending.attack.targetPlayer === this.controller && !pending.attack.block?.length) {
       this.dispatch({ type: "declineBlock", attackId: pending.attack.id });
     } else if (pending) {
       this.dispatch({ type: "passPriority" });

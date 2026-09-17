@@ -77,6 +77,7 @@ function capture(game, command, events) {
 
 function recordFixture(options = {}) {
   const game = gameFixture();
+  if (options.historicalMultipleBlockers) game.rulesVersion = "gauntlet-duel-v2";
   capture(game, { type: "matchStarted" }, [
     { id: `${MATCH_ID}:started`, type: "match.started" },
     { id: `${MATCH_ID}:peek`, type: "card.peeked", player: 1, viewer: 1, card: card("private-peek", 14) }
@@ -114,6 +115,16 @@ function recordFixture(options = {}) {
     effectiveValue: 4,
     payment: { player: 2, cards: [blockPayment], total: 2, required: 2 }
   }];
+  if (options.historicalMultipleBlockers) {
+    // Archival frames are evidence, not commands re-executed by current rules.
+    game.handAttacks[0].block.push({
+      id: "historical-block-2", player: 2, card: card("historical-second-blocker", 3),
+      effectiveValue: 3, payment: { player: 2, cards: [], total: 0, required: 0 }
+    });
+  }
+  const recordedBlockerIds = game.handAttacks[0].block.map((entry) => entry.card.id);
+  const recordedBlockValue = game.handAttacks[0].block.reduce((sum, entry) => sum + entry.effectiveValue, 0);
+  const recordedDamage = 12 - recordedBlockValue;
   game.message = "Player 2 blocked.";
   if (options.immediateBlockResolution) {
     game.players[2].life = 12;
@@ -130,21 +141,21 @@ function recordFixture(options = {}) {
       { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
     ]);
   } else {
-    capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: [blocker.id], paymentCardIds: [blockPayment.id] }, [
+    capture(game, { type: "declareHandBlock", actor: 2, blockerCardIds: recordedBlockerIds, paymentCardIds: [blockPayment.id] }, [
       { id: `${MATCH_ID}:block-payment`, type: "payment.discarded", player: 2, cardIds: [blockPayment.id], total: 2, required: 2 },
-      { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: [blocker.id] }
+      { id: `${MATCH_ID}:block`, type: "block.declared", player: 2, cardIds: recordedBlockerIds }
     ]);
 
-    game.players[2].life = 12;
+    game.players[2].life = 20 - recordedDamage;
     game.players[1].discard = [attacker];
     game.players[2].discard = [blocker];
     game.handAttacks = [];
     game.priority = 2;
     game.turn = 2;
-    game.message = "8 damage resolved.";
+    game.message = `${recordedDamage} damage resolved.`;
     capture(game, { type: "passPriority", actor: 1 }, [
-      { id: `${MATCH_ID}:calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: 4, damage: 8 },
-      { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: 8, from: 20, to: 12 }
+      { id: `${MATCH_ID}:calculated`, type: "damage.calculated", player: 2, attackValue: 12, blockValue: recordedBlockValue, damage: recordedDamage },
+      { id: `${MATCH_ID}:damage`, type: "damage.dealt", player: 2, amount: recordedDamage, from: 20, to: game.players[2].life }
     ]);
   }
 
@@ -296,6 +307,20 @@ test("builds a deterministic public replay through attack, block, damage, and fi
   assert.equal(resolutionAction.values.damage, 8);
   assert.equal(first.notableMoments.find((entry) => entry.id === "largest-attack").evidenceSequence, attack.evidenceSequence);
   assert.equal(first.notableMoments.find((entry) => entry.id === "match-ending").evidenceSequence, first.steps.at(-1).evidenceSequence);
+});
+
+test("historical multi-block frames and events remain intact without current-rule re-execution", () => {
+  const record = recordFixture({ historicalMultipleBlockers: true });
+  const before = structuredClone(record);
+  const replay = buildReplayTimeline(record);
+  const blockStep = replay.steps.find((step) => step.eventType === "block.declared");
+  const blocks = replay.frames[blockStep.frameIndex - 1].publicState.handAttacks[0].block;
+  assert.deepEqual(blocks.map((entry) => entry.card.id), ["public-blocker", "historical-second-blocker"]);
+  assert.equal(replay.actions.find((action) => action.kind === "block").cards.blockers.length, 2);
+  const resolution = replay.actions.find((action) => action.kind === "resolution");
+  assert.equal(resolution.values.block, 7);
+  assert.equal(resolution.values.damage, 5);
+  assert.deepEqual(record, before, "the archive is not rewritten by replay projection");
 });
 
 test("preserves exact blocker and payment cards when a lane block resolves immediately", () => {

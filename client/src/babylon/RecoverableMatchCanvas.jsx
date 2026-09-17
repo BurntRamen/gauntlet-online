@@ -40,7 +40,8 @@ export default function RecoverableMatchCanvas(props) {
         ))}
       </div>
       <AccessibleMatchControls viewModel={viewModel} commands={commands}
-        interactionLocked={interactionLocked} interactionStatus={interactionStatus} />
+        interactionLocked={interactionLocked} interactionStatus={interactionStatus}
+        handPresentedExternally={Boolean(props.handRailPresentation)} />
     </section>
   );
 }

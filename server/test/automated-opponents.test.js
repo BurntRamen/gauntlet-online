@@ -150,6 +150,8 @@ test("campaign boss only blocks with values available in its scripted attack ran
   assert.equal(selected.type, "declareHandBlock");
   assert.deepEqual(selected.blockerCardIds, ["boss-six"]);
   assert.deepEqual(selected.paymentCardIds, ["boss-payment"]);
+  game.handAttacks[0].block = [{ card: game.players[2].hand[1], player: 2, effectiveValue: 6 }];
+  assert.deepEqual(__test.chooseSemanticTrainingAiCommand(game), { type: "passPriority" });
   __test.deleteRoom(room.roomCode);
 });
 

@@ -2,7 +2,8 @@ export default function AccessibleMatchControls({
   viewModel,
   commands,
   interactionLocked = false,
-  interactionStatus = ""
+  interactionStatus = "",
+  handPresentedExternally = false
 }) {
   const spectator = viewModel?.perspective?.spectator;
   const hasSelection = !!(
@@ -51,7 +52,7 @@ export default function AccessibleMatchControls({
               </div>
             )}
             <div className="babylon-accessible-control-row">
-              {(viewModel.hand || []).map((card, index) => (
+              {(!handPresentedExternally ? viewModel.hand || [] : []).map((card, index) => (
                 <button
                   type="button"
                   key={card.id || index}

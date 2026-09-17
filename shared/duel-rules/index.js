@@ -1,6 +1,6 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v2";
+const RULES_VERSION = "gauntlet-duel-v3";
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -1670,19 +1670,26 @@ function applyCommand(current, rawCommand) {
     if (!pending || game.phase !== "priority" || game.priority !== player || pending.attack.targetPlayer !== player) {
       return reject(current, command, "That player is not the active defender.");
     }
+    if (pending.attack.block?.length) {
+      return reject(current, command, "This attack already has a blocker.");
+    }
     const laneBlock = command.type === "declareLaneBlock";
     if (laneBlock !== (pending.laneIndex != null)) {
       return reject(current, command, laneBlock ? "A hand attack cannot be blocked from a lane." : "A lane attack can only be blocked from the same lane.");
     }
     let blockCards;
     if (laneBlock) {
+      if (command.blockerCardIds !== undefined && (!Array.isArray(command.blockerCardIds) || command.blockerCardIds.length !== 1)) {
+        return reject(current, command, "Choose exactly one lane blocker.");
+      }
       if (Number(command.laneIndex) !== pending.laneIndex) return reject(current, command, "The blocker must come from the attacked lane.");
       const laneCard = game.lanes[pending.laneIndex].facedown[player];
       if (!laneCard) return reject(current, command, "There is no face-down blocker in that lane.");
+      if (command.blockerCardIds && command.blockerCardIds[0] !== laneCard.id) return reject(current, command, "The blocker must be the card in the attacked lane.");
       blockCards = [laneCard];
     } else {
       const ids = Array.isArray(command.blockerCardIds) ? command.blockerCardIds : [];
-      if (!ids.length || !unique(ids)) return reject(current, command, "Choose one or more unique hand blockers.");
+      if (ids.length !== 1) return reject(current, command, "Choose exactly one hand blocker.");
       blockCards = ids.map((id) => findHandCard(actor, id));
       if (blockCards.some((card) => !card)) return reject(current, command, "Every blocker must be in the defender’s hand.");
     }
@@ -1833,6 +1840,7 @@ function applyCommand(current, rawCommand) {
     if (!pending || game.phase !== "priority" || game.priority !== player || pending.attack.targetPlayer !== player) {
       return reject(current, command, "Only the active defender may decline this block.");
     }
+    if (pending.attack.block?.length) return reject(current, command, "This attack already has a blocker; pass combat priority instead.");
     events.push(event(game, "block.declined", { player }));
     label = `Player ${player} declined the block.`;
     if (game.gameMode === "basic") {
@@ -2431,8 +2439,8 @@ function normalizeLegalAction(game, playerNumber, action) {
       "blockerCardIds",
       "blocker",
       handEntities,
-      Number(action.minimumBlockers || 1),
-      handEntities.length,
+      1,
+      1,
       false
     ));
     if (pending) targets.push(selectionGroup("attackId", "incomingAttack", [attackEntity(pending.attack, null)]));
@@ -2572,6 +2580,10 @@ function getLegalActions(game, player) {
     if (pending.attack.targetPlayer !== playerNumber) {
       return factionActions.map((action) => normalizeLegalAction(game, playerNumber, action));
     }
+    if (pending.attack.block?.length) {
+      return [...factionActions, ...(game.gameMode === "factions" ? [{ type: "passPriority" }] : [])]
+        .map((action) => normalizeLegalAction(game, playerNumber, action));
+    }
     const actions = [{ type: "declineBlock", attackId: pending.attack.id }];
     if (pending.laneIndex == null) {
       if (actor.hand.length) {
@@ -2579,6 +2591,7 @@ function getLegalActions(game, player) {
           type: "declareHandBlock",
           attackId: pending.attack.id,
           minimumBlockers: 1,
+          maximumBlockers: 1,
           optionalEffects: getConstructedBlockOptions(game, playerNumber, actor.hand)
         });
       }

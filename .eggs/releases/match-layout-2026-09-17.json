@@ -1,0 +1,105 @@
+{
+  "contract": "gauntlet.interactive-release-contract@1.0.0",
+  "id": "gauntlet-match-layout-release-2026-09-17",
+  "status": "owner-authorized",
+  "authorizingOwner": "Giuseppe",
+  "authorizationSource": {
+    "type": "direct-user-message",
+    "threadId": "01a0441f-f4fc-7453-aa69-c701ca1bd3ca",
+    "approval": "wxcellent push it all live",
+    "clarification": "Do you authorize reconciling the pilot manifest and release contract to permit committing, pushing, merging, and deploying these code changes to main, Vercel, and Render—without changing artwork authority or production data?",
+    "answer": "yes",
+    "recordedAt": "2026-09-17T21:41:42Z"
+  },
+  "repository": "https://github.com/BurntRamen/gauntlet-online.git",
+  "base": "f19f764eb7c3cea2105dae16a0ecb3b4c4409576",
+  "branch": "codex/gauntlet-match-redesign",
+  "targetBranch": "main",
+  "scope": [
+    "Existing reviewed single-blocker technical correction and historical replay preservation",
+    "Engine-preserving presentation/theme/card-back updates",
+    "Previewed independent phone hand and portrait-proportioned card wells",
+    "Associated tests, qualification scenarios, documentation and minimum bundle optimization without increasing budgets",
+    "Reconcile local pilot manifest and create this exact release contract",
+    "Publish one code-only release through the existing PR-to-main workflow and verify existing Vercel client and Render backend"
+  ],
+  "allowedActions": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "releaseApproval",
+    "publication",
+    "externalCommunication"
+  ],
+  "communicationScope": "GitHub release pull request and its factual checks/deployment verification only; no marketing or third-party messages.",
+  "prohibitedActions": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "New artwork or identity authority",
+    "Promote draft provenance sources",
+    "Rewrite historical archives",
+    "Change deployment settings or access permissions",
+    "Create a third retained worktree",
+    "Increase bundle budgets",
+    "Claim complete redesign or invent human/device qualification"
+  ],
+  "requiredChecks": [
+    "npm run check",
+    "npm run report:match-assets -- --strict",
+    "npm run test:e2e",
+    "npm run test:e2e:usability",
+    "npm run test:e2e:performance",
+    "Local four-profile hand/well browser preview checks",
+    "Observe and retain GitHub PR check results; this release only has the recorded owner software-graphics exception, without bypassing repository protection",
+    "Verify Vercel and Render deployed release versions"
+  ],
+  "authorityReconciliation": {
+    "provenance": "AGENT-0062 remains Draft/internal and is optional, not governing, for this non-identity code-only release. No visual authority was changed. A future visual task must resolve active exact-scope provenance/admission before generation.",
+    "intake": "Decision C-21 concerns separate Creative-Systems1 migration, not this verified Gauntlet repository. Dossier wording is retained unchanged in Drive; this bounded local resolution records exact remote/main access and owner authorization for this repository only."
+  },
+  "acceptance": {
+    "preview": "Owner reviewed isolated actual-renderer preview at http://127.0.0.1:3102/ and explicitly requested publication.",
+    "fullRedesign": "Incomplete; not claimed complete by this code-only release.",
+    "humanQualification": "18-state human review, five moderated player sessions, actual browser zoom and physical-device targets remain pending and are not fabricated or treated as passed.",
+    "rights": "No new asset introduced; existing illustrations, Classic back, account portraits and asset provenance are preserved."
+  },
+  "expiry": "This grant expires when this scoped release is published or cancelled; no unrelated future release is authorized.",
+  "releaseException": {
+    "id": "gauntlet-reviewed-patch-software-graphics-exception-2026-09-17",
+    "owner": "Giuseppe",
+    "source": "direct-user-message",
+    "request": "just push it llive. idk why you arent doing it",
+    "recordedAt": "2026-09-17T22:42:45Z",
+    "reviewedRuntimeHead": "ea03a923e2a2ecb978ff68e47dc09104dc261b2a",
+    "context": "After disclosure that the reviewed patch is not live because software-graphics browser CI fails and after a proposed runtime-performance scope extension, the owner directs publishing the reviewed patch now.",
+    "scope": "Only PR #5 reviewed code-only release to existing main, Vercel client and Render backend. No new runtime-performance redesign is included.",
+    "disposition": "Publish the owner-reviewed patch using the ordinary PR-to-main workflow while retaining failed/cancelled software-graphics results as failures, not mechanically complete qualification.",
+    "retainedGates": [
+      "Passed existing core/build/bundle, strict assets, hardware-accelerated local normal browser routes, usability and compiled local performance checks",
+      "Fresh exact-head/base/repository/worktree checks",
+      "No bypass of protected GitHub requirements; no change to protection, deployment settings, data or visual authority",
+      "Verify exact live client and backend release versions"
+    ],
+    "failedEvidence": [
+      "https://github.com/BurntRamen/gauntlet-online/actions/runs/35278931288",
+      "https://github.com/BurntRamen/gauntlet-online/actions/runs/35281239031",
+      "https://github.com/BurntRamen/gauntlet-online/actions/runs/35281796022",
+      "Local software-graphics reproduction failed; existing blocked handoff is retained unchanged"
+    ],
+    "notGranted": [
+      "Passing qualification status",
+      "Full redesign completion",
+      "Future release exception",
+      "New artwork/canon/rights",
+      "Production database writes",
+      "Repository protection bypass"
+    ],
+    "expiry": "Consumed by this single scoped production publication; no unrelated future release."
+  }
+}

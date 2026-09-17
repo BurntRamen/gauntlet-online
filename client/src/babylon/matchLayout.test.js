@@ -14,6 +14,7 @@ import {
   normalizeVisibleCardRotation
 } from "./matchLayout";
 import { createBoardStageDescriptor, getBoardLayoutProfile } from "./boardStage";
+import { BOARD_LAYOUT_PROFILES } from "./boardStage";
 import { resolveActorPosition } from "./presentationGeometry";
 
 function expectNoCardOverlap(positions) {
@@ -27,6 +28,18 @@ function expectNoCardOverlap(positions) {
     });
   });
 }
+
+test("reserving a DOM phone hand does not silently switch the portrait arena to desktop", () => {
+  expect(getBoardLayoutProfile(384, 480).id).toBe("desktop");
+  const projection = getTableCameraProjection(384, 480, BOARD_LAYOUT_PROFILES.portrait);
+  expect(projection.profile).toBe("portrait");
+  createBoardStageDescriptor(BOARD_LAYOUT_PROFILES.portrait).boardModules.forEach((module) => {
+    expect(module.bounds.left).toBeGreaterThanOrEqual(projection.tableBounds.left);
+    expect(module.bounds.right).toBeLessThanOrEqual(projection.tableBounds.right);
+    expect(module.bounds.bottom).toBeGreaterThanOrEqual(projection.tableBounds.bottom);
+    expect(module.bounds.top).toBeLessThanOrEqual(projection.tableBounds.top);
+  });
+});
 
 test("hand-combat ticker gives every active card a non-overlapping slot", () => {
   const positions = Array.from({ length: 12 }, (_, index) => (

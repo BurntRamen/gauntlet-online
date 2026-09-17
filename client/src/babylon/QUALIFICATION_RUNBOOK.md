@@ -7,8 +7,18 @@ results, retain failed sessions, and rerun affected checks after remediation.
 ## 1. Identify the reviewed build
 
 Set `rendererVersion` in `experience-gate.json` to an unambiguous local build
-identifier. Record the branch, date, seed, and `gauntlet-duel-v2` rules version
+identifier. Record the branch, date, seed, and `gauntlet-duel-v3` rules version
 in each playtest form. Do not use a commit identifier unless that commit exists.
+
+Start the local backend on port 4100 and the client on port 3100 with
+`REACT_APP_SOCKET_URL=http://127.0.0.1:4100`. The tracked Playwright configuration
+sets these explicitly and isolates its backend data in `.playwright-data`.
+Never use production sockets or the retired developer/query-fixture routes.
+Enter Practice through Play → Practice → Basic vs AI / Factions vs AI;
+enter a campaign through Journey → Choose a Faction / Continue Campaign →
+Begin Battle. Capture desktop, tablet, phone portrait and short landscape.
+Use the opt-in `MATCH_BASELINE_OUTPUT` test for a new baseline directory under
+`artifacts/match-redesign`; existing directories are deliberately refused.
 
 ## 2. Review the visual-state matrix
 
@@ -26,6 +36,21 @@ these categories to `"pass"` only when it genuinely passes:
 - `animationQuality`
 
 Record and remediate failures before regenerating the affected captures.
+
+The blocking state is now `single-hand-blocker`: choosing another card replaces
+the blocker, choosing that card again clears it, and payment remains a separate
+multi-card selection. Automated coverage must verify empty/multi-block commands,
+self-payment and a second declaration are rejected without changing the hand,
+payment, counters, priority, revision or archives. Keep historical multi-block
+replay coverage separately; it is not current acceptance evidence. Preserve old
+review records without silently changing their rules version or passing marks.
+
+Harmony Ward and Sapling Chorus contain legacy multi-block-dependent effects.
+Their new multi-block declarations are rejected; their card text and archived
+events have not been rewritten. The active Card Registry/Rules authority owner
+must reconcile those effects. Priority closure, lethal-life timing and remaining
+card coverage discrepancies are separate from this correction; this pass does
+not establish complete rules conformance.
 
 ## 3. Run five ordinary-player sessions
 

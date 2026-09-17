@@ -1,0 +1,116 @@
+.phone-hand-panel {
+  position: absolute;
+  z-index: 8;
+  right: max(4px, env(safe-area-inset-right));
+  left: max(4px, env(safe-area-inset-left));
+  bottom: var(--phone-hud-reserve, 142px);
+  padding: 4px 0;
+  border: 1px solid #4d5966;
+  border-radius: 7px;
+  background: #101820;
+}
+
+.phone-hand-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 8px;
+  color: #e6e1d1;
+  font: 600 10px/16px "Segoe UI", Arial, sans-serif;
+}
+
+.phone-hand-panel header span { color: #bac4cc; }
+
+.phone-hand-rail {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 8px 8px;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  scrollbar-width: thin;
+  scrollbar-color: #6b7885 #101820;
+  -webkit-overflow-scrolling: touch;
+}
+
+.phone-hand-card {
+  position: relative;
+  flex: 0 0 80px;
+  width: 80px;
+  height: 112px;
+  min-width: 80px;
+  min-height: 112px;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #9ca7ae;
+  border-radius: 5px;
+  color: #171b20;
+  background: #e6e1d1;
+  touch-action: pan-x;
+  user-select: none;
+  cursor: pointer;
+}
+
+.phone-hand-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.phone-hand-rank {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: #171b20;
+  background: #fff5df;
+  font: 800 14px/18px "Segoe UI", Arial, sans-serif;
+  pointer-events: none;
+}
+
+.phone-hand-selection {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2px;
+  color: #fff5df;
+  background: #253b4c;
+  font: 700 9px/12px "Segoe UI", Arial, sans-serif;
+  text-align: center;
+}
+
+.phone-hand-card[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #f2bd61; border-color: #f2bd61; }
+.phone-hand-card:focus-visible { outline: 2px solid #fff5df; outline-offset: 2px; }
+.phone-hand-card:disabled { cursor: default; filter: saturate(.55); }
+
+.production-match-experience.has-phone-hand {
+  --battlefield-bottom-reserve: calc(var(--phone-hud-reserve, 142px) + var(--phone-hand-reserve, 148px));
+}
+
+.has-phone-hand .production-action-buttons button { min-height: 44px; }
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .has-phone-hand .production-context-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 232px);
+    min-height: 56px;
+    gap: 8px;
+  }
+  .has-phone-hand .production-context-copy { min-width: 0; }
+  .has-phone-hand .production-context-copy strong { display: block; font-size: 10px; line-height: 1.25; }
+  .has-phone-hand .production-action-buttons { flex-shrink: 0; }
+}
+
+@media (forced-colors: active) {
+  .phone-hand-card { border-color: ButtonText; background: ButtonFace; color: ButtonText; }
+  .phone-hand-card[aria-pressed="true"] { outline: 3px solid Highlight; outline-offset: -3px; }
+  .phone-hand-rank, .phone-hand-selection { color: CanvasText; background: Canvas; }
+}

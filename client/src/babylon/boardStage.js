@@ -14,7 +14,7 @@ const DESKTOP_MOUNTS = Object.freeze({
   "lane-0": { x: -7.35, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-1": { x: 0, z: -0.15, width: 6.35, depth: 7.95 },
   "lane-2": { x: 7.35, z: -0.15, width: 6.35, depth: 7.95 },
-  "hand-combat-dais": { x: 0, z: 5.95, width: 10.2, depth: 2.65 },
+  "hand-combat-dais": { x: 0, z: 5.3, width: 10.2, depth: 4.05 },
   "payment-tray": { x: 10.75, z: -6.35, width: 6.05, depth: 4.25 },
   "pile-local-deck": { x: -12.6, z: -6.75, width: 1.68, depth: 2.26 },
   "pile-local-discard": { x: -10.4, z: -6.75, width: 2.08, depth: 2.72 },
@@ -53,8 +53,8 @@ const desktopModules = scaledDesktopModules();
 // very shallow battlefield left by browser chrome and the action rail.
 const shortLandscapeModules = scaledDesktopModules(0.92, 0.62);
 const ultrawideModules = scaledDesktopModules(0.94, 0.66);
-shortLandscapeModules["hand-combat-dais"] = { x: 0, z: 3.2, scaleX: 0.92, scaleZ: 0.62 };
-ultrawideModules["hand-combat-dais"] = { x: 0, z: 3.45, scaleX: 0.94, scaleZ: 0.66 };
+shortLandscapeModules["hand-combat-dais"] = { x: 0, z: 2.65, scaleX: 0.92, scaleZ: 0.68 };
+ultrawideModules["hand-combat-dais"] = { x: 0, z: 2.86, scaleX: 0.94, scaleZ: 0.71 };
 const portraitModules = {
   "board-base": { x: 0, z: 0, scaleX: 0.58, scaleZ: 1.5 },
   "lane-0": { x: -4.35, z: 0, scaleX: 0.68, scaleZ: 1.1 },
@@ -135,9 +135,9 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     modules: desktopModules,
     anchors: {
       laneX: [-7.35, 0, 7.35],
-      lane: { local: -3.15, opponent: 3.05, attacker: 1.25, blocker: -1.25, center: -0.05 },
+      lane: { local: -2.85, opponent: 2.55, attacker: 1.25, blocker: -1.25, center: -0.05 },
       hand: { localX: -0.35, localZ: -7.05, opponentX: 0, opponentZ: 8.25, localScale: 0.98, opponentScale: 0.52 },
-      combat: { x: 0, z: 5.95, attackerX: -1.55, blockerX: 2.05, attachmentX: -3.85 },
+      combat: { x: 0, z: 5.3, attackerX: -2.2, blockerX: 2.05, attachmentX: -4.2 },
       payment: { x: 10.75, z: -6.35 },
       piles: {
         localDeck: { x: -12.6, z: -6.75 },
@@ -175,9 +175,9 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     modules: shortLandscapeModules,
     anchors: {
       laneX: [-6.76, 0, 6.76],
-      lane: { local: -1.95, opponent: 1.89, attacker: 1.02, blocker: -1.02, center: -0.03 },
+      lane: { local: -1.3, opponent: 1.18, attacker: 1.02, blocker: -1.02, center: -0.03 },
       hand: { localX: -0.25, localZ: -4.14, opponentX: 0, opponentZ: 5.03, localScale: 0.98, opponentScale: 0.5 },
-      combat: { x: 0, z: 3.2, attackerX: -1.43, blockerX: 1.89, attachmentX: -3.54 },
+      combat: { x: 0, z: 2.65, attackerX: -2.04, blockerX: 1.89, attachmentX: -3.86 },
       payment: { x: 9.89, z: -3.94 },
       piles: {
         localDeck: { x: -11.59, z: -4.18 },
@@ -195,9 +195,9 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     modules: ultrawideModules,
     anchors: {
       laneX: [-6.91, 0, 6.91],
-      lane: { local: -2.08, opponent: 2.01, attacker: 1.08, blocker: -1.08, center: -0.03 },
+      lane: { local: -1.46, opponent: 1.28, attacker: 1.08, blocker: -1.08, center: -0.03 },
       hand: { localX: -0.25, localZ: -4.55, opponentX: 0, opponentZ: 5.28, localScale: 0.82, opponentScale: 0.48 },
-      combat: { x: 0, z: 3.45, attackerX: -1.46, blockerX: 1.93, attachmentX: -3.62 },
+      combat: { x: 0, z: 2.86, attackerX: -2.07, blockerX: 1.93, attachmentX: -3.95 },
       payment: { x: 10.11, z: -4.19 },
       piles: {
         localDeck: { x: -11.84, z: -4.46 },

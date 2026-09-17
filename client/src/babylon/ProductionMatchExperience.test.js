@@ -109,6 +109,43 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("phone rail retains selected identities through rotation and does not expose privacy, spectator or replay hands", async () => {
+  const originalWidth = window.innerWidth;
+  const originalHeight = window.innerHeight;
+  const viewModel = {
+    ...createViewModel(), matchId: "phone-continuity",
+    hand: [{ id: "card-eight", label: "8♥", rank: "8", suit: "♥", value: 8, visible: true,
+      selected: { attacker: true }, artPath: "/existing-eight.webp" }]
+  };
+  const size = (width, height) => act(() => {
+    window.innerWidth = width; window.innerHeight = height;
+    window.dispatchEvent(new Event("resize"));
+  });
+  size(390, 844);
+  const mounted = render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false }} />);
+  try {
+    expect(await screen.findByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    size(844, 390);
+    expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
+    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    size(1200, 800);
+    expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
+    size(390, 844);
+    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    for (const overrides of [
+      { privacy: { required: true, player: 1 } },
+      { viewModel: { ...viewModel, perspective: { player: 1, spectator: true } } },
+      { source: "replay" }
+    ]) {
+      mounted.rerender(<ProductionMatchExperience adapter={adapterFor({ viewModel, ...overrides })} options={{ audioEnabled: false }} />);
+      expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
+      expect(document.querySelector('img[src="/existing-eight.webp"]')).toBeNull();
+    }
+  } finally {
+    mounted.unmount(); size(originalWidth, originalHeight);
+  }
+});
+
 test("renders the player-facing HUD from an adapter without developer chrome", async () => {
   render(<ProductionMatchExperience adapter={adapterFor()} options={{ audioEnabled: false }} />);
 

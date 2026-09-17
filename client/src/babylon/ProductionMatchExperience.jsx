@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
+import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
@@ -1407,6 +1408,10 @@ export default function ProductionMatchExperience({
   const inspectionReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
   const playbackRef = useRef(null);
+  const rootRef = useRef(null);
+  const handRailRef = useRef({ enabled: false, anchors: new Map(), version: 0 });
+  const handRailMatchRef = useRef(null);
+  const phoneHandLayout = usePhoneHandLayout();
   adapterRef.current = adapter;
 
   useEffect(() => {
@@ -1530,7 +1535,8 @@ export default function ProductionMatchExperience({
       shadowMapSize: metrics?.shadowMapSize,
       shadowMapRefreshRate: metrics?.shadowMapRefreshRate,
       hardwareScalingLevel: metrics?.hardwareScalingLevel,
-      frozenBoardMeshCount: metrics?.frozenBoardMeshCount
+      frozenBoardMeshCount: metrics?.frozenBoardMeshCount,
+      externalHandActorCount: metrics?.externalHandActorCount
     });
     if (signature !== sceneMetricsSignatureRef.current) {
       sceneMetricsSignatureRef.current = signature;
@@ -1631,6 +1637,42 @@ export default function ProductionMatchExperience({
         }
       : battlefieldViewModel
   ), [battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
+
+  const phoneHandActive = Boolean(phoneHandLayout && viewModel
+    && !viewModel.perspective?.spectator && !transportUpdate?.privacy?.required
+    && update?.source !== "replay");
+  if (viewModel?.matchId !== handRailMatchRef.current) {
+    handRailMatchRef.current = viewModel?.matchId;
+    handRailRef.current.anchors.clear();
+  }
+  handRailRef.current.enabled = phoneHandActive;
+  handRailRef.current.layoutProfile = phoneHandActive
+    ? (window.innerHeight >= window.innerWidth ? "portrait" : "short-landscape") : null;
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || !phoneHandActive) return undefined;
+    const measure = () => {
+      const bounds = root.getBoundingClientRect();
+      handRailRef.current.layoutProfile = bounds.height >= bounds.width ? "portrait" : "short-landscape";
+      const panel = root.querySelector(".phone-hand-panel");
+      const controls = [".production-player-plate-bottom", ".production-context-panel"]
+        .map((selector) => root.querySelector(selector)?.getBoundingClientRect());
+      const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
+      if (hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
+      if (panel) root.style.setProperty("--phone-hand-reserve", Math.ceil(panel.getBoundingClientRect().height + 4) + "px");
+    };
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    [root, ...root.querySelectorAll(".phone-hand-panel, .production-player-plate-bottom, .production-context-panel")]
+      .forEach((element) => observer?.observe(element));
+    window.addEventListener("resize", measure);
+    measure();
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+      root.style.removeProperty("--phone-hud-reserve");
+      root.style.removeProperty("--phone-hand-reserve");
+    };
+  }, [phoneHandActive]);
 
   useEffect(() => {
     if (transportUpdate?.inspection) {
@@ -1738,11 +1780,12 @@ export default function ProductionMatchExperience({
 
   const shellClass = useMemo(() => [
     "production-match-experience",
+    phoneHandActive ? "has-phone-hand" : "",
     reducedMotion ? "reduced-motion" : "",
     update?.source ? `source-${update.source}` : "",
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
-  ].filter(Boolean).join(" "), [playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  ].filter(Boolean).join(" "), [phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
   const resultPresentationReady = Boolean(
     update?.source !== "replay"
     && viewModel?.phase === "gameOver"
@@ -1770,6 +1813,7 @@ export default function ProductionMatchExperience({
 
   return (
     <main
+      ref={rootRef}
       className={shellClass}
       data-testid="production-babylon-match"
       data-match-id={viewModel.matchId}
@@ -1806,6 +1850,8 @@ export default function ProductionMatchExperience({
       data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
       data-hand-combat-module-active={sceneMetrics?.handCombatModuleActive ? "true" : "false"}
       data-layout-profile={sceneMetrics?.layoutProfile || "initializing"}
+      data-hand-presentation={phoneHandActive ? "rail" : "canvas"}
+      data-external-hand-actor-count={sceneMetrics?.externalHandActorCount ?? ""}
       data-render-fps={sceneMetrics?.fps ?? ""}
       data-draw-calls={sceneMetrics?.drawCalls ?? ""}
       data-scene-mesh-count={sceneMetrics?.meshes ?? ""}
@@ -1829,6 +1875,7 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
             cardBackAsset={options.cardBackAsset}
+            handRailPresentation={phoneHandActive ? handRailRef : null}
             interactionStatus={transportUpdate?.connected === false
               ? "Connection interrupted. The current table is preserved while reconnecting."
               : gameplayInputLocked
@@ -1840,6 +1887,10 @@ export default function ProductionMatchExperience({
         </div>
 
         <div className="production-table-vignette" aria-hidden="true" />
+        {phoneHandActive && (
+          <PhoneHandRail viewModel={gameplayInputLocked ? canvasViewModel : presentedViewModel}
+            commands={gameplayCommands} presentationRef={handRailRef} interactionLocked={gameplayInputLocked} />
+        )}
         <PlayerPlate
           player={visualViewModel.top}
           priority={visualViewModel.priority}

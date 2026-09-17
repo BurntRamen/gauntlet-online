@@ -5,6 +5,14 @@ const root = __dirname;
 const dataDirectory = path.join(root, ".playwright-data");
 const serverUrl = "http://127.0.0.1:4100";
 const clientUrl = "http://127.0.0.1:3100";
+// CI runs several live renderer clients at once.
+// Exercise the shipped bundle without also retaining the dev compiler/HMR
+// workload. The opt-in allows the identical path to be verified locally.
+const compiledClient = process.env.CI === "true" || process.env.GAUNTLET_E2E_COMPILED === "true";
+// Explicit GLES driver for trusted loopback tests on GPU-less Linux runners;
+// no unsafe-WebGL fallback or sandbox-disabling flags are added.
+const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
+  || (process.env.CI === "true" && process.platform === "linux");
 
 module.exports = defineConfig({
   testDir: "./e2e",
@@ -17,14 +25,17 @@ module.exports = defineConfig({
     timeout: 10000
   },
   reporter: [
-    ["list"],
+    [process.env.CI === "true" ? "line" : "list"],
     ["html", { open: "never" }]
   ],
   use: {
     baseURL: clientUrl,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure"
+    video: "retain-on-failure",
+    launchOptions: {
+      args: softwareGraphics ? ["--use-gl=angle", "--use-angle=swiftshader"] : []
+    }
   },
   projects: [
     {
@@ -54,14 +65,15 @@ module.exports = defineConfig({
       }
     },
     {
-      command: "npm --prefix client start",
+      command: compiledClient ? "npm run serve:client-build" : "npm --prefix client start",
       url: clientUrl,
-      reuseExistingServer: true,
+      reuseExistingServer: !compiledClient,
       timeout: 180000,
       env: {
         PORT: "3100",
         HOST: "127.0.0.1",
         BROWSER: "none",
+        REBUILD_CLIENT: compiledClient ? "true" : "false",
         REACT_APP_SOCKET_URL: serverUrl
       }
     }

@@ -3,6 +3,7 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { test, expect } = require("@playwright/test");
 const { io } = require("socket.io-client");
+const { RULES_VERSION } = require("../shared/duel-rules");
 
 const SERVER_URL = "http://127.0.0.1:4100";
 const REPOSITORY_ROOT = path.resolve(__dirname, "..");
@@ -79,7 +80,7 @@ function createReviewManifest() {
       branch: gitValue(["branch", "--show-current"], "detached"),
       workingTreeDirty: dirtyPaths.length > 0,
       dirtyPaths,
-      rulesVersion: "gauntlet-duel-v2",
+      rulesVersion: RULES_VERSION,
       reducedMotion: REVIEW_REDUCED_MOTION,
       requestedSeed: process.env.BABYLON_REVIEW_SEED || null,
       outputDirectory: path.relative(REPOSITORY_ROOT, OUTPUT_DIRECTORY).replaceAll(path.sep, "/"),
@@ -97,7 +98,7 @@ function registerScenario(manifest, id, state, details = {}) {
     mode: state?.gameMode || details.mode || null,
     matchId: state?.matchId || details.matchId || null,
     seed: state?.seed || details.seed || null,
-    rulesVersion: state?.rulesVersion || details.rulesVersion || "gauntlet-duel-v2",
+    rulesVersion: state?.rulesVersion || details.rulesVersion || RULES_VERSION,
     reducedMotion: REVIEW_REDUCED_MOTION
   };
   if (!manifest.scenarios.some((entry) => entry.id === scenario.id)) manifest.scenarios.push(scenario);
@@ -1182,13 +1183,13 @@ test("capture real live and replay match presentation states", async ({ browser,
   await openHandControls(defender);
   await clickHandCardByValue(defender, "lowest");
   await clickHandCardByValue(defender, "lowest");
-  await expect(defender.locator('[data-match-zone="hand"][aria-pressed="true"]')).toHaveCount(2);
+  await expect(defender.locator('[data-match-zone="hand"][aria-pressed="true"]')).toHaveCount(1);
   const continueButton = currentAction(defender).getByRole("button", { name: /Choose Payment|Continue to Payment/ });
   await expect(continueButton).toBeEnabled();
   await continueButton.click();
   await payUntilEnabled(defender, "Confirm Block");
   await defender.waitForTimeout(720);
-  await captureState(defender, manifest, "block-and-payment-staged");
+  await captureState(defender, manifest, "single-hand-blocker");
   await setReviewViewport(defender, VIEWPORTS[0]);
   const blockPaymentMotionReady = waitForMotionRole(defender, "payment-enter", { latch: true });
   const blockEventReady = waitForActiveEvent(defender, "block.declared");

@@ -5,6 +5,20 @@ const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
 
+test.beforeAll(async ({ browser }) => {
+  if (process.env.CI !== "true") return;
+  const session = await browser.newBrowserCDPSession();
+  try {
+    const { gpu } = await session.send("SystemInfo.getInfo");
+    console.info("CI graphics backend:", gpu?.auxAttributes?.glRenderer
+      || gpu?.auxAttributes?.gl_renderer || gpu?.devices?.[0]?.deviceString || "unreported");
+  } catch (error) {
+    console.info("CI graphics diagnostic unavailable:", error.message);
+  } finally {
+    await session.detach();
+  }
+});
+
 function waitForEvent(socket, eventName, predicate = () => true, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -71,8 +85,11 @@ function currentAction(page) {
 }
 
 async function waitForPlaybackSettled(page) {
-  await expect(page.locator(".production-match-feed-current > span"))
-    .toHaveText("Live", { timeout: 15000 });
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toHaveAttribute("data-playback-catching-up", "false", { timeout: 15000 });
+  await expect(match).toHaveAttribute("data-playback-queued-frames", "0");
+  await expect(match).toHaveAttribute("data-active-event-type", "");
+  await expect(match).toHaveAttribute("data-active-transition-count", "0");
 }
 
 async function expectNativeSceneDiagnostics(page) {
@@ -128,8 +145,13 @@ async function localLife(page) {
   return Number(await page.locator(".production-player-plate-bottom .production-life strong").textContent());
 }
 
+let registrationSequence = 0;
 async function registerTestAccount(request, name) {
+  // Each account fixture models its own client address, instead of exhausting
+  // the unchanged five-signup quota for every scenario on one loopback IP.
+  if (new URL(SERVER_URL).hostname !== "127.0.0.1") throw new Error("Local fixtures only.");
   const response = await request.post(`${SERVER_URL}/api/auth/register`, {
+    headers: { "x-forwarded-for": `192.0.2.${++registrationSequence}` },
     data: { name, password: "Babylon-Test-Password-42" }
   });
   expect(response.ok()).toBeTruthy();
@@ -355,10 +377,13 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
   await guestContext.close();
 });
 
-test("two ordinary browser clients complete live Basic combat and placement through semantic commands", async ({ browser, baseURL }) => {
+for (const profile of ["desktop", "phone"]) {
+test(`two ordinary ${profile} browser clients complete live Basic combat and placement through semantic commands`, async ({ browser, baseURL }) => {
   test.setTimeout(120000);
-  const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
-  const guestContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+  const hostContext = await browser.newContext({ viewport: profile === "phone"
+    ? { width: 390, height: 844 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
+  const guestContext = await browser.newContext({ viewport: profile === "phone"
+    ? { width: 844, height: 390 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
   const hostPage = await hostContext.newPage();
   const guestPage = await guestContext.newPage();
 
@@ -374,6 +399,18 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await expect(guestPage.getByTestId("production-babylon-match")).toBeVisible();
   await openAccessibleControls(hostPage);
   await openAccessibleControls(guestPage);
+
+  if (profile === "phone") {
+    for (const page of [hostPage, guestPage]) {
+      await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
+      await expect(page.locator(".phone-hand-card")).toHaveCount(8);
+      await expect.poll(() => page.locator(".phone-hand-card").first().evaluate((card) => {
+        const rect = card.getBoundingClientRect();
+        return [rect.width, rect.height];
+      })).toEqual([80, 112]);
+      await expectNativeSceneDiagnostics(page);
+    }
+  }
 
   const startingPage = await hostPage.locator(".production-player-plate-bottom.has-priority").isVisible()
     ? hostPage
@@ -426,6 +463,14 @@ test("two ordinary browser clients complete live Basic combat and placement thro
 
   await expect(currentAction(startingPage)).toContainText(/may block or decline/i);
   await clickHandCardByValue(startingPage, "lowest");
+  await clickHandCardByValue(startingPage, "lowest");
+  const selectedBlocker = startingPage.locator('[data-match-zone="hand"][aria-pressed="true"]');
+  await expect(selectedBlocker).toHaveCount(1);
+  await selectedBlocker.focus();
+  await selectedBlocker.press("Enter");
+  await expect(selectedBlocker).toHaveCount(0);
+  await expect(currentAction(startingPage).getByRole("button", { name: "Choose Blocker" })).toBeDisabled();
+  await clickHandCardByValue(startingPage, "lowest");
   await currentAction(startingPage).getByRole("button", { name: "Choose Payment" }).click();
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
@@ -463,6 +508,8 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await hostContext.close();
   await guestContext.close();
 });
+
+}
 
 test("normal faction lobby entry executes Polea and Lafayette through live semantic commands", async ({ browser, baseURL }) => {
   test.setTimeout(90000);
@@ -550,6 +597,52 @@ test("normal Training Grounds entry uses the shared Babylon match and semantic A
     await page.getByTestId("production-babylon-match").getAttribute("data-revision")
   )).toBeGreaterThan(initialRevision);
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+});
+
+test("capture current match baseline through normal local practice and campaign routes", async ({ browser, baseURL }) => {
+  test.skip(!process.env.MATCH_BASELINE_OUTPUT, "Opt-in baseline capture; never overwrite qualification evidence.");
+  test.setTimeout(120000);
+  const artifactRoot = path.resolve(__dirname, "../artifacts/match-redesign");
+  const output = path.resolve(process.env.MATCH_BASELINE_OUTPUT);
+  const relative = path.relative(artifactRoot, output);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || fs.existsSync(output)) {
+    throw new Error("Baseline output must be a new directory inside artifacts/match-redesign.");
+  }
+  fs.mkdirSync(output, { recursive: true });
+  const profiles = [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "tablet", width: 1024, height: 768 },
+    { name: "phone-portrait", width: 390, height: 844 },
+    { name: "short-landscape", width: 844, height: 390 }
+  ];
+  for (const route of ["practice", "campaign"]) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await prepareGuest(page, baseURL, "Baseline Reviewer", "Practice");
+    if (route === "practice") {
+      await page.getByRole("button", { name: /Basic vs AI/ }).click();
+    } else {
+      await page.locator('button[data-area="journey"]').click();
+      await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+      await page.getByRole("button", { name: "Begin Battle", exact: true }).first().click();
+    }
+    const match = page.getByTestId("production-babylon-match");
+    await expect(match).toBeVisible();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    for (const profile of profiles) {
+      await page.setViewportSize({ width: profile.width, height: profile.height });
+      await expectNativeSceneDiagnostics(page);
+      const phone = profile.name === "phone-portrait" || profile.name === "short-landscape";
+      await expect(match).toHaveAttribute("data-hand-presentation", phone ? "rail" : "canvas");
+      if (phone) {
+        await expect(match).toHaveAttribute("data-layout-profile", profile.name === "phone-portrait" ? "portrait" : "short-landscape");
+        await expect.poll(() => page.locator(".phone-hand-card img").evaluateAll((images) =>
+          images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0))).toBe(true);
+      }
+      await page.screenshot({ path: path.join(output, `${route}-${profile.name}.png`), fullPage: true });
+    }
+    await context.close();
+  }
 });
 
 test("normal Faction Training Grounds entry uses the same production match and semantic AI", async ({ page, baseURL }) => {
