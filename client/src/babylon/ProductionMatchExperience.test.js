@@ -168,7 +168,8 @@ test("player discard controls show the selected public pile and switch without r
   const inspectCard = jest.fn();
   render(<ProductionMatchExperience options={{ audioEnabled: false }} adapter={adapterFor({
     snapshot: { players: {
-      1: { accountName: "Local", discard: [{ id: "used-three", rank: "3", suit: "♣", value: 3 }],
+      1: { accountName: "Local", discard: [{ id: "used-three", rank: "3", suit: "♣", value: 3 },
+        { id: "used-constructed", name: "Named constructed card", type: "spell", value: 2 }],
         hand: [{ id: "private-hand", name: "Never shown here" }] },
       2: { accountName: "Opponent", discard: [] }
     } }, commands: { inspectCard }
@@ -179,6 +180,8 @@ test("player discard controls show the selected public pile and switch without r
   expect(screen.getByTestId("production-babylon-match")).toHaveClass("has-reference-dock");
   expect(dock).not.toHaveTextContent("Never shown here");
   expect(dock.querySelector(".production-discard-grid img")).toHaveAttribute("loading", "lazy");
+  expect(dock.querySelectorAll(".production-discard-grid img")).toHaveLength(1);
+  expect(within(dock).getByRole("button", { name: "Named constructed card Value 2" })).not.toContainHTML("<img");
   fireEvent.click(within(dock).getByRole("button", { name: /3.*Value 3/ }));
   expect(inspectCard).toHaveBeenCalledWith(expect.objectContaining({ id: "used-three" }));
   fireEvent.click(within(dock).getByRole("button", { name: "Opponent · 0" }));

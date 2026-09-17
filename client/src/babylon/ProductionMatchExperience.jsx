@@ -860,13 +860,16 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                 <h3>{player.accountName || `Player ${player.id}`} · {(player.discard || []).length}</h3>
                 {(player.discard || []).length === 0 ? <p>No discarded cards.</p> : (
                   <div className="production-discard-grid">
-                    {player.discard.map((card, index) => (
-                      <button type="button" key={card.id || index} onClick={() => commands.inspectCard?.(card)}>
-                        <img src={getPlayingCardArtPath(card, player.faction?.id || "basic")} alt="" loading="lazy" />
-                        <strong>{cardDisplayName(card)}</strong>
-                        <span>Value {card.value}</span>
-                      </button>
-                    ))}
+                    {player.discard.map((card, index) => {
+                      const artPath = getPlayingCardArtPath(card, player.faction?.id || "basic");
+                      return (
+                        <button type="button" key={card.id || index} onClick={() => commands.inspectCard?.(card)}>
+                          {artPath && <img src={artPath} alt="" loading="lazy" />}
+                          <strong>{cardDisplayName(card)}</strong>
+                          <span>Value {card.value}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </section>

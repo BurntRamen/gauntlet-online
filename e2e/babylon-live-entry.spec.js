@@ -98,7 +98,8 @@ async function expectNativeSceneDiagnostics(page) {
   await expect(match).toHaveAttribute("data-board-module-count", "10");
   await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
   await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
-  await expect(match).toHaveAttribute("data-layout-profile", /desktop|portrait|short-landscape/);
+  // HUD reservations can legitimately make a desktop's usable table ultrawide.
+  await expect(match).toHaveAttribute("data-layout-profile", /^(desktop|portrait|short-landscape|ultrawide)$/);
 }
 
 async function openAccessibleControls(page) {
