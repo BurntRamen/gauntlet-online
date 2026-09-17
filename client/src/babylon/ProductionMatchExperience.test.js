@@ -181,7 +181,7 @@ test("player discard controls show the selected public pile and switch without r
   expect(dock).not.toHaveTextContent("Never shown here");
   expect(dock.querySelector(".production-discard-grid img")).toHaveAttribute("loading", "lazy");
   expect(dock.querySelectorAll(".production-discard-grid img")).toHaveLength(1);
-  expect(within(dock).getByRole("button", { name: "Named constructed card Value 2" })).not.toContainHTML("<img");
+  expect(within(dock).getByRole("button", { name: "Named constructed card Value 2" }).querySelector("img")).toBeNull();
   fireEvent.click(within(dock).getByRole("button", { name: /3.*Value 3/ }));
   expect(inspectCard).toHaveBeenCalledWith(expect.objectContaining({ id: "used-three" }));
   fireEvent.click(within(dock).getByRole("button", { name: "Opponent · 0" }));
