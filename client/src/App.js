@@ -5350,8 +5350,8 @@ export default function App() {
   }
 
   function selectBlockCard(i) {
-    setSelectedBlockCardIndex(i);
-    setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
+    setSelectedBlockCardIndex(selectedBlockCardIndexes.includes(i) ? null : i);
+    setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? [] : [i]));
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
@@ -6425,7 +6425,7 @@ export default function App() {
             : "";
     const ffaBlockConfirmReason =
       blockMode?.type === "handAttack" && activeBlockCards.length === 0
-        ? "Choose one or more cards to block with."
+        ? "Choose exactly one card to block with."
         : blockMode?.type === "laneAttack" && !activeBlockCard
           ? "You need a face-down card in that lane to block."
           : blockMode && paymentTotal < activeBlockRequired
@@ -6829,7 +6829,7 @@ export default function App() {
         : "";
   const blockConfirmReason =
     blockMode?.type === "handAttack" && activeBlockCards.length === 0
-      ? "Choose one or more cards to block with."
+      ? "Choose exactly one card to block with."
       : blockMode?.type === "laneAttack" && !activeBlockCard
         ? "You need a face-down card in that lane to block."
         : blockMode && paymentTotal < activeBlockRequired

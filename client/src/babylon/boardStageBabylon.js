@@ -1,4 +1,5 @@
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode.js";
+import { cardWellPose } from "./cardWellGeometry";
 import {
   BOARD_LAYOUT_PROFILES,
   BOARD_SCENE_LAYERS,
@@ -95,6 +96,7 @@ export function createBabylonBoardStage(scene, initialProfile = BOARD_LAYOUT_PRO
   });
 
   let profile = BOARD_LAYOUT_PROFILES.desktop;
+  const cardWellMeshes = scene.meshes.filter((mesh) => mesh.metadata?.gauntletCardWell);
   function applyProfile(nextProfile = BOARD_LAYOUT_PROFILES.desktop) {
     profile = nextProfile;
     const nextDescriptor = createBoardStageDescriptor(nextProfile);
@@ -103,6 +105,14 @@ export function createBabylonBoardStage(scene, initialProfile = BOARD_LAYOUT_PRO
       if (!module) return;
       module.root.position.set(nextModule.mount.x, nextModule.mount.y, nextModule.mount.z);
       module.root.scaling.set(nextModule.scale.x, nextModule.scale.y, nextModule.scale.z);
+    });
+    cardWellMeshes.forEach((mesh) => {
+      const binding = mesh.metadata.gauntletCardWell;
+      const pose = cardWellPose(binding.zone, nextProfile);
+      mesh.position.x = pose.localX + binding.offsetX * pose.scaleX;
+      mesh.position.z = pose.localZ + binding.offsetZ * pose.scaleZ;
+      mesh.scaling.x = binding.scaleX * pose.scaleX;
+      mesh.scaling[binding.depthAxis || "z"] = binding.scaleZ * pose.scaleZ;
     });
     return nextDescriptor;
   }

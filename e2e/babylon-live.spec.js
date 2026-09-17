@@ -207,29 +207,35 @@ test("faction abilities, spectator privacy, responsive layout, and accessibility
   await spectatorContext.close();
 });
 
-test("WebGL context loss falls back to React and persists for the current match", async ({ browser, baseURL }) => {
+test("WebGL context loss preserves the live HUD and commands, then retries the same match", async ({ browser, baseURL }) => {
   const duel = await seedDuel({ mode: "basic" });
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const activePlayer = duel.players[1].state.priority;
   const page = await openPlayer(context, baseURL, duel, activePlayer);
   const matchId = duel.players[1].state.matchId;
+  const match = page.getByTestId("production-babylon-match");
+  const revision = Number(await match.getAttribute("data-revision"));
 
   await page.locator("canvas.babylon-match-canvas").evaluate((canvas) => {
     canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
   });
-  await expect(page.getByTestId("production-babylon-match")).toHaveCount(0);
-  const reactMatch = page.locator(".focused-match-screen");
-  await expect(reactMatch).toBeVisible();
-  await expect(reactMatch).toContainText(`Browser ${activePlayer === 1 ? "One" : "Two"}`);
-  await reactMatch.getByRole("button", { name: "Pass / Continue" }).click();
-  await expect(reactMatch.getByText("Opponent Acting")).toBeVisible();
-  await expect.poll(() => page.evaluate(() => sessionStorage.getItem("gauntlet_babylon_failed_match")))
-    .toBe(matchId);
+  await expect(match).toBeVisible();
+  await expect(match).toHaveAttribute("data-match-id", matchId);
+  await expect(page.locator("canvas.babylon-match-canvas")).toHaveCount(0);
+  await expect(page.locator(".production-table-recovery")).toBeVisible();
+  await page.getByRole("region", { name: "Current match action" })
+    .getByRole("button", { name: "Pass Priority" }).click();
+  await expect(match).toHaveAttribute("data-revision", String(revision + 1));
+  await page.getByRole("button", { name: "Retry animated table" }).click();
+  await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+  await expect(page.locator(".production-table-recovery")).toHaveCount(0);
+  await expect(match).toHaveAttribute("data-match-id", matchId);
+  await expect(match).toHaveAttribute("data-revision", String(revision + 1));
 
   await page.reload();
-  await expect(page.getByTestId("production-babylon-match")).toHaveCount(0);
-  await expect(page.locator("canvas.babylon-match-canvas")).toHaveCount(0);
-  await expect(page.locator(".focused-match-screen")).toBeVisible();
+  await expect(match).toBeVisible();
+  await expect(match).toHaveAttribute("data-match-id", matchId);
+  await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await context.close();
 });
 
@@ -273,7 +279,7 @@ test("reduced motion and portrait accessibility preserve one native live scene",
   await context.close();
 });
 
-test("responsive, keyboard, focus, zoom, target-size, and high-contrast contracts remain usable", async ({ browser, baseURL }) => {
+test("responsive, keyboard, focus, CSS-scale smoke checks, target-size, and high-contrast contracts remain usable", async ({ browser, baseURL }) => {
   test.setTimeout(120000);
   const duel = await seedDuel({ mode: "basic" });
   const activePlayer = duel.players[1].state.priority;
@@ -341,6 +347,8 @@ test("responsive, keyboard, focus, zoom, target-size, and high-contrast contract
     .filter(({ width, height }) => width < 44 || height < 44));
   expect(undersizedTargets).toEqual([]);
 
+  // CSS scaling is only an automated smoke check. It cannot satisfy the manual
+  // browser-chrome zoom qualification at these same percentages.
   for (const zoom of [0.8, 1, 1.25, 1.5, 1.75, 2]) {
     await page.evaluate((value) => {
       document.documentElement.style.zoom = String(value);

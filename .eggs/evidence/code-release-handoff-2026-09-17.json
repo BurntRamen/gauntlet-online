@@ -1,0 +1,170 @@
+{
+  "contract": "eggs.review-handoff@1.0.0",
+  "schemaVersion": "1.0.0",
+  "handoffId": "gauntlet-code-release-handoff-2026-09-17",
+  "projectId": "gauntlet",
+  "taskId": "gauntlet-match-layout-release-2026-09-17",
+  "outcome": {
+    "summary": "Owner-approved code-only technical release: one-block declarations with atomic rejection and preserved replay archives, in-place presentation changes, complete independent phone hand cards and portrait-proportioned card wells. Unused free-camera controllers were removed without changing fixed framing, clearing the unchanged bundle gate. Fresh core tests/build/strict asset checks pass; browser, PR and deployment checks are still being completed. This is not the full authored redesign or human/device qualification.",
+    "delivered": [
+      "Scoped owner-authorized manifest v1.1.0 and local release contract; artwork, Drive and production data remain protected.",
+      "456 client, 152 server and 33 qualification-tool tests pass; production build and strict existing-asset checks pass.",
+      "Bundle 713520 / 716800 bytes gzip; ceilings unchanged."
+    ],
+    "notDone": [
+      "Pending final browser entry/usability/performance and fresh normal-route responsive captures.",
+      "Pending release PR checks, merge and Vercel/Render deployed-version verification.",
+      "Full tactical/HUD/combat/atmosphere redesign and genuine human/device qualification remain outstanding."
+    ]
+  },
+  "authority": [
+    {
+      "id": "manifest-v1.1.0",
+      "kind": "repository",
+      "location": ".eggs/project-manifest.json",
+      "exact": true
+    },
+    {
+      "id": "gauntlet-match-layout-release-2026-09-17",
+      "kind": "review",
+      "location": ".eggs/releases/match-layout-2026-09-17.json",
+      "exact": true
+    },
+    {
+      "id": "gauntlet-code-release-authority-2026-09-17",
+      "kind": "artifact",
+      "location": ".eggs/evidence/code-release-authority-2026-09-17.json",
+      "exact": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "core-check",
+      "kind": "command",
+      "location": "npm run check; exit 0 (server 150 before diagnostic addition; client 456; qualification 33; build/bundle pass)",
+      "exact": true
+    },
+    {
+      "id": "final-server-check",
+      "kind": "command",
+      "location": "npm run check:server; npm run test:server; exit 0, 152 passing after diagnostic addition",
+      "exact": true
+    },
+    {
+      "id": "strict-assets",
+      "kind": "command",
+      "location": "npm run report:match-assets -- --strict; exit 0",
+      "exact": true
+    },
+    {
+      "id": "owner-preview",
+      "kind": "preview",
+      "location": "http://127.0.0.1:3102/; isolated actual-renderer layout preview approved by direct user message",
+      "exact": true
+    }
+  ],
+  "provenance": [
+    {
+      "from": "manifest-v1.1.0",
+      "to": "gauntlet-match-layout-release-2026-09-17",
+      "relationship": "constrains"
+    },
+    {
+      "from": "gauntlet-match-layout-release-2026-09-17",
+      "to": "gauntlet-code-release-handoff-2026-09-17",
+      "relationship": "governs"
+    },
+    {
+      "from": "core-check",
+      "to": "gauntlet-code-release-handoff-2026-09-17",
+      "relationship": "validated"
+    }
+  ],
+  "deviations": [
+    "Direct interactive owner contract is local, not an invented Drive Agent Queue grant. No queue/Hub writeback occurs.",
+    "Draft visual-provenance reference remains unresolved, optional/non-governing for this non-identity code release; visual production requires future active admission.",
+    "Full human/device qualification remains pending; the user approval concerns the reviewed technical patch, not fabricated moderated sessions or completed authored releases."
+  ],
+  "automatedDetermination": "not-run",
+  "humanDecisions": [
+    {
+      "id": "scoped-code-release-approval",
+      "question": "Approve the reviewed technical changes and reconcile local release controls for commit, push, merge and deployment to main/Vercel/Render without changing artwork authority or production data?",
+      "owner": "Giuseppe",
+      "state": "answered",
+      "doesNotGrant": [
+        "canon",
+        "rights",
+        "manufacturing"
+      ]
+    }
+  ],
+  "statuses": {
+    "generated": {
+      "state": "yes",
+      "evidence": [
+        "Local reviewed technical code changes and scoped manifest/contract reconciliation"
+      ]
+    },
+    "mechanicallyValidated": {
+      "state": "pending",
+      "evidence": [
+        "Core checks pass; remaining browser/PR checks are running"
+      ]
+    },
+    "humanReviewed": {
+      "state": "yes",
+      "actor": "Giuseppe",
+      "evidence": [
+        "Direct user approval of isolated actual-renderer preview: wxcellent push it all live; scoped to this technical patch"
+      ]
+    },
+    "approved": {
+      "state": "yes",
+      "actor": "Giuseppe",
+      "evidence": [
+        "Explicit yes to the exact code-release reconciliation and rollout question"
+      ]
+    },
+    "canonApproved": {
+      "state": "not-applicable",
+      "evidence": [
+        "No lore/artwork/canon production or promotion"
+      ]
+    },
+    "releaseApproved": {
+      "state": "yes",
+      "actor": "Giuseppe",
+      "evidence": [
+        "Exact code-only release authorization; publication conditional on mechanical/PR checks"
+      ]
+    },
+    "published": {
+      "state": "no",
+      "evidence": [
+        "Not yet merged"
+      ]
+    },
+    "deployed": {
+      "state": "no",
+      "evidence": [
+        "Not yet verified"
+      ]
+    },
+    "manufactured": {
+      "state": "not-applicable",
+      "evidence": [
+        "Code only; no manufacturing"
+      ]
+    }
+  },
+  "feedbackRouting": [
+    {
+      "commentId": "full-redesign-human-device-qualification",
+      "scope": "Separate full-redesign acceptance: 18 states, five moderated sessions, actual zoom and physical-device performance",
+      "nextUse": "child-task",
+      "authorityPromotion": false
+    }
+  ],
+  "nextSafeAction": "Finish genuine mechanical/browser checks, push the scoped release branch and open a PR, require green required PR checks before merge, then verify both live deployments. Do not change art authority, data or deployment settings."
+}

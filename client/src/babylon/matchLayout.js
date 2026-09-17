@@ -14,16 +14,16 @@ export const MATCH_LAYOUT = {
   handCombat: {
     x: 0,
     y: 0.22,
-    z: 5.95,
+    z: 5.3,
     width: 10.2,
-    depth: 2.65,
+    depth: 4.05,
     spread: 2.08,
     attackX: -1.55,
     blockX: 2.05,
-    localRow: 5.95,
-    opponentRow: 5.95,
-    localBlockRow: 5.95,
-    opponentBlockRow: 5.95
+    localRow: 5.3,
+    opponentRow: 5.3,
+    localBlockRow: 5.3,
+    opponentBlockRow: 5.3
   },
   payment: {
     x: 10.75,
@@ -47,11 +47,11 @@ export const MATCH_LAYOUT = {
     discard: { width: 2.08, depth: 2.72 }
   },
   anchors: {
-    opponentFacedown: 3.05,
+    opponentFacedown: 2.55,
     opponentAttack: 1.65,
     resolution: -0.05,
     localAttack: -1.72,
-    localFacedown: -3.15
+    localFacedown: -2.85
   },
   card: { width: 2.3, height: 3.22, depth: 0.1 }
 };
@@ -179,11 +179,11 @@ export function getBattlefieldSafeFrame(width, height) {
   };
 }
 
-export function getTableCameraProjection(width, height) {
+export function getTableCameraProjection(width, height, layoutProfile = null) {
   const safeWidth = Math.max(1, Number(width) || 1);
   const safeHeight = Math.max(1, Number(height) || 1);
   const aspect = safeWidth / safeHeight;
-  const profile = getBoardLayoutProfile(safeWidth, safeHeight);
+  const profile = layoutProfile || getBoardLayoutProfile(safeWidth, safeHeight);
   // On phone portrait, frame the complete playable core (all lanes, hand,
   // combat zones) rather than shrinking it to preserve decorative table ends.
   const requiredWidthHalf = profile.cameraWidth / 2;

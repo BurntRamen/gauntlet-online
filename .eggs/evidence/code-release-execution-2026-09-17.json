@@ -1,0 +1,218 @@
+{
+  "contract": "eggs.execution-packet@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "gauntlet-code-release-execution-2026-09-17",
+  "createdAt": "2026-09-17T21:41:42Z",
+  "expiresAt": "2026-09-18T05:00:00Z",
+  "project": {
+    "id": "gauntlet",
+    "manifestVersion": "1.1.0",
+    "manifestSource": "repo-local",
+    "mode": "repository-backed"
+  },
+  "task": {
+    "id": "gauntlet-match-layout-release-2026-09-17",
+    "requestSummary": "Direct-owner authorized bounded code release; local exact Task Contract .eggs/releases/match-layout-2026-09-17.json. Admission permits bundle correction and validation; publication remains conditional on all required mechanical/PR checks. Full redesign human/device qualification remains separately pending and no art authority/data is changed.",
+    "contractRequired": true,
+    "contractResolved": true,
+    "unresolvedComments": []
+  },
+  "authority": {
+    "account": "timetwisterbrand@gmail.com",
+    "resolutionPacketId": "gauntlet-code-release-authority-2026-09-17",
+    "mode": "live",
+    "complete": true,
+    "current": true,
+    "conflictFree": true,
+    "writebackDisabled": true
+  },
+  "classification": {
+    "modality": "code",
+    "identityBearing": false,
+    "visualAuthorityMaterial": false,
+    "visualSkillRequired": false
+  },
+  "repositoryState": {
+    "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
+    "branch": "codex/gauntlet-match-redesign",
+    "base": "f19f764eb7c3cea2105dae16a0ecb3b4c4409576",
+    "canonicalBranch": "main",
+    "worktreeCount": 2,
+    "overlappingDirtyPaths": [],
+    "unrelatedDirtyPaths": [],
+    "matchesManifest": true
+  },
+  "workspaceState": {
+    "strategy": "dedicated-worktree",
+    "bindingResolved": true,
+    "policySatisfied": true
+  },
+  "skills": [
+    "eggs-project-preflight@1.0.0",
+    "eggs-safe-project-execution@1.0.0",
+    "eggs-review-handoff@1.0.0"
+  ],
+  "permissions": [
+    {
+      "action": "codeEdit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "createBranch",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "commit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "push",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "merge",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "deploy",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "productionDatabase",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "driveWriteback",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "canonApproval",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "releaseApproval",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "publication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "manufacturing",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "spending",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "externalCommunication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    }
+  ],
+  "commands": [
+    {
+      "id": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "asset-report",
+      "argv": [
+        "npm",
+        "run",
+        "report:match-assets",
+        "--",
+        "--strict"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-entry",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-usability",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:usability"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-performance",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:performance"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "preview",
+      "argv": [
+        "npm",
+        "run",
+        "serve:client-build"
+      ],
+      "cwd": ".",
+      "required": false
+    }
+  ],
+  "preview": {
+    "required": true,
+    "routes": [
+      "/"
+    ],
+    "readinessChecks": [
+      "HTTP http://127.0.0.1:3102/; isolated actual renderer owner-previewed.",
+      "Normal local practice/campaign via test runner with explicit loopback backend only; never production sockets.",
+      "All required mechanical checks and PR checks must pass before publication; no human/device acceptance is fabricated."
+    ]
+  },
+  "blockers": [],
+  "determination": "ready"
+}

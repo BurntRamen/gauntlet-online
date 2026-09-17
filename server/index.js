@@ -3086,6 +3086,10 @@ app.get("/api/matches/:matchId/completion", async (req, res) => {
 });
 
 app.get("/api/game-content", (_req, res) => {
+  // Public deployment diagnostics only; do not expose configuration or data.
+  res.set("X-Gauntlet-Rules-Version", DUEL_RULES_VERSION);
+  const deployedCommit = process.env.RENDER_GIT_COMMIT || "";
+  if (/^[a-f0-9]{40}$/i.test(deployedCommit)) res.set("X-Gauntlet-Commit", deployedCommit);
   res.json({ content: getPublicGameContent() });
 });
 
@@ -6902,6 +6906,11 @@ function chooseSemanticTrainingAiCommand(game) {
   }
 
   if (pending?.targetPlayer === 2) {
+    if (pending.block?.length) {
+      return legalActions.some((action) => action.type === "passPriority")
+        ? { type: "passPriority" }
+        : null;
+    }
     if (game.campaign && !campaignBossHasAction(game, 2)) {
       return { type: "declineBlock", attackId: pending.id };
     }
@@ -9004,8 +9013,6 @@ io.on("connection", (socket) => {
           useHeraBonus: !!useHeraBonus,
           ...copyLegacySemanticChoices(payload)
         };
-      } else if (selectedBlockIndexes.length === 0) {
-        command = { type: "declineBlock", attackId: pendingAttackId };
       } else {
         command = {
           type: "declareHandBlock",
