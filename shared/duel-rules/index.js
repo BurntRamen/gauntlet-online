@@ -244,6 +244,28 @@ function event(game, type, detail = {}) {
   };
 }
 
+// Public, immutable receipts only for cards revealed by combat/payment.
+function publicLogCard(card) {
+  if (!card) return null;
+  return { id: card.id, name: card.name || "", rank: card.rank || "", suit: card.suit || "", value: cardValue(card) };
+}
+
+function valueReceipt(entry) {
+  return {
+    card: publicLogCard(entry.card),
+    baseValue: Number.isFinite(entry.logBaseValue) ? entry.logBaseValue : cardValue(entry.card),
+    effectiveValue: Number(entry.effectiveValue || 0),
+    notes: [...(entry.valueNotes || entry.notes || [])],
+    prevention: Number(entry.preventDamage || 0),
+    preventionNotes: (entry.notes || []).filter((note) => /prevents/i.test(note))
+  };
+}
+
+function paymentReceipt(payment, notes = [], reductions = []) {
+  return { cards: payment.cards.map(publicLogCard), total: payment.total, required: payment.required,
+    notes: [...notes], reductions: reductions.map((reduction) => ({ ...reduction })) };
+}
+
 function appendHistory(game, player, label, events) {
   const entry = {
     id: `log-${game.eventSequence}-${game.actionHistory.length}`,
@@ -373,6 +395,17 @@ function temporaryBonus(card) {
   return Number(card?.temporaryValueBonus || 0);
 }
 
+function temporaryBonusNotes(card) {
+  return card?.temporaryValueBonusNotes?.length ? [...card.temporaryValueBonusNotes]
+    : temporaryBonus(card) ? [`Temporary value bonus +${temporaryBonus(card)} (source not recorded)`] : [];
+}
+
+function addTemporaryBonus(card, amount, source) {
+  const notes = temporaryBonusNotes(card);
+  card.temporaryValueBonus = temporaryBonus(card) + amount;
+  card.temporaryValueBonusNotes = [...notes, `${source} +${amount}`];
+}
+
 function controlledLaneEntries(game, playerNumber) {
   return game.lanes.flatMap((lane, laneIndex) => {
     const card = lane.facedown[playerNumber];
@@ -419,7 +452,7 @@ function gainAcceleration(game, playerNumber, amount, source, notes, events) {
   }));
   for (const card of supportCards(game, playerNumber)) {
     if (cardIs(card, "bizi-solar-array-adept")) {
-      card.temporaryValueBonus = temporaryBonus(card) + amount;
+      addTemporaryBonus(card, amount, "Solar Array Adept");
       if (notes) notes.push(`Solar Array Adept +${amount}`);
     }
   }
@@ -1068,7 +1101,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     }));
   }
   if (cardIs(card, "frumo-ristus-rises")) {
-    card.temporaryValueBonus = temporaryBonus(card) + 1;
+    addTemporaryBonus(card, 1, "Ristus Rises");
     player.turnData.frumoLaneSwappedThisTurn = true;
     events.push(event(game, "card.buffApplied", {
       player: playerNumber,
@@ -1133,6 +1166,7 @@ function clearTemporaryBonuses(game) {
   const clearCard = (card) => {
     if (card && Object.prototype.hasOwnProperty.call(card, "temporaryValueBonus")) {
       delete card.temporaryValueBonus;
+      delete card.temporaryValueBonusNotes;
     }
   };
   for (const playerNumber of [1, 2]) {
@@ -1222,7 +1256,8 @@ function resolveAttack(game, attack, laneIndex, events) {
     attackValue: attack.effectiveValue,
     blockValue,
     prevented,
-    damage
+    damage,
+    calculation: { attack: valueReceipt(attack), blocks: (attack.block || []).map(valueReceipt) }
   }));
   if (damage > 0) {
     events.push(event(game, "damage.dealt", {
@@ -1507,6 +1542,7 @@ function applyCommand(current, rawCommand) {
       source: "campaignBoss",
       sourceLane: null,
       effectiveValue: value,
+      logBaseValue: baseValue,
       block: [],
       attachedCards: [],
       notes,
@@ -1539,7 +1575,10 @@ function applyCommand(current, rawCommand) {
         attackId: attack.id,
         source: "campaignBoss",
         sourceLane: null,
-        effectiveValue: value
+        effectiveValue: value,
+        cardId,
+        card: publicLogCard(attack.card),
+        calculation: { attack: valueReceipt(attack) }
       }),
       event(game, "priority.granted", { player: 1 })
     );
@@ -1584,6 +1623,8 @@ function applyCommand(current, rawCommand) {
       payment.cards
     );
     if (constructedAttack.error) return reject(current, command, constructedAttack.error);
+    const valueNotes = [...temporaryBonusNotes(attackCard),
+      ...attackBonus.notes.filter((note) => !note.startsWith("Temporary +")), ...constructedAttack.notes];
     attackBonus.bonus += constructedAttack.bonus;
     attackBonus.notes.push(...constructedPayment.notes, ...constructedAttack.notes);
     consumeConstructedPaymentBonus(actor, constructedPayment.consume);
@@ -1600,6 +1641,7 @@ function applyCommand(current, rawCommand) {
       card: attackCard,
       effectiveValue: cardValue(attackCard) + attackBonus.bonus,
       notes: attackBonus.notes,
+      valueNotes,
       attachedCards: constructedAttack.attachedCards,
       block: [],
       payment: { player, cards: payment.cards, total: payment.total, required: payment.required }
@@ -1634,7 +1676,10 @@ function applyCommand(current, rawCommand) {
     game.paymentLog.push({ type: "attack", player, cards: payment.cards, total: payment.total, required: payment.required });
     game.message = `Player ${player} attacked ${laneIndex == null ? "from hand" : `from Lane ${laneIndex + 1}`}. Player ${defender} may block or decline.`;
     events.push(
-      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required: payment.required }),
+      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required: payment.required,
+        cards: payment.cards.map(publicLogCard),
+        calculation: paymentReceipt(payment, [...constructedPayment.notes, ...(hera.bonus ? [`Hera payment +${hera.bonus}`] : [])],
+          [...(requirement.reductions || []), ...(requirement.freeAttackUsed ? [{ source: "Meerus free third attack", amount: cardValue(attackCard) }] : [])]) }),
       ...(hera.bonus ? [event(game, "payment.modified", {
         player,
         source: "Hera",
@@ -1661,7 +1706,9 @@ function applyCommand(current, rawCommand) {
         sourceLane: attack.sourceLane,
         laneIndex,
         effectiveValue: attack.effectiveValue,
-        notes: attack.notes
+        notes: attack.notes,
+        card: publicLogCard(attackCard),
+        calculation: { attack: valueReceipt(attack) }
       })
     );
     label = `Player ${player} declared a ${laneIndex == null ? "hand" : `Lane ${laneIndex + 1}`} attack with ${attackCard.rank}${attackCard.suit}.`;
@@ -1755,6 +1802,8 @@ function applyCommand(current, rawCommand) {
           + moonlitBonus,
         preventDamage: constructedBlock.preventDamage,
         notes,
+        valueNotes: [...temporaryBonusNotes(card),
+          ...notes.filter((note) => !constructedPayment.notes.includes(note) && !/prevents/i.test(note))],
         payment: { player, cards: payment.cards, total: payment.total, required }
       };
       recordPlayedCard(actor, card);
@@ -1766,6 +1815,7 @@ function applyCommand(current, rawCommand) {
     if (payment.cards.some((card) => cardIs(card, "sheen-mossbound-staff"))) {
       blockEntries[0].effectiveValue += 1;
       blockEntries[0].notes.push("Mossbound Staff +1");
+      blockEntries[0].valueNotes.push("Mossbound Staff +1");
     }
     if (
       blockEntries.length >= 2
@@ -1773,6 +1823,7 @@ function applyCommand(current, rawCommand) {
     ) {
       blockEntries[0].effectiveValue += 1;
       blockEntries[0].notes.push("Sapling Chorus +1");
+      blockEntries[0].valueNotes.push("Sapling Chorus +1");
     }
     pending.attack.block.push(...blockEntries);
     if (pending.laneIndex != null) game.lanes[pending.laneIndex].block.push(...blockEntries);
@@ -1798,7 +1849,9 @@ function applyCommand(current, rawCommand) {
     applyAfterConstructedBlock(game, player, blockEntries, events);
     game.paymentLog.push({ type: "block", player, cards: payment.cards, total: payment.total, required });
     events.push(
-      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required }),
+      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required,
+        cards: payment.cards.map(publicLogCard),
+        calculation: paymentReceipt(payment, [...constructedPayment.notes, ...(hera.bonus ? [`Hera payment +${hera.bonus}`] : [])]) }),
       ...(hera.bonus ? [event(game, "payment.modified", {
         player,
         source: "Hera",
@@ -1822,7 +1875,10 @@ function applyCommand(current, rawCommand) {
         targetPlayer: pending.attack.player,
         attackId: pending.attack.id,
         cardIds: blockerIds,
-        laneIndex: pending.laneIndex
+        laneIndex: pending.laneIndex,
+        cards: blockCards.map(publicLogCard),
+        blockValue: blockEntries.reduce((total, entry) => total + entry.effectiveValue, 0),
+        calculation: { blocks: blockEntries.map(valueReceipt) }
       })
     );
     label = `Player ${player} blocked with ${blockCards.map((card) => `${card.rank}${card.suit}`).join(", ")}.`;
@@ -1964,7 +2020,7 @@ function applyCommand(current, rawCommand) {
         }
         for (const support of supportCards(game, player)) {
           if (cardIs(support, "frumo-riptide-smuggler") && !actor.turnData.frumoRiptideSmugglerUsed) {
-            support.temporaryValueBonus = temporaryBonus(support) + 1;
+            addTemporaryBonus(support, 1, "Riptide Smuggler");
             actor.turnData.frumoRiptideSmugglerUsed = true;
             events.push(event(game, "card.buffApplied", {
               player,
@@ -1981,8 +2037,9 @@ function applyCommand(current, rawCommand) {
         if (target.card && Number.isFinite(Number(target.effectiveValue))) {
           target.effectiveValue += 1;
           target.notes = [...(target.notes || []), "Polea +1"];
+          target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), "Polea +1"];
         } else {
-          target.temporaryValueBonus = temporaryBonus(target) + 1;
+          addTemporaryBonus(target, 1, "Polea");
         }
         events.push(event(game, "card.buffApplied", { player, amount: 1, source: "Polea" }));
         label = `Player ${player} used Polea to give a card +1 this turn.`;
@@ -2022,8 +2079,9 @@ function applyCommand(current, rawCommand) {
       if (target.card && Number.isFinite(Number(target.effectiveValue))) {
         target.effectiveValue += focusBonus;
         target.notes = [...(target.notes || []), `Focus +${focusBonus}`];
+        target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), `Focus +${focusBonus}`];
       } else {
-        target.temporaryValueBonus = temporaryBonus(target) + focusBonus;
+        addTemporaryBonus(target, focusBonus, "Focus");
       }
       actor.accelerationCounters -= 1;
       actor.turnData.focusUsed = true;
@@ -2114,6 +2172,10 @@ function applyCommand(current, rawCommand) {
     entry.revision = game.revision;
   });
   const actionLogEntry = appendHistory(game, player, label, events);
+  // Only already-public combat/payment receipts enter the reconnectable log.
+  game.publicCombatLog = [...(game.publicCombatLog || []), ...events.filter((entry) =>
+    ["payment.discarded", "attack.declared", "block.declared", "damage.calculated"].includes(entry.type)
+  ).map((entry) => clone(entry))].slice(-300);
   game.lastEvents = events.map((entry) => ({ ...entry }));
   return {
     commandId,

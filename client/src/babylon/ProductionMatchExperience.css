@@ -323,61 +323,6 @@
   backdrop-filter: blur(10px);
 }
 
-.production-faction-actions {
-  position: absolute;
-  z-index: 7;
-  left: calc(max(6px, env(safe-area-inset-left)) + clamp(218px, 20vw, 294px) + 8px);
-  bottom: max(6px, env(safe-area-inset-bottom));
-  display: grid;
-  max-width: min(430px, 45vw);
-  gap: 5px;
-  padding: 8px 10px;
-  border: 1px solid rgba(181, 137, 79, 0.52);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--battlefield-plate) 88%, rgba(6, 13, 21, 0.92));
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48);
-}
-
-.production-faction-actions > span {
-  color: var(--gauntlet-bronze);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.production-faction-actions > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.production-faction-actions button {
-  min-height: 44px;
-  padding: 6px 10px;
-  border: 1px solid #4b6172;
-  border-radius: 7px;
-  color: var(--gauntlet-parchment);
-  background: #152536;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.production-faction-actions button:hover,
-.production-faction-actions button:focus-visible,
-.production-faction-actions button.is-active {
-  border-color: var(--gauntlet-sapphire);
-  outline: none;
-  background: #174f9d;
-  box-shadow: 0 0 14px rgba(30, 107, 255, 0.3);
-}
-
-.production-faction-actions button:disabled {
-  cursor: default;
-  opacity: 0.38;
-}
-
 .production-context-copy {
   display: grid;
   gap: 3px;
@@ -1353,11 +1298,6 @@
     width: min(390px, 52vw);
   }
 
-  .production-faction-actions {
-    bottom: 90px;
-    max-width: 40vw;
-  }
-
   .production-mode-marker {
     top: 86px;
     left: max(14px, env(safe-area-inset-left));
@@ -1393,10 +1333,6 @@
     width: min(360px, 58vw);
     min-height: 90px;
     padding: 8px;
-  }
-
-  .production-faction-actions {
-    display: none;
   }
 
   .production-card-preview {
@@ -2020,8 +1956,7 @@
   }
 
   .production-player-copy span,
-  .production-priority,
-  .production-faction-actions {
+  .production-priority {
     display: none;
   }
 
@@ -2122,10 +2057,6 @@
     --battlefield-side-reserve: 4px;
   }
 
-  .production-faction-actions {
-    display: none;
-  }
-
   .production-context-abilities {
     display: flex;
     flex-wrap: wrap;
@@ -2162,7 +2093,6 @@
 
 .source-replay .production-player-plate,
 .source-replay .production-context-panel,
-.source-replay .production-faction-actions,
 .source-replay .production-turn-marker,
 .source-replay .production-mode-marker,
 .source-replay .production-campaign-encounter,
@@ -2391,4 +2321,81 @@
     --battlefield-top-reserve: 110px;
     --battlefield-bottom-reserve: 4px;
   }
+}
+
+/* Reference space is outside the table/HUD rectangle, never over playable cards. */
+.has-reference-dock .production-match-surface { bottom: min(260px, 30dvh); }
+.production-reference-panel.is-docked {
+  inset: auto 0 0;
+  height: min(260px, 30dvh);
+  padding: 0;
+  background: #0b141d;
+  backdrop-filter: none;
+}
+.is-docked .production-reference-card {
+  width: 100%; height: 100%; max-height: 100%; box-sizing: border-box;
+  padding: 12px; gap: 10px; border-radius: 0; box-shadow: none;
+  display: block;
+}
+.is-docked .production-reference-card > header { gap: 8px; margin-bottom: 10px; }
+.is-docked .production-reference-card h2 { font: 800 18px/1.3 Inter, "Segoe UI", sans-serif; }
+.is-docked .production-faction-reference,
+.is-docked .production-discard-columns { grid-template-columns: 1fr; }
+.production-discard-switcher { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.production-discard-switcher button,
+.production-player-abilities,
+.production-player-piles button {
+  min-height: 44px; padding: 5px 8px; border: 1px solid #587087;
+  border-radius: 5px; color: #e6e1d1; background: #152330;
+  font: 700 11px/1.25 Inter, "Segoe UI", sans-serif; cursor: pointer;
+  pointer-events: auto;
+}
+.production-player-abilities { grid-column: 1 / -1; margin-top: 4px; }
+.production-player-piles { align-items: center; }
+.production-player-piles button { padding: 2px 5px; font-size: 10px; }
+.production-player-plate .production-player-piles { overflow: visible; display: flex; }
+.production-player-abilities[aria-expanded="true"],
+.production-discard-switcher button[aria-pressed="true"] { border-color: #e6c18a; background: #2a3540; }
+.production-player-abilities:focus-visible,
+.production-player-piles button:focus-visible,
+.production-discard-switcher button:focus-visible { outline: 2px solid #fff5df; outline-offset: 2px; }
+.production-discard-grid button { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.production-discard-grid button img { width: 80px; height: 112px; object-fit: contain; }
+.production-match-log li small { white-space: pre-line; overflow-wrap: anywhere; }
+
+@media (min-width: 1100px) and (min-height: 600px), (orientation: landscape) and (max-height: 599px) {
+  .has-reference-dock { --reference-dock-width: min(360px, 34vw); }
+  .has-reference-dock .production-match-surface { right: var(--reference-dock-width); bottom: 0; }
+  .production-reference-panel.is-docked { inset: 0 0 0 auto; width: var(--reference-dock-width); height: 100%; }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .production-player-plate-bottom { padding: 5px; }
+  .production-player-plate-top .production-player-piles b { display: none; }
+  .production-player-plate-bottom .production-player-piles { grid-column: 1 / -1; }
+  .production-player-abilities { font-size: 10px; }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .has-phone-hand .phone-hand-panel { left: 232px; bottom: 4px; }
+  .has-phone-hand .production-context-panel {
+    left: 4px; right: auto; bottom: 4px; width: 220px; min-height: 68px;
+    box-sizing: border-box; display: grid; gap: 4px; padding: 5px;
+  }
+  .has-phone-hand .production-context-kicker { display: none; }
+  .has-phone-hand .production-action-buttons { display: flex; gap: 4px; }
+  .has-phone-hand .production-action-buttons button { flex: 1; padding: 3px; font-size: 9px; }
+  .has-phone-hand .production-player-plate-bottom {
+    bottom: 80px; width: 220px; box-sizing: border-box;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+  }
+  .has-phone-hand .production-player-plate-bottom .production-player-crest { display: none; }
+  .has-phone-hand .production-player-plate-bottom .production-player-copy { grid-column: 2; grid-row: 1; }
+  .has-phone-hand .production-player-plate-bottom .production-life { grid-column: 3; grid-row: 1 / span 2; }
+  .has-phone-hand .production-player-plate-bottom .production-priority { grid-column: 2; grid-row: 2; }
+  .has-phone-hand .production-player-abilities {
+    grid-column: 1; grid-row: 1 / span 2; width: 44px;
+    margin: 0; padding: 3px; font-size: 8px;
+  }
+  .has-phone-hand.has-reference-dock .production-match-ledger { display: none; }
 }

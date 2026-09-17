@@ -25,6 +25,7 @@ import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 import { PlayerAvatar, resolveProfileAvatarUrl } from "../ProfileAvatar";
+import { getPlayingCardArtPath } from "../cardArt";
 
 const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
 
@@ -422,7 +423,10 @@ function PlayerPlate({
   position,
   serverUrl = "",
   activeLabel = "Priority",
-  statusOverride = ""
+  statusOverride = "",
+  onOpenDiscard,
+  onOpenAbilities,
+  abilitiesOpen = false
 }) {
   if (!player) return null;
   const hasPriority = priority === player.id;
@@ -456,7 +460,10 @@ function PlayerPlate({
         <span>{player.factionName || "Gauntlet"} · Hand {player.handCount}</span>
         <span className="production-player-piles">
           <b>Deck {player.deckCount ?? 0}</b>
-          <b>Discard {player.discardCount ?? 0}</b>
+          <button type="button" onClick={onOpenDiscard}
+            aria-label={`Show ${player.name}'s discard pile, ${player.discardCount ?? 0} cards`}>
+            Discard {player.discardCount ?? 0}
+          </button>
         </span>
       </div>
       <div className="production-life" aria-label={`${player.life} life`}>
@@ -466,6 +473,12 @@ function PlayerPlate({
       <div className="production-priority">
         {statusOverride || (hasPriority ? activeLabel : player.connected === false ? "Disconnected" : "Waiting")}
       </div>
+      {onOpenAbilities && (
+        <button type="button" className="production-player-abilities" data-match-zone="abilities"
+          aria-expanded={abilitiesOpen} aria-controls="match-reference-dock" onClick={onOpenAbilities}>
+          Faction abilities
+        </button>
+      )}
     </section>
   );
 }
@@ -580,47 +593,6 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
             </button>
           </>
         )}
-      </div>
-      {!!interactions.abilities?.length && (
-        <div className="production-context-abilities" aria-label="Compact faction actions">
-          {interactions.abilities.map((ability) => (
-            <button
-              type="button"
-              key={ability.id}
-              disabled={!connected || ability.available === false}
-              aria-pressed={ability.active}
-              onClick={() => commands.activateAbility?.(ability.id)}
-            >
-              {ability.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function FactionActions({ viewModel, commands, connected }) {
-  const abilities = viewModel?.interactions?.abilities || [];
-  if (!abilities.length || viewModel?.perspective?.spectator) return null;
-  return (
-    <section className="production-faction-actions" aria-label="Faction abilities">
-      <span>Faction actions</span>
-      <div>
-        {abilities.map((ability) => (
-          <button
-            type="button"
-            key={ability.id}
-            data-match-zone="abilities"
-            className={ability.active ? "is-active" : ""}
-            disabled={!connected || ability.available === false}
-            aria-pressed={ability.active}
-            title={ability.reason || ability.intent || ""}
-            onClick={() => commands.activateAbility?.(ability.id)}
-          >
-            {ability.label}
-          </button>
-        ))}
       </div>
     </section>
   );
@@ -833,23 +805,35 @@ function MatchLedger({ entries, snapshot, onOpen }) {
   );
 }
 
-function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose }) {
+function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
+  playerId, onSelectPlayer, connected = true }) {
   if (!kind) return null;
   const players = Object.entries(snapshot?.players || {})
     .map(([playerId, player]) => ({ id: Number(playerId), ...player }))
     .sort((left, right) => left.id - right.id);
   const playersById = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
-  const numericalEvents = recentEvents.slice(-16);
-  const numericalSequenceOffset = Math.max(0, recentEvents.length - numericalEvents.length);
+  const numericalEvents = Array.from(new Map([
+    ...(snapshot?.publicCombatLog || []), ...recentEvents
+  ].map((entry, index) => [entry.id || `unrecorded-${index}`, entry])).values())
+    .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0)).slice(-300);
+  const numericalSequenceOffset = 0;
   const titles = {
     discard: "Discard piles",
     log: "Match log",
     factions: "Faction abilities",
     keyboard: "Keyboard help"
   };
+  const docked = kind === "discard" || kind === "factions";
+  const shownPlayers = kind === "discard" && playerId
+    ? players.filter((player) => player.id === playerId)
+    : kind === "factions" && !viewModel?.perspective?.spectator
+      ? players.filter((player) => player.id === viewModel?.perspective?.player)
+      : players;
   return (
-    <section className="production-reference-panel" role="dialog" aria-modal="true" aria-label={titles[kind]}>
+    <section id={docked ? "match-reference-dock" : undefined}
+      className={`production-reference-panel${docked ? " is-docked" : ""}`}
+      role="dialog" aria-modal={docked ? undefined : true} aria-label={titles[kind]}>
       <div className="production-reference-card">
         <header>
           <div>
@@ -859,14 +843,26 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
           <button type="button" autoFocus onClick={onClose}>Close</button>
         </header>
         {kind === "discard" && (
-          <div className="production-discard-columns">
+          <nav className="production-discard-switcher" aria-label="Choose discard pile">
+            <button type="button" aria-pressed={!playerId} onClick={() => onSelectPlayer(null)}>Both piles</button>
             {players.map((player) => (
+              <button type="button" key={player.id} aria-pressed={playerId === player.id}
+                onClick={() => onSelectPlayer(player.id)}>
+                {player.accountName || `Player ${player.id}`} · {(player.discard || []).length}
+              </button>
+            ))}
+          </nav>
+        )}
+        {kind === "discard" && (
+          <div className="production-discard-columns">
+            {shownPlayers.map((player) => (
               <section key={player.id} aria-label={`Player ${player.id} discard pile`}>
                 <h3>{player.accountName || `Player ${player.id}`} · {(player.discard || []).length}</h3>
                 {(player.discard || []).length === 0 ? <p>No discarded cards.</p> : (
                   <div className="production-discard-grid">
-                    {player.discard.map((card) => (
-                      <button type="button" key={card.id} onClick={() => commands.inspectCard?.(card)}>
+                    {player.discard.map((card, index) => (
+                      <button type="button" key={card.id || index} onClick={() => commands.inspectCard?.(card)}>
+                        <img src={getPlayingCardArtPath(card, player.faction?.id || "basic")} alt="" loading="lazy" />
                         <strong>{cardDisplayName(card)}</strong>
                         <span>Value {card.value}</span>
                       </button>
@@ -921,7 +917,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
         )}
         {kind === "factions" && (
           <div className="production-faction-reference">
-            {players.map((player) => (
+            {shownPlayers.map((player) => (
               <section key={player.id} className={player.id === viewModel?.perspective?.player ? "is-local" : ""}>
                 <span>Player {player.id}</span>
                 <h3>{player.faction?.name || "Basic Gauntlet"}</h3>
@@ -949,7 +945,8 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                         type="button"
                         key={ability.id}
                         className={ability.active ? "is-active" : ""}
-                        disabled={ability.available === false}
+                        data-match-zone="abilities"
+                        disabled={!connected || ability.available === false}
                         aria-pressed={ability.active}
                         title={ability.reason || ability.intent || "Unavailable in the current match state."}
                         onClick={() => {
@@ -1399,6 +1396,7 @@ export default function ProductionMatchExperience({
   const [presentationKit, setPresentationKit] = useState(FALLBACK_PRESENTATION_KIT);
   const [adapterError, setAdapterError] = useState("");
   const [referencePanel, setReferencePanel] = useState(null);
+  const [referencePlayer, setReferencePlayer] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
@@ -1406,6 +1404,7 @@ export default function ProductionMatchExperience({
   const adapterRef = useRef(adapter);
   const sceneMetricsSignatureRef = useRef("");
   const inspectionReturnFocusRef = useRef(null);
+  const referenceReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
   const playbackRef = useRef(null);
   const rootRef = useRef(null);
@@ -1571,11 +1570,17 @@ export default function ProductionMatchExperience({
       loadPresentationModule: options.presentationModelLoader,
       presentationCue: playUiTone,
       previewCard: setPreviewCard,
-      openDiscard: () => setReferencePanel("discard"),
+      openDiscard: (pile) => {
+        referenceReturnFocusRef.current = document.activeElement;
+        setReferencePlayer(typeof pile === "number" ? pile : pile
+          ? String(pile).toLowerCase().includes("opponent") ? viewModel?.top?.id : viewModel?.bottom?.id
+          : null);
+        setReferencePanel("discard");
+      },
       newMatch: withTone("ui.confirm", commands.newMatch),
       concede: withTone("ui.confirm", commands.concede)
     };
-  }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision]);
+  }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision, viewModel?.top?.id, viewModel?.bottom?.id]);
   const gameplayInputLocked = Boolean(
     transportUpdate?.connected === false
     || playbackState.inputLocked
@@ -1641,6 +1646,19 @@ export default function ProductionMatchExperience({
   const phoneHandActive = Boolean(phoneHandLayout && viewModel
     && !viewModel.perspective?.spectator && !transportUpdate?.privacy?.required
     && update?.source !== "replay");
+  const referenceDockActive = (referencePanel === "discard" || referencePanel === "factions")
+    && !transportUpdate?.privacy?.required;
+  const openReference = useCallback((kind) => {
+    referenceReturnFocusRef.current = document.activeElement;
+    setReferencePlayer(null);
+    setReferencePanel(kind);
+  }, []);
+  const closeReference = useCallback(() => {
+    setReferencePanel(null);
+    const target = referenceReturnFocusRef.current;
+    if (target?.isConnected) window.requestAnimationFrame(() => target.focus());
+    referenceReturnFocusRef.current = null;
+  }, []);
   if (viewModel?.matchId !== handRailMatchRef.current) {
     handRailMatchRef.current = viewModel?.matchId;
     handRailRef.current.anchors.clear();
@@ -1650,19 +1668,29 @@ export default function ProductionMatchExperience({
     ? (window.innerHeight >= window.innerWidth ? "portrait" : "short-landscape") : null;
   useLayoutEffect(() => {
     const root = rootRef.current;
-    if (!root || !phoneHandActive) return undefined;
+    if (!root) return undefined;
     const measure = () => {
-      const bounds = root.getBoundingClientRect();
+      const bounds = root.querySelector(".production-match-surface").getBoundingClientRect();
       handRailRef.current.layoutProfile = bounds.height >= bounds.width ? "portrait" : "short-landscape";
       const panel = root.querySelector(".phone-hand-panel");
+      const sideHand = phoneHandActive && window.innerWidth > window.innerHeight && window.innerHeight <= 520;
       const controls = [".production-player-plate-bottom", ".production-context-panel"]
         .map((selector) => root.querySelector(selector)?.getBoundingClientRect());
+      if (sideHand && panel) controls.push(panel.getBoundingClientRect());
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
-      if (hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
-      if (panel) root.style.setProperty("--phone-hand-reserve", Math.ceil(panel.getBoundingClientRect().height + 4) + "px");
+      if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
+      if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
+        root.style.setProperty("--battlefield-bottom-reserve", Math.ceil(hudHeight) + "px");
+      if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
+      if (update?.source !== "replay") {
+        const top = [".production-player-plate-top", ".production-match-utilities"]
+          .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
+        root.style.setProperty("--battlefield-top-reserve",
+          Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
+      }
     };
     const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
-    [root, ...root.querySelectorAll(".phone-hand-panel, .production-player-plate-bottom, .production-context-panel")]
+    [root, ...root.querySelectorAll(".production-match-surface, .phone-hand-panel, .production-player-plate-bottom, .production-context-panel")]
       .forEach((element) => observer?.observe(element));
     window.addEventListener("resize", measure);
     measure();
@@ -1671,8 +1699,10 @@ export default function ProductionMatchExperience({
       window.removeEventListener("resize", measure);
       root.style.removeProperty("--phone-hud-reserve");
       root.style.removeProperty("--phone-hand-reserve");
+      root.style.removeProperty("--battlefield-bottom-reserve");
+      root.style.removeProperty("--battlefield-top-reserve");
     };
-  }, [phoneHandActive]);
+  }, [phoneHandActive, referenceDockActive, update?.source]);
 
   useEffect(() => {
     if (transportUpdate?.inspection) {
@@ -1719,7 +1749,7 @@ export default function ProductionMatchExperience({
       }
       if (key === "escape" && referencePanel) {
         event.preventDefault();
-        setReferencePanel(null);
+        closeReference();
         return;
       }
       if (element?.matches?.("input, select, textarea, [contenteditable='true']")) return;
@@ -1729,6 +1759,10 @@ export default function ProductionMatchExperience({
       };
       if (key === "h" || key === "l" || key === "f" || key === "a") {
         event.preventDefault();
+        if (key === "f" && presentedViewModel.mode === "factions") {
+          openReference("factions");
+          return;
+        }
         focusZone({ h: "hand", l: "lanes", f: "abilities", a: "actions" }[key]);
         return;
       }
@@ -1766,7 +1800,7 @@ export default function ProductionMatchExperience({
       }
       if (key === "d") {
         event.preventDefault();
-        setReferencePanel("discard");
+        interactionCommands.openDiscard();
         return;
       }
       if (key === "escape" && !gameplayInputLocked) {
@@ -1776,16 +1810,17 @@ export default function ProductionMatchExperience({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.inspection]);
+  }, [closeReference, openReference, gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.inspection]);
 
   const shellClass = useMemo(() => [
     "production-match-experience",
     phoneHandActive ? "has-phone-hand" : "",
+    referenceDockActive ? "has-reference-dock" : "",
     reducedMotion ? "reduced-motion" : "",
     update?.source ? `source-${update.source}` : "",
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
-  ].filter(Boolean).join(" "), [phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  ].filter(Boolean).join(" "), [referenceDockActive, phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
   const resultPresentationReady = Boolean(
     update?.source !== "replay"
     && viewModel?.phase === "gameOver"
@@ -1897,6 +1932,7 @@ export default function ProductionMatchExperience({
           position="top"
           serverUrl={options.serverUrl}
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
+          onOpenDiscard={() => interactionCommands.openDiscard(visualViewModel.top.id)}
         />
         <PlayerPlate
           player={visualViewModel.bottom}
@@ -1905,14 +1941,11 @@ export default function ProductionMatchExperience({
           serverUrl={options.serverUrl}
           activeLabel={presentedViewModel.phase === "end" ? "Placing" : "Priority"}
           statusOverride={transportUpdate?.connected === false ? "Reconnecting" : ""}
+          onOpenDiscard={() => interactionCommands.openDiscard(visualViewModel.bottom.id)}
+          onOpenAbilities={viewModel.mode === "factions" && !viewModel.perspective?.spectator
+            ? () => referencePanel === "factions" ? closeReference() : openReference("factions") : undefined}
+          abilitiesOpen={referencePanel === "factions"}
         />
-        {!playbackState.catchingUp && (
-          <FactionActions
-            viewModel={presentedViewModel}
-            commands={gameplayCommands}
-            connected={!gameplayInputLocked}
-          />
-        )}
         <ContextActions
           viewModel={presentedViewModel}
           commands={gameplayCommands}
@@ -1931,7 +1964,7 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             graphicsScalingLevel={sceneMetrics?.hardwareScalingLevel}
             onGraphicsQualityChange={updateGraphicsQuality}
-            onOpenReference={setReferencePanel}
+            onOpenReference={openReference}
           />
         )}
 
@@ -1966,14 +1999,6 @@ export default function ProductionMatchExperience({
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
         <CardPreview preview={previewCard} />
         <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
-        <MatchReferencePanel
-          kind={referencePanel}
-          snapshot={update?.snapshot}
-          viewModel={presentedViewModel}
-          commands={interactionCommands}
-          recentEvents={feedEntries}
-          onClose={() => setReferencePanel(null)}
-        />
         {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}
@@ -1991,6 +2016,19 @@ export default function ProductionMatchExperience({
         )}
 
       </div>
+      {!transportUpdate?.privacy?.required && (
+        <MatchReferencePanel
+          kind={referencePanel}
+          snapshot={update?.snapshot}
+          viewModel={presentedViewModel}
+          commands={gameplayCommands}
+          connected={!gameplayInputLocked}
+          playerId={referencePlayer}
+          onSelectPlayer={setReferencePlayer}
+          recentEvents={feedEntries}
+          onClose={closeReference}
+        />
+      )}
       <PrivacyCurtain privacy={transportUpdate?.privacy} />
     </main>
   );

@@ -1,0 +1,68 @@
+{
+  "contract": "gauntlet.interactive-release-contract@1.0.0",
+  "id": "gauntlet-match-inspection-2026-09-17",
+  "status": "owner-authorized-code-release",
+  "authorizingOwner": "Giuseppe",
+  "authorizationSource": {
+    "type": "direct-user-message",
+    "standingRequest": "from now on just make changes live",
+    "currentRequests": [
+      "when player clicks on discard piles it should show whats in there. also the player box in the bottom left should have a menu to show faction abilities for the player but that menu should not obscure any elements in play",
+      "also in the log it should explicitly say why the individual result happened. like for example that 5 block in the screenshot was a 3 plus 2 for a faction blocking bonus",
+      "down to showing which card was specifically used for attack , block and pitch"
+    ],
+    "recordedAt": "2026-09-17T23:44:58Z"
+  },
+  "repository": "https://github.com/BurntRamen/gauntlet-online.git",
+  "base": "15ea0da11b130cb27fdd859ceeb3265b2e55ff26",
+  "branch": "codex/gauntlet-pile-ability-dock",
+  "targetBranch": "main",
+  "scope": [
+    "Public discard inspection from both Babylon pile wells/counters and player plates",
+    "Local faction rules and available semantic actions in a responsive non-overlapping reference dock",
+    "Exact revealed attack/block/pitch identities and authoritative modifier/payment/damage receipts; preserve old replay events without invented bonuses",
+    "Associated tests, minimum release record, existing PR-to-main workflow and factual verification of existing Vercel/Render versions"
+  ],
+  "allowedActions": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "releaseApproval",
+    "publication",
+    "externalCommunication"
+  ],
+  "prohibitedActions": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "New art or identity changes",
+    "Rewrite historical archives",
+    "Change deployment settings, protection or access",
+    "Create a third retained worktree",
+    "Increase bundle budgets",
+    "Claim human/device/full-redesign qualification"
+  ],
+  "requiredChecks": [
+    "npm run check",
+    "npm run report:match-assets -- --strict",
+    "npm run test:e2e",
+    "npm run test:e2e:usability",
+    "npm run test:e2e:performance",
+    "Current dock non-overlap/pile-click browser preview",
+    "GitHub PR checks must pass; no earlier release exception reused",
+    "Verify exact Vercel client and Render backend deployed revision"
+  ],
+  "communicationScope": "Factual scoped GitHub PR and checks/deployment evidence only.",
+  "acceptance": {
+    "identity": "Existing card art, original Classic back, approved identity and account portraits unchanged.",
+    "rules": "Combat calculations and command legality unchanged; new public receipts describe actual resolution, not inferred bonuses. Other pre-existing rule/runtime discrepancies remain separately outstanding.",
+    "human": "Requested technical improvements under standing direct release instruction; no human visual review, moderated session, device certification or full redesign completion is fabricated."
+  },
+  "expiry": "Only this exact requested code patch; consumed by publication or cancellation.",
+  "releaseException": null
+}
