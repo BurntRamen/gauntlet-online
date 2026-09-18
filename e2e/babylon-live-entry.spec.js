@@ -1,9 +1,14 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect: baseExpect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
 const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
+const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
+  || (process.env.CI === "true" && process.platform === "linux");
+// These are multi-client correctness journeys, not frame-rate benchmarks.
+// GPU-less runners need time to present queued events on every client.
+const expect = baseExpect.configure({ timeout: softwareGraphics ? 30000 : 10000 });
 
 test.beforeAll(async ({ browser }) => {
   if (process.env.CI !== "true") return;
@@ -125,11 +130,15 @@ async function clickHandCardByValue(page, direction = "lowest") {
   // meshes. Focus and activate them as a keyboard user would; pointer clicks
   // belong to the visible card meshes on the canvas.
   await candidates[0].button.focus();
+  await expect(candidates[0].button).toBeEnabled();
   await candidates[0].button.press("Enter");
 }
 
 async function activateLaneButton(page, name) {
   const button = page.getByRole("button", { name, exact: true });
+  // Keyboard press does not perform Playwright's enabled/actionable checks.
+  // The authoritative HUD can update before the playback input lock releases.
+  await expect(button).toBeEnabled();
   await button.focus();
   await button.press("Enter");
 }
@@ -230,7 +239,7 @@ async function finishPreparedCampaign(page) {
 }
 
 test("normal browser lobby flow starts and finishes a live Babylon Basic match", async ({ browser, baseURL }) => {
-  test.setTimeout(90000);
+  test.setTimeout(softwareGraphics ? 240000 : 90000);
   const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const guestContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const spectatorContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -380,7 +389,7 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
 
 for (const profile of ["desktop", "phone"]) {
 test(`two ordinary ${profile} browser clients complete live Basic combat and placement through semantic commands`, async ({ browser, baseURL }) => {
-  test.setTimeout(120000);
+  test.setTimeout(softwareGraphics ? 300000 : 120000);
   const hostContext = await browser.newContext({ viewport: profile === "phone"
     ? { width: 390, height: 844 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
   const guestContext = await browser.newContext({ viewport: profile === "phone"
