@@ -179,7 +179,8 @@ test("faction abilities, spectator privacy, responsive layout, and accessibility
   const playerContext = await browser.newContext({ viewport: { width: 1536, height: 864 } });
   const playerPage = await openPlayer(playerContext, baseURL, duel, priority);
 
-  await expect(playerPage.locator(".production-faction-actions")
+  await playerPage.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+  await expect(playerPage.locator(".production-faction-reference-actions")
     .getByRole("button", { name: /Polea.*place a hand card/i })).toBeVisible();
   await expect(playerPage.locator("canvas.babylon-match-canvas")).toBeVisible();
 

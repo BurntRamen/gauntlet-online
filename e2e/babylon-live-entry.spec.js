@@ -98,7 +98,8 @@ async function expectNativeSceneDiagnostics(page) {
   await expect(match).toHaveAttribute("data-board-module-count", "10");
   await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
   await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
-  await expect(match).toHaveAttribute("data-layout-profile", /desktop|portrait|short-landscape/);
+  // HUD reservations can legitimately make a desktop's usable table ultrawide.
+  await expect(match).toHaveAttribute("data-layout-profile", /^(desktop|portrait|short-landscape|ultrawide)$/);
 }
 
 async function openAccessibleControls(page) {
@@ -537,7 +538,7 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
     await priorityPage.getByTestId("production-babylon-match").getAttribute("data-revision")
   );
   await priorityPage.getByText("Match", { exact: true }).click();
-  await priorityPage.getByRole("button", { name: "Faction abilities" }).click();
+  await priorityPage.locator(".production-match-utilities").getByRole("button", { name: "Faction abilities" }).click();
   const factionAbilities = priorityPage.getByRole("dialog", { name: "Faction abilities" });
   await expect(factionAbilities).toBeVisible();
   await expect(factionAbilities).toContainText(/Lord Commander Polea/i);
@@ -556,7 +557,8 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
   const revisionBeforeLafayette = Number(
     await priorityPage.getByTestId("production-babylon-match").getAttribute("data-revision")
   );
-  await priorityPage.locator(".production-faction-actions")
+  await priorityPage.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+  await priorityPage.locator(".production-faction-reference-actions")
     .getByRole("button", { name: /Lafayette.*switch hand and lane/i })
     .click();
   await priorityPage.locator('[data-match-zone="hand"]:not(:disabled)').first().focus();
@@ -667,6 +669,91 @@ test("normal Faction Training Grounds entry uses the same production match and s
   await expect.poll(async () => Number(
     await page.getByTestId("production-babylon-match").getAttribute("data-revision")
   )).toBeGreaterThan(initialRevision);
+});
+
+test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(120000);
+  await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");
+  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await chooseLobbyFaction(page, "Rumin");
+  await page.getByRole("button", { name: "Confirm Start" }).click();
+  const match = page.getByTestId("production-babylon-match");
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  await expect(canvas).toBeVisible();
+  await page.evaluate(() => { window.__dockOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
+  const profiles = [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "tablet", width: 1024, height: 768 },
+    { name: "phone-portrait", width: 390, height: 844 },
+    { name: "short-landscape", width: 844, height: 390 }
+  ];
+  for (const profile of profiles) {
+    await page.setViewportSize({ width: profile.width, height: profile.height });
+    await page.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+    const dock = page.getByRole("dialog", { name: "Faction abilities" });
+    await expect(dock).toBeVisible();
+    await expect(dock).not.toHaveAttribute("aria-modal", "true");
+    await expect(page.locator(".production-faction-actions")).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => {
+      const dock = document.querySelector(".production-reference-panel.is-docked").getBoundingClientRect();
+      return [...document.querySelectorAll("[data-testid='battlefield-safe-frame'], .phone-hand-panel, .production-player-plate, .production-context-panel")]
+        .filter((element) => element.getBoundingClientRect().height > 0)
+        .every((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.right <= dock.left + 1 || rect.left >= dock.right - 1
+            || rect.bottom <= dock.top + 1 || rect.top >= dock.bottom - 1;
+        });
+    })).toBe(true);
+    await expect.poll(() => page.evaluate(() =>
+      window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
+    const boardBounds = await page.getByTestId("battlefield-safe-frame").boundingBox();
+    expect(boardBounds.height).toBeGreaterThan(120);
+    expect(boardBounds.width).toBeGreaterThan(300);
+    await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
+    await dock.getByRole("button", { name: "Close", exact: true }).click();
+    await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
+    const discard = page.getByRole("dialog", { name: "Discard piles" });
+    await expect(discard).toBeVisible();
+    await expect(discard).toContainText("No discarded cards.");
+    await discard.getByRole("button", { name: /^Training AI ·/ }).click();
+    await expect(discard.getByRole("button", { name: /^Training AI ·/ })).toHaveAttribute("aria-pressed", "true");
+    await page.screenshot({ path: testInfo.outputPath(`discard-${profile.name}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(discard).toHaveCount(0);
+    await expect(match).not.toHaveClass(/has-reference-dock/);
+  }
+  // The dev-only capture hook provides projected public pile anchors, not cards
+  // or server state. Pointer input still goes through the real Babylon picker.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const captureAvailable = await canvas.evaluate((element) => !!element.__gauntletCaptureControl);
+  if (captureAvailable) {
+    await expect.poll(() => canvas.evaluate((element) =>
+      element.__gauntletCaptureControl.snapshot().discardPickTargets?.length)).toBe(2);
+    for (const pile of ["localdiscard", "opponentdiscard"]) {
+      for (const surface of ["well", "counter"]) {
+        await expect.poll(() => canvas.evaluate((element) => {
+          const metrics = element.__gauntletCaptureControl.snapshot();
+          const rect = element.getBoundingClientRect();
+          const [width, height] = metrics.renderSize.split("x").map(Number);
+          return Math.abs(width - rect.width / metrics.hardwareScalingLevel) < 3
+            && Math.abs(height - rect.height / metrics.hardwareScalingLevel) < 3;
+        })).toBe(true);
+        await canvas.evaluate(async () => {
+          await new Promise(requestAnimationFrame);
+          await new Promise(requestAnimationFrame);
+        });
+        const target = await canvas.evaluate((element, { pile, surface }) => {
+          const anchor = element.__gauntletCaptureControl.snapshot().discardPickTargets.find((target) => target.pile === pile)[surface];
+          const rect = element.getBoundingClientRect();
+          return { x: rect.left + anchor.x * rect.width, y: rect.top + anchor.y * rect.height };
+        }, { pile, surface });
+        await page.mouse.click(target.x, target.y);
+        const discard = page.getByRole("dialog", { name: "Discard piles" });
+        await expect(discard, `Pointer click on ${pile} ${surface} at ${JSON.stringify(target)}`).toBeVisible();
+        await discard.getByRole("button", { name: "Close", exact: true }).click();
+      }
+    }
+  }
 });
 
 test("later Bizi missions keep the new interface through boss actions", async ({ page, request, baseURL }) => {

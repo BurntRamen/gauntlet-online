@@ -1460,9 +1460,21 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   });
 
   const pileDockMeshes = new Map();
+  const discardHitMeshes = [];
   Object.entries(MATCH_LAYOUT.piles).forEach(([name, position]) => {
     const isDiscard = name.toLowerCase().includes("discard");
     const dimensions = isDiscard ? MATCH_LAYOUT.pilePads.discard : MATCH_LAYOUT.pilePads.deck;
+    if (isDiscard) {
+      // Semantic targets survive replacement of the procedural pile artwork.
+      const hit = CreateBox(`pile-hit-${name}`, {
+        width: dimensions.width + 0.5, height: 0.12, depth: dimensions.depth + 1.9
+      }, babylonScene);
+      hit.position.set(position.x, 0.55, position.z - 0.55);
+      hit.visibility = 0;
+      hit.isPickable = true;
+      hit.metadata = { gauntlet: { type: "pile", pile: name.toLowerCase() } };
+      discardHitMeshes.push(hit);
+    }
     createModuleContactShadow(babylonScene, `pile-pad-${name}-contact`, {
       x: position.x,
       y: -0.11,
@@ -3088,10 +3100,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const transform = babylonScene.getTransformMatrix();
       const candidates = [
         ...Array.from(objects.values(), (record) => record.mesh),
-        ...laneMeshes
+        ...laneMeshes,
+        ...discardHitMeshes
       ].flatMap((mesh) => {
         const meshMetadata = findMetadata(mesh);
-        if (!meshMetadata || !mesh.isVisible || mesh.visibility <= 0.08) return [];
+        if (!meshMetadata || !mesh.isEnabled() || !mesh.isVisible
+          || (mesh.visibility <= 0.08 && meshMetadata.type !== "pile")) return [];
         mesh.computeWorldMatrix(true);
         const projected = mesh.getBoundingInfo().boundingBox.vectorsWorld.map((point) => (
           Vector3.Project(point, identityMatrix, transform, viewport)
@@ -3193,8 +3207,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     if (metadata.type === "attack" && metadata.legal) {
       commands.activateAttackTarget?.(metadata.attackId);
     }
-    if (metadata.type === "pile" && String(metadata.pile || "").includes("discard")) {
-      commands.openDiscard?.();
+    if (metadata.type === "pile" && String(metadata.pile || "").toLowerCase().includes("discard")) {
+      commands.openDiscard?.(metadata.pile);
     }
   }
 
@@ -3299,6 +3313,17 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         canvasSize: `${Math.round(canvas.clientWidth)}x${Math.round(canvas.clientHeight)}`,
         lastPointerPick,
         pointerPickCount,
+        discardPickTargets: process.env.NODE_ENV !== "production" ? discardHitMeshes.map((mesh) => {
+          mesh.computeWorldMatrix(true);
+          const project = (z) => {
+            const point = Vector3.Project(Vector3.TransformCoordinates(new Vector3(0, 0, z), mesh.getWorldMatrix()),
+              identityMatrix, babylonScene.getTransformMatrix(),
+              camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()));
+            return { x: point.x / engine.getRenderWidth(), y: point.y / engine.getRenderHeight() };
+          };
+          return { pile: mesh.metadata.gauntlet.pile, well: project(0.55),
+            counter: project(0.55 - MATCH_LAYOUT.pilePads.discard.depth / 2 - 0.46) };
+        }) : undefined,
         shadowMapSize: shadowGenerator.getShadowMap()?.getSize?.().width || 0,
         shadowMapRefreshRate: shadowGenerator.getShadowMap()?.refreshRate ?? null,
         boardPresentation: currentBoardPresentation,
