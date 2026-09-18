@@ -855,13 +855,52 @@
   border-bottom: 1px solid rgba(112, 145, 171, 0.22);
 }
 
-/* Dialogue and recent plays occupy separate sides while the campaign is visible. */
+.production-card-and-log { display: contents; }
+
+/* Campaign dialogue owns the left rail. Recent plays and card previews share
+   the right rail, so neither can obscure the other or resize the table. */
 @media (min-width: 601px) and (min-height: 521px) {
-  .production-campaign-encounter ~ .production-match-ledger {
+  .production-campaign-encounter ~ .production-card-and-log {
+    position: absolute;
+    z-index: 11;
     top: calc(var(--battlefield-top-reserve) + 6px);
     right: 8px;
-    left: auto;
+    bottom: calc(var(--battlefield-bottom-reserve) + 8px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
     width: min(380px, 44%);
+    pointer-events: none;
+  }
+  .production-campaign-encounter ~ .production-card-and-log > .production-match-ledger {
+    position: static;
+    width: 100%;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    pointer-events: auto;
+  }
+  .production-campaign-encounter ~ .production-card-and-log.has-preview .production-match-ledger ol {
+    display: none;
+  }
+  .production-campaign-encounter ~ .production-card-and-log > .production-card-preview {
+    position: static;
+    width: min(200px, 100%);
+    height: 320px;
+    min-height: 0;
+    flex: 0 1 320px;
+    box-sizing: border-box;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .production-campaign-encounter ~ .production-card-and-log .production-card-preview-art {
+    position: relative;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+  .production-campaign-encounter ~ .production-card-and-log .production-card-preview-art img {
+    position: absolute;
+    inset: 0;
+    object-fit: contain;
   }
 }
 

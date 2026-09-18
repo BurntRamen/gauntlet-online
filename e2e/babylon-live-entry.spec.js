@@ -858,14 +858,42 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
   const ledger = page.getByRole("complementary", { name: "Recent play order" });
   await expect(ledger).toBeVisible();
-  for (const width of [1366, 768]) {
-    await page.setViewportSize({ width, height: 768 });
+  for (const { width, height } of [{ width: 1366, height: 768 }, { width: 768, height: 768 }, { width: 1024, height: 600 }]) {
+    await page.setViewportSize({ width, height });
     const dialogueBox = await encounter.boundingBox();
     const logBox = await ledger.boundingBox();
     expect(logBox.x).toBeGreaterThanOrEqual(dialogueBox.x + dialogueBox.width);
+    const canvas = page.locator("canvas.babylon-match-canvas");
+    const tableBox = await canvas.boundingBox();
+    await page.mouse.move(tableBox.x + tableBox.width * 0.5, tableBox.y + tableBox.height * 0.85);
+    const preview = page.locator(".production-card-preview");
+    await expect(preview).toBeVisible();
+    // Let the existing preview entrance finish before checking painted bounds.
+    await page.waitForTimeout(180);
+    const previewBox = await preview.boundingBox();
+    const artBox = await preview.locator(".production-card-preview-art").boundingBox();
+    const imageBox = await preview.locator("img").boundingBox();
+    expect(imageBox.height).toBeLessThanOrEqual(artBox.height);
+    expect(imageBox.width).toBeLessThanOrEqual(artBox.width);
+    const compactLogBox = await ledger.boundingBox();
+    const controlsBox = await page.locator(".production-context-panel").boundingBox();
+    expect(compactLogBox.y + compactLogBox.height).toBeLessThanOrEqual(previewBox.y);
+    expect(previewBox.x).toBeGreaterThanOrEqual(dialogueBox.x + dialogueBox.width);
+    expect(previewBox.y + previewBox.height).toBeLessThanOrEqual(controlsBox.y);
+    await expect(ledger.locator("ol")).toBeHidden();
+    await expect(ledger.getByRole("button", { name: /Full log/ })).toBeVisible();
+    expect(await canvas.boundingBox()).toEqual(tableBox);
+    await page.screenshot({ path: test.info().outputPath(`campaign-preview-${width}x${height}.png`) });
+    await page.mouse.move(1, 1);
+    await expect(preview).toBeHidden();
+    await expect(ledger.locator("ol")).toBeVisible();
   }
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.screenshot({ path: test.info().outputPath("campaign-dialogue-and-log.png") });
+  await ledger.getByRole("button", { name: /Full log/ }).click();
+  const fullLog = page.getByRole("dialog", { name: "Match log", exact: true });
+  await expect(fullLog).toBeVisible();
+  await fullLog.getByRole("button", { name: "Close", exact: true }).click();
   await expect(openingDialogue.getByRole("button", { name: "Play dialogue" })).toBeEnabled();
   await openingDialogue.getByRole("button", { name: /Play .* voice/i }).first().click();
   await expect(openingDialogue).toContainText(/Playing .*\./i);

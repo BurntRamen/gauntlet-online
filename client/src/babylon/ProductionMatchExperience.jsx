@@ -1992,15 +1992,17 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
-        {update?.source !== "replay" && !referencePanel && (
-          <MatchLedger
-            entries={feedEntries}
-            snapshot={transportUpdate?.snapshot || update?.snapshot}
-            onOpen={() => setReferencePanel("log")}
-          />
-        )}
+        <div className={`production-card-and-log${previewCard ? " has-preview" : ""}`}>
+          {update?.source !== "replay" && !referencePanel && (
+            <MatchLedger
+              entries={feedEntries}
+              snapshot={transportUpdate?.snapshot || update?.snapshot}
+              onOpen={() => setReferencePanel("log")}
+            />
+          )}
+          <CardPreview preview={previewCard} />
+        </div>
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
-        <CardPreview preview={previewCard} />
         <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
         {resultPresentationReady && (
           <MatchResult
