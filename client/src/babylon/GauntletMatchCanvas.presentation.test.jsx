@@ -35,6 +35,10 @@ test("theme and card-back changes preserve the engine, renderer, view model and 
   });
   const mounted = render(<GauntletMatchCanvas viewModel={viewModel} commands={{ activateHandCard: firstHandler }} />);
   try {
+    // Keep the existing initialization draw without an extra empty-scene
+    // repaint from the startup resize; subsequent resizes must paint now.
+    expect(renderer.scene.render).toHaveBeenCalledTimes(1);
+    engine.runRenderLoop.mock.calls[0][0]();
     // A control-panel resize must repaint before ResizeObserver returns;
     // the regular animation loop may skip its next idle frame.
     renderer.scene.render.mockClear();

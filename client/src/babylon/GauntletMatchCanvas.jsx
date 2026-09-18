@@ -223,7 +223,7 @@ export default function GauntletMatchCanvas({
         // Resizing clears WebGL's drawing buffer. ResizeObserver runs after
         // animation callbacks, so waiting for the capped loop exposes a blank
         // table when selecting a card changes the action panel's height.
-        if (!rendererFailedRef.current) {
+        if (!rendererFailedRef.current && Number.isFinite(lastRenderedAt)) {
           lastRenderedAt = performance.now();
           renderMatchFrame(renderer, (error) => {
             reportRendererFailure(error, "The Babylon renderer could not resize the match.");
