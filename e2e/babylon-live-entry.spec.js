@@ -273,7 +273,9 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await prepareGuest(spectatorPage, baseURL, "Lobby Spectator");
   await spectatorPage.getByLabel("Room code").fill(roomCode);
   await spectatorPage.getByRole("button", { name: "Spectate" }).click();
-  await expect(spectatorPage.getByText("Spectator view")).toBeVisible();
+  await expect(spectatorPage.getByText("Spectator view")).toBeVisible({
+    timeout: softwareGraphics ? 90000 : 10000
+  });
   await expect(spectatorPage.locator('[data-match-zone="hand"]')).toHaveCount(0);
   await expect(spectatorPage.getByRole("button", { name: "Pass Priority" })).toHaveCount(0);
 
