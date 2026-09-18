@@ -71,8 +71,8 @@ function currentAction(page) {
 }
 
 async function waitForPlaybackSettled(page) {
-  await expect(page.locator(".production-match-feed-current > span"))
-    .toHaveText("Live", { timeout: 15000 });
+  await expect(page.getByTestId("production-babylon-match"))
+    .toHaveAttribute("data-playback-catching-up", "false", { timeout: 15000 });
 }
 
 async function expectNativeSceneDiagnostics(page) {
@@ -817,11 +817,11 @@ test("normal draft-league entry uses finalized draft decks and preserves them ac
   const secondPage = await secondContext.newPage();
   await prepareAccount(firstPage, firstAccount.token, baseURL, "Draft");
   await prepareAccount(secondPage, secondAccount.token, baseURL, "Draft");
-  await expect(firstPage.getByRole("button", { name: "Player Draft BO3" })).toBeEnabled();
-  await expect(secondPage.getByRole("button", { name: "Player Draft BO3" })).toBeEnabled();
+  await expect(firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
+  await expect(secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
 
-  await firstPage.getByRole("button", { name: "Player Draft BO3" }).click();
-  await secondPage.getByRole("button", { name: "Player Draft BO3" }).click();
+  await firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
+  await secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
   for (const page of [firstPage, secondPage]) {
     const match = page.getByTestId("production-babylon-match");
     await expect(match).toBeVisible();

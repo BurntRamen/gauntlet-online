@@ -41,7 +41,7 @@ export function matchHardwareScalingLevel(width, height, quality = DEFAULT_GRAPH
   if (profile.fixedScalingLevel != null) return profile.fixedScalingLevel;
   const pixelCount = Math.max(1, Number(width) || 1) * Math.max(1, Number(height) || 1);
   const budget = Math.max(1, Number(profile.maxPixels) || 900000);
-  return Number(Math.max(1, Math.min(2, Math.sqrt(pixelCount / budget))).toFixed(3));
+  return Number(Math.max(1, Math.sqrt(pixelCount / budget)).toFixed(3));
 }
 
 export function shouldRenderMatchFrame({
@@ -50,10 +50,31 @@ export function shouldRenderMatchFrame({
   animationActive,
   hidden = false
 }) {
-  if (animationActive) return true;
+  if (animationActive && !hidden) return true;
   const targetFps = hidden ? 4 : IDLE_RENDER_FPS;
   const intervalMs = 1000 / targetFps;
-  return !Number.isFinite(lastRenderedAt) || Number(now) - Number(lastRenderedAt) >= intervalMs;
+  // Vsync timestamps fluctuate around 16.67ms. An exact 33.33ms comparison
+  // otherwise skips every third frame, turning the 30fps cap into 20fps bursts.
+  return !Number.isFinite(lastRenderedAt) || Number(now) - Number(lastRenderedAt) >= intervalMs - 1;
+}
+
+export function createAdaptiveResolutionController() {
+  let previous = null;
+  let samples = [];
+  return ({ now, hidden, quality, baseScaling, currentScaling }) => {
+    const elapsed = previous == null ? 0 : now - previous;
+    previous = now;
+    if (hidden || quality !== "balanced" || elapsed > 250) { samples = []; return currentScaling; }
+    if (elapsed > 0) samples.push(elapsed);
+    if (samples.length < 120) return currentScaling;
+    const average = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+    samples = [];
+    // Only lower resolution after sustained pressure; never oscillate the
+    // canvas size during a match or override the player's manual quality choice.
+    return average > 24
+      ? Math.min(baseScaling * 1.6, currentScaling * 1.15)
+      : currentScaling;
+  };
 }
 
 export function renderMatchFrame(renderer, onFailure) {

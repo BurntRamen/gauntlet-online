@@ -4,6 +4,7 @@ import { createGauntletScene } from "./createGauntletScene";
 import AccessibleMatchControls from "./AccessibleMatchControls";
 import {
   matchHardwareScalingLevel,
+  createAdaptiveResolutionController,
   normalizeGraphicsQuality,
   renderMatchFrame,
   shouldRenderMatchFrame
@@ -27,6 +28,7 @@ export default function GauntletMatchCanvas({
   const rendererFailedRef = useRef(false);
   const commandsRef = useRef(commands);
   const graphicsQualityRef = useRef(normalizeGraphicsQuality(graphicsQuality));
+  const baseScalingRef = useRef(1);
   const capturePlaybackControlRef = useRef(capturePlaybackControl);
   const onRendererErrorRef = useRef(onRendererError);
   const onSceneMetricsRef = useRef(onSceneMetrics);
@@ -64,6 +66,7 @@ export default function GauntletMatchCanvas({
         graphicsQualityRef.current
       ));
       engineRef.current = engine;
+      baseScalingRef.current = engine.getHardwareScalingLevel();
       const renderer = createGauntletScene(engine, canvas, {
         activateHandCard: (...args) => commandsRef.current.activateHandCard?.(...args),
         activateLane: (...args) => commandsRef.current.activateLane?.(...args),
@@ -171,9 +174,18 @@ export default function GauntletMatchCanvas({
       });
       emitMetrics();
       let lastRenderedAt = Number.NEGATIVE_INFINITY;
+      const adaptResolution = createAdaptiveResolutionController();
       engine.runRenderLoop(() => {
         if (rendererFailedRef.current) return;
         const now = performance.now();
+        const currentScaling = engine.getHardwareScalingLevel();
+        const nextScaling = adaptResolution({ now, hidden: document.hidden,
+          quality: graphicsQualityRef.current, currentScaling,
+          baseScaling: baseScalingRef.current });
+        if (nextScaling > currentScaling + 0.01) {
+          engine.setHardwareScalingLevel(nextScaling);
+          engine.resize();
+        }
         if (!shouldRenderMatchFrame({
           now,
           lastRenderedAt,
@@ -190,11 +202,12 @@ export default function GauntletMatchCanvas({
         : null;
 
       const resize = () => {
-        engine.setHardwareScalingLevel(matchHardwareScalingLevel(
+        baseScalingRef.current = matchHardwareScalingLevel(
           canvas.clientWidth,
           canvas.clientHeight,
           graphicsQualityRef.current
-        ));
+        );
+        engine.setHardwareScalingLevel(baseScalingRef.current);
         engine.resize();
       };
       const contextLost = (event) => {
@@ -242,6 +255,7 @@ export default function GauntletMatchCanvas({
       canvas.clientHeight,
       graphicsQuality
     );
+    baseScalingRef.current = scalingLevel;
     if (engine.getHardwareScalingLevel() !== scalingLevel) {
       engine.setHardwareScalingLevel(scalingLevel);
       engine.resize();

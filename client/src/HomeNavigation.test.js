@@ -22,6 +22,13 @@ function NavigationHarness({ onContinue, onSound = () => {}, onPreloadArea = () 
   );
 }
 
+test("areas can omit an unrelated recommendation while retaining navigation", () => {
+  render(<HomeNavigation activeArea="matches" nextStep={null} onSelectArea={() => {}}>History</HomeNavigation>);
+  expect(screen.getByRole("navigation", { name: "Gauntlet areas" })).toBeInTheDocument();
+  expect(screen.getByText("History")).toBeInTheDocument();
+  expect(document.querySelector(".journey-next-step")).toBeNull();
+});
+
 test("shows one next action and switches between all five player product areas", () => {
   const onContinue = jest.fn();
   render(<NavigationHarness onContinue={onContinue} />);

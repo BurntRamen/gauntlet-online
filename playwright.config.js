@@ -8,7 +8,7 @@ const clientUrl = "http://127.0.0.1:3100";
 
 module.exports = defineConfig({
   testDir: "./e2e",
-  testMatch: "babylon-live-entry.spec.js",
+  testMatch: ["babylon-live-entry.spec.js", "user-flows.spec.js"],
   testIgnore: "babylon-performance.spec.js",
   fullyParallel: false,
   workers: 1,

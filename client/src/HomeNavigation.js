@@ -15,7 +15,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
 
   return (
     <>
-      <section className="journey-next-step" aria-labelledby="journey-next-title">
+      {nextStep && <section className={`journey-next-step${activeArea !== "journey" ? " is-contextual" : ""}`} aria-labelledby="journey-next-title">
         <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
           {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
         </FactionArtwork>
@@ -28,7 +28,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
         <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
           {nextStep.actionLabel}
         </button>
-      </section>
+      </section>}
 
       <nav className="home-area-nav" aria-label="Gauntlet areas">
         {areas.map((area) => (

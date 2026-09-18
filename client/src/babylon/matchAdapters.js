@@ -1563,7 +1563,10 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
       this.socket = this.session.getSocket?.() || this.socket;
     }
     if (!this.game) {
-      return Promise.reject(new Error("The live match snapshot is unavailable."));
+      // A session can briefly have no game while moving between chapters.
+      // Its subscription will deliver the next snapshot; this is not a GPU failure.
+      return this.session ? Promise.resolve()
+        : Promise.reject(new Error("The live match snapshot is unavailable."));
     }
     this.emit();
     return Promise.resolve();

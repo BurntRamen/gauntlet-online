@@ -270,7 +270,7 @@ export default function MatchesHub({
     <div className="matches-hub">
       <section className="matches-overview" aria-labelledby="matches-overview-title">
         <div><span>Your match history</span><h3 id="matches-overview-title">Recent Matches</h3><p>Recent results and replays available on this device.</p></div>
-        <div className="matches-overview-stats">
+        <div className="matches-overview-stats" tabIndex={0} role="group" aria-label="Match history statistics">
           <div><strong>{(data.matches || []).length + (data.unavailableMatchReferences || []).length}</strong><span>Recent matches</span></div>
           <div><strong>{localEntries.length}</strong><span>Saved on device</span></div>
           <div><strong>{replayCount}</strong><span>Replays available</span></div>
@@ -296,7 +296,7 @@ export default function MatchesHub({
         {(data.unavailableMatchReferences || []).map((reference) => <UnavailableReferenceRow key={reference.matchId} reference={reference} />)}
       </div>
       <MatchImporter library={matchLibrary} onWatchReplay={watchImported} onSaved={loadLocalMatches} />
-      <section className="matches-season-section" aria-labelledby="matches-season-title">
+      <section className="matches-season-section" aria-label="Seasonal competition">
         <div className="matches-section-heading"><span>Seasonal competition</span><h3 id="matches-season-title">Season Zero</h3><p>Ranked results appear here; imported match files never change the standings.</p></div>
         {onOpenRanked && <button type="button" className="matches-ranked-action" onClick={onOpenRanked}>Play Ranked</button>}
         <SeasonStandings season={season} standings={standings} playerStanding={playerStanding} lifetimeStandings={lifetimeStandings} error={seasonError} onOpenProfile={onOpenProfile} />

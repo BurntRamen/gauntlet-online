@@ -41,6 +41,7 @@ function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = 
 
 validateAuthConfiguration();
 
+const { createSocketBoundary } = require("./socketBoundary");
 const express = require("express");
 const http = require("http");
 const fs = require("fs");
@@ -5042,6 +5043,7 @@ function emitDraftState(roomState) {
 
 function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   const visibleGame = projectSharedDuelForPerspective(game, viewerPlayerNum);
+  if (game.gameMode === "freeForAll") visibleGame.currentEndPlacementPlayer = game.phase === "end" ? getCurrentEndPlacementPlayer(game) : null;
   delete visibleGame.serverAuditEvents;
   delete visibleGame.serverCombatStats;
   for (const [rawPlayerNum, playerState] of Object.entries(visibleGame.players || {})) {
@@ -5157,7 +5159,6 @@ function getDisconnectedSeatForIdentity(roomState, identity, reconnectToken) {
     if (lobbyPlayer.socket) continue;
     if (reconnectToken && lobbyPlayer.reconnectToken === reconnectToken) return playerNum;
     if (identity.type === "account" && lobbyPlayer.accountId && lobbyPlayer.accountId === identity.id) return playerNum;
-    if (identity.type === "guest" && lobbyPlayer.isGuest && lobbyPlayer.accountName === identity.name) return playerNum;
   }
   return null;
 }
@@ -5183,12 +5184,16 @@ function attachPlayerSocket(roomState, socket, playerNum) {
   });
 }
 
-function detachSocketFromRoom(roomState, socket, { leaveSocket = true } = {}) {
+function detachSocketFromRoom(roomState, socket, { leaveSocket = true, intentional = false } = {}) {
   for (const p of getLobbyPlayerNumbers(roomState)) {
     if (roomState.lobby.players[p].socket === socket.id) {
       roomState.lobby.players[p].connected = false;
       roomState.lobby.players[p].socket = null;
       if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
+      if (intentional && !roomState.game && (!roomState.draft || roomState.draft.status === "lobby")) {
+        roomState.lobby.players[p] = { socket: null, connected: false, factionId: null, reconnectToken: null };
+        resetStartConfirmations(roomState);
+      }
     }
   }
 
@@ -6666,7 +6671,7 @@ async function advanceEndPlacement(roomState) {
   game.endPlacementStep++;
   
   const activeCount = game.gameMode === "freeForAll" ? getActivePlayerNumbers(game).length : 2;
-  if (game.endPlacementStep >= activeCount) {
+  if (game.gameMode === "freeForAll" ? getCurrentEndPlacementPlayer(game) == null : game.endPlacementStep >= activeCount) {
     game.endPlacementLaneIndex++;
     game.endPlacementStep = 0;
   }
@@ -6719,9 +6724,10 @@ function isTrainingAiRoom(roomState) {
 
 function getCurrentEndPlacementPlayer(game) {
   if (game.gameMode === "freeForAll") {
-    const active = getActivePlayerNumbers(game);
-    const startIndex = active.indexOf(game.endPlacementFirstPlayer);
-    return active[(startIndex + game.endPlacementStep) % active.length] || active[0];
+    const order = game.playerOrder || Object.keys(game.players).map(Number).sort((a, b) => a - b);
+    const startIndex = Math.max(0, order.indexOf(game.endPlacementFirstPlayer));
+    const rotated = [...order.slice(startIndex), ...order.slice(0, startIndex)];
+    return rotated.find((p) => !game.players[p]?.eliminated && !game.endPlaced?.[p]?.[game.endPlacementLaneIndex]) ?? null;
   }
   return game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : getOtherPlayer(game.endPlacementFirstPlayer);
 }
@@ -7454,7 +7460,7 @@ function createFreeForAllGameFromLobby(roomState) {
   roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
-  const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
+  const suits = ["♠", "♥", "♦", "♣"];
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 
@@ -7537,6 +7543,7 @@ function createFreeForAllGameFromLobby(roomState) {
   const game = {
     roomCode: roomState.roomCode,
     gameMode: "freeForAll",
+    matchId: roomState.matchMetadata.matchId,
     playerOrder: seatedPlayers,
     phase: "priority",
     turn: 1,
@@ -7577,12 +7584,13 @@ function createFreeForAllGameFromLobby(roomState) {
 // ============ SOCKET HANDLERS ============
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
+  const onClientEvent = createSocketBoundary(socket, { getRoomForSocket });
 
   // Deterministic browser qualification setup. This hook is unavailable in
   // normal server runs and only moves an already-started campaign to the
   // final authoritative life check; the browser still submits passPriority.
   if (process.env.E2E_TEST === "true") {
-    socket.on("e2ePrepareCampaignCompletion", (ack) => {
+    onClientEvent("e2ePrepareCampaignCompletion", (ack) => {
       const roomState = getRoomForSocket(socket);
       if (!roomState?.game?.campaign) {
         if (typeof ack === "function") ack({ ok: false, error: "Campaign test state unavailable." });
@@ -7607,7 +7615,7 @@ io.on("connection", (socket) => {
     });
   }
 
-  socket.on("joinMatchmaking", async ({ authToken, bestOf = 1 } = {}) => {
+  onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1 } = {}) => {
     console.log("[Socket] joinMatchmaking");
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
@@ -7653,12 +7661,12 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("leaveMatchmaking", () => {
+  onClientEvent("leaveMatchmaking", () => {
     removeFromMatchmaking(socket.id);
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
   });
 
-  socket.on("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {
+  onClientEvent("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {
     console.log("[Socket] joinDraftLeague");
     const requestedDraftType = draftType === "bot" ? "bot" : "player";
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
@@ -7719,12 +7727,12 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("leaveDraftLeague", () => {
+  onClientEvent("leaveDraftLeague", () => {
     removeFromDraftLeague(socket.id);
     socket.emit("draftLeagueStatus", { inQueue: false, message: "Left draft league queue." });
   });
   
-  socket.on("createRoom", async ({ authToken, guestName } = {}) => {
+  onClientEvent("createRoom", async ({ authToken, guestName } = {}) => {
     console.log("[Socket] createRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7743,7 +7751,7 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  socket.on("createFriendChallenge", async ({ authToken, friendId } = {}, ack) => {
+  onClientEvent("createFriendChallenge", async ({ authToken, friendId } = {}, ack) => {
     console.log("[Socket] createFriendChallenge");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7801,7 +7809,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("createFreeForAllRoom", async ({ authToken, guestName } = {}, ack) => {
+  onClientEvent("createFreeForAllRoom", async ({ authToken, guestName } = {}, ack) => {
     console.log("[Socket] createFreeForAllRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7825,7 +7833,7 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "freeForAll" });
   });
 
-  socket.on("createDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+  onClientEvent("createDraftRoom", async ({ authToken, guestName } = {}, ack) => {
     console.log("[Socket] createDraftRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7850,7 +7858,7 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft" });
   });
 
-  socket.on("createBotDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+  onClientEvent("createBotDraftRoom", async ({ authToken, guestName } = {}, ack) => {
     console.log("[Socket] createBotDraftRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7877,7 +7885,7 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft", botDraft: true });
   });
 
-  socket.on("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
+  onClientEvent("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
     console.log("[Socket] createAiTutorialRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7917,7 +7925,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("createCampaignRoom", async ({ authToken, guestName, factionId, chapterId } = {}) => {
+  onClientEvent("createCampaignRoom", async ({ authToken, guestName, factionId, chapterId } = {}) => {
     console.log(`[Socket] createCampaignRoom: faction=${factionId}, chapter=${chapterId}`);
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -8008,7 +8016,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("joinRoom", async ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
+  onClientEvent("joinRoom", async ({ roomCode, asSpectator = false, authToken, guestName, reconnectToken } = {}) => {
     console.log(`[Socket] joinRoom: ${roomCode}, spectator: ${asSpectator}`);
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -8016,7 +8024,7 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Enter a room code.");
       return;
     }
-    const normalized = roomCode.toUpperCase();
+    const normalized = roomCode.trim().toUpperCase();
     const roomState = getRoom(normalized);
     if (!roomState) {
       socket.emit("errorMessage", "Room not found.");
@@ -8056,6 +8064,10 @@ io.on("connection", (socket) => {
       } else emitLobbyState(roomState);
       return;
     }
+    if (roomState.game || (roomState.draft && roomState.draft.status !== "lobby")) {
+      socket.emit("errorMessage", "This table has already started. Join as a spectator, or create a new table to play.");
+      return;
+    }
     if (roomState.invitedAccountId) {
       if (Date.parse(roomState.friendChallengeExpiresAt || 0) <= Date.now()) {
         socket.emit("errorMessage", "That friend challenge has expired.");
@@ -8088,14 +8100,14 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Room is full. Join as spectator instead.");
   });
 
-  socket.on("reconnectToRoom", async ({ roomCode, reconnectToken, authToken, role } = {}) => {
+  onClientEvent("reconnectToRoom", async ({ roomCode, reconnectToken, authToken, role } = {}) => {
     console.log(`[Socket] reconnectToRoom: ${roomCode}`);
     if (!roomCode) {
       socket.emit("errorMessage", "No room to reconnect to.");
       return;
     }
 
-    const normalized = String(roomCode).toUpperCase();
+    const normalized = String(roomCode).trim().toUpperCase();
     const roomState = getRoom(normalized);
     if (!roomState) {
       socket.emit("errorMessage", "That room is no longer active.");
@@ -8138,7 +8150,7 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Could not reconnect to that player seat.");
   });
 
-  socket.on("requestRematch", (ack) => {
+  onClientEvent("requestRematch", (ack) => {
     const roomState = getRoomForSocket(socket);
     const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
     if (!roomState || !playerNum || !canOfferRematch(roomState)) {
@@ -8162,7 +8174,7 @@ io.on("connection", (socket) => {
     resetRoomForRematch(roomState);
   });
 
-  socket.on("declineRematch", (ack) => {
+  onClientEvent("declineRematch", (ack) => {
     const roomState = getRoomForSocket(socket);
     const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
     if (!roomState || !playerNum || !roomState.rematch || roomState.rematch.requestedBy === playerNum) {
@@ -8180,7 +8192,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message });
   });
 
-  socket.on("selectFaction", async ({ factionId }) => {
+  onClientEvent("selectFaction", async ({ factionId }) => {
     console.log(`[Socket] selectFaction: ${factionId}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
@@ -8200,7 +8212,7 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  socket.on("setGameMode", ({ mode } = {}) => {
+  onClientEvent("setGameMode", ({ mode } = {}) => {
     console.log(`[Socket] setGameMode: ${mode}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
@@ -8223,7 +8235,7 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  socket.on("startDraft", () => {
+  onClientEvent("startDraft", () => {
     console.log("[Socket] startDraft");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.draft || roomState.draft.status !== "lobby") return;
@@ -8242,7 +8254,16 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  socket.on("draftPick", ({ cardCopyId } = {}) => {
+  onClientEvent("cancelDraft", () => {
+    const roomState = getRoomForSocket(socket);
+    const playerNum = roomState && getPlayerNumberBySocket(roomState, socket.id);
+    if (!playerNum || roomState.draft?.status !== "drafting" || roomState.draft.botDraft) return;
+    if (!roomState.draft.activePlayers.includes(playerNum) || !roomState.draft.activePlayers.some((p) => !roomState.lobby.players[p].connected)) return;
+    roomState.draft.status = "cancelled";
+    emitDraftState(roomState);
+  });
+
+  onClientEvent("draftPick", ({ cardCopyId } = {}) => {
     console.log("[Socket] draftPick");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.draft || roomState.draft.status !== "drafting") return;
@@ -8267,7 +8288,7 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  socket.on("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}) => {
+  onClientEvent("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}) => {
     console.log("[Socket] setDraftDeckAdditions");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.draft || roomState.draft.status !== "building") return;
@@ -8299,7 +8320,7 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  socket.on("saveDraftDeck", async () => {
+  onClientEvent("saveDraftDeck", async () => {
     console.log("[Socket] saveDraftDeck");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.draft || roomState.draft.status !== "building") return;
@@ -8346,7 +8367,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("startGame", async () => {
+  onClientEvent("startGame", async () => {
     console.log(`[Socket] startGame`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
@@ -8377,14 +8398,14 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("duelCommand", async (envelope = {}, ack) => {
+  onClientEvent("duelCommand", async (envelope = {}, ack) => {
     const roomState = getRoomForSocket(socket);
     const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
     const result = await executeSemanticDuelCommand(roomState, playerNum, envelope);
     if (typeof ack === "function") ack(result);
   });
 
-  socket.on("requestMatchState", ({ commandId = null } = {}, ack) => {
+  onClientEvent("requestMatchState", ({ commandId = null } = {}, ack) => {
     const roomState = getRoomForSocket(socket);
     const playerNum = roomState ? getPlayerNumberBySocket(roomState, socket.id) : null;
     const spectator = roomState?.lobby?.spectators?.includes(socket.id);
@@ -8412,7 +8433,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("passPriority", async () => {
+  onClientEvent("passPriority", async () => {
     console.log(`[Socket] passPriority`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -8482,7 +8503,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("resolveDamage", async () => {
+  onClientEvent("resolveDamage", async () => {
     console.log(`[Socket] resolveDamage`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -8526,7 +8547,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("concedeGame", async (ack) => {
+  onClientEvent("concedeGame", async (ack) => {
     console.log("[Socket] concedeGame");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) {
@@ -8560,6 +8581,7 @@ io.on("connection", (socket) => {
     }
 
     if (game.gameMode === "freeForAll") {
+      if (game.players[playerNum].eliminated) return;
       game.players[playerNum].eliminated = true;
       game.players[playerNum].life = Math.min(game.players[playerNum].life, 0);
       const activePlayers = getActivePlayerNumbers(game);
@@ -8572,7 +8594,20 @@ io.on("connection", (socket) => {
         await recordFinalGameStats(roomState, { completionReason: "concession" });
         io.to(roomState.roomCode).emit("gameEnded", { winner, tie: winner == null, concededBy: playerNum });
       } else {
+        const removeAttack = (attack) => {
+          if (!attack || (attack.player !== playerNum && attack.targetPlayer !== playerNum)) return false;
+          game.players[attack.player].discard.push(attack.card, ...(attack.attachedCards || []));
+          for (const block of attack.block || []) game.players[block.player].discard.push(block.card);
+          return true;
+        };
+        game.handAttacks = game.handAttacks.filter((attack) => !removeAttack(attack));
+        for (const lane of game.lanes) {
+          if (removeAttack(lane.attack)) { lane.attack = null; lane.block = []; }
+        }
+        resetPriorityPassed(game);
+        if (game.mostRecentAttackDefender === playerNum) game.mostRecentAttackDefender = null;
         if (game.priority === playerNum) game.priority = activePlayers[0];
+        if (game.phase === "end" && getCurrentEndPlacementPlayer(game) == null) await advanceEndPlacement(roomState);
         game.message = `Player ${playerNum} conceded and is eliminated. ${activePlayers.length} players remain.`;
       }
       emitState(roomState);
@@ -8599,7 +8634,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message: "Concession accepted." });
   });
 
-  socket.on("offerDraw", async (ack) => {
+  onClientEvent("offerDraw", async (ack) => {
     console.log("[Socket] offerDraw");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) {
@@ -8658,7 +8693,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message: "Draw offer sent." });
   });
 
-  socket.on("respondDraw", async ({ accept } = {}, ack) => {
+  onClientEvent("respondDraw", async ({ accept } = {}, ack) => {
     console.log("[Socket] respondDraw");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) {
@@ -8699,7 +8734,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message: "Draw accepted." });
   });
 
-  socket.on("requestUndo", (ack) => {
+  onClientEvent("requestUndo", (ack) => {
     console.log("[Socket] requestUndo");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) {
@@ -8739,7 +8774,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message: "Undo request sent." });
   });
 
-  socket.on("respondUndo", ({ approve } = {}, ack) => {
+  onClientEvent("respondUndo", ({ approve } = {}, ack) => {
     console.log("[Socket] respondUndo");
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game?.undoRequest) {
@@ -8779,7 +8814,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message: allApproved ? "Undo completed." : "Undo approved." });
   });
 
-  socket.on("confirmAttack", async (payload = {}) => {
+  onClientEvent("confirmAttack", async (payload = {}) => {
     const { from, lane, attackCardIndex, paymentIndexes, useHeraBonus, targetPlayer } = payload;
     console.log(`[Socket] confirmAttack: from=${from}, lane=${lane}, idx=${attackCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
@@ -8940,7 +8975,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("confirmBlock", async (payload = {}) => {
+  onClientEvent("confirmBlock", async (payload = {}) => {
     const { lane, handAttackId, blockCardIndex, blockCardIndexes, paymentIndexes, useHeraBonus } = payload;
     console.log(`[Socket] confirmBlock: lane=${lane}, attackId=${handAttackId}, blockIdx=${blockCardIndex}, payments=${paymentIndexes}`);
     const roomState = getRoomForSocket(socket);
@@ -9221,7 +9256,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("usePolea", async (payload = {}) => {
+  onClientEvent("usePolea", async (payload = {}) => {
     const { mode, handIndex, lane, laneA, laneB, targetPlayer, targetType, handAttackId } = payload;
     console.log(`[Socket] usePolea: mode=${mode}`);
     const roomState = getRoomForSocket(socket);
@@ -9406,7 +9441,7 @@ io.on("connection", (socket) => {
     socket.emit("errorMessage", "Invalid Polea mode");
   });
 
-  socket.on("useLafayette", async (payload = {}) => {
+  onClientEvent("useLafayette", async (payload = {}) => {
     const { lane, handIndex } = payload;
     console.log(`[Socket] useLafayette: lane=${lane}, handIndex=${handIndex}`);
     const roomState = getRoomForSocket(socket);
@@ -9473,7 +9508,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("useFocusBuff", async (payload = {}) => {
+  onClientEvent("useFocusBuff", async (payload = {}) => {
     const { targetType, lane, handAttackId } = payload;
     console.log(`[Socket] useFocusBuff: targetType=${targetType}`);
     const roomState = getRoomForSocket(socket);
@@ -9535,7 +9570,7 @@ io.on("connection", (socket) => {
     emitState(roomState);
   });
 
-  socket.on("placeFacedown", async (payload = {}) => {
+  onClientEvent("placeFacedown", async (payload = {}) => {
     const { lane, handIndex } = payload;
     console.log(`[Socket] placeFacedown: lane ${lane}, handIndex ${handIndex}`);
     const roomState = getRoomForSocket(socket);
@@ -9594,7 +9629,7 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("skipEndPlacement", async ({ lane }) => {
+  onClientEvent("skipEndPlacement", async ({ lane }) => {
     console.log(`[Socket] skipEndPlacement: lane ${lane}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState?.game) return;
@@ -9639,16 +9674,16 @@ io.on("connection", (socket) => {
     scheduleTrainingAi(roomState);
   });
 
-  socket.on("leaveRoom", () => {
+  onClientEvent("leaveRoom", () => {
     console.log("[Socket] leaveRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
     const roomState = getRoomForSocket(socket);
     if (!roomState) return;
-    detachSocketFromRoom(roomState, socket);
+    detachSocketFromRoom(roomState, socket, { intentional: true });
   });
 
-  socket.on("disconnect", () => {
+  onClientEvent("disconnect", () => {
     console.log(`[Socket] Disconnected: ${socket.id}`);
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);

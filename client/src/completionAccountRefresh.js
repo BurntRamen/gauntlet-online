@@ -4,7 +4,11 @@ export async function fetchAuthoritativeAccount({ apiBaseUrl, authToken, fetchIm
     headers: { Authorization: `Bearer ${authToken}` }
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not refresh the signed-in account.");
+  if (!response.ok) {
+    const error = new Error(data.error || "Could not refresh the signed-in account.");
+    error.status = response.status;
+    throw error;
+  }
   if (!data.account) throw new Error("The account refresh returned no account.");
   return data.account;
 }
