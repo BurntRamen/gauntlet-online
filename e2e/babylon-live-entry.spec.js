@@ -856,6 +856,16 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     await encounter.locator("summary").click();
   }
   const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
+  const ledger = page.getByRole("complementary", { name: "Recent play order" });
+  await expect(ledger).toBeVisible();
+  for (const width of [1366, 768]) {
+    await page.setViewportSize({ width, height: 768 });
+    const dialogueBox = await encounter.boundingBox();
+    const logBox = await ledger.boundingBox();
+    expect(logBox.x).toBeGreaterThanOrEqual(dialogueBox.x + dialogueBox.width);
+  }
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.screenshot({ path: test.info().outputPath("campaign-dialogue-and-log.png") });
   await expect(openingDialogue.getByRole("button", { name: "Play dialogue" })).toBeEnabled();
   await openingDialogue.getByRole("button", { name: /Play .* voice/i }).first().click();
   await expect(openingDialogue).toContainText(/Playing .*\./i);

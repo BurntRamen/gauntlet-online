@@ -313,7 +313,9 @@
   bottom: max(6px, env(safe-area-inset-bottom));
   display: grid;
   width: clamp(292px, 27vw, 386px);
-  min-height: 96px;
+  height: 154px;
+  box-sizing: border-box;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 7px;
   padding: 9px;
   border: 1px solid rgba(94, 127, 151, 0.72);
@@ -326,7 +328,15 @@
 
 .production-context-copy {
   display: grid;
+  min-height: 0;
+  align-content: start;
+  overflow-y: auto;
   gap: 3px;
+}
+
+/* Selection changes the controls inside this fixed rail, never the table size. */
+.production-context-panel.has-payment .production-context-kicker {
+  display: none;
 }
 
 .production-context-kicker {
@@ -350,7 +360,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 3px 10px;
-  padding: 7px 9px;
+  padding: 4px 9px;
   border: 1px solid rgba(224, 186, 118, 0.62);
   border-radius: 6px;
   color: #f0d39b;
@@ -509,7 +519,7 @@
 .production-campaign-encounter {
   position: absolute;
   z-index: 8;
-  top: clamp(58px, 9vh, 84px);
+  top: calc(var(--battlefield-top-reserve) + 6px);
   left: clamp(10px, 1.4vw, 22px);
   width: min(320px, 31vw);
   color: var(--gauntlet-parchment);
@@ -823,7 +833,7 @@
 .production-match-ledger {
   position: absolute;
   z-index: 11;
-  top: 82px;
+  top: calc(var(--battlefield-top-reserve) + 6px);
   left: 8px;
   display: grid;
   width: min(380px, calc(100% - 16px));
@@ -843,6 +853,16 @@
   gap: 8px;
   padding: 3px 5px 3px 9px;
   border-bottom: 1px solid rgba(112, 145, 171, 0.22);
+}
+
+/* Dialogue and recent plays occupy separate sides while the campaign is visible. */
+@media (min-width: 601px) and (min-height: 521px) {
+  .production-campaign-encounter ~ .production-match-ledger {
+    top: calc(var(--battlefield-top-reserve) + 6px);
+    right: 8px;
+    left: auto;
+    width: min(380px, 44%);
+  }
 }
 
 .production-match-ledger > header > span {
@@ -2380,10 +2400,17 @@
 @media (max-height: 520px) and (orientation: landscape) {
   .has-phone-hand .phone-hand-panel { left: 232px; bottom: 4px; }
   .has-phone-hand .production-context-panel {
-    left: 4px; right: auto; bottom: 4px; width: 220px; min-height: 68px;
+    left: 4px; right: auto; bottom: 4px; width: 220px; height: 76px; min-height: 0;
     box-sizing: border-box; display: grid; gap: 4px; padding: 5px;
   }
+  .has-phone-hand .production-payment-readout {
+    padding: 0; border: 0; background: none; gap: 0 5px;
+  }
+  .has-phone-hand .production-payment-readout > strong { font-size: 12px; }
+  .has-phone-hand .production-payment-readout > i,
+  .has-phone-hand .production-payment-readout > small { display: none; }
   .has-phone-hand .production-context-kicker { display: none; }
+  .has-phone-hand .production-context-copy > strong { display: none; }
   .has-phone-hand .production-action-buttons { display: flex; gap: 4px; }
   .has-phone-hand .production-action-buttons button { flex: 1; padding: 3px; font-size: 9px; }
   .has-phone-hand .production-player-plate-bottom {
