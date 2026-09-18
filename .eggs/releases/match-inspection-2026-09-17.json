@@ -11,7 +11,13 @@
       "also in the log it should explicitly say why the individual result happened. like for example that 5 block in the screenshot was a 3 plus 2 for a faction blocking bonus",
       "down to showing which card was specifically used for attack , block and pitch"
     ],
-    "recordedAt": "2026-09-17T23:44:58Z"
+    "recordedAt": "2026-09-17T23:44:58Z",
+    "releaseApproval": {
+      "question": "Should I publish this patch despite those failures?",
+      "answer": "yes",
+      "recordedAt": "2026-09-18T00:20:18Z",
+      "head": "4fec134b016d67531aebaef51239abdf05b0c522"
+    }
   },
   "repository": "https://github.com/BurntRamen/gauntlet-online.git",
   "base": "15ea0da11b130cb27fdd859ceeb3265b2e55ff26",
@@ -54,7 +60,7 @@
     "npm run test:e2e:usability",
     "npm run test:e2e:performance",
     "Current dock non-overlap/pile-click browser preview",
-    "GitHub PR checks must pass; no earlier release exception reused",
+    "Observe and retain exact runtime-head GitHub results; only this fresh owner exception permits scoped publication. No earlier exception reused and no protection bypass.",
     "Verify exact Vercel client and Render backend deployed revision"
   ],
   "communicationScope": "Factual scoped GitHub PR and checks/deployment evidence only.",
@@ -64,5 +70,32 @@
     "human": "Requested technical improvements under standing direct release instruction; no human visual review, moderated session, device certification or full redesign completion is fabricated."
   },
   "expiry": "Only this exact requested code patch; consumed by publication or cancellation.",
-  "releaseException": null
+  "releaseException": {
+    "id": "gauntlet-match-inspection-pr6-owner-exception-2026-09-18",
+    "owner": "Giuseppe",
+    "source": "direct-user-message",
+    "question": "Should I publish this patch despite those failures?",
+    "answer": "yes",
+    "recordedAt": "2026-09-18T00:20:18Z",
+    "reviewedRuntimeHead": "4fec134b016d67531aebaef51239abdf05b0c522",
+    "pullRequest": "https://github.com/BurntRamen/gauntlet-online/pull/6",
+    "failedCheck": "https://github.com/BurntRamen/gauntlet-online/actions/runs/35289265402",
+    "scope": "Only PR #6 discard inspection, non-overlapping faction dock and exact attack/block/pitch calculation receipts to existing main, Vercel client and Render backend. A metadata-only amendment records this decision; no additional runtime change.",
+    "disposition": "Publish using the existing ordinary PR-to-main workflow while retaining three failed GitHub browser checks as failures. CI performance was skipped; current local compiled performance passes.",
+    "retainedGates": [
+      "Exact reviewed runtime tree unchanged; sole amendment is this release-contract record.",
+      "Existing current local core/build/bundle, strict assets, full browser entry, usability, responsive dock/pointer and compiled-performance checks pass.",
+      "No protection bypass or deployment/access/settings change.",
+      "Verify exact live Vercel client and Render backend revisions."
+    ],
+    "notGranted": [
+      "Passing qualification",
+      "Full redesign completion",
+      "Future release exception",
+      "New art/canon/rights",
+      "Production data or Drive writeback",
+      "Repository protection bypass"
+    ],
+    "expiry": "Consumed by this one scoped publication or cancellation."
+  }
 }
