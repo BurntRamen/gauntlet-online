@@ -33,6 +33,7 @@ import MenuBackdrop from "./MenuBackdrop";
 import { fetchGameContent } from "./loadGameContent";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
+const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 let matchesHubModule;
 let matchesHubPromise;
@@ -5863,6 +5864,9 @@ export default function App() {
                   <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCampaign(true); }}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
                 </section>
               </div>
+              <Suspense fallback={<p>Loading Legacies…</p>}>
+                <LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} />
+              </Suspense>
               <details className="journey-rulebook">
                 <summary><span>Field Rulebook</span><small>Open the complete rules reference</small></summary>
                 <div className="journey-rulebook-content"><RulebookPanel /></div>

@@ -1,0 +1,336 @@
+Mekan Faction Overview
+Core Identity
+
+Faction: Mekan
+World: Reath / originally associated with the civilization of San Mikal
+Inspiration: The Aztec Empire and broader Mesoamerican-inspired visual motifs, reinterpreted through a fantasy civilization of colorful skeletons
+Primary themes: Celebration, music, festivals, death, remembrance, sacrifice, recursion, community, and the return of the dead
+Personality: Jovial, communal, theatrical, spiritual, and surprisingly fearless
+Visual identity: Vibrantly decorated skeletons, colorful textiles, flowers, feathers, gold and jade ornamentation, lanterns, masks, musical instruments, ceremonial architecture, enormous public festivals, and processions of the dead.
+
+The Mekan are an undead civilization that does not regard death as the opposite of life. To them, death is another stage of existence.
+
+Where other civilizations mourn their fallen and fear joining them, the Mekan invite their ancestors back to the party.
+
+Their cities can therefore appear strange to outsiders. Skeletons dance through brightly decorated streets. Musicians play beside burial grounds. Warriors carry brilliant banners into battle. Lanterns guide departed spirits home. Great festivals blur the distinction between the living, the dead, and the remembered.
+
+This philosophy is represented mechanically through sacrifice, milling, graveyard interaction, Guest tokens, and recursion.
+
+Background Story
+The Founding of San Mikal
+
+Long before the Mekan became one of Reath's great powers, their ancestors wandered in search of a permanent home.
+
+According to Mekan tradition, their journey ended when they reached a great lake surrounded by brilliant flowers and strange spiritual energy. There they received a vision from their ancestors directing them to establish a city where the worlds of the living and dead touched.
+
+That city became San Mikal.
+
+San Mikal grew around an enormous ceremonial burial complex. Rather than hiding their dead outside the city, the Mekan constructed their civilization around them.
+
+Homes, markets, arenas and festival grounds eventually surrounded the ancient burial sites.
+
+The dead were quite literally at the center of Mekan society.
+
+The Discovery of Recursion
+
+Early Mekan spiritual leaders discovered that the barrier separating the dead from the living was unusually weak around San Mikal.
+
+During certain ceremonies, spirits could temporarily return.
+
+At first these appearances were considered sacred miracles. Families reunited with ancestors. Musicians performed alongside performers who had died generations earlier. Warriors listened to stories told by legendary commanders.
+
+Eventually the Mekan learned how to deliberately reproduce the phenomenon.
+
+This became the foundation of Recursion.
+
+The Mekan discovered that death did not necessarily remove someone from the world. A sufficiently powerful ritual could call them back.
+
+But Mekan culture developed an important distinction:
+
+Returning should be a celebration, not an imprisonment.
+
+The dead are guests.
+
+This belief eventually gives rise to the Mekan concept of Guests.
+
+The Guests
+
+During major Mekan celebrations, spirits are invited from the graveyard back into the world.
+
+These spirits are known simply as Guests.
+
+A Guest may remain only briefly before returning to the afterlife. Consequently, Mekan culture treats every returning spirit like an honored visitor.
+
+Mechanically, Guest tokens are expendable resources that repeatedly move between the graveyard and play.
+
+The Mekan intentionally place Guests into their graveyard because, to them, the graveyard isn't simply where resources disappear.
+
+It is another place from which the celebration can begin.
+
+Allegro, Celebrator of Life
+
+The modern Mekan are led by Allegro, Celebrator of Life.
+
+Allegro is an exuberant skeletal ruler, conductor and ceremonial leader whose philosophy embodies the Mekan worldview:
+
+Life matters precisely because it ends.
+
+Allegro does not seek immortality in the conventional sense. Instead, he believes a civilization becomes immortal when every generation remembers and celebrates those that came before it.
+
+He presides over enormous festivals where thousands of Mekan fill San Mikal's streets with music.
+
+Despite his cheerful demeanor, Allegro is not naive.
+
+He understands that resurrection can become extraordinarily dangerous when used as a tool of conquest. His greatest political challenge is preventing Mekan leaders from transforming sacred recursion rituals into a method of creating armies that can never permanently die.
+
+This tension forms one of the central conflicts within Mekan society.
+
+The Great Festivals
+
+Mekan festivals aren't simply entertainment.
+
+They are religious ceremonies, political gatherings, sporting competitions, memorials and magical rituals simultaneously.
+
+Important festivities include:
+
+Jade Ball Tournament — Teams compete in an ancient ceremonial ball game while enormous crowds of living and departed spectators watch.
+
+Divination Ceremony — Spiritual leaders interpret signs from ancestors and attempt to glimpse possible futures.
+
+Luminous Lanterns — Thousands of lanterns illuminate San Mikal and guide departed spirits toward the celebration.
+
+Bountiful Banquet — Families prepare enormous feasts for both present and departed relatives.
+
+Mystical Mask Exchange — Participants wear representations of historical Mekan figures, symbolically allowing the identities of past and present generations to overlap.
+
+Ghostly Games — Competitions specifically intended for returning Guests.
+
+Spectral Symphony — Living and deceased musicians perform together.
+
+Culinary Carnival — An enormous public feast honoring generations of Mekan cooks and families.
+
+Day of the Dancing Dead — One of San Mikal's greatest celebrations. The boundary between the graveyard and physical world becomes extraordinarily thin and countless Guests join the festivities.
+
+Procession of Spirits — Spirits travel through San Mikal's streets before returning to the afterlife.
+
+These events explain why Mekan cards combine festive imagery with graveyard mechanics.
+
+Mekan Military Culture
+
+The Mekan do not separate warfare from ceremony as sharply as many other factions.
+
+Their armies march behind musicians, dancers, lantern bearers and enormous ceremonial banners.
+
+A Mekan army can resemble a parade until it attacks.
+
+Common soldiers include:
+
+Festival Volunteers
+Candlelight Dancers
+Procession Guards
+Lantern Bearers
+Celebration Vanguards
+Cosmic Revelers
+Mekan Drummers
+Mekan Lancers
+Mekan Heralds
+Mekan Conjurers
+Mekan Firebreathers
+Mekan Jugglers
+Mekan Gatherers
+Mekan Brawlers
+Deathwalker Priests
+
+Deathwalker Priests demonstrate the most extreme form of Mekan warfare. Even after being destroyed, they can return to battle, although repeated resurrection gradually weakens their physical forms.
+
+This makes fighting the Mekan psychologically unusual.
+
+An enemy can destroy a Mekan warrior only to encounter the same warrior again later.
+
+The Mekan themselves may regard the reunion as cause for celebration.
+
+Mekan Gameplay Identity
+
+The Mekan gameplay loop should feel like a party that refuses to end.
+
+Their cards repeatedly cycle through:
+
+Play → sacrifice/die → graveyard → return → receive a bonus → sacrifice/die again.
+
+The graveyard therefore functions almost like a secondary hand.
+
+Core mechanics include:
+
+Recursion: Return Servitors or Guests from the graveyard.
+
+Sacrifice: Mekan willingly sacrifice units to generate value or enable resurrection.
+
+Mill: Mekan intentionally place cards from their deck into their graveyard to create future resources.
+
+Guests: Disposable spirits that can be placed directly into the graveyard and subsequently invited back into play.
+
+Celebrate: Rewards the Mekan when something returns from the graveyard.
+
+A clean rules definition is:
+
+Celebrate — Triggers when a card enters play from your graveyard.
+
+Individual cards can then specify their Celebrate effect.
+
+For example:
+
+Celebrate — This Servitor gets +1 Attack until end of turn.
+
+This allows Celebrate to become the signature Mekan keyword without requiring every Celebrate card to have the same payoff.
+
+GAUNTLET VERSION
+
+The Gauntlet Mekan should preserve the same identity using Gauntlet's simpler playing-card system.
+
+Commander — Allegro, Celebrator of Life
+
+Faction: Mekan
+
+Commander Ability — Encore
+
+Once per turn, after one of your cards is discarded to pay a cost, you may mark that card as a Guest.
+
+Celebrate — Once per turn, when you play a card that shares a value or suit with a Guest in your discard pile, that card gets +1 Value until end of turn.
+
+Design Purpose
+
+Allegro turns ordinary discarded playing cards into memories of previous participants in the celebration.
+
+The player is encouraged to remember what has already been discarded and construct future attacks around those cards.
+
+The discard pile therefore becomes strategically relevant without requiring large amounts of physical bookkeeping.
+
+City — San Mikal, Burial Ground
+
+Faction: Mekan
+
+City Ability — The Guests Return
+
+Once per turn, when one of your cards is defeated, you may designate it as a Guest.
+
+When you play a card with the same printed Value as one of your Guests, you may remove that Guest from your discard pile from the game. If you do, the played card gets +1 Value until end of turn.
+
+Flavor
+
+San Mikal remembers everyone who has participated in its eternal celebration.
+
+A fallen Mekan does not disappear.
+
+Someone eventually dances in their place.
+
+GAUNTLET GENERALS
+Acama, Founder of the Celebration
+
+Historical inspiration: Acamapichtli
+
+Ability — Festival Foundations
+
+Once per turn, when you place a card face-down in Acama's lane, you may look at the top card of your deck.
+
+You may place that card on the bottom of your deck.
+
+Identity
+
+Acama represents preparation and the establishment of San Mikal. He is the most methodical Mekan General and helps prepare future draws rather than directly strengthening combat.
+
+Hui, Master of Ceremonies
+
+Historical inspiration: Huitzilihuitl
+
+Ability — Invite Everyone
+
+The first time each turn you play a card in Hui's lane that shares a suit with a card in your discard pile, it gets +1 Value until end of turn.
+
+Identity
+
+Hui encourages the player to create chains between current participants and previous Guests.
+
+Monti, Keeper of the Eternal Festival
+
+Historical inspiration: Motecuhzoma Ilhuicamina / Moctezuma I
+
+Ability — Grand Celebration
+
+Once per turn, if you have discarded at least two cards this turn, target card in Monti's lane gets +1 Value until end of turn.
+
+Identity
+
+Monti rewards large, spectacular turns where the Mekan expend significant resources.
+
+Ahu, Leader of the Procession
+
+Historical inspiration: Ahuitzotl
+
+Ability — Procession of the Dead
+
+Once per turn, after you win combat in Ahu's lane, look at the top two cards of your deck. Put one on top and one on the bottom.
+
+If you discarded a Guest during that combat, the winning card gets +1 Value until end of turn.
+
+Identity
+
+Ahu is the aggressive Mekan General. He turns the faction's graveyard engine into forward momentum.
+
+Temo, Caller of the Departed
+
+Historical inspiration: Cuauhtémoc can provide part of the historical inspiration, while the character can remain substantially fictionalized.
+
+Ability — One More Dance
+
+Once per turn, when one of your cards in Temo's lane is defeated, the next card you play in this lane this turn gets +1 Value.
+
+Identity
+
+Temo represents the Mekan refusal to allow defeat to end the celebration.
+
+Gauntlet Gameplay Philosophy
+
+The Mekan should be a discard-synergy / comeback faction rather than literal resurrection being everywhere.
+
+Gauntlet's normal gameplay already involves frequently discarding cards to attack and block. The Mekan reinterpret those discarded cards as former participants in the celebration.
+
+This gives them an unusual strategic identity:
+
+Other factions see the discard pile as spent resources.
+The Mekan see it as the guest list.
+
+Their strongest turns occur when the player sequences current cards around cards they previously discarded.
+
+That preserves the feeling of Timetwister's recursion mechanics without requiring Gauntlet players to constantly replay discarded cards, which could undermine the game's one-use-card structure.
+
+Art Direction
+
+The Mekan should immediately communicate:
+
+"Undead, but joyful."
+
+Avoid presenting them as a conventional grim necromancer faction.
+
+Their skeletons should be expressive and energetic. Their environments should contain brilliant flowers, banners, candles, lanterns, masks, painted architecture, musical instruments and crowds.
+
+Battlefields should resemble celebrations interrupted by warfare—or warfare incorporated into celebrations.
+
+The visual contrast is essential:
+
+Skeleton imagery + enormous amounts of color + genuine happiness.
+
+The Mekan should be one of the brightest factions in the EGGS universe despite being the faction most closely associated with death.
+
+Faction Fantasy
+
+Playing Mekan should create the feeling that nothing is ever truly wasted.
+
+A discarded card becomes a Guest.
+
+A defeated warrior becomes a memory.
+
+A memory strengthens the next participant.
+
+A funeral becomes a festival.
+
+And when everyone else thinks the party is over, the Mekan simply invite the dead back for one more song.

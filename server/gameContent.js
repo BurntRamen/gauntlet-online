@@ -1,7 +1,8 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v1";
-const CONTENT_VERSION = "gauntlet-content-v1";
+const CONTENT_VERSION = "gauntlet-content-v2";
+const { LEGACIES } = require("./legaciesContent");
 const FREE_GAMEPLAY_ACQUISITION = "earned-gameplay-pack";
 const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
 const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
@@ -1366,6 +1367,7 @@ function getPublicGameContent() {
     rulesVersion: RULES_VERSION,
     contentVersion: CONTENT_VERSION,
     factions: listFactions(),
+    upcomingSets: [LEGACIES],
     campaigns,
     cards: COLLECTION_CARDS,
     collectorVariants: COLLECTOR_VARIANTS,
