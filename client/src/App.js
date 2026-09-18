@@ -30,6 +30,7 @@ import {
   useMenuAudio
 } from "./MenuAudio";
 import MenuBackdrop from "./MenuBackdrop";
+import { fetchGameContent } from "./loadGameContent";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -4118,13 +4119,7 @@ export default function App() {
   const loadGameContent = useCallback(async () => {
     setGameContentError("");
     try {
-      const response = await fetch(`${SOCKET_URL}/api/game-content`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not load game content.");
-      if (!data.content?.contentVersion || !data.content?.campaigns || !data.content?.deckRules) {
-        throw new Error("The server returned an unsupported game-content manifest.");
-      }
-      setGameContent(data.content);
+      setGameContent(await fetchGameContent(SOCKET_URL));
     } catch (contentError) {
       setGameContentError(contentError.message);
     }
@@ -5581,8 +5576,8 @@ export default function App() {
           </div>
           <div className="gauntlet-loading-copy">
             <span>Battle Net Terminal</span>
-            <h1 id="gauntlet-loading-title">Loading Gauntlet</h1>
-            <p className={gameContentError ? "is-error" : ""}>
+            <h1 id="gauntlet-loading-title">{gameContentError ? "Unable to connect" : "Loading Gauntlet"}</h1>
+            <p role="status" className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
             </p>
             {!gameContentError && <span className="gauntlet-loading-pulse" aria-hidden="true"><i /><i /><i /></span>}

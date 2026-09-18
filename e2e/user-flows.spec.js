@@ -5,6 +5,23 @@ const fs = require("node:fs/promises");
 const SERVER_URL = "http://127.0.0.1:4100";
 const PASSWORD = "Flow-Test-Password-42";
 
+test("a stalled startup becomes retryable and recovers when the server returns", async ({ page, baseURL }) => {
+  const { getPublicGameContent } = require("../server/gameContent");
+  let attempts = 0;
+  await page.route("**/api/game-content", async (route) => {
+    attempts += 1;
+    if (attempts === 1) return;
+    await route.fulfill({ json: { content: getPublicGameContent() } });
+  });
+  await page.goto(baseURL);
+  await expect(page.getByRole("heading", { name: "Loading Gauntlet" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Unable to connect" })).toBeVisible({ timeout: 25000 });
+  await expect(page.getByRole("status")).toContainText("taking too long");
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Learn one turn", exact: true })).toBeVisible();
+  expect(attempts).toBe(2);
+});
+
 test("an invitation lands on Tables and a new guest joins without visiting Identity", async ({ page, baseURL }) => {
   const host = io(SERVER_URL, { autoConnect: false, transports: ["websocket"] });
   try {
