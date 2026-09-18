@@ -278,6 +278,9 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   });
   await expect(spectatorPage.locator('[data-match-zone="hand"]')).toHaveCount(0);
   await expect(spectatorPage.getByRole("button", { name: "Pass Priority" })).toHaveCount(0);
+  // Its privacy checks are complete. Do not keep an unused WebGL client
+  // competing with the two players on the runner's shared software GPU.
+  await spectatorPage.close();
 
   const priorityPage = await hostPage.locator(".production-player-plate-bottom.has-priority").isVisible()
     ? hostPage
@@ -309,6 +312,7 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await expect(waitingPage.getByRole("button", { name: "Accept Rematch" })).toBeVisible();
   await waitingPage.getByRole("button", { name: "Decline Rematch" }).click();
   await expect(priorityPage.getByRole("dialog").getByText(/declined the rematch/i)).toBeVisible();
+  await waitingPage.close();
 
   await priorityPage.getByRole("button", { name: "Watch Replay" }).click();
   await expect(priorityPage.locator(".match-replay-page")).toBeVisible();
