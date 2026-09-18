@@ -1,0 +1,52 @@
+.production-table-recovery {
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 16px;
+  color: #e7edf2;
+  background: radial-gradient(ellipse at top, #1a3443, #071018);
+  border: 1px solid #8e754b;
+  border-radius: 10px;
+}
+.production-table-recovery-notice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.production-table-recovery-notice button {
+  padding: 8px 12px;
+  border: 1px solid #8e754b;
+  border-radius: 6px;
+  color: #f0d08d;
+  background: #162534;
+  cursor: pointer;
+}
+.production-table-recovery-lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.production-table-recovery-lanes section {
+  padding: 10px;
+  border: 1px solid #40566a;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.production-table-recovery .babylon-accessible-controls {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  box-sizing: border-box;
+  overflow: visible;
+  padding: 12px;
+  clip-path: none;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}

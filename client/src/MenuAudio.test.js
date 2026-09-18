@@ -1,8 +1,11 @@
 import {
+  DEFAULT_MENU_MUSIC_TRACK,
   DEFAULT_MENU_AUDIO_SETTINGS,
   MENU_AMBIENCE_SOURCE,
+  MENU_MUSIC_TRACK_STORAGE_KEY,
   createMenuAudioController,
-  readMenuAudioSettings
+  readMenuAudioSettings,
+  readMenuMusicTrack
 } from "./MenuAudio";
 
 class FakeAudio {
@@ -68,6 +71,15 @@ test("restores safe menu audio settings and clamps stored volumes", () => {
     ambienceVolume: 0
   });
   expect(readMenuAudioSettings({ getItem: () => "not-json" })).toEqual(DEFAULT_MENU_AUDIO_SETTINGS);
+});
+
+test("restores a valid menu score choice and defaults invalid values to the calmer track", () => {
+  const livingTableStorage = { getItem: (key) => key === MENU_MUSIC_TRACK_STORAGE_KEY ? "menuLiving" : null };
+  const invalidStorage = { getItem: () => "removed-track" };
+
+  expect(readMenuMusicTrack(livingTableStorage)).toBe("menuLiving");
+  expect(readMenuMusicTrack(invalidStorage)).toBe(DEFAULT_MENU_MUSIC_TRACK);
+  expect(readMenuMusicTrack(null)).toBe("menu");
 });
 
 test("enforces cue cooldown, two-voice polyphony, hierarchy gain, and music ducking", () => {

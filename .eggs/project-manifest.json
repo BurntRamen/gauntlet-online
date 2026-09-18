@@ -1,7 +1,7 @@
 {
   "contract": "eggs.project-manifest@1.0.0",
   "schemaVersion": "1.0.0",
-  "manifestVersion": "1.0.0",
+  "manifestVersion": "1.1.0",
   "manifestState": "verified",
   "project": {
     "id": "gauntlet",
@@ -15,14 +15,98 @@
     "systemOfRecord": "google-drive",
     "expectedAccount": "timetwisterbrand@gmail.com",
     "references": [
-      { "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4", "canonicalUrl": "https://docs.google.com/document/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/edit", "provider": "google-drive", "resourceType": "document", "role": "governance", "scope": "Creative OS governance", "status": "verified", "required": true, "resolutionPolicy": "live" },
-      { "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E", "canonicalUrl": "https://docs.google.com/document/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/edit", "provider": "google-drive", "resourceType": "document", "role": "master-index", "scope": "Creative OS authority routing", "status": "verified", "required": true, "resolutionPolicy": "live" },
-      { "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY", "canonicalUrl": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit", "provider": "google-drive", "resourceType": "document", "role": "project-dossier", "scope": "Gauntlet product authority and operational visual contract", "status": "verified", "required": true, "resolutionPolicy": "live" },
-      { "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4", "canonicalUrl": "https://docs.google.com/document/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/edit", "provider": "google-drive", "resourceType": "document", "role": "rulebook", "scope": "Gauntlet gameplay rules", "status": "verified", "required": true, "resolutionPolicy": "live" },
-      { "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4", "canonicalUrl": "https://docs.google.com/spreadsheets/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/edit", "provider": "google-drive", "resourceType": "spreadsheet", "role": "asset-registry", "scope": "Gauntlet card registry", "status": "verified", "required": true, "resolutionPolicy": "live", "sheet": { "sheetId": 0, "headerRange": "1:1" } },
-      { "resourceId": "1m9EnCdcpKhVD6qNOGLiDbMBiD2TufjdT", "canonicalUrl": "https://drive.google.com/file/d/1m9EnCdcpKhVD6qNOGLiDbMBiD2TufjdT/view", "provider": "google-drive", "resourceType": "file", "role": "approved-asset", "scope": "Gauntlet approved logo", "status": "verified", "required": false, "resolutionPolicy": "live" },
-      { "resourceId": "1OAjrcdLU8Hzi0xqZIM8uOVJWzkq5TLiI", "canonicalUrl": "https://drive.google.com/file/d/1OAjrcdLU8Hzi0xqZIM8uOVJWzkq5TLiI/view", "provider": "google-drive", "resourceType": "file", "role": "approved-asset", "scope": "Gauntlet approved logo alternate", "status": "verified", "required": false, "resolutionPolicy": "live" },
-      { "resourceId": "1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI", "canonicalUrl": "https://docs.google.com/document/d/1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI/edit", "provider": "google-drive", "resourceType": "document", "role": "provenance-control", "scope": "Cross-project visual admission and provenance controls", "status": "verified", "required": true, "resolutionPolicy": "live" }
+      {
+        "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+        "canonicalUrl": "https://docs.google.com/document/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/edit",
+        "provider": "google-drive",
+        "resourceType": "document",
+        "role": "governance",
+        "scope": "Creative OS governance",
+        "status": "verified",
+        "required": true,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+        "canonicalUrl": "https://docs.google.com/document/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/edit",
+        "provider": "google-drive",
+        "resourceType": "document",
+        "role": "master-index",
+        "scope": "Creative OS authority routing",
+        "status": "verified",
+        "required": true,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+        "canonicalUrl": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+        "provider": "google-drive",
+        "resourceType": "document",
+        "role": "project-dossier",
+        "scope": "Gauntlet product authority and operational visual contract",
+        "status": "verified",
+        "required": true,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+        "canonicalUrl": "https://docs.google.com/document/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/edit",
+        "provider": "google-drive",
+        "resourceType": "document",
+        "role": "rulebook",
+        "scope": "Gauntlet gameplay rules",
+        "status": "verified",
+        "required": true,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+        "canonicalUrl": "https://docs.google.com/spreadsheets/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/edit",
+        "provider": "google-drive",
+        "resourceType": "spreadsheet",
+        "role": "asset-registry",
+        "scope": "Gauntlet card registry",
+        "status": "verified",
+        "required": true,
+        "resolutionPolicy": "live",
+        "sheet": {
+          "sheetId": 0,
+          "headerRange": "1:1"
+        }
+      },
+      {
+        "resourceId": "1m9EnCdcpKhVD6qNOGLiDbMBiD2TufjdT",
+        "canonicalUrl": "https://drive.google.com/file/d/1m9EnCdcpKhVD6qNOGLiDbMBiD2TufjdT/view",
+        "provider": "google-drive",
+        "resourceType": "file",
+        "role": "approved-asset",
+        "scope": "Gauntlet approved logo",
+        "status": "verified",
+        "required": false,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1OAjrcdLU8Hzi0xqZIM8uOVJWzkq5TLiI",
+        "canonicalUrl": "https://drive.google.com/file/d/1OAjrcdLU8Hzi0xqZIM8uOVJWzkq5TLiI/view",
+        "provider": "google-drive",
+        "resourceType": "file",
+        "role": "approved-asset",
+        "scope": "Gauntlet approved logo alternate",
+        "status": "verified",
+        "required": false,
+        "resolutionPolicy": "live"
+      },
+      {
+        "resourceId": "1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI",
+        "canonicalUrl": "https://docs.google.com/document/d/1qG_EhBWSycVbm4YZmCPgUr_jI70LlpwDtY9kIbkIxRI/edit",
+        "provider": "google-drive",
+        "resourceType": "document",
+        "role": "provenance-control",
+        "scope": "Draft visual-production provenance specification; not governing this code-only release and not promoted. Visual production still requires separate active authority and admission.",
+        "status": "unresolved",
+        "required": false,
+        "resolutionPolicy": "live"
+      }
     ]
   },
   "repository": {
@@ -37,57 +121,153 @@
     "requireCleanOverlap": true
   },
   "commands": {
-    "install": { "argv": ["npm", "run", "install:all"], "cwd": ".", "required": false },
-    "check": { "argv": ["npm", "run", "check"], "cwd": ".", "required": true },
-    "test-server": { "argv": ["npm", "run", "test:server"], "cwd": ".", "required": true },
-    "test-client": { "argv": ["npm", "run", "test:client"], "cwd": ".", "required": true },
-    "build-client": { "argv": ["npm", "run", "build:client"], "cwd": ".", "required": true },
-    "preview": { "argv": ["npm", "run", "serve:client-build"], "cwd": ".", "required": false }
+    "check": {
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    "asset-report": {
+      "argv": [
+        "npm",
+        "run",
+        "report:match-assets",
+        "--",
+        "--strict"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    "browser-entry": {
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    "browser-usability": {
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:usability"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    "browser-performance": {
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:performance"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    "preview": {
+      "argv": [
+        "npm",
+        "run",
+        "serve:client-build"
+      ],
+      "cwd": ".",
+      "required": false
+    }
   },
   "preview": {
     "required": true,
-    "routes": ["/"],
+    "routes": [
+      "/"
+    ],
     "readiness": [
-      { "kind": "http", "target": "http://localhost:4173/" }
+      {
+        "kind": "http",
+        "target": "http://127.0.0.1:3102/"
+      }
     ]
   },
   "outputs": [
-    { "id": "client-build", "path": "client/dist", "kind": "build" },
-    { "id": "review-evidence", "path": ".eggs/evidence", "kind": "review" }
+    {
+      "id": "client-build",
+      "path": "client/build",
+      "kind": "build"
+    },
+    {
+      "id": "review-evidence",
+      "path": ".eggs/evidence",
+      "kind": "review"
+    },
+    {
+      "id": "release-contract",
+      "path": ".eggs/releases/match-layout-2026-09-17.json",
+      "kind": "source"
+    }
   ],
-  "skills": ["eggs-project-preflight@1.0.0", "eggs-safe-project-execution@1.0.0", "eggs-governed-visual-production@1.0.0", "eggs-review-handoff@1.0.0"],
+  "skills": [
+    "eggs-project-preflight@1.0.0",
+    "eggs-safe-project-execution@1.0.0",
+    "eggs-governed-visual-production@1.0.0",
+    "eggs-review-handoff@1.0.0"
+  ],
   "infrastructure": [
-    { "provider": "github", "reference": "BurntRamen/gauntlet-online", "role": "source repository", "status": "verified" },
-    { "provider": "local-runtime", "reference": "manifest-defined npm commands", "role": "validation and preview", "status": "verified" }
+    {
+      "provider": "github",
+      "reference": "BurntRamen/gauntlet-online",
+      "role": "source repository",
+      "status": "verified"
+    },
+    {
+      "provider": "local-runtime",
+      "reference": "manifest-defined npm commands",
+      "role": "validation and preview",
+      "status": "verified"
+    },
+    {
+      "provider": "other",
+      "reference": "https://gauntlet-online.vercel.app",
+      "role": "Existing Vercel client deployment; exact code release only",
+      "status": "verified"
+    },
+    {
+      "provider": "other",
+      "reference": "https://gauntlet-online.onrender.com",
+      "role": "Existing Render backend deployment; no settings or production-data mutation",
+      "status": "verified"
+    }
   ],
   "permissions": {
     "codeEdit": "task-contract-required",
     "createBranch": "task-contract-required",
     "commit": "task-contract-required",
-    "push": "denied",
-    "merge": "denied",
-    "deploy": "denied",
+    "push": "task-contract-required",
+    "merge": "task-contract-required",
+    "deploy": "task-contract-required",
     "productionDatabase": "denied",
-    "driveWriteback": "task-contract-required",
+    "driveWriteback": "denied",
     "canonApproval": "denied",
-    "releaseApproval": "denied",
-    "publication": "denied",
+    "releaseApproval": "task-contract-required",
+    "publication": "task-contract-required",
     "manufacturing": "denied",
     "spending": "denied",
-    "externalCommunication": "denied"
+    "externalCommunication": "task-contract-required"
   },
   "writeback": {
     "contractRequired": true,
-    "targets": [
-      { "surface": "agent-queue", "resourceId": "1nQhdW9tMFWPmhtGsaWnPAFTblgvWwy6WtXSbbs4vOjM", "allowedFields": ["status", "outputLink", "blocker", "reviewHandoff"] },
-      { "surface": "generation-hub", "resourceId": "1PyyLFGEiYCrxnkHh1Ahh1P87SbW-pwio2No9gGu3znc", "allowedFields": ["status", "outputLink", "blocker", "reviewHandoff"] }
-    ]
+    "targets": []
   },
   "review": {
     "owner": "Giuseppe",
-    "decisionBoundary": "Creative acceptance does not grant canon, release, publication, deployment, manufacturing, or rights approval.",
+    "decisionBoundary": "Only exact grants in .eggs/releases/match-layout-2026-09-17.json authorize the owner-approved code release. Unrelated future actions remain denied or require a new contract. Creative approval does not confer canon, rights, artwork authority, manufacturing, spending, or production-data permission.",
     "commentPolicy": "task-scoped-next-work"
   },
   "blockers": [],
-  "compatibility": { "plugin": "creative-os-studio@1.0.0", "manifestMajor": 1, "packetMajor": 1 }
+  "compatibility": {
+    "plugin": "creative-os-studio@1.0.0",
+    "manifestMajor": 1,
+    "packetMajor": 1
+  }
 }

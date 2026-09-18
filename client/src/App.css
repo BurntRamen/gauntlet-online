@@ -2421,6 +2421,40 @@ textarea:focus-visible {
 }
 .menu-audio-heading span { color: #f1c779; font: 800 9px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
 .menu-audio-heading strong { color: #9db3bc; font: 500 9px/1 var(--font-ui); letter-spacing: .04em; }
+.menu-music-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 9px 8px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(124, 176, 195, .11);
+}
+.menu-music-picker legend {
+  padding: 0 0 7px;
+  color: #718995;
+  font: 800 8px/1 var(--font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.menu-music-picker > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.home-command-tools .menu-music-picker button {
+  display: grid;
+  min-height: 48px !important;
+  gap: 3px;
+  align-content: center;
+  padding: 7px 9px !important;
+  border-color: rgba(117, 168, 187, .22) !important;
+  background: rgba(5, 17, 27, .7) !important;
+  text-align: left;
+}
+.home-command-tools .menu-music-picker button strong { color: #c8d8dd; font-size: 9px; line-height: 1.1; }
+.home-command-tools .menu-music-picker button small { color: #68818d; font-size: 8px; line-height: 1.1; }
+.home-command-tools .menu-music-picker button.is-selected {
+  border-color: rgba(241, 199, 121, .58) !important;
+  background: linear-gradient(145deg, rgba(98, 70, 35, .36), rgba(17, 33, 41, .84)) !important;
+  box-shadow: inset 3px 0 0 rgba(241, 199, 121, .72) !important;
+}
+.home-command-tools .menu-music-picker button.is-selected strong { color: #f3dcae; }
+.home-command-tools .menu-music-picker button.is-selected small { color: #aebec2; }
 .menu-audio-mixer > label {
   display: grid;
   grid-template-columns: minmax(126px, 1fr) 42px 104px;

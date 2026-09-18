@@ -79,3 +79,34 @@ test("keeps authoritative history chronological and sequence labels stable", () 
   expect(matchLogSequence({ sequence: 14 }, 0)).toBe(14);
   expect(matchLogSequence({}, 4)).toBe(5);
 });
+
+test("identifies exact combat and pitch cards with immutable recorded bonus explanations", () => {
+  const attack = { card: { id: "attack-a", rank: "A", suit: "♥" }, baseValue: 14, effectiveValue: 14, notes: [] };
+  const block = { card: { id: "block-three", rank: "3", suit: "♣" }, baseValue: 3, effectiveValue: 5,
+    notes: ["Emperor Nu +2"] };
+  const formatted = formatMatchLogEntry({ type: "damage.calculated", attackValue: 14, blockValue: 5,
+    damage: 9, calculation: { attack, blocks: [block] } }, { players });
+  expect(formatted.detail).toContain("14 attack − 5 block − 0 prevention = 9 damage");
+  expect(formatted.detail).toContain("Attack: A♥ [attack-a] — 14 base = 14 attack");
+  expect(formatted.detail).toContain("Block: 3♣ [block-three] — 3 base + 2 bonus = 5 block · Applied: Emperor Nu +2");
+  players[2].faction = { name: "Different future faction" };
+  expect(formatMatchLogEntry({ type: "damage.calculated", attackValue: 14, blockValue: 5,
+    damage: 9, calculation: { attack, blocks: [block] } }, { players }).detail).toBe(formatted.detail);
+  delete players[2].faction;
+  const payment = formatMatchLogEntry({ type: "payment.discarded", player: 1, cardIds: ["pitch-a", "pitch-b"],
+    total: 7, required: 6, calculation: { cards: [{ id: "pitch-a", rank: "4", suit: "♦", value: 4 },
+      { id: "pitch-b", rank: "3", suit: "♥", value: 3 }], notes: [] } });
+  expect(payment.detail).toContain("Pitch/payment: 4♦ [pitch-a] (4) + 3♥ [pitch-b] (3)");
+  expect(payment.detail).toContain("1 over required");
+  const bonusPayment = formatMatchLogEntry({ type: "payment.discarded", player: 1, cardIds: ["pitch-a"],
+    total: 6, required: 5, calculation: { cards: [{ id: "pitch-a", rank: "4", suit: "♦", value: 4 }],
+      total: 6, required: 5, notes: ["Hera payment +2"], reductions: [{ source: "Katel", amount: 1 }] } });
+  expect(bonusPayment.detail).toContain("Payment: 4 base + 2 bonus = 6");
+  expect(bonusPayment.detail).toContain("Hera payment +2");
+  expect(bonusPayment.detail).toContain("Katel reduces cost by 1");
+});
+
+test("does not invent modifier sources for historical totals without receipts", () => {
+  expect(formatMatchLogEntry({ type: "damage.calculated", attackValue: 14, blockValue: 5, damage: 9 },
+    { players: { 2: { faction: { id: "sheen" } } } }).detail).toBe("14 attack − 5 block − 0 prevention = 9 damage");
+});

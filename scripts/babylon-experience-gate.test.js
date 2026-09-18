@@ -24,6 +24,18 @@ test("the untouched experience record cannot pass qualification", () => {
   assert.ok(result.failures.some((failure) => failure.includes("desktop target-device")));
 });
 
+test("historical multi-block acceptance and an old rules version cannot qualify the current runtime", () => {
+  const record = loadTemplate();
+  assert.equal(record.visualStates.length, 18);
+  const block = record.visualStates.find((state) => state.id === "single-hand-blocker");
+  block.id = "multiple-hand-blockers";
+  record.rulesVersion = "gauntlet-duel-v2";
+  const result = evaluateExperienceGate(record);
+  assert.equal(result.passed, false);
+  assert.ok(result.failures.some((failure) => failure.includes('"single-hand-blocker" is missing')));
+  assert.ok(result.failures.some((failure) => failure.includes("do not match the current runtime")));
+});
+
 test("complete independent evidence passes the experience gate", () => {
   const record = loadTemplate();
   record.rendererVersion = "test-renderer";

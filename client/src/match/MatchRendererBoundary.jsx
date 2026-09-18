@@ -22,7 +22,14 @@ export default class MatchRendererBoundary extends React.Component {
 
   render() {
     if (this.state.error) {
-      return <div className="loading" role="status">Switching to the compatible match renderer…</div>;
+      return (
+        <div className="production-match-experience-error" role="alert">
+          <strong>The match screen needs to restart.</strong>
+          <p>Your match is still on the server.</p>
+          <button type="button" onClick={() => this.setState({ error: null })}>Retry match screen</button>
+          {this.props.onLeaveMatch && <button type="button" onClick={this.props.onLeaveMatch}>Return to menu</button>}
+        </div>
+      );
     }
     return this.props.children;
   }

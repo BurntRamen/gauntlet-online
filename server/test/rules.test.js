@@ -509,6 +509,49 @@ test("shared duel events retain hand attack identity through unblocked damage re
   });
 });
 
+test("combat receipts record exact pitch cards and Sheen's 3 base plus 2 blocking bonus without future inference", () => {
+  const game = makeSharedCombatGame("RECEIPTS", "recorded-combat-reasons");
+  game.gameMode = "factions";
+  game.players[2].faction = { id: "sheen", name: "Sheen" };
+  game.players[2].turnData.blocksDeclaredThisTurn = 2;
+  const attacker = { id: "specific-ace", rank: "A", suit: "♥", value: 14 };
+  const attackPitch = { id: "pitched-king", rank: "K", suit: "♦", value: 13 };
+  const attackPitchTwo = { id: "pitched-two", rank: "2", suit: "♣", value: 2 };
+  const blocker = { id: "specific-three", rank: "3", suit: "♣", value: 3 };
+  const blockPitch = { id: "pitched-four", rank: "4", suit: "♠", value: 4 };
+  game.players[1].hand = [attacker, attackPitch, attackPitchTwo];
+  game.players[2].hand = [blocker, blockPitch];
+  const declared = applySharedDuelCommand(game, { type: "declareHandAttack", player: 1,
+    attackerCardId: attacker.id, paymentCardIds: [attackPitch.id, attackPitchTwo.id] });
+  assert.equal(declared.accepted, true);
+  const pitch = declared.animationEvents.find((entry) => entry.type === "payment.discarded");
+  assert.deepEqual(pitch.calculation.cards.map((card) => card.id), [attackPitch.id, attackPitchTwo.id]);
+  assert.equal(pitch.calculation.total, 15);
+  assert.equal(pitch.calculation.required, 14);
+  const blocked = applySharedDuelCommand(declared.state, { type: "declareHandBlock", player: 2,
+    blockerCardIds: [blocker.id], paymentCardIds: [blockPitch.id] });
+  assert.equal(blocked.accepted, true);
+  const blockEvent = blocked.animationEvents.find((entry) => entry.type === "block.declared");
+  assert.equal(blockEvent.calculation.blocks[0].card.id, blocker.id);
+  assert.equal(blockEvent.calculation.blocks[0].baseValue, 3);
+  assert.equal(blockEvent.calculation.blocks[0].effectiveValue, 5);
+  assert.ok(blockEvent.calculation.blocks[0].notes.includes("Emperor Nu +2"));
+  const resolved = applySharedDuelCommand(blocked.state, { type: "passPriority", player: 1 });
+  assert.equal(resolved.accepted, true);
+  const result = resolved.animationEvents.find((entry) => entry.type === "damage.calculated");
+  assert.equal(result.damage, 9);
+  assert.equal(result.calculation.attack.card.id, attacker.id);
+  assert.deepEqual(result.calculation.blocks[0], blockEvent.calculation.blocks[0]);
+  resolved.state.players[2].turnData.blocksDeclaredThisTurn = 0;
+  assert.equal(result.calculation.blocks[0].effectiveValue, 5);
+  const spectator = sanitizeGameForViewer(resolved.state, null);
+  assert.equal(spectator.lastEvents.find((entry) => entry.type === "damage.calculated").calculation.blocks[0].card.id, blocker.id);
+  assert.equal(spectator.publicCombatLog.find((entry) => entry.type === "payment.discarded").calculation.cards[0].id, attackPitch.id);
+  assert.ok(spectator.publicCombatLog.every((entry) =>
+    ["payment.discarded", "attack.declared", "block.declared", "damage.calculated"].includes(entry.type)));
+  assert.ok(!JSON.stringify(spectator.publicCombatLog).includes("hidden-p"));
+});
+
 test("shared duel events retain lane attack identity through block resolution", () => {
   const game = makeSharedCombatGame("EVENT2", "lane-event-metadata");
   const attacker = { id: "lane-attacker", value: 4, rank: "4", suit: "spades" };

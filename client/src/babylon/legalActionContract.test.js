@@ -59,7 +59,7 @@ test("normalizes hand blocking with distinct blocker and payment selections", ()
     key: "blockerCardIds",
     role: "blocker",
     minimum: 1,
-    maximum: game.players[2].hand.length,
+    maximum: 1,
     ordered: false
   }));
   expect(block.payment).toEqual(expect.objectContaining({

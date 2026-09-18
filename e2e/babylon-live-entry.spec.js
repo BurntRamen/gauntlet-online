@@ -5,6 +5,20 @@ const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
 
+test.beforeAll(async ({ browser }) => {
+  if (process.env.CI !== "true") return;
+  const session = await browser.newBrowserCDPSession();
+  try {
+    const { gpu } = await session.send("SystemInfo.getInfo");
+    console.info("CI graphics backend:", gpu?.auxAttributes?.glRenderer
+      || gpu?.auxAttributes?.gl_renderer || gpu?.devices?.[0]?.deviceString || "unreported");
+  } catch (error) {
+    console.info("CI graphics diagnostic unavailable:", error.message);
+  } finally {
+    await session.detach();
+  }
+});
+
 function waitForEvent(socket, eventName, predicate = () => true, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -71,8 +85,11 @@ function currentAction(page) {
 }
 
 async function waitForPlaybackSettled(page) {
-  await expect(page.getByTestId("production-babylon-match"))
-    .toHaveAttribute("data-playback-catching-up", "false", { timeout: 15000 });
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toHaveAttribute("data-playback-catching-up", "false", { timeout: 15000 });
+  await expect(match).toHaveAttribute("data-playback-queued-frames", "0");
+  await expect(match).toHaveAttribute("data-active-event-type", "");
+  await expect(match).toHaveAttribute("data-active-transition-count", "0");
 }
 
 async function expectNativeSceneDiagnostics(page) {
@@ -81,7 +98,8 @@ async function expectNativeSceneDiagnostics(page) {
   await expect(match).toHaveAttribute("data-board-module-count", "10");
   await expect(match).toHaveAttribute("data-duplicate-visible-identity-count", "0");
   await expect(match).toHaveAttribute("data-structural-composite-raster-count", "0");
-  await expect(match).toHaveAttribute("data-layout-profile", /desktop|portrait|short-landscape/);
+  // HUD reservations can legitimately make a desktop's usable table ultrawide.
+  await expect(match).toHaveAttribute("data-layout-profile", /^(desktop|portrait|short-landscape|ultrawide)$/);
 }
 
 async function openAccessibleControls(page) {
@@ -128,8 +146,13 @@ async function localLife(page) {
   return Number(await page.locator(".production-player-plate-bottom .production-life strong").textContent());
 }
 
+let registrationSequence = 0;
 async function registerTestAccount(request, name) {
+  // Each account fixture models its own client address, instead of exhausting
+  // the unchanged five-signup quota for every scenario on one loopback IP.
+  if (new URL(SERVER_URL).hostname !== "127.0.0.1") throw new Error("Local fixtures only.");
   const response = await request.post(`${SERVER_URL}/api/auth/register`, {
+    headers: { "x-forwarded-for": `192.0.2.${++registrationSequence}` },
     data: { name, password: "Babylon-Test-Password-42" }
   });
   expect(response.ok()).toBeTruthy();
@@ -355,10 +378,13 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
   await guestContext.close();
 });
 
-test("two ordinary browser clients complete live Basic combat and placement through semantic commands", async ({ browser, baseURL }) => {
+for (const profile of ["desktop", "phone"]) {
+test(`two ordinary ${profile} browser clients complete live Basic combat and placement through semantic commands`, async ({ browser, baseURL }) => {
   test.setTimeout(120000);
-  const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
-  const guestContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+  const hostContext = await browser.newContext({ viewport: profile === "phone"
+    ? { width: 390, height: 844 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
+  const guestContext = await browser.newContext({ viewport: profile === "phone"
+    ? { width: 844, height: 390 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
   const hostPage = await hostContext.newPage();
   const guestPage = await guestContext.newPage();
 
@@ -374,6 +400,18 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await expect(guestPage.getByTestId("production-babylon-match")).toBeVisible();
   await openAccessibleControls(hostPage);
   await openAccessibleControls(guestPage);
+
+  if (profile === "phone") {
+    for (const page of [hostPage, guestPage]) {
+      await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
+      await expect(page.locator(".phone-hand-card")).toHaveCount(8);
+      await expect.poll(() => page.locator(".phone-hand-card").first().evaluate((card) => {
+        const rect = card.getBoundingClientRect();
+        return [rect.width, rect.height];
+      })).toEqual([80, 112]);
+      await expectNativeSceneDiagnostics(page);
+    }
+  }
 
   const startingPage = await hostPage.locator(".production-player-plate-bottom.has-priority").isVisible()
     ? hostPage
@@ -426,6 +464,14 @@ test("two ordinary browser clients complete live Basic combat and placement thro
 
   await expect(currentAction(startingPage)).toContainText(/may block or decline/i);
   await clickHandCardByValue(startingPage, "lowest");
+  await clickHandCardByValue(startingPage, "lowest");
+  const selectedBlocker = startingPage.locator('[data-match-zone="hand"][aria-pressed="true"]');
+  await expect(selectedBlocker).toHaveCount(1);
+  await selectedBlocker.focus();
+  await selectedBlocker.press("Enter");
+  await expect(selectedBlocker).toHaveCount(0);
+  await expect(currentAction(startingPage).getByRole("button", { name: "Choose Blocker" })).toBeDisabled();
+  await clickHandCardByValue(startingPage, "lowest");
   await currentAction(startingPage).getByRole("button", { name: "Choose Payment" }).click();
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
@@ -464,6 +510,8 @@ test("two ordinary browser clients complete live Basic combat and placement thro
   await guestContext.close();
 });
 
+}
+
 test("normal faction lobby entry executes Polea and Lafayette through live semantic commands", async ({ browser, baseURL }) => {
   test.setTimeout(90000);
   const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -490,7 +538,7 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
     await priorityPage.getByTestId("production-babylon-match").getAttribute("data-revision")
   );
   await priorityPage.getByText("Match", { exact: true }).click();
-  await priorityPage.getByRole("button", { name: "Faction abilities" }).click();
+  await priorityPage.locator(".production-match-utilities").getByRole("button", { name: "Faction abilities" }).click();
   const factionAbilities = priorityPage.getByRole("dialog", { name: "Faction abilities" });
   await expect(factionAbilities).toBeVisible();
   await expect(factionAbilities).toContainText(/Lord Commander Polea/i);
@@ -509,7 +557,8 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
   const revisionBeforeLafayette = Number(
     await priorityPage.getByTestId("production-babylon-match").getAttribute("data-revision")
   );
-  await priorityPage.locator(".production-faction-actions")
+  await priorityPage.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+  await priorityPage.locator(".production-faction-reference-actions")
     .getByRole("button", { name: /Lafayette.*switch hand and lane/i })
     .click();
   await priorityPage.locator('[data-match-zone="hand"]:not(:disabled)').first().focus();
@@ -552,6 +601,52 @@ test("normal Training Grounds entry uses the shared Babylon match and semantic A
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
 });
 
+test("capture current match baseline through normal local practice and campaign routes", async ({ browser, baseURL }) => {
+  test.skip(!process.env.MATCH_BASELINE_OUTPUT, "Opt-in baseline capture; never overwrite qualification evidence.");
+  test.setTimeout(120000);
+  const artifactRoot = path.resolve(__dirname, "../artifacts/match-redesign");
+  const output = path.resolve(process.env.MATCH_BASELINE_OUTPUT);
+  const relative = path.relative(artifactRoot, output);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || fs.existsSync(output)) {
+    throw new Error("Baseline output must be a new directory inside artifacts/match-redesign.");
+  }
+  fs.mkdirSync(output, { recursive: true });
+  const profiles = [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "tablet", width: 1024, height: 768 },
+    { name: "phone-portrait", width: 390, height: 844 },
+    { name: "short-landscape", width: 844, height: 390 }
+  ];
+  for (const route of ["practice", "campaign"]) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await prepareGuest(page, baseURL, "Baseline Reviewer", "Practice");
+    if (route === "practice") {
+      await page.getByRole("button", { name: /Basic vs AI/ }).click();
+    } else {
+      await page.locator('button[data-area="journey"]').click();
+      await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+      await page.getByRole("button", { name: "Begin Battle", exact: true }).first().click();
+    }
+    const match = page.getByTestId("production-babylon-match");
+    await expect(match).toBeVisible();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    for (const profile of profiles) {
+      await page.setViewportSize({ width: profile.width, height: profile.height });
+      await expectNativeSceneDiagnostics(page);
+      const phone = profile.name === "phone-portrait" || profile.name === "short-landscape";
+      await expect(match).toHaveAttribute("data-hand-presentation", phone ? "rail" : "canvas");
+      if (phone) {
+        await expect(match).toHaveAttribute("data-layout-profile", profile.name === "phone-portrait" ? "portrait" : "short-landscape");
+        await expect.poll(() => page.locator(".phone-hand-card img").evaluateAll((images) =>
+          images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0))).toBe(true);
+      }
+      await page.screenshot({ path: path.join(output, `${route}-${profile.name}.png`), fullPage: true });
+    }
+    await context.close();
+  }
+});
+
 test("normal Faction Training Grounds entry uses the same production match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
   await prepareGuest(page, baseURL, "Faction Trainee", "Practice");
@@ -574,6 +669,138 @@ test("normal Faction Training Grounds entry uses the same production match and s
   await expect.poll(async () => Number(
     await page.getByTestId("production-babylon-match").getAttribute("data-revision")
   )).toBeGreaterThan(initialRevision);
+});
+
+test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(120000);
+  await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");
+  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await chooseLobbyFaction(page, "Rumin");
+  await page.getByRole("button", { name: "Confirm Start" }).click();
+  const match = page.getByTestId("production-babylon-match");
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  await expect(canvas).toBeVisible();
+  await page.evaluate(() => { window.__dockOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
+  const profiles = [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "tablet", width: 1024, height: 768 },
+    { name: "phone-portrait", width: 390, height: 844 },
+    { name: "short-landscape", width: 844, height: 390 }
+  ];
+  for (const profile of profiles) {
+    await page.setViewportSize({ width: profile.width, height: profile.height });
+    await page.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+    const dock = page.getByRole("dialog", { name: "Faction abilities" });
+    await expect(dock).toBeVisible();
+    await expect(dock).not.toHaveAttribute("aria-modal", "true");
+    await expect(page.locator(".production-faction-actions")).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => {
+      const dock = document.querySelector(".production-reference-panel.is-docked").getBoundingClientRect();
+      return [...document.querySelectorAll("[data-testid='battlefield-safe-frame'], .phone-hand-panel, .production-player-plate, .production-context-panel")]
+        .filter((element) => element.getBoundingClientRect().height > 0)
+        .every((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.right <= dock.left + 1 || rect.left >= dock.right - 1
+            || rect.bottom <= dock.top + 1 || rect.top >= dock.bottom - 1;
+        });
+    })).toBe(true);
+    await expect.poll(() => page.evaluate(() =>
+      window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
+    const boardBounds = await page.getByTestId("battlefield-safe-frame").boundingBox();
+    expect(boardBounds.height).toBeGreaterThan(120);
+    expect(boardBounds.width).toBeGreaterThan(300);
+    await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
+    await dock.getByRole("button", { name: "Close", exact: true }).click();
+    await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
+    const discard = page.getByRole("dialog", { name: "Discard piles" });
+    await expect(discard).toBeVisible();
+    await expect(discard).toContainText("No discarded cards.");
+    await discard.getByRole("button", { name: /^Training AI ·/ }).click();
+    await expect(discard.getByRole("button", { name: /^Training AI ·/ })).toHaveAttribute("aria-pressed", "true");
+    await page.screenshot({ path: testInfo.outputPath(`discard-${profile.name}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(discard).toHaveCount(0);
+    await expect(match).not.toHaveClass(/has-reference-dock/);
+  }
+  // The dev-only capture hook provides projected public pile anchors, not cards
+  // or server state. Pointer input still goes through the real Babylon picker.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const captureAvailable = await canvas.evaluate((element) => !!element.__gauntletCaptureControl);
+  if (captureAvailable) {
+    await expect.poll(() => canvas.evaluate((element) =>
+      element.__gauntletCaptureControl.snapshot().discardPickTargets?.length)).toBe(2);
+    for (const pile of ["localdiscard", "opponentdiscard"]) {
+      for (const surface of ["well", "counter"]) {
+        await expect.poll(() => canvas.evaluate((element) => {
+          const metrics = element.__gauntletCaptureControl.snapshot();
+          const rect = element.getBoundingClientRect();
+          const [width, height] = metrics.renderSize.split("x").map(Number);
+          return Math.abs(width - rect.width / metrics.hardwareScalingLevel) < 3
+            && Math.abs(height - rect.height / metrics.hardwareScalingLevel) < 3;
+        })).toBe(true);
+        await canvas.evaluate(async () => {
+          await new Promise(requestAnimationFrame);
+          await new Promise(requestAnimationFrame);
+        });
+        const target = await canvas.evaluate((element, { pile, surface }) => {
+          const anchor = element.__gauntletCaptureControl.snapshot().discardPickTargets.find((target) => target.pile === pile)[surface];
+          const rect = element.getBoundingClientRect();
+          return { x: rect.left + anchor.x * rect.width, y: rect.top + anchor.y * rect.height };
+        }, { pile, surface });
+        await page.mouse.click(target.x, target.y);
+        const discard = page.getByRole("dialog", { name: "Discard piles" });
+        await expect(discard, `Pointer click on ${pile} ${surface} at ${JSON.stringify(target)}`).toBeVisible();
+        await discard.getByRole("button", { name: "Close", exact: true }).click();
+      }
+    }
+  }
+});
+
+test("later Bizi missions keep the new interface through boss actions", async ({ page, request, baseURL }) => {
+  test.setTimeout(300000);
+  const account = await registerTestAccount(request, `Bizi${Date.now().toString(36)}`);
+  const accountFile = path.resolve(__dirname, "../.playwright-data/accounts.json");
+  const store = JSON.parse(fs.readFileSync(accountFile, "utf8"));
+  const stored = store.accounts.find((entry) => entry.id === account.account.id);
+  const content = await (await request.get(`${SERVER_URL}/api/game-content`)).json();
+  const chapters = content.content.campaigns.bizi.chapters;
+  stored.stats = stored.stats || {};
+  stored.stats.progression = stored.stats.progression || {};
+  stored.stats.progression.campaign = { bizi: chapters.map((chapter) => chapter.id) };
+  fs.writeFileSync(accountFile, JSON.stringify(store, null, 2));
+  await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), account.token);
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  for (const chapter of chapters.slice(-4)) {
+    await page.goto(baseURL);
+    await page.locator('button[data-area="journey"]').click();
+    await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+    await page.getByRole("tab", { name: /^Bizi/ }).click();
+    await page.locator(".campaign-chapter").filter({
+      has: page.getByRole("heading", { name: chapter.title, exact: true })
+    }).getByRole("button", { name: /Battle/ }).click();
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    for (let action = 0; action < 8; action += 1) {
+      await expect(page.getByTestId("production-babylon-match")).not.toHaveClass(/is-resolving/);
+      const button = currentAction(page).getByRole("button", { name: /^(Pass Priority|Take Damage|Confirm Damage|Skip Placement|Continue)$/ }).first();
+      await expect(button).toBeEnabled();
+      await button.click();
+      await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    }
+    await expect(page.locator(".match-table-frame")).toHaveCount(0);
+    await page.locator("canvas.babylon-match-canvas").dispatchEvent("webglcontextlost");
+    await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retry animated table" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeVisible();
+    await page.getByRole("button", { name: "Retry animated table" }).click();
+    await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    await page.evaluate(() => {
+      localStorage.removeItem("gauntlet_room_code");
+      localStorage.removeItem("gauntlet_reconnect_token");
+    });
+  }
+  expect(errors).toEqual([]);
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {

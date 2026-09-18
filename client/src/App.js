@@ -22,7 +22,13 @@ import {
 } from "./completionAccountRefresh";
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
-import { DEFAULT_MENU_AUDIO_SETTINGS, readMenuAudioSettings, useMenuAudio } from "./MenuAudio";
+import {
+  DEFAULT_MENU_AUDIO_SETTINGS,
+  MENU_MUSIC_CHOICES,
+  readMenuAudioSettings,
+  readMenuMusicTrack,
+  useMenuAudio
+} from "./MenuAudio";
 import MenuBackdrop from "./MenuBackdrop";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
@@ -155,18 +161,6 @@ function shouldUseProductionMatchRenderer() {
   return process.env.REACT_APP_MATCH_RENDERER !== "react";
 }
 
-const BABYLON_FAILED_MATCH_KEY = "gauntlet_babylon_failed_match";
-
-function hasBabylonSessionFailure(matchId) {
-  if (typeof window === "undefined" || !matchId) return false;
-  return sessionStorage.getItem(BABYLON_FAILED_MATCH_KEY) === String(matchId);
-}
-
-function rememberBabylonSessionFailure(matchId) {
-  if (typeof window === "undefined" || !matchId) return;
-  sessionStorage.setItem(BABYLON_FAILED_MATCH_KEY, String(matchId));
-}
-
 const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"]
 });
@@ -180,6 +174,7 @@ const STORAGE_KEYS = {
   friendReadAt: "gauntlet_friend_read_at",
   accountSoundMuted: "gauntlet_account_sound_muted",
   menuAudioSettings: "gauntlet_menu_audio_settings",
+  menuMusicTrack: "gauntlet_menu_music_track",
   onboardingDismissed: "gauntlet_onboarding_dismissed",
   tutorialCompletions: "gauntlet_tutorial_completions"
 };
@@ -206,7 +201,17 @@ const TABLETOP_THEME = {
 
 const MUSIC_TRACKS = {
   menu: {
+    label: "The Quiet Workshop",
+    menuTrack: true,
+    sources: ["/assets/gauntlet/music/menu/gauntlet-menu-quiet-workshop-v1.mp3"],
+    pad: [55, 82.41, 110],
+    notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
+    tempo: 820,
+    wave: "sine"
+  },
+  menuLiving: {
     label: "The Living Table",
+    menuTrack: true,
     sources: ["/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3"],
     pad: [55, 82.41, 110],
     notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
@@ -937,7 +942,7 @@ function startProceduralTrack(trackKey, volume) {
   if (!AudioContext) return { stop: () => {}, setVolume: () => {}, duck: () => {} };
 
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
-  const usesMenuTransitions = trackKey === "menu";
+  const usesMenuTransitions = Boolean(track.menuTrack);
   const context = new AudioContext();
   const master = context.createGain();
   let baseVolume = volume;
@@ -1130,7 +1135,7 @@ function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {})
 
 function startMusicTrack(trackKey, volume) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
-  if (track.sources?.length) return startAudioPlaylist(track, volume, { usesMenuTransitions: trackKey === "menu" });
+  if (track.sources?.length) return startAudioPlaylist(track, volume, { usesMenuTransitions: Boolean(track.menuTrack) });
   return startProceduralTrack(trackKey, volume);
 }
 
@@ -1159,6 +1164,7 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, acc
 
 function MenuAudioControl({
   trackKey,
+  onTrackChange,
   musicEnabled,
   musicVolume,
   onMusicToggle,
@@ -1192,7 +1198,7 @@ function MenuAudioControl({
     <div className="menu-audio-control">
       <button type="button" className="menu-audio-trigger" aria-expanded={open} aria-controls="menu-audio-mixer" onClick={togglePanel}>
         <span aria-hidden="true">◖</span>
-        <span><strong>Audio</strong><small>{muted ? "Muted" : "Living table mix"}</small></span>
+        <span><strong>Audio</strong><small>{muted ? "Muted" : track.label}</small></span>
       </button>
       {open && (
         <div id="menu-audio-mixer" className="menu-audio-mixer" role="group" aria-label="Menu audio mix">
@@ -1200,8 +1206,29 @@ function MenuAudioControl({
             <span>Table acoustics</span>
             <strong>{track.label}</strong>
           </div>
+          <fieldset className="menu-music-picker">
+            <legend>Choose menu score</legend>
+            <div>
+              {MENU_MUSIC_CHOICES.map((choice) => (
+                <button
+                  key={choice.id}
+                  type="button"
+                  className={trackKey === choice.id ? "is-selected" : ""}
+                  aria-pressed={trackKey === choice.id}
+                  onClick={() => {
+                    if (trackKey === choice.id) return;
+                    playCue("area");
+                    onTrackChange(choice.id);
+                  }}
+                >
+                  <strong>{choice.label}</strong>
+                  <small>{choice.detail}</small>
+                </button>
+              ))}
+            </div>
+          </fieldset>
           <label>
-            <span><strong>Music</strong><small>Living Table score</small></span>
+            <span><strong>Music</strong><small>{track.label} score</small></span>
             <button type="button" aria-pressed={musicEnabled} disabled={muted} onClick={() => { playCue("tab"); onMusicToggle(); }}>{musicEnabled ? "On" : "Off"}</button>
             <input type="range" min="0" max="0.3" step="0.01" value={musicVolume} disabled={muted || !musicEnabled} onChange={(event) => onMusicVolumeChange(Number(event.target.value))} aria-label="Music volume" />
           </label>
@@ -3869,6 +3896,7 @@ export default function App() {
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
+  const [menuMusicTrack, setMenuMusicTrack] = useState(() => readMenuMusicTrack(typeof window !== "undefined" ? window.localStorage : null));
   const [menuAudioSettings, setMenuAudioSettings] = useState(() => readMenuAudioSettings(typeof window !== "undefined" ? window.localStorage : null));
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
@@ -3933,7 +3961,6 @@ export default function App() {
   const [previewedCard, setPreviewedCard] = useState(null);
   const [showDiscardViewer, setShowDiscardViewer] = useState(false);
   const [matchDrawer, setMatchDrawer] = useState(null);
-  const [babylonRendererFailed, setBabylonRendererFailed] = useState(false);
   const [transportConnected, setTransportConnected] = useState(socket.connected);
   const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
@@ -3943,7 +3970,6 @@ export default function App() {
   const homeAreaNavigationRef = useRef(0);
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
-  const babylonFallbackPromiseRef = useRef(null);
   const completionAccountRefreshRef = useRef(null);
   if (!liveMatchSessionRef.current) {
     liveMatchSessionRef.current = createLiveMatchSession({ socket });
@@ -4029,8 +4055,6 @@ export default function App() {
     game
     && ["basic", "factions"].includes(game.gameMode)
     && shouldUseProductionMatchRenderer()
-    && !babylonRendererFailed
-    && !hasBabylonSessionFailure(game.matchId)
   );
 
   useEffect(() => {
@@ -4062,29 +4086,10 @@ export default function App() {
   useEffect(() => () => liveMatchSessionRef.current?.dispose(), []);
 
   useEffect(() => {
-    setBabylonRendererFailed(false);
-    babylonFallbackPromiseRef.current = null;
     setMatchReconnectPending(false);
     liveMatchSessionRef.current?.unfreezeCommands();
   }, [game?.matchId]);
 
-  const activateReactMatchFallback = useCallback(async (rendererError) => {
-    if (babylonFallbackPromiseRef.current) return babylonFallbackPromiseRef.current;
-    const activeMatchId = liveMatchSessionRef.current?.getCurrent()?.game?.matchId;
-    const handoff = (async () => {
-      const result = await liveMatchSessionRef.current?.prepareRendererFallback(
-        rendererError?.message || "Babylon renderer failure"
-      );
-      const latestSnapshot = result?.snapshot || liveMatchSessionRef.current?.getCurrent()?.game;
-      if (latestSnapshot) setGame(latestSnapshot);
-      resetSelections();
-      rememberBabylonSessionFailure(activeMatchId);
-      setBabylonRendererFailed(true);
-      return result;
-    })();
-    babylonFallbackPromiseRef.current = handoff;
-    return handoff;
-  }, []);
   const [attackMode, setAttackMode] = useState(null);
   const [blockMode, setBlockMode] = useState(null);
   const [placementMode, setPlacementMode] = useState(null);
@@ -4161,7 +4166,7 @@ export default function App() {
   }, [factionVoice]);
 
   const activeMusicTrack = !game || role === "spectator" || !player
-    ? "menu"
+    ? menuMusicTrack
     : game.gameMode === "basic"
       ? "basic"
       : game.players[player]?.faction?.id || "menu";
@@ -4435,6 +4440,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.menuAudioSettings, JSON.stringify(menuAudioSettings));
   }, [menuAudioSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.menuMusicTrack, menuMusicTrack);
+  }, [menuMusicTrack]);
 
   useEffect(() => {
     musicVolumeRef.current = musicVolume;
@@ -5334,8 +5343,8 @@ export default function App() {
   }
 
   function selectBlockCard(i) {
-    setSelectedBlockCardIndex(i);
-    setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
+    setSelectedBlockCardIndex(selectedBlockCardIndexes.includes(i) ? null : i);
+    setSelectedBlockCardIndexes((prev) => (prev.includes(i) ? [] : [i]));
     setPayments((prev) => prev.filter((x) => x !== i));
   }
 
@@ -5691,6 +5700,7 @@ export default function App() {
               <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
               <MenuAudioControl
                 trackKey={activeMusicTrack}
+                onTrackChange={setMenuMusicTrack}
                 musicEnabled={musicEnabled}
                 musicVolume={musicVolume}
                 onMusicToggle={() => setMusicEnabled((value) => !value)}
@@ -6206,9 +6216,10 @@ export default function App() {
 
   if (useBabylonMatchRenderer) {
     return (
-      <MatchRendererBoundary resetKey={game.matchId} onFailure={activateReactMatchFallback}>
+      <MatchRendererBoundary resetKey={game.matchId} onLeaveMatch={returnToMainMenu}>
         <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
           <LiveBabylonMatchExperience
+            key={game.matchId}
             session={liveMatchSessionRef.current}
             completion={completionEnvelope}
             campaignContinuationReady={!authToken || completionAccountReadyMatchId === game.matchId}
@@ -6226,7 +6237,6 @@ export default function App() {
               }
             }}
             onLeaveMatch={returnToMainMenu}
-            onRendererFailure={activateReactMatchFallback}
           />
         </Suspense>
       </MatchRendererBoundary>
@@ -6428,7 +6438,7 @@ export default function App() {
             : "";
     const ffaBlockConfirmReason =
       blockMode?.type === "handAttack" && activeBlockCards.length === 0
-        ? "Choose one or more cards to block with."
+        ? "Choose exactly one card to block with."
         : blockMode?.type === "laneAttack" && !activeBlockCard
           ? "You need a face-down card in that lane to block."
           : blockMode && paymentTotal < activeBlockRequired
@@ -6831,7 +6841,7 @@ export default function App() {
         : "";
   const blockConfirmReason =
     blockMode?.type === "handAttack" && activeBlockCards.length === 0
-      ? "Choose one or more cards to block with."
+      ? "Choose exactly one card to block with."
       : blockMode?.type === "laneAttack" && !activeBlockCard
         ? "You need a face-down card in that lane to block."
         : blockMode && paymentTotal < activeBlockRequired

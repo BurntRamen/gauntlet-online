@@ -1,6 +1,6 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v2";
+const RULES_VERSION = "gauntlet-duel-v3";
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -244,6 +244,28 @@ function event(game, type, detail = {}) {
   };
 }
 
+// Public, immutable receipts only for cards revealed by combat/payment.
+function publicLogCard(card) {
+  if (!card) return null;
+  return { id: card.id, name: card.name || "", rank: card.rank || "", suit: card.suit || "", value: cardValue(card) };
+}
+
+function valueReceipt(entry) {
+  return {
+    card: publicLogCard(entry.card),
+    baseValue: Number.isFinite(entry.logBaseValue) ? entry.logBaseValue : cardValue(entry.card),
+    effectiveValue: Number(entry.effectiveValue || 0),
+    notes: [...(entry.valueNotes || entry.notes || [])],
+    prevention: Number(entry.preventDamage || 0),
+    preventionNotes: (entry.notes || []).filter((note) => /prevents/i.test(note))
+  };
+}
+
+function paymentReceipt(payment, notes = [], reductions = []) {
+  return { cards: payment.cards.map(publicLogCard), total: payment.total, required: payment.required,
+    notes: [...notes], reductions: reductions.map((reduction) => ({ ...reduction })) };
+}
+
 function appendHistory(game, player, label, events) {
   const entry = {
     id: `log-${game.eventSequence}-${game.actionHistory.length}`,
@@ -373,6 +395,17 @@ function temporaryBonus(card) {
   return Number(card?.temporaryValueBonus || 0);
 }
 
+function temporaryBonusNotes(card) {
+  return card?.temporaryValueBonusNotes?.length ? [...card.temporaryValueBonusNotes]
+    : temporaryBonus(card) ? [`Temporary value bonus +${temporaryBonus(card)} (source not recorded)`] : [];
+}
+
+function addTemporaryBonus(card, amount, source) {
+  const notes = temporaryBonusNotes(card);
+  card.temporaryValueBonus = temporaryBonus(card) + amount;
+  card.temporaryValueBonusNotes = [...notes, `${source} +${amount}`];
+}
+
 function controlledLaneEntries(game, playerNumber) {
   return game.lanes.flatMap((lane, laneIndex) => {
     const card = lane.facedown[playerNumber];
@@ -419,7 +452,7 @@ function gainAcceleration(game, playerNumber, amount, source, notes, events) {
   }));
   for (const card of supportCards(game, playerNumber)) {
     if (cardIs(card, "bizi-solar-array-adept")) {
-      card.temporaryValueBonus = temporaryBonus(card) + amount;
+      addTemporaryBonus(card, amount, "Solar Array Adept");
       if (notes) notes.push(`Solar Array Adept +${amount}`);
     }
   }
@@ -1068,7 +1101,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     }));
   }
   if (cardIs(card, "frumo-ristus-rises")) {
-    card.temporaryValueBonus = temporaryBonus(card) + 1;
+    addTemporaryBonus(card, 1, "Ristus Rises");
     player.turnData.frumoLaneSwappedThisTurn = true;
     events.push(event(game, "card.buffApplied", {
       player: playerNumber,
@@ -1133,6 +1166,7 @@ function clearTemporaryBonuses(game) {
   const clearCard = (card) => {
     if (card && Object.prototype.hasOwnProperty.call(card, "temporaryValueBonus")) {
       delete card.temporaryValueBonus;
+      delete card.temporaryValueBonusNotes;
     }
   };
   for (const playerNumber of [1, 2]) {
@@ -1222,7 +1256,8 @@ function resolveAttack(game, attack, laneIndex, events) {
     attackValue: attack.effectiveValue,
     blockValue,
     prevented,
-    damage
+    damage,
+    calculation: { attack: valueReceipt(attack), blocks: (attack.block || []).map(valueReceipt) }
   }));
   if (damage > 0) {
     events.push(event(game, "damage.dealt", {
@@ -1331,6 +1366,7 @@ function startNextTurn(game, events) {
   let campaignMessage = "";
   if (game.campaign) {
     game.campaign.bossAttacksThisTurn = 0;
+    game.campaign.bossActionsThisTurn = 0;
     const bossHealing = Number(game.campaign.bossAbility?.healAtTurnStart || 0);
     if (bossHealing > 0 && game.players[2]) {
       game.players[2].life += bossHealing;
@@ -1344,6 +1380,32 @@ function startNextTurn(game, events) {
   }
   game.message = `${campaignMessage}Turn ${game.turn}: Player ${next} has starting priority.`;
   events.push(event(game, "startingPriority.rotated", { player: next }), event(game, "turn.started", { player: next }));
+}
+
+function getCampaignBossActionLimit(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.actionsPerTurn ?? campaign.attacksPerTurn ?? 0));
+}
+
+function getCampaignBossActionsThisTurn(game) {
+  const campaign = game?.campaign;
+  if (!campaign) return 0;
+  return Math.max(0, Number(campaign.bossActionsThisTurn ?? campaign.bossAttacksThisTurn ?? 0));
+}
+
+function campaignBossHasAction(game, player) {
+  if (!game?.campaign || Number(player) !== 2) return true;
+  return getCampaignBossActionsThisTurn(game) < getCampaignBossActionLimit(game);
+}
+
+function spendCampaignBossAction(game, player, kind = "action") {
+  if (!game?.campaign || Number(player) !== 2) return;
+  const campaign = game.campaign;
+  campaign.bossActionsThisTurn = getCampaignBossActionsThisTurn(game) + 1;
+  if (kind === "attack") {
+    campaign.bossAttacksThisTurn = Number(campaign.bossAttacksThisTurn || 0) + 1;
+  }
 }
 
 function advancePlacement(game, events) {
@@ -1430,8 +1492,8 @@ function applyCommand(current, rawCommand) {
     }
     const campaign = game.campaign;
     const attackNumber = Number(campaign.bossAttacksThisTurn || 0) + 1;
-    if (attackNumber > Number(campaign.attacksPerTurn || 0)) {
-      return reject(current, command, "The campaign boss has used all scripted attacks this turn.");
+    if (!campaignBossHasAction(game, player)) {
+      return reject(current, command, "The campaign boss has used all actions this turn.");
     }
     const minValue = Number(campaign.minAttackValue || 5);
     const maxValue = Number(campaign.maxAttackValue || 8);
@@ -1480,6 +1542,7 @@ function applyCommand(current, rawCommand) {
       source: "campaignBoss",
       sourceLane: null,
       effectiveValue: value,
+      logBaseValue: baseValue,
       block: [],
       attachedCards: [],
       notes,
@@ -1491,7 +1554,7 @@ function applyCommand(current, rawCommand) {
         campaignBoss: true
       }
     };
-    campaign.bossAttacksThisTurn = attackNumber;
+    spendCampaignBossAction(game, player, "attack");
     game.handAttacks.push(attack);
     game.priorityPassed = { 1: false, 2: false };
     game.priority = 1;
@@ -1512,7 +1575,10 @@ function applyCommand(current, rawCommand) {
         attackId: attack.id,
         source: "campaignBoss",
         sourceLane: null,
-        effectiveValue: value
+        effectiveValue: value,
+        cardId,
+        card: publicLogCard(attack.card),
+        calculation: { attack: valueReceipt(attack) }
       }),
       event(game, "priority.granted", { player: 1 })
     );
@@ -1557,6 +1623,8 @@ function applyCommand(current, rawCommand) {
       payment.cards
     );
     if (constructedAttack.error) return reject(current, command, constructedAttack.error);
+    const valueNotes = [...temporaryBonusNotes(attackCard),
+      ...attackBonus.notes.filter((note) => !note.startsWith("Temporary +")), ...constructedAttack.notes];
     attackBonus.bonus += constructedAttack.bonus;
     attackBonus.notes.push(...constructedPayment.notes, ...constructedAttack.notes);
     consumeConstructedPaymentBonus(actor, constructedPayment.consume);
@@ -1573,6 +1641,7 @@ function applyCommand(current, rawCommand) {
       card: attackCard,
       effectiveValue: cardValue(attackCard) + attackBonus.bonus,
       notes: attackBonus.notes,
+      valueNotes,
       attachedCards: constructedAttack.attachedCards,
       block: [],
       payment: { player, cards: payment.cards, total: payment.total, required: payment.required }
@@ -1607,7 +1676,10 @@ function applyCommand(current, rawCommand) {
     game.paymentLog.push({ type: "attack", player, cards: payment.cards, total: payment.total, required: payment.required });
     game.message = `Player ${player} attacked ${laneIndex == null ? "from hand" : `from Lane ${laneIndex + 1}`}. Player ${defender} may block or decline.`;
     events.push(
-      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required: payment.required }),
+      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required: payment.required,
+        cards: payment.cards.map(publicLogCard),
+        calculation: paymentReceipt(payment, [...constructedPayment.notes, ...(hera.bonus ? [`Hera payment +${hera.bonus}`] : [])],
+          [...(requirement.reductions || []), ...(requirement.freeAttackUsed ? [{ source: "Meerus free third attack", amount: cardValue(attackCard) }] : [])]) }),
       ...(hera.bonus ? [event(game, "payment.modified", {
         player,
         source: "Hera",
@@ -1634,7 +1706,9 @@ function applyCommand(current, rawCommand) {
         sourceLane: attack.sourceLane,
         laneIndex,
         effectiveValue: attack.effectiveValue,
-        notes: attack.notes
+        notes: attack.notes,
+        card: publicLogCard(attackCard),
+        calculation: { attack: valueReceipt(attack) }
       })
     );
     label = `Player ${player} declared a ${laneIndex == null ? "hand" : `Lane ${laneIndex + 1}`} attack with ${attackCard.rank}${attackCard.suit}.`;
@@ -1643,21 +1717,31 @@ function applyCommand(current, rawCommand) {
     if (!pending || game.phase !== "priority" || game.priority !== player || pending.attack.targetPlayer !== player) {
       return reject(current, command, "That player is not the active defender.");
     }
+    if (pending.attack.block?.length) {
+      return reject(current, command, "This attack already has a blocker.");
+    }
     const laneBlock = command.type === "declareLaneBlock";
     if (laneBlock !== (pending.laneIndex != null)) {
       return reject(current, command, laneBlock ? "A hand attack cannot be blocked from a lane." : "A lane attack can only be blocked from the same lane.");
     }
     let blockCards;
     if (laneBlock) {
+      if (command.blockerCardIds !== undefined && (!Array.isArray(command.blockerCardIds) || command.blockerCardIds.length !== 1)) {
+        return reject(current, command, "Choose exactly one lane blocker.");
+      }
       if (Number(command.laneIndex) !== pending.laneIndex) return reject(current, command, "The blocker must come from the attacked lane.");
       const laneCard = game.lanes[pending.laneIndex].facedown[player];
       if (!laneCard) return reject(current, command, "There is no face-down blocker in that lane.");
+      if (command.blockerCardIds && command.blockerCardIds[0] !== laneCard.id) return reject(current, command, "The blocker must be the card in the attacked lane.");
       blockCards = [laneCard];
     } else {
       const ids = Array.isArray(command.blockerCardIds) ? command.blockerCardIds : [];
-      if (!ids.length || !unique(ids)) return reject(current, command, "Choose one or more unique hand blockers.");
+      if (ids.length !== 1) return reject(current, command, "Choose exactly one hand blocker.");
       blockCards = ids.map((id) => findHandCard(actor, id));
       if (blockCards.some((card) => !card)) return reject(current, command, "Every blocker must be in the defender’s hand.");
+    }
+    if (!campaignBossHasAction(game, player)) {
+      return reject(current, command, "The campaign boss has used all actions this turn.");
     }
     const blockerIds = blockCards.map((card) => card.id);
     const required = blockCards.reduce((sum, card) => sum + cardValue(card), 0);
@@ -1718,6 +1802,8 @@ function applyCommand(current, rawCommand) {
           + moonlitBonus,
         preventDamage: constructedBlock.preventDamage,
         notes,
+        valueNotes: [...temporaryBonusNotes(card),
+          ...notes.filter((note) => !constructedPayment.notes.includes(note) && !/prevents/i.test(note))],
         payment: { player, cards: payment.cards, total: payment.total, required }
       };
       recordPlayedCard(actor, card);
@@ -1729,6 +1815,7 @@ function applyCommand(current, rawCommand) {
     if (payment.cards.some((card) => cardIs(card, "sheen-mossbound-staff"))) {
       blockEntries[0].effectiveValue += 1;
       blockEntries[0].notes.push("Mossbound Staff +1");
+      blockEntries[0].valueNotes.push("Mossbound Staff +1");
     }
     if (
       blockEntries.length >= 2
@@ -1736,10 +1823,12 @@ function applyCommand(current, rawCommand) {
     ) {
       blockEntries[0].effectiveValue += 1;
       blockEntries[0].notes.push("Sapling Chorus +1");
+      blockEntries[0].valueNotes.push("Sapling Chorus +1");
     }
     pending.attack.block.push(...blockEntries);
     if (pending.laneIndex != null) game.lanes[pending.laneIndex].block.push(...blockEntries);
     actor.turnData.blocksDeclaredThisTurn += 1;
+    spendCampaignBossAction(game, player, "block");
     if (hera.bonus) actor.turnData.heraUsed = true;
     consumeConstructedPaymentBonus(actor, constructedPayment.consume);
     addPaymentSuits(actor, payment.cards);
@@ -1760,7 +1849,9 @@ function applyCommand(current, rawCommand) {
     applyAfterConstructedBlock(game, player, blockEntries, events);
     game.paymentLog.push({ type: "block", player, cards: payment.cards, total: payment.total, required });
     events.push(
-      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required }),
+      event(game, "payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required,
+        cards: payment.cards.map(publicLogCard),
+        calculation: paymentReceipt(payment, [...constructedPayment.notes, ...(hera.bonus ? [`Hera payment +${hera.bonus}`] : [])]) }),
       ...(hera.bonus ? [event(game, "payment.modified", {
         player,
         source: "Hera",
@@ -1784,7 +1875,10 @@ function applyCommand(current, rawCommand) {
         targetPlayer: pending.attack.player,
         attackId: pending.attack.id,
         cardIds: blockerIds,
-        laneIndex: pending.laneIndex
+        laneIndex: pending.laneIndex,
+        cards: blockCards.map(publicLogCard),
+        blockValue: blockEntries.reduce((total, entry) => total + entry.effectiveValue, 0),
+        calculation: { blocks: blockEntries.map(valueReceipt) }
       })
     );
     label = `Player ${player} blocked with ${blockCards.map((card) => `${card.rank}${card.suit}`).join(", ")}.`;
@@ -1802,6 +1896,7 @@ function applyCommand(current, rawCommand) {
     if (!pending || game.phase !== "priority" || game.priority !== player || pending.attack.targetPlayer !== player) {
       return reject(current, command, "Only the active defender may decline this block.");
     }
+    if (pending.attack.block?.length) return reject(current, command, "This attack already has a blocker; pass combat priority instead.");
     events.push(event(game, "block.declined", { player }));
     label = `Player ${player} declined the block.`;
     if (game.gameMode === "basic") {
@@ -1925,7 +2020,7 @@ function applyCommand(current, rawCommand) {
         }
         for (const support of supportCards(game, player)) {
           if (cardIs(support, "frumo-riptide-smuggler") && !actor.turnData.frumoRiptideSmugglerUsed) {
-            support.temporaryValueBonus = temporaryBonus(support) + 1;
+            addTemporaryBonus(support, 1, "Riptide Smuggler");
             actor.turnData.frumoRiptideSmugglerUsed = true;
             events.push(event(game, "card.buffApplied", {
               player,
@@ -1942,8 +2037,9 @@ function applyCommand(current, rawCommand) {
         if (target.card && Number.isFinite(Number(target.effectiveValue))) {
           target.effectiveValue += 1;
           target.notes = [...(target.notes || []), "Polea +1"];
+          target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), "Polea +1"];
         } else {
-          target.temporaryValueBonus = temporaryBonus(target) + 1;
+          addTemporaryBonus(target, 1, "Polea");
         }
         events.push(event(game, "card.buffApplied", { player, amount: 1, source: "Polea" }));
         label = `Player ${player} used Polea to give a card +1 this turn.`;
@@ -1983,8 +2079,9 @@ function applyCommand(current, rawCommand) {
       if (target.card && Number.isFinite(Number(target.effectiveValue))) {
         target.effectiveValue += focusBonus;
         target.notes = [...(target.notes || []), `Focus +${focusBonus}`];
+        target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), `Focus +${focusBonus}`];
       } else {
-        target.temporaryValueBonus = temporaryBonus(target) + focusBonus;
+        addTemporaryBonus(target, focusBonus, "Focus");
       }
       actor.accelerationCounters -= 1;
       actor.turnData.focusUsed = true;
@@ -2075,6 +2172,10 @@ function applyCommand(current, rawCommand) {
     entry.revision = game.revision;
   });
   const actionLogEntry = appendHistory(game, player, label, events);
+  // Only already-public combat/payment receipts enter the reconnectable log.
+  game.publicCombatLog = [...(game.publicCombatLog || []), ...events.filter((entry) =>
+    ["payment.discarded", "attack.declared", "block.declared", "damage.calculated"].includes(entry.type)
+  ).map((entry) => clone(entry))].slice(-300);
   game.lastEvents = events.map((entry) => ({ ...entry }));
   return {
     commandId,
@@ -2400,8 +2501,8 @@ function normalizeLegalAction(game, playerNumber, action) {
       "blockerCardIds",
       "blocker",
       handEntities,
-      Number(action.minimumBlockers || 1),
-      handEntities.length,
+      1,
+      1,
       false
     ));
     if (pending) targets.push(selectionGroup("attackId", "incomingAttack", [attackEntity(pending.attack, null)]));
@@ -2541,6 +2642,10 @@ function getLegalActions(game, player) {
     if (pending.attack.targetPlayer !== playerNumber) {
       return factionActions.map((action) => normalizeLegalAction(game, playerNumber, action));
     }
+    if (pending.attack.block?.length) {
+      return [...factionActions, ...(game.gameMode === "factions" ? [{ type: "passPriority" }] : [])]
+        .map((action) => normalizeLegalAction(game, playerNumber, action));
+    }
     const actions = [{ type: "declineBlock", attackId: pending.attack.id }];
     if (pending.laneIndex == null) {
       if (actor.hand.length) {
@@ -2548,6 +2653,7 @@ function getLegalActions(game, player) {
           type: "declareHandBlock",
           attackId: pending.attack.id,
           minimumBlockers: 1,
+          maximumBlockers: 1,
           optionalEffects: getConstructedBlockOptions(game, playerNumber, actor.hand)
         });
       }

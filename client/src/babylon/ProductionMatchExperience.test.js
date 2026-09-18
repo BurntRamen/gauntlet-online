@@ -109,6 +109,43 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("phone rail retains selected identities through rotation and does not expose privacy, spectator or replay hands", async () => {
+  const originalWidth = window.innerWidth;
+  const originalHeight = window.innerHeight;
+  const viewModel = {
+    ...createViewModel(), matchId: "phone-continuity",
+    hand: [{ id: "card-eight", label: "8♥", rank: "8", suit: "♥", value: 8, visible: true,
+      selected: { attacker: true }, artPath: "/existing-eight.webp" }]
+  };
+  const size = (width, height) => act(() => {
+    window.innerWidth = width; window.innerHeight = height;
+    window.dispatchEvent(new Event("resize"));
+  });
+  size(390, 844);
+  const mounted = render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false }} />);
+  try {
+    expect(await screen.findByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    size(844, 390);
+    expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
+    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    size(1200, 800);
+    expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
+    size(390, 844);
+    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    for (const overrides of [
+      { privacy: { required: true, player: 1 } },
+      { viewModel: { ...viewModel, perspective: { player: 1, spectator: true } } },
+      { source: "replay" }
+    ]) {
+      mounted.rerender(<ProductionMatchExperience adapter={adapterFor({ viewModel, ...overrides })} options={{ audioEnabled: false }} />);
+      expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
+      expect(document.querySelector('img[src="/existing-eight.webp"]')).toBeNull();
+    }
+  } finally {
+    mounted.unmount(); size(originalWidth, originalHeight);
+  }
+});
+
 test("renders the player-facing HUD from an adapter without developer chrome", async () => {
   render(<ProductionMatchExperience adapter={adapterFor()} options={{ audioEnabled: false }} />);
 
@@ -125,6 +162,87 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
   expect(screen.getAllByText("G", { exact: true })).toHaveLength(2);
   expect(screen.queryByText("Developer tools")).not.toBeInTheDocument();
+});
+
+test("player discard controls show the selected public pile and switch without revealing hands", async () => {
+  const inspectCard = jest.fn();
+  render(<ProductionMatchExperience options={{ audioEnabled: false }} adapter={adapterFor({
+    snapshot: { players: {
+      1: { accountName: "Local", discard: [{ id: "used-three", rank: "3", suit: "♣", value: 3 },
+        { id: "used-constructed", name: "Named constructed card", type: "spell", value: 2 }],
+        hand: [{ id: "private-hand", name: "Never shown here" }] },
+      2: { accountName: "Opponent", discard: [] }
+    } }, commands: { inspectCard }
+  })} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Show Local's discard pile, 3 cards" }));
+  const dock = screen.getByRole("dialog", { name: "Discard piles" });
+  expect(dock).not.toHaveAttribute("aria-modal", "true");
+  expect(screen.getByTestId("production-babylon-match")).toHaveClass("has-reference-dock");
+  expect(dock).not.toHaveTextContent("Never shown here");
+  expect(dock.querySelector(".production-discard-grid img")).toHaveAttribute("loading", "lazy");
+  expect(dock.querySelectorAll(".production-discard-grid img")).toHaveLength(1);
+  expect(within(dock).getByRole("button", { name: "Named constructed card Value 2" }).querySelector("img")).toBeNull();
+  fireEvent.click(within(dock).getByRole("button", { name: /3.*Value 3/ }));
+  expect(inspectCard).toHaveBeenCalledWith(expect.objectContaining({ id: "used-three" }));
+  fireEvent.click(within(dock).getByRole("button", { name: "Opponent · 0" }));
+  expect(dock).toHaveTextContent("No discarded cards.");
+  expect(within(dock).queryByRole("button", { name: /Value 3/ })).not.toBeInTheDocument();
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Discard piles" })).not.toBeInTheDocument();
+  expect(screen.getByTestId("production-babylon-match")).not.toHaveClass("has-reference-dock");
+});
+
+test("bottom player menu shows only their faction and safe actions, including unavailable reasons", async () => {
+  const activateAbility = jest.fn();
+  const viewModel = { ...createViewModel(), mode: "factions" };
+  viewModel.interactions.abilities = [{ id: "polea-place", label: "Polea place", available: true },
+    { id: "focus-boost", label: "Focus boost", available: false, reason: "No acceleration" }];
+  render(<ProductionMatchExperience options={{ audioEnabled: false }} adapter={adapterFor({ viewModel,
+    snapshot: { players: {
+      1: { faction: { name: "Frumo", commander: { name: "Polea", text: "Place a hand card." }, general: "Lafayette", city: "Ristus" } },
+      2: { faction: { name: "Sheen", commander: "Opponent commander" } }
+    } }, commands: { activateAbility }
+  })} />);
+  const menu = await screen.findByRole("button", { name: "Faction abilities" });
+  expect(menu.closest(".production-player-plate-bottom")).not.toBeNull();
+  expect(menu).toHaveAttribute("aria-expanded", "false");
+  fireEvent.click(menu);
+  const dock = screen.getByRole("dialog", { name: "Faction abilities" });
+  expect(dock).not.toHaveAttribute("aria-modal", "true");
+  expect(menu).toHaveAttribute("aria-expanded", "true");
+  expect(dock).toHaveTextContent("Polea");
+  expect(dock).toHaveTextContent("Lafayette");
+  expect(dock).not.toHaveTextContent("Opponent commander");
+  expect(within(dock).getByRole("button", { name: /Focus boost/ })).toBeDisabled();
+  expect(within(dock).getByText("No acceleration")).toBeVisible();
+  fireEvent.click(within(dock).getByRole("button", { name: /Polea place/ }));
+  expect(activateAbility).toHaveBeenCalledWith("polea-place");
+  expect(screen.queryByRole("dialog", { name: "Faction abilities" })).not.toBeInTheDocument();
+  fireEvent.keyDown(window, { key: "f" });
+  expect(screen.getByRole("dialog", { name: "Faction abilities" })).toBeVisible();
+});
+
+test("reconnected match log keeps recorded public card identities and modifier explanations", async () => {
+  const cards = [{ id: "pitch-four", rank: "4", suit: "♦", value: 4 }];
+  render(<ProductionMatchExperience options={{ audioEnabled: false }} adapter={adapterFor({
+    controls: {},
+    snapshot: { publicCombatLog: [
+      { id: "payment-old", sequence: 4, type: "payment.discarded", player: 2, cardIds: ["pitch-four"],
+        total: 4, required: 3, calculation: { cards, total: 4, required: 3, notes: [] } },
+      { id: "damage-old", sequence: 9, type: "damage.calculated", attackValue: 14, blockValue: 5, damage: 9,
+        calculation: { attack: { card: { id: "attack-ace", rank: "A", suit: "♥" },
+          baseValue: 14, effectiveValue: 14, notes: [] },
+          blocks: [{ card: { id: "block-three", rank: "3", suit: "♣" },
+            baseValue: 3, effectiveValue: 5, notes: ["Emperor Nu +2"] }] } }
+    ] }
+  })} />);
+  fireEvent.click(await screen.findByText("Match", { selector: "summary" }));
+  fireEvent.click(screen.getByRole("button", { name: "Match log", exact: true }));
+  const log = screen.getByRole("dialog", { name: "Match log" });
+  expect(log).toHaveTextContent("Pitch/payment: 4♦ [pitch-four] (4)");
+  expect(log).toHaveTextContent("Attack: A♥ [attack-ace]");
+  expect(log).toHaveTextContent("Block: 3♣ [block-three] — 3 base + 2 bonus = 5 block");
+  expect(log).toHaveTextContent("Applied: Emperor Nu +2");
 });
 
 test("preserves the scene but disables commands while disconnected", async () => {

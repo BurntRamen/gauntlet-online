@@ -29,6 +29,42 @@ function makeConstructed(card, definitionId, overrides = {}) {
   return card;
 }
 
+test("hand blocking replaces or clears one blocker while payment stays multi-card and excludes it", () => {
+  const adapter = createLocalDuelAdapter({ seed: "adapter-single-block" });
+  const defender = adapter.controller;
+  const attacker = defender === 1 ? 2 : 1;
+  adapter.game.priority = defender;
+  adapter.game.handAttacks = [{
+    id: "selection-attack", player: attacker, targetPlayer: defender,
+    source: "hand", sourceLane: null,
+    card: adapter.game.players[attacker].hand[0], effectiveValue: 10,
+    block: [], notes: [], attachedCards: [],
+    payment: { player: attacker, cards: [], required: 0, total: 0 }
+  }];
+  const hand = adapter.game.players[defender].hand;
+  adapter.activateHandCard(0);
+  expect(adapter.selection.blockerCardIds).toEqual([hand[0].id]);
+  adapter.activateHandCard(1);
+  expect(adapter.selection.blockerCardIds).toEqual([hand[1].id]);
+  adapter.activateHandCard(1);
+  expect(adapter.selection.blockerCardIds).toEqual([]);
+  expect(adapter.confirmState().disabled).toBe(true);
+  adapter.activateHandCard(0);
+  adapter.confirmCurrentAction();
+  expect(adapter.selection.selectionRole).toBe("payment");
+  adapter.activateHandCard(0);
+  expect(adapter.selection.paymentCardIds).toEqual([]);
+  adapter.activateHandCard(1);
+  adapter.activateHandCard(2);
+  expect(adapter.selection.paymentCardIds).toEqual([hand[1].id, hand[2].id]);
+  expect(adapter.selection.blockerCardIds).toEqual([hand[0].id]);
+  adapter.selection.selectionRole = "blocker";
+  adapter.activateHandCard(1);
+  expect(adapter.selection.blockerCardIds).toEqual([hand[1].id]);
+  expect(adapter.selection.paymentCardIds).toEqual([hand[2].id]);
+  adapter.dispose();
+});
+
 test("local adapter immediately exposes a production match update", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-opening" });
   const update = latestUpdate(adapter);

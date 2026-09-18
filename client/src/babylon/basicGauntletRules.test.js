@@ -244,10 +244,10 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.lanes.every((lane) => lane.attack === null)).toBe(true);
   });
 
-  test("blocks a hand attack with multiple hand cards", () => {
+  test("blocks a hand attack with exactly one hand card", () => {
     let state = handAttack(setup(), 1).state;
     const defenderHand = state.players[2].hand;
-    const blockerIds = [defenderHand[0].id, defenderHand[1].id];
+    const blockerIds = [defenderHand[0].id];
     const result = applyCommand(state, {
       type: "declareHandBlock",
       player: 2,
@@ -1103,7 +1103,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.handAttacks[0].notes).toContain(note);
   });
 
-  test("sheen-harmony-ward enhances payment only for a multi-card block", () => {
+  test("legacy Harmony Ward payment does not authorize a multi-card block", () => {
     let state = setupFaction("rumin", "sheen");
     const attackingCard = state.players[1].hand[0];
     const attackingPayment = state.players[1].hand[1];
@@ -1131,12 +1131,9 @@ describe("shared Basic Gauntlet simulator rules", () => {
       paymentCardIds: [payment.id]
     });
 
-    expect(result.accepted).toBe(true);
-    expect(result.state.handAttacks[0].block[0].notes).toContain("Harmony Ward payment +1");
-    expect(result.state.handAttacks[0].block[0].payment).toEqual(expect.objectContaining({
-      required: 4,
-      total: 4
-    }));
+    expect(result.accepted).toBe(false);
+    expect(result.rejectionReason).toMatch(/exactly one/i);
+    expect(result.state).toBe(state);
   });
 
   test.each([
@@ -1205,7 +1202,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       blockerCount: 2,
       note: "Sapling Chorus +1"
     }
-  ])("$definitionId enhances the first blocker when used as payment", ({
+  ])("$definitionId payment preserves single-block enforcement", ({
     definitionId,
     blockerCount,
     note
@@ -1237,6 +1234,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
       paymentCardIds: [payment.id]
     });
 
+    if (blockerCount > 1) {
+      expect(result.accepted).toBe(false);
+      expect(result.rejectionReason).toMatch(/exactly one/i);
+      expect(result.state).toBe(state);
+      return;
+    }
     expect(result.accepted).toBe(true);
     expect(result.state.handAttacks[0].block[0].notes).toContain(note);
   });

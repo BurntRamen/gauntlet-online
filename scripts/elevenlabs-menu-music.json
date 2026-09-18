@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/menu-music",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/menu-music",
+  "jobs": [
+    {
+      "id": "menu-quiet-workshop",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2",
+      "prompt": "A seamless instrumental background loop for the main menu of Gauntlet, a premium competitive tabletop card game. Calm, timeless, reassuring, spacious, and quietly curious: the feeling of a warm workshop where living systems slowly grow, transform, and return to stillness. Use sparse felt piano, soft plucked wood, warm sustained organic textures, and occasional gentle harmonic bloom. Slow breathing pace around 62 BPM, consonant harmony, low density, long rests, no sense of urgency. Growth, creation, and entropy should be suggested subtly through notes appearing, interweaving, and naturally dissolving. Keep dynamics even and low-pressure for long menu sessions. No vocals, drums, ticking pulse, ostinato, tense arpeggio, tremolo, dissonant drone, rising pitch, sharp transient, heavy bass pressure, ominous suspense, fantasy magic, casino or arcade sound, fanfare, trailer boom, climax, or dramatic build. End must connect naturally to the beginning for a clean loop.",
+      "parameters": {
+        "generation_mode": "loop",
+        "music_length_ms": 40000,
+        "force_instrumental": true
+      },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/menu/gauntlet-menu-quiet-workshop-v1.mp3"
+    }
+  ]
+}

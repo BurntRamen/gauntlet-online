@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { RULES_VERSION } = require("../shared/duel-rules");
 
 const REQUIRED_VISUAL_STATES = [
   "neutral-battlefield",
@@ -8,7 +9,7 @@ const REQUIRED_VISUAL_STATES = [
   "payment-selection",
   "hand-attack",
   "lane-attack",
-  "multiple-hand-blockers",
+  "single-hand-blocker",
   "same-lane-block",
   "damage",
   "placement",
@@ -55,6 +56,8 @@ function evaluateExperienceGate(record = {}) {
   }
   if (!String(record.rulesVersion || "").trim()) {
     failures.push("rulesVersion is required to identify the reviewed rules.");
+  } else if (record.rulesVersion !== RULES_VERSION) {
+    failures.push(`Reviewed rules ${record.rulesVersion} do not match the current runtime ${RULES_VERSION}.`);
   }
   const visualStates = new Map((record.visualStates || []).map((entry) => [entry.id, entry]));
   for (const stateId of REQUIRED_VISUAL_STATES) {

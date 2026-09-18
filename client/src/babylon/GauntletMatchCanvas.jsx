@@ -17,7 +17,9 @@ export default function GauntletMatchCanvas({
   interactionLocked = false,
   interactionStatus = "",
   graphicsQuality = "balanced",
+  battlefieldTheme = "basic",
   cardBackAsset = "",
+  handRailPresentation = null,
   capturePlaybackControl = null,
   onRendererError,
   onSceneMetrics
@@ -27,6 +29,9 @@ export default function GauntletMatchCanvas({
   const engineRef = useRef(null);
   const rendererFailedRef = useRef(false);
   const commandsRef = useRef(commands);
+  const battlefieldThemeRef = useRef(battlefieldTheme);
+  const cardBackAssetRef = useRef(cardBackAsset);
+  const handRailPresentationRef = useRef(handRailPresentation);
   const graphicsQualityRef = useRef(normalizeGraphicsQuality(graphicsQuality));
   const baseScalingRef = useRef(1);
   const capturePlaybackControlRef = useRef(capturePlaybackControl);
@@ -35,6 +40,9 @@ export default function GauntletMatchCanvas({
   const initializationMsRef = useRef(null);
   const [rendererError, setRendererError] = useState("");
   commandsRef.current = commands;
+  battlefieldThemeRef.current = battlefieldTheme;
+  cardBackAssetRef.current = cardBackAsset;
+  handRailPresentationRef.current = handRailPresentation;
   graphicsQualityRef.current = normalizeGraphicsQuality(graphicsQuality);
   capturePlaybackControlRef.current = capturePlaybackControl;
   onRendererErrorRef.current = onRendererError;
@@ -44,7 +52,7 @@ export default function GauntletMatchCanvas({
     if (rendererFailedRef.current) return;
     rendererFailedRef.current = true;
     engineRef.current?.stopRenderLoop?.();
-    const resolved = error instanceof Error ? error : new Error(fallbackMessage);
+    const resolved = error instanceof Error ? error : new Error(typeof error === "string" && error ? error : fallbackMessage);
     setRendererError(resolved.message || fallbackMessage);
     onRendererErrorRef.current?.(resolved);
   };
@@ -80,7 +88,9 @@ export default function GauntletMatchCanvas({
         openDiscard: (...args) => commandsRef.current.openDiscard?.(...args),
         loadPresentationModule: (...args) => commandsRef.current.loadPresentationModule?.(...args),
         presentationCue: (...args) => commandsRef.current.presentationCue?.(...args),
-        cardBackAsset
+        cardBackAsset: cardBackAssetRef.current,
+        battlefieldTheme: battlefieldThemeRef.current,
+        getHandRailPresentation: () => handRailPresentationRef.current?.current
       });
       if (!renderer.scene.activeCamera) {
         throw new Error("The Babylon match scene did not assign an active camera.");
@@ -218,10 +228,13 @@ export default function GauntletMatchCanvas({
         );
       };
       window.addEventListener("resize", resize);
+      const resizeObserver = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
+      resizeObserver?.observe(canvas);
       canvas.addEventListener("webglcontextlost", contextLost);
       resize();
       return () => {
         window.removeEventListener("resize", resize);
+        resizeObserver?.disconnect();
         canvas.removeEventListener("webglcontextlost", contextLost);
         if (metricsInterval) window.clearInterval(metricsInterval);
         engine.stopRenderLoop();
@@ -244,7 +257,15 @@ export default function GauntletMatchCanvas({
       engineRef.current = null;
       return undefined;
     }
-  }, [cardBackAsset]);
+  }, []);
+
+  useEffect(() => {
+    try {
+      rendererRef.current?.updatePresentation({ battlefieldTheme, cardBackAsset });
+    } catch (error) {
+      reportRendererFailure(error, "The Babylon presentation could not update.");
+    }
+  }, [battlefieldTheme, cardBackAsset]);
 
   useEffect(() => {
     const engine = engineRef.current;
@@ -281,7 +302,7 @@ export default function GauntletMatchCanvas({
   if (rendererError) {
     return (
       <div className="babylon-renderer-error" role="alert">
-        <strong>Returning to the standard match screen.</strong>
+        <strong>Recovering the game table…</strong>
         <span>{rendererError}</span>
       </div>
     );
@@ -298,6 +319,7 @@ export default function GauntletMatchCanvas({
         commands={commands}
         interactionLocked={interactionLocked}
         interactionStatus={interactionStatus}
+        handPresentedExternally={Boolean(handRailPresentation)}
       />
     </section>
   );

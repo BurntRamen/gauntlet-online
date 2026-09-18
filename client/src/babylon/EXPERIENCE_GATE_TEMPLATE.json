@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "rendererVersion": "",
-  "rulesVersion": "gauntlet-duel-v2",
+  "rulesVersion": "gauntlet-duel-v3",
   "visualStates": [
     { "id": "neutral-battlefield", "reviewer": "", "date": "", "categories": {} },
     { "id": "local-priority", "reviewer": "", "date": "", "categories": {} },
@@ -9,7 +9,7 @@
     { "id": "payment-selection", "reviewer": "", "date": "", "categories": {} },
     { "id": "hand-attack", "reviewer": "", "date": "", "categories": {} },
     { "id": "lane-attack", "reviewer": "", "date": "", "categories": {} },
-    { "id": "multiple-hand-blockers", "reviewer": "", "date": "", "categories": {} },
+    { "id": "single-hand-blocker", "reviewer": "", "date": "", "categories": {} },
     { "id": "same-lane-block", "reviewer": "", "date": "", "categories": {} },
     { "id": "damage", "reviewer": "", "date": "", "categories": {} },
     { "id": "placement", "reviewer": "", "date": "", "categories": {} },

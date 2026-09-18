@@ -24,6 +24,40 @@ function fallbackText(entry) {
   return entry?.text || entry?.label || entry?.message || "Match state updated.";
 }
 
+function logCardName(card) {
+  if (!card) return "Card not recorded";
+  const face = `${card.rank || card.value || ""}${card.suit || ""}`;
+  const name = card.name && card.name !== face ? `${card.name}${face ? ` (${face})` : ""}` : face || "Card";
+  return `${name}${card.id ? ` [${card.id}]` : ""}`;
+}
+
+function explainValue(receipt, role) {
+  if (!receipt) return "";
+  const base = numeric(receipt.baseValue);
+  const effective = numeric(receipt.effectiveValue);
+  if (base == null || effective == null) return "";
+  const delta = effective - base;
+  return `${role}: ${logCardName(receipt.card)} — ${base} base${delta ? ` ${delta > 0 ? "+" : "−"} ${Math.abs(delta)} bonus` : ""} = ${effective} ${role.toLowerCase()}`
+    + ((receipt.notes || []).length ? ` · Applied: ${receipt.notes.join("; ")}` : delta ? " · Modifier source not recorded" : "");
+}
+
+function calculationDetails(calculation) {
+  if (!calculation) return [];
+  return [
+    explainValue(calculation.attack, "Attack"),
+    ...(calculation.blocks || []).map((receipt) => explainValue(receipt, "Block")),
+    ...(calculation.blocks || []).filter((receipt) => receipt.prevention > 0).map((receipt) =>
+      `Prevention: ${receipt.prevention}${receipt.preventionNotes?.length ? ` · ${receipt.preventionNotes.join("; ")}` : " · Source not recorded"}`)
+  ].filter(Boolean);
+}
+
+function explainPayment(calculation) {
+  if (!calculation?.cards?.length || numeric(calculation.total) == null) return "";
+  const base = calculation.cards.reduce((sum, card) => sum + (numeric(card.value) ?? 0), 0);
+  const delta = calculation.total - base;
+  return `Payment: ${base} base${delta ? ` ${delta > 0 ? "+" : "−"} ${Math.abs(delta)} bonus` : ""} = ${calculation.total}`;
+}
+
 export function formatMatchLogEntry(entry, { players = {} } = {}) {
   if (!entry) return { title: "Match state updated.", detail: "", icon: "priority" };
   const actor = playerLabel(entry.player ?? entry.attacker, players);
@@ -45,7 +79,13 @@ export function formatMatchLogEntry(entry, { players = {} } = {}) {
         icon: "payment",
         title: `${actor} committed payment${total == null ? "" : ` · ${total}/${required ?? "?"}`}`,
         detail: [
+          entry.calculation?.cards?.length
+            ? `Pitch/payment: ${entry.calculation.cards.map((card) => `${logCardName(card)} (${card.value})`).join(" + ")}`
+            : entry.cards?.length ? `Pitch/payment: ${entry.cards.map(logCardName).join(", ")}` : "",
           cardCount != null ? countLabel(cardCount, "card") : "",
+          explainPayment(entry.calculation),
+          ...(entry.calculation?.notes || []),
+          ...(entry.calculation?.reductions || []).map((reduction) => `${reduction.source} reduces cost by ${reduction.amount}`),
           overpayment > 0 ? `${overpayment} over required` : total != null && required != null ? "cost met" : ""
         ].filter(Boolean).join(" · ")
       };
@@ -57,22 +97,27 @@ export function formatMatchLogEntry(entry, { players = {} } = {}) {
         detail: [
           attack != null ? `Attack ${attack}` : "",
           entry.targetPlayer != null ? `target ${target}` : ""
-        ].filter(Boolean).join(" · ")
+        ].filter(Boolean).join(" · ") + [
+          !entry.calculation && entry.card ? logCardName(entry.card) : "",
+          ...calculationDetails(entry.calculation)
+        ].filter(Boolean).map((line) => `\n${line}`).join("")
       };
     case "block.declared":
       return {
         icon: "block",
         title: `${actor} committed ${cardCount != null ? countLabel(cardCount, "blocker") : "a block"}`,
-        detail: [laneLabel(entry), block != null ? `Block ${block}` : ""].filter(Boolean).join(" · ")
+        detail: [laneLabel(entry), block != null ? `Block ${block}` : ""].filter(Boolean).join(" · ") + [
+          !entry.calculation && entry.cards?.length ? entry.cards.map(logCardName).join(", ") : "",
+          ...calculationDetails(entry.calculation)].filter(Boolean).map((line) => `\n${line}`).join("")
       };
     case "damage.calculated": {
       const equationAvailable = attack != null || block != null || prevented > 0;
       return {
         icon: damage > 0 ? "damage" : "block",
         title: damage > 0 ? `${damage} damage calculated` : "Attack fully stopped",
-        detail: equationAvailable
-          ? `${attack ?? 0} attack − ${block ?? 0} block − ${prevented} prevention = ${damage ?? 0} damage`
-          : `${damage ?? 0} damage`
+        detail: [equationAvailable
+          ? `${attack ?? 0} attack − ${block ?? 0} block − ${prevented} prevention = ${damage ?? 0} damage${attack != null && attack - (block ?? 0) - prevented < 0 ? " (minimum 0)" : ""}`
+          : `${damage ?? 0} damage`, ...calculationDetails(entry.calculation)].join("\n")
       };
     }
     case "damage.dealt": {
