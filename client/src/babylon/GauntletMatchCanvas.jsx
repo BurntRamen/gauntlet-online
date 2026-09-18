@@ -195,6 +195,7 @@ export default function GauntletMatchCanvas({
         if (nextScaling > currentScaling + 0.01) {
           engine.setHardwareScalingLevel(nextScaling);
           engine.resize();
+          lastRenderedAt = Number.NEGATIVE_INFINITY;
         }
         if (!shouldRenderMatchFrame({
           now,
@@ -219,6 +220,15 @@ export default function GauntletMatchCanvas({
         );
         engine.setHardwareScalingLevel(baseScalingRef.current);
         engine.resize();
+        // Resizing clears WebGL's drawing buffer. ResizeObserver runs after
+        // animation callbacks, so waiting for the capped loop exposes a blank
+        // table when selecting a card changes the action panel's height.
+        if (!rendererFailedRef.current) {
+          lastRenderedAt = performance.now();
+          renderMatchFrame(renderer, (error) => {
+            reportRendererFailure(error, "The Babylon renderer could not resize the match.");
+          });
+        }
       };
       const contextLost = (event) => {
         event.preventDefault();
@@ -280,6 +290,11 @@ export default function GauntletMatchCanvas({
     if (engine.getHardwareScalingLevel() !== scalingLevel) {
       engine.setHardwareScalingLevel(scalingLevel);
       engine.resize();
+      if (rendererRef.current && !rendererFailedRef.current) {
+        renderMatchFrame(rendererRef.current, (error) => {
+          reportRendererFailure(error, "The Babylon renderer could not change match quality.");
+        });
+      }
     }
     onSceneMetricsRef.current?.({
       ...rendererRef.current?.getMetrics?.(),

@@ -27,8 +27,21 @@ test("theme and card-back changes preserve the engine, renderer, view model and 
   const viewModel = { matchId: "unchanged-match", revision: 7, mode: "factions" };
   const firstHandler = jest.fn();
   const latestHandler = jest.fn();
+  const originalResizeObserver = global.ResizeObserver;
+  let resizeTable;
+  global.ResizeObserver = jest.fn((callback) => {
+    resizeTable = callback;
+    return { observe: jest.fn(), disconnect: jest.fn() };
+  });
   const mounted = render(<GauntletMatchCanvas viewModel={viewModel} commands={{ activateHandCard: firstHandler }} />);
   try {
+    // A control-panel resize must repaint before ResizeObserver returns;
+    // the regular animation loop may skip its next idle frame.
+    renderer.scene.render.mockClear();
+    resizeTable();
+    expect(renderer.scene.render).toHaveBeenCalledTimes(1);
+    expect(engine.resize.mock.invocationCallOrder.at(-1))
+      .toBeLessThan(renderer.scene.render.mock.invocationCallOrder[0]);
     const originalOptions = createGauntletScene.mock.calls[0][2];
     mounted.rerender(<GauntletMatchCanvas
       viewModel={viewModel} commands={{ activateHandCard: latestHandler }}
@@ -56,6 +69,7 @@ test("theme and card-back changes preserve the engine, renderer, view model and 
     expect(firstHandler).not.toHaveBeenCalled();
   } finally {
     mounted.unmount();
+    global.ResizeObserver = originalResizeObserver;
     for (const [key, descriptor] of dimensions) {
       if (descriptor) Object.defineProperty(HTMLCanvasElement.prototype, key, descriptor);
       else delete HTMLCanvasElement.prototype[key];

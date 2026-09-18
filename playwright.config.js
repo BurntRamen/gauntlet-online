@@ -16,7 +16,7 @@ const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
 
 module.exports = defineConfig({
   testDir: "./e2e",
-  testMatch: ["babylon-live-entry.spec.js", "user-flows.spec.js"],
+  testMatch: ["babylon-live-entry.spec.js", "user-flows.spec.js", "babylon-card-selection.spec.js"],
   testIgnore: "babylon-performance.spec.js",
   fullyParallel: false,
   workers: 1,
