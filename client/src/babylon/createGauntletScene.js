@@ -481,7 +481,7 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
 function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion = false) {
   const destination = {
     x: position.x,
-    y: position.y + (options.selected && !options.hovered ? 0.12 : 0),
+    y: position.y,
     z: position.z,
     rotationX: position.rotationX || 0,
     rotationY: position.rotationY || 0,
@@ -2411,11 +2411,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const hovered = hoveredId === actor.actorId && actor.zone.kind === "hand";
     if (hovered) position = getHandHoverPosition(position, currentViewModel?.reducedMotion);
     const animateTransition = Boolean(transition?.animate && !currentViewModel?.reducedMotion);
-    const localFeedbackChanged = Boolean(runtime) && !transition && (
-      Boolean(runtime.presentationActor?.selected) !== Boolean(actor.selected)
-      || runtime.presentationActor?.selectionRole !== actor.selectionRole
-      || Boolean(runtime.target?.hovered) !== hovered
-    );
+    const localFeedbackChanged = Boolean(runtime) && !transition
+      && Boolean(runtime.target?.hovered) !== hovered;
     const railOrigin = rail?.enabled && transition?.fromZone?.kind === "hand"
       && transition.fromZone.side === "local" ? railPosition(actor.actorId) : null;
     const initial = animateTransition ? railOrigin || resolveTransitionOrigin(transition, activeLayoutProfile) : null;
@@ -2449,8 +2446,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       metadata: actorMetadata(actor),
       motionDestinationZone: actor.zone,
       // Reflow/reconcile changes update the canonical pose without inventing
-      // travel. Selection and hover have no transition record, so they retain
-      // their short local lift while accepted semantic transitions animate.
+      // travel. Selection updates the existing halo in place; only hover and
+      // accepted game actions introduce motion.
       snap: shouldSnapPresentationUpdate(transition, {
         animateTransition,
         responsiveRecompose,
@@ -2731,9 +2728,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     const bottomPriority = !!bottom && viewModel.priority === bottom.id;
     const resolvedPayment = viewModel.publicPayments?.[0] || null;
     const replayPaymentCount = viewModel.replayAction?.cards?.payments?.length || 0;
-    const handCombatActive = viewModel.handAttacks.length > 0
-      || viewModel.selection.attackMode?.from === "hand"
-      || viewModel.selection.blockMode?.type === "handAttack";
+    // Merely selecting a hand card must not introduce new table geometry.
+    const handCombatActive = viewModel.handAttacks.length > 0;
     const focus = currentBoardPresentation.focus || { region: "board", laneIndex: null, tier: "rest" };
     const focusedAction = focus.tier !== "rest";
     nativeBoardStage?.modules?.get("hand-combat-dais")?.root?.setEnabled(handCombatActive);

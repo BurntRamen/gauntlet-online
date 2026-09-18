@@ -239,9 +239,12 @@ test("reconnected match log keeps recorded public card identities and modifier e
   fireEvent.click(await screen.findByText("Match", { selector: "summary" }));
   fireEvent.click(screen.getByRole("button", { name: "Match log", exact: true }));
   const log = screen.getByRole("dialog", { name: "Match log" });
-  expect(log).toHaveTextContent("Pitch/payment: 4♦ [pitch-four] (4)");
-  expect(log).toHaveTextContent("Attack: A♥ [attack-ace]");
-  expect(log).toHaveTextContent("Block: 3♣ [block-three] — 3 base + 2 bonus = 5 block");
+  expect(log).toHaveTextContent("Pitch/payment: 4♦ (4)");
+  expect(log).toHaveTextContent("Attack: A♥");
+  expect(log).toHaveTextContent("Block: 3♣ — 3 base + 2 bonus = 5 block");
+  expect(log).not.toHaveTextContent("pitch-four");
+  expect(log).not.toHaveTextContent("attack-ace");
+  expect(log).not.toHaveTextContent("block-three");
   expect(log).toHaveTextContent("Applied: Emperor Nu +2");
 });
 
@@ -291,7 +294,7 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
   const payment = screen.getByRole("status");
   expect(payment).toHaveTextContent("Payment cost");
   expect(payment).toHaveTextContent("5 / 7");
-  expect(payment).toHaveTextContent("Select highlighted cards worth 2 more.");
+  expect(payment).toHaveTextContent("Select 2 more payment value.");
   expect(screen.queryByRole("button", { name: "Pass Priority" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();

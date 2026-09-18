@@ -222,7 +222,7 @@ export default function GauntletMatchCanvas({
         engine.resize();
         // Resizing clears WebGL's drawing buffer. ResizeObserver runs after
         // animation callbacks, so waiting for the capped loop exposes a blank
-        // table when selecting a card changes the action panel's height.
+        // table after an actual viewport or dock resize.
         if (!rendererFailedRef.current && Number.isFinite(lastRenderedAt)) {
           lastRenderedAt = performance.now();
           renderMatchFrame(renderer, (error) => {

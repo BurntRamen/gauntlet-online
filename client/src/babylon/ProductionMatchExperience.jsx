@@ -529,7 +529,7 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
     );
   }
   return (
-    <section className="production-context-panel" aria-label="Current match action">
+    <section className={`production-context-panel${viewModel?.payment?.active ? " has-payment" : ""}`} aria-label="Current match action">
       <div className="production-context-copy" aria-live="polite">
         <span className="production-context-kicker">
           <GameIcon name={actionIcon} size={15} />
@@ -550,12 +550,12 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
               <small>
                 {complete
                   ? "Cost met — confirm the action."
-                  : `Select highlighted cards worth ${remaining} more.`}
+                  : interactions.confirmReason || `Select highlighted cards worth ${remaining} more.`}
               </small>
             </div>
           );
         })()}
-        {hasSelection && interactions.confirmDisabled && interactions.confirmReason && (
+        {hasSelection && !viewModel?.payment?.active && interactions.confirmDisabled && interactions.confirmReason && (
           <span className="production-action-reason">{interactions.confirmReason}</span>
         )}
       </div>

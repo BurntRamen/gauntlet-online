@@ -1,8 +1,12 @@
 const { test, expect } = require("@playwright/test");
 
+for (const viewport of [{ width: 1366, height: 768 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
 for (const mode of ["Basic", "Factions"]) {
-  test(`${mode} card selection repaints a resized table before the browser presents it`, async ({ page, baseURL }) => {
+  test(`${mode} selection stays in place at ${viewport.width}x${viewport.height}`, async ({ page, baseURL }) => {
+    await page.setViewportSize(viewport);
     await page.addInitScript(() => {
+      // Keep graphics scaling constant so the probe isolates selection/layout.
+      localStorage.setItem("gauntlet.graphicsQuality", "performance");
       const dirty = new Set();
       window.tableResizeProbe = { resizes: 0, blankPresentations: 0 };
       for (const property of ["width", "height"]) {
@@ -52,18 +56,34 @@ for (const mode of ["Basic", "Factions"]) {
     const canvas = page.locator("canvas.babylon-match-canvas");
     await expect(page.locator('[data-match-zone="hand"]:not(:disabled)').first()).toBeAttached();
     await page.waitForTimeout(1000);
-    await page.evaluate(() => { window.tableResizeProbe = { resizes: 0, blankPresentations: 0 }; });
+    const originalBounds = await canvas.boundingBox();
+    const originalControls = await page.locator(".production-context-panel").boundingBox();
+    await page.evaluate(() => {
+      window.tableResizeProbe = { resizes: 0, blankPresentations: 0 };
+      window.selectionCanvas = document.querySelector("canvas.babylon-match-canvas");
+    });
     for (let index = 0; index < 3; index++) {
-      const bounds = await canvas.boundingBox();
-      await page.mouse.click(bounds.x + bounds.width * 0.5, bounds.y + bounds.height * 0.85);
+      const rail = page.getByTestId("phone-hand-rail");
+      if (await rail.isVisible()) {
+        await rail.locator("button:not(:disabled)").first().click();
+      } else {
+        await page.mouse.click(originalBounds.x + originalBounds.width * 0.5, originalBounds.y + originalBounds.height * 0.85);
+      }
       const cancel = page.getByRole("region", { name: "Current match action" }).getByRole("button", { name: "Cancel", exact: true });
       await expect(cancel).toBeVisible();
       await page.waitForTimeout(100);
+      expect(await canvas.boundingBox()).toEqual(originalBounds);
+      expect(await page.locator(".production-context-panel").boundingBox()).toEqual(originalControls);
+      await expect(page.locator(".production-payment-readout")).toBeVisible();
+      if (index === 0) await page.screenshot({ path: test.info().outputPath("selected-card.png") });
       await cancel.click();
       await page.waitForTimeout(100);
+      expect(await canvas.boundingBox()).toEqual(originalBounds);
     }
     const result = await page.evaluate(() => window.tableResizeProbe);
-    expect(result.resizes).toBeGreaterThan(0);
+    expect(result.resizes).toBe(0);
     expect(result.blankPresentations).toBe(0);
+    expect(await canvas.evaluate((element) => element === window.selectionCanvas)).toBe(true);
   });
+}
 }

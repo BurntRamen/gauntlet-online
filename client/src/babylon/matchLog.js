@@ -26,9 +26,10 @@ function fallbackText(entry) {
 
 function logCardName(card) {
   if (!card) return "Card not recorded";
-  const face = `${card.rank || card.value || ""}${card.suit || ""}`;
+  const suit = { hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" }[card.suit] || card.suit || "";
+  const face = `${card.rank || card.value || ""}${suit}`;
   const name = card.name && card.name !== face ? `${card.name}${face ? ` (${face})` : ""}` : face || "Card";
-  return `${name}${card.id ? ` [${card.id}]` : ""}`;
+  return name;
 }
 
 function explainValue(receipt, role) {
