@@ -1,3 +1,14 @@
+.journey-next-step.is-contextual {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: 0 16px;
+}
+.journey-next-step.is-contextual .journey-next-art { display: none; }
+.journey-next-step.is-contextual h2 { font-size: 21px; }
+.journey-next-step.is-contextual .journey-next-copy { padding: 12px 0; }
+@media (max-width: 600px) {
+  .journey-next-step.is-contextual { grid-template-columns: 1fr; gap: 0; padding: 0 12px 12px; }
+}
 .journey-next-step {
   display: grid;
   grid-template-columns: 156px minmax(0, 1fr) auto;

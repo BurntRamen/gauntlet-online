@@ -1,3 +1,4 @@
+import { createLiveMatchSession } from "../match/LiveMatchSession";
 import { LiveSocketAdapter, LocalDuelAdapter } from "./matchAdapters";
 
 const createLocalDuelAdapter = (options) => new LocalDuelAdapter(options);
@@ -974,5 +975,25 @@ test("live match controls expose acknowledged rejection without changing gamepla
     message: "No recent move available to undo."
   }));
   expect(update.revision).toBe(game.revision);
+  adapter.dispose();
+});
+
+
+test("a live adapter waits for the next chapter snapshot without declaring renderer failure", async () => {
+  const session = createLiveMatchSession({ socket: { emit: jest.fn() } });
+  const adapter = new LiveSocketAdapter({ session });
+  const updates = [];
+  adapter.subscribe((update) => { if (update) updates.push(update); });
+  await expect(adapter.connect()).resolves.toBeUndefined();
+  const state = createMatch({ seed: "chapter-handoff-regression" }).state;
+  const game = projectForPerspective(state, 1);
+  session.update({ game, player: 1, role: "player", connected: true });
+  expect(updates.at(-1).viewModel.matchId).toBe(game.matchId);
+  expect(updates.at(-1).connected).toBe(true);
+  session.update({ game: null, connected: false });
+  await expect(adapter.connect()).resolves.toBeUndefined();
+  const next = projectForPerspective(createMatch({ seed: "chapter-handoff-next" }).state, 1);
+  session.update({ game: next, connected: true });
+  expect(updates.at(-1).viewModel.matchId).toBe(next.matchId);
   adapter.dispose();
 });

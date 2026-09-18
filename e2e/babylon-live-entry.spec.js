@@ -1,9 +1,14 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect: baseExpect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
 const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
+const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
+  || (process.env.CI === "true" && process.platform === "linux");
+// These are multi-client correctness journeys, not frame-rate benchmarks.
+// GPU-less runners need time to present queued events on every client.
+const expect = baseExpect.configure({ timeout: softwareGraphics ? 30000 : 10000 });
 
 test.beforeAll(async ({ browser }) => {
   if (process.env.CI !== "true") return;
@@ -125,11 +130,15 @@ async function clickHandCardByValue(page, direction = "lowest") {
   // meshes. Focus and activate them as a keyboard user would; pointer clicks
   // belong to the visible card meshes on the canvas.
   await candidates[0].button.focus();
+  await expect(candidates[0].button).toBeEnabled();
   await candidates[0].button.press("Enter");
 }
 
 async function activateLaneButton(page, name) {
   const button = page.getByRole("button", { name, exact: true });
+  // Keyboard press does not perform Playwright's enabled/actionable checks.
+  // The authoritative HUD can update before the playback input lock releases.
+  await expect(button).toBeEnabled();
   await button.focus();
   await button.press("Enter");
 }
@@ -230,7 +239,7 @@ async function finishPreparedCampaign(page) {
 }
 
 test("normal browser lobby flow starts and finishes a live Babylon Basic match", async ({ browser, baseURL }) => {
-  test.setTimeout(90000);
+  test.setTimeout(softwareGraphics ? 240000 : 90000);
   const hostContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const guestContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const spectatorContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -264,9 +273,14 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await prepareGuest(spectatorPage, baseURL, "Lobby Spectator");
   await spectatorPage.getByLabel("Room code").fill(roomCode);
   await spectatorPage.getByRole("button", { name: "Spectate" }).click();
-  await expect(spectatorPage.getByText("Spectator view")).toBeVisible();
+  await expect(spectatorPage.getByText("Spectator view")).toBeVisible({
+    timeout: softwareGraphics ? 90000 : 10000
+  });
   await expect(spectatorPage.locator('[data-match-zone="hand"]')).toHaveCount(0);
   await expect(spectatorPage.getByRole("button", { name: "Pass Priority" })).toHaveCount(0);
+  // Its privacy checks are complete. Do not keep an unused WebGL client
+  // competing with the two players on the runner's shared software GPU.
+  await spectatorPage.close();
 
   const priorityPage = await hostPage.locator(".production-player-plate-bottom.has-priority").isVisible()
     ? hostPage
@@ -298,6 +312,7 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await expect(waitingPage.getByRole("button", { name: "Accept Rematch" })).toBeVisible();
   await waitingPage.getByRole("button", { name: "Decline Rematch" }).click();
   await expect(priorityPage.getByRole("dialog").getByText(/declined the rematch/i)).toBeVisible();
+  await waitingPage.close();
 
   await priorityPage.getByRole("button", { name: "Watch Replay" }).click();
   await expect(priorityPage.locator(".match-replay-page")).toBeVisible();
@@ -380,7 +395,7 @@ test("live Basic undo, draw, and accepted rematch reconcile through the producti
 
 for (const profile of ["desktop", "phone"]) {
 test(`two ordinary ${profile} browser clients complete live Basic combat and placement through semantic commands`, async ({ browser, baseURL }) => {
-  test.setTimeout(120000);
+  test.setTimeout(softwareGraphics ? 300000 : 120000);
   const hostContext = await browser.newContext({ viewport: profile === "phone"
     ? { width: 390, height: 844 } : { width: 1366, height: 768 }, hasTouch: profile === "phone" });
   const guestContext = await browser.newContext({ viewport: profile === "phone"
@@ -1044,11 +1059,11 @@ test("normal draft-league entry uses finalized draft decks and preserves them ac
   const secondPage = await secondContext.newPage();
   await prepareAccount(firstPage, firstAccount.token, baseURL, "Draft");
   await prepareAccount(secondPage, secondAccount.token, baseURL, "Draft");
-  await expect(firstPage.getByRole("button", { name: "Player Draft BO3" })).toBeEnabled();
-  await expect(secondPage.getByRole("button", { name: "Player Draft BO3" })).toBeEnabled();
+  await expect(firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
+  await expect(secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
 
-  await firstPage.getByRole("button", { name: "Player Draft BO3" }).click();
-  await secondPage.getByRole("button", { name: "Player Draft BO3" }).click();
+  await firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
+  await secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
   for (const page of [firstPage, secondPage]) {
     const match = page.getByTestId("production-babylon-match");
     await expect(match).toBeVisible();

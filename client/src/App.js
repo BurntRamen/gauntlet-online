@@ -30,6 +30,7 @@ import {
   useMenuAudio
 } from "./MenuAudio";
 import MenuBackdrop from "./MenuBackdrop";
+import { fetchGameContent } from "./loadGameContent";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -136,7 +137,7 @@ const INITIAL_JOIN_ROOM_CODE =
 const INITIAL_HOME_AREA =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("studio") === "1"
     ? "studio"
-    : "journey";
+    : INITIAL_JOIN_ROOM_CODE ? "play" : "journey";
 
 function getPublicViewFromLocation() {
   if (typeof window === "undefined") return null;
@@ -560,6 +561,7 @@ function getCampaignComplexityPreview(factionId, chapterIndex, opponentName) {
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
   if (roomCode) localStorage.setItem(STORAGE_KEYS.roomCode, roomCode);
   if (reconnectToken) localStorage.setItem(STORAGE_KEYS.reconnectToken, reconnectToken);
+  else localStorage.removeItem(STORAGE_KEYS.reconnectToken);
   if (role) localStorage.setItem(STORAGE_KEYS.role, role);
 }
 
@@ -2534,7 +2536,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
                   <div key={seatNum} style={{ display: "flex", justifyContent: "space-between", gap: 8, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: 7, color: "#dbeafe" }}>
                     <strong>P{seatNum}</strong>
                     <span>{seat.accountName || (seat.connected ? "Connected" : "Open Seat")}</span>
-                    <span style={{ color: seat.connected ? "#86efac" : "#94a3b8" }}>{seat.connected ? "Online" : "Open"}</span>
+                    <span style={{ color: seat.connected ? "#86efac" : "#94a3b8" }}>{seat.connected ? "Online" : seat.accountName ? "Disconnected" : "Open"}</span>
                   </div>
                 );
               })}
@@ -2563,6 +2565,13 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
           </MenuCard>
         </div>
 
+        {draft?.status === "cancelled" && <MenuCard title="Draft cancelled"><p>The draft ended before all picks were completed. No deck was saved. Return to the main menu to start another table.</p></MenuCard>}
+        {draft?.status === "drafting" && !isBotDraft && draft.activePlayers?.some((p) => !players[p]?.connected) && (
+          <MenuCard title="Waiting for a player to reconnect">
+            <p>Drafting will resume when they return. If they cannot return, you can cancel this draft for everyone. Incomplete picks will not become a saved deck.</p>
+            {!isSpectator && <MenuButton variant="secondary" onClick={() => { if (window.confirm("Cancel this draft for everyone? Incomplete picks will not be saved as a deck.")) socket.emit("cancelDraft"); }}>Cancel Draft</MenuButton>}
+          </MenuCard>
+        )}
         {draft?.status === "drafting" && !isSpectator && (
           <MenuCard title={`Current Pack (${myPack.length} cards)`}>
             <p style={{ color: "#bfdbfe", marginTop: 0 }}>{hasPickedThisPass ? "Pick locked in. Waiting for the other players before the next pack." : "Pick exactly one card from this pack."}</p>
@@ -3688,9 +3697,9 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
             <span className="tutorial-practice-kicker">Recommended first match</span>
             <h2>Practice the core loop</h2>
             <p>Basic Mode keeps the focus on priority, payment, blocking, damage, and lanes.</p>
-            <MenuButton onClick={onPlayBasicAi} disabled={!canPlayAsPlayer}>Play Basic vs AI</MenuButton>
-            <MenuButton variant="secondary" onClick={onPlayFactionAi} disabled={!canPlayAsPlayer}>Play Factions vs AI</MenuButton>
-            {!canPlayAsPlayer && <small>Choose an account or guest identity on the main menu to begin.</small>}
+            <MenuButton onClick={onPlayBasicAi}>Play Basic vs AI</MenuButton>
+            <MenuButton variant="secondary" onClick={onPlayFactionAi}>Play Factions vs AI</MenuButton>
+            {!canPlayAsPlayer && <small>You can practice as a guest. Sign in later to keep progression and rewards.</small>}
           </aside>
         </div>
       </div>
@@ -3865,6 +3874,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
 }
 
 export default function App() {
+  const roomEntryTimerRef = useRef(null);
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
@@ -3933,7 +3943,8 @@ export default function App() {
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useState(false);
-  const [playView, setPlayView] = useState("practice");
+  const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
+  const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
   const [identityView, setIdentityView] = useState("profile");
   const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
   const [tutorialCompletions, setTutorialCompletions] = useState(() => {
@@ -4108,13 +4119,7 @@ export default function App() {
   const loadGameContent = useCallback(async () => {
     setGameContentError("");
     try {
-      const response = await fetch(`${SOCKET_URL}/api/game-content`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not load game content.");
-      if (!data.content?.contentVersion || !data.content?.campaigns || !data.content?.deckRules) {
-        throw new Error("The server returned an unsupported game-content manifest.");
-      }
-      setGameContent(data.content);
+      setGameContent(await fetchGameContent(SOCKET_URL));
     } catch (contentError) {
       setGameContentError(contentError.message);
     }
@@ -4193,13 +4198,20 @@ export default function App() {
 
   useEffect(() => {
     if (!authToken) return;
+    let active = true;
     loadAuthoritativeAccount()
-      .then(setAccount)
-      .catch(() => {
+      .then((updatedAccount) => { if (active) { setAccount(updatedAccount); setAuthError(""); } })
+      .catch((accountError) => {
+        if (!active) return;
+        if (accountError.status !== 401) {
+          setAuthError(accountError.message || "Your account could not be loaded. Please try again.");
+          return;
+        }
         localStorage.removeItem(STORAGE_KEYS.authToken);
         setAuthToken("");
         setAccount(null);
       });
+    return () => { active = false; };
   }, [authToken, loadAuthoritativeAccount]);
 
   useEffect(() => {
@@ -4381,6 +4393,7 @@ export default function App() {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await response.json();
+      if (localStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       if (response.status === 401) {
         localStorage.removeItem(STORAGE_KEYS.authToken);
         setAuthToken("");
@@ -4392,6 +4405,7 @@ export default function App() {
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
+      if (localStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       setFriendsError(friendLoadError.message);
     }
   }, [authToken]);
@@ -4458,8 +4472,30 @@ export default function App() {
     setFactionVoice(null);
   }, [accountSoundMuted]);
 
+  const returnToMainMenu = useCallback(() => {
+    finishRoomEntry();
+    socket.emit("leaveRoom");
+    clearReconnectInfo();
+    resetSelections();
+    setGame(null);
+    setLobby(null);
+    setDraftState(null);
+    setRole(null);
+    setPlayer(null);
+    setRoomCodeInput("");
+    setActionLog([]);
+    setRematchStatus({ requestedBy: null, message: "" });
+    setError("");
+    setFactionVoice(null);
+    setShowCampaign(false);
+    setShowTutorial(false);
+    setMatchmakingStatus({ inQueue: false, message: "" });
+    setDraftLeagueStatus({ inQueue: false, message: "" });
+  }, []);
+
   useEffect(() => {
     const onAssign = (payload) => {
+      finishRoomEntry();
       if (menuQueuePendingRef.current) menuCueRef.current("matchReady");
       setError("");
       setRole(payload.role);
@@ -4471,6 +4507,7 @@ export default function App() {
     };
 
     const onAssignSpectator = (payload) => {
+      finishRoomEntry();
       setError("");
       setRole("spectator");
       setPlayer(null);
@@ -4508,9 +4545,11 @@ export default function App() {
       setDraftPickPending(false);
     };
     const onError = (msg) => {
-      if (String(msg || "").toLowerCase().includes("room is no longer active")) {
-        clearReconnectInfo();
-        setError("");
+      finishRoomEntry();
+      if (/room is no longer active|could not reconnect to that player seat/i.test(String(msg || ""))) {
+        returnToMainMenu();
+        setMatchReconnectPending(false);
+        setError("This table is no longer available. You can start or join another game.");
         return;
       }
       menuCueRef.current("denied");
@@ -4559,6 +4598,7 @@ export default function App() {
       attemptReconnect();
     };
     const onDisconnect = () => {
+      finishRoomEntry();
       setTransportConnected(false);
       setMatchReconnectPending(true);
       liveMatchSessionRef.current.update({ connected: false });
@@ -4601,7 +4641,7 @@ export default function App() {
       socket.off("rematchStatus", onRematchStatus);
       socket.off("rematchStarted", onRematchStarted);
     };
-  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -4700,11 +4740,8 @@ export default function App() {
       }
 
       if (game.phase === "end") {
-        const activeOrder = (game.playerOrder || Object.keys(game.players || {}).map(Number))
-          .filter((p) => !game.players?.[p]?.eliminated);
-        const firstIndex = Math.max(0, activeOrder.indexOf(game.endPlacementFirstPlayer));
         const currentPlayer = game.gameMode === "freeForAll"
-          ? activeOrder[(firstIndex + (game.endPlacementStep || 0)) % Math.max(1, activeOrder.length)]
+          ? game.currentEndPlacementPlayer
           : game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : (game.endPlacementFirstPlayer === 1 ? 2 : 1);
         if (currentPlayer === player && Number.isInteger(game.endPlacementLaneIndex)) {
           event.preventDefault();
@@ -4759,6 +4796,14 @@ export default function App() {
       setAuthToken(data.token);
       setAccount(data.account);
       setAuthForm({ name: "", password: "" });
+      if (returnToDraftAfterAuth) {
+        setReturnToDraftAfterAuth(false);
+        setPlayView("draft");
+        navigateHomeArea("play");
+      } else if (INITIAL_JOIN_ROOM_CODE && roomCodeInput) {
+        setPlayView("tables");
+        navigateHomeArea("play");
+      }
       playMenuCue("success");
     } catch (authSubmitError) {
       setAuthError(authSubmitError.message);
@@ -4867,6 +4912,12 @@ export default function App() {
   }
 
   function signOut() {
+    // Drop the transport as well as the UI identity: the server owns queues
+    // and cached socket credentials. Never reconnect to the previous seat.
+    returnToMainMenu();
+    socket.disconnect();
+    liveMatchSessionRef.current.update({ game: null, player: null, role: null, connected: false, controlState: {} });
+    setPlayAsGuest(false);
     localStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
@@ -4878,11 +4929,12 @@ export default function App() {
     setFriendNameInput("");
     setFriendMessageInput("");
     setFriendsError("");
+    socket.connect();
   }
 
   function playerIdentityPayload() {
     const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
-    if (account && authToken) return { authToken, reconnectToken };
+    if (authToken) return { authToken, reconnectToken };
     const normalizedGuestName = guestName.trim() || "Guest";
     localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
     return { guestName: normalizedGuestName, reconnectToken };
@@ -4943,71 +4995,32 @@ export default function App() {
     navigateHomeArea("matches");
   }
 
-  function createRoom() {
-    playMenuCue("commit");
-    clearReconnectInfo();
-    socket.emit("createRoom", playerIdentityPayload());
+  function finishRoomEntry() {
+    window.clearTimeout(roomEntryTimerRef.current);
+    roomEntryTimerRef.current = null;
   }
 
-  function createFreeForAllRoom() {
+  useEffect(() => () => window.clearTimeout(roomEntryTimerRef.current), []);
+
+  function enterRoom(event, payload) {
+    if (roomEntryTimerRef.current) return;
+    if (!socket.connected) {
+      setError("Connecting to the server. Please try again when the connection returns.");
+      return;
+    }
     playMenuCue("commit");
-    clearReconnectInfo();
     setError("");
-    let answered = false;
-    const timeoutId = window.setTimeout(() => {
-      if (answered) return;
-      playMenuCue("denied");
-      setError("Free-for-all room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
-    }, 3500);
-    socket.emit("createFreeForAllRoom", playerIdentityPayload(), (response) => {
-      answered = true;
-      window.clearTimeout(timeoutId);
-      if (response?.error) {
-        playMenuCue("denied");
-        setError(response.error);
-      }
-    });
+    roomEntryTimerRef.current = window.setTimeout(() => {
+      finishRoomEntry();
+      setError("The table did not respond. Check your connection and try again.");
+    }, 10000);
+    socket.emit(event, payload);
   }
 
-  function createDraftRoom() {
-    playMenuCue("commit");
-    clearReconnectInfo();
-    setError("");
-    let answered = false;
-    const timeoutId = window.setTimeout(() => {
-      if (answered) return;
-      playMenuCue("denied");
-      setError("Draft room creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
-    }, 3500);
-    socket.emit("createDraftRoom", playerIdentityPayload(), (response) => {
-      answered = true;
-      window.clearTimeout(timeoutId);
-      if (response?.error) {
-        playMenuCue("denied");
-        setError(response.error);
-      }
-    });
-  }
-
-  function createBotDraftRoom() {
-    playMenuCue("commit");
-    clearReconnectInfo();
-    setError("");
-    let answered = false;
-    const timeoutId = window.setTimeout(() => {
-      if (answered) return;
-      playMenuCue("denied");
-      setError("Bot draft creation did not get a server response. Push/deploy the latest server/index.js to Render, then try again.");
-    }, 3500);
-    socket.emit("createBotDraftRoom", playerIdentityPayload(), (response) => {
-      answered = true;
-      window.clearTimeout(timeoutId);
-      if (response?.error) {
-        playMenuCue("denied");
-        setError(response.error);
-      }
-    });
-  }
+  function createRoom() { if (!account) setPlayAsGuest(true); enterRoom("createRoom", playerIdentityPayload()); }
+  function createFreeForAllRoom() { if (!account) setPlayAsGuest(true); enterRoom("createFreeForAllRoom", playerIdentityPayload()); }
+  function createDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createDraftRoom", playerIdentityPayload()); }
+  function createBotDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createBotDraftRoom", playerIdentityPayload()); }
 
   function startDraft() {
     socket.emit("startDraft");
@@ -5086,11 +5099,10 @@ export default function App() {
   }
 
   function startTutorialVsAi(mode = "basic") {
+    if (!account) setPlayAsGuest(true);
     playMenuCue("commit");
-    clearReconnectInfo();
     setShowTutorial(false);
-    setError("");
-    socket.emit("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
+    enterRoom("createAiTutorialRoom", { ...playerIdentityPayload(), mode });
   }
 
   function resumeSavedRoom() {
@@ -5138,10 +5150,8 @@ export default function App() {
 
   function startCampaignChapter(factionId, chapterId) {
     playMenuCue("commit");
-    clearReconnectInfo();
     setShowCampaign(false);
-    setError("");
-    socket.emit("createCampaignRoom", { ...playerIdentityPayload(), factionId, chapterId });
+    enterRoom("createCampaignRoom", { ...playerIdentityPayload(), factionId, chapterId });
   }
 
   function continueCampaignChapter(factionId, chapterId) {
@@ -5156,16 +5166,13 @@ export default function App() {
   }
 
   function joinRoom(asSpectator = false) {
+    if (!asSpectator && !account) setPlayAsGuest(true);
     playMenuCue("commit");
-    clearReconnectInfo();
-    setError("");
-    socket.emit("joinRoom", { roomCode: roomCodeInput, asSpectator, ...(asSpectator ? { authToken } : playerIdentityPayload()) });
+    enterRoom("joinRoom", { roomCode: roomCodeInput.trim(), asSpectator, ...(asSpectator ? { authToken } : playerIdentityPayload()) });
   }
 
   function spectateSeasonMatch(roomCode) {
-    clearReconnectInfo();
-    setError("");
-    socket.emit("joinRoom", { roomCode, asSpectator: true, authToken });
+    enterRoom("joinRoom", { roomCode, asSpectator: true, authToken });
   }
 
   function joinMatchmaking(bestOf = 1) {
@@ -5307,25 +5314,6 @@ export default function App() {
     }
   }
 
-  function returnToMainMenu() {
-    socket.emit("leaveRoom");
-    clearReconnectInfo();
-    resetSelections();
-    setGame(null);
-    setLobby(null);
-    setDraftState(null);
-    setRole(null);
-    setPlayer(null);
-    setRoomCodeInput("");
-    setActionLog([]);
-    setRematchStatus({ requestedBy: null, message: "" });
-    setError("");
-    setFactionVoice(null);
-    setShowCampaign(false);
-    setShowTutorial(false);
-    setMatchmakingStatus({ inQueue: false, message: "" });
-    setDraftLeagueStatus({ inQueue: false, message: "" });
-  }
 
   function returnToMatches() {
     returnToMainMenu();
@@ -5422,13 +5410,18 @@ export default function App() {
       actionLabel: "Resume Match",
       onClick: resumeSavedRoom
     };
+  } else if (INITIAL_JOIN_ROOM_CODE && roomCodeInput) {
+    journeyNextStep = {
+      eyebrow: "Table invitation", title: `Join table ${roomCodeInput}`,
+      description: "Choose your name below, then join your friends. You can also watch as a spectator.",
+      actionLabel: "Open invitation",
+      onClick: () => { setPlayView("tables"); navigateHomeArea("play"); }
+    };
   } else if (!canPlayAsPlayer) {
     journeyNextStep = {
-      eyebrow: "Establish Identity",
-      title: "Choose your player identity",
-      description: "Sign in for progression or enter a named guest identity to begin.",
-      actionLabel: "Open Identity",
-      onClick: () => navigateHomeArea("identity")
+      eyebrow: "Start playing", title: "Learn one turn",
+      description: "Learn priority, payment, and blocking, then try a private practice match. No account needed.",
+      actionLabel: "Learn Gauntlet", onClick: openOnboardingTutorial
     };
   } else if (!tutorialComplete) {
     journeyNextStep = {
@@ -5489,6 +5482,18 @@ export default function App() {
       onClick: () => navigateHomeArea("play")
     };
   }
+
+  if (!hasSavedRoom && !(INITIAL_JOIN_ROOM_CODE && roomCodeInput)) {
+    if (homeArea === "matches" || homeArea === "identity") journeyNextStep = null;
+    else if (homeArea === "build") journeyNextStep = {
+      eyebrow: "From deck to table", title: "Ready to try your deck?",
+      description: "Create a faction table or find an opponent. Your standard deck is ready even without extra cards.",
+      actionLabel: "Play with friends", onClick: () => { setPlayView("tables"); navigateHomeArea("play"); }
+    };
+    else if (homeArea === "play" && playView !== "practice") journeyNextStep = null;
+  }
+
+  if (!hasSavedRoom && INITIAL_JOIN_ROOM_CODE && homeArea === "play" && playView === "tables") journeyNextStep = null;
 
   if (collectorClaimToken) {
     return (
@@ -5571,8 +5576,8 @@ export default function App() {
           </div>
           <div className="gauntlet-loading-copy">
             <span>Battle Net Terminal</span>
-            <h1 id="gauntlet-loading-title">Loading Gauntlet</h1>
-            <p className={gameContentError ? "is-error" : ""}>
+            <h1 id="gauntlet-loading-title">{gameContentError ? "Unable to connect" : "Loading Gauntlet"}</h1>
+            <p role="status" className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
             </p>
             {!gameContentError && <span className="gauntlet-loading-pulse" aria-hidden="true"><i /><i /><i /></span>}
@@ -5647,7 +5652,7 @@ export default function App() {
 
   if (!role && !lobby) {
     return (
-      <div className={`menu-page area-${homeArea} has-layered-backdrop`} style={MENU_THEME.page}>
+      <main className={`menu-page area-${homeArea} has-layered-backdrop`} style={MENU_THEME.page}>
         <MenuBackdrop activeArea={homeArea} backgrounds={AREA_BACKGROUNDS} />
         <div className="menu-frame" style={MENU_THEME.frame}>
         <div className="home-command-header">
@@ -5720,36 +5725,38 @@ export default function App() {
                 <MenuCard className="play-focus-panel" title="Training Grounds">
                   <div className="play-format-heading">
                     <div><strong>Practice privately</strong><span>Choose core rules or the complete faction game.</span></div>
-                    {!canPlayAsPlayer && <small>Choose an account or guest identity first.</small>}
+                    {!account && <small>Play immediately as a guest. Sign in to keep progression and rewards.</small>}
                   </div>
+                  {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
                   <div className="play-choice-grid">
-                    <button type="button" onClick={() => startTutorialVsAi("basic")} disabled={!canPlayAsPlayer}><span>Core Game</span><strong>Basic vs AI</strong><small>Priority, payment, blocking, and lanes.</small></button>
-                    <button type="button" onClick={() => startTutorialVsAi("factions")} disabled={!canPlayAsPlayer}><span>Full Game</span><strong>Factions vs AI</strong><small>Commanders, cities, generals, and faction powers.</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>Basic vs AI</strong><small>Practice priority, payment, blocking, and lanes.</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>Factions vs AI</strong><small>Commanders, cities, generals, and faction powers.</small></button>
                   </div>
                 </MenuCard>
               )}
 
               {playView === "tables" && (
                 <div className="play-table-grid">
-                  <MenuCard className="play-focus-panel" title="Create Table">
-                    <div className="play-choice-grid">
-                      <button type="button" onClick={createRoom} disabled={!canPlayAsPlayer}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
-                      <button type="button" onClick={createFreeForAllRoom} disabled={!canPlayAsPlayer}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
-                    </div>
-                    <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
-                  </MenuCard>
-                  <MenuCard className="play-join-panel" title="Join Table">
+                  <MenuCard className="play-join-panel" title={INITIAL_JOIN_ROOM_CODE && roomCodeInput ? `Join table ${roomCodeInput}` : "Join Table"}>
+                    {!account && <label>Guest name <input aria-label="Table guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
                     <form
                       className="play-join-form"
                       onSubmit={(event) => {
                         event.preventDefault();
-                        if (roomCodeInput.trim() && canPlayAsPlayer) joinRoom(false);
+                        if (roomCodeInput.trim()) joinRoom(false);
                       }}
                     >
                       <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" aria-label="Room code" style={MENU_THEME.input} />
-                      <MenuButton type="submit" disabled={!canPlayAsPlayer || !roomCodeInput.trim()}>Join as Player</MenuButton>
+                      <MenuButton type="submit" disabled={!roomCodeInput.trim()}>Join as Player</MenuButton>
                       <MenuButton variant="secondary" onClick={() => joinRoom(true)} disabled={!roomCodeInput.trim()}>Spectate</MenuButton>
                     </form>
+                  </MenuCard>
+                  <MenuCard className="play-focus-panel" title="Create Table">
+                    <div className="play-choice-grid">
+                      <button type="button" onClick={createRoom}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
+                      <button type="button" onClick={createFreeForAllRoom}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
+                    </div>
+                    <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
                   </MenuCard>
                   <div className="play-share-panel"><ShareGameQrCard /></div>
                 </div>
@@ -5780,9 +5787,10 @@ export default function App() {
               {playView === "draft" && (
                 <div className="play-draft-grid">
                   <MenuCard className="play-focus-panel" title="Draft a Deck">
+                    {!account && <p>Guest drafts are practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your draft</MenuButton></p>}
                     <div className="play-choice-grid">
-                      <button type="button" onClick={createDraftRoom} disabled={!canPlayAsPlayer}><span>Eight Seats</span><strong>Live Draft</strong><small>Draft with players, then save your deck.</small></button>
-                      <button type="button" onClick={createBotDraftRoom} disabled={!canPlayAsPlayer}><span>Solo Table</span><strong>Bot Draft</strong><small>Draft against seven automated seats.</small></button>
+                      <button type="button" onClick={createDraftRoom}><span>2–8 Players</span><strong>Draft with friends</strong><small>Live Draft: choose cards together, then build your deck.</small></button>
+                      <button type="button" onClick={createBotDraftRoom}><span>Solo Table</span><strong>Draft against bots</strong><small>Bot Draft: choose cards with seven automated drafters.</small></button>
                     </div>
                   </MenuCard>
                   <MatchmakingPanel
@@ -5791,15 +5799,15 @@ export default function App() {
                     onJoin={() => joinDraftLeague("player", 1)}
                     onLeave={leaveDraftLeague}
                     title="Draft League"
-                    description="Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."
-                    joinLabel="Player Draft"
+                    description="Play a human opponent using a saved draft deck. Live-draft and bot-draft decks use separate queues."
+                    joinLabel="Play saved live-draft deck"
                     cancelLabel="Leave Draft Queue"
                     signedOutText="Sign in and save a draft deck to enter Draft League."
                     extraActions={(
                       <>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Player Draft BO3</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Bot Draft</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot Draft BO3</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Live-draft deck · Best of 3</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Play saved bot-draft deck</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot-draft deck · Best of 3</MenuButton>
                       </>
                     )}
                   />
@@ -5837,7 +5845,7 @@ export default function App() {
                   </div>
                 </section>
                 <section className="journey-campaign-panel">
-                  <div className="journey-faction-strip" aria-label="Choose from four faction campaigns">
+                  <div className="journey-faction-strip" role="group" aria-label="Choose from four faction campaigns">
                     {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
                       <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
                     ))}
@@ -5887,7 +5895,7 @@ export default function App() {
           {homeArea === "build" && (
             <div className="build-hub">
               <section className="build-vault-panel">
-                <div className="build-faction-strip" aria-label="Faction collections">
+                <div className="build-faction-strip" role="group" aria-label="Faction collections">
                   {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
                     <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
                   ))}
@@ -5938,7 +5946,7 @@ export default function App() {
                     <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
                     <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
                   </div>
-                  <MenuButton variant="secondary" onClick={() => { navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { setPlayView("draft"); navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
                 </section>
               </div>
             </div>
@@ -5961,7 +5969,7 @@ export default function App() {
               />
               <div className="identity-profile-layout">
                 <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
-                <aside className="identity-admin-rail" aria-label="Identity administration">
+                <section className="identity-admin-rail" aria-label="Identity administration">
                   <AccountPanel
                     account={account}
                     mode={authMode}
@@ -5986,7 +5994,7 @@ export default function App() {
                     />
                     {account && <p className="identity-admin-note">Signed-in games use {account.name}.</p>}
                   </MenuCard>
-                </aside>
+                </section>
               </div>
               </>}
               {identityView === "record" && (
@@ -6051,7 +6059,7 @@ export default function App() {
           )}
         </HomeNavigation>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -6433,8 +6441,7 @@ export default function App() {
             : "";
     const ffaPlacementConfirmReason = placementMode && selectedPlacementCardIndex == null ? "Choose a hand card to place face-down." : "";
     const currentEndLane = game.endPlacementLaneIndex;
-    const firstIndex = Math.max(0, activePlayers.indexOf(game.endPlacementFirstPlayer));
-    const currentEndPlayer = activePlayers.length > 0 ? activePlayers[(firstIndex + (game.endPlacementStep || 0)) % activePlayers.length] : null;
+    const currentEndPlayer = game.currentEndPlacementPlayer;
     const isMyEndPlacementTurn = !isSpectator && game.phase === "end" && currentEndPlayer === player;
     const ffaUndoRequest = game.undoRequest;
     const ffaUndoNeedsMe = !isSpectator && ffaUndoRequest?.approvalsNeeded?.includes(player) && !ffaUndoRequest?.approvals?.[player];

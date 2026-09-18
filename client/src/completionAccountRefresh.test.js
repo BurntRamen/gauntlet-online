@@ -49,3 +49,11 @@ test("allows a failed account refresh to retry for the same match", async () => 
   await expect(coordinator.refresh("match-1", loadAccount)).resolves.toEqual({ account, refreshed: true });
   expect(loadAccount).toHaveBeenCalledTimes(2);
 });
+
+test.each([401, 503])("preserves HTTP status %s so callers distinguish expired sessions from outages", async (status) => {
+  const fetchImpl = jest.fn().mockResolvedValue({
+    ok: false, status, json: async () => ({ error: "Account unavailable" })
+  });
+  await expect(fetchAuthoritativeAccount({ apiBaseUrl: "", authToken: "token", fetchImpl }))
+    .rejects.toMatchObject({ status, message: "Account unavailable" });
+});

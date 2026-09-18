@@ -320,7 +320,8 @@
   border-radius: 8px;
   background: color-mix(in srgb, var(--battlefield-plate) 88%, rgba(6, 13, 21, 0.9));
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.44);
-  backdrop-filter: blur(10px);
+  /* Avoid resampling the moving WebGL table behind the persistent controls. */
+  backdrop-filter: none;
 }
 
 .production-context-copy {
@@ -516,7 +517,7 @@
   border-radius: 8px;
   background: rgba(18, 22, 29, 0.92);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 }
 
 .production-campaign-encounter summary {
