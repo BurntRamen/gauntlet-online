@@ -256,6 +256,7 @@ function metadataForArtifact(artifact, source) {
     season: record.season || null,
     winnerPlayerNum: record.winnerPlayerNum == null ? null : Number(record.winnerPlayerNum),
     turnCount: Number(record.turnCount || 0),
+    preview: buildMatchPreview(record, artifact.index, replay),
     replay,
     recordVersion: Number(record.recordVersion),
     savedAt: new Date().toISOString(),
@@ -357,12 +358,28 @@ export function localEntryToMatch(entry, accountId = null) {
 }
 
 export function mergeMatchHistory(serverData = {}, localEntries = [], accountId = null) {
-  const localMatches = localEntries.map((entry) => localEntryToMatch(entry, accountId));
+  // Entries were verified when saved. Listing must not hash archives or rebuild
+  // every replay; full verification remains in load() and localEntryToMatch().
+  const localMatches = localEntries.map((entry) => ({
+    matchId: entry.matchId,
+    completedAt: entry.completedAt,
+    participants: entry.participants,
+    perspective: localPerspective(entry, accountId),
+    mode: entry.mode,
+    ranked: entry.ranked,
+    season: entry.season,
+    winnerPlayerNum: entry.winnerPlayerNum,
+    turnCount: entry.turnCount,
+    replay: entry.replay,
+    preview: entry.preview,
+    archive: { status: "local", integrity: "verified-on-save", sha256: entry.sha256, byteSize: entry.byteSize },
+    local: { saved: true, source: entry.source, sha256: entry.sha256 }
+  }));
   const matchesById = new Map((serverData.matches || []).map((match) => [match.matchId, match]));
   for (const localMatch of localMatches) {
     const serverMatch = matchesById.get(localMatch.matchId);
     matchesById.set(localMatch.matchId, serverMatch
-      ? { ...serverMatch, replay: localMatch.replay, archive: localMatch.archive, preview: localMatch.preview, local: localMatch.local, localRecord: localMatch }
+      ? { ...serverMatch, replay: localMatch.replay, archive: localMatch.archive, preview: localMatch.preview || serverMatch.preview, local: localMatch.local }
       : localMatch);
   }
   const matches = [...matchesById.values()].sort((left, right) => Date.parse(right.completedAt || 0) - Date.parse(left.completedAt || 0));

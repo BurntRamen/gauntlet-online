@@ -138,3 +138,35 @@ test("previews imported JSON, watches without persisting, then saves only after 
   expect(await library.list()).toHaveLength(1);
   expect(global.fetch).not.toHaveBeenCalled();
 });
+
+test("large libraries render in batches without opening any replay payload", async () => {
+  const entries = Array.from({ length: 45 }, (_, index) => ({
+    matchId: `saved-${index}`, completedAt: "2026-09-20T12:00:00Z", mode: "basic",
+    participants: [{ playerNum: 1, displayName: "You" }, { playerNum: 2, displayName: `Opponent ${index}` }],
+    replay: { available: true },
+    get canonicalJson() { throw new Error("List read a replay"); }
+  }));
+  const library = { list: async () => entries, subscribe: () => () => {}, get: jest.fn(), load: jest.fn() };
+  const { container } = render(<MatchesHub matchLibrary={library} />);
+  await waitFor(() => expect(container.querySelectorAll(".matches-row")).toHaveLength(20));
+  fireEvent.click(screen.getByRole("button", { name: "Show more matches (20 of 45)" }));
+  expect(container.querySelectorAll(".matches-row")).toHaveLength(40);
+  fireEvent.click(screen.getByRole("button", { name: "Show more matches (40 of 45)" }));
+  expect(container.querySelectorAll(".matches-row")).toHaveLength(45);
+  expect(library.get).not.toHaveBeenCalled();
+  expect(library.load).not.toHaveBeenCalled();
+});
+
+test("legacy saved matches verify just the selected archive when preview is requested", async () => {
+  const library = emptyLibrary();
+  const { entry } = await library.save(portableJson());
+  delete entry.preview;
+  await library.backend.put(entry);
+  const get = jest.spyOn(library, "get");
+  render(<MatchesHub matchLibrary={library} />);
+  const previewButton = await screen.findByRole("button", { name: "Preview" });
+  expect(get).not.toHaveBeenCalled();
+  fireEvent.click(previewButton);
+  await waitFor(() => expect(screen.getByLabelText(`Match ${entry.matchId} preview`)).toBeVisible());
+  expect(get).toHaveBeenCalledTimes(1);
+});

@@ -194,6 +194,8 @@ export default function MatchesHub({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [previewMatchId, setPreviewMatchId] = useState("");
+  const [loadedPreviews, setLoadedPreviews] = useState({});
+  const [visibleCount, setVisibleCount] = useState(20);
 
   const loadLocalMatches = useCallback(async () => {
     try {
@@ -228,6 +230,27 @@ export default function MatchesHub({
 
   const data = useMemo(() => mergeMatchHistory(serverData, localEntries, account?.id), [account?.id, localEntries, serverData]);
   const replayCount = useMemo(() => (data.matches || []).filter((match) => match.replay?.available).length, [data.matches]);
+  const totalCount = data.matches.length + data.unavailableMatchReferences.length;
+
+  async function togglePreview(match) {
+    if (previewMatchId === match.matchId) {
+      setPreviewMatchId("");
+      return;
+    }
+    setPreviewMatchId(match.matchId);
+    // Older saved entries lack a compact preview. Read just the requested
+    // archive, rather than rebuilding the whole library when the tab opens.
+    if (!match.preview && !loadedPreviews[match.matchId] && match.local?.saved) {
+      try {
+        const entry = await matchLibrary.get(match.matchId);
+        if (!entry) throw new Error("Replay file not saved on this device.");
+        const { preview } = localEntryToMatch(entry, account?.id);
+        setLoadedPreviews((current) => ({ ...current, [match.matchId]: preview }));
+      } catch (previewError) {
+        setError(previewError.message);
+      }
+    }
+  }
 
   async function openReplay(match) {
     if (match.local?.saved) {
@@ -282,19 +305,20 @@ export default function MatchesHub({
       {error && <p className="matches-error">{error}</p>}
       {!loading && !(data.matches || []).length && !(data.unavailableMatchReferences || []).length && <p className="matches-empty">No completed matches are saved on this device yet.</p>}
       <div className="matches-list">
-        {(data.matches || []).map((match) => (
+        {(data.matches || []).slice(0, visibleCount).map((match) => (
           <MatchRow
             key={match.matchId}
-            match={match}
+            match={loadedPreviews[match.matchId] ? { ...match, preview: loadedPreviews[match.matchId] } : match}
             onOpenMatch={openMatch}
             onOpenReplay={openReplay}
             onDownload={downloadMatchJson}
             previewOpen={previewMatchId === match.matchId}
-            onTogglePreview={() => setPreviewMatchId((current) => current === match.matchId ? "" : match.matchId)}
+            onTogglePreview={() => togglePreview(match)}
           />
         ))}
-        {(data.unavailableMatchReferences || []).map((reference) => <UnavailableReferenceRow key={reference.matchId} reference={reference} />)}
+        {(data.unavailableMatchReferences || []).slice(0, Math.max(0, visibleCount - data.matches.length)).map((reference) => <UnavailableReferenceRow key={reference.matchId} reference={reference} />)}
       </div>
+      {visibleCount < totalCount && <button type="button" className="matches-ranked-action" onClick={() => setVisibleCount((count) => count + 20)}>Show more matches ({Math.min(visibleCount, totalCount)} of {totalCount})</button>}
       <MatchImporter library={matchLibrary} onWatchReplay={watchImported} onSaved={loadLocalMatches} />
       <section className="matches-season-section" aria-label="Seasonal competition">
         <div className="matches-section-heading"><span>Seasonal competition</span><h3 id="matches-season-title">Season Zero</h3><p>Ranked results appear here; imported match files never change the standings.</p></div>
