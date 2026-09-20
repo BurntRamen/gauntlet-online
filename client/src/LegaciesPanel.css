@@ -1,0 +1,30 @@
+.legacies-panel {
+  margin: 24px 0;
+  padding: clamp(20px, 4vw, 40px);
+  border: 1px solid #bc8855;
+  border-top: 4px solid #f1b950;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at top right, #5b284b 0, transparent 65%), #132e2b;
+  color: #f7eedb;
+  line-height: 1.65;
+}
+.legacies-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.legacies-eyebrow { color: #f6c56b; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.legacies-header h3 { margin: 0; font-family: Georgia, serif; font-size: clamp(40px, 7vw, 68px); line-height: 1.2; }
+.legacies-tagline { margin: 8px 0; font-size: 20px; color: #f8d7b0; }
+.legacies-status { padding: 5px 12px; border: 1px solid #c89078; border-radius: 20px; font-size: 12px; background: #392b32; }
+.legacies-identity { color: #91dec8; font-weight: 600; }
+.legacies-panel blockquote { margin: 24px 0; padding-left: 18px; border-left: 3px solid #efb952; font: italic 22px/1.5 Georgia, serif; }
+.legacies-details summary { cursor: pointer; padding: 14px 0; color: #f6c56b; font-weight: 700; border-top: 1px solid #607267; }
+.legacies-panel h4 { margin: 12px 0 8px; font-size: 19px; color: #ffe3b1; }
+.legacies-panel h5 { margin: 0 0 8px; font-size: 15px; color: #ffe3b1; }
+.legacies-story, .legacies-leaders, .legacies-festivals { display: grid; gap: 18px; margin: 20px 0; }
+.legacies-story { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.legacies-leaders { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.legacies-festivals { grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
+.legacies-leaders article, .legacies-general, .legacies-festivals article { padding: 18px; border: 1px solid #617062; border-radius: 10px; background: #102522b8; }
+.legacies-generals { margin: 28px 0; }
+.legacies-generals label { display: block; margin: 12px 0 6px; font-weight: 700; }
+.legacies-generals select { width: 100%; max-width: 500px; padding: 12px; margin-bottom: 12px; border: 1px solid #ac9873; border-radius: 6px; background: #152e2c; color: #fff3dc; font: inherit; }
+.legacies-draft-note { color: #dacbb9; font-size: 13px; }
+.legacies-panel :is(select, summary):focus-visible { outline: 3px solid #91dec8; outline-offset: 4px; }
