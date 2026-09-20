@@ -15,21 +15,6 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
 
   return (
     <>
-      {nextStep && <section className={`journey-next-step${activeArea !== "journey" ? " is-contextual" : ""}`} aria-labelledby="journey-next-title">
-        <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
-          {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
-        </FactionArtwork>
-        <div className="journey-next-copy">
-          <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
-          <h2 id="journey-next-title">{nextStep.title}</h2>
-          <p>{nextStep.description}</p>
-          {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
-        </div>
-        <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
-          {nextStep.actionLabel}
-        </button>
-      </section>}
-
       <nav className="home-area-nav" aria-label="Gauntlet areas">
         {areas.map((area) => (
           <button
@@ -60,7 +45,23 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
           <span>Command Area</span>
           <h2 id="home-area-title">{activeLabel}</h2>
         </div>
-        <div className="home-area-content-inner" key={activeArea}>{children}</div>
+        <div className="home-area-content-inner" key={activeArea}>
+          {nextStep && <section className={`journey-next-step${activeArea !== "journey" ? " is-contextual" : ""}`} aria-labelledby="journey-next-title">
+            <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
+              {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
+            </FactionArtwork>
+            <div className="journey-next-copy">
+              <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
+              <h2 id="journey-next-title">{nextStep.title}</h2>
+              <p>{nextStep.description}</p>
+              {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
+            </div>
+            <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
+              {nextStep.actionLabel}
+            </button>
+          </section>}
+          {children}
+        </div>
       </section>
     </>
   );

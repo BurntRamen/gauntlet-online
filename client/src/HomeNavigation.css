@@ -190,38 +190,58 @@
   min-width: 0;
   min-height: clamp(420px, calc(100dvh - 520px), 620px);
   overflow-anchor: none;
-  view-transition-name: gauntlet-home-area;
 }
 
 .home-area-content-inner {
   min-width: 0;
-  animation: home-area-enter 180ms cubic-bezier(.2, .8, .2, 1) both;
+  view-transition-name: gauntlet-home-area;
+}
+
+@supports not (view-transition-name: gauntlet-home-area) {
+  .home-area-content-inner {
+    animation: home-area-enter 240ms cubic-bezier(.22, 1, .36, 1) both;
+  }
 }
 
 @keyframes home-area-enter {
-  from { opacity: 0; transform: translate3d(0, 5px, 0); }
+  from { opacity: .65; transform: translate3d(0, 4px, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
+/* Keep the shared shell steady and animate only the changing panel. */
+html.is-menu-transition::view-transition-group(root),
+html.is-menu-transition::view-transition-new(root) {
+  animation: none;
+}
+
+html.is-menu-transition::view-transition-old(root) {
+  display: none;
+}
+
+html.is-menu-transition::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
 ::view-transition-group(gauntlet-home-area) {
-  animation-duration: 190ms;
-  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
 }
 
 ::view-transition-old(gauntlet-home-area) {
-  animation: 130ms ease-out both fade-out;
+  animation: 240ms ease-out both home-panel-out;
 }
 
 ::view-transition-new(gauntlet-home-area) {
-  animation: 190ms cubic-bezier(.2, .8, .2, 1) both fade-in;
+  animation: 240ms cubic-bezier(.22, 1, .36, 1) both home-panel-in;
 }
 
-@keyframes fade-out {
+@keyframes home-panel-out {
   to { opacity: 0; }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
+@keyframes home-panel-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .home-area-heading {

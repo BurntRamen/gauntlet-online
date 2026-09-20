@@ -2282,7 +2282,11 @@ textarea:focus-visible {
   background-position: center, center, center 22%;
   background-size: cover;
   transform: translate3d(0, 0, 0);
-  transition: opacity 220ms cubic-bezier(.2, .8, .2, 1);
+  transition: opacity 480ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-backdrop-layer { transition: none; }
 }
 
 .menu-backdrop-layer.is-visible {
