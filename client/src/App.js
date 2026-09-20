@@ -3969,6 +3969,7 @@ export default function App() {
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
   const homeAreaNavigationRef = useRef(0);
+  const homeAreaTransitionRef = useRef(null);
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
   const completionAccountRefreshRef = useRef(null);
@@ -4011,10 +4012,19 @@ export default function App() {
       const prefersReducedMotion = typeof window !== "undefined"
         && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       if (typeof document !== "undefined" && document.startViewTransition && !prefersReducedMotion) {
+        homeAreaTransitionRef.current?.skipTransition();
+        document.documentElement.classList.add("is-menu-transition");
         const transition = document.startViewTransition(() => {
+          if (homeAreaNavigationRef.current !== requestId) return;
           flushSync(() => setHomeArea(nextArea));
         });
-        transition.finished?.catch?.(() => {});
+        homeAreaTransitionRef.current = transition;
+        const finish = () => {
+          if (homeAreaTransitionRef.current !== transition) return;
+          homeAreaTransitionRef.current = null;
+          document.documentElement.classList.remove("is-menu-transition");
+        };
+        transition.finished.then(finish, finish);
         return;
       }
       startTransition(() => setHomeArea(nextArea));
