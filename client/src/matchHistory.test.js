@@ -125,3 +125,22 @@ test("JSON export uses the exact stored canonical bytes and portable filename", 
   expect(link.click).toHaveBeenCalled();
   expect(exportedBlob.size).toBe(artifact.byteSize);
 });
+
+test("listing saved history never reads replay JSON, including legacy entries", async () => {
+  const artifact = localArtifact();
+  const library = createLocalMatchLibrary({ backend: createMemoryMatchBackend() });
+  const { entry } = await library.save(artifact.json);
+  expect(entry.preview.replayFrameCount).toBeGreaterThan(0);
+  const entries = Array.from({ length: 100 }, (_, index) => {
+    const summary = { ...entry, matchId: `saved-${index}` };
+    if (index % 2) delete summary.preview;
+    Object.defineProperty(summary, "canonicalJson", { get() { throw new Error("List read the replay payload"); } });
+    return summary;
+  });
+  const merged = mergeMatchHistory({}, entries);
+  expect(merged.matches).toHaveLength(100);
+  expect(merged.matches[0].perspective.player.displayName).toBe("Local Alpha");
+  expect(merged.matches[0].replay.available).toBe(true);
+  expect(merged.matches[0].canonicalJson).toBeUndefined();
+  expect((await library.load(MATCH_ID)).artifact.sha256).toBe(artifact.sha256);
+});
