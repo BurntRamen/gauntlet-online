@@ -58,6 +58,35 @@ before(async () => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   url = `http://127.0.0.1:${server.address().port}`;
 });
+
+test("ranked carries each chosen faction and General from queue through the live match", async () => {
+  async function register(suffix) {
+    const response = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: `Mekan${Date.now()}${suffix}`, password: "MekanRankedTest42!" }) });
+    assert.equal(response.ok, true);
+    return response.json();
+  }
+  const a = await register("a");
+  const b = await register("b");
+  const first = await connect();
+  const second = await connect();
+  const queued = event(first, "matchmakingStatus", (status) => status.inQueue);
+  first.emit("joinMatchmaking", { authToken: a.token, factionId: "mekan", generalId: "hui" });
+  await queued;
+  const matchedFirst = event(first, "assign");
+  const matchedSecond = event(second, "assign");
+  second.emit("joinMatchmaking", { authToken: b.token, factionId: "bizi" });
+  const [seat, opponent] = await Promise.all([matchedFirst, matchedSecond]);
+  const room = __test.rooms.get(seat.roomCode);
+  assert.equal(room.lobby.players[seat.playerNum].factionId, "mekan");
+  assert.equal(room.lobby.players[seat.playerNum].generalId, "hui");
+  assert.equal(room.lobby.players[opponent.playerNum].factionId, "bizi");
+  await action(first, "startGame");
+  await action(second, "startGame");
+  assert.equal(room.game.gameMode, "factions");
+  assert.equal(room.game.players[seat.playerNum].faction.general.id, "hui");
+  assert.equal(room.ranked, true);
+  first.disconnect(); second.disconnect();
+});
 after(async () => {
   sockets.forEach((socket) => socket.disconnect());
   await new Promise(setImmediate);

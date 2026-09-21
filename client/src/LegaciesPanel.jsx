@@ -14,7 +14,7 @@ export default function LegaciesPanel({ set }) {
           <h3 id="legacies-title">{faction.name}</h3>
           <p className="legacies-tagline">{faction.tagline}</p>
         </div>
-        <span className="legacies-status">Faction preview · Draft abilities</span>
+        <span className="legacies-status">{faction.status === "playable" ? "Playable in ranked · Draft abilities" : "Faction preview · Draft abilities"}</span>
       </header>
       <p className="legacies-identity">{faction.identity}</p>
       <p>{faction.introduction}</p>
@@ -27,7 +27,7 @@ export default function LegaciesPanel({ set }) {
         <section aria-label="Mekan gameplay identity">
           <h4>The discard pile is the guest list</h4>
           <p>{faction.gameplay}</p>
-          <p className="legacies-draft-note">These abilities are near-final drafts. Mekan is not yet available for matches or saved decks.</p>
+          <p className="legacies-draft-note">{faction.status === "playable" ? "Choose Mekan in Play → Ranked, or save a Mekan deck in Build. These playable abilities are draft rules and may be balanced in future updates." : "These abilities are near-final drafts. Mekan is not yet available for matches or saved decks."}</p>
         </section>
         <div className="legacies-leaders">
           {[['Commander', faction.commander], ['City', faction.city]].map(([role, leader]) => (

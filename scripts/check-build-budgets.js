@@ -7,8 +7,8 @@ const KIB = 1024;
 const budgets = {
   mainGzip: 175 * KIB,
   largestAsyncGzip: 350 * KIB,
-  // Allow 2 KiB for the lazy-loaded Legacies faction preview.
-  totalJavaScriptGzip: 702 * KIB
+  // Legacies preview plus shared Mekan rules and ranked loadout selection.
+  totalJavaScriptGzip: 705 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

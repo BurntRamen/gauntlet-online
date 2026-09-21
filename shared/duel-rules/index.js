@@ -1,6 +1,7 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v3";
+const RULES_VERSION = "gauntlet-duel-v4";
+const mekan = require("./mekan");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -11,6 +12,7 @@ const SUITS = ["♠", "♥", "♦", "♣"];
 const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const RANKS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 const FACTION_PROFILES = {
+  mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
   rumin: {
     id: "rumin",
     name: "Rumin",
@@ -1243,6 +1245,7 @@ function resolveAttack(game, attack, laneIndex, events) {
     }
   }
   game.players[attack.player].discard.push(attack.card);
+  mekan.combat(game, attack, damage);
   game.players[attack.player].discard.push(...(attack.attachedCards || []));
   (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
   events.push(event(game, "damage.calculated", {
@@ -1614,6 +1617,9 @@ function applyCommand(current, rawCommand) {
     );
     if (payment.error) return reject(current, command, payment.error);
     const attackBonus = calculateFactionAttackBonus(actor, attackCard);
+    const mekanBonus = mekan.playBonus(actor, attackCard);
+    attackBonus.bonus += mekanBonus.bonus;
+    attackBonus.notes.push(...mekanBonus.notes);
     const constructedAttack = calculateConstructedAttackBonus(
       game,
       player,
@@ -1629,6 +1635,7 @@ function applyCommand(current, rawCommand) {
     attackBonus.notes.push(...constructedPayment.notes, ...constructedAttack.notes);
     consumeConstructedPaymentBonus(actor, constructedPayment.consume);
     removeCardsFromHand(actor, payment.cardIds, actor.discard);
+    mekan.paid(actor, payment.cards);
     if (laneIndex == null) removeCardsFromHand(actor, [attackCard.id]);
     else game.lanes[laneIndex].facedown[player] = null;
     const defender = otherPlayer(player);
@@ -1771,9 +1778,12 @@ function applyCommand(current, rawCommand) {
     removeCardsFromHand(actor, payment.cardIds, actor.discard);
     if (laneBlock) game.lanes[pending.laneIndex].facedown[player] = null;
     else removeCardsFromHand(actor, blockerIds);
+    mekan.paid(actor, payment.cards);
     const blockEntries = blockCards.map((card, cardIndex) => {
+      const mekanBonus = mekan.playBonus(actor, card, payment.cardIds);
       const consecutive = calculateFrumoConsecutiveBonus(actor, card);
       const notes = sheenBonus ? [`Emperor Nu +${sheenBonus}`] : [];
+      notes.push(...mekanBonus.notes);
       notes.push(...consecutive.notes);
       const constructedBlock = calculateConstructedBlockBonus(game, player, card, {
         attack: pending.attack,
@@ -1795,6 +1805,7 @@ function applyCommand(current, rawCommand) {
         source: laneBlock ? "lane" : "hand",
         card,
         effectiveValue: cardValue(card)
+          + mekanBonus.bonus
           + temporaryBonus(card)
           + sheenBonus
           + consecutive.bonus
@@ -1907,6 +1918,10 @@ function applyCommand(current, rawCommand) {
       game.message = `Player ${player} declined the block. Player ${pending.attack.player} may pass to resolve combat.`;
       events.push(event(game, "priority.granted", { player: pending.attack.player }));
     }
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("mekan:")) {
+    const error = mekan.apply(game, player, command.abilityId, events, event);
+    if (error) return reject(current, command, error);
+    label = `Player ${player} used a Mekan ability.`;
   } else if (command.type === "useFactionAbility") {
     if (game.phase !== "priority" || game.priority !== player) {
       return reject(current, command, "Faction abilities require your priority window.");
@@ -2196,6 +2211,7 @@ function getFactionAbilityActions(game, playerNumber) {
     return [];
   }
   const actions = [];
+  actions.push(...mekan.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
   const activeCombat = pendingAttack(game);
   const controlsActiveAttack = activeCombat?.attack?.player === playerNumber;
@@ -2865,6 +2881,7 @@ function projectForPerspective(game, perspectivePlayer) {
     projected.players[player].handCount = projected.players[player].hand.length;
     projected.players[player].deckCount = projected.players[player].deck.length;
     if (player !== viewer) {
+      if (projected.players[player].turnData) delete projected.players[player].turnData.mekanPeek;
       projected.players[player].hand.forEach((card) => hiddenCardIds.add(card.id));
       projected.players[player].deck.forEach((card) => hiddenCardIds.add(card.id));
       projected.players[player].hand = projected.players[player].hand.map((card, index) => ({

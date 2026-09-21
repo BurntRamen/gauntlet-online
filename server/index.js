@@ -850,6 +850,7 @@ function normalizeDeckVersion(version = {}) {
   if (Array.isArray(version.cards)) return normalized;
   const mechanicalConfiguration = {
     factionId: version.factionId || null,
+    generalId: version.generalId || null,
     gameplayCardQuantities,
     cardSuitChoices: clonePlain(version.cardSuitChoices || {})
   };
@@ -998,6 +999,7 @@ function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
     name: deck.name || `${deck.factionName || deck.factionId} Draft Deck`,
     factionId: deck.factionId,
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
+    generalId: deck.generalId || getFactionById(deck.factionId)?.general?.id || null,
     draftType: deck.draftType === "bot" ? "bot" : "player",
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: BASE_PLAYING_DECK_SIZE,
@@ -1102,6 +1104,7 @@ function getSavedConstructedDeck(stats = {}) {
   return {
     name: deck.name || `${deck.factionName || deck.factionId} Constructed Deck`,
     deckType: "constructed",
+    generalId: deck.generalId || getFactionById(deck.factionId)?.general?.id || null,
     factionId: deck.factionId,
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
     baseCardCount: BASE_PLAYING_DECK_SIZE,
@@ -1124,6 +1127,7 @@ function getSavedConstructedDeck(stats = {}) {
 }
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  if (payload.generalId && !getFactionById(payload.factionId, payload.generalId)) throw new Error("Choose a General belonging to this faction.");
   const factionId = String(payload.factionId || "");
   const faction = getFactionById(factionId);
   if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
@@ -1181,6 +1185,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
 
   return {
     name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
+    generalId: payload.generalId || faction.general?.id || null,
     factionId,
     factionName: faction.name,
     baseCardCount: BASE_PLAYING_DECK_SIZE,
@@ -4729,6 +4734,9 @@ function createMatchedRoom(entryA, entryB) {
     lobbyPlayer.accountName = assignment.entry.accountName;
     lobbyPlayer.profile = clonePlain(assignment.entry.profile || null);
     lobbyPlayer.isGuest = false;
+    lobbyPlayer.factionId = assignment.entry.factionId || null;
+    lobbyPlayer.generalId = assignment.entry.generalId || null;
+    lobbyPlayer.savedConstructedDeck = assignment.entry.savedConstructedDeck || null;
   }
 
   for (const assignment of assignments) {
@@ -4941,7 +4949,8 @@ async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
     return;
   }
   const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId));
-  lobbyPlayer.savedConstructedDeck = savedConstructedDeck?.factionId === lobbyPlayer.factionId ? savedConstructedDeck : null;
+  lobbyPlayer.savedConstructedDeck = savedConstructedDeck?.factionId === lobbyPlayer.factionId
+    && (savedConstructedDeck.generalId || null) === (lobbyPlayer.generalId || null) ? savedConstructedDeck : null;
 }
 
 async function attachSavedConstructedDecksForLobby(roomState) {
@@ -4966,6 +4975,7 @@ function sanitizeLobbyPlayer(player) {
   return {
     connected: player.connected,
     factionId: player.factionId,
+    generalId: player.generalId || null,
     accountName: player.accountName || null,
     profile: clonePlain(player.profile || null),
     isGuest: !!player.isGuest,
@@ -4985,7 +4995,8 @@ function emitLobbyState(roomState) {
     roomCode: roomState.roomCode,
     gameMode: getLobbyGameMode(roomState),
     players,
-    factions: listFactions(),
+    ranked: Boolean(roomState.ranked),
+    factions: listFactions().filter((faction) => faction.id !== "mekan" || !isFreeForAllRoom(roomState)),
     spectatorCount: roomState.lobby.spectators.length
   });
 }
@@ -7319,8 +7330,8 @@ function createGameFromLobby(roomState, options = {}) {
         gameNumber: roomState.bestOf3Series?.gameNumber || 1
       });
   const gameMode = getLobbyGameMode(roomState);
-  const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId);
-  const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId);
+  const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId, roomState.lobby.players[1].generalId);
+  const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId, roomState.lobby.players[2].generalId);
   const matchId = roomState.matchMetadata?.matchId || `room-${roomState.roomCode}`;
   const seed = String(options.seed || `${matchId}:game:${roomState.bestOf3Series?.gameNumber || 1}`);
   const random = createSharedSeededRandom(seed);
@@ -7655,7 +7666,7 @@ io.on("connection", (socket) => {
     });
   }
 
-  onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1 } = {}) => {
+  onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1, factionId, generalId } = {}) => {
     console.log("[Socket] joinMatchmaking");
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
@@ -7670,6 +7681,12 @@ io.on("connection", (socket) => {
 
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
+    const selectedFaction = factionId ? getFactionById(factionId, generalId) : null;
+    if (factionId && (!selectedFaction || selectedFaction.campaignOnly)) {
+      socket.emit("matchmakingStatus", { inQueue: false, message: "Choose a valid ranked faction and General." });
+      return;
+    }
+    const savedDeck = getSavedConstructedDeck(account.stats || {});
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -7677,6 +7694,10 @@ io.on("connection", (socket) => {
       accountName: account.name,
       profile: publicAccountProfile(account),
       bestOf: requestedBestOf,
+      factionId: selectedFaction?.id || null,
+      generalId: selectedFaction?.general?.id || null,
+      savedConstructedDeck: savedDeck?.factionId === selectedFaction?.id
+        && (savedDeck.generalId || null) === (selectedFaction?.general?.id || null) ? savedDeck : null,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
       joinedAt: Date.now()
@@ -8233,7 +8254,7 @@ io.on("connection", (socket) => {
     acknowledgeMatchControl(ack, roomState, { message });
   });
 
-  onClientEvent("selectFaction", async ({ factionId }) => {
+  onClientEvent("selectFaction", async ({ factionId, generalId }) => {
     console.log(`[Socket] selectFaction: ${factionId}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
@@ -8243,11 +8264,12 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Basic Mode does not use factions.");
       return;
     }
-    if (!getFactionById(factionId)) {
+    if (!getFactionById(factionId, generalId) || getFactionById(factionId)?.campaignOnly || (factionId === "mekan" && isFreeForAllRoom(roomState))) {
       socket.emit("errorMessage", "Choose a valid faction.");
       return;
     }
     roomState.lobby.players[playerNum].factionId = factionId;
+    roomState.lobby.players[playerNum].generalId = generalId || getFactionById(factionId).general?.id || null;
     await attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum);
     resetStartConfirmations(roomState);
     emitLobbyState(roomState);
@@ -8257,6 +8279,10 @@ io.on("connection", (socket) => {
     console.log(`[Socket] setGameMode: ${mode}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
+    if (roomState.ranked && mode !== "factions") {
+      socket.emit("errorMessage", "Ranked duels use faction mode.");
+      return;
+    }
     if (isFreeForAllRoom(roomState)) {
       socket.emit("errorMessage", "Free-for-all rooms use faction mode.");
       return;

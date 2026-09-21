@@ -18,7 +18,7 @@ test("public game content identifies the rules runtime and deployed commit witho
   process.env.RENDER_GIT_COMMIT = "a".repeat(40);
   const response = await fetch(`${baseUrl}/api/game-content`);
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-gauntlet-rules-version"), "gauntlet-duel-v3");
+  assert.equal(response.headers.get("x-gauntlet-rules-version"), "gauntlet-duel-v4");
   assert.equal(response.headers.get("x-gauntlet-commit"), "a".repeat(40));
   const body = await response.json();
   assert.deepEqual(Object.keys(body), ["content"]);
