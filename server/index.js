@@ -7697,7 +7697,7 @@ io.on("connection", (socket) => {
       factionId: selectedFaction?.id || null,
       generalId: selectedFaction?.general?.id || null,
       savedConstructedDeck: savedDeck?.factionId === selectedFaction?.id
-        && (savedDeck.generalId || null) === (selectedFaction?.general?.id || null) ? savedDeck : null,
+        && (savedDeck?.generalId || null) === (selectedFaction?.general?.id || null) ? savedDeck : null,
       winRatio: profile.winRatio,
       gamesPlayed: profile.gamesPlayed,
       joinedAt: Date.now()

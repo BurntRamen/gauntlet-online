@@ -69,6 +69,10 @@ test("ranked carries each chosen faction and General from queue through the live
   const b = await register("b");
   const first = await connect();
   const second = await connect();
+  const legacyQueued = event(second, "matchmakingStatus", (status) => status.inQueue);
+  second.emit("joinMatchmaking", { authToken: b.token });
+  assert.equal((await legacyQueued).inQueue, true);
+  await action(second, "leaveMatchmaking");
   const queued = event(first, "matchmakingStatus", (status) => status.inQueue);
   first.emit("joinMatchmaking", { authToken: a.token, factionId: "mekan", generalId: "hui" });
   await queued;
