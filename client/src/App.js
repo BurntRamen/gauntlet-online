@@ -6155,7 +6155,7 @@ export default function App() {
               <div><span>Room rules</span><small>{player === 1 ? "Choose before both players confirm." : "Player 1 controls the room mode."}</small></div>
               <div>
                 <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
-                <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode || lobby.ranked}>Basic Mode</MenuButton>
+                <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode || lobby?.ranked}>Basic Mode</MenuButton>
               </div>
             </div>
           )}

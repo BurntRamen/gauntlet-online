@@ -29,6 +29,21 @@ function makeConstructed(card, definitionId, overrides = {}) {
   return card;
 }
 
+test("Mekan Guest actions appear in the production controls and enforce once-per-turn use", () => {
+  const adapter = createLocalDuelAdapter({ seed: "mekan-controls", gameMode: "factions", factions: { 1: "mekan", 2: "mekan" } });
+  const player = adapter.game.players[adapter.controller];
+  const card = player.hand.pop();
+  player.discard.push(card);
+  player.turnData.mekanPaid = [card.id];
+  const abilityId = `mekan:encore:${card.id}`;
+  const update = latestUpdate(adapter);
+  expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({ id: abilityId, available: true }));
+  update.commands.activateAbility(abilityId);
+  expect(adapter.game.players[adapter.controller].discard.find((entry) => entry.id === card.id).mekanGuest).toBe(true);
+  expect(latestUpdate(adapter).viewModel.interactions.abilities.some((entry) => entry.id === abilityId)).toBe(false);
+  adapter.dispose();
+});
+
 test("hand blocking replaces or clears one blocker while payment stays multi-card and excludes it", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-single-block" });
   const defender = adapter.controller;
