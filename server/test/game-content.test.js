@@ -26,7 +26,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 4);
+  assert.equal(content.factions.length, 5);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
   assert.equal(content.campaigns.xendra.chapters.length, 8);
   assert.equal(content.cards.length, COLLECTION_CARDS.length);

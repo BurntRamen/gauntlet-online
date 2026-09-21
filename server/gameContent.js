@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v1";
-const CONTENT_VERSION = "gauntlet-content-v2";
+const CONTENT_VERSION = "gauntlet-content-v3";
 const { LEGACIES } = require("./legaciesContent");
 const FREE_GAMEPLAY_ACQUISITION = "earned-gameplay-pack";
 const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
@@ -734,6 +734,20 @@ const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 
 // ============ FACTION DATA ============
 const factionsData = {
+  mekan: {
+    id: "mekan", name: "Mekan", setId: "legacies", draftRules: true,
+    cardImage: "/assets/gauntlet/mekan-emblem.svg",
+    commander: { ...LEGACIES.factions[0].commander, image: "/assets/gauntlet/mekan-emblem.svg", text: "Encore — Once per turn, mark one card paid this turn as a Guest during your priority. Celebrate — Your first attack or block each turn matching a Guest's suit or printed value gets +1." },
+    city: { ...LEGACIES.factions[0].city, image: "/assets/gauntlet/mekan-emblem.svg", text: "Once per turn, remember a defeated card as a Guest during your priority. You may invite a Guest: your next attack or block this turn with its printed value removes that Guest from the game and gets +1. Cancel or change an invitation before playing." },
+    generals: LEGACIES.factions[0].generals.map((entry) => ({ ...entry, image: "/assets/gauntlet/mekan-emblem.svg", text: {
+      acama: "Once per turn during your priority, if you control a face-down lane card, inspect the top card of your deck. Keep it on top or put it on the bottom.",
+      hui: "Your first attack or block each turn sharing a suit with a card already in your discard pile gets +1 value.",
+      monti: "Once per turn during your priority, after paying at least two cards this turn, give a card in your hand or face-down lanes +1 value until end of turn.",
+      ahu: "Once per turn during your priority, after winning a blocked combat this turn, inspect your top two deck cards. Choose one to keep on top and put the other on the bottom.",
+      temo: "The first time one of your cards is defeated each turn, your next attack or block that turn gets +1 value."
+    }[entry.id] })),
+    general: null
+  },
   rumin: {
     id: "rumin",
     name: "Rumin",
@@ -777,12 +791,19 @@ const factionsData = {
   }
 };
 
+factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.id === "monti");
+
 function listFactions() {
-  return Object.values(factionsData).filter((faction) => !faction.campaignOnly);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan"].map((id) => factionsData[id]);
 }
 
-function getFactionById(id) {
-  return factionsData[id] || null;
+function getFactionById(id, generalId) {
+  const faction = factionsData[id];
+  if (!faction) return null;
+  if (!generalId) return faction;
+  if (!faction.generals) return faction.general?.id === generalId ? faction : null;
+  const general = faction.generals.find((entry) => entry.id === generalId);
+  return general ? { ...faction, general } : null;
 }
 
 const campaignChapters = {
@@ -1277,7 +1298,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 4) throw new Error("Invalid game content: expected four playable factions.");
+  if (playableFactionIds.length !== 5) throw new Error("Invalid game content: expected five playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);
@@ -1287,7 +1308,7 @@ function validateGameContent() {
       requireText(faction[role]?.text, `factions.${factionId}.${role}.text`);
     }
     const chapters = campaignChapters[factionId];
-    if (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12)) {
+    if (faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
       throw new Error(`Invalid game content: faction ${factionId} has an invalid campaign chapter count.`);
     }
   }
@@ -1367,11 +1388,11 @@ function getPublicGameContent() {
     rulesVersion: RULES_VERSION,
     contentVersion: CONTENT_VERSION,
     factions: listFactions(),
-    upcomingSets: [LEGACIES],
+    upcomingSets: [{ ...LEGACIES, factions: [{ ...LEGACIES.factions[0], commander: factionsData.mekan.commander, city: factionsData.mekan.city, generals: factionsData.mekan.generals }] }],
     campaigns,
     cards: COLLECTION_CARDS,
     collectorVariants: COLLECTOR_VARIANTS,
-    deckRules: DECK_RULES
+    deckRules: { ...DECK_RULES, factions: listFactions() }
   };
 }
 

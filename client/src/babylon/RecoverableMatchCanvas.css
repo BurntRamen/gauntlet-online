@@ -1,3 +1,8 @@
+.production-battlefield-safe-frame:has(.production-table-recovery) {
+  /* Recovery controls must remain clickable above the campaign overlay rails. */
+  z-index: 12;
+}
+
 .production-table-recovery {
   height: 100%;
   overflow: auto;

@@ -1025,6 +1025,38 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   expect(repeatAccount.stats.collection.packCredits).toBe(1);
 });
 
+test("Mekan and a chosen General enter a ranked match from the queue picker", async ({ browser, request, baseURL }) => {
+  test.setTimeout(120000);
+  const unique = Date.now().toString(36);
+  const firstAccount = await registerTestAccount(request, `MekanA${unique}`);
+  const secondAccount = await registerTestAccount(request, `MekanB${unique}`);
+  const firstContext = await browser.newContext();
+  const secondContext = await browser.newContext();
+  try {
+    const firstPage = await firstContext.newPage();
+    const secondPage = await secondContext.newPage();
+    await prepareAccount(firstPage, firstAccount.token, baseURL);
+    await prepareAccount(secondPage, secondAccount.token, baseURL);
+    await firstPage.getByLabel("Ranked faction").selectOption("mekan");
+    await firstPage.getByLabel("Deck General").selectOption("hui");
+    await firstPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await expect(firstPage.getByLabel("Ranked faction")).toBeDisabled();
+    await secondPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await expect(firstPage.getByText("Table Command")).toBeVisible();
+    await expect(firstPage.getByLabel("Deck General")).toHaveValue("hui");
+    await expect(firstPage.getByRole("button", { name: "Basic Mode" })).toBeDisabled();
+    await firstPage.getByRole("button", { name: "Confirm Start" }).click();
+    await secondPage.getByRole("button", { name: "Confirm Start" }).click();
+    for (const page of [firstPage, secondPage]) {
+      await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+      await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+    }
+  } finally {
+    await firstContext.close();
+    await secondContext.close();
+  }
+});
+
 test("normal ranked best-of-three entry advances to game two inside the same Babylon experience", async ({
   browser,
   request,

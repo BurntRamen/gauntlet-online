@@ -15,6 +15,17 @@ const {
 
 test.after(() => server.close());
 
+test("Mekan saves a standard 52-card deck with exactly one General and restores its active loadout", () => {
+  const stats = {};
+  const { playableDeck } = saveConstructedDeckToLibrary(stats, {
+    name: "Mekan Hui", factionId: "mekan", generalId: "hui", gameplayCardQuantities: {}
+  }, "mekan-owner");
+  assert.equal(playableDeck.generalId, "hui");
+  assert.equal(playableDeck.cardCount, 52);
+  assert.equal(getSavedConstructedDeck(stats).generalId, "hui");
+  assert.throws(() => saveConstructedDeckToLibrary(stats, { factionId: "mekan", generalId: "forged" }, "mekan-owner"), /General/);
+});
+
 function makeConstructedStats() {
   return { collection: { cards: { "rumin-gilded-scale-legionary": 2 } } };
 }

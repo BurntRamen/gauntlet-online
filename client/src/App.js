@@ -8,6 +8,7 @@ import DeckLibraryPanel from "./DeckLibraryPanel";
 import ConstructedCardTile from "./ConstructedCardTile";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
@@ -1671,6 +1672,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   } : account?.stats?.savedConstructedDeck || null;
   const [constructedDeckName, setConstructedDeckName] = useState(savedConstructedDeck?.name || "Rumin Constructed Deck");
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
+  const [constructedGeneralId, setConstructedGeneralId] = useState(savedConstructedDeck?.generalId || "monti");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
@@ -1692,11 +1694,12 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
+    setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
     setConstructedSaveMessage("");
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.generalId, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections]);
 
   if (!account) {
     return (
@@ -1843,6 +1846,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         deckId: selectedConstructedDeckId || undefined,
         name: constructedDeckName,
         factionId: constructedFactionId,
+        generalId: deckRules.factions?.find((entry) => entry.id === constructedFactionId)?.generals?.find((entry) => entry.id === constructedGeneralId)?.id || null,
         gameplayCardQuantities: constructedQuantities,
         cardSuitChoices: constructedSuitChoices,
         collectorVariantSelections: constructedVariantSelections
@@ -1857,6 +1861,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   function loadSavedConstructedDeck() {
     if (!savedConstructedDeck) return;
     setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
+    setConstructedGeneralId(savedConstructedDeck.generalId || "monti");
     setConstructedQuantities(savedConstructedDeck.gameplayCardQuantities || savedConstructedDeck.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck.collectorVariantSelections || {});
@@ -2280,12 +2285,14 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               <span className={constructedCurveWarning || constructedSlotWarning ? "is-invalid" : "is-legal"}><strong>{constructedCurveWarning || constructedSlotWarning ? "Invalid" : "Legal"}</strong><small>Deck state</small></span>
             </div>
             <div className="active-deck-actions">
-              <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || constructedReplacementCount <= 0 || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
+              <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
               <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Reset Swaps</MenuButton>
               {savedConstructedDeck && <button type="button" className="active-deck-tertiary" onClick={loadSavedConstructedDeck}>Restore saved version</button>}
             </div>
           </header>
 
+          <FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false}
+            onChange={(_, generalId) => setConstructedGeneralId(generalId)} />
           {(constructedSaveMessage || constructedCurveWarning || constructedSlotWarning) && (
             <div className={`active-deck-message ${constructedSaveMessage.includes("Could not") || constructedCurveWarning || constructedSlotWarning ? "is-error" : "is-success"}`} role="status">
               {constructedSaveMessage || (constructedCurveWarning ? `Too many value ${constructedCurveWarning[0]} cards.` : `Two cards are replacing the same ${constructedSlotWarning[0].replace(":", " of ")}.`)}
@@ -2295,7 +2302,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <section className="workbench-section" aria-labelledby="deck-faction-title">
             <div className="workbench-section-heading"><div><span>Deck identity</span><h4 id="deck-faction-title">Choose a faction vault</h4></div><p>Changing faction clears unsaved swaps.</p></div>
             <div className="deck-faction-picker" aria-label="Deck faction">
-              {Object.values(PACK_THEMES).map((theme) => {
+              {(deckRules.factions || Object.values(PACK_THEMES)).map((theme) => {
                 const factionId = theme.name.toLowerCase();
                 const active = constructedFactionId === factionId;
                 return (
@@ -3923,6 +3930,8 @@ export default function App() {
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
+  const [rankedFactionId, setRankedFactionId] = useState("rumin");
+  const [rankedGeneralId, setRankedGeneralId] = useState(null);
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
   const [draftPickPending, setDraftPickPending] = useState(false);
@@ -5193,7 +5202,7 @@ export default function App() {
       return;
     }
     playMenuCue("commit");
-    socket.emit("joinMatchmaking", { authToken, bestOf });
+    socket.emit("joinMatchmaking", { authToken, bestOf, factionId: rankedFactionId, generalId: rankedGeneralId });
   }
 
   function leaveMatchmaking() {
@@ -5214,8 +5223,8 @@ export default function App() {
     socket.emit("leaveDraftLeague");
   }
 
-  function chooseFaction(factionId) {
-    socket.emit("selectFaction", { factionId });
+  function chooseFaction(factionId, generalId) {
+    socket.emit("selectFaction", { factionId, generalId });
   }
 
   function setGameMode(mode) {
@@ -5775,6 +5784,15 @@ export default function App() {
 
               {playView === "ranked" && (
                 <div className="play-ranked-grid">
+                  <div>
+                    <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
+                      onChange={(factionId, generalId) => { setRankedFactionId(factionId); setRankedGeneralId(generalId); }} />
+                    <p>Ranked uses faction powers. Choose your faction and General, find an opponent, then confirm in the lobby. An active constructed deck matching both choices supplies your card replacements; otherwise you use the standard 52-card faction deck.</p>
+                    {account?.stats?.savedConstructedDeck && <MenuButton variant="secondary" disabled={matchmakingStatus.inQueue} onClick={() => {
+                      setRankedFactionId(account.stats.savedConstructedDeck.factionId);
+                      setRankedGeneralId(account.stats.savedConstructedDeck.generalId || null);
+                    }}>Use Active Deck</MenuButton>}
+                  </div>
                   <SeasonQueueSummary season={activeSeason} bestOf={matchmakingStatus.bestOf || 1} />
                   <MatchmakingPanel
                     account={account}
@@ -5782,7 +5800,7 @@ export default function App() {
                     onJoin={() => joinMatchmaking(1)}
                     onLeave={leaveMatchmaking}
                     title={`${activeSeason?.displayName || "Season"} Ranked Duel`}
-                    description="Play ranked matches against another signed-in player. BO1 scores each match; BO3 scores the completed series while retaining every game result."
+                    description="Play ranked faction matches against another signed-in player. Your faction and General carry into the lobby. BO1 scores each match; BO3 scores the completed series."
                     joinLabel="Find Ranked Match"
                     extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
                   />
@@ -6137,7 +6155,7 @@ export default function App() {
               <div><span>Room rules</span><small>{player === 1 ? "Choose before both players confirm." : "Player 1 controls the room mode."}</small></div>
               <div>
                 <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
-                <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode}>Basic Mode</MenuButton>
+                <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode || lobby?.ranked}>Basic Mode</MenuButton>
               </div>
             </div>
           )}
@@ -6166,13 +6184,14 @@ export default function App() {
                         onClick={() => setLobbyFactionPreviewId(faction.id)}
                         style={{ "--faction-accent": factionTheme.primary }}
                       >
-                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${faction.id}-card.webp`)})` }} />
+                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(faction.cardImage)})` }} />
                         <span><strong>{faction.name}</strong><small>{selected ? "Selected" : previewed ? "Viewing" : "Inspect"}</small></span>
                       </button>
                     );
                   })}
                 </div>
                 {lobbyReadyBar}
+                {myFactionId === "mekan" && <FactionLoadoutPicker factions={lobbyFactions} factionId={myFactionId} generalId={lobby.players[player]?.generalId} showFaction={false} onChange={chooseFaction} />}
                 <div className="lobby-faction-detail">
                   <FactionChoiceCard
                     faction={lobbyPreviewFaction}

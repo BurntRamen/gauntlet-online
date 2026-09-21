@@ -9,7 +9,7 @@ const LEGACIES = {
   factions: [{
     id: "mekan",
     name: "Mekan",
-    status: "preview",
+    status: "playable",
     tagline: "One more song. One more dance.",
     identity: "Joyful undead · Discard synergy · Remembrance",
     introduction: "In San Mikal, death is another stage of existence. Decorated skeletons dance through streets filled with flowers, lanterns, music, and returning ancestors. The dead are honored guests, invited to celebrate rather than bound to serve.",
@@ -31,7 +31,7 @@ const LEGACIES = {
       text: "Once per turn, when one of your cards is defeated, you may designate it as a Guest. When you play a card with the same printed Value as one of your Guests, you may remove that Guest from your discard pile from the game. If you do, the played card gets +1 Value until end of turn."
     },
     generalRule: "Each player brings exactly one General, chosen when building their deck. These are alternative choices, not five Generals in play together.",
-    generalDraftNote: "Lane-specific wording is still being adapted to Gauntlet's one-General-per-player rules.",
+    generalDraftNote: "Ranked draft rules use one General for your whole side of the table. Acama requires an occupied lane; Ahu rewards a resolved blocked combat. General selection is locked when the match starts.",
     generals: [
       { id: "acama", name: "Acama, Founder of the Celebration", ability: "Festival Foundations", identity: "Preparation and careful draws", text: "Once per turn, when you place a card face-down in Acama's lane, you may look at the top card of your deck. You may place that card on the bottom of your deck." },
       { id: "hui", name: "Hui, Master of Ceremonies", ability: "Invite Everyone", identity: "Link new plays to past participants", text: "The first time each turn you play a card in Hui's lane that shares a suit with a card in your discard pile, it gets +1 Value until end of turn." },

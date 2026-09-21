@@ -361,6 +361,7 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
     source,
     name: deck?.name || null,
     factionId: deck?.factionId || gamePlayer?.faction?.id || "basic",
+    generalId: gamePlayer?.faction?.general?.id || null,
     savedAt: deck?.savedAt || null,
     replacementCount: Number(deck?.replacementCount || deck?.additionCount || campaignCards.length || 0),
     cards: mechanicalCards.map((card) => ({ id: card.gameplayCardId, ...card })),
@@ -379,6 +380,7 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
     collectorVariants,
     gameplayConfigurationHash: deck?.gameplayConfigurationHash || stableHash({
       factionId: snapshot.factionId,
+      generalId: snapshot.generalId,
       cards: mechanicalCards
     }),
     collectorConfigurationHash: deck?.collectorConfigurationHash || stableHash({ variants: collectorVariants })
