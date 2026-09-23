@@ -30,7 +30,7 @@ function localDeckSnapshot(initialPlayer, playerNum, gameMode) {
     deckId: null,
     deckVersionId: `local-${gameMode}-p${playerNum}`,
     source: "local-simulator",
-    format: gameMode === "factions" ? "constructed" : "standard",
+    format: cards.some((card) => card.gameplayCardId || card.definitionId) ? "constructed" : "standard",
     gameplayCards: cards.map((card) => card.gameplayCardId || card.definitionId || card.id).sort(),
     collectorVariants: cards.map((card) => card.variantId).filter(Boolean).sort()
   };

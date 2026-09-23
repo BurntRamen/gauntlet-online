@@ -83,7 +83,7 @@ function buildMatchTranscript(replay) {
   const header = [`Gauntlet Match #${replay.matchId}`, "Perspective: Public — hand identities and deck order obscured.",
     `Mode: ${metadata.mode || firstState?.gameMode || UNKNOWN} · Ranked: ${metadata.ranked == null ? UNKNOWN : metadata.ranked ? "Yes" : "No"}`,
     `Started: ${metadata.startedAt || UNKNOWN} · Completed: ${replay.result?.completedAt || UNKNOWN}`,
-    `Rules: ${metadata.rulesVersion || firstState?.rulesVersion || UNKNOWN} · Content: ${metadata.contentVersion || firstState?.cardContentVersion || UNKNOWN}`];
+    `Record rules: ${metadata.rulesVersion || UNKNOWN} · Engine rules: ${firstState?.rulesVersion || UNKNOWN} · Content: ${metadata.contentVersion || firstState?.cardContentVersion || UNKNOWN}`];
   for (const p of participants) {
     const deck = metadata.formats?.find((f) => Number(f.playerNum) === Number(p.playerNum));
     header.push(`${p.displayName} · ${p.faction?.name || UNKNOWN} · Format: ${deck?.format || UNKNOWN} · Deck version: ${deck?.deckVersionId || UNKNOWN}`);

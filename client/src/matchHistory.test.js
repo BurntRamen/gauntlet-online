@@ -69,6 +69,7 @@ test("local completion produces the same validated record-v2 JSON and client rep
   const artifact = localArtifact();
   const inspection = inspectMatchJson(artifact.json);
   expect(inspection.artifact.record.recordVersion).toBe(2);
+  expect(inspection.artifact.record.participants[0].deck.format).toBe("standard");
   expect(inspection.artifact.sha256).toBe(artifact.sha256);
   expect(inspection.replay.availability).toMatchObject({ available: true, mode: "public-state-frames" });
   expect(inspection.preview.evidenceCount).toBeGreaterThan(0);

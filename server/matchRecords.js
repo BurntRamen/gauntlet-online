@@ -262,7 +262,7 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
   return {
     deckId: deck?.deckId || null,
     deckVersionId: deck?.versionId || `legacy-${stableHash(snapshot).slice(0, 24)}`,
-    format: source === "draft" ? "draft" : "constructed",
+    format: source === "standard" ? "standard" : source === "draft" ? "draft" : "constructed",
     source,
     factionId: snapshot.factionId,
     replacementCount: snapshot.replacementCount,
