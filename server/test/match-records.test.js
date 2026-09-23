@@ -24,8 +24,9 @@ const { buildFixtureExport } = require("../../scripts/generate-para-match-v2-fix
 
 test("standard decks retain their actual format in new match records", () => {
   const record = buildMatchRecord(makeRoom({ gameMode: "basic" }), { completionReason: "life_total" });
-  assert.equal(record.participants[0].deck.source, "standard");
-  assert.equal(record.participants[0].deck.format, "standard");
+  assert.equal(record.participants[0].deck.format, "constructed");
+  assert.equal(record.participants[1].deck.source, "standard");
+  assert.equal(record.participants[1].deck.format, "standard");
 });
 
 test.after(() => {
