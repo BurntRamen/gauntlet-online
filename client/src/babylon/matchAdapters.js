@@ -346,7 +346,7 @@ export class LocalDuelAdapter {
     this.undoStack.push(this.game);
     this.undoStack = this.undoStack.slice(-40);
     this.game = result.state;
-    this.localMatchRecorder.recordAccepted(this.game, envelope);
+    this.localMatchRecorder.recordAccepted(this.game, envelope, result.animationEvents || []);
     this.selection = freshSelection();
     this.notice = "";
     this.pendingEvents = result.animationEvents || [];

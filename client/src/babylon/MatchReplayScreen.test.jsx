@@ -1,6 +1,24 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import MatchReplayScreen from "./MatchReplayScreen";
 
+test("history follows replay navigation, exposes card and state detail, and closes without exiting replay", () => {
+  const replay = replayResponse().replay;
+  const onOpenMatches = jest.fn();
+  render(<MatchReplayScreen matchId={replay.matchId} initialReplay={replay} onOpenMatches={onOpenMatches} />);
+  fireEvent.click(screen.getByRole("button", { name: "Match History" }));
+  const panel = screen.getByRole("region", { name: "Match history" });
+  expect(panel).toHaveTextContent("hand 8 (identities obscured)");
+  expect(panel).toHaveTextContent("deck 44");
+  expect(panel).toHaveTextContent("Triumphal Ram");
+  expect(screen.getByRole("button", { name: "Export TXT" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /Turn 1 · Play 2/ }));
+  expect(screen.getByRole("slider", { name: "Replay action timeline" })).toHaveValue("1");
+  expect(panel.querySelector('[aria-current="step"]')).toHaveTextContent("Play 2");
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(screen.queryByRole("region", { name: "Match history" })).not.toBeInTheDocument();
+  expect(onOpenMatches).not.toHaveBeenCalled();
+});
+
 jest.mock("./ProductionMatchExperience", () => function ProductionMatchExperienceMock({ adapter }) {
   const update = adapter.createUpdate();
   return <div data-testid="official-production-renderer">{update.source}:{update.viewModel?.matchId}</div>;

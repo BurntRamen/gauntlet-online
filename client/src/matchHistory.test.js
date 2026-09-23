@@ -17,6 +17,35 @@ const {
 
 const MATCH_ID = "11111111-1111-4111-8111-111111111111";
 
+test("local recording retains typed events and undo, without exposing a face-down placement", () => {
+  let game = createMatch({ seed: "local-history-events", matchId: MATCH_ID, gameMode: "basic" }).state;
+  const recorder = createLocalMatchRecorder({ initialGame: game });
+  let serial = 0;
+  function play(command) {
+    const envelope = createCommandEnvelope(game, command.player, command, `history-${++serial}`);
+    const result = applyCommand(game, envelope);
+    expect(result.accepted).toBe(true);
+    recorder.recordAccepted(result.state, envelope, result.animationEvents);
+    game = result.state;
+  }
+  play({ type: "passPriority", player: game.priority });
+  play({ type: "passPriority", player: game.priority });
+  const beforePlacement = game;
+  const actor = game.endPlacementFirstPlayer;
+  const hidden = game.players[actor].hand[0].id;
+  play({ type: "placeFacedown", player: actor, laneIndex: 0, cardId: hidden });
+  recorder.undo();
+  game = beforePlacement;
+  play({ type: "placeFacedown", player: actor, laneIndex: 0, cardId: hidden });
+  play({ type: "concede", player: actor });
+  const artifact = recorder.buildRecord(game);
+  const entries = artifact.record.leagueEvidence;
+  expect(entries.filter((entry) => entry.eventType === "card.placedFacedown")).toHaveLength(1);
+  expect(entries.some((entry) => entry.eventType === "priority.passed")).toBe(true);
+  expect(JSON.stringify(entries)).not.toContain(hidden);
+  expect(inspectMatchJson(artifact.json).replay.actions.length).toBeGreaterThan(3);
+});
+
 function localArtifact() {
   const startedAt = "2026-08-09T12:00:00.000Z";
   const completedAt = "2026-08-09T12:01:00.000Z";

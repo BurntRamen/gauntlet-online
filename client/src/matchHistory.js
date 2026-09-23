@@ -6,7 +6,10 @@ import {
   createArtifact,
   parseAndVerifyArchive,
   replayAvailability,
-  stableHash
+  stableHash,
+  sanitizeLeagueCommand,
+  sanitizeLeagueEvent,
+  enrichPublicEventCards
 } from "@gauntlet/match-history";
 
 const DATABASE_NAME = "gauntlet-match-library";
@@ -28,8 +31,8 @@ function localDeckSnapshot(initialPlayer, playerNum, gameMode) {
     deckVersionId: `local-${gameMode}-p${playerNum}`,
     source: "local-simulator",
     format: gameMode === "factions" ? "constructed" : "standard",
-    gameplayCards: cards.map((card) => card.gameplayCardId || card.definitionId || card.id),
-    collectorVariants: cards.map((card) => card.variantId).filter(Boolean)
+    gameplayCards: cards.map((card) => card.gameplayCardId || card.definitionId || card.id).sort(),
+    collectorVariants: cards.map((card) => card.variantId).filter(Boolean).sort()
   };
 }
 
@@ -38,40 +41,38 @@ export function createLocalMatchRecorder({ initialGame, playerNames = {}, starte
   const evidence = [];
   const frames = [];
   const checkpoints = [];
+  let previousGame = initialGame;
 
-  function appendEvidence(game, { commandId, commandType, actorPlayerNum, publicPayload }) {
+  function appendEvidence(game, { commandId, commandType, actorPlayerNum, publicPayload, events = [] }) {
     const publicState = buildPublicReplaySnapshot(game);
-    const sequence = evidence.length + 1;
     const resultingStateChecksum = stableHash(publicState);
-    const entry = {
-      sequence,
-      eventId: `${game.matchId}:local-evidence:${sequence}`,
-      matchId: game.matchId,
-      commandId,
-      commandType,
-      turn: Number(game.turn || 0),
-      phase: game.phase || "unknown",
-      actorPlayerNum: actorPlayerNum == null ? null : Number(actorPlayerNum),
-      targetPlayerNum: null,
-      laneIndex: publicPayload?.command?.laneIndex == null ? null : Number(publicPayload.command.laneIndex),
-      eventType: commandType === "matchStarted" ? "match.started" : "command.accepted",
-      publicPayload,
-      resultingStateChecksum
-    };
-    evidence.push(entry);
-    frames.push({
-      schemaVersion: PUBLIC_REPLAY_FRAME_VERSION,
-      frameIndex: frames.length + 1,
-      matchId: game.matchId,
-      evidenceSequenceStart: sequence,
-      evidenceSequence: sequence,
-      sourceEvidenceIds: [entry.eventId],
-      turn: Number(game.turn || 0),
-      phase: game.phase || "unknown",
-      resultingStateChecksum,
-      publicStateChecksum: stableHash(publicState),
-      publicState
+    const firstSequence = evidence.length + 1;
+    const timestamp = new Date().toISOString();
+    const rows = [{ type: commandType === "matchStarted" ? "match.started" : "command.accepted",
+      player: actorPlayerNum, turn: previousGame.turn, phase: previousGame.phase,
+      command: sanitizeLeagueCommand(publicPayload.command) }, ...events];
+    const captured = rows.map((event, index) => {
+      const sequence = evidence.length + 1;
+      const entry = {
+        sequence, eventId: commandId + ":evidence:" + index, matchId: game.matchId,
+        commandId, commandType, turn: Number(event.turn ?? previousGame.turn ?? game.turn ?? 0),
+        phase: event.phase || previousGame.phase || game.phase || "unknown",
+        actorPlayerNum: event.player ?? actorPlayerNum ?? null,
+        targetPlayerNum: event.targetPlayer ?? null, laneIndex: event.laneIndex ?? null,
+        eventType: event.type,
+        publicPayload: index === 0 ? { command: event.command }
+          : enrichPublicEventCards(game, sanitizeLeagueEvent(event), previousGame),
+        serverTimestamp: timestamp, resultingStateChecksum
+      };
+      evidence.push(entry);
+      return entry;
     });
+    frames.push({ schemaVersion: PUBLIC_REPLAY_FRAME_VERSION, frameIndex: frames.length + 1,
+      matchId: game.matchId, evidenceSequenceStart: firstSequence,
+      evidenceSequence: evidence.length, sourceEvidenceIds: captured.map((entry) => entry.eventId),
+      turn: Number(game.turn || 0), phase: game.phase || "unknown", resultingStateChecksum,
+      publicStateChecksum: stableHash(publicState), publicState });
+    previousGame = game;
   }
 
   appendEvidence(initialGame, {
@@ -83,13 +84,14 @@ export function createLocalMatchRecorder({ initialGame, playerNames = {}, starte
 
   return {
     matchId: initialGame.matchId,
-    recordAccepted(game, envelope) {
-      checkpoints.push({ evidenceLength: evidence.length, frameLength: frames.length });
+    recordAccepted(game, envelope, events = game.lastEvents || []) {
+      checkpoints.push({ evidenceLength: evidence.length, frameLength: frames.length, previousGame });
       appendEvidence(game, {
         commandId: envelope.commandId,
         commandType: envelope.command?.type || "unknown",
         actorPlayerNum: envelope.actorPlayerId,
-        publicPayload: { command: JSON.parse(JSON.stringify(envelope.command || {})) }
+        publicPayload: { command: sanitizeLeagueCommand(envelope.command || {}) },
+        events
       });
     },
     undo() {
@@ -97,6 +99,7 @@ export function createLocalMatchRecorder({ initialGame, playerNames = {}, starte
       if (!checkpoint) return;
       evidence.splice(checkpoint.evidenceLength);
       frames.splice(checkpoint.frameLength);
+      previousGame = checkpoint.previousGame;
     },
     buildRecord(game, completedAt = new Date().toISOString()) {
       if (game?.phase !== "gameOver") throw new Error("Only a completed local match can become portable history.");

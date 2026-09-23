@@ -319,6 +319,15 @@ test("normal browser lobby flow starts and finishes a live Babylon Basic match",
   await expect(priorityPage.locator("canvas.babylon-match-canvas")).toBeVisible();
   await expectNativeSceneDiagnostics(priorityPage);
   await expect(priorityPage.getByLabel("Focused public cards")).toHaveCount(0);
+  await priorityPage.getByRole("button", { name: "Match History", exact: true }).click();
+  const history = priorityPage.getByRole("region", { name: "Match history", exact: true });
+  await expect(history).toContainText("identities obscured");
+  await expect(history).toContainText("After command");
+  await priorityPage.screenshot({ path: test.info().outputPath("match-history.png") });
+  const transcriptDownload = priorityPage.waitForEvent("download");
+  await history.getByRole("button", { name: "Export TXT" }).click();
+  expect((await transcriptDownload).suggestedFilename()).toMatch(/^gauntlet-match-.*\.txt$/);
+  await history.getByRole("button", { name: "Close match history" }).click();
   const replayNext = priorityPage.getByRole("button", { name: "Next action" });
   if (await replayNext.isEnabled()) {
     await replayNext.click();

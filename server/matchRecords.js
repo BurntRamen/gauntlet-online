@@ -95,120 +95,9 @@ function getPublicStateForChecksum(game) {
   };
 }
 
-function sanitizeLeagueCommand(command = {}) {
-  const type = String(command.type || "unknown");
-  const safe = { type };
-  const copyScalar = (field) => {
-    if (["string", "number", "boolean"].includes(typeof command[field])) safe[field] = command[field];
-  };
-  for (const field of [
-    "abilityId", "laneIndex", "laneA", "laneB", "targetPlayerId", "source",
-    "useMeerusFreeAttack", "useJewelBankBonus", "useBeliAwakenedBonus",
-    "useSandstormProcessor", "sunforgeAccelerationToSpend", "useVoltaricUltimatum",
-    "primeSignalBonus", "lastGambleChoice"
-  ]) copyScalar(field);
-  if (["declareHandAttack", "declareLaneAttack"].includes(type)) {
-    safe.attackerCardId = command.attackerCardId || command.cardId || null;
-    safe.paymentCardIds = [...(command.paymentCardIds || [])];
-    safe.armWeaponCardIds = [...(command.armWeaponCardIds || [])];
-  }
-  if (["declareHandBlock", "declareLaneBlock"].includes(type)) {
-    safe.blockerCardIds = [...(command.blockerCardIds || [])];
-    safe.paymentCardIds = [...(command.paymentCardIds || [])];
-    safe.accelerationBlockerCardIds = [...(command.accelerationBlockerCardIds || [])];
-  }
-  return safe;
-}
+const { sanitizeLeagueCommand, sanitizeLeagueEvent, enrichPublicEventCards } = require("../shared/match-history/evidence");
 
-function replayPublicCard(card) {
-  if (!card) return null;
-  const allowed = [
-    "id", "definitionId", "gameplayCardId", "name", "rank", "value", "suit",
-    "factionId", "variantId", "type", "text"
-  ];
-  return Object.fromEntries(allowed.filter((key) => card[key] != null).map((key) => [key, clonePlain(card[key])]));
-}
-
-function findGameCard(game, cardId) {
-  if (!cardId) return null;
-  const cards = [];
-  const addCards = (entries) => cards.push(...(Array.isArray(entries) ? entries : []).filter(Boolean));
-  const addAttack = (attack) => {
-    if (!attack) return;
-    addCards([attack.card]);
-    addCards(attack.attachedCards);
-    addCards(Array.isArray(attack.payment) ? attack.payment : attack.payment?.cards);
-    for (const block of attack.block || []) {
-      addCards([block.card]);
-      addCards(block.payment?.cards);
-    }
-  };
-  for (const player of Object.values(game?.players || {})) {
-    addCards(player.hand);
-    addCards(player.deck);
-    addCards(player.discard);
-  }
-  for (const lane of game?.lanes || []) {
-    addCards(Object.values(lane.facedown || {}));
-    addAttack(lane.attack);
-    for (const block of lane.block || []) {
-      addCards([block.card]);
-      addCards(block.payment?.cards);
-    }
-  }
-  for (const attack of game?.handAttacks || []) addAttack(attack);
-  return cards.find((card) => card?.id === cardId) || null;
-}
-
-function enrichPublicEventCards(game, payload) {
-  const enriched = payload;
-  if (enriched.cardId) {
-    const card = replayPublicCard(findGameCard(game, enriched.cardId));
-    if (card) enriched.card = card;
-  }
-  if (Array.isArray(enriched.cardIds)) {
-    const cards = enriched.cardIds.map((cardId) => replayPublicCard(findGameCard(game, cardId))).filter(Boolean);
-    if (cards.length) enriched.cards = cards;
-  }
-  return enriched;
-}
-
-function sanitizeLeagueEvent(event = {}) {
-  const type = String(event.type || "unknown");
-  const { id: _id, sequence: _sequence, revision: _revision, type: _type, ...detail } = clonePlain(event);
-  if (type === "cards.drawn") {
-    return {
-      player: detail.player ?? null,
-      count: Array.isArray(detail.cardIds) ? detail.cardIds.length : Number(detail.count || 0),
-      ...(detail.source ? { source: detail.source } : {})
-    };
-  }
-  if (type === "card.peeked") {
-    return {
-      player: detail.player ?? null,
-      viewer: detail.viewer ?? null,
-      targetPlayer: detail.targetPlayer ?? null,
-      laneIndex: detail.laneIndex ?? null
-    };
-  }
-  if (type === "card.placedFacedown") {
-    return {
-      player: detail.player ?? null,
-      laneIndex: detail.laneIndex ?? null,
-      ...(detail.source ? { source: detail.source } : {})
-    };
-  }
-  function stripPrivateFields(value) {
-    if (Array.isArray(value)) return value.map(stripPrivateFields);
-    if (!value || typeof value !== "object") return value;
-    return Object.fromEntries(Object.entries(value)
-      .filter(([key]) => !/(reconnect|session|token|secret|credential|deckOrder|internal|serverAudit|privateAudit)/i.test(key))
-      .map(([key, child]) => [key, stripPrivateFields(child)]));
-  }
-  return stripPrivateFields(detail);
-}
-
-function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, command = {}, events = [], timestamp } = {}) {
+function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, command = {}, events = [], timestamp, beforeGame = null } = {}) {
   if (!game) return [];
   const serverTimestamp = timestamp || new Date().toISOString();
   const stateChecksum = stableHash(getPublicStateForChecksum(game));
@@ -219,6 +108,8 @@ function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, 
       id: commandId ? `${commandId}:accepted` : `${game.matchId}:command:${game.serverLeagueEvidence.length + 1}`,
       sequence: null,
       type: "command.accepted",
+      turn: beforeGame?.turn ?? game.turn,
+      phase: beforeGame?.phase ?? game.phase,
       player: actorPlayerNum,
       command: normalizedCommand
     },
@@ -227,19 +118,19 @@ function captureLeagueEvidence(game, { commandId = null, actorPlayerNum = null, 
   const captured = sourceEvents.map((event) => {
     const payload = event.type === "command.accepted"
       ? { command: clonePlain(event.command) }
-      : enrichPublicEventCards(game, sanitizeLeagueEvent(event));
+      : enrichPublicEventCards(game, sanitizeLeagueEvent(event), beforeGame);
     const entry = {
       sequence: game.serverLeagueEvidence.length + 1,
       eventId: event.id || `${game.matchId}:league:${game.serverLeagueEvidence.length + 1}`,
       commandId,
       commandType: normalizedCommand.type,
       eventSequence: event.sequence != null && Number.isFinite(Number(event.sequence)) ? Number(event.sequence) : null,
-      turn: Number(game.turn || 1),
-      phase: game.phase || "setup",
+      turn: Number(event.turn ?? beforeGame?.turn ?? game.turn ?? 1),
+      phase: event.phase || beforeGame?.phase || game.phase || "setup",
       eventType: String(event.type || "unknown"),
       actorPlayerNum: event.player == null ? (actorPlayerNum == null ? null : Number(actorPlayerNum)) : Number(event.player),
       targetPlayerNum: event.targetPlayer == null ? null : Number(event.targetPlayer),
-      sourceType: event.source || normalizedCommand.source || null,
+      sourceType: payload.source || normalizedCommand.source || null,
       laneIndex: event.laneIndex == null ? null : Number(event.laneIndex),
       publicPayload: payload,
       serverTimestamp,
