@@ -1,7 +1,7 @@
 const { formatMatchLogEntry } = require("./formatLog");
 
 const UNKNOWN = "Not recorded";
-const readable = (value) => String(value || "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[._-]/g, " ");
+const readable = (value) => String(value || "").replace(/([a-z])([A-Z])/g, (_, a, b) => `${a} ${b.toLowerCase()}`).replace(/[._-]/g, " ");
 const recorded = (value) => value == null ? UNKNOWN : String(value);
 
 function describeCard(card) {
@@ -42,7 +42,7 @@ function factLines(value, path = "") {
   if (value == null) return [];
   if (typeof value !== "object") return [`${readable(path)}: ${value}`];
   if (Array.isArray(value)) return value.flatMap((entry, index) => factLines(entry, `${path} ${index + 1}`));
-  return Object.entries(value).filter(([key]) => !["publicTotals", "turn", "phase", "command", "card", "cards", "cardId", "cardIds"].includes(key))
+  return Object.entries(value).filter(([key]) => !["publicTotals", "turn", "phase", "command", "card", "cards", "cardId", "cardIds", "player", "targetPlayer", "laneIndex", "calculation", "count"].includes(key))
     .flatMap(([key, child]) => factLines(child, path ? `${path} / ${key}` : key));
 }
 
@@ -62,6 +62,8 @@ function describeEvent(entry, participants, action) {
     ...(payload.calculation?.blocks || []).map((b) => b.card), ...(payload.calculation?.cards || [])].filter(Boolean);
   const uniqueCards = [...new Map(cards.map((card) => [card.id || JSON.stringify(card), card])).values()];
   const details = [formatted.detail, ...uniqueCards.map(describeCard), ...factLines(payload)].filter(Boolean);
+  if (entry.targetPlayerNum != null || payload.targetPlayer != null) details.push(`Target: ${playerName(participants, entry.targetPlayerNum ?? payload.targetPlayer)}`);
+  if (entry.laneIndex != null || payload.laneIndex != null) details.push(`Lane ${Number(entry.laneIndex ?? payload.laneIndex) + 1}`);
   if (command?.abilityId) details.push(`Ability: ${readable(command.abilityId)}`);
   if (command?.laneIndex != null) details.push(`Lane ${Number(command.laneIndex) + 1}`);
   if (payload.publicTotals) {

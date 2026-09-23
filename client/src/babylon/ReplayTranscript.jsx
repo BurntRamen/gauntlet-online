@@ -13,7 +13,7 @@ export default function ReplayTranscript({ adapter }) {
   useEffect(() => adapter.subscribe(setUpdate), [adapter]);
   const index = update.replay.currentIndex;
   useEffect(() => {
-    if (open) current.current?.scrollIntoView?.({ block: "nearest" });
+    if (open && index > 0) current.current?.scrollIntoView?.({ block: "nearest" });
   }, [index, open]);
   useEffect(() => {
     if (!open) return undefined;

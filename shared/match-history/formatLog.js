@@ -112,13 +112,13 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
           ...calculationDetails(entry.calculation)].filter(Boolean).map((line) => `\n${line}`).join("")
       };
     case "damage.calculated": {
-      const equationAvailable = attack != null || block != null || prevented > 0;
+      const equationAvailable = attack != null && block != null && damage != null;
       return {
         icon: damage > 0 ? "damage" : "block",
-        title: damage > 0 ? `${damage} damage calculated` : "Attack fully stopped",
+        title: damage == null ? "Damage calculation recorded; amount not recorded" : damage > 0 ? `${damage} damage calculated` : "Attack fully stopped",
         detail: [equationAvailable
           ? `${attack ?? 0} attack − ${block ?? 0} block − ${prevented} prevention = ${damage ?? 0} damage${attack != null && attack - (block ?? 0) - prevented < 0 ? " (minimum 0)" : ""}`
-          : `${damage ?? 0} damage`, ...calculationDetails(entry.calculation)].join("\n")
+          : `${damage == null ? "Amount not recorded" : `${damage} damage`} · Full calculation not recorded`, ...calculationDetails(entry.calculation)].join("\n")
       };
     }
     case "damage.dealt": {
@@ -137,7 +137,7 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
     case "cards.drawn":
       return {
         icon: "placement",
-        title: `${actor} drew ${countLabel(cardCount ?? 0, "card")}`,
+        title: `${actor} drew ${cardCount == null ? "cards (count not recorded)" : countLabel(cardCount, "card")}`,
         detail: cardCount == null ? "" : `Hand +${cardCount}`
       };
     case "card.placedFacedown":

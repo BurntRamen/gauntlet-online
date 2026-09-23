@@ -54,6 +54,9 @@ test("event-only historical transcripts say what was not recorded", () => {
   const text = formatMatchTranscript(buildMatchTranscript(buildReplayTimeline(record)));
   assert.match(text, /State not recorded for this moment/);
   assert.match(text, /Before command/);
+  const { formatMatchLogEntry } = require("../../shared/match-history");
+  assert.match(formatMatchLogEntry({ type: "damage.calculated" }).title, /not recorded/);
+  assert.match(formatMatchLogEntry({ type: "cards.drawn" }).title, /count not recorded/);
 });
 
 test("public command capture hides private placement and private ability targets", () => {
