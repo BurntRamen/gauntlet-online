@@ -8,6 +8,7 @@ import {
   mergeMatchHistory
 } from "./matchHistory";
 import "./MatchesHub.css";
+import { downloadMatchTranscript } from "./matchTranscript";
 
 function formatDate(value) {
   if (!value) return "Unknown date";
@@ -82,6 +83,7 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
         <div className="matches-tertiary-actions">
           <button type="button" onClick={() => onOpenMatch(match)}>Match Record</button>
           {saved && <button type="button" onClick={() => onDownload(match.matchId)}>Export JSON</button>}
+          {saved && <button type="button" onClick={() => onDownload(match.matchId, "txt")}>Export TXT</button>}
         </div>
       </div>
       {previewOpen && <MatchPreview preview={match.preview} sha256={saved ? match.local.sha256 : null} />}
@@ -268,11 +270,15 @@ export default function MatchesHub({
     return onOpenMatch(match.matchId);
   }
 
-  async function downloadMatchJson(matchId) {
+  async function downloadMatchJson(matchId, format = "json") {
     try {
       const entry = await matchLibrary.get(matchId);
       if (!entry) throw new Error("Replay file not saved on this device.");
-      downloadCanonicalMatch(entry);
+      if (format === "txt") {
+        const loaded = await matchLibrary.load(matchId);
+        if (!loaded?.replay) throw new Error("Match history unavailable.");
+        downloadMatchTranscript(loaded.replay);
+      } else downloadCanonicalMatch(entry);
       setError("");
     } catch (downloadError) {
       setError(downloadError.message);

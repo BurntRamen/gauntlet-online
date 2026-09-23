@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getPlayingCardArtPath } from "../cardArt";
 import ProductionMatchExperience from "./ProductionMatchExperience";
 import { createReplayMatchAdapter } from "./ReplayMatchAdapter";
+import ReplayTranscript from "./ReplayTranscript";
 import "./MatchReplayScreen.css";
 
 function cardArt(card) {
@@ -293,6 +294,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = 
   return (
     <main className="match-replay-page" data-replay-mode={replay.availability.mode}>
       <ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} />
+      <ReplayTranscript adapter={adapter} />
       {replay.availability.mode === "public-state-frames"
         ? <VisualReplay adapter={adapter} audioEnabled={audioEnabled} onBack={onBack} onOpenMatches={openMatches} />
         : <EventOnlyReplay adapter={adapter} />}

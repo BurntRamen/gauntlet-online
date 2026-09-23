@@ -268,13 +268,13 @@ function resolveReplayCard(card) {
     runtimeId: card.id || null,
     gameplayCardId: gameplay?.gameplayCardId || gameplayCardId,
     variantId: validVariant?.variantId || null,
-    name: gameplay?.name || card.name || null,
+    name: card.name || gameplay?.name || null,
     rank: card.rank || null,
     value: Number(card.value ?? gameplay?.value ?? 0),
     suit: card.suit || null,
     factionId: gameplay?.factionId || card.factionId || null,
-    type: gameplay?.type || card.type || null,
-    rulesText: gameplay?.text || card.text || null,
+    type: card.type || gameplay?.type || (card.rank && card.suit ? "playing-card" : null),
+    rulesText: card.text || gameplay?.text || null,
     collector: validVariant ? {
       name: validVariant.name,
       edition: validVariant.edition,
@@ -467,6 +467,10 @@ function buildPresentationAction({ group, index, frames, participants }) {
   const attackValue = Number(damageEvent?.attackValue ?? attack?.effectiveValue ?? primaryEntry?.publicPayload?.effectiveValue ?? 0);
   const blockValue = Number(damageEvent?.blockValue ?? blockers.reduce((total, block) => total + block.effectiveValue, 0));
   const damage = Number(damageEvent?.damage ?? (primaryEntry?.eventType === "damage.dealt" ? primaryEntry.publicPayload?.amount : 0) ?? 0);
+  const prevention = Number(damageEvent?.prevented ?? damageEvent?.prevention ?? 0);
+  const damageSummary = damageEvent?.attackValue != null && damageEvent?.blockValue != null
+    ? `${attackValue} attack − ${blockValue} block${prevention ? ` − ${prevention} prevention` : ""} = ${damage} damage${attackValue - blockValue - prevention < 0 ? " (minimum 0)" : ""}`
+    : `${damage} damage`;
   const abilityId = command.abilityId || null;
   const primaryCardPlayerNum = ["attack", "resolution", "defense-declined"].includes(kind)
     ? (attack?.player ?? actorPlayerNum)
@@ -480,7 +484,7 @@ function buildPresentationAction({ group, index, frames, participants }) {
     label = `${actorName} blocks`;
     const names = cards.blockers.map((card) => card.name || `${card.rank || ""}${card.suit || ""}`).filter(Boolean).join(", ");
     summary = `${actorName} blocks${names ? ` with ${names}` : ""}${blockValue ? ` for ${blockValue}` : ""}`;
-    if (damageEvent) summary += ` · ${attackValue} attack − ${blockValue} block = ${damage} damage`;
+    if (damageEvent) summary += ` · ${damageSummary}`;
   } else if (kind === "defense-declined") {
     label = `${actorName} declines the block`;
     summary = damageEvent
@@ -488,7 +492,8 @@ function buildPresentationAction({ group, index, frames, participants }) {
       : `${actorName} declines the block`;
   } else if (kind === "resolution") {
     label = "Combat resolves";
-    summary = `${attackValue} attack − ${blockValue} block = ${damage} damage`;
+    const resolutions = entries.filter((entry) => entry.eventType === "damage.calculated");
+    summary = resolutions.length > 1 ? `${resolutions.length} attacks resolve · see each calculation in Match History` : damageSummary;
   } else if (kind === "ability") {
     const abilityName = primaryEntry?.publicPayload?.source || humanizeIdentifier(abilityId) || "a faction ability";
     label = `${actorName} uses an ability`;
@@ -568,6 +573,12 @@ function buildPresentationAction({ group, index, frames, participants }) {
       sequence: Number(entry.sequence),
       eventId: entry.eventId,
       eventType: entry.eventType,
+      turn: entry.turn,
+      phase: entry.phase,
+      actorPlayerNum: entry.actorPlayerNum,
+      targetPlayerNum: entry.targetPlayerNum,
+      laneIndex: entry.laneIndex,
+      serverTimestamp: entry.serverTimestamp || null,
       label: eventLabel(entry),
       publicPayload: clonePlain(entry.publicPayload || {})
     }))
@@ -697,6 +708,7 @@ function buildReplayTimeline(record, storage = null) {
     availability,
     presentationActionSchemaVersion: REPLAY_PRESENTATION_ACTION_VERSION,
     participants,
+    metadata: { mode: record.mode, ranked: record.ranked ?? null, rulesVersion: record.rulesVersion, contentVersion: record.contentVersion, startedAt: record.startedAt, turnCount: record.turnCount, formats: (record.participants || []).map((p) => ({ playerNum: p.playerNum, format: p.deck?.format || null, deckId: p.deck?.deckId || null, deckVersionId: p.deck?.deckVersionId || null })) },
     season: clonePlain(record.season || null),
     series: clonePlain(record.series || null),
     result: {

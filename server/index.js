@@ -3021,7 +3021,7 @@ app.get("/api/matches/:matchId/archive", async (req, res) => {
   }
 });
 
-app.get("/api/matches/:matchId/replay", async (req, res) => {
+app.get(["/api/matches/:matchId/replay", "/api/matches/:matchId/export/history"], async (req, res) => {
   const matchId = String(req.params.matchId || "");
   if (!/^[0-9a-f-]{36}$/i.test(matchId)) {
     res.status(400).json({ error: "Invalid match ID." });
@@ -3034,6 +3034,13 @@ app.get("/api/matches/:matchId/replay", async (req, res) => {
       return;
     }
     const replay = buildReplayTimeline(record, publicMatchStorageStatus());
+    if (req.path.endsWith("/export/history")) {
+      const { buildMatchTranscript, formatMatchTranscript } = require("../shared/match-history/transcript");
+      res.type("text/plain; charset=utf-8");
+      res.set("Content-Disposition", `attachment; filename="gauntlet-match-${matchId}.txt"`);
+      res.send(formatMatchTranscript(buildMatchTranscript(replay)));
+      return;
+    }
     res.json({ replay });
   } catch (error) {
     if (error?.name === "MatchReplayIntegrityError") {
@@ -7236,8 +7243,10 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
   if (internal.saveUndo !== false) {
     saveUndoSnapshot(roomState, playerNum, applied.actionLogEntry?.label || envelope.command.type);
   }
+  const historyBeforeGame = roomState.game;
   roomState.game = applied.state;
   captureLeagueEvidence(roomState.game, {
+    beforeGame: historyBeforeGame,
     commandId,
     actorPlayerNum: playerNum,
     command: envelope.command,

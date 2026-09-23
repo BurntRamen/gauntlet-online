@@ -241,6 +241,9 @@ function event(game, type, detail = {}) {
     id: `${game.matchId}-event-${game.eventSequence}`,
     sequence: game.eventSequence,
     revision: game.revision,
+    turn: game.turn,
+    phase: game.phase,
+    publicTotals: Object.fromEntries(Object.entries(game.players).map(([id, player]) => [id, { life: player.life, handCount: player.hand.length, deckCount: player.deck.length, discardCount: player.discard.length }])),
     type,
     ...detail
   };
@@ -249,7 +252,7 @@ function event(game, type, detail = {}) {
 // Public, immutable receipts only for cards revealed by combat/payment.
 function publicLogCard(card) {
   if (!card) return null;
-  return { id: card.id, name: card.name || "", rank: card.rank || "", suit: card.suit || "", value: cardValue(card) };
+  return { type: card.type || "playing-card", definitionId: card.definitionId || card.gameplayCardId || null, text: card.text || null, factionId: card.factionId || null, id: card.id, name: card.name || "", rank: card.rank || "", suit: card.suit || "", value: cardValue(card) };
 }
 
 function valueReceipt(entry) {

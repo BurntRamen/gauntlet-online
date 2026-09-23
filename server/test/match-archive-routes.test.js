@@ -100,6 +100,11 @@ test("Match Record, Replay, Para, JSON export, verify, and import use the same a
   const replay = await jsonRequest(`/api/matches/${record.matchId}/replay`);
   assert.equal(replay.response.status, 200);
   assert.equal(replay.body.replay.matchId, record.matchId);
+  const history = await fetch(`${origin}/api/matches/${record.matchId}/export/history`);
+  assert.equal(history.status, 200);
+  assert.match(history.headers.get("content-type"), /text\/plain/);
+  assert.match(history.headers.get("content-disposition"), /\.txt/);
+  assert.match(await history.text(), /Gauntlet Match #/);
 
   const firstPara = await jsonRequest(`/api/matches/${record.matchId}/export/para?version=2`);
   const secondPara = await jsonRequest(`/api/matches/${record.matchId}/export/para?version=2`);
