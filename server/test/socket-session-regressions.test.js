@@ -91,6 +91,31 @@ test("ranked carries each chosen faction and General from queue through the live
   assert.equal(room.ranked, true);
   first.disconnect(); second.disconnect();
 });
+
+test("classic ranked pairs only with classic ranked and starts without factions", async () => {
+  async function register(suffix) {
+    const response = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: `Classic${Date.now()}${suffix}`, password: "ClassicRankedTest42!" }) });
+    assert.equal(response.ok, true);
+    return response.json();
+  }
+  const a = await register("a");
+  const b = await register("b");
+  const first = await connect();
+  const second = await connect();
+  const matchedFirst = event(first, "assign");
+  const matchedSecond = event(second, "assign");
+  first.emit("joinMatchmaking", { authToken: a.token, gameMode: "basic" });
+  second.emit("joinMatchmaking", { authToken: b.token, gameMode: "basic" });
+  const [seat, opponent] = await Promise.all([matchedFirst, matchedSecond]);
+  const room = __test.rooms.get(seat.roomCode);
+  assert.equal(room.lobby.gameMode, "basic");
+  assert.equal(room.lobby.players[seat.playerNum].factionId, null);
+  assert.equal(room.lobby.players[opponent.playerNum].factionId, null);
+  await action(first, "startGame");
+  await action(second, "startGame");
+  assert.equal(room.game.gameMode, "basic");
+  first.disconnect(); second.disconnect();
+});
 after(async () => {
   sockets.forEach((socket) => socket.disconnect());
   await new Promise(setImmediate);

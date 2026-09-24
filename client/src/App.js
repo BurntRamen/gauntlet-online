@@ -3930,6 +3930,7 @@ export default function App() {
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
+  const [rankedGameMode, setRankedGameMode] = useState("factions");
   const [rankedFactionId, setRankedFactionId] = useState("rumin");
   const [rankedGeneralId, setRankedGeneralId] = useState(null);
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
@@ -5202,7 +5203,11 @@ export default function App() {
       return;
     }
     playMenuCue("commit");
-    socket.emit("joinMatchmaking", { authToken, bestOf, factionId: rankedFactionId, generalId: rankedGeneralId });
+    socket.emit("joinMatchmaking", {
+      authToken, bestOf, gameMode: rankedGameMode,
+      factionId: rankedGameMode === "factions" ? rankedFactionId : null,
+      generalId: rankedGameMode === "factions" ? rankedGeneralId : null
+    });
   }
 
   function leaveMatchmaking() {
@@ -5785,10 +5790,18 @@ export default function App() {
               {playView === "ranked" && (
                 <div className="play-ranked-grid">
                   <div>
-                    <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
-                      onChange={(factionId, generalId) => { setRankedFactionId(factionId); setRankedGeneralId(generalId); }} />
-                    <p>Ranked uses faction powers. Choose your faction and General, find an opponent, then confirm in the lobby. An active constructed deck matching both choices supplies your card replacements; otherwise you use the standard 52-card faction deck.</p>
-                    {account?.stats?.savedConstructedDeck && <MenuButton variant="secondary" disabled={matchmakingStatus.inQueue} onClick={() => {
+                    <fieldset disabled={matchmakingStatus.inQueue} style={{ border: "1px solid #64748b", borderRadius: 10, padding: 12, marginBottom: 12, color: "#e2e8f0" }}>
+                      <legend>Ranked format</legend>
+                      <label style={{ display: "block", marginBottom: 8 }}><input type="radio" name="ranked-format" checked={rankedGameMode === "factions"} onChange={() => setRankedGameMode("factions")} /> Faction Ranked — faction powers and one chosen General.</label>
+                      <label style={{ display: "block" }}><input type="radio" name="ranked-format" checked={rankedGameMode === "basic"} onChange={() => setRankedGameMode("basic")} /> Classic Ranked — the base Gauntlet game, without factions or faction powers.</label>
+                    </fieldset>
+                    {rankedGameMode === "factions" && <>
+                      <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
+                        onChange={(factionId, generalId) => { setRankedFactionId(factionId); setRankedGeneralId(generalId); }} />
+                      <p>Choose your faction and General, find an opponent, then confirm in the lobby. An active constructed deck matching both choices supplies your card replacements; otherwise you use the standard 52-card faction deck.</p>
+                    </>}
+                    {rankedGameMode === "basic" && <p>Classic Ranked uses the original standard 52-card deck. Factions, Generals, and constructed faction replacements are disabled.</p>}
+                    {rankedGameMode === "factions" && account?.stats?.savedConstructedDeck && <MenuButton variant="secondary" disabled={matchmakingStatus.inQueue} onClick={() => {
                       setRankedFactionId(account.stats.savedConstructedDeck.factionId);
                       setRankedGeneralId(account.stats.savedConstructedDeck.generalId || null);
                     }}>Use Active Deck</MenuButton>}
@@ -5799,10 +5812,10 @@ export default function App() {
                     status={matchmakingStatus}
                     onJoin={() => joinMatchmaking(1)}
                     onLeave={leaveMatchmaking}
-                    title={`${activeSeason?.displayName || "Season"} Ranked Duel`}
-                    description="Play ranked faction matches against another signed-in player. Your faction and General carry into the lobby. BO1 scores each match; BO3 scores the completed series."
-                    joinLabel="Find Ranked Match"
-                    extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find Ranked BO3</MenuButton>}
+                    title={`${activeSeason?.displayName || "Season"} ${rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked Duel`}
+                    description={rankedGameMode === "basic" ? "Play the original faction-free Gauntlet game against another signed-in player. BO1 scores each match; BO3 scores the completed series." : "Play ranked faction matches against another signed-in player. Your faction and General carry into the lobby. BO1 scores each match; BO3 scores the completed series."}
+                    joinLabel={`Find ${rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked Match`}
+                    extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find {rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked BO3</MenuButton>}
                   />
                   <ActiveSeasonMatches
                     season={activeSeason}
@@ -6154,7 +6167,7 @@ export default function App() {
             <div className="lobby-mode-row">
               <div><span>Room rules</span><small>{player === 1 ? "Choose before both players confirm." : "Player 1 controls the room mode."}</small></div>
               <div>
-                <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode}>Faction Mode</MenuButton>
+                <MenuButton onClick={() => setGameMode("factions")} disabled={player !== 1 || !isBasicMode || lobby?.ranked}>Faction Mode</MenuButton>
                 <MenuButton variant="secondary" onClick={() => setGameMode("basic")} disabled={player !== 1 || isBasicMode || lobby?.ranked}>Basic Mode</MenuButton>
               </div>
             </div>
