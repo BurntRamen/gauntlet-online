@@ -4699,7 +4699,10 @@ function findMatchForEntryInQueue(entry, queue) {
 }
 
 function findMatchForEntry(entry) {
-  return findMatchForEntryInQueue(entry, matchmakingQueue.filter((candidate) => (candidate.bestOf || 1) === (entry.bestOf || 1)));
+  return findMatchForEntryInQueue(entry, matchmakingQueue.filter((candidate) => (
+    (candidate.bestOf || 1) === (entry.bestOf || 1)
+    && (candidate.gameMode || "factions") === (entry.gameMode || "factions")
+  )));
 }
 
 function findDraftLeagueMatchForEntry(entry) {
@@ -4710,6 +4713,7 @@ function findDraftLeagueMatchForEntry(entry) {
 function createMatchedRoom(entryA, entryB) {
   const roomState = createRoom();
   roomState.ranked = true;
+  roomState.lobby.gameMode = entryA.gameMode === "basic" ? "basic" : "factions";
   roomState.season = buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1);
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
@@ -7666,7 +7670,7 @@ io.on("connection", (socket) => {
     });
   }
 
-  onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1, factionId, generalId } = {}) => {
+  onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1, gameMode = "factions", factionId, generalId } = {}) => {
     console.log("[Socket] joinMatchmaking");
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
@@ -7681,8 +7685,9 @@ io.on("connection", (socket) => {
 
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
-    const selectedFaction = factionId ? getFactionById(factionId, generalId) : null;
-    if (factionId && (!selectedFaction || selectedFaction.campaignOnly)) {
+    const selectedMode = gameMode === "basic" ? "basic" : "factions";
+    const selectedFaction = selectedMode === "factions" && factionId ? getFactionById(factionId, generalId) : null;
+    if (selectedMode === "factions" && factionId && (!selectedFaction || selectedFaction.campaignOnly)) {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Choose a valid ranked faction and General." });
       return;
     }
@@ -7694,6 +7699,7 @@ io.on("connection", (socket) => {
       accountName: account.name,
       profile: publicAccountProfile(account),
       bestOf: requestedBestOf,
+      gameMode: selectedMode,
       factionId: selectedFaction?.id || null,
       generalId: selectedFaction?.general?.id || null,
       savedConstructedDeck: savedDeck?.factionId === selectedFaction?.id
@@ -7712,10 +7718,12 @@ io.on("connection", (socket) => {
 
     matchmakingQueue.push(entry);
     socket.data.authToken = authToken || socket.data.authToken;
-    const queueSize = matchmakingQueue.filter((candidate) => (candidate.bestOf || 1) === requestedBestOf).length;
+    const queueSize = matchmakingQueue.filter((candidate) => (
+      (candidate.bestOf || 1) === requestedBestOf && (candidate.gameMode || "factions") === selectedMode
+    )).length;
     socket.emit("matchmakingStatus", {
       inQueue: true,
-      message: `Searching ${ACTIVE_SEASON.displayName} for a similar record${requestedBestOf === 3 ? " best-of-3" : ""} opponent... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
+      message: `Searching ${ACTIVE_SEASON.displayName} ${selectedMode === "basic" ? "Classic" : "Faction"} Ranked${requestedBestOf === 3 ? " best-of-3" : ""} for a similar record... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
       queueSize,
       bestOf: requestedBestOf,
       season: buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf)
@@ -8279,8 +8287,8 @@ io.on("connection", (socket) => {
     console.log(`[Socket] setGameMode: ${mode}`);
     const roomState = getRoomForSocket(socket);
     if (!roomState || roomState.game) return;
-    if (roomState.ranked && mode !== "factions") {
-      socket.emit("errorMessage", "Ranked duels use faction mode.");
+    if (roomState.ranked && mode !== getLobbyGameMode(roomState)) {
+      socket.emit("errorMessage", "Ranked format is locked when you enter the queue.");
       return;
     }
     if (isFreeForAllRoom(roomState)) {
