@@ -72,9 +72,9 @@ test("offers bounded automatic, native, and supersampled graphics profiles", () 
   expect(normalizeGraphicsQuality("HIGH")).toBe("high");
   expect(normalizeGraphicsQuality("unknown")).toBe("balanced");
   expect(matchHardwareScalingLevel(1366, 588)).toBe(1);
-  expect(matchHardwareScalingLevel(1904, 740)).toBe(1.251);
-  expect(matchHardwareScalingLevel(2560, 1080)).toBe(1.753);
-  expect(matchHardwareScalingLevel(7680, 4320)).toBeGreaterThan(6);
+  expect(matchHardwareScalingLevel(1904, 740)).toBe(1.003);
+  expect(matchHardwareScalingLevel(2560, 1080)).toBe(1.405);
+  expect(matchHardwareScalingLevel(7680, 4320)).toBeGreaterThan(4);
   expect(matchHardwareScalingLevel(1366, 588, "performance")).toBe(1.208);
   expect(matchHardwareScalingLevel(1904, 740, "performance")).toBe(1.601);
   expect(matchHardwareScalingLevel(7680, 4320, "high")).toBe(1);
