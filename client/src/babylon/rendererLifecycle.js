@@ -10,8 +10,8 @@ export const GRAPHICS_QUALITY_OPTIONS = Object.freeze([
   Object.freeze({
     id: DEFAULT_GRAPHICS_QUALITY,
     label: "Balanced",
-    description: "Automatically balances sharpness and performance.",
-    maxPixels: 900000
+    description: "Prioritizes sharp match text and cards while adapting to sustained frame pressure.",
+    maxPixels: 1400000
   }),
   Object.freeze({
     id: "high",

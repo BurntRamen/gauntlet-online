@@ -136,6 +136,21 @@ test("the eight-card hands remain clear of physical payment, pile, and combat mo
   });
 });
 
+test("desktop hands use readable cards with distinct card slots", () => {
+  [BOARD_LAYOUT_PROFILES.desktop, BOARD_LAYOUT_PROFILES.ultrawide].forEach((profile) => {
+    const positions = Array.from({ length: 8 }, (_, slotIndex) => resolveActorPosition({
+      zone: { kind: "hand", side: "local", role: "hand", slotIndex, count: 8 }
+    }, profile));
+    const cardWidth = 2.3 * positions[0].scale;
+    const smallestSpread = Math.min(...positions.slice(1).map((position, index) => (
+      position.x - positions[index].x
+    )));
+
+    expect(positions[0].scale).toBeGreaterThanOrEqual(0.86);
+    expect(smallestSpread).toBeGreaterThanOrEqual(cardWidth * 0.9);
+  });
+});
+
 test("short-landscape camera preserves a readable share of the battlefield width", () => {
   const projection = getTableCameraProjection(836, 268);
   const profile = getBoardLayoutProfile(836, 268);
