@@ -92,11 +92,6 @@ test("compiled Babylon client meets local cold-load performance safeguards", asy
       maxCanvasBufferPixels: Math.max(...samples.map((sample) => sample.canvasBufferPixels)),
       samples
     });
-    expect(p95UsableSceneMs).toBeLessThan(profile.p95BudgetMs);
-    expect(Math.max(...samples.map((sample) => sample.sceneMeshCount))).toBeLessThan(520);
-    expect(Math.min(...samples.map((sample) => sample.frozenBoardMeshCount))).toBeGreaterThan(300);
-    expect(Math.max(...samples.map((sample) => sample.canvasBufferPixels))).toBeLessThanOrEqual(910000);
-    expect(samples.every((sample) => sample.graphicsQuality === "balanced")).toBe(true);
   }
 
   fs.mkdirSync(OUTPUT_DIRECTORY, { recursive: true });
@@ -104,4 +99,12 @@ test("compiled Babylon client meets local cold-load performance safeguards", asy
     path.join(OUTPUT_DIRECTORY, "current.json"),
     `${JSON.stringify(report, null, 2)}\n`
   );
+
+  for (const profile of report.profiles) {
+    expect(profile.p95UsableSceneMs).toBeLessThan(profile.p95BudgetMs);
+    expect(profile.maxSceneMeshCount).toBeLessThan(520);
+    expect(profile.minFrozenBoardMeshCount).toBeGreaterThan(300);
+    expect(profile.maxCanvasBufferPixels).toBeLessThanOrEqual(910000);
+    expect(profile.samples.every((sample) => sample.graphicsQuality === "balanced")).toBe(true);
+  }
 });
