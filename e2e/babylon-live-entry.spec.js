@@ -1048,9 +1048,9 @@ test("Mekan and a chosen General enter a ranked match from the queue picker", as
     await prepareAccount(secondPage, secondAccount.token, baseURL);
     await firstPage.getByLabel("Ranked faction").selectOption("mekan");
     await firstPage.getByLabel("Deck General").selectOption("hui");
-    await firstPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await firstPage.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
     await expect(firstPage.getByLabel("Ranked faction")).toBeDisabled();
-    await secondPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await secondPage.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
     await expect(firstPage.getByText("Table Command")).toBeVisible();
     await expect(firstPage.getByLabel("Deck General")).toHaveValue("hui");
     await expect(firstPage.getByRole("button", { name: "Basic Mode" })).toBeDisabled();
@@ -1082,10 +1082,10 @@ test("normal ranked best-of-three entry advances to game two inside the same Bab
 
   await prepareAccount(firstPage, firstAccount.token, baseURL);
   await prepareAccount(secondPage, secondAccount.token, baseURL);
-  await expect(firstPage.getByRole("button", { name: "Find Ranked BO3" })).toBeEnabled();
-  await expect(secondPage.getByRole("button", { name: "Find Ranked BO3" })).toBeEnabled();
-  await firstPage.getByRole("button", { name: "Find Ranked BO3" }).click();
-  await secondPage.getByRole("button", { name: "Find Ranked BO3" }).click();
+  await expect(firstPage.getByRole("button", { name: "Find Faction Ranked BO3" })).toBeEnabled();
+  await expect(secondPage.getByRole("button", { name: "Find Faction Ranked BO3" })).toBeEnabled();
+  await firstPage.getByRole("button", { name: "Find Faction Ranked BO3" }).click();
+  await secondPage.getByRole("button", { name: "Find Faction Ranked BO3" }).click();
   await expect(firstPage.getByText("Table Command")).toBeVisible();
   await expect(secondPage.getByText("Table Command")).toBeVisible();
 

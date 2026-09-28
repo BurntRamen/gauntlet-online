@@ -136,8 +136,8 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-7.35, 0, 7.35],
       lane: { local: -2.85, opponent: 2.55, attacker: 1.25, blocker: -1.25, center: -0.05 },
-      hand: { localX: -0.35, localZ: -7.05, opponentX: 0, opponentZ: 8.25, localScale: 0.98, opponentScale: 0.52 },
-      combat: { x: 0, z: 5.3, attackerX: -2.2, blockerX: 2.05, attachmentX: -4.2 },
+      hand: { localX: -0.8, localZ: -7.05, opponentX: 0, opponentZ: 8.25, localScale: 1, opponentScale: 0.52 },
+      combat: { x: 0, z: 5.3, attackerX: -2.35, blockerX: 2.25, attachmentX: -4.5 },
       payment: { x: 10.75, z: -6.35 },
       piles: {
         localDeck: { x: -12.6, z: -6.75 },
@@ -196,7 +196,7 @@ export const BOARD_LAYOUT_PROFILES = Object.freeze({
     anchors: {
       laneX: [-6.91, 0, 6.91],
       lane: { local: -1.46, opponent: 1.28, attacker: 1.08, blocker: -1.08, center: -0.03 },
-      hand: { localX: -0.25, localZ: -4.55, opponentX: 0, opponentZ: 5.28, localScale: 0.82, opponentScale: 0.48 },
+      hand: { localX: -0.25, localZ: -4.55, opponentX: 0, opponentZ: 5.28, localScale: 0.86, opponentScale: 0.48 },
       combat: { x: 0, z: 2.86, attackerX: -2.07, blockerX: 1.93, attachmentX: -3.95 },
       payment: { x: 10.11, z: -4.19 },
       piles: {

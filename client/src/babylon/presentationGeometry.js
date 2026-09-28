@@ -17,11 +17,11 @@ function handPosition(actor, profile) {
   const scale = local ? hand.localScale : hand.opponentScale;
   const availableWidth = profile.id === "portrait" ? 14.4 : profile.id === "short-landscape" ? 22.2 : 24.5;
   const maximumSpread = local
-    ? (profile.id === "portrait" ? 1.5 : profile.id === "short-landscape" ? 1.62 : 1.86)
+    ? (profile.id === "portrait" ? 1.5 : profile.id === "short-landscape" ? 1.62 : profile.id === "ultrawide" ? 1.85 : 2.1)
     : (profile.id === "portrait" ? 1.02 : 1.34);
   const spread = count <= 1
     ? 0
-    : Math.min(maximumSpread, Math.max(CARD_WIDTH * scale * 0.72, (availableWidth - CARD_WIDTH * scale) / (count - 1)));
+    : Math.min(maximumSpread, Math.max(CARD_WIDTH * scale * 0.9, (availableWidth - CARD_WIDTH * scale) / (count - 1)));
   return {
     x: (local ? hand.localX : hand.opponentX) + centered * spread,
     y: local ? 0.62 : 0.88,
@@ -59,19 +59,19 @@ function combatPosition(actor, profile) {
   const centered = centeredIndex(index, count);
   const handCombat = actor.zone.laneIndex == null;
   const baseScale = handCombat
-    ? role === "blocker" ? 0.8 : role === "attachment" ? 0.56 : 0.88
-    : role === "blocker" ? 0.56 : role === "attachment" ? 0.44 : 0.62;
+    ? role === "blocker" ? 0.86 : role === "attachment" ? 0.62 : 0.96
+    : role === "blocker" ? 0.58 : role === "attachment" ? 0.48 : 0.64;
   const profileScale = handCombat
     ? profile.id === "portrait"
       ? 0.82
       : profile.id === "short-landscape"
-        ? 0.78
+        ? 0.71
         : profile.id === "ultrawide"
-          ? 0.84
+          ? 0.77
           : 1
-    : profile.id === "portrait" ? 0.9 : 1;
+    : profile.id === "portrait" ? 0.9 : profile.id === "short-landscape" ? 0.82 : profile.id === "ultrawide" ? 0.95 : 1;
   const scale = baseScale * profileScale;
-  const spread = CARD_WIDTH * scale + 0.16;
+  const spread = CARD_WIDTH * scale + 0.22;
   const ownerRotation = actor.zone.side === "opponent" ? Math.PI : 0;
   if (handCombat) {
     const anchor = resolveBoardAnchor(

@@ -279,9 +279,10 @@ function createCardBackTexture(scene) {
 }
 
 function createZoneLabelTexture(scene, name, label, accent = MATCH_COLORS.bronze) {
-  const texture = new DynamicTexture(name, { width: 128, height: 128 }, scene, true);
+  const texture = new DynamicTexture(name, { width: 256, height: 256 }, scene, true);
   texture.hasAlpha = true;
   const context = texture.getContext();
+  context.scale(2, 2);
   context.clearRect(0, 0, 128, 128);
   context.strokeStyle = accent;
   context.lineWidth = 2;

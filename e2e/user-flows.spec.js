@@ -140,7 +140,7 @@ test("sign-out cancels ranked matchmaking and a new identity cannot inherit the 
   await signedIn(page, baseURL, old);
   await page.locator('button[data-area="play"]').click();
   await page.getByRole("tab", { name: "Ranked" }).click();
-  await page.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+  await page.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
   await expect(page.getByText(/Searching Season Zero/)).toBeVisible();
   await page.locator('button[data-area="identity"]').click();
   await page.getByRole("button", { name: "Sign Out" }).click();
@@ -164,7 +164,7 @@ test("sign-out cancels ranked matchmaking and a new identity cannot inherit the 
     await oldResponse;
     await page.locator('button[data-area="play"]').click();
     await page.getByRole("tab", { name: "Ranked" }).click();
-    await page.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await page.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
     await expect(page.getByText("Table Command")).toBeVisible();
     await expect(page.getByText(next.account.name, { exact: true })).toBeVisible();
     await expect(page.getByText(old.account.name, { exact: true })).toHaveCount(0);
