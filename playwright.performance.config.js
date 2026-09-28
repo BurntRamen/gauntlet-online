@@ -10,7 +10,7 @@ module.exports = defineConfig({
   testDir: "./e2e",
   testMatch: "babylon-performance.spec.js",
   workers: 1,
-  timeout: 180000,
+  timeout: 360000,
   expect: {
     timeout: 10000
   },

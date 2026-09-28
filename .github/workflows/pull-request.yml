@@ -54,3 +54,12 @@ jobs:
 
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
+
+      - name: Upload Babylon performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babylon-performance-report
+          path: artifacts/babylon-performance/current.json
+          if-no-files-found: warn
+          retention-days: 7
