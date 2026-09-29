@@ -834,6 +834,15 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   );
 }
 
+function CardRulesDetails({ card }) {
+  if (!card.text && !card.rulesText) return null;
+  return <details className="card-rules-details">
+    <summary>Full rules &amp; keywords</summary>
+    <p>{card.text || card.rulesText}</p>
+    <a href={`/card-keywords.html#${card.gameplayCardId || card.definitionId || card.id}`} target="_blank" rel="noreferrer">Read keyword guide ↗</a>
+  </details>;
+}
+
 function CardInspectModal({ card, onClose, artFactionId }) {
   if (!card) return null;
   const suit = getSuitSymbol(card.suit);
@@ -843,8 +852,9 @@ function CardInspectModal({ card, onClose, artFactionId }) {
   if (playingCardArt) {
     return (
       <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.82)", display: "grid", placeItems: "center", padding: 18 }}>
-        <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "hidden", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
-          <img src={resolveAssetPath(playingCardArt)} alt={`${getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "90dvh", objectFit: "contain", display: "block" }} />
+        <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "auto", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
+          <img src={resolveAssetPath(playingCardArt)} alt={`${card.name || getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "78dvh", objectFit: "contain", display: "block" }} />
+          <CardRulesDetails card={card} />
           <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: "1px solid rgba(255,255,255,0.45)", borderRadius: 4, background: "rgba(7,16,26,0.9)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
         </div>
       </div>
@@ -1598,7 +1608,8 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
       <div className="card-art-inspector-copy">
         <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
         <h4>{card.name}</h4>
-        <p>{card.text}</p>
+        <p>{card.displayText || card.text}</p>
+        <CardRulesDetails card={card} />
         <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
       </div>
       {expanded && <CardInspectModal card={card} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
@@ -2515,7 +2526,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
                   </div>
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
-                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
+                  <div style={{ color: "#e5e7eb", fontSize: 14, lineHeight: 1.35 }}>{card.displayText || card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
                   </div>
                 </button>
@@ -3702,6 +3713,7 @@ function RulebookPanel() {
 
   return (
     <section className="field-rulebook-panel">
+      <a className="card-keyword-link" href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
       <img
         className="field-rulebook-art"
         src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}

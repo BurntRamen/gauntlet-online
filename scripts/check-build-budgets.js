@@ -7,8 +7,9 @@ const KIB = 1024;
 const budgets = {
   mainGzip: 175 * KIB,
   largestAsyncGzip: 350 * KIB,
-  // Legacies preview plus shared Mekan rules and ranked loadout selection.
-  totalJavaScriptGzip: 705 * KIB
+  // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
+  // The 72-card guide stays in static HTML, outside the application bundle.
+  totalJavaScriptGzip: 706 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

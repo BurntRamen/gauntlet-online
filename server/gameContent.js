@@ -1,7 +1,8 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v8";
+const CONTENT_VERSION = "gauntlet-content-v9";
+const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
@@ -673,6 +674,7 @@ const BIZI_COLLECTION_CARDS = [
 
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
 for (const card of COLLECTION_CARDS) {
+  card.displayText = getCardWording(card);
   card.gameplayCardId = card.id;
   card.freeAcquisition = FREE_GAMEPLAY_ACQUISITION;
   card.defaultVariantId = `${card.id}:standard`;

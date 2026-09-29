@@ -7,5 +7,6 @@
 .special-card-corner > b { font: 700 30cqw/.8 "Times New Roman", serif; transform: scaleX(.9); margin-bottom: 3cqw; }
 .has-two-digit-rank .special-card-corner > b { transform: scaleX(.6); }
 .special-card-corner.is-bottom { inset: auto 2% 5.7% auto; transform: rotate(180deg); }
-.special-card-caption { position: absolute; z-index: 1; left: 6.4%; right: 25%; bottom: 7%; display: grid; gap: 3cqw; color: #35352e; font: 2.6cqw/1.4 Arial, sans-serif; }
+.special-card-caption { position: absolute; z-index: 1; left: 6.4%; right: 27%; bottom: 7%; display: grid; gap: 3cqw; color: #35352e; font: 2.6cqw/1.4 Arial, sans-serif; }
+.special-card-caption.is-concise { font-size: 4.8cqw; line-height: 1.2; }
 .special-card-name { color: #27271f; font: 700 4.4cqw/1.15 Georgia, serif; }

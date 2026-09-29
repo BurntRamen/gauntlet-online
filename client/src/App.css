@@ -3094,3 +3094,8 @@ textarea:focus-visible {
 .deck-composition[open] > summary { margin-bottom: 12px; }
 .workshop-browser > .card-art-inspector { position: sticky; top: 12px; }
 .card-art-inspector-image:focus-visible { outline: 2px solid #f1c779; outline-offset: -3px; border-radius: 8px; }
+.card-rules-details { padding: 10px; color: #e5e7eb; font: 14px/1.5 Arial, sans-serif; }
+.card-rules-details summary { cursor: pointer; color: #f1cc88; }
+.card-rules-details a, .card-keyword-link { color: #f1cc88; text-underline-offset: 3px; }
+.card-keyword-link { display: inline-block; margin: 12px; font-size: 16px; }
+.card-art-inspector-copy > p { font-size: 17px; line-height: 1.4; }

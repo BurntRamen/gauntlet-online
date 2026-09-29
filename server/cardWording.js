@@ -1,0 +1,106 @@
+"use strict";
+
+// Presentation only. Full rules and the duel engine remain authoritative.
+const WORDING_VERSION = "card-wording-v1";
+const CONVENTIONS = [
+  "Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.",
+  "First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.",
+  "+N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.",
+  "May, choose and up to preserve your choices. A keyword never grants an extra action or changes when an ability can be used. Full rules remain available for every card."
+];
+const KEYWORDS = [
+  { word: "Arm", example: "Arm +2", meaning: "You may reveal this armament from your lane and attach it to an eligible attacker from your hand. Give that attacker the stated value bonus for this combat, then discard the armament. Normal arming limits still apply." },
+  { word: "Heal", example: "Heal 1", meaning: "Gain the stated amount of life." },
+  { word: "Ward", example: "Ward 1", meaning: "Prevent the stated amount of damage from the current attack." },
+  { word: "Charge", example: "Charge 1", meaning: "Gain the stated number of acceleration counters. A ‘charge’ is an acceleration counter; this wording does not create a new resource." },
+  { word: "Spend", example: "May spend 1: +2 value", meaning: "Remove that many acceleration counters to get the stated effect. ‘May’ keeps the choice optional; ‘up to’ lets you choose the amount." },
+  { word: "Overpay", example: "Overpay 2", meaning: "Pay at least the stated amount more than the required cost. ‘Overpaid’ without a number means any positive excess. The card or action named on the card limits which payment qualifies." },
+  { word: "Peek", example: "May peek at your top card", meaning: "Privately look at the specified card without moving or revealing it to your opponent." },
+  { word: "Swap", example: "After a swap", meaning: "Exchange a lane card with a card in your hand, or switch two of your lane cards. ‘Hand–lane swap’ specifically requires the hand exchange. An effect that ‘counts as a swap’ triggers Frumo swap checks without exchanging cards." },
+  { word: "Clean", example: "Clean block: Heal 1", meaning: "You blocked an attack and took no damage from that attack. It does not mean you took no damage during the entire turn." },
+  { word: "Sequence", example: "Ristus sequence: +1 value", meaning: "A consecutive-value play: this card's value is exactly one above or below your last card played. ‘Ristus sequence’ specifically requires the Ristus bonus; it does not grant it again." }
+];
+
+const CARD_WORDING = {
+  "rumin-gilded-scale-legionary": "Arm. Diamond paid this turn: +2 value.",
+  "rumin-forum-ledger-runner": "First attack: may add +1 to one payment card.",
+  "rumin-vault-shield-bearer": "Block, if overpaid: Ward 1.",
+  "rumin-coin-scale-spear": "Arm +2.",
+  "rumin-senate-vault-guard": "Overpay 2 for this: Heal 1. Once.",
+  "rumin-marble-market-tribune": "After attacking: next Rumin armament you arm gives +1 extra value.",
+  "rumin-rumie-vault-shield": "Arm +3.",
+  "rumin-imperial-scale-pike": "Arm +2. Same suit as your last attack: +4 instead.",
+  "rumin-aurelian-clawblade": "Arm +4. Overpay 2 for the attack: Heal 1.",
+  "rumin-basilisk-standard": "Fourth attack, if armed: +2 value.",
+  "rumin-jewel-bank-contract": "After attacking or blocking: next Rumin attack may add +2 to its lone payment card.",
+  "rumin-tax-road-scout": "First attack: costs 1 less.",
+  "rumin-marble-phalanx": "Lane block: +2 value.",
+  "rumin-counting-house-aegis": "Overpay 2 for a Rumin card: Heal 1. Once.",
+  "rumin-triumphal-ram": "Arm +4. Attacker value 8+: +5 instead.",
+  "rumin-edict-of-the-vault": "Pay for fourth attack: pays +3.",
+  "rumin-kaisers-gold-claw": "Arm +5. Fourth attack: +6 instead.",
+  "rumin-rumie-market-colossus": "Attack: may arm any eligible Rumin armaments. Each gives +1 extra value.",
+  "sheen-rootwatch-initiate": "Second+ block: +1 value.",
+  "sheen-quiet-grove-sentinel": "Clean block: Heal 1.",
+  "sheen-mossbound-staff": "Pay for block: blocker +1 value.",
+  "sheen-living-bark-guard": "Block a hand attack: +1 value.",
+  "sheen-beli-vinebinder": "After second block: next attack +1 value.",
+  "sheen-harmony-ward": "Pay for second+ block: pays +1.",
+  "sheen-thornroot-counterstroke": "No damage taken this turn: attack +2 value.",
+  "sheen-beli-canopy-shield": "After your block: Ward 1. Once.",
+  "sheen-nus-verdant-edict": "Third block: +1 value.",
+  "sheen-roots-that-remember": "Heal from blocking: next block +1 value.",
+  "sheen-tangs-patient-hand": "After second block: Heal 1. Draw 1 at turn end.",
+  "sheen-seedwall-acolyte": "Block the first incoming attack: +1 value.",
+  "sheen-raincall-mender": "Clean block: Heal 1.",
+  "sheen-ringroot-bastion": "Lane block: +2 value.",
+  "sheen-sapling-chorus": "Pay for second+ block: blocker +1 value.",
+  "sheen-nus-calm-command": "After 3+ blocks: attack +3 value.",
+  "sheen-emperors-heartwood": "Your blocks: +1 value. Third+ block: Heal 1.",
+  "sheen-beli-awakened": "After your clean block: may attack with +3 value this turn.",
+  "frumo-deckhand-diver": "Enter: may peek at your top deck card.",
+  "frumo-tideglass-cutlass": "Lane attack, if you swapped this turn: +2 value.",
+  "frumo-sunken-coin": "Pay, with an empty lane: pays +1.",
+  "frumo-coral-hull-guard": "Lane block: +1 value. Counts as a swap this turn.",
+  "frumo-riptide-smuggler": "Your first face-down peek: +1 value this turn.",
+  "frumo-lafayettes-chart": "After a hand–lane swap: next payment card pays +1.",
+  "frumo-pressure-lock-pistol": "Sequence attack: +2 value.",
+  "frumo-ristus-blackwake": "Lane attack, with an empty lane: +1 value.",
+  "frumo-captains-bad-wager": "Lane attack after your even-value play: +3 value this turn.",
+  "frumo-poleas-sunken-order": "One extra Polea mode this turn. Your cards only.",
+  "frumo-leviathan-salvage": "Your first play gets a sequence bonus: Heal 1.",
+  "frumo-kelpcloak-trickster": "Enter: counts as a swap this turn.",
+  "frumo-ballast-hook": "Lane attack, with an empty lane: +1 value.",
+  "frumo-tide-debt-ledger": "After a swap: next payment card pays +1.",
+  "frumo-abyssal-switchboard": "Enter: next attack or block +1 value.",
+  "frumo-poleas-moonlit-map": "Ristus sequence: +1 value.",
+  "frumo-the-last-gamble": "Peek at a face-down card. Choose attack or block: next of that kind +4 value.",
+  "frumo-ristus-rises": "Enter: +1 value this turn. Counts as a swap.",
+  "bizi-copperline-technician": "Overpay 2 for this: Charge 1.",
+  "bizi-voltage-ration": "Pay for Bizi: pays +1. Once.",
+  "bizi-dune-circuit-runner": "Attack, new suit: +1 value.",
+  "bizi-gearplate-shield": "Block: may spend 1 for +2 value.",
+  "bizi-heras-calibration": "Pay for Bizi: pays +2.",
+  "bizi-solar-array-adept": "Each charge gained: +1 value this turn.",
+  "bizi-constanti-conduit": "Your first two new-suit attacks: +1 value.",
+  "bizi-sandstorm-processor": "2+ charges: may attack with +2 value.",
+  "bizi-focus-overclock": "Spend 1: target card +3 value this turn instead of +1.",
+  "bizi-regnum-voltage-bank": "Overpay 2: Heal 1 and Charge 1. Once.",
+  "bizi-desert-logic-engine": "Your new-suit attacks: +2 value.",
+  "bizi-brass-spark": "Pay for your first Bizi card: pays +1.",
+  "bizi-railspike-marshal": "Attack, new suit: +1 value.",
+  "bizi-heat-sink-matrix": "Block: may spend 1 for +2 value.",
+  "bizi-clockwork-caravan": "Overpay 2 for this: draw 1 extra at turn end. Once.",
+  "bizi-voltaric-ultimatum": "May spend 2: attack +5 value.",
+  "bizi-focus-prime-signal": "Charge 2. Next card: may add +1 per charge, up to +4 value.",
+  "bizi-constanti-sunforge": "Attack: may spend up to 3. +2 value per charge spent."
+};
+
+// ‘New suit’ always compares attacks, never payments or other card plays.
+CONVENTIONS.push("New suit means a different suit from your previous attack this turn. Your first attack has no previous suit, so it cannot qualify. ‘Empty lane’ means an empty lane you control.");
+
+function getCardWording(card) {
+  return CARD_WORDING[card.gameplayCardId || card.definitionId || card.id] || card.displayText || card.text || card.rulesText || "";
+}
+
+module.exports = { WORDING_VERSION, CONVENTIONS, KEYWORDS, CARD_WORDING, getCardWording };

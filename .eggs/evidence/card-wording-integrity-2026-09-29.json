@@ -1,0 +1,14 @@
+{
+  "verifiedAt": "2026-09-29T23:34:12.839Z",
+  "unchangedFullRulesAndCardFacts": true,
+  "factsSha256": "5fafd648b7ccc522509e3d364d91689ddc548a4231ae1a30178beab7a6512e6f",
+  "cards": 72,
+  "faces": 288,
+  "originalChars": 5921,
+  "conciseChars": 2758,
+  "reductionPercent": 53,
+  "ruleFontBefore": 13,
+  "ruleFontAfter": 24,
+  "rulesEngineDiff": "",
+  "illustrationsDiff": ""
+}
