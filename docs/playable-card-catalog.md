@@ -1,6 +1,6 @@
 # Playable card catalog
 
-Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v6` and rules version `gauntlet-rules-v2`.
+Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v7` and rules version `gauntlet-rules-v2`.
 
 Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Constructed cards replace matching standard slots; they do not increase the deck above 52 cards.
 
@@ -66,16 +66,16 @@ Edit Commander, General, and City definitions in `server/gameContent.js`. The Le
 | 2 | shelter | Mossbound Staff | `sheen-mossbound-staff` | When paid for a block, the first blocking card gets +1 value. |
 | 5 | shelter | Living Bark Bastion | `sheen-living-bark-guard` | This may block hand attacks as though it had +1 value. |
 | 5 | shelter | Beli Vinebinder | `sheen-beli-vinebinder` | After your second block each turn, your next attack gets +1 value. |
-| 4 | shelter | Harmony Ward | `sheen-harmony-ward` | When you block with two or more cards, one payment card may pay +1 value. |
+| 4 | shelter | Harmony Ward | `sheen-harmony-ward` | When paid for your second or later block each turn, this pays +1 additional value. |
 | 6 | shelter | Thornroot Counterstroke | `sheen-thornroot-counterstroke` | If you took no damage this turn, this gets +2 value while attacking. |
 | 6 | shelter | Beli Canopy Shield | `sheen-beli-canopy-shield` | Once each turn, after you block, prevent 1 additional damage. |
 | 7 | shelter | Nu's Verdant Edict | `sheen-nus-verdant-edict` | Your third block this turn gets +3 value instead of +2. |
 | 5 | shelter | Roots That Remember | `sheen-roots-that-remember` | Whenever you gain life from blocking, your next block this turn gets +1 value. |
-| 6 | shelter | Tang's Meditation Garden | `sheen-tangs-patient-hand` | After your second block each turn, gain 2 life and draw a card at end of turn. |
+| 6 | shelter | Tang's Meditation Garden | `sheen-tangs-patient-hand` | After your second block each turn, gain 1 life and draw a card at end of turn. |
 | 2 | shelter | Seedwall Acolyte | `sheen-seedwall-acolyte` | When this blocks the first incoming attack each turn, it gets +1 value. |
 | 4 | shelter | Raincall Mender | `sheen-raincall-mender` | After this blocks, gain 1 life if you took no damage from that attack. |
 | 7 | shelter | Ringroot Bastion | `sheen-ringroot-bastion` | When this blocks from a lane, it gets +2 value. |
-| 3 | shelter | Sapling Chorus | `sheen-sapling-chorus` | When you block with two or more cards, your first blocker gets +1 value. |
+| 3 | shelter | Sapling Chorus | `sheen-sapling-chorus` | When paid for your second or later block each turn, that blocker gets +1 value. |
 | 8 | shelter | Nu's Calm Command | `sheen-nus-calm-command` | If you have blocked three or more times this turn, this attacks with +3 value. |
 | 9 | shelter | Emperor's Heartwood | `sheen-emperors-heartwood` | Your blocking cards get +1 additional value. If it is your third or later block this turn, gain 1 life. |
 | 10 | shelter | Beli Awakened | `sheen-beli-awakened` | After you block without taking damage, this may attack with +3 value this turn. |

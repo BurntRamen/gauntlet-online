@@ -1,6 +1,6 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v7";
+const RULES_VERSION = "gauntlet-duel-v8";
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
@@ -8,7 +8,7 @@ const indela = require("./indela");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v4";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v5";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -543,7 +543,7 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
   }
   if (
     context.action === "block"
-    && context.blockCards?.length >= 2
+    && Number(player.turnData.blocksDeclaredThisTurn || 0) >= 1
     && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))
   ) {
     bonus += 1;
@@ -1079,7 +1079,7 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
     gainLifeFromBlocking(
       game,
       playerNumber,
-      2,
+      1,
       "Tang's Meditation Garden",
       blockEntries[0].notes,
       events
@@ -1872,7 +1872,7 @@ function applyCommand(current, rawCommand) {
       blockEntries[0].valueNotes.push("Mossbound Staff +1");
     }
     if (
-      blockEntries.length >= 2
+      Number(actor.turnData.blocksDeclaredThisTurn || 0) >= 1
       && payment.cards.some((card) => cardIs(card, "sheen-sapling-chorus"))
     ) {
       blockEntries[0].effectiveValue += 1;

@@ -1177,19 +1177,33 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
   test.each([
     {
+      definitionId: "sheen-harmony-ward",
+      blockerCount: 1,
+      paymentValue: 1,
+      note: "Harmony Ward payment +1",
+      configure: (state) => {
+        state.players[2].turnData.blocksDeclaredThisTurn = 1;
+      }
+    },
+    {
       definitionId: "sheen-mossbound-staff",
       blockerCount: 1,
       note: "Mossbound Staff +1"
     },
     {
       definitionId: "sheen-sapling-chorus",
-      blockerCount: 2,
-      note: "Sapling Chorus +1"
+      blockerCount: 1,
+      note: "Sapling Chorus +1",
+      configure: (state) => {
+        state.players[2].turnData.blocksDeclaredThisTurn = 1;
+      }
     }
   ])("$definitionId payment preserves single-block enforcement", ({
     definitionId,
     blockerCount,
-    note
+    paymentValue = blockerCount * 2,
+    note,
+    configure = () => {}
   }) => {
     let state = setupFaction("rumin", "sheen");
     const attacker = state.players[1].hand[0];
@@ -1207,8 +1221,9 @@ describe("shared Basic Gauntlet simulator rules", () => {
       card.value = 2;
     });
     const payment = state.players[2].hand[blockerCount];
-    payment.value = blockerCount * 2;
-    makeConstructed(payment, definitionId, { type: "relic" });
+    payment.value = paymentValue;
+    makeConstructed(payment, definitionId, { type: "shelter" });
+    configure(state);
 
     const result = applyCommand(state, {
       type: "declareHandBlock",
@@ -1218,12 +1233,6 @@ describe("shared Basic Gauntlet simulator rules", () => {
       paymentCardIds: [payment.id]
     });
 
-    if (blockerCount > 1) {
-      expect(result.accepted).toBe(false);
-      expect(result.rejectionReason).toMatch(/exactly one/i);
-      expect(result.state).toBe(state);
-      return;
-    }
     expect(result.accepted).toBe(true);
     expect(result.state.handAttacks[0].block[0].notes).toContain(note);
   });
@@ -1696,11 +1705,11 @@ describe("shared Basic Gauntlet simulator rules", () => {
     });
 
     expect(result.accepted).toBe(true);
-    expect(result.state.players[2].life).toBe(lifeBefore + 4);
+    expect(result.state.players[2].life).toBe(lifeBefore + 3);
     expect(result.state.players[2].turnData.sheenEndTurnDraws).toBe(1);
     expect(result.state.players[2].turnData.sheenNextBlockBonus).toBe(2);
     expect(result.state.handAttacks[0].block[0].notes).toEqual(expect.arrayContaining([
-      "Tang's Meditation Garden +2 life",
+      "Tang's Meditation Garden +1 life",
       "Tang's Meditation Garden end-turn draw"
     ]));
   });

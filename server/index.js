@@ -6019,7 +6019,7 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
     total += 3;
     notes.push("Edict of the Vault payment +3");
   }
-  if (context.action === "block" && context.blockCards?.length >= 2 && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))) {
+  if (context.action === "block" && player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))) {
     total += 1;
     notes.push("Harmony Ward payment +1");
   }
@@ -6161,7 +6161,7 @@ function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCard
     blockEntries[0].effectiveValue += 1;
     blockEntries[0].notes.push("Mossbound Staff block +1");
   }
-  if (blockEntries.length >= 2 && paymentCards.some((card) => cardIs(card, "sheen-sapling-chorus"))) {
+  if (player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-sapling-chorus"))) {
     blockEntries[0].effectiveValue += 1;
     blockEntries[0].notes.push("Sapling Chorus block +1");
   }
@@ -6183,7 +6183,7 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
     blockEntries[0]?.notes.push("Beli Vinebinder next attack +1");
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
-    gainLifeFromBlocking(game, playerNum, 2, blockEntries[0]?.notes || []);
+    gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
     player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
     blockEntries[0]?.notes.push("Tang's Meditation Garden draw at end of turn");
   }

@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v6";
+const CONTENT_VERSION = "gauntlet-content-v7";
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
@@ -229,7 +229,7 @@ const SHEEN_COLLECTION_CARDS = [
     type: "shelter",
     rarity: "uncommon",
     value: 4,
-    text: "When you block with two or more cards, one payment card may pay +1 value."
+    text: "When paid for your second or later block each turn, this pays +1 additional value."
   },
   {
     id: "sheen-thornroot-counterstroke",
@@ -274,7 +274,7 @@ const SHEEN_COLLECTION_CARDS = [
     type: "shelter",
     rarity: "rare",
     value: 6,
-    text: "After your second block each turn, gain 2 life and draw a card at end of turn."
+    text: "After your second block each turn, gain 1 life and draw a card at end of turn."
   },
   {
     id: "sheen-seedwall-acolyte",
@@ -310,7 +310,7 @@ const SHEEN_COLLECTION_CARDS = [
     type: "shelter",
     rarity: "uncommon",
     value: 3,
-    text: "When you block with two or more cards, your first blocker gets +1 value."
+    text: "When paid for your second or later block each turn, that blocker gets +1 value."
   },
   {
     id: "sheen-nus-calm-command",

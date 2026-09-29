@@ -140,6 +140,24 @@ test("requires card-specific constructed behavior coverage for the full catalog"
   assert.deepEqual(missing, []);
 });
 
+test("keeps an explicit deterministic rules test for every constructed card", () => {
+  const behaviorTests = [
+    path.join(__dirname, "..", "..", "client", "src", "babylon", "basicGauntletRules.test.js"),
+    path.join(__dirname, "..", "..", "client", "src", "babylon", "matchAdapters.test.js")
+  ].map((sourcePath) => fs.readFileSync(sourcePath, "utf8")).join("\n");
+  const missing = COLLECTION_CARDS
+    .map((card) => card.id)
+    .filter((cardId) => !behaviorTests.includes(`"${cardId}"`));
+
+  assert.deepEqual(missing, []);
+});
+
+test("does not publish constructed effects that require illegal multi-card blocks", () => {
+  for (const card of COLLECTION_CARDS) {
+    assert.doesNotMatch(card.text, /block with two or more cards/i, card.id);
+  }
+});
+
 test("serves the validated public content manifest", async () => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const response = await fetch(`http://127.0.0.1:${server.address().port}/api/game-content`);

@@ -45,12 +45,10 @@ payment, counters, priority, revision or archives. Keep historical multi-block
 replay coverage separately; it is not current acceptance evidence. Preserve old
 review records without silently changing their rules version or passing marks.
 
-Harmony Ward and Sapling Chorus contain legacy multi-block-dependent effects.
-Their new multi-block declarations are rejected; their card text and archived
-events have not been rewritten. The active Card Registry/Rules authority owner
-must reconcile those effects. Priority closure, lethal-life timing and remaining
-card coverage discrepancies are separate from this correction; this pass does
-not establish complete rules conformance.
+Harmony Ward and Sapling Chorus were migrated in `gauntlet-duel-v8` to trigger
+on the second or later block while preserving the one-blocker rule. Historical
+multi-block events remain replay-only evidence. Priority closure, lethal-life
+timing and remaining card coverage discrepancies are separate from this check.
 
 ## 3. Run five ordinary-player sessions
 
