@@ -20,7 +20,7 @@ export default function SpecialCardFace({ card, art = "" }) {
     <div className={`special-card-face ${suit === "♥" || suit === "♦" ? "is-red" : ""}${String(rank).length > 1 ? " has-two-digit-rank" : ""}`}>
       <img key={getCardIllustration(card, art)} src={resolveVisualAsset(getCardIllustration(card, art))} alt={`${card?.name || "Faction card"} illustration`} onError={(event) => { if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback; }} />
       <span className="special-card-corner"><b>{rank}</b><span>{suit}</span></span>
-      <div className="special-card-caption"><strong className="special-card-name">{card?.name}</strong><span>{card?.text || card?.rulesText}</span></div>
+      <div className={`special-card-caption${card?.displayText ? " is-concise" : ""}`}><strong className="special-card-name">{card?.name}</strong><span>{card?.displayText || card?.text || card?.rulesText}</span></div>
       <span className="special-card-corner is-bottom" aria-hidden="true"><b>{rank}</b><span>{suit}</span></span>
     </div>
   );

@@ -38,9 +38,9 @@ test("does not guess artwork for unregistered replacement cards", () => {
 
 test("registered custom cards use full playing-card faces with their assigned suit", () => {
   expect(getPlayingCardArtPath({ id: "instance-17", gameplayCardId: "rumin-gilded-scale-legionary", value: 3, suit: "hearts", draftCard: true }, "rumin"))
-    .toBe("/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp");
+    .toBe("/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp?v=2");
   expect(getPlayingCardArtPath({ definitionId: "sheen-rootwatch-initiate", value: 3, suit: "♣", type: "unit" }, "sheen"))
-    .toBe("/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-clubs.webp");
+    .toBe("/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-clubs.webp?v=2");
   expect(expectsPlayingCardArt({ gameplayCardId: "frumo-deckhand-diver", draftCard: true })).toBe(true);
 });
 

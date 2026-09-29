@@ -1211,6 +1211,7 @@ function CardInspection({ inspection, commands }) {
         <h2>{inspection.label}</h2>
         <strong>Value {inspection.value}</strong>
         {inspection.description && <p>{inspection.description}</p>}
+        <a href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
       </div>
     </section>
   );

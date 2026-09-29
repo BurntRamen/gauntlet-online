@@ -54,7 +54,7 @@ export default function ConstructedCardTile({
           </span>
         </header>
 
-        <p className="constructed-card-rules">{card.text}</p>
+        <p className="constructed-card-rules">{card.displayText || card.text}</p>
 
         <div className="constructed-card-usage">
           <span>{valueCount}/{maxReplacementsPerValue} value-{card.value} slots used</span>

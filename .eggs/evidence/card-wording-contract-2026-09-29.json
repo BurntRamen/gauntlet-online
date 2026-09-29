@@ -1,0 +1,36 @@
+{
+  "id": "card-wording-release-20260929",
+  "userDirection": [
+    "i need the verbiage of gauntlet faction cards text boxes and game mechanics to be template and simplified to allow larger font on the cards with abilities. a lexicon involving simplifying mechanics to a single word",
+    "Keep gameplay; shorten wording (Recommended)",
+    "an example is nu's verdant elixer can really just be third block gets +1"
+  ],
+  "scope": "Simplify the 72 custom faction card abilities with a shared keyword lexicon, enlarge the text in all four suit faces, and provide full rules and a keyword guide on the existing Gauntlet Online site. Preserve gameplay, original rule text, unique illustrations, and the approved playing-card template.",
+  "authorizationBasis": "Current explicit implementation request and no-gameplay-change clarification, continuing the same live Gauntlet Online card implementation the user previously requested to see live. No renewed approval for this reversible site update is needed under the active user direction.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Reuse the existing clean release worktree. Preserve unrelated untracked prior-release evidence, the original dirty checkout and the other user worktree."
+  ],
+  "conditions": [
+    "Preserve full rules and duel logic.",
+    "Verify all 72 concise entries, 288 faces, full-rule access and phone layout.",
+    "Required code, asset, browser and performance checks pass.",
+    "Publish through the existing GitHub/Vercel/Render route only; no infrastructure, database, or Drive mutation."
+  ]
+}
