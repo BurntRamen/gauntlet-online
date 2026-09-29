@@ -1,0 +1,100 @@
+{
+  "contract": "eggs.visual-admission@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "gauntlet-full-art-local-20260929",
+  "projectId": "gauntlet",
+  "taskId": "interactive-custom-card-art",
+  "scope": {
+    "outputId": "custom-faction-full-art-card-set",
+    "surface": "Local Gauntlet Online application, 72 existing custom-card definitions",
+    "format": "72 unique illustrations with deterministic 500x700 full-art card faces in four suits",
+    "exact": true
+  },
+  "modality": "mixed",
+  "directive": {
+    "required": true,
+    "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+    "status": "controlling",
+    "scopeMatches": true
+  },
+  "gate0": {
+    "required": false,
+    "passed": true,
+    "evidence": [
+      "Direct interactive local workspace exception from eggs-project-preflight applies; no Drive, registry, canon, deployment, release or external state writes.",
+      "User explicitly approves the Raincall Mender v6 full-art template and directs complete local implementation. This supersedes earlier center-window layout preferences. User scope and approval govern local card typography and layout.",
+      "Gauntlet dossier, Faction Design Bible, Sheen/Frumo canon status and primary manuscripts live-read in this task; no publication-child template borrowed."
+    ]
+  },
+  "sourcePermissions": [
+    {
+      "sourceId": "user-current-task",
+      "use": "Official local full-art card template and complete implementation",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "repo:server/gameContent.js",
+      "use": "Existing names and mechanics unchanged",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "repo:constructed/rumin-and-bizi",
+      "use": "Retain existing individual illustrations",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "approved:raincall-mender-v6",
+      "use": "Approved template and Sheen rendering/species reference; distinct new characters",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "repo:frumo-card.webp",
+      "use": "Existing aquatic species reference only; distinct adult designs",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "1O0dOgwk4uuz2FPjSqzO5RXsKVZ1XsM8j",
+      "use": "Sheen cultural and named character details",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "1hBDx-CLetanrqvsrY83b1p825_ShtL82",
+      "use": "Frumo aquatic anatomy, material culture; no invented historical ending",
+      "status": "allowed"
+    }
+  ],
+  "rejectedLineage": [
+    {
+      "artifactId": "all-sheen-generated-before-accepted-raincall-mender",
+      "excluded": true
+    },
+    {
+      "artifactId": "shared-faction-art-as-unique-custom-card-art",
+      "excluded": true
+    }
+  ],
+  "promptConstraintIds": [
+    "unique-subject",
+    "faction-specific",
+    "no-generated-type",
+    "full-art-portrait",
+    "readable-overlay-space",
+    "no-rejected-lineage"
+  ],
+  "qaConstraintIds": [
+    "unique-subject",
+    "faction-specific",
+    "no-generated-type",
+    "full-art-portrait",
+    "readable-overlay-space",
+    "no-rejected-lineage"
+  ],
+  "genericFallback": false,
+  "neighborCollision": false,
+  "layoutSeparation": "mixed-with-boundary",
+  "decision": "admit",
+  "reasons": [
+    "User-approved local full-art template; imagegen creates unique illustrations only; deterministic code adds unchanged card names/rules and mirrored rank/suit indices.",
+    "No rejected pixels as references; earlier rejected public Sheen files will be replaced with distinct new illustrations."
+  ]
+}

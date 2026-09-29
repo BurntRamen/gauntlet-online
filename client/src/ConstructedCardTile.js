@@ -1,4 +1,4 @@
-import { FactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
+import SpecialCardFace from "./SpecialCardFace";
 import "./ConstructedCardTile.css";
 
 export default function ConstructedCardTile({
@@ -22,7 +22,7 @@ export default function ConstructedCardTile({
   const selectedVariant = availableVariants.find((variant) => variant.variantId === selectedVariantId)
     || availableVariants[0]
     || null;
-  const art = resolveVisualAsset(selectedVariant?.art);
+  const art = selectedVariant?.art;
   const selected = count > 0;
   const presentationName = selectedVariant?.paid
     ? `${selectedVariant.edition} ${selectedVariant.finish}`
@@ -40,14 +40,7 @@ export default function ConstructedCardTile({
       aria-label={`${card.name} deck-building card`}
     >
       <div className="constructed-card-art">
-        {art ? (
-          <img src={art} alt="" loading="lazy" />
-        ) : (
-          <FactionArtwork factionId={card.factionId} decorative />
-        )}
-        <span className="constructed-card-art-shade" />
-        <span className="constructed-card-value" aria-label={`Value ${card.value}`}>{card.value}</span>
-        <span className="constructed-card-art-status">{art ? selectedVariant?.finish || "Art" : `${card.factionId} archive`}</span>
+        <SpecialCardFace card={{ ...card, suit: suitChoices?.[0] || card.suit }} art={art} />
       </div>
 
       <div className="constructed-card-content">

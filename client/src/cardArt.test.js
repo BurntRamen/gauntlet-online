@@ -29,11 +29,19 @@ test("gives Legacies factions the complete neutral 52-card face family", () => {
     .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
 });
 
-test("keeps replacement cards on their existing treatment", () => {
+test("does not guess artwork for unregistered replacement cards", () => {
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", draftCard: true }, "sheen")).toBe("");
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", type: "weapon" }, "sheen")).toBe("");
   expect(expectsPlayingCardArt({ value: 8, suit: "hearts", draftCard: true })).toBe(false);
   expect(expectsPlayingCardArt({ value: 8, suit: "hearts" })).toBe(true);
+});
+
+test("registered custom cards use full playing-card faces with their assigned suit", () => {
+  expect(getPlayingCardArtPath({ id: "instance-17", gameplayCardId: "rumin-gilded-scale-legionary", value: 3, suit: "hearts", draftCard: true }, "rumin"))
+    .toBe("/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp");
+  expect(getPlayingCardArtPath({ definitionId: "sheen-rootwatch-initiate", value: 3, suit: "♣", type: "unit" }, "sheen"))
+    .toBe("/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-clubs.webp");
+  expect(expectsPlayingCardArt({ gameplayCardId: "frumo-deckhand-diver", draftCard: true })).toBe(true);
 });
 
 test("does not silently substitute an unsupported faction", () => {

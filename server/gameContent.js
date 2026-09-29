@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v7";
+const CONTENT_VERSION = "gauntlet-content-v8";
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
@@ -679,7 +679,6 @@ for (const card of COLLECTION_CARDS) {
 }
 
 function getConstructedCardArt(card) {
-  if (!new Set(["rumin", "bizi"]).has(card.factionId)) return null;
   return `/assets/gauntlet/constructed/${card.factionId}/${card.id}.webp`;
 }
 

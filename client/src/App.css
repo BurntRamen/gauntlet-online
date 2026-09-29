@@ -3048,3 +3048,49 @@ textarea:focus-visible {
   .identity-dossier-stats { width: 100%; }
   .identity-dossier-stats > span { min-width: 0; flex: 1; }
 }
+
+/* Compact workshop with a persistent card preview alongside the collection. */
+.constructed-workbench .active-deck-header { min-height: 126px; padding: 12px; gap: 10px 14px; grid-template-columns: 140px minmax(180px, 1fr) auto; }
+.constructed-workbench .active-deck-art { min-height: 100px; }
+.constructed-workbench .active-deck-identity input { font-size: 26px; }
+.constructed-workbench .workbench-section { padding: 12px; }
+.constructed-workbench .workbench-section-heading h4 { font-size: 20px; }
+.constructed-workbench .deck-faction-picker button { min-height: 58px; grid-template-columns: 42px minmax(0, 1fr); }
+.constructed-workbench .deck-faction-picker .faction-artwork { width: 42px; height: 42px; }
+.workshop-browser { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 16px; align-items: start; }
+.workshop-browser > .card-art-inspector { grid-column: 2; grid-row: 1; grid-template-columns: 1fr; gap: 0; margin: 2px 0; }
+.workshop-browser > .constructed-card-grid { grid-column: 1; grid-row: 1; max-height: 560px; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); }
+.card-art-inspector-image { display: block; width: 100%; min-height: 0; padding: 12px; border: 0; background: transparent; cursor: zoom-in; }
+.card-art-inspector.is-compact .card-art-inspector-image { min-height: 0; }
+.workshop-browser .card-art-inspector-copy { padding: 12px; }
+.workshop-browser .card-art-inspector-copy h4 { font-size: 22px; }
+.workshop-browser .card-art-inspector-copy p { font-size: 12px; }
+.constructed-workbench .constructed-card-tile { grid-template-columns: 92px minmax(0, 1fr); align-items: start; }
+.constructed-card-tile .constructed-card-art { min-height: 0; margin: 8px 0 8px 8px; background: transparent; overflow: visible; }
+.constructed-workbench .constructed-card-content { padding: 9px; }
+.constructed-workbench .constructed-card-content h5 { font-size: 15px; }
+.constructed-workbench .constructed-card-rules { margin: 6px 0; }
+.special-card-button { display: block; width: 100%; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.special-card-button:disabled { opacity: 1; cursor: default; }
+@media (max-width: 850px) {
+  .constructed-workbench .active-deck-header { grid-template-columns: 100px minmax(0, 1fr); }
+  .constructed-workbench .active-deck-readouts { grid-column: 1 / -1; }
+  .constructed-workbench .active-deck-actions { grid-column: 1 / -1; }
+  .workshop-browser { grid-template-columns: minmax(0, 1fr) 210px; gap: 10px; }
+  .workshop-browser > .constructed-card-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .workshop-browser { grid-template-columns: 1fr; }
+  .workshop-browser > .card-art-inspector { grid-column: 1; grid-row: 1; grid-template-columns: 100px minmax(0, 1fr); }
+  .workshop-browser > .constructed-card-grid { grid-column: 1; grid-row: 2; max-height: 460px; overflow-y: auto; }
+  .workshop-browser .card-art-inspector-copy h4 { font-size: 18px; }
+  .workshop-browser .card-art-inspector-image { align-self: center; padding: 6px; }
+}
+
+.card-art-inspector-image > .custom-playing-card-face { position: relative; inset: auto; width: 100%; height: auto; object-fit: contain; }
+.catalog-card-tile > .custom-playing-card-face, .opened-card-reveal > .custom-playing-card-face { width: 100%; height: auto; max-height: 280px; object-fit: contain; margin-bottom: 8px; }
+.constructed-card-art > .custom-playing-card-face { height: auto; object-fit: contain; }
+.deck-composition > summary { cursor: pointer; margin-bottom: 0; }
+.deck-composition[open] > summary { margin-bottom: 12px; }
+.workshop-browser > .card-art-inspector { position: sticky; top: 12px; }
+.card-art-inspector-image:focus-visible { outline: 2px solid #f1c779; outline-offset: -3px; border-radius: 8px; }

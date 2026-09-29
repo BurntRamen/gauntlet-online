@@ -6,6 +6,7 @@ import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import ConstructedCardTile from "./ConstructedCardTile";
+import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -736,6 +737,23 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         >
           <img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" />
         </button>
+      ) : card ? (
+        <button
+          type="button"
+          className="special-card-button"
+          disabled={interactionDisabled || (!onActivate && !onInspect)}
+          aria-label={interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}`}
+          aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (onPreview) onPreview(card);
+            if (onActivate) onActivate(card);
+            else if (onInspect) onInspect(card);
+          }}
+        >
+          <SpecialCardFace card={{ ...card, factionId: card.factionId || artFactionId }} />
+          {card.tempBuff ? <small>Buff: +{card.tempBuff}</small> : null}
+        </button>
       ) : <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
@@ -837,7 +855,7 @@ function CardInspectModal({ card, onClose, artFactionId }) {
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
       <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 94vw)", border: "2px solid rgba(250, 204, 21, 0.75)", borderRadius: 10, background: "linear-gradient(180deg, #f8fafc, #e5e7eb)", boxShadow: "0 24px 80px rgba(0,0,0,0.55)", overflow: "hidden" }}>
         <div style={{ position: "relative", height: 210, background: "#0f172a" }}>
-          {card.image ? <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
+          {getCardIllustration(card) ? <img src={resolveAssetPath(getCardIllustration(card))} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
           <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: 0, borderRadius: 6, background: "rgba(15,23,42,0.86)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
         </div>
         <div style={{ padding: 16 }}>
@@ -1557,22 +1575,33 @@ const RARITY_STYLES = {
 };
 
 function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owned = 0, compact = false }) {
+  const [expanded, setExpanded] = useState(false);
+  const previewButton = useRef(null);
+  useEffect(() => { setExpanded(false); }, [card?.id]);
+  useEffect(() => {
+    if (!expanded) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") { setExpanded(false); previewButton.current?.focus(); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [expanded]);
   if (!card) return null;
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const variant = findCollectorVariant(card.id, collectorCatalog, selectedVariantId);
-  const art = resolveVisualAsset(variant?.art);
+  const art = variant?.art;
   return (
     <aside className={`card-art-inspector${compact ? " is-compact" : ""}`} style={{ "--rarity-color": rarity.color, "--rarity-border": rarity.border }} aria-label={`${card.name} selected card preview`}>
-      <div className="card-art-inspector-image">
-        {art ? <img src={art} alt={`${card.name} illustration`} decoding="async" /> : <FactionArtwork factionId={card.factionId} decorative />}
-        <span>{card.value}</span>
-      </div>
+      <button ref={previewButton} type="button" className="card-art-inspector-image" aria-label={`Enlarge ${card.name}`} onClick={() => setExpanded(true)}>
+        <SpecialCardFace card={card} art={art} />
+      </button>
       <div className="card-art-inspector-copy">
         <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
         <h4>{card.name}</h4>
         <p>{card.text}</p>
         <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
       </div>
+      {expanded && <CardInspectModal card={card} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
     </aside>
   );
 }
@@ -2301,10 +2330,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
               {lastOpenedPack.map((card, index) => {
                 const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
-                const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
+                const art = resolveVisualAsset(getCardIllustration(card, findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art));
                 return (
                   <div className="opened-card-reveal" key={`${card.id}-${index}`} style={{ animationDelay: `${index * 90}ms`, border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
-                    {art && <img src={art} alt="" loading="lazy" decoding="async" />}
+                    <SpecialCardFace card={card} art={art} />
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
                   </div>
@@ -2382,8 +2411,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             </div>
           </section>
 
-          <section className="workbench-section deck-composition" aria-labelledby="deck-composition-title">
-            <div className="workbench-section-heading"><div><span>52-card composition</span><h4 id="deck-composition-title">Replacement matrix</h4></div><p>Default slots stay quiet. Replaced rank/suit slots carry the signal.</p></div>
+          <details className="workbench-section deck-composition" aria-labelledby="deck-composition-title">
+            <summary className="workbench-section-heading"><div><span>52-card composition</span><h4 id="deck-composition-title">Replacement matrix</h4></div><p>{constructedReplacementCount} replacements · expand to review rank and suit slots</p></summary>
             <div className="replacement-map-wrap" aria-label="52-card replacement map">
               <div className="replacement-map">
                 <div className="replacement-map-cell is-heading">Suit</div>
@@ -2402,12 +2431,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               <div className="deck-suit-summary"><span>Suit swaps</span><div>{REPLACEMENT_SUITS.map((suit) => { const count = Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length; return <i key={suit.id} className={suit.id === "hearts" || suit.id === "diamonds" ? "is-red-suit" : ""}><b>{suit.label}</b><strong>{count}</strong></i>; })}</div></div>
               <div className="deck-summary-status"><span>Workbench status</span><strong>{constructedReplacementCount === 0 ? "Standard deck" : `${constructedReplacementCount} active swap${constructedReplacementCount === 1 ? "" : "s"}`}</strong><small>{constructedCurveWarning || constructedSlotWarning ? "Resolve highlighted conflicts before saving." : "All replacement slots are within limits."}</small></div>
             </div>
-          </section>
+          </details>
 
           <section className="workbench-section replacement-collection" aria-labelledby="replacement-collection-title">
             <div className="workbench-section-heading"><div><span>Replacement collection</span><h4 id="replacement-collection-title">Owned {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} cards</h4></div><p>{ownedConstructedCards.length} candidate{ownedConstructedCards.length === 1 ? "" : "s"} · art follows the selected collector variant</p></div>
+            <div className="workshop-browser">
             <CardArtInspector
-              card={inspectedConstructedCard ? { ...inspectedConstructedCard, factionId: constructedFactionId } : null}
+              card={inspectedConstructedCard ? { ...inspectedConstructedCard, factionId: constructedFactionId, suit: constructedSuitChoices[inspectedConstructedCard.id]?.[0] || inspectedConstructedCard.suit } : null}
               collectorCatalog={collectorCatalog}
               selectedVariantId={inspectedConstructedVariantId}
               owned={Number(cardsOwned[inspectedConstructedCard?.id] || 0)}
@@ -2426,6 +2456,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
                 return <ConstructedCardTile key={card.id} card={{ ...card, factionId: constructedFactionId }} rarity={rarity} count={count} owned={owned} availableVariants={availableVariants} selectedVariantId={selectedVariantId} valueCount={valueCount} maxReplacementsPerValue={MAX_REPLACEMENTS_PER_VALUE} canAdd={canAdd} suitChoices={Array.from({ length: count }, (_, copyIndex) => normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex]))} replacementSuits={REPLACEMENT_SUITS} inspected={inspectedConstructedCard?.id === card.id} onInspect={() => setInspectedConstructedCardId(card.id)} onQuantityChange={(quantity) => setConstructedCardQuantity(card.id, quantity)} onVariantChange={(variantId) => { setConstructedVariantSelections((current) => ({ ...current, [card.id]: variantId })); setConstructedSaveMessage(""); }} onSuitChange={(copyIndex, suit) => setConstructedCardSuit(card.id, copyIndex, suit)} />;
               })}
+            </div>
             </div>
           </section>
         </section>
@@ -2474,10 +2505,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               const collectorCount = (collectorCatalog || [])
                 .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
                 .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
-              const art = resolveVisualAsset(findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art);
+              const art = resolveVisualAsset(getCardIllustration(card, findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art));
               return (
                 <button type="button" className="catalog-card-tile" onClick={() => setInspectedCatalogCardId(card.id)} aria-pressed={inspectedCatalogCard?.id === card.id} key={card.id} style={{ "--rarity-border": rarity.border, opacity: count > 0 ? 1 : 0.72 }}>
-                  {art && <img src={art} alt="" loading="lazy" decoding="async" />}
+                  <SpecialCardFace card={card} art={art} />
                   <div className="catalog-card-copy">
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: rarity.color }}>{card.name}</strong>

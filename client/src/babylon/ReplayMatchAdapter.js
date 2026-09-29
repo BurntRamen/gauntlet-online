@@ -45,7 +45,7 @@ function visualCard(card) {
   if (!card) return null;
   return {
     ...clone(card),
-    artPath: card.collector?.art || getPlayingCardArtPath(card, card.factionId) || null,
+    artPath: getPlayingCardArtPath(card, card.factionId) || card.collector?.art || null,
     label: card.name || [card.rank || card.value, card.suit].filter(Boolean).join("") || "Public card"
   };
 }

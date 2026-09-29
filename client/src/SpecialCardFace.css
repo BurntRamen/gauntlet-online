@@ -1,0 +1,11 @@
+.special-card-face { position: relative; container-type: inline-size; box-sizing: border-box; width: 100%; aspect-ratio: 5 / 7; overflow: hidden; border: 1px solid #282822; border-radius: 9px; background: #fcf7e9; color: #20252c; }
+.special-card-face.is-red { color: #a32430; }
+.custom-playing-card-face { display: block; width: 100%; height: auto; aspect-ratio: 5 / 7; object-fit: contain; border-radius: 8px; }
+.special-card-face > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.special-card-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; box-shadow: inset 0 0 0 2px #fcf7e9cc; background: radial-gradient(ellipse at 10% 18%, #fcf7e9df, transparent 40%), radial-gradient(ellipse at 90% 82%, #fcf7e9df, transparent 40%), linear-gradient(transparent 68%, #fcf7e9e8); }
+.special-card-corner { position: absolute; z-index: 1; top: 5.7%; left: 2%; width: 21%; display: flex; flex-direction: column; align-items: center; font: 700 28.8cqw/1 Georgia, serif; text-shadow: -1px -1px #fcf7e9, 1px -1px #fcf7e9, -1px 1px #fcf7e9, 1px 1px #fcf7e9; }
+.special-card-corner > b { font: 700 30cqw/.8 "Times New Roman", serif; transform: scaleX(.9); margin-bottom: 3cqw; }
+.has-two-digit-rank .special-card-corner > b { transform: scaleX(.6); }
+.special-card-corner.is-bottom { inset: auto 2% 5.7% auto; transform: rotate(180deg); }
+.special-card-caption { position: absolute; z-index: 1; left: 6.4%; right: 25%; bottom: 7%; display: grid; gap: 3cqw; color: #35352e; font: 2.6cqw/1.4 Arial, sans-serif; }
+.special-card-name { color: #27271f; font: 700 4.4cqw/1.15 Georgia, serif; }
