@@ -424,7 +424,7 @@ test("constructed payment choices appear contextually and update the payment pre
   adapter.dispose();
 });
 
-test("constructed weapon arming is a visible explicit lane-card choice", () => {
+test("constructed armament arming is a visible explicit lane-card choice", () => {
   const adapter = createLocalDuelAdapter({
     seed: "adapter-constructed-weapon",
     gameMode: "factions",
@@ -442,7 +442,7 @@ test("constructed weapon arming is a visible explicit lane-card choice", () => {
   hand[attackerIndex].rank = "2";
   hand[paymentIndex].value = 3;
   hand[paymentIndex].rank = "3";
-  makeConstructed(weapon, "rumin-coin-scale-spear", { type: "weapon", name: "Coin-Scale Spear" });
+  makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Coin-Scale Spear" });
   adapter.game.lanes[0].facedown[player] = weapon;
 
   let update = latestUpdate(adapter);
@@ -467,13 +467,13 @@ test("constructed weapon arming is a visible explicit lane-card choice", () => {
 
 test.each([
   {
-    name: "Jewel-Bank Contract",
+    name: "Jewel-Bank Standard",
     faction: "rumin",
     abilityId: "constructed:jewel-bank",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].turnData.ruminJewelBankAvailable = true;
     },
-    expectedNote: "Jewel-Bank Contract payment +2"
+    expectedNote: "Jewel-Bank Standard payment +2"
   },
   {
     name: "Beli Awakened",

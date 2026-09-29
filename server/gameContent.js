@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v5";
+const CONTENT_VERSION = "gauntlet-content-v6";
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
@@ -15,17 +15,17 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-gilded-scale-legionary",
     factionId: "rumin",
-    name: "Gilded Scale Legionary",
-    type: "unit",
+    name: "Gilded Legion Spear",
+    type: "armament",
     rarity: "common",
     value: 3,
-    text: "When this attacks after a diamond was paid this turn, it gets +1 value."
+    text: "Arm from a lane: attach to a hand attacker. If a diamond was paid this turn, that attacker gets +2 value this combat, then discard this."
   },
   {
     id: "rumin-forum-ledger-runner",
     factionId: "rumin",
     name: "Forum Ledger Runner",
-    type: "unit",
+    type: "armament",
     rarity: "common",
     value: 2,
     text: "If this is your first attack this turn, you may treat one payment card as +1 value."
@@ -34,7 +34,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-vault-shield-bearer",
     factionId: "rumin",
     name: "Vault Shield Bearer",
-    type: "unit",
+    type: "armament",
     rarity: "common",
     value: 4,
     text: "When blocking, prevent 1 damage if you overpaid for this block."
@@ -43,7 +43,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-coin-scale-spear",
     factionId: "rumin",
     name: "Coin-Scale Spear",
-    type: "weapon",
+    type: "armament",
     rarity: "common",
     value: 4,
     text: "Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this."
@@ -52,7 +52,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-senate-vault-guard",
     factionId: "rumin",
     name: "Senate Vault Guard",
-    type: "unit",
+    type: "armament",
     rarity: "uncommon",
     value: 5,
     text: "The first time each turn you overpay for this by 2 or more, gain 1 life."
@@ -61,16 +61,16 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-marble-market-tribune",
     factionId: "rumin",
     name: "Marble Market Tribune",
-    type: "unit",
+    type: "armament",
     rarity: "uncommon",
     value: 6,
-    text: "After this attacks, your next Rumin weapon armed from a lane gives an additional +1 value."
+    text: "After this attacks, your next Rumin armament armed from a lane gives an additional +1 value."
   },
   {
     id: "rumin-rumie-vault-shield",
     factionId: "rumin",
     name: "Rumie Vault Shield",
-    type: "weapon",
+    type: "armament",
     rarity: "uncommon",
     value: 6,
     text: "Arm from lane: attach to a hand attacker. It gets +3 value this combat, then discard this."
@@ -79,7 +79,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-imperial-scale-pike",
     factionId: "rumin",
     name: "Imperial Scale Pike",
-    type: "weapon",
+    type: "armament",
     rarity: "uncommon",
     value: 5,
     text: "Arm from lane: attach to a hand attacker. It gets +2 value, or +4 if it shares a suit with your previous attack."
@@ -88,7 +88,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-aurelian-clawblade",
     factionId: "rumin",
     name: "Aurelian Clawblade",
-    type: "weapon",
+    type: "armament",
     rarity: "rare",
     value: 7,
     text: "Arm from lane: attach to a hand attacker. It gets +4 value this combat. If you overpaid by 2 or more, gain 1 life."
@@ -97,25 +97,25 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-basilisk-standard",
     factionId: "rumin",
     name: "Basilisk Standard",
-    type: "standard",
+    type: "armament",
     rarity: "rare",
     value: 6,
-    text: "Your fourth attack each turn gets +2 additional value if a weapon is armed to it."
+    text: "Your fourth attack each turn gets +2 additional value if an armament is armed to it."
   },
   {
     id: "rumin-jewel-bank-contract",
     factionId: "rumin",
-    name: "Jewel-Bank Contract",
-    type: "tactic",
+    name: "Jewel-Bank Standard",
+    type: "armament",
     rarity: "rare",
     value: 5,
-    text: "The next Rumin card you play this turn may be paid for with one card as though it had +2 value."
+    text: "After this attacks or blocks, the next Rumin attack this turn may treat its single payment card as +2 value."
   },
   {
     id: "rumin-tax-road-scout",
     factionId: "rumin",
     name: "Tax-Road Scout",
-    type: "unit",
+    type: "armament",
     rarity: "common",
     value: 2,
     text: "If this is your first attack this turn, it costs 1 less to play."
@@ -123,17 +123,17 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-marble-phalanx",
     factionId: "rumin",
-    name: "Marble Phalanx",
-    type: "unit",
+    name: "Phalanx Shield",
+    type: "armament",
     rarity: "common",
     value: 5,
-    text: "When blocking after you have already attacked this turn, this gets +1 value."
+    text: "When this blocks from a lane, it gets +2 value."
   },
   {
     id: "rumin-counting-house-aegis",
     factionId: "rumin",
     name: "Counting-House Aegis",
-    type: "relic",
+    type: "armament",
     rarity: "uncommon",
     value: 7,
     text: "The first time each turn you overpay for a Rumin card by 2 or more, gain 1 life."
@@ -142,7 +142,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-triumphal-ram",
     factionId: "rumin",
     name: "Triumphal Ram",
-    type: "weapon",
+    type: "armament",
     rarity: "uncommon",
     value: 8,
     text: "Arm from lane: attach to a hand attacker. It gets +4 value, or +5 if the attacker has value 8 or more."
@@ -151,7 +151,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-edict-of-the-vault",
     factionId: "rumin",
     name: "Edict of the Vault",
-    type: "tactic",
+    type: "armament",
     rarity: "rare",
     value: 8,
     text: "When paid for your fourth attack this turn, this pays +3 additional value."
@@ -160,7 +160,7 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-kaisers-gold-claw",
     factionId: "rumin",
     name: "Kaiser's Gold Claw",
-    type: "weapon",
+    type: "armament",
     rarity: "mythic",
     value: 9,
     text: "Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn."
@@ -169,10 +169,10 @@ const RUMIN_COLLECTION_CARDS = [
     id: "rumin-rumie-market-colossus",
     factionId: "rumin",
     name: "Rumie Market Colossus",
-    type: "unit",
+    type: "armament",
     rarity: "mythic",
     value: 10,
-    text: "When this attacks, each Rumin weapon you control in a lane may arm to it. Each armed weapon gives an extra +1 value."
+    text: "When this attacks, each eligible Rumin armament you control in a lane may arm to it. Each armed armament gives an extra +1 value."
   }
 ];
 
@@ -180,8 +180,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-rootwatch-initiate",
     factionId: "sheen",
-    name: "Rootwatch Initiate",
-    type: "unit",
+    name: "Rootwatch Grove",
+    type: "shelter",
     rarity: "common",
     value: 3,
     text: "When this blocks, it gets +1 value if you have already blocked this turn."
@@ -190,7 +190,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-quiet-grove-sentinel",
     factionId: "sheen",
     name: "Quiet Grove Sentinel",
-    type: "unit",
+    type: "shelter",
     rarity: "common",
     value: 4,
     text: "If this prevents all damage from an attack, gain 1 life."
@@ -199,7 +199,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-mossbound-staff",
     factionId: "sheen",
     name: "Mossbound Staff",
-    type: "relic",
+    type: "shelter",
     rarity: "common",
     value: 2,
     text: "When paid for a block, the first blocking card gets +1 value."
@@ -207,8 +207,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-living-bark-guard",
     factionId: "sheen",
-    name: "Living Bark Guard",
-    type: "unit",
+    name: "Living Bark Bastion",
+    type: "shelter",
     rarity: "common",
     value: 5,
     text: "This may block hand attacks as though it had +1 value."
@@ -217,7 +217,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-beli-vinebinder",
     factionId: "sheen",
     name: "Beli Vinebinder",
-    type: "unit",
+    type: "shelter",
     rarity: "uncommon",
     value: 5,
     text: "After your second block each turn, your next attack gets +1 value."
@@ -226,7 +226,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-harmony-ward",
     factionId: "sheen",
     name: "Harmony Ward",
-    type: "ward",
+    type: "shelter",
     rarity: "uncommon",
     value: 4,
     text: "When you block with two or more cards, one payment card may pay +1 value."
@@ -235,7 +235,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-thornroot-counterstroke",
     factionId: "sheen",
     name: "Thornroot Counterstroke",
-    type: "tactic",
+    type: "shelter",
     rarity: "uncommon",
     value: 6,
     text: "If you took no damage this turn, this gets +2 value while attacking."
@@ -244,7 +244,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-beli-canopy-shield",
     factionId: "sheen",
     name: "Beli Canopy Shield",
-    type: "relic",
+    type: "shelter",
     rarity: "uncommon",
     value: 6,
     text: "Once each turn, after you block, prevent 1 additional damage."
@@ -253,7 +253,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-nus-verdant-edict",
     factionId: "sheen",
     name: "Nu's Verdant Edict",
-    type: "tactic",
+    type: "shelter",
     rarity: "rare",
     value: 7,
     text: "Your third block this turn gets +3 value instead of +2."
@@ -262,7 +262,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-roots-that-remember",
     factionId: "sheen",
     name: "Roots That Remember",
-    type: "relic",
+    type: "shelter",
     rarity: "rare",
     value: 5,
     text: "Whenever you gain life from blocking, your next block this turn gets +1 value."
@@ -270,8 +270,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-tangs-patient-hand",
     factionId: "sheen",
-    name: "Tang's Patient Hand",
-    type: "tactic",
+    name: "Tang's Meditation Garden",
+    type: "shelter",
     rarity: "rare",
     value: 6,
     text: "After your second block each turn, gain 2 life and draw a card at end of turn."
@@ -280,7 +280,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-seedwall-acolyte",
     factionId: "sheen",
     name: "Seedwall Acolyte",
-    type: "unit",
+    type: "shelter",
     rarity: "common",
     value: 2,
     text: "When this blocks the first incoming attack each turn, it gets +1 value."
@@ -289,7 +289,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-raincall-mender",
     factionId: "sheen",
     name: "Raincall Mender",
-    type: "unit",
+    type: "shelter",
     rarity: "common",
     value: 4,
     text: "After this blocks, gain 1 life if you took no damage from that attack."
@@ -298,7 +298,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-ringroot-bastion",
     factionId: "sheen",
     name: "Ringroot Bastion",
-    type: "unit",
+    type: "shelter",
     rarity: "uncommon",
     value: 7,
     text: "When this blocks from a lane, it gets +2 value."
@@ -307,7 +307,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-sapling-chorus",
     factionId: "sheen",
     name: "Sapling Chorus",
-    type: "relic",
+    type: "shelter",
     rarity: "uncommon",
     value: 3,
     text: "When you block with two or more cards, your first blocker gets +1 value."
@@ -316,7 +316,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-nus-calm-command",
     factionId: "sheen",
     name: "Nu's Calm Command",
-    type: "tactic",
+    type: "shelter",
     rarity: "rare",
     value: 8,
     text: "If you have blocked three or more times this turn, this attacks with +3 value."
@@ -325,7 +325,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-emperors-heartwood",
     factionId: "sheen",
     name: "Emperor's Heartwood",
-    type: "relic",
+    type: "shelter",
     rarity: "mythic",
     value: 9,
     text: "Your blocking cards get +1 additional value. If it is your third or later block this turn, gain 1 life."
@@ -334,7 +334,7 @@ const SHEEN_COLLECTION_CARDS = [
     id: "sheen-beli-awakened",
     factionId: "sheen",
     name: "Beli Awakened",
-    type: "unit",
+    type: "shelter",
     rarity: "mythic",
     value: 10,
     text: "After you block without taking damage, this may attack with +3 value this turn."
@@ -346,7 +346,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-deckhand-diver",
     factionId: "frumo",
     name: "Deckhand Diver",
-    type: "unit",
+    type: "ambush",
     rarity: "common",
     value: 3,
     text: "When this is placed into a lane, you may look at your top deck card."
@@ -354,17 +354,17 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-tideglass-cutlass",
     factionId: "frumo",
-    name: "Tideglass Cutlass",
-    type: "weapon",
+    name: "Tideglass Ambush",
+    type: "ambush",
     rarity: "common",
     value: 4,
-    text: "If this attacks from a lane, it gets +1 value when you have swapped a lane card this turn."
+    text: "Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value."
   },
   {
     id: "frumo-sunken-coin",
     factionId: "frumo",
-    name: "Sunken Coin",
-    type: "relic",
+    name: "Sunken Coin Trap",
+    type: "ambush",
     rarity: "common",
     value: 2,
     text: "When paid for an attack, block, or ability, this pays +1 value if you control an empty lane."
@@ -373,7 +373,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-coral-hull-guard",
     factionId: "frumo",
     name: "Coral-Hull Guard",
-    type: "unit",
+    type: "ambush",
     rarity: "common",
     value: 5,
     text: "When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn."
@@ -382,7 +382,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-riptide-smuggler",
     factionId: "frumo",
     name: "Riptide Smuggler",
-    type: "unit",
+    type: "ambush",
     rarity: "uncommon",
     value: 5,
     text: "The first time you peek at a face-down card each turn, this gets +1 value this turn."
@@ -391,7 +391,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-lafayettes-chart",
     factionId: "frumo",
     name: "Lafayette's Chart",
-    type: "relic",
+    type: "ambush",
     rarity: "uncommon",
     value: 4,
     text: "After you swap a lane card with a hand card, your next payment card pays +1 value."
@@ -400,7 +400,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-pressure-lock-pistol",
     factionId: "frumo",
     name: "Pressure-Lock Pistol",
-    type: "weapon",
+    type: "ambush",
     rarity: "uncommon",
     value: 6,
     text: "When this attacks after a consecutive-value card was played, it gets +2 value."
@@ -409,7 +409,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-ristus-blackwake",
     factionId: "frumo",
     name: "Ristus Blackwake",
-    type: "tactic",
+    type: "ambush",
     rarity: "uncommon",
     value: 6,
     text: "When this attacks from a lane while you control an empty lane, it gets +1 value."
@@ -418,7 +418,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-captains-bad-wager",
     factionId: "frumo",
     name: "Captain's Bad Wager",
-    type: "tactic",
+    type: "ambush",
     rarity: "rare",
     value: 7,
     text: "When this attacks from a lane after you played an even-value card, it gets +3 value this turn."
@@ -427,7 +427,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-poleas-sunken-order",
     factionId: "frumo",
     name: "Polea's Sunken Order",
-    type: "tactic",
+    type: "ambush",
     rarity: "rare",
     value: 6,
     text: "Use one Polea mode an additional time this turn, but only on your own cards."
@@ -436,7 +436,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-leviathan-salvage",
     factionId: "frumo",
     name: "Leviathan Salvage",
-    type: "relic",
+    type: "ambush",
     rarity: "rare",
     value: 5,
     text: "Whenever your first card played each turn gets a consecutive-value bonus, gain 1 life."
@@ -445,7 +445,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-kelpcloak-trickster",
     factionId: "frumo",
     name: "Kelpcloak Trickster",
-    type: "unit",
+    type: "ambush",
     rarity: "common",
     value: 2,
     text: "When this enters a lane, it counts as a lane swap for your Frumo cards this turn."
@@ -454,7 +454,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-ballast-hook",
     factionId: "frumo",
     name: "Ballast Hook",
-    type: "weapon",
+    type: "ambush",
     rarity: "common",
     value: 5,
     text: "When this attacks from a lane while you control an empty lane, it gets +1 value."
@@ -463,7 +463,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-tide-debt-ledger",
     factionId: "frumo",
     name: "Tide-Debt Ledger",
-    type: "relic",
+    type: "ambush",
     rarity: "uncommon",
     value: 4,
     text: "After you swap a lane card this turn, your next payment card pays +1 value."
@@ -472,7 +472,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-abyssal-switchboard",
     factionId: "frumo",
     name: "Abyssal Switchboard",
-    type: "relic",
+    type: "ambush",
     rarity: "uncommon",
     value: 7,
     text: "After this enters a lane, your next attack or block gets +1 value."
@@ -481,7 +481,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-poleas-moonlit-map",
     factionId: "frumo",
     name: "Polea's Moonlit Map",
-    type: "tactic",
+    type: "ambush",
     rarity: "rare",
     value: 8,
     text: "If this receives the Ristus consecutive-value bonus, it gets +1 additional value."
@@ -490,7 +490,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-the-last-gamble",
     factionId: "frumo",
     name: "The Last Gamble",
-    type: "tactic",
+    type: "ambush",
     rarity: "mythic",
     value: 9,
     text: "Peek at a face-down card, then choose attack or block. Your next card of that kind gets +4 value."
@@ -499,7 +499,7 @@ const FRUMO_COLLECTION_CARDS = [
     id: "frumo-ristus-rises",
     factionId: "frumo",
     name: "Ristus Rises",
-    type: "unit",
+    type: "ambush",
     rarity: "mythic",
     value: 10,
     text: "When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards."
@@ -511,7 +511,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-copperline-technician",
     factionId: "bizi",
     name: "Copperline Technician",
-    type: "unit",
+    type: "contraption",
     rarity: "common",
     value: 3,
     text: "When you overpay for this by 2 or more, gain 1 acceleration counter."
@@ -520,7 +520,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-voltage-ration",
     factionId: "bizi",
     name: "Voltage Ration",
-    type: "tactic",
+    type: "contraption",
     rarity: "common",
     value: 2,
     text: "When paid for a Bizi card, this pays +1 additional value once each turn."
@@ -529,7 +529,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-dune-circuit-runner",
     factionId: "bizi",
     name: "Dune Circuit Runner",
-    type: "unit",
+    type: "contraption",
     rarity: "common",
     value: 4,
     text: "If your previous attack had a different suit, this attacks with +1 value."
@@ -538,7 +538,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-gearplate-shield",
     factionId: "bizi",
     name: "Gearplate Shield",
-    type: "relic",
+    type: "contraption",
     rarity: "common",
     value: 5,
     text: "When blocking, you may remove 1 acceleration counter to give this +2 value."
@@ -547,7 +547,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-heras-calibration",
     factionId: "bizi",
     name: "Hera's Calibration",
-    type: "tactic",
+    type: "contraption",
     rarity: "uncommon",
     value: 5,
     text: "When paid for a Bizi card, this pays +2 additional value."
@@ -556,7 +556,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-solar-array-adept",
     factionId: "bizi",
     name: "Solar Array Adept",
-    type: "unit",
+    type: "contraption",
     rarity: "uncommon",
     value: 5,
     text: "Whenever you gain an acceleration counter, this gets +1 value until end of turn."
@@ -565,7 +565,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-constanti-conduit",
     factionId: "bizi",
     name: "Constanti Conduit",
-    type: "relic",
+    type: "contraption",
     rarity: "uncommon",
     value: 6,
     text: "Your first two different-suit attacks after the first get an additional +1 value."
@@ -574,7 +574,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-sandstorm-processor",
     factionId: "bizi",
     name: "Sandstorm Processor",
-    type: "unit",
+    type: "contraption",
     rarity: "uncommon",
     value: 6,
     text: "If you have 2 or more acceleration counters, this may attack with +2 value."
@@ -583,7 +583,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-focus-overclock",
     factionId: "bizi",
     name: "Focus Overclock",
-    type: "tactic",
+    type: "contraption",
     rarity: "rare",
     value: 7,
     text: "Remove 1 acceleration counter: give target card +3 value this turn instead of +1."
@@ -592,7 +592,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-regnum-voltage-bank",
     factionId: "bizi",
     name: "Regnum Voltage Bank",
-    type: "relic",
+    type: "contraption",
     rarity: "rare",
     value: 6,
     text: "The first time each turn you overpay by 2 or more, gain 1 life and 1 acceleration counter."
@@ -601,7 +601,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-desert-logic-engine",
     factionId: "bizi",
     name: "Desert Logic Engine",
-    type: "relic",
+    type: "contraption",
     rarity: "rare",
     value: 5,
     text: "When you attack with a different suit from your previous attack, that attack gets +2 value."
@@ -610,7 +610,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-brass-spark",
     factionId: "bizi",
     name: "Brass Spark",
-    type: "tactic",
+    type: "contraption",
     rarity: "common",
     value: 2,
     text: "When paid for your first Bizi card each turn, this pays +1 additional value."
@@ -619,7 +619,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-railspike-marshal",
     factionId: "bizi",
     name: "Railspike Marshal",
-    type: "unit",
+    type: "contraption",
     rarity: "common",
     value: 5,
     text: "If your previous attack had a different suit, this attacks with +1 value."
@@ -628,7 +628,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-heat-sink-matrix",
     factionId: "bizi",
     name: "Heat-Sink Matrix",
-    type: "relic",
+    type: "contraption",
     rarity: "uncommon",
     value: 4,
     text: "When blocking, you may remove 1 acceleration counter to give this +2 value."
@@ -637,7 +637,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-clockwork-caravan",
     factionId: "bizi",
     name: "Clockwork Caravan",
-    type: "unit",
+    type: "contraption",
     rarity: "uncommon",
     value: 7,
     text: "The first time each turn you overpay for this by 2 or more, draw 1 extra card at end of turn."
@@ -646,7 +646,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-voltaric-ultimatum",
     factionId: "bizi",
     name: "Voltaric Ultimatum",
-    type: "tactic",
+    type: "contraption",
     rarity: "rare",
     value: 8,
     text: "Remove 2 acceleration counters: this attacks with +5 value."
@@ -655,7 +655,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-focus-prime-signal",
     factionId: "bizi",
     name: "Focus Prime Signal",
-    type: "tactic",
+    type: "contraption",
     rarity: "mythic",
     value: 9,
     text: "Gain 2 acceleration counters. Your next card this turn gets up to +4 value, one for each acceleration counter you have."
@@ -664,7 +664,7 @@ const BIZI_COLLECTION_CARDS = [
     id: "bizi-constanti-sunforge",
     factionId: "bizi",
     name: "Constanti Sunforge",
-    type: "unit",
+    type: "contraption",
     rarity: "mythic",
     value: 10,
     text: "When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed."
@@ -1361,6 +1361,12 @@ function validateGameContent() {
 
   const cardIds = new Set();
   const rarities = new Set(["common", "uncommon", "rare", "mythic"]);
+  const signatureTypes = new Map([
+    ["rumin", "armament"],
+    ["sheen", "shelter"],
+    ["frumo", "ambush"],
+    ["bizi", "contraption"]
+  ]);
   for (const card of COLLECTION_CARDS) {
     requireText(card.id, "cards.id");
     requireText(card.name, `cards.${card.id}.name`);
@@ -1370,6 +1376,9 @@ function validateGameContent() {
     if (!factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);
     if (!PLAYING_DECK_VALUES.includes(card.value)) throw new Error(`Invalid game content: card ${card.id} has an invalid value.`);
+    if (card.type !== signatureTypes.get(card.factionId)) {
+      throw new Error(`Invalid game content: card ${card.id} must use the ${signatureTypes.get(card.factionId)} signature type.`);
+    }
     if (card.gameplayCardId !== card.id) throw new Error(`Invalid game content: card ${card.id} has an unstable gameplay identity.`);
     if (card.freeAcquisition !== FREE_GAMEPLAY_ACQUISITION) {
       throw new Error(`Invalid game content: competitive card ${card.id} must have a non-paid acquisition path.`);

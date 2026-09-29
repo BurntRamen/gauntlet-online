@@ -9,8 +9,10 @@ const {
   COLLECTOR_VARIANTS,
   CONTENT_VERSION,
   DECK_RULES,
+  FRUMO_COLLECTION_CARDS,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
+  SHEEN_COLLECTION_CARDS,
   getPublicGameContent,
   validateGameContent
 } = require("../gameContent");
@@ -111,6 +113,18 @@ test("maps every catalog constructed card into the shared deterministic rules", 
 
   assert.equal(COLLECTION_CARDS.length, 72);
   assert.deepEqual(missing, []);
+});
+
+test("uses one exclusive constructed card type for each Initiative faction", () => {
+  for (const [cards, expectedType] of [
+    [RUMIN_COLLECTION_CARDS, "armament"],
+    [SHEEN_COLLECTION_CARDS, "shelter"],
+    [FRUMO_COLLECTION_CARDS, "ambush"],
+    [BIZI_COLLECTION_CARDS, "contraption"]
+  ]) {
+    assert.equal(cards.length, 18);
+    assert.deepEqual([...new Set(cards.map((card) => card.type))], [expectedType]);
+  }
 });
 
 test("requires card-specific constructed behavior coverage for the full catalog", () => {

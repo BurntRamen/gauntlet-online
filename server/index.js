@@ -32,6 +32,15 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY || process.env
 const MATCH_ARCHIVE_REQUIRED = process.env.MATCH_ARCHIVE_REQUIRED === "true" || !(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
+const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
+  "rumin-gilded-scale-legionary",
+  "rumin-coin-scale-spear",
+  "rumin-rumie-vault-shield",
+  "rumin-imperial-scale-pike",
+  "rumin-aurelian-clawblade",
+  "rumin-triumphal-ram",
+  "rumin-kaisers-gold-claw"
+]);
 
 function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = ACCOUNT_AUTH_SECRET) {
   if (nodeEnv === "production" && DEVELOPMENT_AUTH_SECRETS.has(authSecret)) {
@@ -5792,7 +5801,11 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
   if (player.faction?.id !== "rumin" || source !== "hand") return { value: 0, armedCards: [] };
 
   const weaponEntries = getPlayerControlledLaneCards(game, playerNum)
-    .filter((entry) => entry.card.factionId === "rumin" && cardHasType(entry.card, "weapon"));
+    .filter((entry) => (
+      entry.card.factionId === "rumin"
+      && cardHasType(entry.card, "armament")
+      && RUMIN_ARMABLE_DEFINITION_IDS.has(entry.card.definitionId)
+    ));
   if (weaponEntries.length === 0) return { value: 0, armedCards: [] };
 
   const shouldArmAll = cardIs(attackCard, "rumin-rumie-market-colossus");
@@ -5803,7 +5816,9 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
   for (const entry of entriesToArm) {
     const weapon = entry.card;
     let bonus = 0;
-    if (cardIs(weapon, "rumin-coin-scale-spear")) bonus = 2;
+    if (cardIs(weapon, "rumin-gilded-scale-legionary")) {
+      bonus = player.turnData.paymentSuitsThisTurn?.includes("♦") ? 2 : 0;
+    } else if (cardIs(weapon, "rumin-coin-scale-spear")) bonus = 2;
     else if (cardIs(weapon, "rumin-rumie-vault-shield")) bonus = 3;
     else if (cardIs(weapon, "rumin-imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
     else if (cardIs(weapon, "rumin-aurelian-clawblade")) bonus = 4;
@@ -5928,8 +5943,8 @@ function calculateAttackBonuses(game, playerNum, card, source) {
 
   if (player.faction?.id === "frumo") {
     if (source === "lane" && cardIs(card, "frumo-tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
-      value += 1;
-      notes.push("Tideglass Cutlass swapped lane +1");
+      value += 2;
+      notes.push("Tideglass Ambush swapped lane +2");
     }
     if (cardIs(card, "frumo-pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
       value += 2;
@@ -5998,7 +6013,7 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
   if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => cardIs(card, "rumin-jewel-bank-contract"))) {
     total += 2;
     consume.ruminJewelBank = true;
-    notes.push("Jewel-Bank Contract payment +2");
+    notes.push("Jewel-Bank Standard payment +2");
   }
   if (context.action === "attack" && player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn === 3 && paymentCards.some((card) => cardIs(card, "rumin-edict-of-the-vault"))) {
     total += 3;
@@ -6010,7 +6025,7 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
   }
   if (paymentCards.some((card) => cardIs(card, "frumo-sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
     total += 1;
-    notes.push("Sunken Coin payment +1");
+    notes.push("Sunken Coin Trap payment +1");
   }
   if (player.turnData.frumoNextPaymentBonus) {
     total += player.turnData.frumoNextPaymentBonus;
@@ -6091,11 +6106,11 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
   }
   if (cardIs(card, "sheen-rootwatch-initiate") && player.turnData.blocksDeclaredThisTurn > 0) {
     effectiveValue += 1;
-    notes.push("Rootwatch Initiate +1");
+    notes.push("Rootwatch Grove +1");
   }
   if (cardIs(card, "sheen-living-bark-guard") && context.attack?.source === "hand") {
     effectiveValue += 1;
-    notes.push("Living Bark Guard +1");
+    notes.push("Living Bark Bastion +1");
   }
   if (cardIs(card, "sheen-seedwall-acolyte") && player.turnData.blocksDeclaredThisTurn === 0) {
     effectiveValue += 1;
@@ -6104,6 +6119,10 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
   if (cardIs(card, "sheen-ringroot-bastion") && context.isLaneBlock) {
     effectiveValue += 2;
     notes.push("Ringroot Bastion lane block +2");
+  }
+  if (cardIs(card, "rumin-marble-phalanx") && context.isLaneBlock) {
+    effectiveValue += 2;
+    notes.push("Phalanx Shield +2");
   }
   if (cardIs(card, "sheen-nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
     effectiveValue += 1;
@@ -6166,7 +6185,7 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
     gainLifeFromBlocking(game, playerNum, 2, blockEntries[0]?.notes || []);
     player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
-    blockEntries[0]?.notes.push("Tang's Patient Hand draw at end of turn");
+    blockEntries[0]?.notes.push("Tang's Meditation Garden draw at end of turn");
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
     gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);

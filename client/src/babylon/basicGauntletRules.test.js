@@ -922,14 +922,6 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
   test.each([
     {
-      definitionId: "rumin-gilded-scale-legionary",
-      faction: "rumin",
-      note: "Gilded Scale Legionary +1",
-      configure: (state, attacker, payment) => {
-        payment.suit = "♦";
-      }
-    },
-    {
       definitionId: "sheen-thornroot-counterstroke",
       faction: "sheen",
       note: "Thornroot Counterstroke +2"
@@ -964,7 +956,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "frumo-tideglass-cutlass",
       faction: "frumo",
       source: "lane",
-      note: "Tideglass Cutlass +1",
+      note: "Tideglass Ambush +2",
       configure: (state) => {
         state.players[1].turnData.frumoLaneSwappedThisTurn = true;
       }
@@ -1042,7 +1034,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       faction: "frumo",
       paymentValue: 3,
       expectedTotal: 4,
-      note: "Sunken Coin payment +1"
+      note: "Sunken Coin Trap payment +1"
     },
     {
       definitionId: "bizi-voltage-ration",
@@ -1144,17 +1136,9 @@ describe("shared Basic Gauntlet simulator rules", () => {
       expectedPrevention: 1
     },
     {
-      definitionId: "rumin-marble-phalanx",
-      faction: "rumin",
-      note: "Marble Phalanx +1",
-      configure: (state) => {
-        state.players[2].turnData.attacksDeclaredThisTurn = 1;
-      }
-    },
-    {
       definitionId: "sheen-rootwatch-initiate",
       faction: "sheen",
-      note: "Rootwatch Initiate +1",
+      note: "Rootwatch Grove +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
@@ -1162,7 +1146,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "sheen-living-bark-guard",
       faction: "sheen",
-      note: "Living Bark Guard +1"
+      note: "Living Bark Bastion +1"
     },
     {
       definitionId: "sheen-seedwall-acolyte",
@@ -1246,6 +1230,14 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
   test.each([
     {
+      definitionId: "rumin-gilded-scale-legionary",
+      name: "Gilded Legion Spear",
+      expectedBonus: 2,
+      configure: (state, attacker, payment) => {
+        payment.suit = "♦";
+      }
+    },
+    {
       definitionId: "rumin-rumie-vault-shield",
       name: "Rumie Vault Shield",
       expectedBonus: 3
@@ -1295,7 +1287,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     attacker.rank = String(attackValue);
     payment.value = 10;
     payment.rank = "10";
-    makeConstructed(weapon, definitionId, { type: "weapon", name });
+    makeConstructed(weapon, definitionId, { type: "armament", name });
     state.players[1].hand = state.players[1].hand.filter((card) => card.id !== weapon.id);
     state.lanes[0].facedown[1] = weapon;
     configure(state, attacker, payment, weapon);
@@ -1323,8 +1315,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const standard = state.players[1].hand[3];
     attacker.value = 4;
     payment.value = 10;
-    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "weapon", name: "Coin-Scale Spear" });
-    makeConstructed(standard, "rumin-basilisk-standard", { type: "standard" });
+    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Coin-Scale Spear" });
+    makeConstructed(standard, "rumin-basilisk-standard", { type: "armament" });
     state.players[1].hand = state.players[1].hand.filter((card) => ![weapon.id, standard.id].includes(card.id));
     state.lanes[0].facedown[1] = weapon;
     state.lanes[1].facedown[1] = standard;
@@ -1355,7 +1347,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     payment.value = 10;
     makeConstructed(attacker, "rumin-rumie-market-colossus");
     weapons.forEach((weapon, index) => {
-      makeConstructed(weapon, "rumin-coin-scale-spear", { type: "weapon", name: `Spear ${index + 1}` });
+      makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: `Spear ${index + 1}` });
       state.lanes[index].facedown[1] = weapon;
     });
     state.players[1].hand = state.players[1].hand.filter((card) => !weapons.some((weapon) => weapon.id === card.id));
@@ -1562,6 +1554,11 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
   test.each([
     {
+      definitionId: "rumin-marble-phalanx",
+      faction: "rumin",
+      note: "Phalanx Shield +2"
+    },
+    {
       definitionId: "sheen-ringroot-bastion",
       faction: "sheen",
       note: "Ringroot Bastion +2"
@@ -1703,8 +1700,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.players[2].turnData.sheenEndTurnDraws).toBe(1);
     expect(result.state.players[2].turnData.sheenNextBlockBonus).toBe(2);
     expect(result.state.handAttacks[0].block[0].notes).toEqual(expect.arrayContaining([
-      "Tang's Patient Hand +2 life",
-      "Tang's Patient Hand end-turn draw"
+      "Tang's Meditation Garden +2 life",
+      "Tang's Meditation Garden end-turn draw"
     ]));
   });
 
@@ -1947,11 +1944,11 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withChoice.state.handAttacks[0].notes).toContain("Forum Ledger Runner payment +1");
   });
 
-  test("readies Jewel-Bank Contract and only consumes it by explicit choice", () => {
+  test("readies Jewel-Bank Standard and only consumes it by explicit choice", () => {
     let state = setupFaction("rumin", "sheen");
     const contract = state.players[1].hand.find((card) => card.value === 2);
     const contractPayment = state.players[1].hand.find((card) => card.value === 3);
-    makeConstructed(contract, "rumin-jewel-bank-contract", { type: "tactic" });
+    makeConstructed(contract, "rumin-jewel-bank-contract", { type: "armament" });
     let result = applyCommand(state, {
       type: "declareHandAttack",
       player: 1,
@@ -1984,12 +1981,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.players[1].turnData.ruminJewelBankAvailable).toBe(false);
   });
 
-  test("arms only explicitly selected Rumin lane weapons", () => {
+  test("arms only explicitly selected Rumin lane armaments", () => {
     const state = setupFaction("rumin", "sheen");
     const attacker = state.players[1].hand.find((card) => card.value === 2);
     const payment = state.players[1].hand.find((card) => card.value === 3);
     const weapon = state.players[1].hand.find((card) => card.value === 4);
-    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "weapon" });
+    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament" });
     state.players[1].hand = state.players[1].hand.filter((card) => card.id !== weapon.id);
     state.lanes[0].facedown[1] = weapon;
 
@@ -2288,7 +2285,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const attacker = state.players[1].hand.find((card) => card.value === 3);
     const weapon = state.players[1].hand.find((card) => card.value === 4);
     makeConstructed(attacker, "rumin-forum-ledger-runner");
-    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "weapon" });
+    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament" });
     state.players[1].hand = state.players[1].hand.filter((card) => card.id !== weapon.id);
     state.lanes[1].facedown[1] = weapon;
 

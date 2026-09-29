@@ -1,6 +1,6 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v6";
+const RULES_VERSION = "gauntlet-duel-v7";
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
@@ -8,12 +8,21 @@ const indela = require("./indela");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v3";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v4";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
 const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const RANKS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
+const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
+  "rumin-gilded-scale-legionary",
+  "rumin-coin-scale-spear",
+  "rumin-rumie-vault-shield",
+  "rumin-imperial-scale-pike",
+  "rumin-aurelian-clawblade",
+  "rumin-triumphal-ram",
+  "rumin-kaisers-gold-claw"
+]);
 const FACTION_PROFILES = {
   mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
   jali: { id: "jali", name: "Jali", commander: "Watane", city: "Katana, Floating City", general: { id: "basho", name: "Basho" } },
@@ -59,8 +68,8 @@ const FACTION_ABILITY_INTENTS = Object.freeze({
 });
 const CONSTRUCTED_CHOICE_INTENTS = Object.freeze({
   "forum-ledger-payment": "Choose one payment card for Forum Ledger Runner's first attack to provide +1.",
-  "jewel-bank-payment": "Choose whether to use a readied Jewel-Bank Contract on exactly one payment card.",
-  "arm-rumin-weapons": "Choose which eligible Rumin lane weapon arms to a hand attack.",
+  "jewel-bank-payment": "Choose whether to use a readied Jewel-Bank Standard on exactly one payment card.",
+  "arm-rumin-weapons": "Choose which eligible Rumin lane armament arms to a hand attack.",
   "beli-awakened": "Choose whether Beli Awakened uses its readied +3 attack bonus.",
   "sandstorm-processor": "Choose whether Sandstorm Processor attacks with +2 while two acceleration counters are present.",
   "constanti-sunforge": "Choose zero through three acceleration counters for Constanti Sunforge to remove.",
@@ -517,11 +526,11 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
       || context.card?.factionId !== "rumin"
       || paymentCards.length !== 1
     ) {
-      return { error: "Jewel-Bank Contract requires its pending effect and exactly one payment card for a Rumin card." };
+      return { error: "Jewel-Bank Standard requires its pending effect and exactly one payment card for a Rumin card." };
     }
     bonus += 2;
     consume.jewelBank = true;
-    notes.push("Jewel-Bank Contract payment +2");
+    notes.push("Jewel-Bank Standard payment +2");
   }
 
   if (
@@ -545,7 +554,7 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
     && game.lanes.some((lane) => !lane.facedown[playerNumber])
   ) {
     bonus += 1;
-    notes.push("Sunken Coin payment +1");
+    notes.push("Sunken Coin Trap payment +1");
   }
   if (Number(player.turnData.frumoNextPaymentBonus || 0) > 0) {
     bonus += player.turnData.frumoNextPaymentBonus;
@@ -693,15 +702,19 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   if (!unique(selectedWeaponIds)) return { error: "Each armed weapon must be selected once." };
 
   const availableWeapons = controlledLaneEntries(game, playerNumber)
-    .filter((entry) => entry.card.factionId === "rumin" && cardHasType(entry.card, "weapon"));
+    .filter((entry) => (
+      entry.card.factionId === "rumin"
+      && cardHasType(entry.card, "armament")
+      && RUMIN_ARMABLE_DEFINITION_IDS.has(entry.card.definitionId)
+    ));
   const selectedWeapons = selectedWeaponIds.map((id) => (
     availableWeapons.find((entry) => entry.card.id === id)
   ));
   if (selectedWeapons.some((entry) => !entry)) {
-    return { error: "Every armed weapon must be a Rumin weapon in one of your lanes." };
+    return { error: "Every armed card must be an eligible Rumin armament in one of your lanes." };
   }
   if (selectedWeaponIds.length && source !== "hand") {
-    return { error: "Rumin weapons can only arm to a hand attack." };
+    return { error: "Rumin armaments can only arm to a hand attack." };
   }
   if (!cardIs(card, "rumin-rumie-market-colossus") && selectedWeaponIds.length > 1) {
     return { error: "Only Rumie Market Colossus may arm more than one weapon." };
@@ -710,7 +723,10 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   for (const entry of selectedWeapons) {
     const weapon = entry.card;
     let weaponBonus = 0;
-    if (cardIs(weapon, "rumin-coin-scale-spear")) weaponBonus = 2;
+    if (cardIs(weapon, "rumin-gilded-scale-legionary")) {
+      const diamondPaid = [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map((entry) => entry.suit)].includes("♦");
+      weaponBonus = diamondPaid ? 2 : 0;
+    } else if (cardIs(weapon, "rumin-coin-scale-spear")) weaponBonus = 2;
     else if (cardIs(weapon, "rumin-rumie-vault-shield")) weaponBonus = 3;
     else if (cardIs(weapon, "rumin-imperial-scale-pike")) {
       weaponBonus = player.turnData.previousAttackSuit === card.suit ? 4 : 2;
@@ -732,15 +748,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     bonus += weaponBonus;
     attachedCards.push(weapon);
     game.lanes[entry.laneIndex].facedown[playerNumber] = null;
-    notes.push(`${weapon.name || "Rumin weapon"} armed +${weaponBonus}`);
-  }
-
-  if (
-    cardIs(card, "rumin-gilded-scale-legionary")
-    && [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map((entry) => entry.suit)].includes("♦")
-  ) {
-    bonus += 1;
-    notes.push("Gilded Scale Legionary +1");
+    notes.push(`${weapon.name || "Rumin armament"} armed +${weaponBonus}`);
   }
   if (cardIs(card, "sheen-thornroot-counterstroke") && !player.turnData.damageTakenThisTurn) {
     bonus += 2;
@@ -826,8 +834,8 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   }
 
   if (source === "lane" && cardIs(card, "frumo-tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
-    bonus += 1;
-    notes.push("Tideglass Cutlass +1");
+    bonus += 2;
+    notes.push("Tideglass Ambush +2");
   }
   if (
     cardIs(card, "frumo-pressure-lock-pistol")
@@ -929,7 +937,7 @@ function applyAfterConstructedAttack(game, playerNumber, attack, payment, events
   }
   if (cardIs(card, "rumin-jewel-bank-contract")) {
     player.turnData.ruminJewelBankAvailable = true;
-    notes.push("Jewel-Bank Contract readied");
+    notes.push("Jewel-Bank Standard readied");
   }
   if (cardIs(card, "bizi-focus-prime-signal")) {
     gainAcceleration(game, playerNumber, 2, "Focus Prime Signal", notes, events);
@@ -972,11 +980,11 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0) + 1;
   if (cardIs(card, "sheen-rootwatch-initiate") && blockNumber > 1) {
     bonus += 1;
-    notes.push("Rootwatch Initiate +1");
+    notes.push("Rootwatch Grove +1");
   }
   if (cardIs(card, "sheen-living-bark-guard") && context.attack.source === "hand") {
     bonus += 1;
-    notes.push("Living Bark Guard +1");
+    notes.push("Living Bark Bastion +1");
   }
   if (cardIs(card, "sheen-seedwall-acolyte") && blockNumber === 1) {
     bonus += 1;
@@ -988,10 +996,10 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   }
   if (
     cardIs(card, "rumin-marble-phalanx")
-    && Number(player.turnData.attacksDeclaredThisTurn || 0) > 0
+    && context.laneBlock
   ) {
-    bonus += 1;
-    notes.push("Marble Phalanx +1");
+    bonus += 2;
+    notes.push("Phalanx Shield +2");
   }
   if (cardIs(card, "sheen-nus-verdant-edict") && blockNumber === 3) {
     bonus += 1;
@@ -1072,11 +1080,11 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
       game,
       playerNumber,
       2,
-      "Tang's Patient Hand",
+      "Tang's Meditation Garden",
       blockEntries[0].notes,
       events
     );
-    blockEntries[0].notes.push("Tang's Patient Hand end-turn draw");
+    blockEntries[0].notes.push("Tang's Meditation Garden end-turn draw");
   }
   if (
     playerControlsCard(game, playerNumber, "sheen-emperors-heartwood")
@@ -1093,7 +1101,7 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "rumin-jewel-bank-contract"))) {
     player.turnData.ruminJewelBankAvailable = true;
-    blockEntries[0].notes.push("Jewel-Bank Contract readied");
+    blockEntries[0].notes.push("Jewel-Bank Standard readied");
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "bizi-focus-prime-signal"))) {
     gainAcceleration(
@@ -1370,7 +1378,7 @@ function startNextTurn(game, events) {
       game,
       playerNumber,
       Number(turnData.sheenEndTurnDraws || 0),
-      "Tang's Patient Hand",
+      "Tang's Meditation Garden",
       events
     );
     drawExtraCards(
@@ -2359,12 +2367,16 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
       kind: "toggle",
       amount: 2,
       requiresPaymentCardCount: 1,
-      label: "Jewel-Bank Contract · make the single payment card +2"
+      label: "Jewel-Bank Standard · make the single payment card +2"
     });
   }
   if (source === "hand") {
     const weapons = controlledLaneEntries(game, playerNumber)
-      .filter((entry) => entry.card.factionId === "rumin" && cardHasType(entry.card, "weapon"));
+      .filter((entry) => (
+        entry.card.factionId === "rumin"
+        && cardHasType(entry.card, "armament")
+        && RUMIN_ARMABLE_DEFINITION_IDS.has(entry.card.definitionId)
+      ));
     if (weapons.length) {
       options.push({
         id: "arm-rumin-weapons",
@@ -2374,9 +2386,9 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
         cards: weapons.map((entry) => ({
           cardId: entry.card.id,
           laneIndex: entry.laneIndex,
-          label: entry.card.name || "Rumin weapon"
+          label: entry.card.name || "Rumin armament"
         })),
-        label: "Arm Rumin weapon"
+        label: "Arm Rumin armament"
       });
     }
   }

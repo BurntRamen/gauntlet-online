@@ -220,7 +220,7 @@ test("constructed presentation selection requires an owned variant for the same 
   });
   assert.throws(
     () => validateConstructedDeckPayload(paidStats, deckPayload({ [GAMEPLAY_CARD_ID]: OTHER_CARD_VARIANT_ID })),
-    /made for Gilded Scale Legionary/
+    /made for Gilded Legion Spear/
   );
 });
 
