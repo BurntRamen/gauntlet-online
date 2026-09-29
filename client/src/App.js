@@ -5786,26 +5786,10 @@ export default function App() {
         <div className="home-command-header">
           <div className="home-brand">
             <div className="home-brand-copy">
-              <div className="home-brand-kicker">Battle Net Terminal</div>
-              <h1>Gauntlet Online</h1>
-              <div className="home-brand-subtitle">Two-player card command</div>
-            </div>
-            <div className="home-faction-ribbon" aria-label="The four Gauntlet factions">
-              {[
-                ["rumin", "Rumin"],
-                ["bizi", "Bizi"],
-                ["sheen", "Sheen"],
-                ["frumo", "Frumo"]
-              ].map(([factionId, factionName]) => (
-                <span
-                  key={factionId}
-                  className={`home-faction-portrait faction-${factionId}`}
-                  style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }}
-                  title={factionName}
-                  aria-label={factionName}
-                  role="img"
-                />
-              ))}
+              <h1 className="home-brand-lockup">
+                <img className="home-brand-logo" src={resolveAssetPath("/assets/gauntlet/gauntlet-logo.png")} alt="Gauntlet" width="2508" height="2508" fetchPriority="high" />
+                <span className="home-brand-edition">Online</span>
+              </h1>
             </div>
           </div>
           <div className="home-current-context">
