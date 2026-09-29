@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "gauntlet-content-v6",
+  "contentVersion": "gauntlet-content-v7",
   "generatedFrom": "server/gameContent.js collectorVariants[].art",
   "summary": {
     "gameplayCardCount": 72,
     "collectorVariantCount": 144,
-    "variantsWithArt": 72,
-    "variantsMissingArt": 72,
-    "gameplayCardsWithAnyDedicatedArt": 36,
-    "gameplayCardsMissingAllDedicatedArt": 36
+    "variantsWithArt": 144,
+    "variantsMissingArt": 0,
+    "gameplayCardsWithAnyDedicatedArt": 72,
+    "gameplayCardsMissingAllDedicatedArt": 0
   },
   "cards": [
     {
@@ -273,8 +273,8 @@
       "standardVariantId": "sheen-rootwatch-initiate:standard",
       "collectorVariantId": "sheen-rootwatch-initiate:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-rootwatch-initiate.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-rootwatch-initiate.webp"
       }
     },
     {
@@ -287,8 +287,8 @@
       "standardVariantId": "sheen-quiet-grove-sentinel:standard",
       "collectorVariantId": "sheen-quiet-grove-sentinel:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-quiet-grove-sentinel.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-quiet-grove-sentinel.webp"
       }
     },
     {
@@ -301,8 +301,8 @@
       "standardVariantId": "sheen-mossbound-staff:standard",
       "collectorVariantId": "sheen-mossbound-staff:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-mossbound-staff.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-mossbound-staff.webp"
       }
     },
     {
@@ -315,8 +315,8 @@
       "standardVariantId": "sheen-living-bark-guard:standard",
       "collectorVariantId": "sheen-living-bark-guard:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-living-bark-guard.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-living-bark-guard.webp"
       }
     },
     {
@@ -329,8 +329,8 @@
       "standardVariantId": "sheen-beli-vinebinder:standard",
       "collectorVariantId": "sheen-beli-vinebinder:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-beli-vinebinder.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-beli-vinebinder.webp"
       }
     },
     {
@@ -343,8 +343,8 @@
       "standardVariantId": "sheen-harmony-ward:standard",
       "collectorVariantId": "sheen-harmony-ward:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-harmony-ward.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-harmony-ward.webp"
       }
     },
     {
@@ -357,8 +357,8 @@
       "standardVariantId": "sheen-thornroot-counterstroke:standard",
       "collectorVariantId": "sheen-thornroot-counterstroke:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-thornroot-counterstroke.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-thornroot-counterstroke.webp"
       }
     },
     {
@@ -371,8 +371,8 @@
       "standardVariantId": "sheen-beli-canopy-shield:standard",
       "collectorVariantId": "sheen-beli-canopy-shield:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-beli-canopy-shield.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-beli-canopy-shield.webp"
       }
     },
     {
@@ -385,8 +385,8 @@
       "standardVariantId": "sheen-nus-verdant-edict:standard",
       "collectorVariantId": "sheen-nus-verdant-edict:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-nus-verdant-edict.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-nus-verdant-edict.webp"
       }
     },
     {
@@ -399,8 +399,8 @@
       "standardVariantId": "sheen-roots-that-remember:standard",
       "collectorVariantId": "sheen-roots-that-remember:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-roots-that-remember.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-roots-that-remember.webp"
       }
     },
     {
@@ -413,8 +413,8 @@
       "standardVariantId": "sheen-tangs-patient-hand:standard",
       "collectorVariantId": "sheen-tangs-patient-hand:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-tangs-patient-hand.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-tangs-patient-hand.webp"
       }
     },
     {
@@ -427,8 +427,8 @@
       "standardVariantId": "sheen-seedwall-acolyte:standard",
       "collectorVariantId": "sheen-seedwall-acolyte:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-seedwall-acolyte.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-seedwall-acolyte.webp"
       }
     },
     {
@@ -441,8 +441,8 @@
       "standardVariantId": "sheen-raincall-mender:standard",
       "collectorVariantId": "sheen-raincall-mender:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-raincall-mender.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-raincall-mender.webp"
       }
     },
     {
@@ -455,8 +455,8 @@
       "standardVariantId": "sheen-ringroot-bastion:standard",
       "collectorVariantId": "sheen-ringroot-bastion:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-ringroot-bastion.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-ringroot-bastion.webp"
       }
     },
     {
@@ -469,8 +469,8 @@
       "standardVariantId": "sheen-sapling-chorus:standard",
       "collectorVariantId": "sheen-sapling-chorus:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-sapling-chorus.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-sapling-chorus.webp"
       }
     },
     {
@@ -483,8 +483,8 @@
       "standardVariantId": "sheen-nus-calm-command:standard",
       "collectorVariantId": "sheen-nus-calm-command:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-nus-calm-command.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-nus-calm-command.webp"
       }
     },
     {
@@ -497,8 +497,8 @@
       "standardVariantId": "sheen-emperors-heartwood:standard",
       "collectorVariantId": "sheen-emperors-heartwood:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-emperors-heartwood.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-emperors-heartwood.webp"
       }
     },
     {
@@ -511,8 +511,8 @@
       "standardVariantId": "sheen-beli-awakened:standard",
       "collectorVariantId": "sheen-beli-awakened:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/sheen/sheen-beli-awakened.webp",
+        "collector": "/assets/gauntlet/constructed/sheen/sheen-beli-awakened.webp"
       }
     },
     {
@@ -525,8 +525,8 @@
       "standardVariantId": "frumo-deckhand-diver:standard",
       "collectorVariantId": "frumo-deckhand-diver:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-deckhand-diver.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-deckhand-diver.webp"
       }
     },
     {
@@ -539,8 +539,8 @@
       "standardVariantId": "frumo-tideglass-cutlass:standard",
       "collectorVariantId": "frumo-tideglass-cutlass:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-tideglass-cutlass.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-tideglass-cutlass.webp"
       }
     },
     {
@@ -553,8 +553,8 @@
       "standardVariantId": "frumo-sunken-coin:standard",
       "collectorVariantId": "frumo-sunken-coin:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-sunken-coin.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-sunken-coin.webp"
       }
     },
     {
@@ -567,8 +567,8 @@
       "standardVariantId": "frumo-coral-hull-guard:standard",
       "collectorVariantId": "frumo-coral-hull-guard:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-coral-hull-guard.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-coral-hull-guard.webp"
       }
     },
     {
@@ -581,8 +581,8 @@
       "standardVariantId": "frumo-riptide-smuggler:standard",
       "collectorVariantId": "frumo-riptide-smuggler:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-riptide-smuggler.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-riptide-smuggler.webp"
       }
     },
     {
@@ -595,8 +595,8 @@
       "standardVariantId": "frumo-lafayettes-chart:standard",
       "collectorVariantId": "frumo-lafayettes-chart:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-lafayettes-chart.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-lafayettes-chart.webp"
       }
     },
     {
@@ -609,8 +609,8 @@
       "standardVariantId": "frumo-pressure-lock-pistol:standard",
       "collectorVariantId": "frumo-pressure-lock-pistol:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-pressure-lock-pistol.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-pressure-lock-pistol.webp"
       }
     },
     {
@@ -623,8 +623,8 @@
       "standardVariantId": "frumo-ristus-blackwake:standard",
       "collectorVariantId": "frumo-ristus-blackwake:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-ristus-blackwake.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-ristus-blackwake.webp"
       }
     },
     {
@@ -637,8 +637,8 @@
       "standardVariantId": "frumo-captains-bad-wager:standard",
       "collectorVariantId": "frumo-captains-bad-wager:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-captains-bad-wager.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-captains-bad-wager.webp"
       }
     },
     {
@@ -651,8 +651,8 @@
       "standardVariantId": "frumo-poleas-sunken-order:standard",
       "collectorVariantId": "frumo-poleas-sunken-order:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-poleas-sunken-order.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-poleas-sunken-order.webp"
       }
     },
     {
@@ -665,8 +665,8 @@
       "standardVariantId": "frumo-leviathan-salvage:standard",
       "collectorVariantId": "frumo-leviathan-salvage:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-leviathan-salvage.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-leviathan-salvage.webp"
       }
     },
     {
@@ -679,8 +679,8 @@
       "standardVariantId": "frumo-kelpcloak-trickster:standard",
       "collectorVariantId": "frumo-kelpcloak-trickster:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-kelpcloak-trickster.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-kelpcloak-trickster.webp"
       }
     },
     {
@@ -693,8 +693,8 @@
       "standardVariantId": "frumo-ballast-hook:standard",
       "collectorVariantId": "frumo-ballast-hook:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-ballast-hook.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-ballast-hook.webp"
       }
     },
     {
@@ -707,8 +707,8 @@
       "standardVariantId": "frumo-tide-debt-ledger:standard",
       "collectorVariantId": "frumo-tide-debt-ledger:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-tide-debt-ledger.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-tide-debt-ledger.webp"
       }
     },
     {
@@ -721,8 +721,8 @@
       "standardVariantId": "frumo-abyssal-switchboard:standard",
       "collectorVariantId": "frumo-abyssal-switchboard:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-abyssal-switchboard.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-abyssal-switchboard.webp"
       }
     },
     {
@@ -735,8 +735,8 @@
       "standardVariantId": "frumo-poleas-moonlit-map:standard",
       "collectorVariantId": "frumo-poleas-moonlit-map:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-poleas-moonlit-map.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-poleas-moonlit-map.webp"
       }
     },
     {
@@ -749,8 +749,8 @@
       "standardVariantId": "frumo-the-last-gamble:standard",
       "collectorVariantId": "frumo-the-last-gamble:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-the-last-gamble.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-the-last-gamble.webp"
       }
     },
     {
@@ -763,8 +763,8 @@
       "standardVariantId": "frumo-ristus-rises:standard",
       "collectorVariantId": "frumo-ristus-rises:collector-foil",
       "currentArt": {
-        "standard": null,
-        "collector": null
+        "standard": "/assets/gauntlet/constructed/frumo/frumo-ristus-rises.webp",
+        "collector": "/assets/gauntlet/constructed/frumo/frumo-ristus-rises.webp"
       }
     },
     {

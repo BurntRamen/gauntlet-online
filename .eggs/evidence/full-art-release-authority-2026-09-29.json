@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "full-art-release-authority-20260929",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-09-29T21:34:28.257Z",
+  "expiresAt": "2026-09-30T05:34:28.257Z",
+  "resolver": "Codex; connected profile verified",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://docs.google.com/document/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/edit",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "2026-09-21T18:12:16.293Z; ANLCKQkzh2jMpQkq0-GqI5zNK41dzE5_u3NXNwHpEio6O_NvKEr4FJ5c8KkvuU4V4dbxSr6bLzlgB3T8dioYthNJkuSO7QVTn_BNehzUyxhc",
+      "resolvedAt": "2026-09-29T21:34:28.257Z",
+      "constraints": [
+        {
+          "id": "preserve-source-scope",
+          "statement": "Preserve current game mechanics and source status. Release the user-approved local card design without changing Drive authorities.",
+          "scope": "Card art and workshop release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://docs.google.com/document/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/edit",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "2026-09-17T13:16:05.502Z; ANLCKQmSKOSWGzJpXhlMmkvxoIKG4M76eScG7U1gl-HRkPJA4LmfrDXXOvms7IsaZWodpE8N0XacFU0XqFKWcfHRTq4Neyu8vYy5zWmUYeQP",
+      "resolvedAt": "2026-09-29T21:34:28.257Z",
+      "constraints": [
+        {
+          "id": "preserve-source-scope",
+          "statement": "Preserve current game mechanics and source status. Release the user-approved local card design without changing Drive authorities.",
+          "scope": "Card art and workshop release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "2026-09-22T03:31:04.442Z; ANLCKQmmpIiDBcaBvv8-05C6LrJsffe15f0_x7uGfgvESfQ_O-MSqU-Nm08_d5Zw4pfFc8QYufqQFNdCwM4xvz5JmfuYs3JKImPcRpQ2kT-Z",
+      "resolvedAt": "2026-09-29T21:34:28.257Z",
+      "constraints": [
+        {
+          "id": "preserve-source-scope",
+          "statement": "Preserve current game mechanics and source status. Release the user-approved local card design without changing Drive authorities.",
+          "scope": "Card art and workshop release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://docs.google.com/document/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/edit",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "2026-08-19T20:05:18.713Z; ANLCKQngUYdIjbPZkShgPUXT0uRuz0Ke54vzDLLZZL5cv0QDYb_3RCp8iDdk9plePOBY9FPANxaycfQeLlwgm3c",
+      "resolvedAt": "2026-09-29T21:34:28.257Z",
+      "constraints": [
+        {
+          "id": "preserve-source-scope",
+          "statement": "Preserve current game mechanics and source status. Release the user-approved local card design without changing Drive authorities.",
+          "scope": "Card art and workshop release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://docs.google.com/spreadsheets/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/edit",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "2026-08-19T20:17:38.785Z; live Card Registry — Operational v1 A1:L12",
+      "resolvedAt": "2026-09-29T21:34:28.257Z",
+      "constraints": [
+        {
+          "id": "no-registry-mutation",
+          "statement": "Read-only authority; preserve current canonical-branch card definitions and do not update the registry.",
+          "scope": "This release"
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}

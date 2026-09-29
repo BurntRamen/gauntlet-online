@@ -1,0 +1,34 @@
+{
+  "id": "full-art-release-20260929",
+  "userDirection": [
+    "this is the official templated design. proceed with full card design and implementation",
+    "i do not see it live"
+  ],
+  "scope": "Bring the approved full-art custom cards and compact workshop to the existing Gauntlet Online production site via its GitHub PR and deployment flow. Apply on current origin/main and preserve newer balance changes.",
+  "authorizationBasis": "Direct user follow-up requesting the implemented changes be visible live. This is the task-specific publication request, not an inference from earlier local completion.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Keep the original dirty checkout and unrelated retained worktree untouched. A third isolated release worktree is retained temporarily to preserve that work; do not delete other worktrees to enforce the retention default."
+  ],
+  "conditions": [
+    "All relevant code checks and previews pass before merge.",
+    "Publish only the requested card artwork and workshop implementation.",
+    "No deployment configuration or production-data change."
+  ]
+}

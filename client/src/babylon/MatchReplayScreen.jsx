@@ -6,7 +6,7 @@ import ReplayTranscript from "./ReplayTranscript";
 import "./MatchReplayScreen.css";
 
 function cardArt(card) {
-  const path = card?.collector?.art || getPlayingCardArtPath(card, card?.factionId);
+  const path = getPlayingCardArtPath(card, card?.factionId) || card?.collector?.art;
   if (path) return /^https?:/i.test(path) ? path : `${process.env.PUBLIC_URL || ""}${path}`;
   return card?.factionId && card.factionId !== "basic"
     ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${card.factionId}-card.webp`

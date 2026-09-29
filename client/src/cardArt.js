@@ -1,4 +1,22 @@
+import customCardArt from "./customCardArt.json";
+
+const CUSTOM_CARD_IDS = new Set(customCardArt);
+
 export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
+
+export function getCustomCardArtDefinition(card) {
+  const id = [card?.gameplayCardId, card?.definitionId, card?.id].find((candidate) => CUSTOM_CARD_IDS.has(candidate));
+  if (!id) return null;
+  const factionId = id.split("-")[0];
+  return { id, factionId, illustration: `/assets/gauntlet/constructed/${factionId}/${id}.webp` };
+}
+
+export function getCustomCardFacePath(card) {
+  const definition = getCustomCardArtDefinition(card);
+  if (!definition) return "";
+  const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "spades";
+  return `/assets/gauntlet/constructed/faces/${definition.id}-${suit}.webp`;
+}
 
 const SUPPORTED_FACTIONS = new Set(PLAYING_CARD_ART_FACTIONS);
 
@@ -55,18 +73,21 @@ export function isOrdinaryPlayingCard(card) {
 }
 
 export function expectsPlayingCardArt(card) {
+  if (getCustomCardArtDefinition(card)) return true;
   if (!isOrdinaryPlayingCard(card)) return false;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
   return Boolean(suit && getPlayingCardRankSlug(card));
 }
 
 export function getPlayingCardArtPath(card, factionId) {
+  const customFace = getCustomCardFacePath(card);
+  if (customFace) return customFace;
   const requestedFaction = String(factionId || card?.factionId || "basic").toLowerCase();
   const faction = new Set(["mekan", "jali", "gracus", "indela"]).has(requestedFaction) ? "basic" : requestedFaction;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
   const rank = getPlayingCardRankSlug(card);
 
-  // Collection and draft replacements retain their existing faction-card treatment.
+  // Unregistered replacements cannot borrow an unrelated ordinary face.
   if (!isOrdinaryPlayingCard(card)) return "";
   if (!SUPPORTED_FACTIONS.has(faction) || !suit || !rank) return "";
   return `/assets/gauntlet/playing-cards/${faction}-${rank}-${suit}.webp`;
