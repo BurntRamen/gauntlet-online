@@ -1,11 +1,12 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v4";
+const RULES_VERSION = "gauntlet-duel-v5";
 const mekan = require("./mekan");
+const jali = require("./jali");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v1";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v2";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -13,6 +14,7 @@ const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const RANKS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 const FACTION_PROFILES = {
   mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
+  jali: { id: "jali", name: "Jali", commander: "Watane", city: "Katana, Floating City", general: { id: "basho", name: "Basho" } },
   rumin: {
     id: "rumin",
     name: "Rumin",
@@ -228,6 +230,7 @@ function makePlayer(number, name, deck, faction = null) {
     hand: [],
     deck,
     discard: [],
+    revenants: 0,
     faction: normalizedFaction,
     connected: true,
     accelerationCounters: 0,
@@ -1173,6 +1176,7 @@ function clearTemporaryBonuses(game) {
       delete card.temporaryValueBonus;
       delete card.temporaryValueBonusNotes;
     }
+    if (card) delete card.jaliKatanaPrepared;
   };
   for (const playerNumber of [1, 2]) {
     const player = game.players[playerNumber];
@@ -1249,6 +1253,7 @@ function resolveAttack(game, attack, laneIndex, events) {
   }
   game.players[attack.player].discard.push(attack.card);
   mekan.combat(game, attack, damage);
+  jali.combat(game, attack, damage, events, event);
   game.players[attack.player].discard.push(...(attack.attachedCards || []));
   (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
   events.push(event(game, "damage.calculated", {
@@ -1925,6 +1930,10 @@ function applyCommand(current, rawCommand) {
     const error = mekan.apply(game, player, command.abilityId, events, event);
     if (error) return reject(current, command, error);
     label = `Player ${player} used a Mekan ability.`;
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("jali:")) {
+    const error = jali.apply(game, player, command.abilityId, events, event);
+    if (error) return reject(current, command, error);
+    label = `Player ${player} used a Jali ability.`;
   } else if (command.type === "useFactionAbility") {
     if (game.phase !== "priority" || game.priority !== player) {
       return reject(current, command, "Faction abilities require your priority window.");
@@ -2215,6 +2224,7 @@ function getFactionAbilityActions(game, playerNumber) {
   }
   const actions = [];
   actions.push(...mekan.actions(game, playerNumber));
+  actions.push(...jali.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
   const activeCombat = pendingAttack(game);
   const controlsActiveAttack = activeCombat?.attack?.player === playerNumber;
@@ -2896,7 +2906,7 @@ function projectForPerspective(game, perspectivePlayer) {
   }
   projected.lanes.forEach((lane, laneIndex) => {
     for (const player of [1, 2]) {
-      if (player !== viewer && lane.facedown[player]) {
+      if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed) {
         hiddenCardIds.add(lane.facedown[player].id);
         lane.facedown[player] = { id: `hidden-lane-${laneIndex}-p${player}`, hidden: true };
       }

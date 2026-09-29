@@ -21,3 +21,17 @@ test("an older server without Legacies content remains supported", () => {
   const { container } = render(<LegaciesPanel />);
   expect(container).toBeEmptyDOMElement();
 });
+
+test("switches from Mekan to the playable Jali overview", () => {
+  const jali = {
+    id: "jali", name: "Jali", status: "playable", identity: "Revenants", story: [], festivals: [],
+    generals: [{ id: "basho", name: "Basho", ability: "Call the Formation", identity: "Reveal lanes", text: "Reveal three cards." }],
+    commander: { name: "Watane", text: "Create Revenants." }, city: { name: "Katana, Floating City", text: "Strengthen low cards." }
+  };
+  render(<LegaciesPanel set={{ ...set, factions: [...set.factions, jali] }} />);
+  fireEvent.click(screen.getByRole("button", { name: /Jali/ }));
+  expect(screen.getByRole("heading", { name: "Jali", level: 3 })).toBeVisible();
+  fireEvent.click(screen.getByText("Explore Jali lore and abilities"));
+  expect(screen.getByText(/complete standard 52-card deck/)).toBeVisible();
+  expect(screen.getByText("Reveal three cards.")).toBeVisible();
+});

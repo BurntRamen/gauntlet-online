@@ -19,5 +19,6 @@ export default function FactionLoadoutPicker({ factions = [], factionId, general
     </label> : <p>General: {general?.name || "Select a faction"}</p>}
     {general?.text && <p>{general.text}</p>}
     {faction?.id === "mekan" && <p>Use faction actions during your priority to mark discarded cards as Guests and invite them. Celebrate rewards matching attacks and blocks.</p>}
+    {faction?.id === "jali" && <p>Bested cards create Revenants. Spend them through faction actions, reveal a full formation with Basho, and prepare low-value cards with Katana after a Revenant appears.</p>}
   </fieldset>;
 }

@@ -95,6 +95,24 @@
   --battlefield-plate-deep: rgba(7, 3, 10, 0.96);
 }
 
+.production-match-experience[data-battlefield-faction="mekan"] {
+  --battlefield-accent: #e6b453;
+  --battlefield-glow: rgba(230, 180, 83, 0.25);
+  --battlefield-wash: rgba(157, 55, 103, 0.28);
+  --battlefield-shadow: rgba(22, 6, 17, 0.95);
+  --battlefield-plate: rgba(38, 13, 31, 0.92);
+  --battlefield-plate-deep: rgba(10, 3, 8, 0.96);
+}
+
+.production-match-experience[data-battlefield-faction="jali"] {
+  --battlefield-accent: #ef6a78;
+  --battlefield-glow: rgba(239, 106, 120, 0.24);
+  --battlefield-wash: rgba(113, 33, 55, 0.32);
+  --battlefield-shadow: rgba(19, 4, 9, 0.95);
+  --battlefield-plate: rgba(34, 9, 17, 0.93);
+  --battlefield-plate-deep: rgba(9, 2, 5, 0.97);
+}
+
 .production-battlefield-safe-frame {
   position: absolute;
   z-index: 1;
@@ -1824,6 +1842,12 @@
   margin: 0;
   color: #f1d79e;
   font-size: 12px;
+}
+
+.production-faction-resource {
+  margin: 6px 0 12px;
+  color: #fecdd3;
+  font-size: 13px;
 }
 
 .production-faction-reference-actions button {

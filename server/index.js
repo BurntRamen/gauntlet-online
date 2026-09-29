@@ -5007,7 +5007,7 @@ function emitLobbyState(roomState) {
     gameMode: getLobbyGameMode(roomState),
     players,
     ranked: Boolean(roomState.ranked),
-    factions: listFactions().filter((faction) => faction.id !== "mekan" || !isFreeForAllRoom(roomState)),
+    factions: listFactions().filter((faction) => !faction.draftRules || !isFreeForAllRoom(roomState)),
     spectatorCount: roomState.lobby.spectators.length
   });
 }
@@ -8281,7 +8281,7 @@ io.on("connection", (socket) => {
       socket.emit("errorMessage", "Basic Mode does not use factions.");
       return;
     }
-    if (!getFactionById(factionId, generalId) || getFactionById(factionId)?.campaignOnly || (factionId === "mekan" && isFreeForAllRoom(roomState))) {
+    if (!getFactionById(factionId, generalId) || getFactionById(factionId)?.campaignOnly || (getFactionById(factionId)?.draftRules && isFreeForAllRoom(roomState))) {
       socket.emit("errorMessage", "Choose a valid faction.");
       return;
     }

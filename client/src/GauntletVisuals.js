@@ -2,6 +2,7 @@ import "./GauntletVisuals.css";
 
 export const FACTION_VISUALS = {
   mekan: { name: "Mekan", accent: "#e6b453", art: "/assets/gauntlet/mekan-emblem.svg" },
+  jali: { name: "Jali", accent: "#ef6a78", art: "/assets/gauntlet/jali-emblem.svg" },
   rumin: { name: "Rumin", accent: "#c97858", art: "/assets/gauntlet/rumin-card.webp" },
   sheen: { name: "Sheen", accent: "#71b187", art: "/assets/gauntlet/sheen-card.webp" },
   frumo: { name: "Frumo", accent: "#69a8dc", art: "/assets/gauntlet/frumo-card.webp" },
@@ -24,6 +25,8 @@ export function factionIdFrom(value) {
   if (normalized.includes("sheen")) return "sheen";
   if (normalized.includes("frumo")) return "frumo";
   if (normalized.includes("bizi")) return "bizi";
+  if (normalized.includes("mekan")) return "mekan";
+  if (normalized.includes("jali")) return "jali";
   if (normalized.includes("xendra")) return "xendra";
   return "basic";
 }

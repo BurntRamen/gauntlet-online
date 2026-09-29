@@ -23,6 +23,11 @@ silently change optional choices into automatic effects or to narrow a target.
 | Focus | Overpaying a card by at least 2 gains one acceleration counter. Once per turn, one counter may give a controlled lane card or active attacker +1 until end of turn. | Whether to spend and which controlled card. | Counter total and committed buff are public. |
 | Hera | Once per turn, a payment card matching a suit already played that turn may provide +2 additional payment value. | Explicit opt-in and matching payment card. | Public after payment commits. |
 | Constanti | The first two post-opening attacks whose suit differs from the previous attack get +1. | None. | Public. |
+| Allegro / San Mikal | Paid and defeated cards may become Guests. Matching later plays gain value, and an invited matching-value Guest can be removed for another bonus. | Which eligible card becomes or is invited as a Guest. | Guest markers and committed bonuses are public. |
+| Mekan Generals | Acama and Ahu inspect/reorder the deck privately; Hui, Monti, and Temo convert discard or defeat sequencing into value. | General at deck selection, then each optional action. | Deck inspection remains private; bonuses are public. |
+| Watane | A fully blocked attacker or overcome blocker creates a Revenant. Spend one Revenant during priority to give a controlled hand or lane card +2 until end of turn. | Which card receives each spent Revenant. | Revenant total and committed buff are public. |
+| Basho | Once per turn, reveal all three controlled face-down lane cards together to create one Revenant. | Whether to reveal the complete formation. | All three revealed cards become public. |
+| Katana | After creating a Revenant that turn, each controlled card with printed value 8 or less may receive +2 once before it is played. | Which eligible card receives the bonus. | The committed bonus is public. |
 
 An accepted activated ability resets both pass markers, leaves priority with its
 controller, and allows the opponent another response before combat or the

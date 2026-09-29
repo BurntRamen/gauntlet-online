@@ -44,6 +44,20 @@ test("Mekan Guest actions appear in the production controls and enforce once-per
   adapter.dispose();
 });
 
+test("Jali Revenant actions dispatch directly from the production controls", () => {
+  const adapter = createLocalDuelAdapter({ seed: "jali-controls", gameMode: "factions", factions: { 1: "jali", 2: "jali" } });
+  const player = adapter.game.players[adapter.controller];
+  player.revenants = 1;
+  const card = player.hand[0];
+  const abilityId = `jali:watane:${card.id}`;
+  const update = latestUpdate(adapter);
+  expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({ id: abilityId, available: true }));
+  update.commands.activateAbility(abilityId);
+  expect(adapter.game.players[adapter.controller].revenants).toBe(0);
+  expect(adapter.game.players[adapter.controller].hand.find((entry) => entry.id === card.id).temporaryValueBonus).toBe(2);
+  adapter.dispose();
+});
+
 test("hand blocking replaces or clears one blocker while payment stays multi-card and excludes it", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-single-block" });
   const defender = adapter.controller;

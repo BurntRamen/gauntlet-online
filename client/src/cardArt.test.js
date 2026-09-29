@@ -18,6 +18,13 @@ test("maps Basic Gauntlet cards to the neutral production family", () => {
     .toBe("/assets/gauntlet/playing-cards/basic-10-spades.webp");
 });
 
+test("gives Legacies factions the complete neutral 52-card face family", () => {
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "mekan"))
+    .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "jali"))
+    .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
+});
+
 test("keeps replacement cards on their existing treatment", () => {
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", draftCard: true }, "sheen")).toBe("");
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts", type: "weapon" }, "sheen")).toBe("");

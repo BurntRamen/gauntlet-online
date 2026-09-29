@@ -442,7 +442,7 @@ function PlayerPlate({
     ? "G"
     : String(player.factionName || player.name || "G").slice(0, 1).toUpperCase();
   const crestPath = player.factionId && player.factionId !== "basic"
-    ? `/assets/gauntlet/${player.factionId}-card.webp`
+    ? ({ mekan: "/assets/gauntlet/mekan-emblem.svg", jali: "/assets/gauntlet/jali-emblem.svg" }[player.factionId] || `/assets/gauntlet/${player.factionId}-card.webp`)
     : "/assets/gauntlet/match/gauntlet-card-back-official.jpg";
   const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
   return (
@@ -924,6 +924,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
               <section key={player.id} className={player.id === viewModel?.perspective?.player ? "is-local" : ""}>
                 <span>Player {player.id}</span>
                 <h3>{player.faction?.name || "Basic Gauntlet"}</h3>
+                {player.faction?.id === "jali" && <p className="production-faction-resource"><strong>Revenants:</strong> {Number(player.revenants || 0)}</p>}
                 {[
                   ["Commander", factionProfile(player.faction?.commander, "Commander")],
                   ["General", factionProfile(player.faction?.general, "General")],

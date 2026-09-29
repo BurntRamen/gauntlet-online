@@ -14,3 +14,15 @@ test("publishes playable Mekan and its five mutually exclusive General choices",
   assert.equal(getFactionById("mekan", "hui").general.id, "hui");
   assert.equal(getFactionById("mekan", "forged"), null);
 });
+
+test("publishes playable Jali with the shared Watane, Basho, and Katana identity", () => {
+  const content = getPublicGameContent();
+  const jali = content.upcomingSets.find((set) => set.id === "legacies").factions.find((faction) => faction.id === "jali");
+  assert.equal(jali.status, "playable");
+  assert.equal(jali.commander.name, "Watane");
+  assert.equal(jali.city.name, "Katana, Floating City");
+  assert.deepEqual(jali.generals.map((general) => general.id), ["basho"]);
+  assert.equal(content.factions.some((faction) => faction.id === "jali"), true);
+  assert.equal(getFactionById("jali", "basho").general.id, "basho");
+  assert.equal(getFactionById("jali", "forged"), null);
+});

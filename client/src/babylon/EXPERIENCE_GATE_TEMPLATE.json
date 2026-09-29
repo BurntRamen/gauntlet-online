@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "rendererVersion": "",
-  "rulesVersion": "gauntlet-duel-v4",
+  "rulesVersion": "gauntlet-duel-v5",
   "visualStates": [
     { "id": "neutral-battlefield", "reviewer": "", "date": "", "categories": {} },
     { "id": "local-priority", "reviewer": "", "date": "", "categories": {} },

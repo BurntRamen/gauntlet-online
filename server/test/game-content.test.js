@@ -15,6 +15,7 @@ const {
   validateGameContent
 } = require("../gameContent");
 const { FACTIONS } = require("../game/factions");
+const { createMatch } = require("../../shared/duel-rules");
 const { server } = require("../index");
 
 test.after(() => server.close());
@@ -26,13 +27,22 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 5);
+  assert.equal(content.factions.length, 6);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
   assert.equal(content.campaigns.xendra.chapters.length, 8);
   assert.equal(content.cards.length, COLLECTION_CARDS.length);
   assert.equal(content.collectorVariants.length, COLLECTOR_VARIANTS.length);
   assert.equal(content.deckRules.basePlayingDeckSize, 52);
   assert.equal(content.deckRules.basePlayingDeckSize, DECK_RULES.replacementSuits.length * DECK_RULES.playingDeckValues.length);
+});
+
+test("gives every playable faction a complete standard 52-card deck", () => {
+  const factions = getPublicGameContent().factions;
+  for (const faction of factions) {
+    const match = createMatch({ gameMode: "factions", seed: `deck-${faction.id}`, factions: { 1: faction, 2: faction } }).state;
+    assert.equal(match.players[1].hand.length + match.players[1].deck.length, 52, faction.id);
+    assert.equal(new Set([...match.players[1].hand, ...match.players[1].deck].map((card) => `${card.rank}:${card.suit}`)).size, 52, faction.id);
+  }
 });
 
 test("keeps the legacy faction adapter on the canonical registry", () => {

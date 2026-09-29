@@ -62,7 +62,7 @@ export function expectsPlayingCardArt(card) {
 
 export function getPlayingCardArtPath(card, factionId) {
   const requestedFaction = String(factionId || card?.factionId || "basic").toLowerCase();
-  const faction = requestedFaction === "mekan" ? "basic" : requestedFaction;
+  const faction = new Set(["mekan", "jali"]).has(requestedFaction) ? "basic" : requestedFaction;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
   const rank = getPlayingCardRankSlug(card);
 

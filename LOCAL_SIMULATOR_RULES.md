@@ -16,11 +16,13 @@ rejections, and the explicit Basic `duelCommand` socket path.
 - Priority transfer, pass-pass closure, damage, cleanup, life checks, draw,
   victory, draw, and concession.
 - Basic immediate combat resolution.
-- Two-player faction profiles for Rumin, Sheen, Frumo, and Bizi, including the
+- Two-player faction profiles for Rumin, Sheen, Frumo, Bizi, Mekan, and Jali, including the
   shared deterministic passive counters and direct Polea, Lafayette, Focus, and
   acceleration commands represented in this package. Optional effects such as
   Meerus and Hera require an explicit player choice rather than being consumed
   automatically.
+- Mekan Guests and Jali Revenants, including Jali's public three-lane reveal
+  and its server-enforced +2 counterattack actions.
 - Perspective-safe hot-seat handoff, deterministic reset, command history, and
   developer-only rewind.
 

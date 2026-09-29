@@ -136,6 +136,7 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
     handCount: Number(source.handCount ?? source.hand?.length ?? 0),
     deckCount: Number(source.deckCount ?? 0),
     discardCount: Number(source.discardCount ?? source.discard?.length ?? 0),
+    revenants: Number(source.revenants || 0),
     connected: source.connected !== false,
     profile: source.profile || null,
     isLocal,

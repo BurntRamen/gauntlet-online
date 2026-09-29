@@ -46,6 +46,40 @@ const LEGACIES = {
       { name: "Jade Ball Tournament", text: "Living and departed spectators gather for an ancient ceremonial ball game." },
       { name: "Procession of Spirits", text: "Guests parade through the city before returning to the afterlife." }
     ]
+  }, {
+    id: "jali",
+    name: "Jali",
+    status: "playable",
+    tagline: "The bested rise. The formation answers.",
+    identity: "Revenants · Revealed formations · Counterattacks",
+    introduction: "The Jali turn defeat into a source of strength. Their fallen return as Revenants, disciplined formations reveal themselves at the decisive moment, and modest cards become dangerous once the boundary between the living and the remembered has opened.",
+    philosophy: "A bested warrior leaves a place in the line, and a Revenant steps into it.",
+    story: [
+      { title: "Strength after defeat", text: "Jali doctrine treats a bested card as the beginning of the next exchange. Watane gathers Revenants from those losses and sends their strength back into the formation." },
+      { title: "The revealed formation", text: "Basho rewards a player who establishes all three lanes, then accepts the risk of revealing that formation to the opponent. The Jali trade secrecy for another Revenant and a stronger counterattack." },
+      { title: "Katana's answer", text: "Once a Revenant has appeared, Katana turns low-value cards into serious threats. The result is a faction that is most dangerous immediately after it appears to have lost ground." }
+    ],
+    gameplay: "In Gauntlet, a Jali card is bested when an attacker is fully blocked or a blocker is overcome. Each such defeat creates a Revenant. Spend Revenants during priority to give cards +2 value, reveal a complete three-lane formation with Basho to create another, and use Katana to strengthen cards with printed value 8 or less after a Revenant is created that turn.",
+    commander: {
+      name: "Watane",
+      ability: "The Bested Return",
+      text: "Whenever a card you control is bested, create a Revenant. During your priority, destroy a Revenant to give a card you control +2 Value until end of turn."
+    },
+    city: {
+      name: "Katana, Floating City",
+      ability: "Revenant Ascension",
+      text: "After you create a Revenant this turn, you may give each card you play with printed Value 8 or less +2 Value until end of turn. Each card can receive this bonus once."
+    },
+    generalRule: "Each player brings exactly one General. Basho is the first released Jali General; later Jali Generals can be added as alternative deck choices.",
+    generalDraftNote: "Basho requires one face-down card in each of your three lanes. Revealing the formation makes those cards public and creates one Revenant. Basho can be used once per turn.",
+    generals: [
+      { id: "basho", name: "Basho", ability: "Call the Formation", identity: "Trade hidden information for Revenant momentum", text: "Once per turn during your priority, reveal the face-down card in each of your three lanes. If all three were face-down, create a Revenant." }
+    ],
+    festivals: [
+      { name: "Revenant", text: "A persistent Jali resource created when one of your cards is bested. Watane spends it for +2 Value." },
+      { name: "Revealed Formation", text: "Basho exposes all three lane cards to both players and creates a Revenant." },
+      { name: "Counterattack", text: "Katana makes printed Values 8 and below dangerous after a Revenant is created." }
+    ]
   }]
 };
 

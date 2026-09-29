@@ -187,6 +187,8 @@ const FACTION_COLORS = {
   sheen: { primary: "#2f855a", light: "#e6f6ec", border: "#276749" },
   frumo: { primary: "#2563eb", light: "#e8f0ff", border: "#1d4ed8" },
   bizi: { primary: "#7c3aed", light: "#f3e8ff", border: "#6d28d9" },
+  mekan: { primary: "#d89b2b", light: "#fff7d6", border: "#8f531d" },
+  jali: { primary: "#be3651", light: "#ffe4e6", border: "#7f1d3a" },
   xendra: { primary: "#a855f7", light: "#f5e8ff", border: "#6b21a8" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
@@ -257,6 +259,20 @@ const MUSIC_TRACKS = {
       "/assets/gauntlet/music/bizi-3.mp3",
       "/assets/gauntlet/music/bizi-4.mp3"
     ]
+  },
+  mekan: {
+    label: "The Eternal Festival",
+    pad: [55, 82.41, 110],
+    notes: [329.63, 392, 440, 523.25, 493.88, 392],
+    tempo: 520,
+    wave: "triangle"
+  },
+  jali: {
+    label: "The Revenant Formation",
+    pad: [46.25, 69.3, 92.5],
+    notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
+    tempo: 680,
+    wave: "sawtooth"
   },
   xendra: { label: "The Deep Currents", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
 };
@@ -370,6 +386,18 @@ const BOARD_BACKGROUNDS = {
     linear-gradient(160deg, rgba(20, 184, 166, 0.38), transparent 36%),
     linear-gradient(180deg, #67e8f9 0%, #0891b2 32%, #0369a1 62%, #172554 100%)
   `,
+  mekan: `
+    radial-gradient(circle at 20% 24%, rgba(253, 224, 71, 0.4), transparent 16%),
+    radial-gradient(circle at 78% 30%, rgba(244, 114, 182, 0.36), transparent 22%),
+    repeating-linear-gradient(112deg, rgba(20, 184, 166, 0.24) 0 3px, transparent 3px 40px),
+    linear-gradient(160deg, #831843 0%, #9d174d 34%, #0f766e 70%, #172554 100%)
+  `,
+  jali: `
+    radial-gradient(circle at 50% 18%, rgba(251, 113, 133, 0.34), transparent 18%),
+    repeating-linear-gradient(135deg, rgba(254, 205, 211, 0.12) 0 3px, transparent 3px 34px),
+    repeating-linear-gradient(45deg, rgba(15, 23, 42, 0.34) 0 2px, transparent 2px 54px),
+    linear-gradient(180deg, #4c0519 0%, #881337 38%, #1e293b 74%, #09090b 100%)
+  `,
   xendra: `
     radial-gradient(circle at 50% 16%, rgba(216, 180, 254, 0.52), transparent 16%),
     radial-gradient(circle at 18% 42%, rgba(14, 165, 233, 0.24), transparent 18%),
@@ -401,6 +429,16 @@ const FACTION_VOICE_LINES = {
     "A poor wager, captain.",
     "The tide demands more coin.",
     "No sail catches wind without proper pay."
+  ],
+  mekan: [
+    "The celebration remembers every payment.",
+    "Invite another Guest before the next dance.",
+    "Nothing spent is forgotten."
+  ],
+  jali: [
+    "The formation has not yet answered.",
+    "A Revenant must rise before this counterattack.",
+    "Hold the line. The bested return."
   ],
   xendra: [
     "The pattern refuses that shape.",
@@ -453,6 +491,8 @@ const FACTION_VOICE_PROFILES = {
   sheen: { rate: 0.72, pitch: 0.72, volume: 0.9 },
   frumo: { rate: 1.08, pitch: 0.95, volume: 1 },
   bizi: { rate: 0.9, pitch: 1.18, volume: 0.95 },
+  mekan: { rate: 1.06, pitch: 1.08, volume: 0.96 },
+  jali: { rate: 0.78, pitch: 0.72, volume: 0.98 },
   basic: { rate: 0.95, pitch: 0.9, volume: 0.9 },
   default: { rate: 0.96, pitch: 0.95, volume: 1 }
 };
@@ -1525,7 +1565,9 @@ const PACK_THEMES = {
   rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
   sheen: { name: "Sheen", subtitle: "Living Forest", accent: "#86efac", glow: "rgba(134,239,172,0.3)", background: "linear-gradient(145deg, #052e16, #166534 42%, #0f172a 82%)", art: "repeating-linear-gradient(115deg, rgba(220,252,231,0.72) 0 3px, transparent 3px 12px), linear-gradient(135deg, rgba(5,46,22,0.95), rgba(74,222,128,0.62))" },
   frumo: { name: "Frumo", subtitle: "Sunken Fleet", accent: "#67e8f9", glow: "rgba(103,232,249,0.34)", background: "linear-gradient(145deg, #083344, #0e7490 44%, #312e81 88%)", art: "radial-gradient(circle at 22% 22%, rgba(186,230,253,0.8), transparent 18%), radial-gradient(circle at 74% 50%, rgba(34,211,238,0.65), transparent 24%), linear-gradient(135deg, rgba(14,116,144,0.95), rgba(49,46,129,0.78))" },
-  bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" }
+  bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" },
+  mekan: { name: "Mekan", subtitle: "Eternal Festival", accent: "#f6c453", glow: "rgba(246,196,83,0.3)", background: "linear-gradient(145deg, #3f1638, #9a3f65 42%, #0f766e 88%)", art: "radial-gradient(circle at 24% 30%, rgba(253,224,71,.65), transparent 16%), linear-gradient(135deg, rgba(157,23,77,.82), rgba(13,148,136,.7))" },
+  jali: { name: "Jali", subtitle: "Revenant Formation", accent: "#fb7185", glow: "rgba(251,113,133,0.3)", background: "linear-gradient(145deg, #2b0b16, #7f1d3a 42%, #1e293b 88%)", art: "repeating-linear-gradient(135deg, rgba(255,228,230,.12) 0 3px, transparent 3px 24px), radial-gradient(circle at 70% 24%, rgba(251,113,133,.48), transparent 24%)" }
 };
 
 function getBattlefieldTexture(factionId) {
@@ -6204,7 +6246,7 @@ export default function App() {
                   })}
                 </div>
                 {lobbyReadyBar}
-                {myFactionId === "mekan" && <FactionLoadoutPicker factions={lobbyFactions} factionId={myFactionId} generalId={lobby.players[player]?.generalId} showFaction={false} onChange={chooseFaction} />}
+                {lobbyFactions.find((faction) => faction.id === myFactionId)?.generals && <FactionLoadoutPicker factions={lobbyFactions} factionId={myFactionId} generalId={lobby.players[player]?.generalId} showFaction={false} onChange={chooseFaction} />}
                 <div className="lobby-faction-detail">
                   <FactionChoiceCard
                     faction={lobbyPreviewFaction}

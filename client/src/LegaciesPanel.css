@@ -28,3 +28,12 @@
 .legacies-generals select { width: 100%; max-width: 500px; padding: 12px; margin-bottom: 12px; border: 1px solid #ac9873; border-radius: 6px; background: #152e2c; color: #fff3dc; font: inherit; }
 .legacies-draft-note { color: #dacbb9; font-size: 13px; }
 .legacies-panel :is(select, summary):focus-visible { outline: 3px solid #91dec8; outline-offset: 4px; }
+.legacies-panel.is-jali { border-color: #a64258; border-top-color: #fb7185; background: radial-gradient(ellipse at top right, #641c35 0, transparent 64%), #17151d; }
+.legacies-panel.is-jali .legacies-eyebrow,
+.legacies-panel.is-jali .legacies-details summary { color: #fda4af; }
+.legacies-panel.is-jali .legacies-identity { color: #fecdd3; }
+.legacies-panel.is-jali blockquote { border-left-color: #fb7185; }
+.legacies-faction-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; margin: 22px 0; }
+.legacies-faction-tabs button { padding: 14px; border: 1px solid #866a67; border-radius: 10px; background: rgba(5, 12, 18, .58); color: #fff7ed; text-align: left; cursor: pointer; }
+.legacies-faction-tabs button[aria-current="page"] { border-color: #f6c56b; box-shadow: inset 0 0 0 1px currentColor; }
+.legacies-faction-tabs button small { display: block; margin-top: 3px; color: #d8c9c1; }
