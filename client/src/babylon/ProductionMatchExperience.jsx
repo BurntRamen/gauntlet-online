@@ -442,7 +442,12 @@ function PlayerPlate({
     ? "G"
     : String(player.factionName || player.name || "G").slice(0, 1).toUpperCase();
   const crestPath = player.factionId && player.factionId !== "basic"
-    ? ({ mekan: "/assets/gauntlet/mekan-emblem.svg", jali: "/assets/gauntlet/jali-emblem.svg" }[player.factionId] || `/assets/gauntlet/${player.factionId}-card.webp`)
+    ? ({
+        mekan: "/assets/gauntlet/mekan-emblem.svg",
+        jali: "/assets/gauntlet/jali-emblem.svg",
+        gracus: "/assets/gauntlet/gracus-emblem.svg",
+        indela: "/assets/gauntlet/indela-emblem.svg"
+      }[player.factionId] || `/assets/gauntlet/${player.factionId}-card.webp`)
     : "/assets/gauntlet/match/gauntlet-card-back-official.jpg";
   const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
   return (
@@ -925,6 +930,9 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                 <span>Player {player.id}</span>
                 <h3>{player.faction?.name || "Basic Gauntlet"}</h3>
                 {player.faction?.id === "jali" && <p className="production-faction-resource"><strong>Revenants:</strong> {Number(player.revenants || 0)}</p>}
+                {player.faction?.id === "indela" && player.turnData?.indelaRevealedValues?.length > 0 && (
+                  <p className="production-faction-resource"><strong>Current omen:</strong> {player.turnData.indelaRevealedValues[0]} · {Number(player.turnData.indelaRevealedValues[0]) % 2 === 0 ? "even" : "odd"}</p>
+                )}
                 {[
                   ["Commander", factionProfile(player.faction?.commander, "Commander")],
                   ["General", factionProfile(player.faction?.general, "General")],

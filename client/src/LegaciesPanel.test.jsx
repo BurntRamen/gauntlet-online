@@ -35,3 +35,19 @@ test("switches from Mekan to the playable Jali overview", () => {
   expect(screen.getByText(/complete standard 52-card deck/)).toBeVisible();
   expect(screen.getByText("Reveal three cards.")).toBeVisible();
 });
+
+test("switches to the playable Gracus and Indela overviews", () => {
+  const faction = (id, name, identity, generalName) => ({
+    id, name, status: "playable", identity, story: [], festivals: [],
+    generals: [{ id: generalName.toLowerCase(), name: generalName, ability: "Draft ability", identity: "Draft identity", text: `${generalName} rules.` }],
+    commander: { name: `${name} Commander`, text: "Commander rules." },
+    city: { name: `${name} City`, text: "City rules." }
+  });
+  const gracus = faction("gracus", "Gracus", "Minotaurs", "Platus");
+  const indela = faction("indela", "Indela", "Omens", "Ramar");
+  render(<LegaciesPanel set={{ ...set, factions: [...set.factions, gracus, indela] }} />);
+  fireEvent.click(screen.getByRole("button", { name: /Gracus/ }));
+  expect(screen.getByRole("heading", { name: "Gracus", level: 3 })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /Indela/ }));
+  expect(screen.getByRole("heading", { name: "Indela", level: 3 })).toBeVisible();
+});

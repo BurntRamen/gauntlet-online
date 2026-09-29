@@ -33,6 +33,16 @@
 .legacies-panel.is-jali .legacies-details summary { color: #fda4af; }
 .legacies-panel.is-jali .legacies-identity { color: #fecdd3; }
 .legacies-panel.is-jali blockquote { border-left-color: #fb7185; }
+.legacies-panel.is-gracus { border-color: #9a581d; border-top-color: #f59e0b; background: radial-gradient(ellipse at top right, #78350f 0, transparent 64%), #15181b; }
+.legacies-panel.is-gracus .legacies-eyebrow,
+.legacies-panel.is-gracus .legacies-details summary { color: #fbbf24; }
+.legacies-panel.is-gracus .legacies-identity { color: #67e8f9; }
+.legacies-panel.is-gracus blockquote { border-left-color: #f59e0b; }
+.legacies-panel.is-indela { border-color: #6d4abb; border-top-color: #a78bfa; background: radial-gradient(ellipse at top right, #4c1d95 0, transparent 64%), #11142b; }
+.legacies-panel.is-indela .legacies-eyebrow,
+.legacies-panel.is-indela .legacies-details summary { color: #c4b5fd; }
+.legacies-panel.is-indela .legacies-identity { color: #fde68a; }
+.legacies-panel.is-indela blockquote { border-left-color: #a78bfa; }
 .legacies-faction-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; margin: 22px 0; }
 .legacies-faction-tabs button { padding: 14px; border: 1px solid #866a67; border-radius: 10px; background: rgba(5, 12, 18, .58); color: #fff7ed; text-align: left; cursor: pointer; }
 .legacies-faction-tabs button[aria-current="page"] { border-color: #f6c56b; box-shadow: inset 0 0 0 1px currentColor; }

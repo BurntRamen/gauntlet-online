@@ -80,6 +80,58 @@ const LEGACIES = {
       { name: "Revealed Formation", text: "Basho exposes all three lane cards to both players and creates a Revenant." },
       { name: "Counterattack", text: "Katana makes printed Values 8 and below dangerous after a Revenant is created." }
     ]
+  }, {
+    id: "gracus",
+    name: "Gracus",
+    status: "playable",
+    tagline: "Raise the stakes. Answer with giants.",
+    identity: "Minotaurs · Dramatic value leaps · Arena pressure",
+    introduction: "The Gracus fight as if every exchange belongs before a roaring arena. Their coastline breeds enormous champions, their commanders call Minotaurs directly into combat, and their defenses force every challenger to commit more than expected.",
+    philosophy: "A worthy contest should demand more than either side planned to give.",
+    story: [
+      { title: "The giant coast", text: "Athun's cliffs and storm-cut arenas shaped a people who measure courage by the distance between a modest opening and a decisive finish. Gracus formations lure opponents into committing early, then answer with overwhelming force." },
+      { title: "Epicura's arena", text: "Epicura is both commander and voice of the arena. Her call brings a Minotaur into the contest at the moment it matters most, either charging as an attacker or interposing itself as a defender." },
+      { title: "The price of challenge", text: "Platus makes aggression costly. An opponent who attacks the Gracus must overpay, turning every assault into a public wager that can fail before the blow lands." }
+    ],
+    gameplay: "Gracus rewards deliberate value sequencing. Play a card at least eight points above the previous card to earn Athun's +2 bonus, summon Epicura's 4-value Minotaur once each turn as an attacker or blocker, and use Platus to tax enemy attacks.",
+    commander: { name: "Epicura, Voice of the Arena", ability: "Call the Minotaur", text: "Once per turn during your priority, create a 4-value Minotaur attacking an opponent or blocking an unblocked attack targeting you. The Minotaur can be blocked normally." },
+    city: { name: "Athun, Coastline of Giants", ability: "Towering Follow-up", text: "Whenever you play a card with a printed value at least 8 higher than the last card you played this turn, that card gets +2 value until end of turn." },
+    generalRule: "Each player brings exactly one General. Platus is the first released Gracus General; later Gracus Generals can be added as alternative deck choices.",
+    generalDraftNote: "Platus adds 1 to the payment required for every attack against you. An attack that does not meet the increased requirement cannot be declared.",
+    generals: [
+      { id: "platus", name: "Platus", ability: "Demand Tribute", identity: "Make every enemy attack a costly commitment", text: "Your opponents must overpay by at least 1 while attacking you. The additional payment is included in the attack's required cost." }
+    ],
+    festivals: [
+      { name: "Minotaur", text: "A 4-value token Epicura can create once each turn as an attacker or blocker." },
+      { name: "Towering Follow-up", text: "Athun grants +2 when a played card is at least 8 higher than the previous card." },
+      { name: "Arena Tax", text: "Platus forces attackers to commit one additional point of payment." }
+    ]
+  }, {
+    id: "indela",
+    name: "Indela",
+    status: "playable",
+    tagline: "Read the omen. Rewrite the cost.",
+    identity: "Odd and even omens · Cost control · Parity rewards",
+    introduction: "The Indela study possibility as a disciplined magical science. At the beginning of each turn they reveal an omen from the deck, then reshape the cost and strength of every decision around whether that omen is odd or even.",
+    philosophy: "Chance speaks first. Mastery is knowing how to answer.",
+    story: [
+      { title: "Katel's method", text: "Katel, Magus Operandi, treats the top card of the deck as a statement about the coming turn. Odd omens make Indela cards easier to play; even omens make the opponent's cards more expensive." },
+      { title: "The Academy of Omens", text: "Kashi trains its adepts to answer one parity with the other. After an even revelation, odd cards become stronger; after an odd revelation, even cards receive the same advantage." },
+      { title: "Ramar's second reading", text: "Ramar repeats Katel's reading at the beginning of the turn. Because both leaders interpret the same top card, choosing Ramar doubles the current cost effect while preserving one clear omen for Kashi." }
+    ],
+    gameplay: "Indela reveals the top card of its deck when it receives starting priority. Odd omens reduce its costs; even omens tax the opponent. Kashi gives +1 to played cards of the opposite parity. Ramar repeats Katel's omen, doubling its cost adjustment.",
+    commander: { name: "Katel, Magus Operandi", ability: "Opening Omen", text: "At the beginning of your turn, reveal the top card of your deck. If it is odd, your cards cost 1 less this turn. If it is even, your opponent's cards cost 1 more this turn." },
+    city: { name: "Kashi, Academy of Omens", ability: "Opposing Parity", text: "Your odd cards get +1 value if you revealed an even card this turn, and your even cards get +1 value if you revealed an odd card this turn." },
+    generalRule: "Each player brings exactly one General. Ramar is the first released Indela General; later Indela Generals can be added as alternative deck choices.",
+    generalDraftNote: "Ramar repeats Katel's beginning-of-turn omen. The two identical draft abilities stack, reducing your costs by 2 after an odd omen or increasing enemy costs by 2 after an even omen.",
+    generals: [
+      { id: "ramar", name: "Ramar", ability: "Second Reading", identity: "Commit fully to the turn's revealed parity", text: "At the beginning of your turn, reveal the top card of your deck. If it is odd, your cards cost 1 less this turn. If it is even, your opponent's cards cost 1 more this turn." }
+    ],
+    festivals: [
+      { name: "Odd Omen", text: "Reduces the Indela player's attack and block costs for the turn." },
+      { name: "Even Omen", text: "Raises the opposing player's attack and block costs for the turn." },
+      { name: "Opposing Parity", text: "Kashi strengthens cards whose parity differs from a revealed omen." }
+    ]
   }]
 };
 

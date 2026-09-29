@@ -33,6 +33,13 @@ An accepted activated ability resets both pass markers, leaves priority with its
 controller, and allows the opponent another response before combat or the
 priority round can close.
 
+## Gracus and Indela
+
+The Set 2 draft translations for Gracus and Indela are documented in
+`docs/legacies-gracus-indela-rules.md`. Gracus owns Minotaur tempo, large upward
+value jumps, and attack taxation. Indela owns public odd/even omens, turn-wide
+cost control, and opposite-parity value bonuses.
+
 “Played card” includes committed attackers and blockers. Face-down end
 placement and Polea placement use “put/place” wording and do not trigger
 Ristus or establish a Hera suit.

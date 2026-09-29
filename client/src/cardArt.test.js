@@ -23,6 +23,10 @@ test("gives Legacies factions the complete neutral 52-card face family", () => {
     .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
   expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "jali"))
     .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "gracus"))
+    .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
+  expect(getPlayingCardArtPath({ value: 8, suit: "hearts" }, "indela"))
+    .toBe("/assets/gauntlet/playing-cards/basic-8-hearts.webp");
 });
 
 test("keeps replacement cards on their existing treatment", () => {

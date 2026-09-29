@@ -189,6 +189,8 @@ const FACTION_COLORS = {
   bizi: { primary: "#7c3aed", light: "#f3e8ff", border: "#6d28d9" },
   mekan: { primary: "#d89b2b", light: "#fff7d6", border: "#8f531d" },
   jali: { primary: "#be3651", light: "#ffe4e6", border: "#7f1d3a" },
+  gracus: { primary: "#c26522", light: "#ffedd5", border: "#7c2d12" },
+  indela: { primary: "#7c3aed", light: "#ede9fe", border: "#4c1d95" },
   xendra: { primary: "#a855f7", light: "#f5e8ff", border: "#6b21a8" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
@@ -274,6 +276,8 @@ const MUSIC_TRACKS = {
     tempo: 680,
     wave: "sawtooth"
   },
+  gracus: { label: "The Giant Coast", pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
   xendra: { label: "The Deep Currents", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
 };
 
@@ -397,6 +401,18 @@ const BOARD_BACKGROUNDS = {
     repeating-linear-gradient(135deg, rgba(254, 205, 211, 0.12) 0 3px, transparent 3px 34px),
     repeating-linear-gradient(45deg, rgba(15, 23, 42, 0.34) 0 2px, transparent 2px 54px),
     linear-gradient(180deg, #4c0519 0%, #881337 38%, #1e293b 74%, #09090b 100%)
+  `,
+  gracus: `
+    radial-gradient(circle at 50% 18%, rgba(251, 191, 36, 0.4), transparent 18%),
+    repeating-linear-gradient(90deg, rgba(255, 237, 213, 0.1) 0 4px, transparent 4px 54px),
+    radial-gradient(ellipse at 50% 90%, rgba(34, 211, 238, 0.34), transparent 42%),
+    linear-gradient(180deg, #431407 0%, #9a3412 44%, #155e75 100%)
+  `,
+  indela: `
+    radial-gradient(circle at 50% 24%, rgba(254, 243, 199, 0.42), transparent 14%),
+    repeating-radial-gradient(circle at 50% 28%, rgba(196, 181, 253, 0.13) 0 2px, transparent 2px 34px),
+    repeating-linear-gradient(45deg, rgba(125, 211, 252, 0.08) 0 2px, transparent 2px 48px),
+    linear-gradient(180deg, #1e1b4b 0%, #581c87 48%, #172554 100%)
   `,
   xendra: `
     radial-gradient(circle at 50% 16%, rgba(216, 180, 254, 0.52), transparent 16%),
@@ -1567,7 +1583,9 @@ const PACK_THEMES = {
   frumo: { name: "Frumo", subtitle: "Sunken Fleet", accent: "#67e8f9", glow: "rgba(103,232,249,0.34)", background: "linear-gradient(145deg, #083344, #0e7490 44%, #312e81 88%)", art: "radial-gradient(circle at 22% 22%, rgba(186,230,253,0.8), transparent 18%), radial-gradient(circle at 74% 50%, rgba(34,211,238,0.65), transparent 24%), linear-gradient(135deg, rgba(14,116,144,0.95), rgba(49,46,129,0.78))" },
   bizi: { name: "Bizi", subtitle: "Progress Engine", accent: "#facc15", glow: "rgba(250,204,21,0.28)", background: "linear-gradient(145deg, #422006, #a16207 43%, #334155 86%)", art: "linear-gradient(90deg, rgba(250,204,21,0.28) 1px, transparent 1px), linear-gradient(0deg, rgba(250,204,21,0.22) 1px, transparent 1px), linear-gradient(135deg, rgba(120,53,15,0.95), rgba(71,85,105,0.84))" },
   mekan: { name: "Mekan", subtitle: "Eternal Festival", accent: "#f6c453", glow: "rgba(246,196,83,0.3)", background: "linear-gradient(145deg, #3f1638, #9a3f65 42%, #0f766e 88%)", art: "radial-gradient(circle at 24% 30%, rgba(253,224,71,.65), transparent 16%), linear-gradient(135deg, rgba(157,23,77,.82), rgba(13,148,136,.7))" },
-  jali: { name: "Jali", subtitle: "Revenant Formation", accent: "#fb7185", glow: "rgba(251,113,133,0.3)", background: "linear-gradient(145deg, #2b0b16, #7f1d3a 42%, #1e293b 88%)", art: "repeating-linear-gradient(135deg, rgba(255,228,230,.12) 0 3px, transparent 3px 24px), radial-gradient(circle at 70% 24%, rgba(251,113,133,.48), transparent 24%)" }
+  jali: { name: "Jali", subtitle: "Revenant Formation", accent: "#fb7185", glow: "rgba(251,113,133,0.3)", background: "linear-gradient(145deg, #2b0b16, #7f1d3a 42%, #1e293b 88%)", art: "repeating-linear-gradient(135deg, rgba(255,228,230,.12) 0 3px, transparent 3px 24px), radial-gradient(circle at 70% 24%, rgba(251,113,133,.48), transparent 24%)" },
+  gracus: { name: "Gracus", subtitle: "Giant Coast Arena", accent: "#f59e0b", glow: "rgba(245,158,11,.3)", background: "linear-gradient(145deg, #431407, #9a3412 44%, #155e75 90%)", art: "radial-gradient(circle at 50% 25%, rgba(251,191,36,.5), transparent 22%), repeating-linear-gradient(90deg, rgba(255,237,213,.1) 0 3px, transparent 3px 28px)" },
+  indela: { name: "Indela", subtitle: "Academy of Omens", accent: "#c4b5fd", glow: "rgba(196,181,253,.3)", background: "linear-gradient(145deg, #1e1b4b, #581c87 46%, #172554 90%)", art: "repeating-radial-gradient(circle at 50% 40%, rgba(254,243,199,.18) 0 2px, transparent 2px 28px), radial-gradient(circle at 50% 38%, rgba(192,132,252,.5), transparent 25%)" }
 };
 
 function getBattlefieldTexture(factionId) {

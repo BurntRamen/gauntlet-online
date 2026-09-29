@@ -1307,7 +1307,7 @@ export class LocalDuelAdapter {
   }
 
   activateAbility(abilityId) {
-    if (abilityId.startsWith("mekan:") || abilityId.startsWith("jali:")) {
+    if (abilityId.startsWith("mekan:") || abilityId.startsWith("jali:") || abilityId.startsWith("gracus:")) {
       if (this.privacyRequired || this.controller !== this.perspective) return;
       if (!this.legalActions().some((action) => action.abilityId === abilityId)) return;
       this.dispatch({ type: "useFactionAbility", abilityId, player: this.controller });

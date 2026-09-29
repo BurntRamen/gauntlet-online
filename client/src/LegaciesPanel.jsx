@@ -10,6 +10,18 @@ export default function LegaciesPanel({ set }) {
   const generalId = generalIds[faction.id] || faction.generals?.[0]?.id;
   const general = faction.generals?.find((entry) => entry.id === generalId) || faction.generals?.[0];
   const playable = faction.status === "playable";
+  const gameplayHeadings = {
+    mekan: "The discard pile is the guest list",
+    jali: "Defeat begins the counterattack",
+    gracus: "Every exchange raises the stakes",
+    indela: "The omen shapes the turn"
+  };
+  const themeHeadings = {
+    mekan: "A city that celebrates its ancestors",
+    jali: "The Jali battle rhythm",
+    gracus: "The roar of the giant coast",
+    indela: "The Academy's readings"
+  };
   return (
     <section className={`legacies-panel is-${faction.id}`} aria-labelledby="legacies-title">
       <header className="legacies-header">
@@ -32,7 +44,7 @@ export default function LegaciesPanel({ set }) {
           {(faction.story || []).map((chapter) => <article key={chapter.title}><h4>{chapter.title}</h4><p>{chapter.text}</p></article>)}
         </div>
         <section aria-label={`${faction.name} gameplay identity`}>
-          <h4>{faction.id === "mekan" ? "The discard pile is the guest list" : "Defeat begins the counterattack"}</h4>
+          <h4>{gameplayHeadings[faction.id] || `${faction.name} gameplay`}</h4>
           <p>{faction.gameplay}</p>
           <p className="legacies-draft-note">{playable ? `Choose ${faction.name} in Play → Ranked, Practice, or a two-player Faction table. Every faction receives a complete standard 52-card deck; saved constructed replacements are optional. These playable abilities are draft rules and may be balanced in future updates.` : `${faction.name} is not yet available for matches or saved decks.`}</p>
         </section>
@@ -62,7 +74,7 @@ export default function LegaciesPanel({ set }) {
           <p className="legacies-draft-note">{faction.generalDraftNote} This selector previews the ability; choose the General in your ranked loadout or deck.</p>
         </section>}
         {(faction.festivals || []).length > 0 && <section aria-label={`${faction.name} themes`}>
-          <h4>{faction.id === "mekan" ? "A city that celebrates its ancestors" : "The Jali battle rhythm"}</h4>
+          <h4>{themeHeadings[faction.id] || `${faction.name} themes`}</h4>
           <div className="legacies-festivals">
             {faction.festivals.map((item) => <article key={item.name}><h5>{item.name}</h5><p>{item.text}</p></article>)}
           </div>

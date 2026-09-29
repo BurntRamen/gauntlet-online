@@ -61,7 +61,7 @@ before(async () => {
 
 test("ranked carries each chosen faction and General from queue through the live match", async () => {
   async function register(suffix) {
-    const response = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: `Mekan${Date.now()}${suffix}`, password: "MekanRankedTest42!" }) });
+    const response = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: `Legacies${Date.now()}${suffix}`, password: "LegaciesRankedTest42!" }) });
     assert.equal(response.ok, true);
     return response.json();
   }
@@ -74,22 +74,22 @@ test("ranked carries each chosen faction and General from queue through the live
   assert.equal((await legacyQueued).inQueue, true);
   await action(second, "leaveMatchmaking");
   const queued = event(first, "matchmakingStatus", (status) => status.inQueue);
-  first.emit("joinMatchmaking", { authToken: a.token, factionId: "mekan", generalId: "hui" });
+  first.emit("joinMatchmaking", { authToken: a.token, factionId: "gracus", generalId: "platus" });
   await queued;
   const matchedFirst = event(first, "assign");
   const matchedSecond = event(second, "assign");
-  second.emit("joinMatchmaking", { authToken: b.token, factionId: "jali", generalId: "basho" });
+  second.emit("joinMatchmaking", { authToken: b.token, factionId: "indela", generalId: "ramar" });
   const [seat, opponent] = await Promise.all([matchedFirst, matchedSecond]);
   const room = __test.rooms.get(seat.roomCode);
-  assert.equal(room.lobby.players[seat.playerNum].factionId, "mekan");
-  assert.equal(room.lobby.players[seat.playerNum].generalId, "hui");
-  assert.equal(room.lobby.players[opponent.playerNum].factionId, "jali");
-  assert.equal(room.lobby.players[opponent.playerNum].generalId, "basho");
+  assert.equal(room.lobby.players[seat.playerNum].factionId, "gracus");
+  assert.equal(room.lobby.players[seat.playerNum].generalId, "platus");
+  assert.equal(room.lobby.players[opponent.playerNum].factionId, "indela");
+  assert.equal(room.lobby.players[opponent.playerNum].generalId, "ramar");
   await action(first, "startGame");
   await action(second, "startGame");
   assert.equal(room.game.gameMode, "factions");
-  assert.equal(room.game.players[seat.playerNum].faction.general.id, "hui");
-  assert.equal(room.game.players[opponent.playerNum].faction.general.id, "basho");
+  assert.equal(room.game.players[seat.playerNum].faction.general.id, "platus");
+  assert.equal(room.game.players[opponent.playerNum].faction.general.id, "ramar");
   assert.equal(room.ranked, true);
   first.disconnect(); second.disconnect();
 });

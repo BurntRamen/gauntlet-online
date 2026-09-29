@@ -1,12 +1,14 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v5";
+const RULES_VERSION = "gauntlet-duel-v6";
 const mekan = require("./mekan");
 const jali = require("./jali");
+const gracus = require("./gracus");
+const indela = require("./indela");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v2";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v3";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -15,6 +17,8 @@ const RANKS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 const FACTION_PROFILES = {
   mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
   jali: { id: "jali", name: "Jali", commander: "Watane", city: "Katana, Floating City", general: { id: "basho", name: "Basho" } },
+  gracus: { id: "gracus", name: "Gracus", commander: "Epicura, Voice of the Arena", city: "Athun, Coastline of Giants", general: { id: "platus", name: "Platus" } },
+  indela: { id: "indela", name: "Indela", commander: "Katel, Magus Operandi", city: "Kashi, Academy of Omens", general: { id: "ramar", name: "Ramar" } },
   rumin: {
     id: "rumin",
     name: "Rumin",
@@ -353,6 +357,7 @@ function createMatch(options = {}) {
   ];
   drawToEight(game, 1, events);
   drawToEight(game, 2, events);
+  indela.revealOmens(game, startingPriority, events, event);
   events.push(event(game, "match.started"), event(game, "priority.granted", { player: startingPriority }));
   appendHistory(game, null, `New deterministic match started with seed “${seed}”.`, events);
   game.lastEvents = events.map((entry) => ({ ...entry }));
@@ -590,7 +595,7 @@ function calculateFrumoConsecutiveBonus(player, card) {
   return { bonus: 2, notes: ["Ristus +2"] };
 }
 
-function attackPaymentRequirement(player, card, useMeerusFreeAttack = false) {
+function attackPaymentRequirement(player, card, useMeerusFreeAttack = false, game = null) {
   const attackNumber = Number(player.turnData.attacksDeclaredThisTurn || 0) + 1;
   const meerusEligible = (
     factionId(player) === "rumin"
@@ -602,17 +607,28 @@ function attackPaymentRequirement(player, card, useMeerusFreeAttack = false) {
     return { error: "Meerus can only make the eligible third attack of value 3 or less free." };
   }
   if (meerusEligible && useMeerusFreeAttack) {
-    return { required: 0, freeAttackUsed: true };
+    const indelaAdjustment = game ? indela.paymentAdjustment(game, player.id) : { amount: 0 };
+    const platusTax = game ? gracus.attackTax(game, player.id) : 0;
+    return { required: Math.max(0, indelaAdjustment.amount + platusTax), freeAttackUsed: true };
   }
   const taxRoadReduction = (
     Number(player.turnData.attacksDeclaredThisTurn || 0) === 0
     && cardIs(card, "rumin-tax-road-scout")
   ) ? 1 : 0;
+  const indelaAdjustment = game ? indela.paymentAdjustment(game, player.id) : { amount: 0, reduction: 0, tax: 0 };
+  const platusTax = game ? gracus.attackTax(game, player.id) : 0;
   return {
-    required: Math.max(0, cardValue(card) - taxRoadReduction),
+    required: Math.max(0, cardValue(card) - taxRoadReduction + indelaAdjustment.amount + platusTax),
     freeAttackUsed: false,
     meerusEligible,
-    reductions: taxRoadReduction ? [{ source: "Tax-Road Scout", amount: 1 }] : []
+    reductions: [
+      ...(taxRoadReduction ? [{ source: "Tax-Road Scout", amount: 1 }] : []),
+      ...(indelaAdjustment.reduction ? [{ source: "Indela odd omen", amount: indelaAdjustment.reduction }] : [])
+    ],
+    taxes: [
+      ...(indelaAdjustment.tax ? [{ source: "Indela even omen", amount: indelaAdjustment.tax }] : []),
+      ...(platusTax ? [{ source: "Platus", amount: platusTax }] : [])
+    ]
   };
 }
 
@@ -1251,11 +1267,13 @@ function resolveAttack(game, attack, laneIndex, events) {
       game.players[defender].turnData.beliAwakenedReady = true;
     }
   }
-  game.players[attack.player].discard.push(attack.card);
+  if (!attack.card?.token) game.players[attack.player].discard.push(attack.card);
   mekan.combat(game, attack, damage);
   jali.combat(game, attack, damage, events, event);
   game.players[attack.player].discard.push(...(attack.attachedCards || []));
-  (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
+  (attack.block || []).forEach((block) => {
+    if (!block.card?.token) game.players[block.player].discard.push(block.card);
+  });
   events.push(event(game, "damage.calculated", {
     player: defender,
     attacker: attack.player,
@@ -1374,6 +1392,7 @@ function startNextTurn(game, events) {
   game.endPlacementStep = 0;
   game.players[1].turnData = createTurnData();
   game.players[2].turnData = createTurnData();
+  indela.revealOmens(game, next, events, event);
   let campaignMessage = "";
   if (game.campaign) {
     game.campaign.bossAttacksThisTurn = 0;
@@ -1603,7 +1622,7 @@ function applyCommand(current, rawCommand) {
       ? findHandCard(actor, command.attackerCardId || command.cardId)
       : game.lanes[laneIndex]?.facedown?.[player];
     if (!attackCard) return reject(current, command, laneIndex == null ? "Select an attacker from hand." : "That lane has no attacking card.");
-    const requirement = attackPaymentRequirement(actor, attackCard, !!command.useMeerusFreeAttack);
+    const requirement = attackPaymentRequirement(actor, attackCard, !!command.useMeerusFreeAttack, game);
     if (requirement.error) return reject(current, command, requirement.error);
     const paymentIds = Array.isArray(command.paymentCardIds) ? command.paymentCardIds : [];
     const excludedIds = laneIndex == null ? [attackCard.id] : [];
@@ -1626,8 +1645,10 @@ function applyCommand(current, rawCommand) {
     if (payment.error) return reject(current, command, payment.error);
     const attackBonus = calculateFactionAttackBonus(actor, attackCard);
     const mekanBonus = mekan.playBonus(actor, attackCard);
-    attackBonus.bonus += mekanBonus.bonus;
-    attackBonus.notes.push(...mekanBonus.notes);
+    const gracusBonus = gracus.playBonus(actor, attackCard);
+    const indelaBonus = indela.playBonus(actor, attackCard);
+    attackBonus.bonus += mekanBonus.bonus + gracusBonus.bonus + indelaBonus.bonus;
+    attackBonus.notes.push(...mekanBonus.notes, ...gracusBonus.notes, ...indelaBonus.notes);
     const constructedAttack = calculateConstructedAttackBonus(
       game,
       player,
@@ -1759,7 +1780,8 @@ function applyCommand(current, rawCommand) {
       return reject(current, command, "The campaign boss has used all actions this turn.");
     }
     const blockerIds = blockCards.map((card) => card.id);
-    const required = blockCards.reduce((sum, card) => sum + cardValue(card), 0);
+    const indelaAdjustment = indela.paymentAdjustment(game, player);
+    const required = Math.max(0, blockCards.reduce((sum, card) => sum + cardValue(card), 0) + indelaAdjustment.amount);
     const paymentIds = Array.isArray(command.paymentCardIds) ? command.paymentCardIds : [];
     const paymentSelection = validatePayment(actor, paymentIds, 0, blockerIds);
     if (paymentSelection.error) return reject(current, command, paymentSelection.error);
@@ -1790,9 +1812,12 @@ function applyCommand(current, rawCommand) {
     const blockEntries = blockCards.map((card, cardIndex) => {
       const mekanBonus = mekan.playBonus(actor, card, payment.cardIds);
       const consecutive = calculateFrumoConsecutiveBonus(actor, card);
+      const gracusBonus = gracus.playBonus(actor, card);
+      const indelaBonus = indela.playBonus(actor, card);
       const notes = sheenBonus ? [`Emperor Nu +${sheenBonus}`] : [];
       notes.push(...mekanBonus.notes);
       notes.push(...consecutive.notes);
+      notes.push(...gracusBonus.notes, ...indelaBonus.notes);
       const constructedBlock = calculateConstructedBlockBonus(game, player, card, {
         attack: pending.attack,
         laneBlock,
@@ -1814,6 +1839,8 @@ function applyCommand(current, rawCommand) {
         card,
         effectiveValue: cardValue(card)
           + mekanBonus.bonus
+          + gracusBonus.bonus
+          + indelaBonus.bonus
           + temporaryBonus(card)
           + sheenBonus
           + consecutive.bonus
@@ -1934,6 +1961,10 @@ function applyCommand(current, rawCommand) {
     const error = jali.apply(game, player, command.abilityId, events, event);
     if (error) return reject(current, command, error);
     label = `Player ${player} used a Jali ability.`;
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("gracus:")) {
+    const error = gracus.apply(game, player, command.abilityId, events, event);
+    if (error) return reject(current, command, error);
+    label = `Player ${player} used a Gracus ability.`;
   } else if (command.type === "useFactionAbility") {
     if (game.phase !== "priority" || game.priority !== player) {
       return reject(current, command, "Faction abilities require your priority window.");
@@ -2225,6 +2256,7 @@ function getFactionAbilityActions(game, playerNumber) {
   const actions = [];
   actions.push(...mekan.actions(game, playerNumber));
   actions.push(...jali.actions(game, playerNumber));
+  actions.push(...gracus.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
   const activeCombat = pendingAttack(game);
   const controlsActiveAttack = activeCombat?.attack?.player === playerNumber;
@@ -2707,9 +2739,9 @@ function getLegalActions(game, player) {
       ...actor.hand.map((card) => ({
         type: "declareHandAttack",
         cardId: card.id,
-        requiredPayment: attackPaymentRequirement(actor, card).required,
+        requiredPayment: attackPaymentRequirement(actor, card, false, game).required,
         optionalEffects: getConstructedAttackOptions(game, playerNumber, card, "hand"),
-        optionalPaymentModifiers: attackPaymentRequirement(actor, card).meerusEligible
+        optionalPaymentModifiers: attackPaymentRequirement(actor, card, false, game).meerusEligible
           ? [{ id: "meerus-free-attack", requiredPayment: 0 }]
           : []
       })),
@@ -2717,14 +2749,14 @@ function getLegalActions(game, player) {
         ? [{
             type: "declareLaneAttack",
             laneIndex,
-            requiredPayment: attackPaymentRequirement(actor, lane.facedown[playerNumber]).required,
+            requiredPayment: attackPaymentRequirement(actor, lane.facedown[playerNumber], false, game).required,
             optionalEffects: getConstructedAttackOptions(
               game,
               playerNumber,
               lane.facedown[playerNumber],
               "lane"
             ),
-            optionalPaymentModifiers: attackPaymentRequirement(actor, lane.facedown[playerNumber]).meerusEligible
+            optionalPaymentModifiers: attackPaymentRequirement(actor, lane.facedown[playerNumber], false, game).meerusEligible
               ? [{ id: "meerus-free-attack", requiredPayment: 0 }]
               : []
           }]

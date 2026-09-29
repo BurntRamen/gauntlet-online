@@ -1,10 +1,12 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v4";
+const CONTENT_VERSION = "gauntlet-content-v5";
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
+const GRACUS_LEGACY = LEGACIES.factions.find((faction) => faction.id === "gracus");
+const INDELA_LEGACY = LEGACIES.factions.find((faction) => faction.id === "indela");
 const FREE_GAMEPLAY_ACQUISITION = "earned-gameplay-pack";
 const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
 const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
@@ -758,6 +760,22 @@ const factionsData = {
     generals: JALI_LEGACY.generals.map((entry) => ({ ...entry, image: "/assets/gauntlet/jali-emblem.svg" })),
     general: null
   },
+  gracus: {
+    id: "gracus", name: "Gracus", setId: "legacies", draftRules: true,
+    cardImage: "/assets/gauntlet/gracus-emblem.svg",
+    commander: { ...GRACUS_LEGACY.commander, image: "/assets/gauntlet/gracus-emblem.svg" },
+    city: { ...GRACUS_LEGACY.city, image: "/assets/gauntlet/gracus-emblem.svg" },
+    generals: GRACUS_LEGACY.generals.map((entry) => ({ ...entry, image: "/assets/gauntlet/gracus-emblem.svg" })),
+    general: null
+  },
+  indela: {
+    id: "indela", name: "Indela", setId: "legacies", draftRules: true,
+    cardImage: "/assets/gauntlet/indela-emblem.svg",
+    commander: { ...INDELA_LEGACY.commander, image: "/assets/gauntlet/indela-emblem.svg" },
+    city: { ...INDELA_LEGACY.city, image: "/assets/gauntlet/indela-emblem.svg" },
+    generals: INDELA_LEGACY.generals.map((entry) => ({ ...entry, image: "/assets/gauntlet/indela-emblem.svg" })),
+    general: null
+  },
   rumin: {
     id: "rumin",
     name: "Rumin",
@@ -803,9 +821,11 @@ const factionsData = {
 
 factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.id === "monti");
 factionsData.jali.general = factionsData.jali.generals[0];
+factionsData.gracus.general = factionsData.gracus.generals[0];
+factionsData.indela.general = factionsData.indela.generals[0];
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -1309,7 +1329,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 6) throw new Error("Invalid game content: expected six playable factions.");
+  if (playableFactionIds.length !== 8) throw new Error("Invalid game content: expected eight playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);
