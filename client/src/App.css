@@ -2315,7 +2315,7 @@ textarea:focus-visible {
 
 .home-command-header {
   display: grid;
-  grid-template-columns: minmax(330px, 1fr) minmax(180px, auto) minmax(330px, 1fr);
+  grid-template-columns: minmax(270px, 1fr) minmax(340px, 1.15fr) minmax(360px, 1fr);
   gap: 22px;
   align-items: center;
   margin-bottom: 16px;
@@ -2358,12 +2358,12 @@ textarea:focus-visible {
 .home-current-context {
   position: relative;
   display: grid;
-  min-width: 250px;
-  min-height: 76px;
+  min-width: 0;
+  min-height: 132px;
   justify-items: center;
   align-content: center;
-  gap: 2px;
-  padding: 9px 32px 10px;
+  gap: 8px;
+  padding: 18px 24px;
   overflow: hidden;
   background:
     linear-gradient(90deg, rgba(241, 199, 121, .18), transparent 24%, transparent 76%, rgba(241, 199, 121, .18)),
@@ -2381,30 +2381,31 @@ textarea:focus-visible {
   content: "";
   pointer-events: none;
 }
-.home-context-notch { position: absolute; top: 0; width: 58px; height: 3px; background: #d7ad61; box-shadow: 0 73px #d7ad61; }
+.home-context-notch { position: absolute; top: 0; width: 58px; height: 3px; background: #d7ad61; box-shadow: none; }
+.home-current-context::after { position: absolute; bottom: 0; width: 58px; height: 3px; background: #d7ad61; content: ""; }
 .home-context-player {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #9cb4bf;
-  font-size: 8px;
+  color: #c2d2d9;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .09em;
   text-transform: uppercase;
 }
-.home-context-player .player-avatar { width: 20px; height: 22px; font-size: 9px; border-color: rgba(241, 199, 121, .42); }
-.home-utility-label { color: #819ba8; font-size: 8px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
-.home-current-context strong { color: #fff4d7; font: 700 20px/.95 Georgia, serif; letter-spacing: .015em; text-shadow: 0 2px 12px rgba(0, 0, 0, .7); }
-.home-current-context small { color: #91a8b3; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.home-command-utilities { display: grid; gap: 4px; justify-items: end; }
-.home-command-tools { gap: 5px; }
-.home-command-tools button { min-height: 32px !important; padding: 6px 8px !important; border-color: rgba(125, 211, 252, .24) !important; background: rgba(9, 24, 36, .68) !important; color: #b9ccd4 !important; box-shadow: none !important; font-size: 10px !important; }
+.home-context-player .player-avatar { width: 32px; height: 36px; font-size: 14px; border-color: rgba(241, 199, 121, .42); }
+.home-utility-label { color: #819ba8; font-size: 12px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.home-current-context strong { color: #fff4d7; font: 700 clamp(25px, 2vw, 30px)/1.12 Georgia, serif; letter-spacing: .015em; text-shadow: 0 2px 12px rgba(0, 0, 0, .7); }
+.home-current-context small { color: #b8cbd4; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.home-command-utilities { display: grid; min-width: 0; gap: 10px; justify-items: end; }
+.home-command-tools { gap: 8px; }
+.home-command-tools button { min-height: 48px !important; padding: 10px 12px !important; border-color: rgba(125, 211, 252, .24) !important; background: rgba(9, 24, 36, .68) !important; color: #dce7eb !important; box-shadow: none !important; font-size: 14px !important; }
 .home-command-tools input[type="range"] { opacity: .72; }
 .menu-audio-control { position: relative; z-index: 30; }
 .home-command-tools .menu-audio-trigger {
   display: grid;
-  min-width: 126px;
-  grid-template-columns: 20px minmax(0, 1fr);
+  min-width: 174px;
+  grid-template-columns: 26px minmax(0, 1fr);
   align-items: center;
   gap: 7px;
   text-align: left;
@@ -2417,8 +2418,8 @@ textarea:focus-visible {
 }
 .menu-audio-trigger > span:first-child {
   display: grid;
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   place-items: center;
   border: 1px solid rgba(241, 199, 121, .38);
   border-radius: 50%;
@@ -2426,15 +2427,15 @@ textarea:focus-visible {
   font-size: 12px;
 }
 .menu-audio-trigger > span:last-child { display: grid; min-width: 0; gap: 1px; }
-.menu-audio-trigger strong { color: inherit; font-size: 9px; letter-spacing: .09em; line-height: 1; text-transform: uppercase; }
-.menu-audio-trigger small { overflow: hidden; color: #78919c; font-size: 8px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.menu-audio-trigger strong { color: inherit; font-size: 13px; letter-spacing: .09em; line-height: 1; text-transform: uppercase; }
+.menu-audio-trigger small { overflow: hidden; color: #b8cbd4; font-size: 12px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .menu-audio-mixer {
   position: absolute;
   z-index: 30;
   top: calc(100% + 9px);
   right: 0;
   display: grid;
-  width: min(380px, calc(100vw - 34px));
+  width: min(440px, calc(100vw - 46px));
   gap: 1px;
   padding: 7px;
   border: 1px solid rgba(241, 199, 121, .42);
@@ -2450,8 +2451,8 @@ textarea:focus-visible {
   padding: 7px 8px 10px;
   border-bottom: 1px solid rgba(124, 176, 195, .2);
 }
-.menu-audio-heading span { color: #f1c779; font: 800 9px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
-.menu-audio-heading strong { color: #9db3bc; font: 500 9px/1 var(--font-ui); letter-spacing: .04em; }
+.menu-audio-heading span { color: #f1c779; font: 800 12px/1.3 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
+.menu-audio-heading strong { color: #9db3bc; font: 500 12px/1.3 var(--font-ui); letter-spacing: .04em; }
 .menu-music-picker {
   min-width: 0;
   margin: 0;
@@ -2461,24 +2462,24 @@ textarea:focus-visible {
 }
 .menu-music-picker legend {
   padding: 0 0 7px;
-  color: #718995;
-  font: 800 8px/1 var(--font-ui);
+  color: #b2c6d0;
+  font: 800 12px/1.3 var(--font-ui);
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 .menu-music-picker > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .home-command-tools .menu-music-picker button {
   display: grid;
-  min-height: 48px !important;
-  gap: 3px;
+  min-height: 64px !important;
+  gap: 5px;
   align-content: center;
   padding: 7px 9px !important;
   border-color: rgba(117, 168, 187, .22) !important;
   background: rgba(5, 17, 27, .7) !important;
   text-align: left;
 }
-.home-command-tools .menu-music-picker button strong { color: #c8d8dd; font-size: 9px; line-height: 1.1; }
-.home-command-tools .menu-music-picker button small { color: #68818d; font-size: 8px; line-height: 1.1; }
+.home-command-tools .menu-music-picker button strong { color: #c8d8dd; font-size: 13px; line-height: 1.1; }
+.home-command-tools .menu-music-picker button small { color: #afc3cd; font-size: 12px; line-height: 1.1; }
 .home-command-tools .menu-music-picker button.is-selected {
   border-color: rgba(241, 199, 121, .58) !important;
   background: linear-gradient(145deg, rgba(98, 70, 35, .36), rgba(17, 33, 41, .84)) !important;
@@ -2488,21 +2489,21 @@ textarea:focus-visible {
 .home-command-tools .menu-music-picker button.is-selected small { color: #aebec2; }
 .menu-audio-mixer > label {
   display: grid;
-  grid-template-columns: minmax(126px, 1fr) 42px 104px;
+  grid-template-columns: minmax(0, 1fr) 54px minmax(64px, 104px);
   align-items: center;
   gap: 9px;
   padding: 9px 8px;
   border-bottom: 1px solid rgba(124, 176, 195, .11);
 }
 .menu-audio-mixer label > span { display: grid; min-width: 0; gap: 2px; }
-.menu-audio-mixer label strong { color: #e4edf0; font-size: 10px; letter-spacing: .045em; }
-.menu-audio-mixer label small { color: #718995; font-size: 8px; line-height: 1.25; }
+.menu-audio-mixer label strong { color: #e4edf0; font-size: 14px; letter-spacing: .045em; }
+.menu-audio-mixer label small { color: #b2c6d0; font-size: 12px; line-height: 1.25; }
 .home-command-tools .menu-audio-mixer label button {
-  min-height: 25px !important;
+  min-height: 44px !important;
   padding: 3px 5px !important;
   border-color: rgba(117, 168, 187, .27) !important;
   color: #adc2ca !important;
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -2516,7 +2517,7 @@ textarea:focus-visible {
 .menu-audio-mixer input:disabled,
 .menu-audio-mixer button:disabled { opacity: .38; }
 .menu-audio-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 8px; }
-.home-command-tools .menu-audio-actions button { min-height: 26px !important; padding: 4px 8px !important; font-size: 8px !important; letter-spacing: .06em; text-transform: uppercase; }
+.home-command-tools .menu-audio-actions button { min-height: 44px !important; padding: 8px 12px !important; font-size: 12px !important; letter-spacing: .06em; text-transform: uppercase; }
 .menu-audio-trigger:focus-visible,
 .menu-audio-mixer button:focus-visible,
 .menu-audio-mixer input:focus-visible { outline: 2px solid #f1c779; outline-offset: 2px; }
@@ -3008,8 +3009,9 @@ textarea:focus-visible {
 .campaign-story-details { padding: 7px; border-radius: 4px; background: rgba(3, 9, 15, .38); }
 
 @media (max-width: 1100px) {
-  .home-command-header { grid-template-columns: minmax(310px, 1fr) auto; }
-  .home-current-context { display: none; }
+  .home-command-header { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); }
+  .home-current-context { display: grid; }
+  .home-command-utilities { grid-column: 1 / -1; }
   .active-deck-header { grid-template-columns: 190px minmax(260px, 1fr); }
   .active-deck-readouts { grid-column: 2; }
   .active-deck-actions { grid-column: 2; }
@@ -3032,7 +3034,8 @@ textarea:focus-visible {
     background: linear-gradient(180deg, rgba(8, 19, 30, .88), rgba(5, 13, 21, .93)) !important;
     backdrop-filter: none;
   }
-  .home-command-header { grid-template-columns: 1fr; gap: 12px; }
+  .home-command-header { grid-template-columns: 1fr; gap: 18px; }
+  .home-current-context { min-height: 124px; width: 100%; }
   .home-command-utilities { justify-items: start; }
   .home-command-tools { position: relative; justify-content: flex-start; }
   .menu-audio-control { position: static; }
@@ -3126,3 +3129,9 @@ textarea:focus-visible {
 .card-rules-details a, .card-keyword-link { color: #f1cc88; text-underline-offset: 3px; }
 .card-keyword-link { display: inline-block; margin: 12px; font-size: 16px; }
 .card-art-inspector-copy > p { font-size: 17px; line-height: 1.4; }
+
+@media (max-width: 480px) {
+  .menu-audio-mixer > label { grid-template-columns: minmax(0, 1fr) 54px; }
+  .menu-audio-mixer input[type="range"] { grid-column: 1 / -1; min-height: 28px; }
+  .menu-audio-heading { flex-wrap: wrap; gap: 6px; }
+}
