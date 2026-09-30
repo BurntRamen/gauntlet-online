@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useDialoguePlayback } from "../dialoguePlayback";
+import DialoguePlaybackControls from "../DialoguePlaybackControls";
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
@@ -263,132 +265,20 @@ function resolveMatchAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function dialogueLineParts(line) {
-  const text = String(line || "");
-  const separatorIndex = text.indexOf(":");
-  if (separatorIndex <= 0) return { speaker: "Narrator", text };
-  return {
-    speaker: text.slice(0, separatorIndex).trim() || "Narrator",
-    text: text.slice(separatorIndex + 1).trim()
-  };
-}
-
 function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
-  const visibleLines = useMemo(() => (Array.isArray(lines) ? lines.filter(Boolean) : []), [lines]);
-  const audioLines = useMemo(() => (Array.isArray(audio) ? audio : []), [audio]);
-  const audioRef = useRef(null);
-  const playbackRunRef = useRef(0);
-  const [playingIndex, setPlayingIndex] = useState(null);
-  const [status, setStatus] = useState("");
+  const playback = useDialoguePlayback({ lines, audio, enabled: audioEnabled });
+  const { entries, playingIndex } = playback;
 
-  const stopPlayback = useCallback((message = "Playback stopped.") => {
-    playbackRunRef.current += 1;
-    const clip = audioRef.current;
-    audioRef.current = null;
-    if (clip) {
-      clip.onended = null;
-      clip.onerror = null;
-      clip.pause?.();
-      try {
-        clip.currentTime = 0;
-      } catch (_error) {
-        // Some browsers do not allow seeking until media metadata has loaded.
-      }
-    }
-    setPlayingIndex(null);
-    setStatus(message);
-  }, []);
-
-  const playFrom = useCallback((startIndex, continueSequence) => {
-    if (!audioEnabled) {
-      setStatus("Enable sound from the Match menu to play dialogue.");
-      return;
-    }
-    if (typeof window === "undefined" || typeof window.Audio !== "function") {
-      setStatus("Dialogue audio is unavailable in this browser.");
-      return;
-    }
-    const firstIndex = audioLines.findIndex((source, index) => index >= startIndex && Boolean(source));
-    if (firstIndex < 0) {
-      setStatus("No recorded dialogue is available for this passage.");
-      return;
-    }
-
-    stopPlayback("");
-    const runId = playbackRunRef.current;
-    const playIndex = (index) => {
-      if (runId !== playbackRunRef.current) return;
-      const nextIndex = audioLines.findIndex((source, candidate) => candidate >= index && Boolean(source));
-      if (nextIndex < 0) {
-        audioRef.current = null;
-        setPlayingIndex(null);
-        setStatus("Dialogue finished.");
-        return;
-      }
-      const clip = new window.Audio(resolveMatchAssetPath(audioLines[nextIndex]));
-      const speaker = dialogueLineParts(visibleLines[nextIndex]).speaker;
-      audioRef.current = clip;
-      clip.volume = 1;
-      clip.onended = () => {
-        if (runId !== playbackRunRef.current) return;
-        if (continueSequence) {
-          playIndex(nextIndex + 1);
-        } else {
-          audioRef.current = null;
-          setPlayingIndex(null);
-          setStatus("Dialogue line finished.");
-        }
-      };
-      clip.onerror = () => {
-        if (runId !== playbackRunRef.current) return;
-        audioRef.current = null;
-        setPlayingIndex(null);
-        setStatus(`Unable to play ${speaker}'s recorded line.`);
-      };
-      setPlayingIndex(nextIndex);
-      setStatus(`Playing ${speaker}.`);
-      Promise.resolve(clip.play()).catch(() => {
-        if (runId !== playbackRunRef.current) return;
-        audioRef.current = null;
-        setPlayingIndex(null);
-        setStatus("Playback was blocked. Select Play again to allow dialogue audio.");
-      });
-    };
-    playIndex(firstIndex);
-  }, [audioEnabled, audioLines, stopPlayback, visibleLines]);
-
-  useEffect(() => () => stopPlayback(""), [stopPlayback]);
-  useEffect(() => {
-    if (!audioEnabled && audioRef.current) stopPlayback("Sound muted. Dialogue playback stopped.");
-  }, [audioEnabled, stopPlayback]);
-
-  if (visibleLines.length === 0) return null;
-  const hasAnyAudio = audioLines.some(Boolean);
+  if (entries.length === 0) return null;
   return (
     <section className="production-campaign-dialogue" aria-label={title}>
       <header>
         <strong>{title}</strong>
-        <div>
-          {hasAnyAudio && (
-                    <button
-              type="button"
-              onClick={() => playFrom(0, true)}
-              disabled={!audioEnabled}
-            >
-              Play dialogue
-            </button>
-          )}
-          {playingIndex != null && (
-            <button type="button" onClick={() => stopPlayback()}>
-              Stop
-            </button>
-          )}
-        </div>
       </header>
+      <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       <div className="production-campaign-dialogue-lines">
-        {visibleLines.map((line, index) => {
-          const parts = dialogueLineParts(line);
-          const hasAudio = Boolean(audioLines[index]);
+        {entries.map((parts, index) => {
+          const hasAudio = Boolean(parts.source);
           const isPlaying = playingIndex === index;
           return (
             <blockquote className={isPlaying ? "is-playing" : ""} key={`${parts.speaker}-${index}`}>
@@ -397,12 +287,12 @@ function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
                 {hasAudio && (
                   <button
                     type="button"
-                    aria-label={`Play ${parts.speaker} voice`}
+                    aria-label={`${isPlaying ? "Stop" : "Play"} ${parts.speaker} voice`}
                     aria-pressed={isPlaying}
                     disabled={!audioEnabled}
-                    onClick={() => playFrom(index, false)}
+                    onClick={() => isPlaying ? playback.stop() : playback.play(index, false)}
                   >
-                    {isPlaying ? "Playing" : "Play voice"}
+                    {isPlaying ? "Stop voice" : "Play voice"}
                   </button>
                 )}
               </div>
@@ -411,9 +301,6 @@ function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
           );
         })}
       </div>
-      {!hasAnyAudio && <p className="production-dialogue-status">Recorded voice is not available for this chapter.</p>}
-      {!audioEnabled && hasAnyAudio && <p className="production-dialogue-status">Enable sound from the Match menu to hear dialogue.</p>}
-      {status && <p className="production-dialogue-status" role="status">{status}</p>}
     </section>
   );
 }

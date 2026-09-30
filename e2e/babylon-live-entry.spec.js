@@ -850,8 +850,75 @@ test("later Bizi missions keep the new interface through boss actions", async ({
   expect(errors).toEqual([]);
 });
 
+test("encounter dossiers play exchanges with faction accompaniment and independent line previews", async ({ page, baseURL }) => {
+  await page.addInitScript(() => {
+    const BrowserAudio = window.Audio;
+    window.__previewMedia = [];
+    window.Audio = function Audio(source) {
+      const clip = new BrowserAudio(source);
+      window.__previewMedia.push(clip);
+      return clip;
+    };
+  });
+  await page.goto(baseURL);
+  await page.locator('button[data-area="journey"]').click();
+  await page.getByRole("button", { name: "Choose a Faction" }).click();
+  await page.getByRole("button", { name: "View Briefing" }).first().click();
+  const dialogue = page.getByRole("region", { name: "Voices before the battle" });
+  await dialogue.getByRole("button", { name: "Play exchange" }).click();
+  await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu|menu_room_ambience/.test(clip.src)).length)).toBe(0);
+  const bed = await page.evaluate(() => {
+    const music = window.__previewMedia.find((clip) => clip.src.includes("rumin-reverie"));
+    return { duration: music.duration, volume: music.volume, loop: music.loop };
+  });
+  expect(bed).toEqual({ duration: 48, volume: 0.09, loop: true });
+  await dialogue.getByRole("button", { name: "Pause", exact: true }).click();
+  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(0);
+  await dialogue.getByRole("button", { name: "Resume", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(2);
+  // Seek near the real clip's end to exercise the browser's actual ended event.
+  await page.evaluate(() => {
+    const voice = window.__previewMedia.find((clip) => !clip.paused && clip.src.includes("/voices/"));
+    voice.currentTime = voice.duration - 0.1;
+  });
+  await expect(dialogue.getByRole("button", { name: "Stop Rolmus voice" }).first()).toBeVisible();
+  await dialogue.getByRole("button", { name: "Play Remex voice" }).first().click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && clip.src.includes("/dossiers/")).length)).toBe(0);
+  await expect(dialogue.getByRole("button", { name: "Play exchange" })).toBeEnabled();
+  await dialogue.getByRole("button", { name: "Play exchange" }).click();
+  await page.getByRole("button", { name: "Next Chapter →" }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(0);
+
+  const review = path.join(__dirname, "../artifacts/dialogue-review");
+  fs.mkdirSync(review, { recursive: true });
+  await dialogue.screenshot({ path: path.join(review, "desktop.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(dialogue.getByRole("button", { name: "Play exchange" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await dialogue.screenshot({ path: path.join(review, "mobile.png") });
+
+  // Every shipped arrangement must be decodable, including factions without voices yet.
+  const durations = await page.evaluate(async () => Promise.all(["rumin", "sheen", "frumo", "bizi"].map((faction) => new Promise((resolve, reject) => {
+    const audio = new Audio(`/assets/gauntlet/music/dossiers/${faction}-reverie.wav`);
+    audio.onloadedmetadata = () => resolve(audio.duration);
+    audio.onerror = () => reject(new Error(`Cannot decode ${faction} accompaniment`));
+    audio.load();
+  }))));
+  expect(durations).toEqual([48, 48, 48, 48]);
+});
+
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
   test.setTimeout(60000);
+  await page.addInitScript(() => {
+    window.__campaignDialogueSources = [];
+    const BrowserAudio = window.Audio;
+    window.Audio = function Audio(source) {
+      if (source?.includes("/voices/")) window.__campaignDialogueSources.push(source);
+      return new BrowserAudio(source);
+    };
+  });
   await page.goto(baseURL);
   await page.locator('button[data-area="identity"]').click();
   await page.getByLabel("Play as guest").check();
@@ -870,19 +937,6 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(match).toHaveAttribute("data-presentation-status", "approved");
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
 
-  await page.evaluate(() => {
-    window.__campaignDialogueSources = [];
-    window.Audio = class CampaignDialogueAudioStub {
-      constructor(source) {
-        this.source = source;
-        this.currentTime = 0;
-        this.volume = 1;
-        window.__campaignDialogueSources.push(source);
-      }
-      play() { return Promise.resolve(); }
-      pause() {}
-    };
-  });
   const encounter = page.locator(".production-campaign-encounter");
   if (!await encounter.evaluate((element) => element.open)) {
     await encounter.locator("summary").click();
@@ -926,7 +980,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   const fullLog = page.getByRole("dialog", { name: "Match log", exact: true });
   await expect(fullLog).toBeVisible();
   await fullLog.getByRole("button", { name: "Close", exact: true }).click();
-  await expect(openingDialogue.getByRole("button", { name: "Play dialogue" })).toBeEnabled();
+  await expect(openingDialogue.getByRole("button", { name: "Play exchange" })).toBeEnabled();
   await openingDialogue.getByRole("button", { name: /Play .* voice/i }).first().click();
   await expect(openingDialogue).toContainText(/Playing .*\./i);
   await expect.poll(() => page.evaluate(() => window.__campaignDialogueSources?.[0] || ""))

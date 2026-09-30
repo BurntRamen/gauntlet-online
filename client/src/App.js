@@ -9,6 +9,8 @@ import DeckWorkshop from "./DeckWorkshop";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
+import { useDialogueActivity, useDialoguePlayback } from "./dialoguePlayback";
+import DialoguePlaybackControls from "./DialoguePlaybackControls";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -2673,121 +2675,28 @@ function getCampaignSpeakerImage(speaker) {
   return "/assets/gauntlet/rumin-card.webp";
 }
 
-function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false }) {
-  const dialogueAudioRefs = useRef([]);
+function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
+  const playback = useDialoguePlayback({ lines, audio, scopeKey: autoPlayKey, enabled: audioEnabled });
+  const { play, hasAudio } = playback;
   const autoPlayedRef = useRef("");
-  const sequenceRunnerRef = useRef(null);
-  const [autoPlayBlocked, setAutoPlayBlocked] = useState(false);
-  const visibleLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
-  const audioLines = Array.isArray(audio) ? audio : [];
-  const audioKey = audioLines.filter(Boolean).join("\n");
-  const stopDialogueAudio = () => {
-    dialogueAudioRefs.current.forEach((clip) => {
-      if (!clip) return;
-      clip.pause();
-      clip.currentTime = 0;
-    });
-  };
-  const playDialogueAudio = (index) => {
-    const source = audioLines[index];
-    if (!source || typeof window === "undefined" || typeof window.Audio !== "function") return;
-    stopDialogueAudio();
-    const clip = new window.Audio(resolveAssetPath(source));
-    clip.volume = 1;
-    dialogueAudioRefs.current[index] = clip;
-    clip.play().catch(() => {});
-  };
-
-  useEffect(() => () => {
-    dialogueAudioRefs.current.forEach((clip) => {
-      if (!clip) return;
-      clip.pause();
-      clip.currentTime = 0;
-    });
-  }, []);
-
   useEffect(() => {
-    const sources = audioKey.split("\n").filter(Boolean);
-    if (!autoPlayKey || sources.length === 0 || autoPlayedRef.current === autoPlayKey) return undefined;
-    autoPlayedRef.current = autoPlayKey;
-    setAutoPlayBlocked(false);
-    let cancelled = false;
-    let currentIndex = 0;
-    let activeClip = null;
-    let gestureArmed = false;
-    const removeGestureListeners = () => {
-      if (!gestureArmed || typeof window === "undefined") return;
-      gestureArmed = false;
-      window.removeEventListener("pointerdown", playNext, true);
-      window.removeEventListener("click", playNext, true);
-      window.removeEventListener("touchstart", playNext, true);
-      window.removeEventListener("keydown", playNext, true);
-    };
-    const armGestureRetry = () => {
-      if (gestureArmed || typeof window === "undefined") return;
-      setAutoPlayBlocked(true);
-      gestureArmed = true;
-      window.addEventListener("pointerdown", playNext, true);
-      window.addEventListener("click", playNext, true);
-      window.addEventListener("touchstart", playNext, true);
-      window.addEventListener("keydown", playNext, true);
-    };
-    const playNext = () => {
-      removeGestureListeners();
-      if (cancelled || currentIndex >= sources.length || typeof window === "undefined" || typeof window.Audio !== "function") return;
-      setAutoPlayBlocked(false);
-      const source = sources[currentIndex];
-      if (!source) {
-        currentIndex += 1;
-        playNext();
-        return;
-      }
-      stopDialogueAudio();
-      activeClip = new window.Audio(resolveAssetPath(source));
-      activeClip.volume = 1;
-      dialogueAudioRefs.current[currentIndex] = activeClip;
-      activeClip.onended = () => {
-        currentIndex += 1;
-        playNext();
-      };
-      activeClip.play().catch(armGestureRetry);
-    };
-    sequenceRunnerRef.current = playNext;
-    const timer = window.setTimeout(playNext, 50);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      removeGestureListeners();
-      if (activeClip) activeClip.onended = null;
-      sequenceRunnerRef.current = null;
-    };
-  }, [autoPlayKey, audioKey]);
+    if (!autoPlayKey || !hasAudio || !audioEnabled || autoPlayedRef.current === autoPlayKey) return;
+    const timer = window.setTimeout(() => {
+      autoPlayedRef.current = autoPlayKey;
+      play(0, true);
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [autoPlayKey, hasAudio, audioEnabled, play]);
 
   if (audioOnly) {
-    if (!autoPlayBlocked) return null;
+    if (!playback.mode && !playback.status.includes("blocked")) return null;
     return (
-      <button
-        type="button"
-        onClick={() => sequenceRunnerRef.current?.()}
-        style={{
-          position: "fixed",
-          left: 12,
-          bottom: 12,
-          zIndex: 2000,
-          border: "1px solid rgba(250,204,21,0.55)",
-          borderRadius: 8,
-          background: "linear-gradient(180deg, rgba(80,42,15,0.96), rgba(28,14,7,0.96))",
-          color: "#fde9b0",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
-          padding: "9px 12px",
-          fontWeight: "bold"
-        }}
-      >
-        Play Chapter Voices
-      </button>
+      <div style={{ position: "fixed", left: 12, bottom: 12, zIndex: 2000, padding: "0 12px", borderRadius: 8, background: "#1c0e07", color: "#fde9b0" }}>
+        <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
+      </div>
     );
   }
-  if (visibleLines.length === 0) return null;
+  if (playback.entries.length === 0) return null;
 
   return (
     <div
@@ -2805,13 +2714,12 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
       <div style={{ fontSize: compact ? 10 : 12, textTransform: "uppercase", letterSpacing: 1, color: light ? "#8a4b16" : "#facc15", fontWeight: "bold", marginBottom: compact ? 4 : 8 }}>
         {title}
       </div>
+      <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       <div style={{ display: "grid", gap: compact ? 3 : 6, fontSize: compact ? 11 : 14 }}>
-        {visibleLines.map((line, index) => {
-          const text = String(line);
-          const separatorIndex = text.indexOf(":");
-          const speaker = separatorIndex > 0 ? text.slice(0, separatorIndex).trim() : "Narrator";
-          const spoken = separatorIndex > 0 ? text.slice(separatorIndex + 1).trim() : text;
-          const hasAudio = Boolean(audioLines[index]);
+        {playback.entries.map((entry, index) => {
+          const { speaker, text: spoken } = entry;
+          const hasAudio = Boolean(entry.source);
+          const isPlaying = playback.playingIndex === index;
           const speakerImage = getCampaignSpeakerImage(speaker);
           return (
             <div
@@ -2821,7 +2729,8 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                 gridTemplateColumns: `${compact ? 34 : 46}px minmax(0, 1fr)`,
                 gap: compact ? 7 : 10,
                 alignItems: "start",
-                padding: compact ? "3px 0" : "5px 0"
+                padding: compact ? "3px 0" : "5px 0",
+                background: isPlaying ? "rgba(231,201,110,.12)" : "transparent"
               }}
             >
               <img
@@ -2843,8 +2752,10 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                   {hasAudio && (
                     <button
                       type="button"
-                      onClick={() => playDialogueAudio(index)}
-                      title={`Play ${speaker} voice`}
+                      onClick={() => isPlaying ? playback.stop() : playback.play(index, false)}
+                      disabled={!audioEnabled}
+                      aria-pressed={isPlaying}
+                      aria-label={`${isPlaying ? "Stop" : "Play"} ${speaker} voice`}
                       style={{
                         border: "1px solid rgba(250,204,21,0.42)",
                         borderRadius: 4,
@@ -2856,7 +2767,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                         fontSize: compact ? 10 : 12
                       }}
                     >
-                      Play Voice
+                      {isPlaying ? "Stop Voice" : "Play Voice"}
                     </button>
                   )}
                 </span>
@@ -3385,7 +3296,7 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns }) {
+function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
@@ -3439,6 +3350,9 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
         {activeCampaign && (briefingChapter ? (
           <CampaignChapterBriefing
             campaign={activeCampaign}
+            audioEnabled={audioEnabled}
+            musicEnabled={musicEnabled}
+            musicVolume={musicVolume}
             factionId={activeFactionId}
             theme={activeTheme}
             chapter={briefingChapter}
@@ -3609,6 +3523,7 @@ export default function App() {
   const [transportConnected, setTransportConnected] = useState(socket.connected);
   const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
+  const dialogueActive = useDialogueActivity();
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
@@ -3633,7 +3548,7 @@ export default function App() {
     musicStopRef.current?.duck?.(scale, durationMs);
   }, []);
   const playMenuCue = useMenuAudio({
-    active: menuAudioActive,
+    active: menuAudioActive && !dialogueActive,
     settings: effectiveMenuAudioSettings,
     onDuck: duckMenuMusic
   });
@@ -4105,7 +4020,7 @@ export default function App() {
       musicStopRef.current = null;
     }
     const menuMasterMuted = menuAudioActive && menuAudioSettings.masterMuted;
-    if (musicEnabled && !accountSoundMuted && !menuMasterMuted) {
+    if (musicEnabled && !accountSoundMuted && !menuMasterMuted && !dialogueActive) {
       musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
     }
     return () => {
@@ -4114,7 +4029,7 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
+  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted, dialogueActive]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
@@ -5251,6 +5166,9 @@ export default function App() {
         canPlayAsPlayer={canPlayAsPlayer}
         account={account}
         campaigns={gameContent.campaigns}
+        audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
+        musicEnabled={musicEnabled}
+        musicVolume={musicVolume}
       />
     );
   }
@@ -5984,6 +5902,7 @@ export default function App() {
           {didWin && (
             <CampaignDialogueBlock
               title="Ending Dialogue"
+              audioEnabled={!accountSoundMuted}
               lines={campaignEndDialogue}
               audio={game.campaign?.endDialogueAudio}
               autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
@@ -9089,6 +9008,7 @@ export default function App() {
         <CampaignDialogueBlock
           lines={game.campaign.startDialogue || game.campaign.dialogue}
           audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+          audioEnabled={!accountSoundMuted}
           autoPlayKey={game.campaign.chapterId ? `${game.matchId || "campaign"}-${game.campaign.chapterId}-opening` : ""}
           audioOnly
         />
@@ -9353,7 +9273,7 @@ export default function App() {
               {matchDrawer === "chapter" && game.campaign && (
                 <div className="focus-drawer-scroll focus-chapter-drawer">
                   <p>{game.campaign.story}</p>
-                  <CampaignDialogueBlock title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
+                  <CampaignDialogueBlock audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
                 </div>
               )}
 
