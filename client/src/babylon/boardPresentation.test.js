@@ -50,6 +50,8 @@ test("projects board-native combat, payment, pile, and priority information", ()
   }));
   expect(projected.contract).toBe(BOARD_PRESENTATION_CONTRACT_VERSION);
   expect(projected.combat).toEqual({ state: "blocked", attackValue: 7, blockValue: 6 });
+  // An independent hand attack must not mark lane one as attacked or blocked.
+  expect(projected.lanes.map((lane) => lane.state)).toEqual(["idle", "idle", "idle"]);
   expect(projected.payment).toEqual({
     state: "active",
     occupiedSlots: 2,
