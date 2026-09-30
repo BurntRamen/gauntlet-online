@@ -655,8 +655,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   // blurring it on every frame.
   structuralShadowMap = shadowGenerator.getShadowMap();
   structuralShadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-  // Keep dark stone and recessed lanes readable without flattening the board's depth.
-  babylonScene.imageProcessingConfiguration.contrast = 1.04;
+  // Retain neutral contrast so dark stone and recessed lanes stay readable.
   babylonScene.imageProcessingConfiguration.exposure = 1.14;
 
   const nativePalette = createNativeBoardPalette(babylonScene);
