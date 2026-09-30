@@ -312,7 +312,7 @@ test("preserves constructed definition identity on unique match card instances",
             cards: [{
               id: definitionId,
               factionId: "rumin",
-              name: "Forum Ledger Runner",
+              name: "Stockbroker's Gloves",
               type: "unit",
               rarity: "common",
               value: 2,
@@ -401,7 +401,7 @@ test("server-authored constructed state accepts the shared semantic choice contr
             cards: [{
               id: definitionId,
               factionId: "rumin",
-              name: "Forum Ledger Runner",
+              name: "Stockbroker's Gloves",
               type: "unit",
               rarity: "common",
               value: 2,
@@ -447,7 +447,7 @@ test("server-authored constructed state accepts the shared semantic choice contr
 
   assert.equal(result.accepted, true);
   assert.equal(result.state.handAttacks[0].card.definitionId, definitionId);
-  assert.match(result.state.handAttacks[0].notes.join(" "), /Forum Ledger Runner payment \+1/);
+  assert.match(result.state.handAttacks[0].notes.join(" "), /Stockbroker's Gloves payment \+1/);
   assert.equal(result.revision, 1);
 });
 

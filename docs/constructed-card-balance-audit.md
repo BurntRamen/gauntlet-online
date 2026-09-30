@@ -12,7 +12,7 @@ Rules version: `gauntlet-duel-v8`
 - The production interaction tests cover selectable Armaments and constructed optional effects.
 - The complete server and client suites pass after this audit.
 
-The audit found two unreachable effects left over from the former multi-block rules. Harmony Ward and Sapling Chorus required two or more blockers, while the current rules allow exactly one blocker. Both now trigger on the second or later block in a turn. Tang's Meditation Garden was also reduced from 2 life plus a delayed draw to 1 life plus a delayed draw because it stacks with Tang's built-in 2-life second-block reward.
+The audit found two unreachable effects left over from the former multi-block rules. Harmony Lab and Floral Canopy required two or more blockers, while the current rules allow exactly one blocker. Both now trigger on the second or later block in a turn. Meditation Retreat was also reduced from 2 life plus a delayed draw to 1 life plus a delayed draw because it stacks with Tang's built-in 2-life second-block reward.
 
 ## Deterministic balance simulation
 

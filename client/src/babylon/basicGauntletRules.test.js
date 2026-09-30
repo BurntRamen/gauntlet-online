@@ -924,12 +924,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "sheen-thornroot-counterstroke",
       faction: "sheen",
-      note: "Thornroot Counterstroke +2"
+      note: "Thorned Refuge +2"
     },
     {
       definitionId: "sheen-nus-calm-command",
       faction: "sheen",
-      note: "Nu's Calm Command +3",
+      note: "Tranquility Chamber +3",
       configure: (state) => {
         state.players[1].turnData.blocksDeclaredThisTurn = 3;
       }
@@ -937,7 +937,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "bizi-dune-circuit-runner",
       faction: "bizi",
-      note: "Dune Circuit Runner +1",
+      note: "Hovercraft +1",
       configure: (state, attacker) => {
         state.players[1].turnData.attacksDeclaredThisTurn = 1;
         state.players[1].turnData.previousAttackSuit = attacker.suit === "♠" ? "♥" : "♠";
@@ -946,7 +946,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "bizi-railspike-marshal",
       faction: "bizi",
-      note: "Railspike Marshal +1",
+      note: "Iron Express +1",
       configure: (state, attacker) => {
         state.players[1].turnData.attacksDeclaredThisTurn = 1;
         state.players[1].turnData.previousAttackSuit = attacker.suit === "♠" ? "♥" : "♠";
@@ -956,7 +956,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "frumo-tideglass-cutlass",
       faction: "frumo",
       source: "lane",
-      note: "Tideglass Ambush +2",
+      note: "Turning of the Tides +2",
       configure: (state) => {
         state.players[1].turnData.frumoLaneSwappedThisTurn = true;
       }
@@ -964,7 +964,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "frumo-pressure-lock-pistol",
       faction: "frumo",
-      note: "Pressure-Lock Pistol +2",
+      note: "Opening Salvo +2",
       configure: (state, attacker) => {
         state.players[1].turnData.previousPlayedValue = attacker.value - 1;
       }
@@ -985,7 +985,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "frumo-captains-bad-wager",
       faction: "frumo",
       source: "lane",
-      note: "Captain's Bad Wager +3",
+      note: "Sink or Swim +3",
       configure: (state) => {
         state.players[1].turnData.previousPlayedValue = 6;
       }
@@ -1023,7 +1023,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       faction: "rumin",
       paymentValue: 1,
       expectedTotal: 4,
-      note: "Edict of the Vault payment +3",
+      note: "Battle Cry Horn payment +3",
       configure: (state) => {
         state.players[1].turnData.attacksDeclaredThisTurn = 3;
         state.players[1].turnData.ruminMatchingSuitBonuses = 2;
@@ -1034,7 +1034,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       faction: "frumo",
       paymentValue: 3,
       expectedTotal: 4,
-      note: "Sunken Coin Trap payment +1"
+      note: "Collect Tribute payment +1"
     },
     {
       definitionId: "bizi-voltage-ration",
@@ -1057,7 +1057,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       faction: "bizi",
       paymentValue: 2,
       expectedTotal: 4,
-      note: "Hera's Calibration payment +2",
+      note: "Signal Relay payment +2",
       attackerDefinitionId: "bizi-dune-circuit-runner"
     }
   ])("$definitionId changes the accepted semantic payment total", ({
@@ -1095,7 +1095,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.handAttacks[0].notes).toContain(note);
   });
 
-  test("legacy Harmony Ward payment does not authorize a multi-card block", () => {
+  test("legacy Harmony Lab payment does not authorize a multi-card block", () => {
     let state = setupFaction("rumin", "sheen");
     const attackingCard = state.players[1].hand[0];
     const attackingPayment = state.players[1].hand[1];
@@ -1132,13 +1132,13 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "rumin-vault-shield-bearer",
       faction: "rumin",
-      note: "Vault Shield Bearer prevents 1",
+      note: "Insurance Policy Plate prevents 1",
       expectedPrevention: 1
     },
     {
       definitionId: "sheen-rootwatch-initiate",
       faction: "sheen",
-      note: "Rootwatch Grove +1",
+      note: "Root Haven +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
@@ -1146,23 +1146,23 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "sheen-living-bark-guard",
       faction: "sheen",
-      note: "Living Bark Bastion +1"
+      note: "Barkskin Bastion +1"
     },
     {
       definitionId: "sheen-seedwall-acolyte",
       faction: "sheen",
-      note: "Seedwall Acolyte +1"
+      note: "Sapling Sanctuary +1"
     },
     {
       definitionId: "sheen-beli-canopy-shield",
       faction: "sheen",
-      note: "Beli Canopy Shield prevents 1",
+      note: "Verdant Canopy prevents 1",
       expectedPrevention: 1
     },
     {
       definitionId: "sheen-nus-verdant-edict",
       faction: "sheen",
-      note: "Nu's Verdant Edict +1",
+      note: "Verdant Dome +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 2;
       }
@@ -1180,7 +1180,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "sheen-harmony-ward",
       blockerCount: 1,
       paymentValue: 1,
-      note: "Harmony Ward payment +1",
+      note: "Harmony Lab payment +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
@@ -1188,12 +1188,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "sheen-mossbound-staff",
       blockerCount: 1,
-      note: "Mossbound Staff +1"
+      note: "Negotiation Grounds +1"
     },
     {
       definitionId: "sheen-sapling-chorus",
       blockerCount: 1,
-      note: "Sapling Chorus +1",
+      note: "Floral Canopy +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
@@ -1240,7 +1240,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
   test.each([
     {
       definitionId: "rumin-gilded-scale-legionary",
-      name: "Gilded Legion Spear",
+      name: "Capital Investment Spear",
       expectedBonus: 2,
       configure: (state, attacker, payment) => {
         payment.suit = "♦";
@@ -1248,12 +1248,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
     },
     {
       definitionId: "rumin-rumie-vault-shield",
-      name: "Rumie Vault Shield",
+      name: "Shareholder's Shield",
       expectedBonus: 3
     },
     {
       definitionId: "rumin-imperial-scale-pike",
-      name: "Imperial Scale Pike",
+      name: "Profit Margin Spear",
       expectedBonus: 4,
       configure: (state, attacker) => {
         state.players[1].turnData.previousAttackSuit = attacker.suit;
@@ -1261,19 +1261,19 @@ describe("shared Basic Gauntlet simulator rules", () => {
     },
     {
       definitionId: "rumin-aurelian-clawblade",
-      name: "Aurelian Clawblade",
+      name: "Executive Authority Blade",
       expectedBonus: 4,
       expectLife: true
     },
     {
       definitionId: "rumin-triumphal-ram",
-      name: "Triumphal Ram",
+      name: "Asset Crusher",
       attackValue: 8,
       expectedBonus: 5
     },
     {
       definitionId: "rumin-kaisers-gold-claw",
-      name: "Kaiser's Gold Claw",
+      name: "Unstoppable Investment Lance",
       expectedBonus: 6,
       configure: (state) => {
         state.players[1].turnData.attacksDeclaredThisTurn = 3;
@@ -1324,7 +1324,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const standard = state.players[1].hand[3];
     attacker.value = 4;
     payment.value = 10;
-    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Coin-Scale Spear" });
+    makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Dividend Yield Blade" });
     makeConstructed(standard, "rumin-basilisk-standard", { type: "armament" });
     state.players[1].hand = state.players[1].hand.filter((card) => ![weapon.id, standard.id].includes(card.id));
     state.lanes[0].facedown[1] = weapon;
@@ -1342,8 +1342,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
     expect(result.accepted).toBe(true);
     expect(result.state.handAttacks[0].notes).toEqual(expect.arrayContaining([
-      "Basilisk Standard +2",
-      "Coin-Scale Spear armed +4"
+      "Market Rally Drum +2",
+      "Dividend Yield Blade armed +4"
     ]));
   });
 
@@ -1382,7 +1382,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       faction: "rumin",
       definitionId: "rumin-marble-market-tribune"
     });
-    expect(attack.notes).toContain("Marble Market Tribune next weapon +1");
+    expect(attack.notes).toContain("Corporate Banner next weapon +1");
     expect(state.players[1].turnData.ruminNextWeaponArmBonus).toBe(1);
   });
 
@@ -1404,7 +1404,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
     expect(result.accepted).toBe(true);
     expect(result.state.players[1].life).toBe(lifeBefore + 1);
-    expect(result.state.handAttacks[0].notes).toContain("Senate Vault Guard +1 life");
+    expect(result.state.handAttacks[0].notes).toContain("Hedge Fund Vest +1 life");
   });
 
   test("rumin-counting-house-aegis rewards the first overpaid Rumin card it supports", () => {
@@ -1429,7 +1429,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
 
     expect(result.accepted).toBe(true);
     expect(result.state.players[1].life).toBe(lifeBefore + 1);
-    expect(result.state.handAttacks[0].notes).toContain("Counting-House Aegis +1 life");
+    expect(result.state.handAttacks[0].notes).toContain("Diversified Portfolio +1 life");
   });
 
   test.each([
@@ -1437,14 +1437,14 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "bizi-copperline-technician",
       assertion: (result) => {
         expect(result.state.players[1].accelerationCounters).toBe(2);
-        expect(result.state.handAttacks[0].notes).toContain("Copperline Technician +1 acceleration");
+        expect(result.state.handAttacks[0].notes).toContain("Mechanical Refinery +1 acceleration");
       }
     },
     {
       definitionId: "bizi-clockwork-caravan",
       assertion: (result) => {
         expect(result.state.players[1].turnData.biziEndTurnDraws).toBe(1);
-        expect(result.state.handAttacks[0].notes).toContain("Clockwork Caravan end-turn draw");
+        expect(result.state.handAttacks[0].notes).toContain("Energy Transporter end-turn draw");
       }
     }
   ])("$definitionId resolves its qualifying overpayment state", ({ definitionId, assertion }) => {
@@ -1496,11 +1496,11 @@ describe("shared Basic Gauntlet simulator rules", () => {
   test.each([
     {
       definitionId: "bizi-constanti-conduit",
-      note: "Constanti Conduit +1"
+      note: "Signal Line +1"
     },
     {
       definitionId: "bizi-desert-logic-engine",
-      note: "Desert Logic Engine +2"
+      note: "Battle Alarm +2"
     }
   ])("$definitionId supports a different-suit attack from its lane", ({ definitionId, note }) => {
     const state = setupFaction("bizi", "rumin");
@@ -1554,8 +1554,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
       definitionId: "bizi-focus-prime-signal"
     });
     expect(attack.notes).toEqual(expect.arrayContaining([
-      "Focus Prime Signal +2 acceleration",
-      "Focus Prime Signal readied up to +3"
+      "Interference Matrix +2 acceleration",
+      "Interference Matrix readied up to +3"
     ]));
     expect(state.players[1].accelerationCounters).toBe(3);
     expect(state.players[1].turnData.biziPrimeSignalAvailable).toBe(3);
@@ -1565,17 +1565,17 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "rumin-marble-phalanx",
       faction: "rumin",
-      note: "Phalanx Shield +2"
+      note: "Ballistic Shield +2"
     },
     {
       definitionId: "sheen-ringroot-bastion",
       faction: "sheen",
-      note: "Ringroot Bastion +2"
+      note: "Rootbind Refuge +2"
     },
     {
       definitionId: "frumo-coral-hull-guard",
       faction: "frumo",
-      note: "Coral-Hull Guard +1",
+      note: "Frozen Barrier +1",
       assertState: (state) => expect(state.players[2].turnData.frumoLaneSwappedThisTurn).toBe(true)
     }
   ])("$definitionId resolves only as a same-lane blocker", ({
@@ -1618,11 +1618,11 @@ describe("shared Basic Gauntlet simulator rules", () => {
   test.each([
     {
       definitionId: "sheen-quiet-grove-sentinel",
-      source: "Quiet Grove Sentinel"
+      source: "Healing Hollow"
     },
     {
       definitionId: "sheen-raincall-mender",
-      source: "Raincall Mender"
+      source: "Rainfall Refuge"
     }
   ])("$definitionId gains life only after a damage-free resolution", ({ definitionId, source }) => {
     let state = setupFaction("rumin", "sheen");
@@ -1668,7 +1668,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
         game.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
     });
-    expect(block.notes).toContain("Beli Vinebinder next attack +1");
+    expect(block.notes).toContain("Entwined Thicket next attack +1");
     expect(state.players[2].turnData.sheenNextAttackBonus).toBe(1);
   });
 
@@ -1709,8 +1709,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.players[2].turnData.sheenEndTurnDraws).toBe(1);
     expect(result.state.players[2].turnData.sheenNextBlockBonus).toBe(2);
     expect(result.state.handAttacks[0].block[0].notes).toEqual(expect.arrayContaining([
-      "Tang's Meditation Garden +1 life",
-      "Tang's Meditation Garden end-turn draw"
+      "Meditation Retreat +1 life",
+      "Meditation Retreat end-turn draw"
     ]));
   });
 
@@ -1746,7 +1746,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     });
 
     expect(result.accepted).toBe(true);
-    expect(result.state.handAttacks[0].block[0].notes).toContain("Emperor's Heartwood +1");
+    expect(result.state.handAttacks[0].block[0].notes).toContain("Evergreen Arbor +1");
     expect(result.state.players[2].life).toBe(lifeBefore + 1);
   });
 
@@ -1853,7 +1853,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.players[1].life).toBe(lifeBefore + 1);
     expect(result.state.handAttacks[0].notes).toEqual(expect.arrayContaining([
       "Ristus +2",
-      "Leviathan Salvage +1 life"
+      "Loot the Hold +1 life"
     ]));
   });
 
@@ -1923,7 +1923,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.accepted).toBe(true);
     expect(result.state.handAttacks[0].block[0].notes).toEqual(expect.arrayContaining([
       "Ristus +2",
-      "Polea's Moonlit Map +1"
+      "X Marks the Spot +1"
     ]));
   });
 
@@ -1950,10 +1950,10 @@ describe("shared Basic Gauntlet simulator rules", () => {
     });
     expect(withChoice.accepted).toBe(true);
     expect(withChoice.state.handAttacks[0].payment.total).toBe(3);
-    expect(withChoice.state.handAttacks[0].notes).toContain("Forum Ledger Runner payment +1");
+    expect(withChoice.state.handAttacks[0].notes).toContain("Stockbroker's Gloves payment +1");
   });
 
-  test("readies Jewel-Bank Standard and only consumes it by explicit choice", () => {
+  test("readies Board of Directors' Insignia and only consumes it by explicit choice", () => {
     let state = setupFaction("rumin", "sheen");
     const contract = state.players[1].hand.find((card) => card.value === 2);
     const contractPayment = state.players[1].hand.find((card) => card.value === 3);
@@ -2024,7 +2024,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withArm.state.lanes[0].facedown[1]).toBeNull();
   });
 
-  test("Constanti Sunforge spends the chosen amount instead of the automatic maximum", () => {
+  test("Armored Battleship spends the chosen amount instead of the automatic maximum", () => {
     const state = setupFaction("bizi", "sheen");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.value >= 4 && card.id !== attacker.id);
@@ -2054,7 +2054,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     );
   });
 
-  test("Beli Awakened keeps its readied bonus until explicitly chosen", () => {
+  test("Vital Grove keeps its readied bonus until explicitly chosen", () => {
     const state = setupFaction("sheen", "rumin");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.value >= 4 && card.id !== attacker.id);
@@ -2084,7 +2084,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withChoice.state.players[1].turnData.beliAwakenedReady).toBe(false);
   });
 
-  test("Sandstorm Processor grants its optional bonus without spending acceleration", () => {
+  test("Searchlight Beacon grants its optional bonus without spending acceleration", () => {
     const state = setupFaction("bizi", "sheen");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.id !== attacker.id && card.value >= attacker.value);
@@ -2113,7 +2113,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withChoice.state.players[1].accelerationCounters).toBe(2);
   });
 
-  test("Voltaric Ultimatum spends exactly two acceleration only when chosen", () => {
+  test("Incinerator Turret spends exactly two acceleration only when chosen", () => {
     const state = setupFaction("bizi", "sheen");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.id !== attacker.id && card.value >= attacker.value);
@@ -2143,7 +2143,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withChoice.state.players[1].accelerationCounters).toBe(0);
   });
 
-  test("Focus Prime Signal applies the chosen amount without removing acceleration", () => {
+  test("Interference Matrix applies the chosen amount without removing acceleration", () => {
     const state = setupFaction("bizi", "sheen");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.id !== attacker.id && card.value >= attacker.value);
@@ -2174,7 +2174,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withChoice.state.players[1].turnData.biziPrimeSignalAvailable).toBe(0);
   });
 
-  test("Gearplate Shield spends acceleration only when its blocker is selected", () => {
+  test("Bunker Defenses spends acceleration only when its blocker is selected", () => {
     let state = setupFaction("rumin", "bizi");
     state = handAttack(state, 1, 0, [1]).state;
     const blocker = state.players[2].hand.find((card) => card.value === 2);
@@ -2206,7 +2206,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(withSpend.state.players[2].accelerationCounters).toBe(0);
   });
 
-  test("Heat-Sink Matrix uses the same explicit blocker acceleration choice", () => {
+  test("Smoke Screen uses the same explicit blocker acceleration choice", () => {
     let state = setupFaction("rumin", "bizi");
     state = handAttack(state, 1, 0, [1]).state;
     const blocker = state.players[2].hand.find((card) => card.value === 2);
@@ -2228,7 +2228,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.players[2].accelerationCounters).toBe(0);
   });
 
-  test("Deckhand Diver peek remains optional and private during placement", () => {
+  test("Deep Dive peek remains optional and private during placement", () => {
     let state = enterPlacement(setupFaction("frumo", "rumin"));
     const diver = state.players[1].hand[0];
     makeConstructed(diver, "frumo-deckhand-diver");
@@ -2251,7 +2251,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
       .find((entry) => entry.type === "card.placedFacedown").cardId).toBeUndefined();
   });
 
-  test("The Last Gamble explicitly chooses which next action receives +4", () => {
+  test("Rally the Crew explicitly chooses which next action receives +4", () => {
     const state = setupFaction("frumo", "rumin");
     const gamble = state.players[1].hand.shift();
     const target = state.players[2].hand.shift();

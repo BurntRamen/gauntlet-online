@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "gauntlet-content-v9",
+  "contentVersion": "gauntlet-content-v10",
   "generatedFrom": "server/gameContent.js collectorVariants[].art",
   "summary": {
     "gameplayCardCount": 72,
@@ -14,7 +14,7 @@
     {
       "gameplayCardId": "rumin-gilded-scale-legionary",
       "faction": "rumin",
-      "name": "Gilded Legion Spear",
+      "name": "Capital Investment Spear",
       "type": "armament",
       "rarity": "common",
       "value": 3,
@@ -28,7 +28,7 @@
     {
       "gameplayCardId": "rumin-forum-ledger-runner",
       "faction": "rumin",
-      "name": "Forum Ledger Runner",
+      "name": "Stockbroker's Gloves",
       "type": "armament",
       "rarity": "common",
       "value": 2,
@@ -42,7 +42,7 @@
     {
       "gameplayCardId": "rumin-vault-shield-bearer",
       "faction": "rumin",
-      "name": "Vault Shield Bearer",
+      "name": "Insurance Policy Plate",
       "type": "armament",
       "rarity": "common",
       "value": 4,
@@ -56,7 +56,7 @@
     {
       "gameplayCardId": "rumin-coin-scale-spear",
       "faction": "rumin",
-      "name": "Coin-Scale Spear",
+      "name": "Dividend Yield Blade",
       "type": "armament",
       "rarity": "common",
       "value": 4,
@@ -70,7 +70,7 @@
     {
       "gameplayCardId": "rumin-senate-vault-guard",
       "faction": "rumin",
-      "name": "Senate Vault Guard",
+      "name": "Hedge Fund Vest",
       "type": "armament",
       "rarity": "uncommon",
       "value": 5,
@@ -84,7 +84,7 @@
     {
       "gameplayCardId": "rumin-marble-market-tribune",
       "faction": "rumin",
-      "name": "Marble Market Tribune",
+      "name": "Corporate Banner",
       "type": "armament",
       "rarity": "uncommon",
       "value": 6,
@@ -98,7 +98,7 @@
     {
       "gameplayCardId": "rumin-rumie-vault-shield",
       "faction": "rumin",
-      "name": "Rumie Vault Shield",
+      "name": "Shareholder's Shield",
       "type": "armament",
       "rarity": "uncommon",
       "value": 6,
@@ -112,7 +112,7 @@
     {
       "gameplayCardId": "rumin-imperial-scale-pike",
       "faction": "rumin",
-      "name": "Imperial Scale Pike",
+      "name": "Profit Margin Spear",
       "type": "armament",
       "rarity": "uncommon",
       "value": 5,
@@ -126,7 +126,7 @@
     {
       "gameplayCardId": "rumin-aurelian-clawblade",
       "faction": "rumin",
-      "name": "Aurelian Clawblade",
+      "name": "Executive Authority Blade",
       "type": "armament",
       "rarity": "rare",
       "value": 7,
@@ -140,7 +140,7 @@
     {
       "gameplayCardId": "rumin-basilisk-standard",
       "faction": "rumin",
-      "name": "Basilisk Standard",
+      "name": "Market Rally Drum",
       "type": "armament",
       "rarity": "rare",
       "value": 6,
@@ -154,7 +154,7 @@
     {
       "gameplayCardId": "rumin-jewel-bank-contract",
       "faction": "rumin",
-      "name": "Jewel-Bank Standard",
+      "name": "Board of Directors' Insignia",
       "type": "armament",
       "rarity": "rare",
       "value": 5,
@@ -168,7 +168,7 @@
     {
       "gameplayCardId": "rumin-tax-road-scout",
       "faction": "rumin",
-      "name": "Tax-Road Scout",
+      "name": "Insider's Javelin",
       "type": "armament",
       "rarity": "common",
       "value": 2,
@@ -182,7 +182,7 @@
     {
       "gameplayCardId": "rumin-marble-phalanx",
       "faction": "rumin",
-      "name": "Phalanx Shield",
+      "name": "Ballistic Shield",
       "type": "armament",
       "rarity": "common",
       "value": 5,
@@ -196,7 +196,7 @@
     {
       "gameplayCardId": "rumin-counting-house-aegis",
       "faction": "rumin",
-      "name": "Counting-House Aegis",
+      "name": "Diversified Portfolio",
       "type": "armament",
       "rarity": "uncommon",
       "value": 7,
@@ -210,7 +210,7 @@
     {
       "gameplayCardId": "rumin-triumphal-ram",
       "faction": "rumin",
-      "name": "Triumphal Ram",
+      "name": "Asset Crusher",
       "type": "armament",
       "rarity": "uncommon",
       "value": 8,
@@ -224,7 +224,7 @@
     {
       "gameplayCardId": "rumin-edict-of-the-vault",
       "faction": "rumin",
-      "name": "Edict of the Vault",
+      "name": "Battle Cry Horn",
       "type": "armament",
       "rarity": "rare",
       "value": 8,
@@ -238,7 +238,7 @@
     {
       "gameplayCardId": "rumin-kaisers-gold-claw",
       "faction": "rumin",
-      "name": "Kaiser's Gold Claw",
+      "name": "Unstoppable Investment Lance",
       "type": "armament",
       "rarity": "mythic",
       "value": 9,
@@ -252,7 +252,7 @@
     {
       "gameplayCardId": "rumin-rumie-market-colossus",
       "faction": "rumin",
-      "name": "Rumie Market Colossus",
+      "name": "Crown of Authority",
       "type": "armament",
       "rarity": "mythic",
       "value": 10,
@@ -266,7 +266,7 @@
     {
       "gameplayCardId": "sheen-rootwatch-initiate",
       "faction": "sheen",
-      "name": "Rootwatch Grove",
+      "name": "Root Haven",
       "type": "shelter",
       "rarity": "common",
       "value": 3,
@@ -280,7 +280,7 @@
     {
       "gameplayCardId": "sheen-quiet-grove-sentinel",
       "faction": "sheen",
-      "name": "Quiet Grove Sentinel",
+      "name": "Healing Hollow",
       "type": "shelter",
       "rarity": "common",
       "value": 4,
@@ -294,7 +294,7 @@
     {
       "gameplayCardId": "sheen-mossbound-staff",
       "faction": "sheen",
-      "name": "Mossbound Staff",
+      "name": "Negotiation Grounds",
       "type": "shelter",
       "rarity": "common",
       "value": 2,
@@ -308,7 +308,7 @@
     {
       "gameplayCardId": "sheen-living-bark-guard",
       "faction": "sheen",
-      "name": "Living Bark Bastion",
+      "name": "Barkskin Bastion",
       "type": "shelter",
       "rarity": "common",
       "value": 5,
@@ -322,7 +322,7 @@
     {
       "gameplayCardId": "sheen-beli-vinebinder",
       "faction": "sheen",
-      "name": "Beli Vinebinder",
+      "name": "Entwined Thicket",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 5,
@@ -336,7 +336,7 @@
     {
       "gameplayCardId": "sheen-harmony-ward",
       "faction": "sheen",
-      "name": "Harmony Ward",
+      "name": "Harmony Lab",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 4,
@@ -350,7 +350,7 @@
     {
       "gameplayCardId": "sheen-thornroot-counterstroke",
       "faction": "sheen",
-      "name": "Thornroot Counterstroke",
+      "name": "Thorned Refuge",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 6,
@@ -364,7 +364,7 @@
     {
       "gameplayCardId": "sheen-beli-canopy-shield",
       "faction": "sheen",
-      "name": "Beli Canopy Shield",
+      "name": "Verdant Canopy",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 6,
@@ -378,7 +378,7 @@
     {
       "gameplayCardId": "sheen-nus-verdant-edict",
       "faction": "sheen",
-      "name": "Nu's Verdant Edict",
+      "name": "Verdant Dome",
       "type": "shelter",
       "rarity": "rare",
       "value": 7,
@@ -392,7 +392,7 @@
     {
       "gameplayCardId": "sheen-roots-that-remember",
       "faction": "sheen",
-      "name": "Roots That Remember",
+      "name": "Eternal Archive",
       "type": "shelter",
       "rarity": "rare",
       "value": 5,
@@ -406,7 +406,7 @@
     {
       "gameplayCardId": "sheen-tangs-patient-hand",
       "faction": "sheen",
-      "name": "Tang's Meditation Garden",
+      "name": "Meditation Retreat",
       "type": "shelter",
       "rarity": "rare",
       "value": 6,
@@ -420,7 +420,7 @@
     {
       "gameplayCardId": "sheen-seedwall-acolyte",
       "faction": "sheen",
-      "name": "Seedwall Acolyte",
+      "name": "Sapling Sanctuary",
       "type": "shelter",
       "rarity": "common",
       "value": 2,
@@ -434,7 +434,7 @@
     {
       "gameplayCardId": "sheen-raincall-mender",
       "faction": "sheen",
-      "name": "Raincall Mender",
+      "name": "Rainfall Refuge",
       "type": "shelter",
       "rarity": "common",
       "value": 4,
@@ -448,7 +448,7 @@
     {
       "gameplayCardId": "sheen-ringroot-bastion",
       "faction": "sheen",
-      "name": "Ringroot Bastion",
+      "name": "Rootbind Refuge",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 7,
@@ -462,7 +462,7 @@
     {
       "gameplayCardId": "sheen-sapling-chorus",
       "faction": "sheen",
-      "name": "Sapling Chorus",
+      "name": "Floral Canopy",
       "type": "shelter",
       "rarity": "uncommon",
       "value": 3,
@@ -476,7 +476,7 @@
     {
       "gameplayCardId": "sheen-nus-calm-command",
       "faction": "sheen",
-      "name": "Nu's Calm Command",
+      "name": "Tranquility Chamber",
       "type": "shelter",
       "rarity": "rare",
       "value": 8,
@@ -490,7 +490,7 @@
     {
       "gameplayCardId": "sheen-emperors-heartwood",
       "faction": "sheen",
-      "name": "Emperor's Heartwood",
+      "name": "Evergreen Arbor",
       "type": "shelter",
       "rarity": "mythic",
       "value": 9,
@@ -504,7 +504,7 @@
     {
       "gameplayCardId": "sheen-beli-awakened",
       "faction": "sheen",
-      "name": "Beli Awakened",
+      "name": "Vital Grove",
       "type": "shelter",
       "rarity": "mythic",
       "value": 10,
@@ -518,7 +518,7 @@
     {
       "gameplayCardId": "frumo-deckhand-diver",
       "faction": "frumo",
-      "name": "Deckhand Diver",
+      "name": "Deep Dive",
       "type": "ambush",
       "rarity": "common",
       "value": 3,
@@ -532,7 +532,7 @@
     {
       "gameplayCardId": "frumo-tideglass-cutlass",
       "faction": "frumo",
-      "name": "Tideglass Ambush",
+      "name": "Turning of the Tides",
       "type": "ambush",
       "rarity": "common",
       "value": 4,
@@ -546,7 +546,7 @@
     {
       "gameplayCardId": "frumo-sunken-coin",
       "faction": "frumo",
-      "name": "Sunken Coin Trap",
+      "name": "Collect Tribute",
       "type": "ambush",
       "rarity": "common",
       "value": 2,
@@ -560,7 +560,7 @@
     {
       "gameplayCardId": "frumo-coral-hull-guard",
       "faction": "frumo",
-      "name": "Coral-Hull Guard",
+      "name": "Frozen Barrier",
       "type": "ambush",
       "rarity": "common",
       "value": 5,
@@ -574,7 +574,7 @@
     {
       "gameplayCardId": "frumo-riptide-smuggler",
       "faction": "frumo",
-      "name": "Riptide Smuggler",
+      "name": "Hauntling Lure",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 5,
@@ -588,7 +588,7 @@
     {
       "gameplayCardId": "frumo-lafayettes-chart",
       "faction": "frumo",
-      "name": "Lafayette's Chart",
+      "name": "Hit & Run",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 4,
@@ -602,7 +602,7 @@
     {
       "gameplayCardId": "frumo-pressure-lock-pistol",
       "faction": "frumo",
-      "name": "Pressure-Lock Pistol",
+      "name": "Opening Salvo",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 6,
@@ -616,7 +616,7 @@
     {
       "gameplayCardId": "frumo-ristus-blackwake",
       "faction": "frumo",
-      "name": "Ristus Blackwake",
+      "name": "Coastal Raid",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 6,
@@ -630,7 +630,7 @@
     {
       "gameplayCardId": "frumo-captains-bad-wager",
       "faction": "frumo",
-      "name": "Captain's Bad Wager",
+      "name": "Sink or Swim",
       "type": "ambush",
       "rarity": "rare",
       "value": 7,
@@ -644,7 +644,7 @@
     {
       "gameplayCardId": "frumo-poleas-sunken-order",
       "faction": "frumo",
-      "name": "Polea's Sunken Order",
+      "name": "Command the Revolution",
       "type": "ambush",
       "rarity": "rare",
       "value": 6,
@@ -658,7 +658,7 @@
     {
       "gameplayCardId": "frumo-leviathan-salvage",
       "faction": "frumo",
-      "name": "Leviathan Salvage",
+      "name": "Loot the Hold",
       "type": "ambush",
       "rarity": "rare",
       "value": 5,
@@ -672,7 +672,7 @@
     {
       "gameplayCardId": "frumo-kelpcloak-trickster",
       "faction": "frumo",
-      "name": "Kelpcloak Trickster",
+      "name": "Sudden Scheme",
       "type": "ambush",
       "rarity": "common",
       "value": 2,
@@ -686,7 +686,7 @@
     {
       "gameplayCardId": "frumo-ballast-hook",
       "faction": "frumo",
-      "name": "Ballast Hook",
+      "name": "Anchor's Hold",
       "type": "ambush",
       "rarity": "common",
       "value": 5,
@@ -700,7 +700,7 @@
     {
       "gameplayCardId": "frumo-tide-debt-ledger",
       "faction": "frumo",
-      "name": "Tide-Debt Ledger",
+      "name": "Pirate's Gambit",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 4,
@@ -714,7 +714,7 @@
     {
       "gameplayCardId": "frumo-abyssal-switchboard",
       "faction": "frumo",
-      "name": "Abyssal Switchboard",
+      "name": "Coordinated Strike",
       "type": "ambush",
       "rarity": "uncommon",
       "value": 7,
@@ -728,7 +728,7 @@
     {
       "gameplayCardId": "frumo-poleas-moonlit-map",
       "faction": "frumo",
-      "name": "Polea's Moonlit Map",
+      "name": "X Marks the Spot",
       "type": "ambush",
       "rarity": "rare",
       "value": 8,
@@ -742,7 +742,7 @@
     {
       "gameplayCardId": "frumo-the-last-gamble",
       "faction": "frumo",
-      "name": "The Last Gamble",
+      "name": "Rally the Crew",
       "type": "ambush",
       "rarity": "mythic",
       "value": 9,
@@ -756,7 +756,7 @@
     {
       "gameplayCardId": "frumo-ristus-rises",
       "faction": "frumo",
-      "name": "Ristus Rises",
+      "name": "Tidal Surge",
       "type": "ambush",
       "rarity": "mythic",
       "value": 10,
@@ -770,7 +770,7 @@
     {
       "gameplayCardId": "bizi-copperline-technician",
       "faction": "bizi",
-      "name": "Copperline Technician",
+      "name": "Mechanical Refinery",
       "type": "contraption",
       "rarity": "common",
       "value": 3,
@@ -784,7 +784,7 @@
     {
       "gameplayCardId": "bizi-voltage-ration",
       "faction": "bizi",
-      "name": "Voltage Ration",
+      "name": "Ammo Depot",
       "type": "contraption",
       "rarity": "common",
       "value": 2,
@@ -798,7 +798,7 @@
     {
       "gameplayCardId": "bizi-dune-circuit-runner",
       "faction": "bizi",
-      "name": "Dune Circuit Runner",
+      "name": "Hovercraft",
       "type": "contraption",
       "rarity": "common",
       "value": 4,
@@ -812,7 +812,7 @@
     {
       "gameplayCardId": "bizi-gearplate-shield",
       "faction": "bizi",
-      "name": "Gearplate Shield",
+      "name": "Bunker Defenses",
       "type": "contraption",
       "rarity": "common",
       "value": 5,
@@ -826,7 +826,7 @@
     {
       "gameplayCardId": "bizi-heras-calibration",
       "faction": "bizi",
-      "name": "Hera's Calibration",
+      "name": "Signal Relay",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 5,
@@ -840,7 +840,7 @@
     {
       "gameplayCardId": "bizi-solar-array-adept",
       "faction": "bizi",
-      "name": "Solar Array Adept",
+      "name": "Electrostatic Field",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 5,
@@ -854,7 +854,7 @@
     {
       "gameplayCardId": "bizi-constanti-conduit",
       "faction": "bizi",
-      "name": "Constanti Conduit",
+      "name": "Signal Line",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 6,
@@ -868,7 +868,7 @@
     {
       "gameplayCardId": "bizi-sandstorm-processor",
       "faction": "bizi",
-      "name": "Sandstorm Processor",
+      "name": "Searchlight Beacon",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 6,
@@ -882,7 +882,7 @@
     {
       "gameplayCardId": "bizi-focus-overclock",
       "faction": "bizi",
-      "name": "Focus Overclock",
+      "name": "Chrono-Forge Core",
       "type": "contraption",
       "rarity": "rare",
       "value": 7,
@@ -896,7 +896,7 @@
     {
       "gameplayCardId": "bizi-regnum-voltage-bank",
       "faction": "bizi",
-      "name": "Regnum Voltage Bank",
+      "name": "Gold Mine",
       "type": "contraption",
       "rarity": "rare",
       "value": 6,
@@ -910,7 +910,7 @@
     {
       "gameplayCardId": "bizi-desert-logic-engine",
       "faction": "bizi",
-      "name": "Desert Logic Engine",
+      "name": "Battle Alarm",
       "type": "contraption",
       "rarity": "rare",
       "value": 5,
@@ -924,7 +924,7 @@
     {
       "gameplayCardId": "bizi-brass-spark",
       "faction": "bizi",
-      "name": "Brass Spark",
+      "name": "Spare Part Scrapyard",
       "type": "contraption",
       "rarity": "common",
       "value": 2,
@@ -938,7 +938,7 @@
     {
       "gameplayCardId": "bizi-railspike-marshal",
       "faction": "bizi",
-      "name": "Railspike Marshal",
+      "name": "Iron Express",
       "type": "contraption",
       "rarity": "common",
       "value": 5,
@@ -952,7 +952,7 @@
     {
       "gameplayCardId": "bizi-heat-sink-matrix",
       "faction": "bizi",
-      "name": "Heat-Sink Matrix",
+      "name": "Smoke Screen",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 4,
@@ -966,7 +966,7 @@
     {
       "gameplayCardId": "bizi-clockwork-caravan",
       "faction": "bizi",
-      "name": "Clockwork Caravan",
+      "name": "Energy Transporter",
       "type": "contraption",
       "rarity": "uncommon",
       "value": 7,
@@ -980,7 +980,7 @@
     {
       "gameplayCardId": "bizi-voltaric-ultimatum",
       "faction": "bizi",
-      "name": "Voltaric Ultimatum",
+      "name": "Incinerator Turret",
       "type": "contraption",
       "rarity": "rare",
       "value": 8,
@@ -994,7 +994,7 @@
     {
       "gameplayCardId": "bizi-focus-prime-signal",
       "faction": "bizi",
-      "name": "Focus Prime Signal",
+      "name": "Interference Matrix",
       "type": "contraption",
       "rarity": "mythic",
       "value": 9,
@@ -1008,7 +1008,7 @@
     {
       "gameplayCardId": "bizi-constanti-sunforge",
       "faction": "bizi",
-      "name": "Constanti Sunforge",
+      "name": "Armored Battleship",
       "type": "contraption",
       "rarity": "mythic",
       "value": 10,

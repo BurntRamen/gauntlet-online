@@ -420,7 +420,7 @@ test("constructed payment choices appear contextually and update the payment pre
   expect(update.viewModel.interactions.confirmDisabled).toBe(false);
   update.commands.confirmCurrentAction();
   update = latestUpdate(adapter);
-  expect(update.diagnostics.game.handAttacks[0].notes).toContain("Forum Ledger Runner payment +1");
+  expect(update.diagnostics.game.handAttacks[0].notes).toContain("Stockbroker's Gloves payment +1");
   adapter.dispose();
 });
 
@@ -442,7 +442,7 @@ test("constructed armament arming is a visible explicit lane-card choice", () =>
   hand[attackerIndex].rank = "2";
   hand[paymentIndex].value = 3;
   hand[paymentIndex].rank = "3";
-  makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Coin-Scale Spear" });
+  makeConstructed(weapon, "rumin-coin-scale-spear", { type: "armament", name: "Dividend Yield Blade" });
   adapter.game.lanes[0].facedown[player] = weapon;
 
   let update = latestUpdate(adapter);
@@ -467,56 +467,56 @@ test("constructed armament arming is a visible explicit lane-card choice", () =>
 
 test.each([
   {
-    name: "Jewel-Bank Standard",
+    name: "Board of Directors' Insignia",
     faction: "rumin",
     abilityId: "constructed:jewel-bank",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].turnData.ruminJewelBankAvailable = true;
     },
-    expectedNote: "Jewel-Bank Standard payment +2"
+    expectedNote: "Board of Directors' Insignia payment +2"
   },
   {
-    name: "Beli Awakened",
+    name: "Vital Grove",
     faction: "sheen",
     definitionId: "sheen-beli-awakened",
     abilityId: "constructed:beli-awakened",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].turnData.beliAwakenedReady = true;
     },
-    expectedNote: "Beli Awakened +3"
+    expectedNote: "Vital Grove +3"
   },
   {
-    name: "Sandstorm Processor",
+    name: "Searchlight Beacon",
     faction: "bizi",
     definitionId: "bizi-sandstorm-processor",
     abilityId: "constructed:sandstorm",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].accelerationCounters = 2;
     },
-    expectedNote: "Sandstorm Processor +2"
+    expectedNote: "Searchlight Beacon +2"
   },
   {
-    name: "Voltaric Ultimatum",
+    name: "Incinerator Turret",
     faction: "bizi",
     definitionId: "bizi-voltaric-ultimatum",
     abilityId: "constructed:voltaric",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].accelerationCounters = 2;
     },
-    expectedNote: "Voltaric Ultimatum +5"
+    expectedNote: "Incinerator Turret +5"
   },
   {
-    name: "Constanti Sunforge",
+    name: "Armored Battleship",
     faction: "bizi",
     definitionId: "bizi-constanti-sunforge",
     abilityId: "constructed:sunforge:2",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].accelerationCounters = 2;
     },
-    expectedNote: "Constanti Sunforge spent 2 +4"
+    expectedNote: "Armored Battleship spent 2 +4"
   },
   {
-    name: "Focus Prime Signal",
+    name: "Interference Matrix",
     faction: "bizi",
     abilityId: "constructed:prime:2",
     configure: (adapter) => {
@@ -524,7 +524,7 @@ test.each([
       player.accelerationCounters = 2;
       player.turnData.biziPrimeSignalAvailable = 2;
     },
-    expectedNote: "Focus Prime Signal +2"
+    expectedNote: "Interference Matrix +2"
   }
 ])("$name is selectable and submitted by the production interaction controller", ({
   faction,
@@ -574,7 +574,7 @@ test.each([
 });
 
 
-test("Deckhand Diver's private inspection is staged beside placement in Play mode", () => {
+test("Deep Dive's private inspection is staged beside placement in Play mode", () => {
   const adapter = createLocalDuelAdapter({
     seed: "adapter-deckhand-placement",
     gameMode: "factions",
@@ -585,7 +585,7 @@ test("Deckhand Diver's private inspection is staged beside placement in Play mod
   });
   const placementPlayer = adapter.game.startingPriorityThisTurn;
   const card = adapter.game.players[placementPlayer].hand[0];
-  makeConstructed(card, "frumo-deckhand-diver", { name: "Deckhand Diver" });
+  makeConstructed(card, "frumo-deckhand-diver", { name: "Deep Dive" });
   let update = latestUpdate(adapter);
   update.commands.passPriority();
   update = latestUpdate(adapter);
@@ -621,7 +621,7 @@ test("Deckhand Diver's private inspection is staged beside placement in Play mod
   adapter.dispose();
 });
 
-test("The Last Gamble presents an explicit attack-or-block choice during Polea inspection", () => {
+test("Rally the Crew presents an explicit attack-or-block choice during Polea inspection", () => {
   const adapter = createLocalDuelAdapter({
     seed: "adapter-last-gamble",
     gameMode: "factions",
@@ -634,7 +634,7 @@ test("The Last Gamble presents an explicit attack-or-block choice during Polea i
   const opponent = player === 1 ? 2 : 1;
   const gamble = adapter.game.players[player].hand.shift();
   const target = adapter.game.players[opponent].hand.shift();
-  makeConstructed(gamble, "frumo-the-last-gamble", { type: "tactic", name: "The Last Gamble" });
+  makeConstructed(gamble, "frumo-the-last-gamble", { type: "tactic", name: "Rally the Crew" });
   adapter.game.lanes[0].facedown[player] = gamble;
   adapter.game.lanes[1].facedown[opponent] = target;
 

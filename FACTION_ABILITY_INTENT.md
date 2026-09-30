@@ -62,16 +62,16 @@ Ristus or establish a Hera suit.
 The following constructed effects are represented as explicit shared-rule
 choices:
 
-- Forum Ledger Runner payment +1.
+- Stockbroker's Gloves payment +1.
 - Jewel-Bank Contract payment conversion.
 - optional Rumin weapon arming, including choosing individual weapons;
-- Deckhand Diver private top-card inspection;
-- The Last Gamble attack-versus-block choice;
-- Gearplate Shield and Heat-Sink Matrix acceleration spending;
-- Sandstorm Processor attack bonus;
-- Focus Prime Signal bonus amount;
-- Voltaric Ultimatum acceleration spending;
-- Constanti Sunforge spending zero through three counters.
+- Deep Dive private top-card inspection;
+- Rally the Crew attack-versus-block choice;
+- Bunker Defenses and Smoke Screen acceleration spending;
+- Searchlight Beacon attack bonus;
+- Interference Matrix bonus amount;
+- Incinerator Turret acceleration spending;
+- Armored Battleship spending zero through three counters.
 
 Legacy automatic maximum spending is not canonical for effects that say “may”
 or “up to.” The shared simulator now supplies legal-action metadata, explicit

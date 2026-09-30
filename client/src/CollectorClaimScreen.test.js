@@ -10,7 +10,7 @@ const product = {
   finish: "foil",
   variants: [
     { variantId: "variant-a", name: "Gilded Scale Legionary", edition: "foundation-collector", finish: "foil" },
-    { variantId: "variant-b", name: "Forum Ledger Runner", edition: "foundation-collector", finish: "foil" }
+    { variantId: "variant-b", name: "Stockbroker's Gloves", edition: "foundation-collector", finish: "foil" }
   ]
 };
 
@@ -105,7 +105,7 @@ test("treats an existing receipt as a successful already-redeemed claim", async 
 
   expect(await screen.findByText(/Already redeemed\. These collector variants remain owned/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Redeem Collector Item" })).not.toBeInTheDocument();
-  expect(screen.getByText("Forum Ledger Runner")).toBeInTheDocument();
+  expect(screen.getByText("Stockbroker's Gloves")).toBeInTheDocument();
 });
 
 test("explains an account mismatch and never offers redemption", async () => {

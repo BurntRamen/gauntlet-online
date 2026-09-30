@@ -660,15 +660,15 @@ export class LocalDuelAdapter {
     const meerusNote = values.meerus.active ? " Meerus makes this attack free." : "";
     const constructedNotes = [
       this.selection.forumLedgerPaymentCardId ? "Forum payment +1" : "",
-      this.selection.useJewelBankBonus ? "Jewel-Bank payment +2" : "",
+      this.selection.useJewelBankBonus ? "Single payment +2" : "",
       this.selection.armWeaponCardIds.length ? `${this.selection.armWeaponCardIds.length} weapon selected` : "",
       this.selection.useSandstormProcessor ? "Sandstorm +2" : "",
-      this.selection.useBeliAwakenedBonus ? "Beli Awakened +3" : "",
+      this.selection.useBeliAwakenedBonus ? "Vital Grove +3" : "",
       this.selection.sunforgeAccelerationToSpend
-        ? `Sunforge spending ${this.selection.sunforgeAccelerationToSpend}`
+        ? `Spend ${this.selection.sunforgeAccelerationToSpend} acceleration`
         : "",
-      this.selection.useVoltaricUltimatum ? "Voltaric spending 2" : "",
-      this.selection.primeSignalBonus ? `Prime Signal +${this.selection.primeSignalBonus}` : "",
+      this.selection.useVoltaricUltimatum ? "Spend 2 acceleration" : "",
+      this.selection.primeSignalBonus ? `Next card +${this.selection.primeSignalBonus}` : "",
       this.selection.accelerationBlockerCardIds.length
         ? `${this.selection.accelerationBlockerCardIds.length} powered blocker selected`
         : "",
@@ -818,8 +818,8 @@ export class LocalDuelAdapter {
         abilities.push({
           id: "constructed:forum-ledger",
           label: selectedPayment
-            ? "Forum Ledger Runner · selected payment +1"
-            : "Forum Ledger Runner · select payment first",
+            ? option.label
+            : "Select a payment first",
           active: !!this.selection.forumLedgerPaymentCardId,
           available: !!selectedPayment,
           intent: "Optional: choose one selected payment card to provide +1."
@@ -829,11 +829,11 @@ export class LocalDuelAdapter {
         abilities.push({
           id: "constructed:jewel-bank",
           label: available
-            ? "Jewel-Bank Contract · single payment +2"
-            : "Jewel-Bank Contract · requires exactly one payment card",
+            ? option.label
+            : "Requires exactly one payment card",
           active: this.selection.useJewelBankBonus,
           available,
-          intent: "Optional: use the pending Contract on one payment card."
+          intent: "Optional: apply the readied effect to one payment card."
         });
       } else if (option.id === "arm-rumin-weapons") {
         for (const weapon of option.cards || []) {
@@ -848,21 +848,21 @@ export class LocalDuelAdapter {
       } else if (option.id === "sandstorm-processor") {
         abilities.push({
           id: "constructed:sandstorm",
-          label: "Sandstorm Processor · attack with +2",
+          label: option.label,
           active: this.selection.useSandstormProcessor,
           available: true
         });
       } else if (option.id === "beli-awakened") {
         abilities.push({
           id: "constructed:beli-awakened",
-          label: "Beli Awakened · attack with +3",
+          label: option.label,
           active: this.selection.useBeliAwakenedBonus,
           available: true
         });
       } else if (option.id === "voltaric-ultimatum") {
         abilities.push({
           id: "constructed:voltaric",
-          label: "Voltaric Ultimatum · spend 2 acceleration for +5",
+          label: option.label,
           active: this.selection.useVoltaricUltimatum,
           available: true
         });
@@ -870,7 +870,7 @@ export class LocalDuelAdapter {
         for (let amount = 1; amount <= option.maximum; amount += 1) {
           abilities.push({
             id: `constructed:sunforge:${amount}`,
-            label: `Constanti Sunforge · spend ${amount} for +${amount * 2}`,
+            label: `Armored Battleship · spend ${amount} for +${amount * 2}`,
             active: this.selection.sunforgeAccelerationToSpend === amount,
             available: true
           });
@@ -879,7 +879,7 @@ export class LocalDuelAdapter {
         for (let amount = 1; amount <= option.maximum; amount += 1) {
           abilities.push({
             id: `constructed:prime:${amount}`,
-            label: `Focus Prime Signal · next card +${amount}`,
+            label: `Interference Matrix · next card +${amount}`,
             active: this.selection.primeSignalBonus === amount,
             available: true
           });
@@ -899,7 +899,7 @@ export class LocalDuelAdapter {
       } else if (option.id === "deckhand-diver-peek") {
         abilities.push({
           id: "constructed:deckhand-peek",
-          label: "Deckhand Diver · inspect top deck card privately",
+          label: option.label,
           active: this.selection.useDeckhandDiverPeek,
           available: true
         });
@@ -907,7 +907,7 @@ export class LocalDuelAdapter {
         for (const choice of option.choices || []) {
           abilities.push({
             id: `constructed:last-gamble:${choice}`,
-            label: `The Last Gamble · next ${choice} +4`,
+            label: `Rally the Crew · next ${choice} +4`,
             active: this.selection.lastGambleChoice === choice,
             available: true
           });
@@ -1320,7 +1320,7 @@ export class LocalDuelAdapter {
       if (abilityId === "constructed:forum-ledger") {
         const paymentCardId = this.selection.paymentCardIds[0] || null;
         if (!paymentCardId) {
-          this.notice = "Select a payment card before applying Forum Ledger Runner.";
+          this.notice = "Select a payment card before applying Stockbroker's Gloves.";
         } else {
           this.selection = {
             ...this.selection,
@@ -1331,7 +1331,7 @@ export class LocalDuelAdapter {
         }
       } else if (abilityId === "constructed:jewel-bank") {
         if (this.selection.paymentCardIds.length !== 1) {
-          this.notice = "Jewel-Bank Contract requires exactly one payment card.";
+          this.notice = "Exactly one payment card is required.";
         } else {
           this.selection = {
             ...this.selection,

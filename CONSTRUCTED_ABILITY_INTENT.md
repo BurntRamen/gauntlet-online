@@ -22,17 +22,17 @@ shared and server effect lookup use it.
 
 | Effect | Semantic command field | Canonical no-choice behavior |
 | --- | --- | --- |
-| Forum Ledger Runner | `forumLedgerPaymentCardId` | No payment bonus; the card is not silently selected. |
+| Stockbroker's Gloves | `forumLedgerPaymentCardId` | No payment bonus; the card is not silently selected. |
 | Jewel-Bank Contract | `useJewelBankBonus` | The readied effect remains available until used or the turn ends. Exactly one payment card is required when used. |
-| Rumin lane weapons | `armWeaponCardIds` | No weapon arms. Ordinary hand attacks may choose at most one; Rumie Market Colossus may choose any eligible subset. |
-| Beli Awakened | `useBeliAwakenedBonus` | Its readied +3 remains unused. |
-| Sandstorm Processor | `useSandstormProcessor` | It attacks at its unmodified value. |
-| Constanti Sunforge | `sunforgeAccelerationToSpend` | Zero counters are spent. The accepted range is zero through three and cannot exceed the player's counters. |
-| Voltaric Ultimatum | `useVoltaricUltimatum` | No counters are spent and no +5 is applied. |
-| Focus Prime Signal | `primeSignalBonus` | Zero bonus is applied. The selected amount cannot exceed four or the readied amount. It does not spend counters because the printed text does not say to remove them. |
-| Gearplate Shield / Heat-Sink Matrix | `accelerationBlockerCardIds` | No blocker spends acceleration. Each selected blocker spends one for +2. |
-| Deckhand Diver | `useDeckhandDiverPeek` | Placement completes without revealing the top deck card. A chosen peek is private. |
-| The Last Gamble | `lastGambleChoice` | No +4 action is readied. A choice must be `attack` or `block`. |
+| Rumin lane weapons | `armWeaponCardIds` | No weapon arms. Ordinary hand attacks may choose at most one; Crown of Authority may choose any eligible subset. |
+| Vital Grove | `useBeliAwakenedBonus` | Its readied +3 remains unused. |
+| Searchlight Beacon | `useSandstormProcessor` | It attacks at its unmodified value. |
+| Armored Battleship | `sunforgeAccelerationToSpend` | Zero counters are spent. The accepted range is zero through three and cannot exceed the player's counters. |
+| Incinerator Turret | `useVoltaricUltimatum` | No counters are spent and no +5 is applied. |
+| Interference Matrix | `primeSignalBonus` | Zero bonus is applied. The selected amount cannot exceed four or the readied amount. It does not spend counters because the printed text does not say to remove them. |
+| Bunker Defenses / Smoke Screen | `accelerationBlockerCardIds` | No blocker spends acceleration. Each selected blocker spends one for +2. |
+| Deep Dive | `useDeckhandDiverPeek` | Placement completes without revealing the top deck card. A chosen peek is private. |
+| Rally the Crew | `lastGambleChoice` | No +4 action is readied. A choice must be `attack` or `block`. |
 
 Selections are represented in legal-action metadata before they are accepted.
 Rejected choices do not mutate counters, cards, pending effects, or revision.
@@ -56,14 +56,14 @@ entities.
 
 ## Privacy
 
-- Deckhand Diver and Polea inspection include the inspected card only in the
+- Deep Dive and Polea inspection include the inspected card only in the
   controlling player's projected event.
 - Opponents and spectators receive the event without the card.
 - Face-down placement and lane-entry events remove card IDs and definition
   sources from unauthorized projections.
 - Legal actions never expose an opponent's hidden `definitionId`.
 
-## The Last Gamble interpretation
+## Rally the Crew interpretation
 
 The printed text does not state an independent activation window. Until the
 content wording is revised, the canonical duel implementation retains the

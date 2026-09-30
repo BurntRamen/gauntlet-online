@@ -9,7 +9,7 @@ test("history follows replay navigation, exposes card and state detail, and clos
   const panel = screen.getByRole("region", { name: "Match history" });
   expect(panel).toHaveTextContent("hand 8 (identities obscured)");
   expect(panel).toHaveTextContent("deck 44");
-  expect(panel).toHaveTextContent("Triumphal Ram");
+  expect(panel).toHaveTextContent("Asset Crusher");
   expect(screen.getByRole("button", { name: "Export TXT" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /Turn 1 · Play 2/ }));
   expect(screen.getByRole("slider", { name: "Replay action timeline" })).toHaveValue("1");
@@ -61,7 +61,7 @@ function replayResponse() {
         id: "attack-action",
         kind: "attack",
         label: "Alpha attacks",
-        summary: "Alpha attacks with Triumphal Ram for 12",
+        summary: "Alpha attacks with Asset Crusher for 12",
         actorName: "Alpha",
         turn: 1,
         phase: "priority",
@@ -69,7 +69,7 @@ function replayResponse() {
         evidenceSequenceEnd: 1,
         frameAfterIndex: 1,
         cards: {
-          primary: { runtimeId: "attacker", gameplayCardId: "rumin-triumphal-ram", name: "Triumphal Ram", value: 8, suit: "diamonds", factionId: "rumin", rulesText: "Gain combat value." },
+          primary: { runtimeId: "attacker", gameplayCardId: "rumin-triumphal-ram", name: "Asset Crusher", value: 8, suit: "diamonds", factionId: "rumin", rulesText: "Gain combat value." },
           payments: [{ runtimeId: "payment", name: "Eight of Clubs", rank: "8", value: 8, suit: "clubs", factionId: "rumin" }],
           blockers: [],
           attachments: []
@@ -81,7 +81,7 @@ function replayResponse() {
         id: "block-action",
         kind: "block",
         label: "Beta blocks",
-        summary: "Beta blocks with Vault Shield Bearer for 6",
+        summary: "Beta blocks with Insurance Policy Plate for 6",
         actorName: "Beta",
         turn: 1,
         phase: "priority",
@@ -89,10 +89,10 @@ function replayResponse() {
         evidenceSequenceEnd: 3,
         frameAfterIndex: 1,
         cards: {
-          primary: { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Vault Shield Bearer", value: 4, factionId: "rumin" },
+          primary: { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Insurance Policy Plate", value: 4, factionId: "rumin" },
           payments: [{ runtimeId: "block-payment", name: "Two of Diamonds", rank: "2", value: 2, suit: "diamonds", factionId: "sheen" }],
           blockers: [
-            { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Vault Shield Bearer", value: 4, factionId: "rumin" },
+            { runtimeId: "blocker", gameplayCardId: "rumin-vault-shield-bearer", name: "Insurance Policy Plate", value: 4, factionId: "rumin" },
             { runtimeId: "blocker-2", name: "Three of Clubs", rank: "3", value: 3, suit: "clubs", factionId: "basic" }
           ],
           attachments: []
@@ -139,13 +139,13 @@ test("visual replay mounts the official ProductionMatchExperience and exposes re
   expect(screen.getByRole("slider", { name: "Replay action timeline" })).toBeVisible();
   fireEvent.click(screen.getByText("More"));
   expect(screen.getByRole("button", { name: "Match ending" })).toBeVisible();
-  expect(screen.getByText("Alpha attacks with Triumphal Ram for 12")).toBeVisible();
+  expect(screen.getByText("Alpha attacks with Asset Crusher for 12")).toBeVisible();
   expect(screen.queryByLabelText("Focused public cards")).not.toBeInTheDocument();
   expect(screen.getByTestId("replay-battlefield-stage")).toBeVisible();
   expect(screen.getByTestId("replay-transport")).toBeVisible();
   expect(screen.getByTestId("replay-battlefield-stage")).not.toContainElement(screen.getByTestId("replay-transport"));
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
-  expect(screen.getByText("Beta blocks with Vault Shield Bearer for 6")).toBeVisible();
+  expect(screen.getByText("Beta blocks with Insurance Policy Plate for 6")).toBeVisible();
   expect(screen.queryByLabelText("Focused public cards")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Next action" }));
   expect(await screen.findByRole("heading", { name: "Alpha wins" }, { timeout: 1800 })).toBeVisible();
@@ -187,7 +187,7 @@ test("event-only legacy replay is explicit and does not mount a fabricated battl
   fireEvent.click(screen.getByRole("button", { name: /← Matches/ }));
   expect(onOpenMatches).toHaveBeenCalledTimes(1);
   expect(screen.getByText(/predates public replay frames/i)).toBeVisible();
-  expect(screen.getByText("Alpha attacks with Triumphal Ram for 12")).toBeVisible();
+  expect(screen.getByText("Alpha attacks with Asset Crusher for 12")).toBeVisible();
   expect(screen.getByText("Inspect authoritative evidence")).toBeVisible();
   expect(screen.queryByTestId("official-production-renderer")).not.toBeInTheDocument();
 });

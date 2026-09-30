@@ -5701,7 +5701,7 @@ function applyPlayedCardBonuses(player, card) {
     card.tempBuff = (card.tempBuff || 0) + 2;
     if (cardIs(card, "frumo-poleas-moonlit-map")) {
       card.tempBuff += 1;
-      notes.push("Polea's Moonlit Map +1");
+      notes.push("X Marks the Spot +1");
     }
     player.turnData.ristusConsecutiveBuffUsed = true;
     notes.push("Ristus +2 consecutive value");
@@ -5779,7 +5779,7 @@ function gainLifeFromBlocking(game, playerNum, amount, notes = []) {
   player.life += amount;
   if (playerControlsCard(game, playerNum, "sheen-roots-that-remember")) {
     player.turnData.sheenNextBlockBonus = (player.turnData.sheenNextBlockBonus || 0) + 1;
-    notes.push("Roots That Remember next block +1");
+    notes.push("Eternal Archive next block +1");
   }
 }
 
@@ -5838,13 +5838,13 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
 
     if (player.turnData.ruminNextWeaponArmBonus) {
       bonus += player.turnData.ruminNextWeaponArmBonus;
-      notes.push(`Marble Market Tribune armed weapon +${player.turnData.ruminNextWeaponArmBonus}`);
+      notes.push(`Corporate Banner armed weapon +${player.turnData.ruminNextWeaponArmBonus}`);
       player.turnData.ruminNextWeaponArmBonus = 0;
     }
     if (shouldArmAll) bonus += 1;
     if (attackNumber === 4 && playerControlsCard(game, playerNum, "rumin-basilisk-standard")) {
       bonus += 2;
-      notes.push("Basilisk Standard +2");
+      notes.push("Market Rally Drum +2");
     }
 
     value += bonus;
@@ -5891,15 +5891,15 @@ function calculateAttackBonuses(game, playerNum, card, source) {
   }
   if (cardIs(card, "sheen-thornroot-counterstroke") && (player.turnData.damageTakenThisTurn || 0) === 0) {
     value += 2;
-    notes.push("Thornroot Counterstroke no damage +2");
+    notes.push("Thorned Refuge no damage +2");
   }
   if (cardIs(card, "sheen-nus-calm-command") && player.turnData.blocksDeclaredThisTurn >= 3) {
     value += 3;
-    notes.push("Nu's Calm Command +3");
+    notes.push("Tranquility Chamber +3");
   }
   if (cardIs(card, "sheen-beli-awakened") && player.turnData.beliAwakenedReady) {
     value += 3;
-    notes.push("Beli Awakened +3");
+    notes.push("Vital Grove +3");
     player.turnData.beliAwakenedReady = false;
   }
 
@@ -5915,62 +5915,62 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     notes.push("Constanti different suit +1");
     if (playerControlsCard(game, playerNum, "bizi-constanti-conduit")) {
       value += 1;
-      notes.push("Constanti Conduit +1");
+      notes.push("Signal Line +1");
     }
     if (cardIs(card, "bizi-dune-circuit-runner")) {
       value += 1;
-      notes.push("Dune Circuit Runner +1");
+      notes.push("Hovercraft +1");
     }
     if (cardIs(card, "bizi-railspike-marshal")) {
       value += 1;
-      notes.push("Railspike Marshal +1");
+      notes.push("Iron Express +1");
     }
     if (playerControlsCard(game, playerNum, "bizi-desert-logic-engine")) {
       value += 2;
-      notes.push("Desert Logic Engine +2");
+      notes.push("Battle Alarm +2");
     }
   }
   if (player.faction?.id === "bizi" && cardIs(card, "bizi-sandstorm-processor") && (player.accelerationCounters || 0) >= 2) {
     value += 2;
-    notes.push("Sandstorm Processor +2");
+    notes.push("Searchlight Beacon +2");
   }
   if (player.faction?.id === "bizi" && cardIs(card, "bizi-constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
     const spent = Math.min(3, player.accelerationCounters || 0);
     player.accelerationCounters = Math.max(0, (player.accelerationCounters || 0) - spent);
     value += spent * 2;
-    notes.push(`Constanti Sunforge spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
+    notes.push(`Armored Battleship spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
   }
   if (player.faction?.id === "bizi" && cardIs(card, "bizi-voltaric-ultimatum") && (player.accelerationCounters || 0) >= 2) {
     player.accelerationCounters -= 2;
     value += 5;
-    notes.push("Voltaric Ultimatum spent 2 acceleration +5");
+    notes.push("Incinerator Turret spent 2 acceleration +5");
   }
   if (player.faction?.id === "bizi" && player.turnData.biziPrimeSignalBonus) {
     value += player.turnData.biziPrimeSignalBonus;
-    notes.push(`Focus Prime Signal +${player.turnData.biziPrimeSignalBonus}`);
+    notes.push(`Interference Matrix +${player.turnData.biziPrimeSignalBonus}`);
     player.turnData.biziPrimeSignalBonus = 0;
   }
 
   if (player.faction?.id === "frumo") {
     if (source === "lane" && cardIs(card, "frumo-tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
       value += 2;
-      notes.push("Tideglass Ambush swapped lane +2");
+      notes.push("Turning of the Tides swapped lane +2");
     }
     if (cardIs(card, "frumo-pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
       value += 2;
-      notes.push("Pressure-Lock Pistol consecutive +2");
+      notes.push("Opening Salvo consecutive +2");
     }
     if (source === "lane" && cardIs(card, "frumo-ristus-blackwake") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
       value += 1;
-      notes.push("Ristus Blackwake empty lane +1");
+      notes.push("Coastal Raid empty lane +1");
     }
     if (source === "lane" && cardIs(card, "frumo-ballast-hook") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
       value += 1;
-      notes.push("Ballast Hook empty lane +1");
+      notes.push("Anchor's Hold empty lane +1");
     }
     if (source === "lane" && cardIs(card, "frumo-captains-bad-wager") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue % 2 === 0) {
       value += 3;
-      notes.push("Captain's Bad Wager previous even value +3");
+      notes.push("Sink or Swim previous even value +3");
     }
     if (player.turnData.frumoNextActionBonus) {
       value += player.turnData.frumoNextActionBonus;
@@ -6018,43 +6018,43 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
 
   if (context.action === "attack" && cardIs(context.card, "rumin-forum-ledger-runner") && player.turnData.attacksDeclaredThisTurn === 0 && paymentCards.length > 0) {
     total += 1;
-    notes.push("Forum Ledger Runner payment +1");
+    notes.push("Stockbroker's Gloves payment +1");
   }
   if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => cardIs(card, "rumin-jewel-bank-contract"))) {
     total += 2;
     consume.ruminJewelBank = true;
-    notes.push("Jewel-Bank Standard payment +2");
+    notes.push("Board of Directors' Insignia payment +2");
   }
   if (context.action === "attack" && player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn === 3 && paymentCards.some((card) => cardIs(card, "rumin-edict-of-the-vault"))) {
     total += 3;
-    notes.push("Edict of the Vault payment +3");
+    notes.push("Battle Cry Horn payment +3");
   }
   if (context.action === "block" && player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))) {
     total += 1;
-    notes.push("Harmony Ward payment +1");
+    notes.push("Harmony Lab payment +1");
   }
   if (paymentCards.some((card) => cardIs(card, "frumo-sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
     total += 1;
-    notes.push("Sunken Coin Trap payment +1");
+    notes.push("Collect Tribute payment +1");
   }
   if (player.turnData.frumoNextPaymentBonus) {
     total += player.turnData.frumoNextPaymentBonus;
-    notes.push(`Lafayette's Chart payment +${player.turnData.frumoNextPaymentBonus}`);
+    notes.push(`Hit & Run payment +${player.turnData.frumoNextPaymentBonus}`);
     consume.frumoNextPaymentBonus = true;
   }
   if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-voltage-ration"))) {
     total += 1;
     consume.biziVoltageBonus = true;
-    notes.push("Voltage Ration payment +1");
+    notes.push("Ammo Depot payment +1");
   }
   if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-brass-spark"))) {
     total += 1;
     consume.biziVoltageBonus = true;
-    notes.push("Brass Spark payment +1");
+    notes.push("Spare Part Scrapyard payment +1");
   }
   if (context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-heras-calibration"))) {
     total += 2;
-    notes.push("Hera's Calibration payment +2");
+    notes.push("Signal Relay payment +2");
   }
 
   let heraUsedNow = false;
@@ -6116,46 +6116,46 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
   }
   if (cardIs(card, "sheen-rootwatch-initiate") && player.turnData.blocksDeclaredThisTurn > 0) {
     effectiveValue += 1;
-    notes.push("Rootwatch Grove +1");
+    notes.push("Root Haven +1");
   }
   if (cardIs(card, "sheen-living-bark-guard") && context.attack?.source === "hand") {
     effectiveValue += 1;
-    notes.push("Living Bark Bastion +1");
+    notes.push("Barkskin Bastion +1");
   }
   if (cardIs(card, "sheen-seedwall-acolyte") && player.turnData.blocksDeclaredThisTurn === 0) {
     effectiveValue += 1;
-    notes.push("Seedwall Acolyte first block +1");
+    notes.push("Sapling Sanctuary first block +1");
   }
   if (cardIs(card, "sheen-ringroot-bastion") && context.isLaneBlock) {
     effectiveValue += 2;
-    notes.push("Ringroot Bastion lane block +2");
+    notes.push("Rootbind Refuge lane block +2");
   }
   if (cardIs(card, "rumin-marble-phalanx") && context.isLaneBlock) {
     effectiveValue += 2;
-    notes.push("Phalanx Shield +2");
+    notes.push("Ballistic Shield +2");
   }
   if (cardIs(card, "sheen-nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
     effectiveValue += 1;
-    notes.push("Nu's Verdant Edict third block upgrade +1");
+    notes.push("Verdant Dome third block upgrade +1");
   }
   if (playerControlsCard(game, playerNum, "sheen-emperors-heartwood")) {
     effectiveValue += 1;
-    notes.push("Emperor's Heartwood +1");
+    notes.push("Evergreen Arbor +1");
   }
   if (cardIs(card, "bizi-gearplate-shield") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
     effectiveValue += 2;
-    notes.push("Gearplate Shield spent 1 acceleration +2");
+    notes.push("Bunker Defenses spent 1 acceleration +2");
   }
   if (cardIs(card, "bizi-heat-sink-matrix") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
     effectiveValue += 2;
-    notes.push("Heat-Sink Matrix spent 1 acceleration +2");
+    notes.push("Smoke Screen spent 1 acceleration +2");
   }
   if (context.isLaneBlock && cardIs(card, "frumo-coral-hull-guard")) {
     effectiveValue += 1;
     player.turnData.frumoLaneSwappedThisTurn = true;
-    notes.push("Coral-Hull Guard lane feint +1");
+    notes.push("Frozen Barrier lane feint +1");
   }
   if (player.turnData.frumoNextActionBonus) {
     effectiveValue += player.turnData.frumoNextActionBonus;
@@ -6169,11 +6169,11 @@ function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCard
   if (!blockEntries.length) return;
   if (paymentCards.some((card) => cardIs(card, "sheen-mossbound-staff"))) {
     blockEntries[0].effectiveValue += 1;
-    blockEntries[0].notes.push("Mossbound Staff block +1");
+    blockEntries[0].notes.push("Negotiation Grounds block +1");
   }
   if (player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-sapling-chorus"))) {
     blockEntries[0].effectiveValue += 1;
-    blockEntries[0].notes.push("Sapling Chorus block +1");
+    blockEntries[0].notes.push("Floral Canopy block +1");
   }
 }
 
@@ -6190,16 +6190,16 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-beli-vinebinder")) && player.turnData.blocksDeclaredThisTurn >= 2) {
     player.turnData.sheenNextAttackBonus = (player.turnData.sheenNextAttackBonus || 0) + 1;
-    blockEntries[0]?.notes.push("Beli Vinebinder next attack +1");
+    blockEntries[0]?.notes.push("Entwined Thicket next attack +1");
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
     gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
     player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
-    blockEntries[0]?.notes.push("Tang's Meditation Garden draw at end of turn");
+    blockEntries[0]?.notes.push("Meditation Retreat draw at end of turn");
   }
   if (blockEntries.some((entry) => cardIs(entry.card, "sheen-emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
     gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
-    blockEntries[0]?.notes.push("Emperor's Heartwood +1 life");
+    blockEntries[0]?.notes.push("Evergreen Arbor +1 life");
   }
 }
 
@@ -6212,14 +6212,14 @@ function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null,
       gained += 1;
       player.life += 1;
       player.turnData.biziFirstOverpayRewardUsed = true;
-      notes.push("Regnum Voltage Bank +1 life and +1 counter");
+      notes.push("Gold Mine +1 life and +1 counter");
     }
     player.accelerationCounters = (player.accelerationCounters || 0) + gained;
     notes.push(`Bizi overpay +${gained} acceleration`);
     for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
       if (cardIs(visibleCard, "bizi-solar-array-adept")) {
         visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
-        notes.push("Solar Array Adept +1");
+        notes.push("Electrostatic Field +1");
       }
     }
   }
@@ -6231,17 +6231,17 @@ function applyOverpayCardRewards(game, playerNum, paid, required, card = null, n
   if (cardIs(card, "rumin-senate-vault-guard") && !player.turnData.ruminSenateVaultGuardUsed) {
     player.life += 1;
     player.turnData.ruminSenateVaultGuardUsed = true;
-    notes.push("Senate Vault Guard overpay +1 life");
+    notes.push("Hedge Fund Vest overpay +1 life");
   }
   if (card?.factionId === "rumin" && playerControlsCard(game, playerNum, "rumin-counting-house-aegis") && !player.turnData.ruminCountingHouseAegisUsed) {
     player.life += 1;
     player.turnData.ruminCountingHouseAegisUsed = true;
-    notes.push("Counting-House Aegis overpay +1 life");
+    notes.push("Diversified Portfolio overpay +1 life");
   }
   if (cardIs(card, "bizi-clockwork-caravan") && !player.turnData.biziClockworkCaravanUsed) {
     player.turnData.biziEndTurnDraws = (player.turnData.biziEndTurnDraws || 0) + 1;
     player.turnData.biziClockworkCaravanUsed = true;
-    notes.push("Clockwork Caravan draw at end of turn");
+    notes.push("Energy Transporter draw at end of turn");
   }
 }
 
@@ -6252,20 +6252,20 @@ function applyAfterAttackDeclared(game, playerNum, attack, payment) {
 
   if (cardIs(card, "rumin-marble-market-tribune")) {
     player.turnData.ruminNextWeaponArmBonus = (player.turnData.ruminNextWeaponArmBonus || 0) + 1;
-    notes.push("Marble Market Tribune next armed weapon +1");
+    notes.push("Corporate Banner next armed weapon +1");
   }
   if ((attack.attachedCards || []).some((weapon) => cardIs(weapon, "rumin-aurelian-clawblade")) && (payment.total || 0) - (payment.required || 0) >= 2) {
     player.life += 1;
-    notes.push("Aurelian Clawblade overpay +1 life");
+    notes.push("Executive Authority Blade overpay +1 life");
   }
   if (cardIs(card, "bizi-focus-prime-signal")) {
     player.accelerationCounters = (player.accelerationCounters || 0) + 2;
     player.turnData.biziPrimeSignalBonus = Math.min(4, player.accelerationCounters || 0);
-    notes.push(`Focus Prime Signal +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
+    notes.push(`Interference Matrix +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
   }
   if (cardIs(card, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
     player.life += 1;
-    notes.push("Leviathan Salvage +1 life");
+    notes.push("Loot the Hold +1 life");
   }
 }
 
@@ -6275,25 +6275,25 @@ function applyLaneEntryTriggers(game, playerNum, card, laneIndex, socket = null)
   if (cardIs(card, "frumo-deckhand-diver")) {
     const top = player.deck[player.deck.length - 1];
     if (socket) socket.emit("peekResult", top ? `Top deck card: ${top.name}` : "Your deck is empty.");
-    notes.push("Deckhand Diver peeked at top deck card");
+    notes.push("Deep Dive peeked at top deck card");
   }
   if (cardIs(card, "frumo-ristus-rises")) {
     card.tempBuff = (card.tempBuff || 0) + 1;
     player.turnData.frumoLaneSwappedThisTurn = true;
-    notes.push("Ristus Rises +1");
+    notes.push("Tidal Surge +1");
   }
   if (cardIs(card, "frumo-kelpcloak-trickster")) {
     player.turnData.frumoLaneSwappedThisTurn = true;
-    notes.push("Kelpcloak Trickster enabled lane-swap bonuses");
+    notes.push("Sudden Scheme enabled lane-swap bonuses");
   }
   if (cardIs(card, "frumo-abyssal-switchboard")) {
     player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + 1;
-    notes.push("Abyssal Switchboard next action +1");
+    notes.push("Coordinated Strike next action +1");
   }
   if (cardIs(card, "frumo-riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
     card.tempBuff = (card.tempBuff || 0) + 1;
     player.turnData.frumoRiptideSmugglerUsed = true;
-    notes.push("Riptide Smuggler +1");
+    notes.push("Hauntling Lure +1");
   }
   if (notes.length > 0) {
     game.message = `Player ${playerNum} placed ${card.name || "a card"} in lane ${laneIndex + 1}. ${notes.join(", ")}.`;
@@ -9302,12 +9302,12 @@ io.on("connection", (socket) => {
       let preventDamage = 0;
       if (cardIs(blockCard, "rumin-vault-shield-bearer") && payment.total - blockCardValue >= 1) {
         preventDamage += 1;
-        blockInfo.notes.push("Vault Shield Bearer prevents 1");
+        blockInfo.notes.push("Insurance Policy Plate prevents 1");
       }
       if (cardIs(blockCard, "sheen-beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
         preventDamage += 1;
         player.turnData.beliCanopyShieldUsed = true;
-        blockInfo.notes.push("Beli Canopy Shield prevents 1");
+        blockInfo.notes.push("Verdant Canopy prevents 1");
       }
       return {
         player: playerNum,

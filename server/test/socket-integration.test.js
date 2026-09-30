@@ -455,7 +455,7 @@ test("a live constructed choice is explicit, card-ID based, and idempotent", asy
   const payment = actor.hand[1];
   Object.assign(attacker, {
     definitionId: "rumin-forum-ledger-runner",
-    name: "Forum Ledger Runner",
+    name: "Stockbroker's Gloves",
     factionId: "rumin",
     type: "unit",
     value: 3,

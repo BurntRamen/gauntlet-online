@@ -145,7 +145,7 @@ commander asset reuse/registration; genuine human/device review; PR-to-main
 rollout and both Vercel/Render live verifications.
 Also outstanding: reduce the measured total bundle below its existing ceiling.
 
-Harmony Ward and Sapling Chorus still have multi-block-dependent legacy
+Harmony Lab and Floral Canopy still have multi-block-dependent legacy
 effects; no replacement mechanics or registry text was invented. Priority
 closure, lethal-life timing, broader registry coverage and the separate legacy
 Free-for-All engine require separate conformance work. This correction is not

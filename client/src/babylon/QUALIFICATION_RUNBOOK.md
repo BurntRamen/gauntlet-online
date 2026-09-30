@@ -45,7 +45,7 @@ payment, counters, priority, revision or archives. Keep historical multi-block
 replay coverage separately; it is not current acceptance evidence. Preserve old
 review records without silently changing their rules version or passing marks.
 
-Harmony Ward and Sapling Chorus were migrated in `gauntlet-duel-v8` to trigger
+Harmony Lab and Floral Canopy were migrated in `gauntlet-duel-v8` to trigger
 on the second or later block while preserving the one-blocker rule. Historical
 multi-block events remain replay-only evidence. Priority closure, lethal-life
 timing and remaining card coverage discrepancies are separate from this check.

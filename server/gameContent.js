@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v9";
+const CONTENT_VERSION = "gauntlet-content-v10";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -16,7 +16,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-gilded-scale-legionary",
     factionId: "rumin",
-    name: "Gilded Legion Spear",
+    name: "Capital Investment Spear",
     type: "armament",
     rarity: "common",
     value: 3,
@@ -25,7 +25,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-forum-ledger-runner",
     factionId: "rumin",
-    name: "Forum Ledger Runner",
+    name: "Stockbroker's Gloves",
     type: "armament",
     rarity: "common",
     value: 2,
@@ -34,7 +34,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-vault-shield-bearer",
     factionId: "rumin",
-    name: "Vault Shield Bearer",
+    name: "Insurance Policy Plate",
     type: "armament",
     rarity: "common",
     value: 4,
@@ -43,7 +43,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-coin-scale-spear",
     factionId: "rumin",
-    name: "Coin-Scale Spear",
+    name: "Dividend Yield Blade",
     type: "armament",
     rarity: "common",
     value: 4,
@@ -52,7 +52,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-senate-vault-guard",
     factionId: "rumin",
-    name: "Senate Vault Guard",
+    name: "Hedge Fund Vest",
     type: "armament",
     rarity: "uncommon",
     value: 5,
@@ -61,7 +61,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-marble-market-tribune",
     factionId: "rumin",
-    name: "Marble Market Tribune",
+    name: "Corporate Banner",
     type: "armament",
     rarity: "uncommon",
     value: 6,
@@ -70,7 +70,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-rumie-vault-shield",
     factionId: "rumin",
-    name: "Rumie Vault Shield",
+    name: "Shareholder's Shield",
     type: "armament",
     rarity: "uncommon",
     value: 6,
@@ -79,7 +79,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-imperial-scale-pike",
     factionId: "rumin",
-    name: "Imperial Scale Pike",
+    name: "Profit Margin Spear",
     type: "armament",
     rarity: "uncommon",
     value: 5,
@@ -88,7 +88,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-aurelian-clawblade",
     factionId: "rumin",
-    name: "Aurelian Clawblade",
+    name: "Executive Authority Blade",
     type: "armament",
     rarity: "rare",
     value: 7,
@@ -97,7 +97,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-basilisk-standard",
     factionId: "rumin",
-    name: "Basilisk Standard",
+    name: "Market Rally Drum",
     type: "armament",
     rarity: "rare",
     value: 6,
@@ -106,7 +106,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-jewel-bank-contract",
     factionId: "rumin",
-    name: "Jewel-Bank Standard",
+    name: "Board of Directors' Insignia",
     type: "armament",
     rarity: "rare",
     value: 5,
@@ -115,7 +115,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-tax-road-scout",
     factionId: "rumin",
-    name: "Tax-Road Scout",
+    name: "Insider's Javelin",
     type: "armament",
     rarity: "common",
     value: 2,
@@ -124,7 +124,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-marble-phalanx",
     factionId: "rumin",
-    name: "Phalanx Shield",
+    name: "Ballistic Shield",
     type: "armament",
     rarity: "common",
     value: 5,
@@ -133,7 +133,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-counting-house-aegis",
     factionId: "rumin",
-    name: "Counting-House Aegis",
+    name: "Diversified Portfolio",
     type: "armament",
     rarity: "uncommon",
     value: 7,
@@ -142,7 +142,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-triumphal-ram",
     factionId: "rumin",
-    name: "Triumphal Ram",
+    name: "Asset Crusher",
     type: "armament",
     rarity: "uncommon",
     value: 8,
@@ -151,7 +151,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-edict-of-the-vault",
     factionId: "rumin",
-    name: "Edict of the Vault",
+    name: "Battle Cry Horn",
     type: "armament",
     rarity: "rare",
     value: 8,
@@ -160,7 +160,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-kaisers-gold-claw",
     factionId: "rumin",
-    name: "Kaiser's Gold Claw",
+    name: "Unstoppable Investment Lance",
     type: "armament",
     rarity: "mythic",
     value: 9,
@@ -169,7 +169,7 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-rumie-market-colossus",
     factionId: "rumin",
-    name: "Rumie Market Colossus",
+    name: "Crown of Authority",
     type: "armament",
     rarity: "mythic",
     value: 10,
@@ -181,7 +181,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-rootwatch-initiate",
     factionId: "sheen",
-    name: "Rootwatch Grove",
+    name: "Root Haven",
     type: "shelter",
     rarity: "common",
     value: 3,
@@ -190,7 +190,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-quiet-grove-sentinel",
     factionId: "sheen",
-    name: "Quiet Grove Sentinel",
+    name: "Healing Hollow",
     type: "shelter",
     rarity: "common",
     value: 4,
@@ -199,7 +199,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-mossbound-staff",
     factionId: "sheen",
-    name: "Mossbound Staff",
+    name: "Negotiation Grounds",
     type: "shelter",
     rarity: "common",
     value: 2,
@@ -208,7 +208,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-living-bark-guard",
     factionId: "sheen",
-    name: "Living Bark Bastion",
+    name: "Barkskin Bastion",
     type: "shelter",
     rarity: "common",
     value: 5,
@@ -217,7 +217,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-beli-vinebinder",
     factionId: "sheen",
-    name: "Beli Vinebinder",
+    name: "Entwined Thicket",
     type: "shelter",
     rarity: "uncommon",
     value: 5,
@@ -226,7 +226,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-harmony-ward",
     factionId: "sheen",
-    name: "Harmony Ward",
+    name: "Harmony Lab",
     type: "shelter",
     rarity: "uncommon",
     value: 4,
@@ -235,7 +235,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-thornroot-counterstroke",
     factionId: "sheen",
-    name: "Thornroot Counterstroke",
+    name: "Thorned Refuge",
     type: "shelter",
     rarity: "uncommon",
     value: 6,
@@ -244,7 +244,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-beli-canopy-shield",
     factionId: "sheen",
-    name: "Beli Canopy Shield",
+    name: "Verdant Canopy",
     type: "shelter",
     rarity: "uncommon",
     value: 6,
@@ -253,7 +253,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-nus-verdant-edict",
     factionId: "sheen",
-    name: "Nu's Verdant Edict",
+    name: "Verdant Dome",
     type: "shelter",
     rarity: "rare",
     value: 7,
@@ -262,7 +262,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-roots-that-remember",
     factionId: "sheen",
-    name: "Roots That Remember",
+    name: "Eternal Archive",
     type: "shelter",
     rarity: "rare",
     value: 5,
@@ -271,7 +271,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-tangs-patient-hand",
     factionId: "sheen",
-    name: "Tang's Meditation Garden",
+    name: "Meditation Retreat",
     type: "shelter",
     rarity: "rare",
     value: 6,
@@ -280,7 +280,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-seedwall-acolyte",
     factionId: "sheen",
-    name: "Seedwall Acolyte",
+    name: "Sapling Sanctuary",
     type: "shelter",
     rarity: "common",
     value: 2,
@@ -289,7 +289,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-raincall-mender",
     factionId: "sheen",
-    name: "Raincall Mender",
+    name: "Rainfall Refuge",
     type: "shelter",
     rarity: "common",
     value: 4,
@@ -298,7 +298,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-ringroot-bastion",
     factionId: "sheen",
-    name: "Ringroot Bastion",
+    name: "Rootbind Refuge",
     type: "shelter",
     rarity: "uncommon",
     value: 7,
@@ -307,7 +307,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-sapling-chorus",
     factionId: "sheen",
-    name: "Sapling Chorus",
+    name: "Floral Canopy",
     type: "shelter",
     rarity: "uncommon",
     value: 3,
@@ -316,7 +316,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-nus-calm-command",
     factionId: "sheen",
-    name: "Nu's Calm Command",
+    name: "Tranquility Chamber",
     type: "shelter",
     rarity: "rare",
     value: 8,
@@ -325,7 +325,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-emperors-heartwood",
     factionId: "sheen",
-    name: "Emperor's Heartwood",
+    name: "Evergreen Arbor",
     type: "shelter",
     rarity: "mythic",
     value: 9,
@@ -334,7 +334,7 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-beli-awakened",
     factionId: "sheen",
-    name: "Beli Awakened",
+    name: "Vital Grove",
     type: "shelter",
     rarity: "mythic",
     value: 10,
@@ -346,7 +346,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-deckhand-diver",
     factionId: "frumo",
-    name: "Deckhand Diver",
+    name: "Deep Dive",
     type: "ambush",
     rarity: "common",
     value: 3,
@@ -355,7 +355,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-tideglass-cutlass",
     factionId: "frumo",
-    name: "Tideglass Ambush",
+    name: "Turning of the Tides",
     type: "ambush",
     rarity: "common",
     value: 4,
@@ -364,7 +364,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-sunken-coin",
     factionId: "frumo",
-    name: "Sunken Coin Trap",
+    name: "Collect Tribute",
     type: "ambush",
     rarity: "common",
     value: 2,
@@ -373,7 +373,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-coral-hull-guard",
     factionId: "frumo",
-    name: "Coral-Hull Guard",
+    name: "Frozen Barrier",
     type: "ambush",
     rarity: "common",
     value: 5,
@@ -382,7 +382,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-riptide-smuggler",
     factionId: "frumo",
-    name: "Riptide Smuggler",
+    name: "Hauntling Lure",
     type: "ambush",
     rarity: "uncommon",
     value: 5,
@@ -391,7 +391,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-lafayettes-chart",
     factionId: "frumo",
-    name: "Lafayette's Chart",
+    name: "Hit & Run",
     type: "ambush",
     rarity: "uncommon",
     value: 4,
@@ -400,7 +400,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-pressure-lock-pistol",
     factionId: "frumo",
-    name: "Pressure-Lock Pistol",
+    name: "Opening Salvo",
     type: "ambush",
     rarity: "uncommon",
     value: 6,
@@ -409,7 +409,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ristus-blackwake",
     factionId: "frumo",
-    name: "Ristus Blackwake",
+    name: "Coastal Raid",
     type: "ambush",
     rarity: "uncommon",
     value: 6,
@@ -418,7 +418,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-captains-bad-wager",
     factionId: "frumo",
-    name: "Captain's Bad Wager",
+    name: "Sink or Swim",
     type: "ambush",
     rarity: "rare",
     value: 7,
@@ -427,7 +427,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-poleas-sunken-order",
     factionId: "frumo",
-    name: "Polea's Sunken Order",
+    name: "Command the Revolution",
     type: "ambush",
     rarity: "rare",
     value: 6,
@@ -436,7 +436,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-leviathan-salvage",
     factionId: "frumo",
-    name: "Leviathan Salvage",
+    name: "Loot the Hold",
     type: "ambush",
     rarity: "rare",
     value: 5,
@@ -445,7 +445,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-kelpcloak-trickster",
     factionId: "frumo",
-    name: "Kelpcloak Trickster",
+    name: "Sudden Scheme",
     type: "ambush",
     rarity: "common",
     value: 2,
@@ -454,7 +454,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ballast-hook",
     factionId: "frumo",
-    name: "Ballast Hook",
+    name: "Anchor's Hold",
     type: "ambush",
     rarity: "common",
     value: 5,
@@ -463,7 +463,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-tide-debt-ledger",
     factionId: "frumo",
-    name: "Tide-Debt Ledger",
+    name: "Pirate's Gambit",
     type: "ambush",
     rarity: "uncommon",
     value: 4,
@@ -472,7 +472,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-abyssal-switchboard",
     factionId: "frumo",
-    name: "Abyssal Switchboard",
+    name: "Coordinated Strike",
     type: "ambush",
     rarity: "uncommon",
     value: 7,
@@ -481,7 +481,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-poleas-moonlit-map",
     factionId: "frumo",
-    name: "Polea's Moonlit Map",
+    name: "X Marks the Spot",
     type: "ambush",
     rarity: "rare",
     value: 8,
@@ -490,7 +490,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-the-last-gamble",
     factionId: "frumo",
-    name: "The Last Gamble",
+    name: "Rally the Crew",
     type: "ambush",
     rarity: "mythic",
     value: 9,
@@ -499,7 +499,7 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ristus-rises",
     factionId: "frumo",
-    name: "Ristus Rises",
+    name: "Tidal Surge",
     type: "ambush",
     rarity: "mythic",
     value: 10,
@@ -511,7 +511,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-copperline-technician",
     factionId: "bizi",
-    name: "Copperline Technician",
+    name: "Mechanical Refinery",
     type: "contraption",
     rarity: "common",
     value: 3,
@@ -520,7 +520,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-voltage-ration",
     factionId: "bizi",
-    name: "Voltage Ration",
+    name: "Ammo Depot",
     type: "contraption",
     rarity: "common",
     value: 2,
@@ -529,7 +529,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-dune-circuit-runner",
     factionId: "bizi",
-    name: "Dune Circuit Runner",
+    name: "Hovercraft",
     type: "contraption",
     rarity: "common",
     value: 4,
@@ -538,7 +538,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-gearplate-shield",
     factionId: "bizi",
-    name: "Gearplate Shield",
+    name: "Bunker Defenses",
     type: "contraption",
     rarity: "common",
     value: 5,
@@ -547,7 +547,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-heras-calibration",
     factionId: "bizi",
-    name: "Hera's Calibration",
+    name: "Signal Relay",
     type: "contraption",
     rarity: "uncommon",
     value: 5,
@@ -556,7 +556,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-solar-array-adept",
     factionId: "bizi",
-    name: "Solar Array Adept",
+    name: "Electrostatic Field",
     type: "contraption",
     rarity: "uncommon",
     value: 5,
@@ -565,7 +565,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-constanti-conduit",
     factionId: "bizi",
-    name: "Constanti Conduit",
+    name: "Signal Line",
     type: "contraption",
     rarity: "uncommon",
     value: 6,
@@ -574,7 +574,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-sandstorm-processor",
     factionId: "bizi",
-    name: "Sandstorm Processor",
+    name: "Searchlight Beacon",
     type: "contraption",
     rarity: "uncommon",
     value: 6,
@@ -583,7 +583,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-focus-overclock",
     factionId: "bizi",
-    name: "Focus Overclock",
+    name: "Chrono-Forge Core",
     type: "contraption",
     rarity: "rare",
     value: 7,
@@ -592,7 +592,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-regnum-voltage-bank",
     factionId: "bizi",
-    name: "Regnum Voltage Bank",
+    name: "Gold Mine",
     type: "contraption",
     rarity: "rare",
     value: 6,
@@ -601,7 +601,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-desert-logic-engine",
     factionId: "bizi",
-    name: "Desert Logic Engine",
+    name: "Battle Alarm",
     type: "contraption",
     rarity: "rare",
     value: 5,
@@ -610,7 +610,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-brass-spark",
     factionId: "bizi",
-    name: "Brass Spark",
+    name: "Spare Part Scrapyard",
     type: "contraption",
     rarity: "common",
     value: 2,
@@ -619,7 +619,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-railspike-marshal",
     factionId: "bizi",
-    name: "Railspike Marshal",
+    name: "Iron Express",
     type: "contraption",
     rarity: "common",
     value: 5,
@@ -628,7 +628,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-heat-sink-matrix",
     factionId: "bizi",
-    name: "Heat-Sink Matrix",
+    name: "Smoke Screen",
     type: "contraption",
     rarity: "uncommon",
     value: 4,
@@ -637,7 +637,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-clockwork-caravan",
     factionId: "bizi",
-    name: "Clockwork Caravan",
+    name: "Energy Transporter",
     type: "contraption",
     rarity: "uncommon",
     value: 7,
@@ -646,7 +646,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-voltaric-ultimatum",
     factionId: "bizi",
-    name: "Voltaric Ultimatum",
+    name: "Incinerator Turret",
     type: "contraption",
     rarity: "rare",
     value: 8,
@@ -655,7 +655,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-focus-prime-signal",
     factionId: "bizi",
-    name: "Focus Prime Signal",
+    name: "Interference Matrix",
     type: "contraption",
     rarity: "mythic",
     value: 9,
@@ -664,7 +664,7 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-constanti-sunforge",
     factionId: "bizi",
-    name: "Constanti Sunforge",
+    name: "Armored Battleship",
     type: "contraption",
     rarity: "mythic",
     value: 10,
