@@ -1,0 +1,65 @@
+{
+  "contract": "eggs.visual-admission@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "deck-workshop-compact-20260930-visual",
+  "projectId": "gauntlet",
+  "taskId": "deck-workshop-compact-20260930",
+  "scope": {
+    "outputId": "compact-deck-workshop",
+    "surface": "Gauntlet Online Build / Collection Workshop / Decks and Packs",
+    "format": "Compact responsive React/CSS workshop with user-controlled density and preview",
+    "exact": true
+  },
+  "modality": "deterministic-layout",
+  "directive": {
+    "required": true,
+    "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+    "status": "controlling",
+    "scopeMatches": true
+  },
+  "gate0": {
+    "required": false,
+    "passed": true,
+    "evidence": [
+      "Direct user request defines the standard 52-card layout and live publication scope; existing live card artwork reused, no image generation."
+    ]
+  },
+  "sourcePermissions": [
+    {
+      "sourceId": "origin/main@02826ebf04ef4a4950d50b4b407c767e88d9f533",
+      "use": "Preserve current code, artwork, card wording, and faction/general functionality",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "active-user-task",
+      "use": "Publish implemented deck workshop layout, CSS deck boxes, and pack animation",
+      "status": "allowed"
+    }
+  ],
+  "rejectedLineage": [],
+  "promptConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "cosmetics-only",
+    "ordered-reveal",
+    "responsive-accessible"
+  ],
+  "qaConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "cosmetics-only",
+    "ordered-reveal",
+    "responsive-accessible"
+  ],
+  "genericFallback": false,
+  "neighborCollision": false,
+  "layoutSeparation": "not-applicable",
+  "decision": "admit",
+  "reasons": [
+    "Direct user correction requests less bulk and more control of screen space. Existing artwork, rules and pack opening remain intact."
+  ]
+}

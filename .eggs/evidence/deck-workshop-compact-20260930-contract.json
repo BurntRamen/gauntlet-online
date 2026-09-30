@@ -1,0 +1,31 @@
+{
+  "id": "deck-workshop-compact-20260930",
+  "userDirection": "just to clarify im speaking about build / decks workshop . once updated please push live\nFollow-up: too bulky needs a simplified view that is just as intuitive but allows more agency over the screen",
+  "scope": "Simplify the released Build / Decks workshop with compact card slots, collapsible deck and cosmetic settings, resizable optional preview, and persistent user-controlled density. Continue the authorized live release workflow.",
+  "authorizationBasis": "Explicit live publication request in the active user task.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Temporarily retain an isolated release worktree beyond the default two-worktree cap to preserve the user's five existing checkouts and uncommitted work. No existing worktree is deleted or overwritten."
+  ],
+  "conditions": [
+    "Apply only this task's code on origin/main; preserve newer faction/general selection and wording.",
+    "Run current repository checks before merge.",
+    "Use existing Vercel/Render deployment settings."
+  ]
+}
