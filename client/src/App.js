@@ -5,7 +5,9 @@ import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
-import ConstructedCardTile from "./ConstructedCardTile";
+import DeckWorkshop from "./DeckWorkshop";
+import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
+import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
@@ -1752,10 +1754,8 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
 }
 
 function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
-  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
-  const MAX_CONSTRUCTED_DECK_SIZE = deckRules.maxConstructedDeckSize;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
   const [selectedConstructedDeckId, setSelectedConstructedDeckId] = useState(deckLibrary.activeConstructedDeckId || "");
   const selectedConstructedRecord = (deckLibrary.decks || []).find((deck) => deck.id === selectedConstructedDeckId && deck.format === "constructed") || null;
@@ -1769,37 +1769,40 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     factionName: selectedConstructedRecord.factionName,
     deckId: selectedConstructedRecord.id,
     versionId: selectedConstructedVersion.id
-  } : account?.stats?.savedConstructedDeck || null;
+  } : null;
   const [constructedDeckName, setConstructedDeckName] = useState(savedConstructedDeck?.name || "Rumin Constructed Deck");
   const [constructedFactionId, setConstructedFactionId] = useState(savedConstructedDeck?.factionId || "rumin");
   const [constructedGeneralId, setConstructedGeneralId] = useState(savedConstructedDeck?.generalId || "monti");
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
+  const [constructedBoxId, setConstructedBoxId] = useState(savedConstructedDeck?.deckBoxId || "classic");
+  const [packPacing, setPackPacing] = useState(readPackPacing);
+  const initialOpenedPack = useRef(lastOpenedPack);
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
   const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
-  const [inspectedConstructedCardId, setInspectedConstructedCardId] = useState("");
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectionView, setCollectionView] = useState("packs");
 
   useEffect(() => {
     const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
     const selectedStillExists = account?.stats?.deckLibrary?.decks?.some((deck) => deck.id === selectedConstructedDeckId && !deck.archived);
-    if (!selectedStillExists && activeId !== selectedConstructedDeckId) setSelectedConstructedDeckId(activeId);
+    if (selectedConstructedDeckId && !selectedStillExists && activeId !== selectedConstructedDeckId) setSelectedConstructedDeckId(activeId);
   }, [account?.id, account?.stats?.deckLibrary?.activeConstructedDeckId, account?.stats?.deckLibrary?.decks, selectedConstructedDeckId]);
 
   useEffect(() => {
+    setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
+    setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
-    setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
     setConstructedSaveMessage("");
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.generalId, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId]);
 
   if (!account) {
     return (
@@ -1837,12 +1840,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     }
     return true;
   });
-  const ownedConstructedCards = (catalog[constructedFactionId] || [])
-    .filter((card) => Number(cardsOwned[card.id] || 0) > 0)
-    .sort((a, b) => {
-      const rarityOrder = { mythic: 0, rare: 1, uncommon: 2, common: 3 };
-      return (rarityOrder[a.rarity] ?? 9) - (rarityOrder[b.rarity] ?? 9) || a.name.localeCompare(b.name);
-    });
   const availableVariantsByGameplayCard = collectorCatalog.reduce((byCard, variant) => {
     if (!variant?.gameplayCardId) return byCard;
     if (variant.paid && Number(collectorOwnership[variant.variantId] || 0) <= 0) return byCard;
@@ -1851,16 +1848,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     return byCard;
   }, {});
   const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
-  const inspectedConstructedCard = constructedCardsById[inspectedConstructedCardId] || ownedConstructedCards[0] || null;
-  const inspectedConstructedVariantId = inspectedConstructedCard
-    ? constructedVariantSelections[inspectedConstructedCard.id] || inspectedConstructedCard.defaultVariantId || ""
-    : "";
   const inspectedCatalogCard = allCatalogCards.find((card) => card.id === inspectedCatalogCardId) || filteredCatalogCards[0] || null;
-  const activeDeckFeaturedArt = getDeckFeaturedArt({
-    gameplayCardQuantities: constructedQuantities,
-    collectorVariantSelections: constructedVariantSelections
-  }, collectorCatalog);
-  const constructedReplacementCount = Object.values(constructedQuantities).reduce((sum, count) => sum + Math.max(0, Number(count || 0)), 0);
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
     const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
     if (value == null) return counts;
@@ -1877,67 +1865,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     });
     return counts;
   }, {});
-  const constructedDeckCount = BASE_PLAYING_DECK_SIZE;
   const constructedCurveWarning = Object.entries(constructedValueCounts).find(([, count]) => count > MAX_REPLACEMENTS_PER_VALUE);
   const constructedSlotWarning = Object.entries(constructedSlotCounts).find(([, count]) => count > 1);
-
-  function setConstructedCardQuantity(cardId, nextQuantity) {
-    const owned = Number(cardsOwned[cardId] || 0);
-    const card = constructedCardsById[cardId];
-    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
-    const sameValueCurrent = value == null ? 0 : Object.entries(constructedQuantities).reduce((sum, [otherCardId, count]) => {
-      if (otherCardId === cardId) return sum;
-      return getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) === value ? sum + Math.max(0, Number(count || 0)) : sum;
-    }, 0);
-    const maxForValue = value == null ? 0 : Math.max(0, MAX_REPLACEMENTS_PER_VALUE - sameValueCurrent);
-    const quantity = Math.max(0, Math.min(owned, maxForValue, Math.floor(Number(nextQuantity || 0))));
-    setConstructedSaveMessage("");
-    setConstructedQuantities((current) => {
-      const next = { ...current };
-      if (quantity <= 0) delete next[cardId];
-      else next[cardId] = quantity;
-      return next;
-    });
-    setConstructedSuitChoices((current) => {
-      const existing = Array.isArray(current[cardId]) ? current[cardId] : [];
-      const usedSuits = new Set();
-      if (value != null) {
-        for (const [otherCardId, otherCount] of Object.entries(constructedQuantities)) {
-          if (otherCardId === cardId || getReplacementValue(constructedCardsById[otherCardId], PLAYING_DECK_VALUES) !== value) continue;
-          const otherSuits = Array.isArray(current[otherCardId]) ? current[otherCardId] : [];
-          Array.from({ length: Math.max(0, Number(otherCount || 0)) }, (_, index) => normalizeReplacementSuitId(otherSuits[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)).forEach((suit) => usedSuits.add(suit));
-        }
-      }
-      const next = { ...current };
-      if (quantity <= 0) {
-        delete next[cardId];
-      } else {
-        next[cardId] = Array.from({ length: quantity }, (_, index) => {
-          const preferred = normalizeReplacementSuitId(existing[index] || "");
-          const suit = preferred && !usedSuits.has(preferred)
-            ? preferred
-            : REPLACEMENT_SUITS.find((entry) => !usedSuits.has(entry.id))?.id || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id;
-          usedSuits.add(suit);
-          return suit;
-        });
-      }
-      return next;
-    });
-  }
-
-  function setConstructedCardSuit(cardId, copyIndex, suit) {
-    setConstructedSaveMessage("");
-    setConstructedSuitChoices((current) => {
-      const quantity = Math.max(0, Number(constructedQuantities[cardId] || 0));
-      const existing = Array.isArray(current[cardId]) ? current[cardId] : [];
-      return {
-        ...current,
-        [cardId]: Array.from({ length: quantity }, (_, index) => (
-          index === copyIndex ? normalizeReplacementSuitId(suit) : normalizeReplacementSuitId(existing[index] || REPLACEMENT_SUITS[index % REPLACEMENT_SUITS.length].id)
-        ))
-      };
-    });
-  }
 
   async function saveConstructedDeck() {
     setConstructedSaveMessage("");
@@ -1949,7 +1878,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         generalId: deckRules.factions?.find((entry) => entry.id === constructedFactionId)?.generals?.find((entry) => entry.id === constructedGeneralId)?.id || null,
         gameplayCardQuantities: constructedQuantities,
         cardSuitChoices: constructedSuitChoices,
-        collectorVariantSelections: constructedVariantSelections
+        collectorVariantSelections: constructedVariantSelections,
+        deckBoxId: constructedBoxId
       });
       if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
@@ -1960,8 +1890,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
   function loadSavedConstructedDeck() {
     if (!savedConstructedDeck) return;
-    setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
+    setConstructedDeckName(savedConstructedDeck.name || "Rumin Constructed Deck");
     setConstructedGeneralId(savedConstructedDeck.generalId || "monti");
+    setConstructedBoxId(savedConstructedDeck.deckBoxId || "classic");
+    setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck.gameplayCardQuantities || savedConstructedDeck.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck.collectorVariantSelections || {});
@@ -1978,6 +1910,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   function startNewConstructedDeck() {
     setSelectedConstructedDeckId("");
     setConstructedDeckName("Rumin Constructed Deck");
+    setConstructedGeneralId("monti");
+    setConstructedBoxId("classic");
     setConstructedFactionId("rumin");
     setConstructedQuantities({});
     setConstructedSuitChoices({});
@@ -1999,310 +1933,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
   return (
     <MenuCard className="collection-workspace" title="Collection Workshop">
-      <style>{`
-        @keyframes packPulse {
-          0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
-          35% { transform: translateY(-3px) scale(1.025) rotate(-1deg); box-shadow: 0 0 28px var(--pack-glow); }
-          70% { transform: translateY(1px) scale(0.99) rotate(1deg); box-shadow: 0 0 42px var(--pack-glow); }
-          100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
-        }
-        @keyframes cardReveal {
-          from { opacity: 0; transform: translateY(20px) rotateX(68deg) scale(0.92); filter: brightness(1.8); }
-          60% { opacity: 1; transform: translateY(-4px) rotateX(0deg) scale(1.02); filter: brightness(1.18); }
-          to { opacity: 1; transform: translateY(0) rotateX(0deg) scale(1); filter: brightness(1); }
-        }
-        .booster-pack-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(206px, 1fr));
-          gap: 14px;
-        }
-        @media (max-width: 700px) {
-          .booster-pack-grid {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 0 0 8px;
-            scroll-snap-type: x mandatory;
-          }
-          .booster-pack-tile {
-            min-width: 0;
-            flex: 0 0 min(270px, calc(100vw - 88px));
-            scroll-snap-align: start;
-          }
-        }
-        .booster-pack-tile {
-          position: relative;
-          min-height: 348px;
-          border: 1px solid color-mix(in srgb, var(--pack-accent) 70%, #fef3c7 18%);
-          border-radius: 5px;
-          padding: 34px 16px 18px;
-          color: #fff7dc;
-          text-align: center;
-          overflow: hidden;
-          cursor: pointer;
-          display: grid;
-          align-content: start;
-          gap: 8px;
-          isolation: isolate;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.26), inset 0 -20px 44px rgba(0,0,0,0.32), 0 16px 36px rgba(0,0,0,0.34);
-          clip-path: polygon(0 4%, 3% 2%, 0 0, 100% 0, 97% 2%, 100% 4%, 100% 96%, 97% 98%, 100% 100%, 0 100%, 3% 98%, 0 96%);
-        }
-        .booster-pack-tile::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background:
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.09) 0 1px, transparent 1px 11px),
-            linear-gradient(105deg, transparent 0 22%, rgba(255,255,255,0.2) 28%, transparent 34% 58%, rgba(255,255,255,0.14) 64%, transparent 70%),
-            radial-gradient(circle at 50% 8%, rgba(255,255,255,0.2), transparent 18%);
-          mix-blend-mode: screen;
-          opacity: 0.72;
-          z-index: 0;
-        }
-        .booster-pack-tile::after {
-          content: "";
-          position: absolute;
-          inset: 9px;
-          border: 1px solid rgba(255,247,220,0.24);
-          box-shadow: inset 0 0 0 1px rgba(0,0,0,0.28);
-          pointer-events: none;
-          z-index: 1;
-        }
-        .booster-pack-tile:hover {
-          transform: translateY(-2px);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 18px 42px var(--pack-glow);
-        }
-        .booster-pack-tile.opening {
-          animation: packPulse 720ms ease-in-out infinite;
-        }
-        .booster-pack-tile strong {
-          font-family: Georgia, serif;
-          font-size: 34px;
-          line-height: 1;
-          text-shadow: 0 2px 0 rgba(0,0,0,0.8), 0 0 18px var(--pack-glow);
-          z-index: 2;
-        }
-        .booster-pack-topline,
-        .booster-pack-open {
-          z-index: 2;
-          color: var(--pack-accent);
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          font-size: 11px;
-        }
-        .booster-pack-set {
-          z-index: 2;
-          color: #fef3c7;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          border-top: 1px solid rgba(255,247,220,0.32);
-          border-bottom: 1px solid rgba(255,247,220,0.32);
-          padding: 5px 0;
-          background: rgba(2,6,23,0.3);
-        }
-        .booster-pack-subtitle,
-        .booster-pack-count {
-          z-index: 2;
-          color: #fde68a;
-          font-size: 12px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.8px;
-        }
-        .booster-pack-art {
-          z-index: 2;
-          min-height: 112px;
-          border: 2px solid rgba(255,247,220,0.68);
-          box-shadow: inset 0 0 0 2px rgba(0,0,0,0.42), 0 8px 22px rgba(0,0,0,0.32);
-          display: grid;
-          place-items: center;
-          margin: 2px 8px;
-          position: relative;
-          overflow: hidden;
-          background-position: center 24%;
-          background-size: cover;
-        }
-        .booster-pack-art::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(115deg, transparent, rgba(255,255,255,0.28), transparent);
-          transform: translateX(-45%);
-        }
-        .booster-pack-sigil {
-          position: relative;
-          width: 58px;
-          height: 58px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          border: 2px solid rgba(255,247,220,0.76);
-          background: rgba(2,6,23,0.38);
-          color: #fff7dc;
-          font-family: Georgia, serif;
-          font-size: 34px;
-          font-weight: 900;
-          text-shadow: 0 2px 8px rgba(0,0,0,0.72);
-        }
-        .booster-pack-slots {
-          z-index: 2;
-          display: flex;
-          gap: 5px;
-          flex-wrap: wrap;
-          justify-content: center;
-          font-size: 10px;
-        }
-        .booster-pack-slots span {
-          border: 1px solid rgba(255,255,255,0.22);
-          border-radius: 999px;
-          padding: 3px 6px;
-          background: rgba(2,6,23,0.34);
-        }
-        .booster-pack-retail {
-          z-index: 2;
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
-          align-items: center;
-          border: 1px solid rgba(255,255,255,0.28);
-          background: rgba(255,247,220,0.88);
-          color: #111827;
-          padding: 5px 7px;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: 0.8px;
-        }
-        .booster-pack-hanger {
-          position: absolute;
-          top: 10px;
-          left: 50%;
-          width: 40px;
-          height: 14px;
-          transform: translateX(-50%);
-          border-radius: 0 0 999px 999px;
-          border: 1px solid rgba(255,247,220,0.38);
-          border-top: 0;
-          background: rgba(2,6,23,0.38);
-          z-index: 2;
-        }
-        .booster-pack-crimp {
-          position: absolute;
-          left: 0;
-          right: 0;
-          height: 18px;
-          background:
-            repeating-linear-gradient(90deg, rgba(255,247,220,0.38) 0 7px, rgba(0,0,0,0.18) 7px 13px),
-            rgba(2,6,23,0.24);
-          z-index: 2;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.45);
-        }
-        .booster-pack-crimp-top {
-          top: 0;
-        }
-        .booster-pack-crimp-bottom {
-          bottom: 0;
-        }
-        .booster-pack-shine {
-          position: absolute;
-          inset: -30% auto auto -30%;
-          width: 80%;
-          height: 160%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
-          transform: rotate(18deg);
-        }
-        .opened-card-reveal {
-          animation: cardReveal 520ms ease-out both;
-          transform-origin: center bottom;
-        }
-        .collection-view-tabs {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 4px;
-          padding: 4px;
-          border: 1px solid rgba(101,168,126,0.36);
-          border-radius: 6px;
-          background: rgba(2,6,23,0.38);
-        }
-        .collection-view-tabs button {
-          min-height: 38px;
-          border: 1px solid transparent;
-          border-radius: 4px;
-          background: transparent;
-          color: #aebfca;
-          font-weight: 900;
-          cursor: pointer;
-        }
-        .collection-view-tabs button[aria-selected="true"] {
-          border-color: rgba(101,168,126,0.68);
-          background: rgba(101,168,126,0.2);
-          color: #f3eee3;
-          box-shadow: inset 0 -2px #65a87e;
-        }
-        .collection-summary-bar {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(96px, auto)) minmax(260px, 1fr);
-          border: 1px solid rgba(101,168,126,0.3);
-          background: rgba(2,8,14,0.52);
-        }
-        .collection-summary-stat {
-          display: grid;
-          gap: 2px;
-          padding: 9px 11px;
-          border-right: 1px solid rgba(101,168,126,0.22);
-        }
-        .collection-summary-stat span,
-        .collection-summary-note span {
-          color: #9db8aa;
-          font-size: 8px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-        .collection-summary-stat strong {
-          color: #fff4d7;
-          font-family: Georgia, serif;
-          font-size: 20px;
-          line-height: 1;
-        }
-        .collection-summary-note {
-          display: grid;
-          align-content: center;
-          gap: 3px;
-          padding: 9px 12px;
-          color: #d8c990;
-          font-size: 10px;
-          line-height: 1.35;
-        }
-        @media (max-width: 700px) {
-          .collection-summary-bar {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-          .collection-summary-note {
-            grid-column: 1 / -1;
-            border-top: 1px solid rgba(101,168,126,0.22);
-          }
-        }
-        .collection-view-heading {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: end;
-          flex-wrap: wrap;
-        }
-        .collection-view-heading h3 {
-          margin: 0 0 3px;
-          color: #facc15;
-          font-family: Georgia, serif;
-          font-size: 20px;
-        }
-        .collection-view-heading p {
-          margin: 0;
-          color: #bfdbfe;
-          font-size: 12px;
-        }
-      `}</style>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
         <div className="collection-summary-bar">
           <div className="collection-summary-stat"><span>Gameplay copies earned</span><strong>{ownedTotal}</strong></div>
@@ -2320,6 +1950,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div><h3>Gameplay & Collector Packs</h3><p>Open free-play rewards for mechanics, or browse cosmetic collector variants.</p></div>
           <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
+        <PackPacingPicker value={packPacing} onChange={setPackPacing} />
         {boosters.length > 0 && (
           <div className="booster-pack-grid">
             {boosters.map((booster) => (
@@ -2328,32 +1959,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 booster={booster}
                 collectorPack={collectorPacks.find((pack) => pack.factionId === booster.factionId)}
                 opening={openingPackId === booster.id}
-                canOpen={packCredits > 0}
+                canOpen={packCredits > 0 && !openingPackId}
                 onOpen={onOpenPack}
                 onBuyPack={onBuyPack}
               />
             ))}
           </div>
         )}
-        {lastOpenedPack?.length > 0 && (
-          <div>
-            <h4 style={{ color: "#facc15", margin: "0 0 6px" }}>Last Earned Gameplay Pack</h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
-              {lastOpenedPack.map((card, index) => {
-                const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
-                const art = resolveVisualAsset(getCardIllustration(card, findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art));
-                return (
-                  <div className="opened-card-reveal" key={`${card.id}-${index}`} style={{ animationDelay: `${index * 90}ms`, border: `1px solid ${rarity.border}`, borderRadius: 7, padding: 8, background: "rgba(2,6,23,0.5)" }}>
-                    <SpecialCardFace card={card} art={art} />
-                    <strong style={{ color: rarity.color }}>{card.name}</strong>
-                    <div style={{ color: "#bfdbfe", fontSize: 12 }}>{rarity.label} {card.type} - value {card.value}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
         </>}
+        {lastOpenedPack?.length > 0 && <PackOpening cards={lastOpenedPack} pacing={packPacing} autoPlay={lastOpenedPack !== initialOpenedPack.current} visible={collectionView === "packs"} />}
         {collectionView === "decks" && <>
         <div className="collection-view-heading">
           <div><h3>Deck Workshop</h3><p>Choose a saved deck, map replacements, and create its next version.</p></div>
@@ -2368,109 +1982,25 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           onAction={runDeckAction}
           onOpenMatch={onOpenMatch}
         />
-        <section className="constructed-workbench" style={{ "--faction-accent": PACK_THEMES[constructedFactionId]?.accent }}>
-          <header className="active-deck-header">
-            <DeckVisual deck={{ name: constructedDeckName, factionId: constructedFactionId }} art={activeDeckFeaturedArt} decorative className="active-deck-art" />
-            <div className="active-deck-identity">
-              <span>{PACK_THEMES[constructedFactionId]?.name || constructedFactionId} · Constructed · version {selectedConstructedRecord?.versions?.length || 1}</span>
-              <label>
-                <span className="sr-only">Deck name</span>
-                <input value={constructedDeckName} onChange={(event) => { setConstructedDeckName(event.target.value); setConstructedSaveMessage(""); }} maxLength={80} aria-label="Deck name" />
-              </label>
-              <p>The standard 52-card deck stays intact. Earned gameplay cards replace matching values; collector variants change presentation only.</p>
-            </div>
-            <div className="active-deck-readouts" aria-label="Deck status">
-              <span><strong>{constructedDeckCount} / {MAX_CONSTRUCTED_DECK_SIZE}</strong><small>Cards</small></span>
-              <span><strong>{constructedReplacementCount}</strong><small>Swap{constructedReplacementCount === 1 ? "" : "s"}</small></span>
-              <span className={constructedCurveWarning || constructedSlotWarning ? "is-invalid" : "is-legal"}><strong>{constructedCurveWarning || constructedSlotWarning ? "Invalid" : "Legal"}</strong><small>Deck state</small></span>
-            </div>
-            <div className="active-deck-actions">
-              <MenuButton onClick={saveConstructedDeck} disabled={!constructedDeckName.trim() || !!constructedCurveWarning || !!constructedSlotWarning}>{selectedConstructedDeckId ? "Save New Version" : "Create Deck"}</MenuButton>
-              <MenuButton variant="secondary" onClick={clearConstructedDeck} disabled={constructedReplacementCount <= 0}>Reset Swaps</MenuButton>
-              {savedConstructedDeck && <button type="button" className="active-deck-tertiary" onClick={loadSavedConstructedDeck}>Restore saved version</button>}
-            </div>
-          </header>
-
-          <FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false}
-            onChange={(_, generalId) => setConstructedGeneralId(generalId)} />
-          {(constructedSaveMessage || constructedCurveWarning || constructedSlotWarning) && (
-            <div className={`active-deck-message ${constructedSaveMessage.includes("Could not") || constructedCurveWarning || constructedSlotWarning ? "is-error" : "is-success"}`} role="status">
-              {constructedSaveMessage || (constructedCurveWarning ? `Too many value ${constructedCurveWarning[0]} cards.` : `Two cards are replacing the same ${constructedSlotWarning[0].replace(":", " of ")}.`)}
-            </div>
-          )}
-
-          <section className="workbench-section" aria-labelledby="deck-faction-title">
-            <div className="workbench-section-heading"><div><span>Deck identity</span><h4 id="deck-faction-title">Choose a faction vault</h4></div><p>Changing faction clears unsaved swaps.</p></div>
-            <div className="deck-faction-picker" aria-label="Deck faction">
-              {(deckRules.factions || Object.values(PACK_THEMES)).map((theme) => {
-                const factionId = theme.name.toLowerCase();
-                const active = constructedFactionId === factionId;
-                return (
-                  <button key={factionId} type="button" aria-pressed={active} onClick={() => {
-                    if (active) return;
-                    setConstructedFactionId(factionId);
-                    setConstructedQuantities({});
-                    setConstructedSuitChoices({});
-                    setConstructedVariantSelections({});
-                    setConstructedSaveMessage("");
-                  }} style={{ "--faction-accent": theme.accent }}>
-                    <FactionArtwork factionId={factionId} decorative />
-                    <span><strong>{theme.name}</strong><small>{active ? "Selected vault" : "Open vault"}</small></span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <details className="workbench-section deck-composition" aria-labelledby="deck-composition-title">
-            <summary className="workbench-section-heading"><div><span>52-card composition</span><h4 id="deck-composition-title">Replacement matrix</h4></div><p>{constructedReplacementCount} replacements · expand to review rank and suit slots</p></summary>
-            <div className="replacement-map-wrap" aria-label="52-card replacement map">
-              <div className="replacement-map">
-                <div className="replacement-map-cell is-heading">Suit</div>
-                {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => <div className="replacement-map-cell is-heading" key={`head-${value}`}>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</div>)}
-                {REPLACEMENT_SUITS.flatMap((suit) => [
-                  <div className={`replacement-map-cell is-suit ${suit.id === "hearts" || suit.id === "diamonds" ? "is-red-suit" : ""}`} aria-label={suit.id} key={`label-${suit.id}`}>{suit.label}</div>,
-                  ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((value) => {
-                    const replaced = !!constructedSlotCounts[`${value}:${suit.id}`];
-                    return <div className={`replacement-map-cell ${replaced ? "replaced" : ""}`} aria-label={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} title={`${value} of ${suit.id}${replaced ? " replaced" : " standard"}`} key={`${suit.id}-${value}`}>{replaced ? <span>Swap</span> : <span className="sr-only">Base</span>}</div>;
-                  })
-                ])}
-              </div>
-            </div>
-            <div className="deck-visual-summaries">
-              <div className="deck-curve-summary"><span>Value curve</span><div>{PLAYING_DECK_VALUES.map((value) => { const count = constructedValueCounts[value] || 0; return <i key={value} title={`${count} value ${value} swaps`} className={count ? "has-swaps" : ""} style={{ "--curve-height": `${Math.max(12, count * 22)}%` }}><b>{count}</b><small>{value === 11 ? "J" : value === 12 ? "Q" : value === 13 ? "K" : value === 14 ? "A" : value}</small></i>; })}</div></div>
-              <div className="deck-suit-summary"><span>Suit swaps</span><div>{REPLACEMENT_SUITS.map((suit) => { const count = Object.keys(constructedSlotCounts).filter((slot) => slot.endsWith(`:${suit.id}`)).length; return <i key={suit.id} className={suit.id === "hearts" || suit.id === "diamonds" ? "is-red-suit" : ""}><b>{suit.label}</b><strong>{count}</strong></i>; })}</div></div>
-              <div className="deck-summary-status"><span>Workbench status</span><strong>{constructedReplacementCount === 0 ? "Standard deck" : `${constructedReplacementCount} active swap${constructedReplacementCount === 1 ? "" : "s"}`}</strong><small>{constructedCurveWarning || constructedSlotWarning ? "Resolve highlighted conflicts before saving." : "All replacement slots are within limits."}</small></div>
-            </div>
-          </details>
-
-          <section className="workbench-section replacement-collection" aria-labelledby="replacement-collection-title">
-            <div className="workbench-section-heading"><div><span>Replacement collection</span><h4 id="replacement-collection-title">Owned {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} cards</h4></div><p>{ownedConstructedCards.length} candidate{ownedConstructedCards.length === 1 ? "" : "s"} · art follows the selected collector variant</p></div>
-            <div className="workshop-browser">
-            <CardArtInspector
-              card={inspectedConstructedCard ? { ...inspectedConstructedCard, factionId: constructedFactionId, suit: constructedSuitChoices[inspectedConstructedCard.id]?.[0] || inspectedConstructedCard.suit } : null}
-              collectorCatalog={collectorCatalog}
-              selectedVariantId={inspectedConstructedVariantId}
-              owned={Number(cardsOwned[inspectedConstructedCard?.id] || 0)}
-            />
-            <div className="constructed-card-grid">
-              {ownedConstructedCards.length === 0 ? (
-                <div className="constructed-card-empty">Earn and open {PACK_THEMES[constructedFactionId]?.name || constructedFactionId} gameplay packs to unlock cards for this faction.</div>
-              ) : ownedConstructedCards.map((card) => {
-                const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
-                const count = Number(constructedQuantities[card.id] || 0);
-                const owned = Number(cardsOwned[card.id] || 0);
-                const availableVariants = availableVariantsByGameplayCard[card.id] || [];
-                const selectedVariantId = constructedVariantSelections[card.id] || card.defaultVariantId || availableVariants[0]?.variantId || "";
-                const value = getReplacementValue(card, PLAYING_DECK_VALUES);
-                const valueCount = value == null ? MAX_REPLACEMENTS_PER_VALUE : constructedValueCounts[value] || 0;
-                const canAdd = count < owned && value != null && valueCount < MAX_REPLACEMENTS_PER_VALUE;
-                return <ConstructedCardTile key={card.id} card={{ ...card, factionId: constructedFactionId }} rarity={rarity} count={count} owned={owned} availableVariants={availableVariants} selectedVariantId={selectedVariantId} valueCount={valueCount} maxReplacementsPerValue={MAX_REPLACEMENTS_PER_VALUE} canAdd={canAdd} suitChoices={Array.from({ length: count }, (_, copyIndex) => normalizeReplacementSuitId(constructedSuitChoices[card.id]?.[copyIndex]))} replacementSuits={REPLACEMENT_SUITS} inspected={inspectedConstructedCard?.id === card.id} onInspect={() => setInspectedConstructedCardId(card.id)} onQuantityChange={(quantity) => setConstructedCardQuantity(card.id, quantity)} onVariantChange={(variantId) => { setConstructedVariantSelections((current) => ({ ...current, [card.id]: variantId })); setConstructedSaveMessage(""); }} onSuitChange={(copyIndex, suit) => setConstructedCardSuit(card.id, copyIndex, suit)} />;
-              })}
-            </div>
-            </div>
-          </section>
-        </section>
+        <DeckWorkshop
+          key={selectedConstructedDeckId || "new-deck"}
+          name={constructedDeckName} factionId={constructedFactionId}
+          factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
+          renderRules={(card) => <CardRulesDetails card={card} />}
+          loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}
+          cards={catalog[constructedFactionId] || []} owned={cardsOwned}
+          quantities={constructedQuantities} suitChoices={constructedSuitChoices}
+          variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
+          boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
+          versionCount={selectedConstructedRecord?.versions?.length || 0}
+          message={constructedSaveMessage} invalid={!!constructedCurveWarning || !!constructedSlotWarning}
+          onNameChange={(name) => { setConstructedDeckName(name); setConstructedSaveMessage(""); }}
+          onFactionChange={(factionId) => { setConstructedFactionId(factionId); setConstructedGeneralId(deckRules.factions?.find((entry) => entry.id === factionId)?.general?.id || null); setConstructedQuantities({}); setConstructedSuitChoices({}); setConstructedVariantSelections({}); setConstructedSaveMessage(""); }}
+          onReplacementChange={({ quantities, suitChoices }) => { setConstructedQuantities(quantities); setConstructedSuitChoices(suitChoices); setConstructedSaveMessage(""); }}
+          onVariantChange={(cardId, variantId) => { setConstructedVariantSelections((current) => ({ ...current, [cardId]: variantId })); setConstructedSaveMessage(""); }}
+          onBoxChange={(boxId) => { setConstructedBoxId(boxId); setConstructedSaveMessage(""); }}
+          onSave={saveConstructedDeck} onReset={clearConstructedDeck} onRestore={loadSavedConstructedDeck}
+        />
         </>}
         {collectionView === "catalog" && <div>
           <div className="collection-view-heading" style={{ marginBottom: 8 }}>
@@ -2526,7 +2056,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
                   </div>
                   <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - value {card.value}</div>
-                  <div style={{ color: "#e5e7eb", fontSize: 14, lineHeight: 1.35 }}>{card.displayText || card.text}</div>
+                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
                   </div>
                 </button>
@@ -4959,14 +4489,11 @@ export default function App() {
     setOpeningPackId(packId);
     setLastOpenedPack([]);
     try {
-      const [response] = await Promise.all([
-        fetch(`${SOCKET_URL}/api/collection/open-pack`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-          body: JSON.stringify({ packId })
-        }),
-        new Promise((resolve) => window.setTimeout(resolve, 650))
-      ]);
+      const response = await fetch(`${SOCKET_URL}/api/collection/open-pack`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ packId })
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not open booster pack.");
       setAccount(data.account);

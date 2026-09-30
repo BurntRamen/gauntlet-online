@@ -46,11 +46,20 @@ jobs:
       - name: Build client
         run: npm run build:client
 
+      - name: Check client bundle budgets
+        run: npm run check:bundle
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Test live Babylon browser flows
         run: npm run test:e2e
+
+      - name: Test deck workshop and pack reveals
+        run: npm run test:e2e:workshop
+
+      - name: Check browser usability
+        run: npm run test:e2e:usability
 
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
@@ -62,4 +71,13 @@ jobs:
           name: babylon-performance-report
           path: artifacts/babylon-performance/current.json
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload failed browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
           retention-days: 7

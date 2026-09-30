@@ -1,8 +1,13 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect: baseExpect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { io } = require("socket.io-client");
 
 const SERVER_URL = "http://127.0.0.1:4100";
+// Match the live-entry suite's allowance for the GPU-less CI renderer.
+// Spectator startup loads a second WebGL scene before its HUD can appear.
+const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
+  || (process.env.CI === "true" && process.platform === "linux");
+const expect = baseExpect.configure({ timeout: softwareGraphics ? 30000 : 10000 });
 
 function waitForEvent(socket, eventName, predicate = () => true, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {

@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "deck-workshop-release-20260930-authority",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-09-30T00:57:22.508Z",
+  "expiresAt": "2026-09-30T08:57:22.509Z",
+  "resolver": "Codex; connected Google Drive profile verified",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://drive.google.com/file/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/view",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "Live fetch: 00-00 Creative OS Governance Directive — Operational; modified 2026-09-21T18:12:16.293Z",
+      "resolvedAt": "2026-09-30T00:57:22.508Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Apply the user-requested deck workshop and pack animation on current main. Preserve card data, gameplay, artwork, and newer releases.",
+          "scope": "Build / Decks workshop and Packs UI"
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://drive.google.com/file/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/view",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "Live fetch: 00-00 Master System Index; modified 2026-09-17T13:16:05.502Z",
+      "resolvedAt": "2026-09-30T00:57:22.508Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Apply the user-requested deck workshop and pack animation on current main. Preserve card data, gameplay, artwork, and newer releases.",
+          "scope": "Build / Decks workshop and Packs UI"
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://drive.google.com/file/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/view",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet — Project Dossier & Generation Contract — Operational v1; modified 2026-09-22T03:31:04.442Z",
+      "resolvedAt": "2026-09-30T00:57:22.508Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Apply the user-requested deck workshop and pack animation on current main. Preserve card data, gameplay, artwork, and newer releases.",
+          "scope": "Build / Decks workshop and Packs UI"
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://drive.google.com/file/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/view",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet Rules — Operational v1; modified 2026-08-19T20:05:18.713Z",
+      "resolvedAt": "2026-09-30T00:57:22.508Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Apply the user-requested deck workshop and pack animation on current main. Preserve card data, gameplay, artwork, and newer releases.",
+          "scope": "Build / Decks workshop and Packs UI"
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://drive.google.com/file/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/view",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet Card Registry — Operational v1; modified 2026-08-19T20:17:38.785Z",
+      "resolvedAt": "2026-09-30T00:57:22.508Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Apply the user-requested deck workshop and pack animation on current main. Preserve card data, gameplay, artwork, and newer releases.",
+          "scope": "Build / Decks workshop and Packs UI"
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}
