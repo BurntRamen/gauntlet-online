@@ -157,8 +157,8 @@ export function getBattlefieldSafeFrame(width, height) {
   const portraitPhone = viewportWidth <= 600 && viewportHeight > viewportWidth;
   const shortLandscape = viewportHeight <= 520 && viewportWidth > viewportHeight;
   const tablet = viewportWidth <= 1024;
-  const top = portraitPhone ? 58 : shortLandscape ? 44 : tablet && viewportWidth <= 900 ? 66 : 68;
-  const bottom = portraitPhone ? 142 : shortLandscape ? 92 : tablet && viewportWidth <= 900 ? 118 : tablet ? 122 : 112;
+  const top = portraitPhone ? 58 : shortLandscape ? 44 : viewportWidth >= 1100 ? 92 : tablet && viewportWidth <= 900 ? 66 : 68;
+  const bottom = portraitPhone ? 142 : shortLandscape ? 92 : viewportWidth >= 1366 ? 8 : tablet && viewportWidth <= 900 ? 118 : tablet ? 122 : 112;
   const side = viewportWidth <= 600 ? 3 : 4;
   const battlefield = {
     x: side,
@@ -200,13 +200,19 @@ export function getTableCameraProjection(width, height, layoutProfile = null) {
     + MATCH_LAYOUT.table.depth * Number(boardTransform.scaleZ || 1) * projectedDepthFactor / 2
     + 0.62;
   const halfHeight = Math.max(boardHalfHeight, requiredWidthHalf / Math.max(0.1, aspect));
-  const left = -halfHeight * aspect;
-  const right = halfHeight * aspect;
+  // Include the full local fan below the table, including its rotated corners
+  // and hover growth. Extend downward instead of adding unused space above it.
+  const hand = profile.anchors.hand;
+  const handBottom = hand.localZ - 0.22
+    - (MATCH_LAYOUT.card.height + MATCH_LAYOUT.card.width * 0.1) * hand.localScale * 1.08 / 2;
+  const bottom = Math.min(-halfHeight, (handBottom - cameraTargetZ) * projectedDepthFactor - 0.25);
+  const left = -(halfHeight - bottom) * aspect / 2;
+  const right = -left;
   return {
     aspect,
     profile: profile.id,
     top: halfHeight,
-    bottom: -halfHeight,
+    bottom,
     left,
     right,
     // `top` and `bottom` are camera-space orthographic limits. Consumers
@@ -215,7 +221,7 @@ export function getTableCameraProjection(width, height, layoutProfile = null) {
     tableBounds: {
       left,
       right,
-      bottom: cameraTargetZ - halfHeight / projectedDepthFactor,
+      bottom: cameraTargetZ + bottom / projectedDepthFactor,
       top: cameraTargetZ
         + (halfHeight - maxSettledElevation * projectedElevationFactor) / projectedDepthFactor
     },

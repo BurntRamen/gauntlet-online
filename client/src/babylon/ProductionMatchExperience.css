@@ -1,4 +1,6 @@
 :root {
+  --gauntlet-player-blue: #78b9ff;
+  --gauntlet-player-red: #ff858b;
   --gauntlet-graphite: #12161d;
   --gauntlet-steel: #2a313c;
   --gauntlet-navy: #15233a;
@@ -515,7 +517,7 @@
   padding: 5px 16px;
   color: #aab6c1;
   background: linear-gradient(90deg, transparent, rgba(5, 11, 18, 0.84) 20%, rgba(5, 11, 18, 0.84) 80%, transparent);
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transform: translateX(-50%);
@@ -567,17 +569,40 @@
 }
 
 .production-campaign-encounter summary {
+  position: relative;
   display: grid;
   min-height: 44px;
   box-sizing: border-box;
   gap: 2px;
-  padding: 7px 11px;
+  padding: 7px 34px 7px 11px;
   cursor: pointer;
   list-style: none;
 }
 
 .production-campaign-encounter summary::-webkit-details-marker {
   display: none;
+}
+
+.production-campaign-chevron {
+  position: absolute;
+  top: calc(50% - 8px);
+  right: 11px;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--gauntlet-bronze);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.production-campaign-encounter:not([open]) .production-campaign-chevron {
+  transform: rotate(-90deg);
+}
+
+.production-campaign-encounter summary:focus-visible {
+  outline: 2px solid var(--gauntlet-bronze);
+  outline-offset: 2px;
 }
 
 .production-campaign-encounter summary span {
@@ -2508,3 +2533,97 @@
   }
   .has-phone-hand.has-reference-dock .production-match-ledger { display: none; }
 }
+
+/* Stable player identity is independent of seat and faction. */
+.production-match-experience [data-player-color="blue"] { --player-color: var(--gauntlet-player-blue); }
+.production-match-experience [data-player-color="red"] { --player-color: var(--gauntlet-player-red); }
+.production-match-experience [data-player-color="neutral"] { --player-color: #b7c2cc; }
+
+.production-player-plate[data-player-color] {
+  border-left: 3px solid var(--player-color);
+}
+
+.production-player-color {
+  display: block;
+  color: var(--player-color);
+  font-size: 10px;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
+
+.production-player-plate.has-priority {
+  border-color: var(--player-color);
+  box-shadow: 0 0 0 1px var(--player-color), 0 8px 20px rgba(0, 0, 0, 0.38);
+}
+
+.production-player-plate.has-priority .production-priority {
+  color: var(--player-color);
+  border-color: var(--player-color);
+}
+
+.production-turn-marker {
+  --phase-color: #e0ba76;
+  border-bottom: 2px solid var(--player-color);
+  border-radius: 6px;
+  color: var(--player-color);
+  gap: 3px;
+}
+
+.production-turn-marker[data-phase="priority"] { --phase-color: #f1cb73; }
+.production-turn-marker[data-phase="draw"] { --phase-color: #72ddd5; }
+.production-turn-marker[data-phase="attack"] { --phase-color: #ffa56d; }
+.production-turn-marker[data-phase="block"] { --phase-color: #c7a3ff; }
+.production-turn-marker[data-phase="damage"] { --phase-color: #ff8d94; }
+.production-turn-marker[data-phase="end"] { --phase-color: #8eddad; }
+.production-turn-marker[data-phase="gameOver"] { --phase-color: #d7c5ff; }
+
+.production-turn-marker strong {
+  color: var(--phase-color);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.production-turn-marker small {
+  color: var(--player-color);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+@media (min-width: 1100px) and (min-height: 521px) {
+  .production-match-experience:not(.source-replay) {
+    --battlefield-top-reserve: 92px;
+  }
+
+  .production-turn-marker {
+    top: 8px;
+    left: calc(clamp(218px, 20vw, 294px) + 160px);
+    right: 104px;
+    min-height: 70px;
+    box-sizing: border-box;
+    padding: 6px 18px;
+    transform: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    column-gap: 20px;
+    font-size: clamp(18px, 1.6vw, 28px);
+  }
+
+  .production-turn-marker > span { grid-row: 1 / 3; align-self: center; }
+  .production-turn-marker strong { font-size: clamp(22px, 2vw, 34px); }
+  .production-turn-marker small { font-size: clamp(12px, 1vw, 16px); }
+}
+
+@media (min-width: 1366px) and (min-height: 521px) {
+  .production-match-experience:not(.source-replay) {
+    --battlefield-bottom-reserve: 8px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1099px) {
+  .production-turn-marker { font-size: 11px; }
+  .production-turn-marker strong { font-size: 16px; }
+  .production-turn-marker small { font-size: 10px; }
+}
+.production-turn-marker[data-phase="combat"] { --phase-color: #ffa56d; }

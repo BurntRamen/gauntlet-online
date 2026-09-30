@@ -453,6 +453,7 @@ function PlayerPlate({
   return (
     <section
       className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}`}
+      data-player-color={Number(player.id) === 1 ? "blue" : "red"}
       aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
       <div className="production-player-crest" aria-hidden="true">
@@ -462,6 +463,7 @@ function PlayerPlate({
       </div>
       <div className="production-player-copy">
         <strong>{player.name}</strong>
+        <b className="production-player-color">{Number(player.id) === 1 ? "Blue" : "Red"} · Player {player.id}</b>
         <span>{player.factionName || "Gauntlet"} · Hand {player.handCount}</span>
         <span className="production-player-piles">
           <b>Deck {player.deckCount ?? 0}</b>
@@ -1167,6 +1169,7 @@ function CampaignEncounter({ campaign, audioEnabled }) {
       <summary>
         <span>{campaign.opponentName || "Campaign boss"}</span>
         <strong>{ability?.name || campaign.title || "Scripted encounter"}</strong>
+        <svg className="production-campaign-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
       </summary>
       <div>
         {campaign.title && <h2>{campaign.title}</h2>}
@@ -1693,10 +1696,11 @@ export default function ProductionMatchExperience({
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
-        root.style.setProperty("--battlefield-bottom-reserve", Math.ceil(hudHeight) + "px");
+        root.style.setProperty("--battlefield-bottom-reserve",
+          (bounds.width >= 1366 && bounds.height > 520 ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities"]
+        const top = [".production-player-plate-top", ".production-match-utilities", ".production-turn-marker"]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",
           Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
@@ -1981,9 +1985,18 @@ export default function ProductionMatchExperience({
           />
         )}
 
-        <div className="production-turn-marker" aria-label={`${visualViewModel.currentTurnLabel}, ${visualViewModel.phaseLabel}`}>
+        <div
+          className="production-turn-marker"
+          data-phase={visualViewModel.phaseLabel === "Combat Response" ? "combat" : visualViewModel.phase}
+          data-player-color={visualViewModel.priority == null ? "neutral" : Number(visualViewModel.priority) === 1 ? "blue" : "red"}
+          aria-label={`${visualViewModel.currentTurnLabel}, ${visualViewModel.phaseLabel}`}
+          aria-live="polite"
+        >
           <span>{visualViewModel.currentTurnLabel}</span>
           <strong>{visualViewModel.phaseLabel}</strong>
+          <small>{visualViewModel.priority == null
+            ? "No active player"
+            : `${Number(visualViewModel.priority) === 1 ? "Blue" : "Red"} · ${[visualViewModel.top, visualViewModel.bottom].find((player) => player?.id === visualViewModel.priority)?.name || `Player ${visualViewModel.priority}`} · ${visualViewModel.phase === "end" ? "Placing" : "Priority"}`}</small>
         </div>
         <MatchModeMarker descriptor={update?.descriptor} />
         <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />

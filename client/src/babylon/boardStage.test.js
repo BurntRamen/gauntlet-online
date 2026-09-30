@@ -75,7 +75,7 @@ test("motion bounds follow the active responsive board and retain portrait hands
   const portrait = boardStageMotionBounds(BOARD_LAYOUT_PROFILES.portrait);
   expect(desktop.left).toBeCloseTo(-13.45);
   expect(desktop.right).toBeCloseTo(13.45);
-  expect(desktop.bottom).toBeCloseTo(-8.3);
+  expect(desktop.bottom).toBeLessThanOrEqual(BOARD_LAYOUT_PROFILES.desktop.anchors.hand.localZ);
   expect(desktop.top).toBeCloseTo(8.3);
   expect(portrait.left).toBeGreaterThan(desktop.left);
   expect(portrait.right).toBeLessThan(desktop.right);
@@ -159,6 +159,17 @@ test("short-landscape camera preserves a readable share of the battlefield width
 
   expect(profile.id).toBe("short-landscape");
   expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.7);
+});
+
+test.each(["desktop", "ultrawide"])("%s local hand sits fully below the board", (profileId) => {
+  const profile = BOARD_LAYOUT_PROFILES[profileId];
+  const board = boardModuleDescriptors(profile).find((module) => module.id === "board-base");
+  for (let slotIndex = 0; slotIndex < 8; slotIndex += 1) {
+    const bounds = actorBoundsAt(resolveActorPosition({
+      zone: { kind: "hand", side: "local", slotIndex, count: 8 }
+    }, profile));
+    expect(bounds.top).toBeLessThan(board.bounds.bottom);
+  }
 });
 
 test.each([

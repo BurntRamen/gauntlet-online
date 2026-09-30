@@ -248,6 +248,18 @@ test("reconnected match log keeps recorded public card identities and modifier e
   expect(log).toHaveTextContent("Applied: Emperor Nu +2");
 });
 
+test.each([[1, "blue", "Local"], [2, "red", "Opponent"]])("colors priority for player %s independently of seat", async (priority, color, name) => {
+  const viewModel = createViewModel();
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel: {
+    ...viewModel, priority, top: viewModel.bottom, bottom: viewModel.top
+  } })} options={{ audioEnabled: false }} />);
+  const marker = await screen.findByLabelText("Turn 3, Priority");
+  expect(marker).toHaveAttribute("data-player-color", color);
+  expect(marker).toHaveTextContent(name);
+  expect(screen.getByLabelText(/Local, 34 life/)).toHaveAttribute("data-player-color", "blue");
+  expect(screen.getByLabelText(/Opponent, 27 life/)).toHaveAttribute("data-player-color", "red");
+});
+
 test("preserves the scene but disables commands while disconnected", async () => {
   render(
     <ProductionMatchExperience
