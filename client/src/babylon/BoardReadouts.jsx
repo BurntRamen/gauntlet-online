@@ -51,6 +51,11 @@ export function boardReadoutLayout(width, height, profileId, ledger) {
     if (covered.length) {
       const shift = Math.max(...covered.map((point) => ledger.bottom + 32 - point.top));
       pair.forEach((point) => { point.top += shift; });
+      // A taller log can push counters into lane three. Use the outer gutter
+      // when it has room for the pair, keeping the tactical lanes clear.
+      if (!compact && owner === "opponent" && width - project(board.bounds.right, 0).left >= 164) {
+        pair[0].left = rightGutter + 39; pair[1].left = rightGutter - 39;
+      }
     }
   }
   return {

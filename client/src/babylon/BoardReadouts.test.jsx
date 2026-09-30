@@ -50,3 +50,9 @@ test("opponent counters stay below a play-order panel that would cover their lab
   expect(layout.piles.opponentDeck.top - 28).toBeGreaterThan(ledger.bottom);
   expect(layout.piles.opponentDiscard.top - 28).toBeGreaterThan(ledger.bottom);
 });
+
+test("a taller play-order panel moves covered counters into the gutter, clear of lane three", () => {
+  const layout = boardReadoutLayout(1340, 442, undefined, { left: 900, right: 1340, bottom: 145 });
+  expect(layout.piles.opponentDiscard.left - 36).toBeGreaterThan(layout.lanes[2].left + 38);
+  expect(layout.piles.opponentDeck.top - 28).toBeGreaterThan(145);
+});
