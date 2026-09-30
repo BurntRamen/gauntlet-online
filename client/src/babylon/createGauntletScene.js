@@ -287,82 +287,95 @@ function createCardBackTexture(scene) {
   return texture;
 }
 
-function createZoneLabelTexture(scene, name, label, accent = MATCH_COLORS.bronze) {
-  const texture = new DynamicTexture(name, { width: 256, height: 256 }, scene, true);
-  texture.hasAlpha = true;
-  const context = texture.getContext();
-  context.scale(2, 2);
-  context.clearRect(0, 0, 128, 128);
-  context.strokeStyle = accent;
-  context.lineWidth = 2;
-  context.beginPath();
-  context.moveTo(32, 108);
-  context.lineTo(96, 108);
-  context.stroke();
-  context.fillStyle = accent;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.font = "700 64px Arial";
-  context.fillText(label, 64, 57);
-  texture.update(true);
-  return texture;
-}
-
-function createPaymentStatusPanel(scene, { x, y, z }) {
-  const texture = new DynamicTexture("payment-status-texture", { width: 1024, height: 192 }, scene, true);
-  texture.hasAlpha = true;
-  const material = new StandardMaterial("payment-status-material", scene);
+function createBoardInscription(scene, name, { x, y, z, width, depth, palette }) {
+  // A recessed enamel face on a bevelled metal mounting, in the board's world space.
+  createChamferedPlate(scene, `${name}-mount`, {
+    width: width + 0.16, depth: depth + 0.16, height: 0.13,
+    cornerCut: 0.12, bevel: 0.04, material: palette.bronze,
+    position: { x, y: y - 0.075, z }
+  });
+  const texture = new DynamicTexture(`${name}-texture`, { width: width < 3 ? 768 : 1536, height: width < 3 ? 768 : 384 }, scene, true);
+  texture.anisotropicFilteringLevel = 8;
+  const material = new StandardMaterial(`${name}-material`, scene);
   material.disableLighting = true;
   material.diffuseColor = Color3.White();
-  material.emissiveColor = color("#f0d39b");
+  material.emissiveColor = Color3.White();
   material.specularColor = Color3.Black();
   material.diffuseTexture = texture;
-  material.opacityTexture = texture;
-  material.useAlphaFromDiffuseTexture = true;
   material.backFaceCulling = false;
-  const face = CreatePlane("payment-status-panel", { width: 5.45, height: 1.02 }, scene);
+  const face = CreatePlane(name, { width, height: depth }, scene);
   face.rotation.x = Math.PI / 2;
   face.position.set(x, y, z);
   face.material = material;
   face.isPickable = false;
-  let signature = "";
+  return { face, texture };
+}
 
-  function setState({ state = "idle", total = 0, required = 0, remaining = 0 } = {}) {
-    const nextSignature = `${state}:${total}:${required}:${remaining}`;
+function createLaneReadout(scene, index, x, palette) {
+  const { face, texture } = createBoardInscription(scene, `lane-label-${index}`, {
+    x: x + 2.02, y: 0.49, z: MATCH_LAYOUT.anchors.resolution,
+    width: 1.95, depth: 2.1, palette
+  });
+  let signature = "";
+  const labels = { idle: "", legal: "AVAILABLE", active: "SELECTED", opposed: "ATTACK", blocked: "BLOCKED", resolving: "RESOLVING" };
+  function setState({ state = "idle", attack = null, light = false } = {}) {
+    const block = (attack?.blocks || []).reduce((total, entry) => total + Number(entry.value || 0), 0);
+    const nextSignature = `${state}:${attack?.value}:${block}:${light}`;
     if (nextSignature === signature) return;
     signature = nextSignature;
     const context = texture.getContext();
-    context.clearRect(0, 0, 1024, 192);
-    context.fillStyle = "rgba(5, 12, 19, 0.96)";
-    context.fillRect(3, 3, 1018, 186);
-    context.strokeStyle = state === "active" ? "#e6b961" : "#8f6d3e";
-    context.lineWidth = state === "active" ? 8 : 5;
-    context.strokeRect(6, 6, 1012, 180);
+    context.fillStyle = light ? "#f6f0df" : "#101c24";
+    context.fillRect(0, 0, 768, 768);
     context.textBaseline = "middle";
-    context.textAlign = "left";
-    context.fillStyle = "#f0d39b";
-    context.font = "900 43px Arial";
-    context.fillText("PAYMENT CARDS", 34, 61);
-    context.fillStyle = "#b9c7d2";
-    context.font = "700 24px Arial";
-    const instruction = state === "active"
-      ? remaining > 0
-        ? `SELECT CARDS WORTH ${remaining} MORE`
-        : "COST MET • CONFIRM ACTION"
-      : state === "committed" || state === "resolving"
-        ? "COMMITTED PAYMENT"
-        : "SELECT CARDS HERE TO PAY AN ACTION COST";
-    context.fillText(instruction, 34, 132);
-    context.textAlign = "right";
-    context.fillStyle = state === "active" && remaining === 0 ? "#75d6a6" : "#fff1d0";
-    context.font = "900 68px Georgia";
-    context.fillText(required > 0 ? `${total} / ${required}` : "READY", 986, 75);
-    context.fillStyle = "#9aaebe";
-    context.font = "800 20px Arial";
-    context.fillText(required > 0 ? "PAID / COST" : "WAITING", 986, 143);
+    context.textAlign = "center";
+    context.fillStyle = light ? "#293d4a" : "#f4e7cc";
+    context.font = "900 146px Arial";
+    context.fillText("LANE", 384, 108);
+    context.font = `900 ${attack ? 300 : 390}px Arial`;
+    context.fillText(String(index + 1), 384, attack ? 315 : 363);
+    context.fillStyle = state === "idle" ? (light ? "#8a6a35" : "#be9655")
+      : light ? "#15547c" : LANE_STATE_LIGHTS[state]?.tint || "#ffffff";
+    context.fillRect(50, attack ? 488 : 569, 668, 18);
+    context.font = "900 126px Arial";
+    context.fillText(attack ? `ATK ${attack.value}` : labels[state] || "", 384, attack ? 576 : 663, 704);
+    if (attack) {
+      context.font = "900 110px Arial";
+      context.fillText(`BLK ${block}`, 384, 701, 704);
+    }
     texture.update(true);
   }
+  setState();
+  return { face, setState };
+}
 
+function createPaymentStatusPanel(scene, { x, y, z, palette }) {
+  const { face, texture } = createBoardInscription(scene, "payment-status-panel", {
+    x, y, z, width: 5.45, depth: 1.6, palette
+  });
+  let signature = "";
+  function setState({ state = "idle", total = 0, required = 0, remaining = 0, light = false } = {}) {
+    const nextSignature = `${state}:${total}:${required}:${remaining}:${light}`;
+    if (nextSignature === signature) return;
+    signature = nextSignature;
+    const context = texture.getContext();
+    context.fillStyle = light ? "#f6f0df" : "#101c24";
+    context.fillRect(0, 0, 1536, 384);
+    context.textBaseline = "middle";
+    context.textAlign = "left";
+    context.fillStyle = light ? "#293d4a" : "#f4e7cc";
+    context.font = "900 116px Arial";
+    context.fillText("PAYMENT", 56, 155);
+    context.textAlign = "right";
+    context.fillStyle = state === "active" && remaining === 0 ? (light ? "#14603d" : "#8df0b8") : (light ? "#142432" : "#ffffff");
+    context.font = "900 188px Arial";
+    context.fillText(state !== "idle" ? `${total}/${required}` : "READY", 1480, 155, 730);
+    context.textAlign = "left";
+    context.font = "800 98px Arial";
+    const instruction = state === "active" ? (remaining > 0 ? `${remaining} MORE NEEDED` : "COST MET")
+      : state === "idle" ? "" : "COMMITTED";
+    context.fillText(instruction, 56, 310, 1420);
+    texture.update(true);
+  }
   setState();
   return { face, texture, setState };
 }
@@ -563,11 +576,6 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
 }
 
 export function createGauntletScene(engine, canvas, commands = {}) {
-  function replaceWorldReadout(mesh) {
-    if (!commands.screenReadouts) return;
-    mesh.metadata = { ...mesh.metadata, screenReadoutReplaced: true };
-    mesh.setEnabled(false);
-  }
   let theme = battlefieldTheme(commands.battlefieldTheme);
   const babylonScene = new Scene(engine);
   const sceneInstrumentation = new SceneInstrumentation(babylonScene);
@@ -1030,6 +1038,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   materials.cardBack.specularColor = color("#7e6744");
 
   const laneMeshes = [];
+  const laneReadouts = [];
   const laneRails = [];
   const laneStateLights = [];
   const laneStateMasks = [];
@@ -1235,22 +1244,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       palette: nativePalette
     });
 
-    const laneLabel = CreatePlane(`lane-label-${index}`, {
-      width: 1.1,
-      height: 0.55
-    }, babylonScene);
-    laneLabel.position = new Vector3(laneX + 2.05, 0.49, MATCH_LAYOUT.anchors.resolution);
-    laneLabel.rotation.x = Math.PI / 2;
-    laneLabel.material = materialFromTexture(
-      babylonScene,
-      `lane-label-material-${index}`,
-      createZoneLabelTexture(babylonScene, `lane-label-texture-${index}`, String(index + 1), "#e6e1d1"),
-      "#07111c"
-    );
-    laneLabel.material.emissiveColor = color("#101d27");
-    laneLabel.visibility = 0.8;
-    laneLabel.isPickable = false;
-    replaceWorldReadout(laneLabel);
+    laneReadouts.push(createLaneReadout(babylonScene, index, laneX, nativePalette));
   });
 
   const handCombatMaterial = nativePalette.steelDark;
@@ -1473,9 +1467,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   const paymentStatusPanel = createPaymentStatusPanel(babylonScene, {
     x: MATCH_LAYOUT.payment.x,
     y: 0.5,
-    z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.42
+    z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.92,
+    palette: nativePalette
   });
-  replaceWorldReadout(paymentStatusPanel.face);
 
   const pileDockMeshes = new Map();
   const discardHitMeshes = [];
@@ -1559,9 +1553,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       size: 0.1,
       palette: nativePalette
     });
-    const medallionZ = position.z - dimensions.depth / 2 - 0.46;
+    const medallionZ = position.z - dimensions.depth / 2 + 0.18;
     createChamferedPlate(babylonScene, `pile-medallion-${name}-bridge`, {
-      width: 0.86,
+      width: 1.25,
       height: 0.13,
       depth: 0.92,
       cornerCut: 0.2,
@@ -1571,9 +1565,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     });
     const dial = createBoardDial(babylonScene, `pile-medallion-${name}`, {
       x: position.x,
-      y: 0.3,
+      y: 0.52,
       z: medallionZ,
-      diameter: 1.28,
+      diameter: 1.94,
       label: isDiscard ? "Discard" : "Deck",
       value: "0",
       accent: isDiscard ? MATCH_COLORS.bronze : MATCH_COLORS.blue,
@@ -1581,7 +1575,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     });
     pileDockMeshes.set(name, { dock, dial });
-    replaceWorldReadout(dial.face);
   });
 
   const combatDials = {
@@ -1589,7 +1582,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       x: -6.28,
       y: MATCH_LAYOUT.handCombat.y + 0.36,
       z: MATCH_LAYOUT.handCombat.z,
-      diameter: 0.94,
+      diameter: 2.05,
       label: "Attack",
       value: "—",
       accent: MATCH_COLORS.blue,
@@ -1597,10 +1590,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     }),
     block: createBoardDial(babylonScene, "hand-combat-block-dial", {
-      x: 6.28,
+      x: 5.58,
       y: MATCH_LAYOUT.handCombat.y + 0.36,
       z: MATCH_LAYOUT.handCombat.z,
-      diameter: 0.94,
+      diameter: 2.05,
       label: "Block",
       value: "—",
       accent: MATCH_COLORS.danger,
@@ -1608,8 +1601,6 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     })
   };
-
-  Object.values(combatDials).forEach((dial) => replaceWorldReadout(dial.face));
 
   function createPresentationLight(name, { x, y, z, width, height, tint, fallbackMaterial }) {
     const maskMaterial = new StandardMaterial(`${name}-mask-material`, babylonScene);
@@ -1864,7 +1855,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     authoredModuleRoots = [];
     nativeBoardStage?.resetAuthoredRoots?.();
     babylonScene.meshes.forEach((mesh) => {
-      if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(!mesh.metadata.screenReadoutReplaced);
+      if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(true);
     });
     loadAuthoredPresentationModules(
       babylonScene,
@@ -1964,12 +1955,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       tableSurfaceMaterial.specularColor = color(theme.tableSpecular);
       tableSurfaceMaterial.diffuseTexture = theme.light ? null : tableSurfaceTexture;
       tableSurfaceMaterial.emissiveTexture = theme.light ? null : tableSurfaceTexture;
+      Object.values(combatDials).forEach((dial) => dial.setAppearance({ light: Boolean(theme.light) }));
+      pileDockMeshes.forEach(({ dial }) => dial.setAppearance({ light: Boolean(theme.light) }));
+      laneReadouts.forEach((readout, index) => readout.setState({
+        ...currentBoardPresentation?.lanes[index],
+        attack: currentViewModel?.attacks?.find((entry) => entry.laneIndex != null && Number(entry.laneIndex) === index),
+        light: Boolean(theme.light)
+      }));
+      paymentStatusPanel.setState({ ...currentBoardPresentation?.payment, light: Boolean(theme.light) });
     }
     cardBackSlot.setPath(options.cardBackAsset || MATCH_ASSETS.cardBack);
   }
-  updatePresentation(commands);
   let currentViewModel = null;
   let currentBoardPresentation = null;
+  updatePresentation(commands);
   let responsiveRecompose = false;
   let lastHandRailVersion = null;
   let lastHandRailEnabled = false;
@@ -2772,13 +2771,20 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     handCombatRails.forEach((rail) => {
       rail.visibility = focus.region === "combat" ? 0.72 : 0.46;
     });
-    ui.combatAttackValue.setValue(String(currentBoardPresentation.combat.attackValue || "—"));
-    ui.combatBlockValue.setValue(String(currentBoardPresentation.combat.blockValue || "—"));
+    ui.combatAttackValue.setValue(handCombatActive ? String(currentBoardPresentation.combat.attackValue) : "—");
+    ui.combatBlockValue.setValue(handCombatActive ? String(currentBoardPresentation.combat.blockValue) : "—");
+    const ownerAccent = (player) => Number(player) === 1 ? (theme.light ? "#145ca4" : "#69b9ff") : (theme.light ? "#b52940" : "#ff7183");
+    const attacker = viewModel.handAttacks[0]?.owner;
+    ui.combatAttackValue.setAppearance({ accent: ownerAccent(attacker) });
+    ui.combatBlockValue.setAppearance({ accent: ownerAccent(Number(attacker) === 1 ? 2 : 1) });
     ui.combatAttackValue.setActive(handCombatActive);
     ui.combatBlockValue.setActive(Boolean(currentBoardPresentation.combat.blockValue));
-    ui.paymentReadout.setState(currentBoardPresentation.payment);
+    ui.paymentReadout.setState({ ...currentBoardPresentation.payment, light: Boolean(theme.light) });
     Object.entries(currentBoardPresentation.piles).forEach(([pile, count]) => {
-      if (ui.pileCounts[pile]) ui.pileCounts[pile].setValue(String(count));
+      if (ui.pileCounts[pile]) {
+        ui.pileCounts[pile].setValue(String(count));
+        ui.pileCounts[pile].setAppearance({ accent: ownerAccent(pile.startsWith("local") ? bottom?.id : top?.id) });
+      }
     });
     paymentPlate.visibility = focus.region === "payment" ? 1 : focusedAction ? 0.62 : 0.82;
     paymentStateLight.visibility = viewModel.payment.active || resolvedPayment || replayPaymentCount ? 0.46 : 0;
@@ -2845,6 +2851,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
           rail.visibility = baseVisibility * (unrelatedLane ? 0.42 : unrelatedRegion ? 0.68 : 1);
         });
       const state = currentBoardPresentation.lanes[index].state;
+      laneReadouts[index].setState({ state, attack: laneAttack, light: Boolean(theme.light) });
       const lightConfig = LANE_STATE_LIGHTS[state] || LANE_STATE_LIGHTS.idle;
       const stateTexture = presentationMaskTextures.get(lightConfig.assetId) || null;
       laneStateMasks[index].material.diffuseTexture = stateTexture;

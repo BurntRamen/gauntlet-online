@@ -4,7 +4,6 @@ import DialoguePlaybackControls, { DialogueVoiceButton } from "../DialoguePlayba
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
-import BoardReadouts from "./BoardReadouts";
 import GameIcon from "./GameIcon";
 import { cardDetails, selectedCardPreview } from "./cardDetails";
 import { matchDescriptorLabel } from "./matchDescriptor";
@@ -1853,7 +1852,6 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
             colorTheme={colorTheme}
-            screenReadouts
             cardBackAsset={options.cardBackAsset}
             handRailPresentation={phoneHandActive ? handRailRef : null}
             interactionStatus={transportUpdate?.connected === false
@@ -1864,8 +1862,6 @@ export default function ProductionMatchExperience({
             capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
           />
-          <BoardReadouts viewModel={canvasViewModel || visualViewModel}
-            layoutProfile={phoneHandActive ? handRailRef.current.layoutProfile : undefined} commands={interactionCommands} />
           {!phoneHandActive && visualViewModel.mode === "factions" && (
             <FactionBoardCards key={`${viewModel.matchId}:${visualViewModel.bottom?.id}`}
               faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}

@@ -79,7 +79,7 @@ function focusForPresentation(viewModel, activeCue) {
 function laneState(viewModel, lane, index, activeCue) {
   const legal = (viewModel?.interactions?.legalLanes || []).includes(index);
   const highlighted = (viewModel?.interactions?.highlightedLanes || []).includes(index);
-  const attack = (viewModel?.attacks || []).find((entry) => Number(entry.laneIndex) === index);
+  const attack = (viewModel?.attacks || []).find((entry) => entry.laneIndex != null && Number(entry.laneIndex) === index);
   const blocked = Boolean(attack?.blocks?.length || lane?.blocks?.length);
   const rawCueLane = activeCue?.target?.laneIndex;
   const cueLane = Number(rawCueLane);
