@@ -22,7 +22,7 @@ test("missing and broken collector images retain faction artwork and playing-car
   expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/frumo-card.webp");
 });
 
-test("registered cards show the full-art face for the selected replacement suit", () => {
+test("registered cards show the full-art face for their fixed replacement suit", () => {
   const { rerender } = render(<SpecialCardFace card={{ id: "rumin-gilded-scale-legionary", name: "Gilded Scale Legionary", value: 3, suit: "hearts" }} />);
   expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp?v=2");
   rerender(<SpecialCardFace card={{ id: "rumin-gilded-scale-legionary", name: "Gilded Scale Legionary", value: 3, suit: "clubs" }} />);

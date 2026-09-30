@@ -195,7 +195,7 @@ test("free-for-all completion archives replay frames with the authoritative matc
   assert.equal(room.game.matchId, room.matchMetadata.matchId);
   for (const player of Object.values(room.game.players)) {
     for (const card of [...player.hand, ...player.deck]) {
-      assert.ok(["♠", "♥", "♦", "♣"].includes(card.suit));
+      assert.ok(["spades", "hearts", "diamonds", "clubs"].includes(card.suit));
     }
   }
   room.game.phase = "gameOver";

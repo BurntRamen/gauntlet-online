@@ -45,8 +45,8 @@ function deckPayload(collectorVariantSelections = {}) {
   return {
     name: "Fair Play Guard",
     factionId: "rumin",
-    gameplayCardQuantities: { [GAMEPLAY_CARD_ID]: 2 },
-    cardSuitChoices: { [GAMEPLAY_CARD_ID]: ["spades", "hearts"] },
+    gameplayCardQuantities: { [GAMEPLAY_CARD_ID]: 1 },
+    cardSuitChoices: { [GAMEPLAY_CARD_ID]: ["spades"] },
     collectorVariantSelections
   };
 }
@@ -146,8 +146,9 @@ test("legacy account collections and constructed decks normalize deterministical
   assert.equal(firstLibrary.schemaVersion, 2);
   assert.deepEqual(secondLibrary, firstLibrary);
   const playable = getSavedConstructedDeck(stats);
-  assert.equal(playable.replacementCount, 2);
-  assert.deepEqual(playable.gameplayCardQuantities, { [GAMEPLAY_CARD_ID]: 2 });
+  assert.equal(playable.replacementCount, 1);
+  assert.deepEqual(playable.gameplayCardQuantities, { [GAMEPLAY_CARD_ID]: 1 });
+  assert.deepEqual(playable.cardSuitChoices, { [GAMEPLAY_CARD_ID]: ["spades"] });
   assert.equal(playable.collectorVariantSelections[GAMEPLAY_CARD_ID], `${GAMEPLAY_CARD_ID}:standard`);
   assert.match(firstLibrary.decks[0].versions[0].gameplayConfigurationHash, /^[0-9a-f]{64}$/);
   assert.match(firstLibrary.decks[0].versions[0].collectorConfigurationHash, /^[0-9a-f]{64}$/);
@@ -190,9 +191,9 @@ test("paid collector ownership cannot change authoritative competitive capabilit
   assert.notDeepEqual(unpaidDeck.cards[0].collector, paidDeck.cards[0].collector);
 
   const tooMany = deckPayload();
-  tooMany.gameplayCardQuantities[GAMEPLAY_CARD_ID] = 3;
-  assert.throws(() => validateConstructedDeckPayload(unpaidStats, tooMany), /earned 2 gameplay copies/);
-  assert.throws(() => validateConstructedDeckPayload(paidStats, tooMany), /earned 2 gameplay copies/);
+  tooMany.gameplayCardQuantities[GAMEPLAY_CARD_ID] = 2;
+  assert.throws(() => validateConstructedDeckPayload(unpaidStats, tooMany), /occupies only the 3 of spades/);
+  assert.throws(() => validateConstructedDeckPayload(paidStats, tooMany), /occupies only the 3 of spades/);
 
   const unpaidGame = makeSemanticGame(unpaidDeck.cards[0]);
   const paidGame = makeSemanticGame(paidDeck.cards[0]);

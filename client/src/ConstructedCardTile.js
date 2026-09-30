@@ -11,13 +11,10 @@ export default function ConstructedCardTile({
   valueCount,
   maxReplacementsPerValue,
   canAdd,
-  suitChoices,
-  replacementSuits,
   inspected = false,
   onInspect,
   onQuantityChange,
-  onVariantChange,
-  onSuitChange
+  onVariantChange
 }) {
   const selectedVariant = availableVariants.find((variant) => variant.variantId === selectedVariantId)
     || availableVariants[0]
@@ -40,7 +37,7 @@ export default function ConstructedCardTile({
       aria-label={`${card.name} deck-building card`}
     >
       <div className="constructed-card-art">
-        <SpecialCardFace card={{ ...card, suit: suitChoices?.[0] || card.suit }} art={art} />
+        <SpecialCardFace card={card} art={art} />
       </div>
 
       <div className="constructed-card-content">
@@ -65,25 +62,7 @@ export default function ConstructedCardTile({
           </div>
         </div>
 
-        {selected && (
-          <div className="constructed-card-suits">
-            <span>Replacing</span>
-            <div>
-              {Array.from({ length: count }, (_, copyIndex) => (
-                <label key={`${card.id}-suit-${copyIndex}`}>
-                  <span className="sr-only">{card.name} replacement suit {copyIndex + 1}</span>
-                  <select
-                    value={suitChoices[copyIndex]}
-                    onChange={(event) => onSuitChange(copyIndex, event.target.value)}
-                    aria-label={`${card.name} replacement suit ${copyIndex + 1}`}
-                  >
-                    {replacementSuits.map((suit) => <option key={suit.id} value={suit.id}>{suit.label}</option>)}
-                  </select>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
+        {selected && <div className="constructed-card-suits"><span>Fixed slot</span><strong>{card.value} of {card.suit}</strong></div>}
 
         {availableVariants.length > 0 && (
           <details className="constructed-card-presentation">

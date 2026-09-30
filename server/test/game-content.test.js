@@ -36,6 +36,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.collectorVariants.length, COLLECTOR_VARIANTS.length);
   assert.equal(content.deckRules.basePlayingDeckSize, 52);
   assert.equal(content.deckRules.basePlayingDeckSize, DECK_RULES.replacementSuits.length * DECK_RULES.playingDeckValues.length);
+  assert.equal(content.deckRules.fixedReplacementSlots, true);
 });
 
 test("gives every playable faction a complete standard 52-card deck", () => {
@@ -126,6 +127,22 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
     assert.equal(cards.filter((card) => card.type === "servitor").length, 10);
     assert.equal(cards.filter((card) => card.type === expectedType).length, 8);
     assert.deepEqual([...new Set(cards.map((card) => card.type))].sort(), [expectedType, "servitor"].sort());
+  }
+});
+
+test("assigns every constructed card one unique, balanced rank-and-suit slot", () => {
+  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS]) {
+    const slots = cards.map((card) => `${card.value}:${card.suit}`);
+    assert.equal(new Set(slots).size, cards.length);
+    assert.equal(cards.every((card) => ["spades", "hearts", "diamonds", "clubs"].includes(card.suit)), true);
+    assert.equal(cards.every((card) => card.replacementSuit === card.suit), true);
+    const suitCounts = Object.fromEntries(["spades", "hearts", "diamonds", "clubs"].map((suit) => [
+      suit,
+      cards.filter((card) => card.suit === suit).length
+    ]));
+    assert.equal(Math.max(...Object.values(suitCounts)) - Math.min(...Object.values(suitCounts)) <= 1, true);
+    assert.equal(new Set(cards.filter((card) => card.type === "servitor").map((card) => card.suit)).size, 4);
+    assert.equal(new Set(cards.filter((card) => card.type !== "servitor").map((card) => card.suit)).size, 4);
   }
 });
 

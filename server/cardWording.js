@@ -3,6 +3,7 @@
 // Presentation only. Full rules and the duel engine remain authoritative.
 const WORDING_VERSION = "card-wording-v1";
 const CONVENTIONS = [
+  "Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.",
   "Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes and Contraptions enter a lane's support slot and remain there until their text or another rule removes them.",
   "Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.",
   "First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.",

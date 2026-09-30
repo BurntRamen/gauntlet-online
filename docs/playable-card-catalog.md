@@ -1,8 +1,8 @@
 # Playable card catalog
 
-Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v11` and rules version `gauntlet-rules-v3`.
+Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v12` and rules version `gauntlet-rules-v4`.
 
-Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Constructed cards replace matching standard slots; they do not increase the deck above 52 cards.
+Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Every faction card has one fixed rank-and-suit slot and replaces that exact standard card; players cannot reassign its suit, and the deck always remains 52 cards.
 
 For Rumin, Sheen, Frumo, and Bizi, each 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, and Contraptions occupy a separate lane support slot and remain until their rules remove them.
 
@@ -24,26 +24,26 @@ Edit Commander, General, and City definitions in `server/gameContent.js`. The Le
 
 ### Constructed replacement cards
 
-| Value | Type | Name | Card ID | Rules text |
+| Slot | Type | Name | Card ID | Rules text |
 |---:|---|---|---|---|
-| 3 | armament | Capital Investment Spear | `rumin-gilded-scale-legionary` | Arm from a lane: attach to a hand attacker. If a diamond was paid this turn, that attacker gets +2 value this combat, then discard this. |
-| 2 | servitor | Rumin Scout | `rumin-forum-ledger-runner` | If this is your first attack this turn, you may treat one payment card as +1 value. |
-| 4 | servitor | Rumin Sentry | `rumin-vault-shield-bearer` | When blocking, prevent 1 damage if you overpaid for this block. |
-| 4 | armament | Dividend Yield Blade | `rumin-coin-scale-spear` | Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this. |
-| 5 | servitor | Rumin Warrior | `rumin-senate-vault-guard` | The first time each turn you overpay for this by 2 or more, gain 1 life. |
-| 6 | armament | Corporate Banner | `rumin-marble-market-tribune` | While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value. |
-| 6 | armament | Shareholder's Shield | `rumin-rumie-vault-shield` | Arm from lane: attach to a hand attacker. It gets +3 value this combat, then discard this. |
-| 5 | armament | Profit Margin Spear | `rumin-imperial-scale-pike` | Arm from lane: attach to a hand attacker. It gets +2 value, or +4 if it shares a suit with your previous attack. |
-| 7 | armament | Executive Authority Blade | `rumin-aurelian-clawblade` | Arm from lane: attach to a hand attacker. It gets +4 value this combat. If you overpaid by 2 or more, gain 1 life. |
-| 6 | servitor | Colosseum Duelist | `rumin-basilisk-standard` | Your fourth attack each turn gets +2 additional value if an armament is armed to it. |
-| 5 | servitor | Rumin Military Advisor | `rumin-jewel-bank-contract` | After this attacks or blocks, the next Rumin attack this turn may treat its single payment card as +2 value. |
-| 2 | servitor | Rumin Javelineer | `rumin-tax-road-scout` | If this is your first attack this turn, it costs 1 less to play. |
-| 5 | servitor | Rumin Shieldmaster | `rumin-marble-phalanx` | When this blocks from a lane, it gets +2 value. |
-| 7 | servitor | Rumin Business Analyst | `rumin-counting-house-aegis` | The first time each turn you overpay for a Rumin card by 2 or more, gain 1 life. |
-| 8 | armament | Asset Crusher | `rumin-triumphal-ram` | Arm from lane: attach to a hand attacker. It gets +4 value, or +5 if the attacker has value 8 or more. |
-| 8 | servitor | Rumin Legatus | `rumin-edict-of-the-vault` | When paid for your fourth attack this turn, this pays +3 additional value. |
-| 9 | armament | Unstoppable Investment Lance | `rumin-kaisers-gold-claw` | Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn. |
-| 10 | servitor | Rumin Warlord | `rumin-rumie-market-colossus` | When this attacks, each eligible Rumin armament you control in a lane may arm to it. Each armed armament gives an extra +1 value. |
+| 3♠ | armament | Capital Investment Spear | `rumin-gilded-scale-legionary` | Arm from a lane: attach to a hand attacker. If a diamond was paid this turn, that attacker gets +2 value this combat, then discard this. |
+| 2♥ | servitor | Rumin Scout | `rumin-forum-ledger-runner` | If this is your first attack this turn, you may treat one payment card as +1 value. |
+| 4♦ | servitor | Rumin Sentry | `rumin-vault-shield-bearer` | When blocking, prevent 1 damage if you overpaid for this block. |
+| 4♣ | armament | Dividend Yield Blade | `rumin-coin-scale-spear` | Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this. |
+| 5♠ | servitor | Rumin Warrior | `rumin-senate-vault-guard` | The first time each turn you overpay for this by 2 or more, gain 1 life. |
+| 6♥ | armament | Corporate Banner | `rumin-marble-market-tribune` | While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value. |
+| 6♦ | armament | Shareholder's Shield | `rumin-rumie-vault-shield` | Arm from lane: attach to a hand attacker. It gets +3 value this combat, then discard this. |
+| 5♣ | armament | Profit Margin Spear | `rumin-imperial-scale-pike` | Arm from lane: attach to a hand attacker. It gets +2 value, or +4 if it shares a suit with your previous attack. |
+| 7♠ | armament | Executive Authority Blade | `rumin-aurelian-clawblade` | Arm from lane: attach to a hand attacker. It gets +4 value this combat. If you overpaid by 2 or more, gain 1 life. |
+| 6♣ | servitor | Colosseum Duelist | `rumin-basilisk-standard` | Your fourth attack each turn gets +2 additional value if an armament is armed to it. |
+| 5♦ | servitor | Rumin Military Advisor | `rumin-jewel-bank-contract` | After this attacks or blocks, the next Rumin attack this turn may treat its single payment card as +2 value. |
+| 2♣ | servitor | Rumin Javelineer | `rumin-tax-road-scout` | If this is your first attack this turn, it costs 1 less to play. |
+| 5♥ | servitor | Rumin Shieldmaster | `rumin-marble-phalanx` | When this blocks from a lane, it gets +2 value. |
+| 7♥ | servitor | Rumin Business Analyst | `rumin-counting-house-aegis` | The first time each turn you overpay for a Rumin card by 2 or more, gain 1 life. |
+| 8♦ | armament | Asset Crusher | `rumin-triumphal-ram` | Arm from lane: attach to a hand attacker. It gets +4 value, or +5 if the attacker has value 8 or more. |
+| 8♠ | servitor | Rumin Legatus | `rumin-edict-of-the-vault` | When paid for your fourth attack this turn, this pays +3 additional value. |
+| 9♠ | armament | Unstoppable Investment Lance | `rumin-kaisers-gold-claw` | Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn. |
+| 10♥ | servitor | Rumin Warlord | `rumin-rumie-market-colossus` | When this attacks, each eligible Rumin armament you control in a lane may arm to it. Each armed armament gives an extra +1 value. |
 
 ## Sheen
 
@@ -61,26 +61,26 @@ Edit Commander, General, and City definitions in `server/gameContent.js`. The Le
 
 ### Constructed replacement cards
 
-| Value | Type | Name | Card ID | Rules text |
+| Slot | Type | Name | Card ID | Rules text |
 |---:|---|---|---|---|
-| 3 | servitor | Verdant Guardian | `sheen-rootwatch-initiate` | When this blocks, it gets +1 value if you have already blocked this turn. |
-| 4 | servitor | Harmonic Warden | `sheen-quiet-grove-sentinel` | If this prevents all damage from an attack, gain 1 life. |
-| 2 | servitor | Starroot Observer | `sheen-mossbound-staff` | When paid for a block, the first blocking card gets +1 value. |
-| 5 | servitor | Greenhouse Guardian | `sheen-living-bark-guard` | This may block hand attacks as though it had +1 value. |
-| 5 | shelter | Entwined Thicket | `sheen-beli-vinebinder` | While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value. |
-| 4 | shelter | Harmony Lab | `sheen-harmony-ward` | While Harmony Lab occupies a support slot, your second and each later block during the turn gets +1 value. |
-| 6 | servitor | Thorn Weaver | `sheen-thornroot-counterstroke` | If you took no damage this turn, this gets +2 value while attacking. |
-| 6 | shelter | Verdant Canopy | `sheen-beli-canopy-shield` | While Verdant Canopy occupies a support slot, once each turn after you block, prevent 1 additional damage from that attack. |
-| 7 | shelter | Verdant Dome | `sheen-nus-verdant-edict` | While Verdant Dome occupies a support slot, your third block during the turn gets +1 additional value. |
-| 5 | shelter | Eternal Archive | `sheen-roots-that-remember` | While Eternal Archive occupies a support slot, whenever you gain life from blocking, your next block that turn gets +1 value. |
-| 6 | shelter | Meditation Retreat | `sheen-tangs-patient-hand` | While Meditation Retreat occupies a support slot, after your second block each turn, gain 1 life and draw one extra card at the end of the turn. |
-| 2 | servitor | Root Guardian | `sheen-seedwall-acolyte` | When this blocks the first incoming attack each turn, it gets +1 value. |
-| 4 | servitor | Sheen Mender | `sheen-raincall-mender` | After this blocks, gain 1 life if you took no damage from that attack. |
-| 7 | servitor | Oakheart Sentinel | `sheen-ringroot-bastion` | When this blocks from a lane, it gets +2 value. |
-| 3 | servitor | Goldenbloom Sower | `sheen-sapling-chorus` | When paid for your second or later block each turn, that blocker gets +1 value. |
-| 8 | servitor | Concordant Elder | `sheen-nus-calm-command` | If you have blocked three or more times this turn, this attacks with +3 value. |
-| 9 | shelter | Evergreen Arbor | `sheen-emperors-heartwood` | While Evergreen Arbor occupies a support slot, each of your blocking cards gets +1 value; on your third and later blocks each turn, also gain 1 life. |
-| 10 | shelter | Vital Grove | `sheen-beli-awakened` | While Vital Grove occupies a support slot, after you block without taking damage, you may give your next attack that turn +3 value. |
+| 3♥ | servitor | Verdant Guardian | `sheen-rootwatch-initiate` | When this blocks, it gets +1 value if you have already blocked this turn. |
+| 4♦ | servitor | Harmonic Warden | `sheen-quiet-grove-sentinel` | If this prevents all damage from an attack, gain 1 life. |
+| 2♣ | servitor | Starroot Observer | `sheen-mossbound-staff` | When paid for a block, the first blocking card gets +1 value. |
+| 5♠ | servitor | Greenhouse Guardian | `sheen-living-bark-guard` | This may block hand attacks as though it had +1 value. |
+| 5♥ | shelter | Entwined Thicket | `sheen-beli-vinebinder` | While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value. |
+| 4♣ | shelter | Harmony Lab | `sheen-harmony-ward` | While Harmony Lab occupies a support slot, your second and each later block during the turn gets +1 value. |
+| 6♠ | servitor | Thorn Weaver | `sheen-thornroot-counterstroke` | If you took no damage this turn, this gets +2 value while attacking. |
+| 6♦ | shelter | Verdant Canopy | `sheen-beli-canopy-shield` | While Verdant Canopy occupies a support slot, once each turn after you block, prevent 1 additional damage from that attack. |
+| 7♥ | shelter | Verdant Dome | `sheen-nus-verdant-edict` | While Verdant Dome occupies a support slot, your third block during the turn gets +1 additional value. |
+| 5♦ | shelter | Eternal Archive | `sheen-roots-that-remember` | While Eternal Archive occupies a support slot, whenever you gain life from blocking, your next block that turn gets +1 value. |
+| 6♣ | shelter | Meditation Retreat | `sheen-tangs-patient-hand` | While Meditation Retreat occupies a support slot, after your second block each turn, gain 1 life and draw one extra card at the end of the turn. |
+| 2♠ | servitor | Root Guardian | `sheen-seedwall-acolyte` | When this blocks the first incoming attack each turn, it gets +1 value. |
+| 4♥ | servitor | Sheen Mender | `sheen-raincall-mender` | After this blocks, gain 1 life if you took no damage from that attack. |
+| 7♦ | servitor | Oakheart Sentinel | `sheen-ringroot-bastion` | When this blocks from a lane, it gets +2 value. |
+| 3♣ | servitor | Goldenbloom Sower | `sheen-sapling-chorus` | When paid for your second or later block each turn, that blocker gets +1 value. |
+| 8♠ | servitor | Concordant Elder | `sheen-nus-calm-command` | If you have blocked three or more times this turn, this attacks with +3 value. |
+| 9♠ | shelter | Evergreen Arbor | `sheen-emperors-heartwood` | While Evergreen Arbor occupies a support slot, each of your blocking cards gets +1 value; on your third and later blocks each turn, also gain 1 life. |
+| 10♦ | shelter | Vital Grove | `sheen-beli-awakened` | While Vital Grove occupies a support slot, after you block without taking damage, you may give your next attack that turn +3 value. |
 
 ## Frumo
 
@@ -98,26 +98,26 @@ Edit Commander, General, and City definitions in `server/gameContent.js`. The Le
 
 ### Constructed replacement cards
 
-| Value | Type | Name | Card ID | Rules text |
+| Slot | Type | Name | Card ID | Rules text |
 |---:|---|---|---|---|
-| 3 | ambush | Deep Dive | `frumo-deckhand-diver` | When Deep Dive enters a support slot, you may reveal it to privately inspect the top card of your deck, then discard Deep Dive. |
-| 4 | servitor | Deckhand Recruit | `frumo-tideglass-cutlass` | Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value. |
-| 2 | servitor | Vault Raider | `frumo-sunken-coin` | When paid for an attack, block, or ability, this pays +1 value if you control an empty lane. |
-| 5 | servitor | Wavebreaker Maurauder | `frumo-coral-hull-guard` | When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn. |
-| 5 | ambush | Hauntling Lure | `frumo-riptide-smuggler` | After your first face-down-card inspection each turn, reveal Hauntling Lure to give your next attack +1 value, then discard Hauntling Lure. |
-| 4 | ambush | Hit & Run | `frumo-lafayettes-chart` | After you exchange a hand card with a lane card, reveal Hit & Run so your next payment card pays +1 additional value, then discard Hit & Run. |
-| 6 | servitor | Frumo Sharpshooter | `frumo-pressure-lock-pistol` | When this attacks after a consecutive-value card was played, it gets +2 value. |
-| 6 | servitor | Riptide Veteran | `frumo-ristus-blackwake` | When this attacks from a lane while you control an empty lane, it gets +1 value. |
-| 7 | servitor | Renegade Outlaw | `frumo-captains-bad-wager` | When this attacks from a lane after you played an even-value card, it gets +3 value this turn. |
-| 6 | ambush | Command the Revolution | `frumo-poleas-sunken-order` | Reveal Command the Revolution to use one Polea mode an additional time this turn, targeting only your own cards, then discard this Ambush. |
-| 5 | ambush | Loot the Hold | `frumo-leviathan-salvage` | When your first played card of the turn receives a Ristus consecutive-value bonus, reveal Loot the Hold to gain 1 life, then discard this Ambush. |
-| 2 | servitor | Silent Corsair | `frumo-kelpcloak-trickster` | When this enters a lane, it counts as a lane swap for your Frumo cards this turn. |
-| 5 | servitor | Ocean Enforcer | `frumo-ballast-hook` | When this attacks from a lane while you control an empty lane, it gets +1 value. |
-| 4 | ambush | Pirate's Gambit | `frumo-tide-debt-ledger` | After you swap a lane card, reveal Pirate's Gambit so your next payment card pays +1 additional value, then discard Pirate's Gambit. |
-| 7 | ambush | Coordinated Strike | `frumo-abyssal-switchboard` | When Coordinated Strike enters a support slot, reveal it to give your next attack or block +1 value, then discard it. |
-| 8 | servitor | Tide Shaper | `frumo-poleas-moonlit-map` | If this receives the Ristus consecutive-value bonus, it gets +1 additional value. |
-| 9 | ambush | Rally the Crew | `frumo-the-last-gamble` | When you inspect a face-down card, reveal Rally the Crew and choose attack or block; your next card of that kind gets +4 value, then discard this Ambush. |
-| 10 | servitor | Frumo Tidecrasher | `frumo-ristus-rises` | When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards. |
+| 3♦ | ambush | Deep Dive | `frumo-deckhand-diver` | When Deep Dive enters a support slot, you may reveal it to privately inspect the top card of your deck, then discard Deep Dive. |
+| 4♣ | servitor | Deckhand Recruit | `frumo-tideglass-cutlass` | Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value. |
+| 2♠ | servitor | Vault Raider | `frumo-sunken-coin` | When paid for an attack, block, or ability, this pays +1 value if you control an empty lane. |
+| 5♥ | servitor | Wavebreaker Maurauder | `frumo-coral-hull-guard` | When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn. |
+| 5♦ | ambush | Hauntling Lure | `frumo-riptide-smuggler` | After your first face-down-card inspection each turn, reveal Hauntling Lure to give your next attack +1 value, then discard Hauntling Lure. |
+| 4♠ | ambush | Hit & Run | `frumo-lafayettes-chart` | After you exchange a hand card with a lane card, reveal Hit & Run so your next payment card pays +1 additional value, then discard Hit & Run. |
+| 6♥ | servitor | Frumo Sharpshooter | `frumo-pressure-lock-pistol` | When this attacks after a consecutive-value card was played, it gets +2 value. |
+| 6♣ | servitor | Riptide Veteran | `frumo-ristus-blackwake` | When this attacks from a lane while you control an empty lane, it gets +1 value. |
+| 7♦ | servitor | Renegade Outlaw | `frumo-captains-bad-wager` | When this attacks from a lane after you played an even-value card, it gets +3 value this turn. |
+| 6♠ | ambush | Command the Revolution | `frumo-poleas-sunken-order` | Reveal Command the Revolution to use one Polea mode an additional time this turn, targeting only your own cards, then discard this Ambush. |
+| 5♣ | ambush | Loot the Hold | `frumo-leviathan-salvage` | When your first played card of the turn receives a Ristus consecutive-value bonus, reveal Loot the Hold to gain 1 life, then discard this Ambush. |
+| 2♥ | servitor | Silent Corsair | `frumo-kelpcloak-trickster` | When this enters a lane, it counts as a lane swap for your Frumo cards this turn. |
+| 5♠ | servitor | Ocean Enforcer | `frumo-ballast-hook` | When this attacks from a lane while you control an empty lane, it gets +1 value. |
+| 4♥ | ambush | Pirate's Gambit | `frumo-tide-debt-ledger` | After you swap a lane card, reveal Pirate's Gambit so your next payment card pays +1 additional value, then discard Pirate's Gambit. |
+| 7♣ | ambush | Coordinated Strike | `frumo-abyssal-switchboard` | When Coordinated Strike enters a support slot, reveal it to give your next attack or block +1 value, then discard it. |
+| 8♦ | servitor | Tide Shaper | `frumo-poleas-moonlit-map` | If this receives the Ristus consecutive-value bonus, it gets +1 additional value. |
+| 9♦ | ambush | Rally the Crew | `frumo-the-last-gamble` | When you inspect a face-down card, reveal Rally the Crew and choose attack or block; your next card of that kind gets +4 value, then discard this Ambush. |
+| 10♣ | servitor | Frumo Tidecrasher | `frumo-ristus-rises` | When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards. |
 
 ## Bizi
 
@@ -135,26 +135,26 @@ Edit Commander, General, and City definitions in `server/gameContent.js`. The Le
 
 ### Constructed replacement cards
 
-| Value | Type | Name | Card ID | Rules text |
+| Slot | Type | Name | Card ID | Rules text |
 |---:|---|---|---|---|
-| 3 | servitor | Bizi Technician | `bizi-copperline-technician` | When you overpay for this by 2 or more, gain 1 acceleration counter. |
-| 2 | contraption | Ammo Depot | `bizi-voltage-ration` | When paid for a Bizi card, this pays +1 additional value once each turn. |
-| 4 | servitor | Aerial Drone | `bizi-dune-circuit-runner` | If your previous attack had a different suit, this attacks with +1 value. |
-| 5 | servitor | Bizi Guardian | `bizi-gearplate-shield` | When blocking, you may remove 1 acceleration counter to give this +2 value. |
-| 5 | contraption | Signal Relay | `bizi-heras-calibration` | When paid for a Bizi card, this pays +2 additional value. |
-| 5 | contraption | Electrostatic Field | `bizi-solar-array-adept` | While Electrostatic Field occupies a support slot, each acceleration counter you gain gives your next Bizi Servitor attack +1 value that turn. |
-| 6 | contraption | Signal Line | `bizi-constanti-conduit` | Your first two different-suit attacks after the first get an additional +1 value. |
-| 6 | servitor | Air Traffic Controller | `bizi-sandstorm-processor` | If you have 2 or more acceleration counters, this may attack with +2 value. |
-| 7 | contraption | Chrono-Forge Core | `bizi-focus-overclock` | Remove 1 acceleration counter: give target card +3 value this turn instead of +1. |
-| 6 | contraption | Gold Mine | `bizi-regnum-voltage-bank` | The first time each turn you overpay by 2 or more, gain 1 life and 1 acceleration counter. |
-| 5 | contraption | Battle Alarm | `bizi-desert-logic-engine` | When you attack with a different suit from your previous attack, that attack gets +2 value. |
-| 2 | servitor | Bizi Sparksmith | `bizi-brass-spark` | When paid for your first Bizi card each turn, this pays +1 additional value. |
-| 5 | servitor | Velocity Vanguard | `bizi-railspike-marshal` | If your previous attack had a different suit, this attacks with +1 value. |
-| 4 | servitor | Utility Specialist | `bizi-heat-sink-matrix` | When blocking, you may remove 1 acceleration counter to give this +2 value. |
-| 7 | servitor | Clockwork Merchant | `bizi-clockwork-caravan` | The first time each turn you overpay for this by 2 or more, draw 1 extra card at end of turn. |
-| 8 | servitor | Shrapnel Blaster | `bizi-voltaric-ultimatum` | Remove 2 acceleration counters: this attacks with +5 value. |
-| 9 | contraption | Interference Matrix | `bizi-focus-prime-signal` | When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have. |
-| 10 | servitor | Bizi Architect | `bizi-constanti-sunforge` | When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed. |
+| 3♣ | servitor | Bizi Technician | `bizi-copperline-technician` | When you overpay for this by 2 or more, gain 1 acceleration counter. |
+| 2♠ | contraption | Ammo Depot | `bizi-voltage-ration` | When paid for a Bizi card, this pays +1 additional value once each turn. |
+| 4♥ | servitor | Aerial Drone | `bizi-dune-circuit-runner` | If your previous attack had a different suit, this attacks with +1 value. |
+| 5♦ | servitor | Bizi Guardian | `bizi-gearplate-shield` | When blocking, you may remove 1 acceleration counter to give this +2 value. |
+| 5♣ | contraption | Signal Relay | `bizi-heras-calibration` | When paid for a Bizi card, this pays +2 additional value. |
+| 5♠ | contraption | Electrostatic Field | `bizi-solar-array-adept` | While Electrostatic Field occupies a support slot, each acceleration counter you gain gives your next Bizi Servitor attack +1 value that turn. |
+| 6♥ | contraption | Signal Line | `bizi-constanti-conduit` | Your first two different-suit attacks after the first get an additional +1 value. |
+| 6♦ | servitor | Air Traffic Controller | `bizi-sandstorm-processor` | If you have 2 or more acceleration counters, this may attack with +2 value. |
+| 7♣ | contraption | Chrono-Forge Core | `bizi-focus-overclock` | Remove 1 acceleration counter: give target card +3 value this turn instead of +1. |
+| 6♠ | contraption | Gold Mine | `bizi-regnum-voltage-bank` | The first time each turn you overpay by 2 or more, gain 1 life and 1 acceleration counter. |
+| 5♥ | contraption | Battle Alarm | `bizi-desert-logic-engine` | When you attack with a different suit from your previous attack, that attack gets +2 value. |
+| 2♦ | servitor | Bizi Sparksmith | `bizi-brass-spark` | When paid for your first Bizi card each turn, this pays +1 additional value. |
+| 3♠ | servitor | Velocity Vanguard | `bizi-railspike-marshal` | If your previous attack had a different suit, this attacks with +1 value. |
+| 4♦ | servitor | Utility Specialist | `bizi-heat-sink-matrix` | When blocking, you may remove 1 acceleration counter to give this +2 value. |
+| 7♥ | servitor | Clockwork Merchant | `bizi-clockwork-caravan` | The first time each turn you overpay for this by 2 or more, draw 1 extra card at end of turn. |
+| 8♣ | servitor | Shrapnel Blaster | `bizi-voltaric-ultimatum` | Remove 2 acceleration counters: this attacks with +5 value. |
+| 9♦ | contraption | Interference Matrix | `bizi-focus-prime-signal` | When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have. |
+| 10♠ | servitor | Bizi Architect | `bizi-constanti-sunforge` | When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed. |
 
 ## Mekan
 

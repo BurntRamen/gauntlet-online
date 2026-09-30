@@ -216,18 +216,19 @@ test("validates constructed replacements against ownership and card slots", () =
   const deck = validateConstructedDeckPayload(stats, {
     name: "Gold Guard",
     factionId: "rumin",
-    cardQuantities: { "rumin-gilded-scale-legionary": 2 },
-    cardSuitChoices: { "rumin-gilded-scale-legionary": ["spades", "hearts"] }
+    cardQuantities: { "rumin-gilded-scale-legionary": 1 },
+    cardSuitChoices: { "rumin-gilded-scale-legionary": ["hearts"] }
   });
 
   assert.equal(deck.name, "Gold Guard");
   assert.equal(deck.cardCount, 52);
-  assert.equal(deck.replacementCount, 2);
+  assert.equal(deck.replacementCount, 1);
+  assert.deepEqual(deck.cardSuitChoices, { "rumin-gilded-scale-legionary": ["spades"] });
   assert.throws(() => validateConstructedDeckPayload(stats, {
     factionId: "rumin",
     cardQuantities: { "rumin-gilded-scale-legionary": 2 },
     cardSuitChoices: { "rumin-gilded-scale-legionary": ["spades", "spades"] }
-  }), /Only one card can replace/);
+  }), /occupies only the 3 of spades/);
 });
 
 test("awards a campaign pack only on the first clear", () => {

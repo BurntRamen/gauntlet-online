@@ -1,7 +1,7 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-rules-v3";
-const CONTENT_VERSION = "gauntlet-content-v11";
+const RULES_VERSION = "gauntlet-rules-v4";
+const CONTENT_VERSION = "gauntlet-content-v12";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -622,7 +622,7 @@ const BIZI_COLLECTION_CARDS = [
     name: "Velocity Vanguard",
     type: "servitor",
     rarity: "common",
-    value: 5,
+    value: 3,
     text: "If your previous attack had a different suit, this attacks with +1 value."
   },
   {
@@ -673,6 +673,80 @@ const BIZI_COLLECTION_CARDS = [
 ];
 
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+const FIXED_CARD_SUITS = Object.freeze({
+  "rumin-gilded-scale-legionary": "spades",
+  "rumin-forum-ledger-runner": "hearts",
+  "rumin-vault-shield-bearer": "diamonds",
+  "rumin-coin-scale-spear": "clubs",
+  "rumin-senate-vault-guard": "spades",
+  "rumin-marble-market-tribune": "hearts",
+  "rumin-rumie-vault-shield": "diamonds",
+  "rumin-imperial-scale-pike": "clubs",
+  "rumin-aurelian-clawblade": "spades",
+  "rumin-basilisk-standard": "clubs",
+  "rumin-jewel-bank-contract": "diamonds",
+  "rumin-tax-road-scout": "clubs",
+  "rumin-marble-phalanx": "hearts",
+  "rumin-counting-house-aegis": "hearts",
+  "rumin-triumphal-ram": "diamonds",
+  "rumin-edict-of-the-vault": "spades",
+  "rumin-kaisers-gold-claw": "spades",
+  "rumin-rumie-market-colossus": "hearts",
+  "sheen-rootwatch-initiate": "hearts",
+  "sheen-quiet-grove-sentinel": "diamonds",
+  "sheen-mossbound-staff": "clubs",
+  "sheen-living-bark-guard": "spades",
+  "sheen-beli-vinebinder": "hearts",
+  "sheen-harmony-ward": "clubs",
+  "sheen-thornroot-counterstroke": "spades",
+  "sheen-beli-canopy-shield": "diamonds",
+  "sheen-nus-verdant-edict": "hearts",
+  "sheen-roots-that-remember": "diamonds",
+  "sheen-tangs-patient-hand": "clubs",
+  "sheen-seedwall-acolyte": "spades",
+  "sheen-raincall-mender": "hearts",
+  "sheen-ringroot-bastion": "diamonds",
+  "sheen-sapling-chorus": "clubs",
+  "sheen-nus-calm-command": "spades",
+  "sheen-emperors-heartwood": "spades",
+  "sheen-beli-awakened": "diamonds",
+  "frumo-deckhand-diver": "diamonds",
+  "frumo-tideglass-cutlass": "clubs",
+  "frumo-sunken-coin": "spades",
+  "frumo-coral-hull-guard": "hearts",
+  "frumo-riptide-smuggler": "diamonds",
+  "frumo-lafayettes-chart": "spades",
+  "frumo-pressure-lock-pistol": "hearts",
+  "frumo-ristus-blackwake": "clubs",
+  "frumo-captains-bad-wager": "diamonds",
+  "frumo-poleas-sunken-order": "spades",
+  "frumo-leviathan-salvage": "clubs",
+  "frumo-kelpcloak-trickster": "hearts",
+  "frumo-ballast-hook": "spades",
+  "frumo-tide-debt-ledger": "hearts",
+  "frumo-abyssal-switchboard": "clubs",
+  "frumo-poleas-moonlit-map": "diamonds",
+  "frumo-the-last-gamble": "diamonds",
+  "frumo-ristus-rises": "clubs",
+  "bizi-copperline-technician": "clubs",
+  "bizi-voltage-ration": "spades",
+  "bizi-dune-circuit-runner": "hearts",
+  "bizi-gearplate-shield": "diamonds",
+  "bizi-heras-calibration": "clubs",
+  "bizi-solar-array-adept": "spades",
+  "bizi-constanti-conduit": "hearts",
+  "bizi-sandstorm-processor": "diamonds",
+  "bizi-focus-overclock": "clubs",
+  "bizi-regnum-voltage-bank": "spades",
+  "bizi-desert-logic-engine": "hearts",
+  "bizi-brass-spark": "diamonds",
+  "bizi-railspike-marshal": "spades",
+  "bizi-heat-sink-matrix": "diamonds",
+  "bizi-clockwork-caravan": "hearts",
+  "bizi-voltaric-ultimatum": "clubs",
+  "bizi-focus-prime-signal": "diamonds",
+  "bizi-constanti-sunforge": "spades"
+});
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
   "sheen-beli-vinebinder": "While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value.",
@@ -696,6 +770,8 @@ const SUPPORT_RULES_TEXT = {
 };
 for (const card of COLLECTION_CARDS) {
   if (SUPPORT_RULES_TEXT[card.id]) card.text = SUPPORT_RULES_TEXT[card.id];
+  card.suit = FIXED_CARD_SUITS[card.id];
+  card.replacementSuit = card.suit;
   card.displayText = getCardWording(card);
   card.gameplayCardId = card.id;
   card.freeAcquisition = FREE_GAMEPLAY_ACQUISITION;
@@ -745,7 +821,9 @@ const COLLECTOR_VARIANT_MECHANICAL_FIELDS = Object.freeze([
   "legality",
   "maxReplacements",
   "replacementLimit",
+  "replacementSuit",
   "rulesText",
+  "suit",
   "text",
   "type",
   "value"
@@ -1313,7 +1391,8 @@ const DECK_RULES = {
   replacementSuits: DRAFT_CARD_SUITS,
   maxReplacementsPerValue: MAX_REPLACEMENTS_PER_VALUE,
   maxConstructedDeckSize: MAX_CONSTRUCTED_DECK_SIZE,
-  maxConstructedReplacements: MAX_CONSTRUCTED_REPLACEMENTS
+  maxConstructedReplacements: MAX_CONSTRUCTED_REPLACEMENTS,
+  fixedReplacementSlots: true
 };
 
 function requireText(value, pathName) {
@@ -1383,6 +1462,7 @@ function validateGameContent() {
   }
 
   const cardIds = new Set();
+  const factionSlots = new Set();
   const rarities = new Set(["common", "uncommon", "rare", "mythic"]);
   const signatureTypes = new Map([
     ["rumin", "armament"],
@@ -1399,6 +1479,12 @@ function validateGameContent() {
     if (!factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);
     if (!PLAYING_DECK_VALUES.includes(card.value)) throw new Error(`Invalid game content: card ${card.id} has an invalid value.`);
+    if (!DRAFT_CARD_SUITS.includes(card.suit) || card.replacementSuit !== card.suit) {
+      throw new Error(`Invalid game content: card ${card.id} must have one fixed replacement suit.`);
+    }
+    const slotKey = `${card.factionId}:${card.value}:${card.suit}`;
+    if (factionSlots.has(slotKey)) throw new Error(`Invalid game content: duplicate faction replacement slot ${slotKey}.`);
+    factionSlots.add(slotKey);
     if (!["servitor", signatureTypes.get(card.factionId)].includes(card.type)) {
       throw new Error(`Invalid game content: card ${card.id} must be a Servitor or use the ${signatureTypes.get(card.factionId)} signature type.`);
     }

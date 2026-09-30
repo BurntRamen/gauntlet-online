@@ -7,13 +7,15 @@ const { getPublicGameContent } = require("../server/gameContent");
 const content = getPublicGameContent();
 const outputPath = path.join(__dirname, "..", "docs", "playable-card-catalog.md");
 const escapeCell = (value) => String(value ?? "").replaceAll("|", "\\|").replaceAll("\n", " ");
+const suitSymbol = (suit) => ({ spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" }[suit] || suit || "?");
+const rankLabel = (value) => ({ 11: "J", 12: "Q", 13: "K", 14: "A" }[value] || String(value));
 
 const lines = [
   "# Playable card catalog",
   "",
   `Generated from the authoritative registry in \`server/gameContent.js\` at content version \`${content.contentVersion}\` and rules version \`${content.rulesVersion}\`.`,
   "",
-  "Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Constructed cards replace matching standard slots; they do not increase the deck above 52 cards.",
+  "Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Every faction card has one fixed rank-and-suit slot and replaces that exact standard card; players cannot reassign its suit, and the deck always remains 52 cards.",
   "",
   "For Rumin, Sheen, Frumo, and Bizi, each 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, and Contraptions occupy a separate lane support slot and remain until their rules remove them.",
   "",
@@ -36,9 +38,9 @@ for (const faction of content.factions) {
     lines.push("No faction-specific constructed replacements are published yet. This faction currently plays the complete standard 52-card deck.", "");
     continue;
   }
-  lines.push("| Value | Type | Name | Card ID | Rules text |", "|---:|---|---|---|---|");
+  lines.push("| Slot | Type | Name | Card ID | Rules text |", "|---:|---|---|---|---|");
   for (const card of cards) {
-    lines.push(`| ${escapeCell(card.value)} | ${escapeCell(card.type)} | ${escapeCell(card.name)} | \`${escapeCell(card.id)}\` | ${escapeCell(card.text || card.rulesText)} |`);
+    lines.push(`| ${rankLabel(card.value)}${suitSymbol(card.suit)} | ${escapeCell(card.type)} | ${escapeCell(card.name)} | \`${escapeCell(card.id)}\` | ${escapeCell(card.text || card.rulesText)} |`);
   }
   lines.push("");
 }

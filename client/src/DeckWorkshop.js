@@ -27,13 +27,13 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   }, [layout]);
   const slots = buildDeckSlots(cards, quantities, suitChoices);
   const selected = slots.find((slot) => slot.key === selectedKey) || slots[0];
-  const candidates = cards.filter((card) => Number(card.value) === selected.value && Number(owned[card.id] || 0) > 0);
+  const candidates = cards.filter((card) => Number(card.value) === selected.value && card.suit === selected.suit && Number(owned[card.id] || 0) > 0);
   const candidate = candidates.find((card) => card.id === candidateId) || selected.card;
-  const preview = candidate ? { ...candidate, suit: selected.suit, factionId } : null;
+  const preview = candidate ? { ...candidate, factionId } : null;
   const variants = preview ? variantsByCard[preview.id] || [] : [];
   const selectedVariant = variants.find((variant) => variant.variantId === variantSelections[preview?.id]) || variants.find((variant) => variant.variantId === preview?.defaultVariantId) || variants[0];
   const swaps = slots.filter((slot) => slot.card).length;
-  const canUse = (card) => selected.card?.id === card.id || slots.filter((slot) => slot.card?.id === card.id).length < Number(owned[card.id] || 0);
+  const canUse = (card) => selected.card?.id === card.id || Number(quantities[card.id] || 0) === 0;
   const replace = (card) => {
     const result = replaceDeckSlot(slots, selected.key, card, owned);
     if (result) { onReplacementChange(result); setCandidateId(""); }
@@ -102,10 +102,10 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
             {preview && <div className="deck-preview-copy"><h4>{preview.name}</h4><p>{preview.displayText || preview.text}</p>{renderRules?.(preview)}</div>}
             <section className="deck-slot-choices" aria-label={"Replacements for " + slotLabel(selected)}>
               <span className="deck-eyebrow">Matching cards</span>
-              {candidates.length === 0 && <p className="deck-no-candidates">No owned {faction.name} cards at this rank.</p>}
+              {candidates.length === 0 && <p className="deck-no-candidates">No owned {faction.name} card is assigned to this exact rank and suit.</p>}
               {candidates.map((card) => <div className="deck-candidate" key={card.id}>
                 <button type="button" aria-pressed={preview?.id === card.id} onClick={() => setCandidateId(card.id)}>
-                  <strong>{card.name}</strong><small>{Number(owned[card.id] || 0) - Number(quantities[card.id] || 0)} available · {card.rarity}</small>
+                  <strong>{card.name}</strong><small>{rankLabel(card.value)}{DECK_SUITS.find((suit) => suit.id === card.suit)?.symbol} · {card.rarity}</small>
                 </button>
                 <button type="button" className="deck-swap-button" disabled={!canUse(card) || selected.card?.id === card.id} onClick={() => replace(card)}
                   aria-label={"Swap " + slotLabel(selected) + " for " + card.name}>{selected.card?.id === card.id ? "In deck" : canUse(card) ? "Swap" : "In use"}</button>

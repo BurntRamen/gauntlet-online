@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "gauntlet-content-v11",
+  "contentVersion": "gauntlet-content-v12",
   "generatedFrom": "server/gameContent.js collectorVariants[].art",
   "summary": {
     "gameplayCardCount": 72,
@@ -941,7 +941,7 @@
       "name": "Velocity Vanguard",
       "type": "servitor",
       "rarity": "common",
-      "value": 5,
+      "value": 3,
       "standardVariantId": "bizi-railspike-marshal:standard",
       "collectorVariantId": "bizi-railspike-marshal:collector-foil",
       "currentArt": {

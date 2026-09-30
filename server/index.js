@@ -419,10 +419,6 @@ const PROGRESSION_COSMETICS = {
   }
 };
 
-function getDraftCardSuit() {
-  return DRAFT_CARD_SUITS[crypto.randomInt(DRAFT_CARD_SUITS.length)];
-}
-
 function getPlayableCollectionCard(card, overrides = {}) {
   const factionName = getFactionById(card.factionId)?.name || card.factionId;
   return {
@@ -698,7 +694,8 @@ function createDraftPack(ownerPlayer) {
       const factionIds = ["rumin", "sheen", "frumo", "bizi"];
       const factionId = factionIds[crypto.randomInt(factionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      return { ...pickCollectionCard(factionId, rarity), suit: getDraftCardSuit(), draftCopyId: crypto.randomUUID() };
+      const card = pickCollectionCard(factionId, rarity);
+      return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
     }).filter(Boolean)
   };
 }
@@ -707,7 +704,7 @@ function createBaseDeckSummary() {
   return {
     name: "Standard 52-card Gauntlet deck",
     cardCount: 52,
-    note: "Drafted or constructed faction cards replace same-value cards in this 52-card deck."
+    note: "Every drafted or constructed faction card replaces its fixed rank-and-suit slot in this 52-card deck."
   };
 }
 
@@ -740,7 +737,9 @@ function normalizeDeckSuit(suit) {
 }
 
 function normalizeReplacementSuit(card) {
-  return normalizeDeckSuit(card?.replacementSuit || card?.suit) || getDraftCardSuit();
+  const definitionId = card?.gameplayCardId || card?.definitionId || card?.id;
+  const definition = definitionId ? getGameplayCardById(definitionId) : null;
+  return normalizeDeckSuit(definition?.suit || card?.replacementSuit || card?.suit);
 }
 
 function getReplacementValueCounts(cards = []) {
@@ -765,13 +764,19 @@ function getReplacementSlotCounts(cards = []) {
 
 function filterValidReplacementCards(cards = [], factionId = null) {
   const valueCounts = {};
+  const occupiedSlots = new Set();
   return (Array.isArray(cards) ? cards : []).filter((card) => {
     if (!card) return false;
     if (factionId && card.factionId !== factionId) return false;
     const value = getReplacementCardValue(card);
-    if (value == null) return false;
+    const suit = normalizeReplacementSuit(card);
+    if (value == null || !suit) return false;
+    const slot = `${value}:${suit}`;
+    if (occupiedSlots.has(slot)) return false;
     valueCounts[value] = (valueCounts[value] || 0) + 1;
-    return valueCounts[value] <= MAX_REPLACEMENTS_PER_VALUE;
+    if (valueCounts[value] > MAX_REPLACEMENTS_PER_VALUE) return false;
+    occupiedSlots.add(slot);
+    return true;
   });
 }
 
@@ -818,10 +823,9 @@ function applyDeckReplacements(deck, replacementCards, faction, createReplacemen
       getBaseCardValue(entry) === value &&
       normalizeDeckSuit(entry.suit) === targetSuit
     ));
-    const fallbackIndex = baseIndex >= 0 ? baseIndex : deck.findIndex((entry) => !entry.draftCard && getBaseCardValue(entry) === value);
-    if (fallbackIndex < 0) continue;
+    if (baseIndex < 0) continue;
     const replacementCard = { ...card, suit: targetSuit, replacementSuit: targetSuit };
-    deck.splice(fallbackIndex, 1);
+    deck.splice(baseIndex, 1);
     deck.push(createReplacementCard(replacementCard, faction));
   }
 }
@@ -1055,13 +1059,12 @@ function resolveCollectorVariantSelections(collection, gameplayCardQuantities, r
 function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId, cardSuitChoices = {}, collectorVariantSelections = {}) {
   return Object.entries(gameplayCardQuantities)
     .flatMap(([cardId, quantity]) => {
-      const count = Math.max(0, Math.floor(Number(quantity || 0)));
+      const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
       if (!card || card.factionId !== factionId || count <= 0) return [];
-      const suitChoices = Array.isArray(cardSuitChoices?.[cardId]) ? cardSuitChoices[cardId] : [];
       const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
-      return Array.from({ length: count }, (_, index) => {
-        const suit = normalizeDeckSuit(suitChoices[index]) || DRAFT_CARD_SUITS[index % DRAFT_CARD_SUITS.length];
+      return Array.from({ length: count }, () => {
+        const suit = card.suit;
         return getPlayableCollectionCard(card, {
           gameplayCardId: card.gameplayCardId,
           variantId: variant?.variantId || card.defaultVariantId,
@@ -1115,6 +1118,8 @@ function getSavedConstructedDeck(stats = {}) {
     return null;
   }
   if (cards.length > MAX_CONSTRUCTED_REPLACEMENTS) return null;
+  const canonicalQuantities = Object.fromEntries(cards.map((card) => [card.gameplayCardId || card.id, 1]));
+  const canonicalSuitChoices = Object.fromEntries(cards.map((card) => [card.gameplayCardId || card.id, [card.suit]]));
   return {
     name: deck.name || `${deck.factionName || deck.factionId} Constructed Deck`,
     deckType: "constructed",
@@ -1127,9 +1132,9 @@ function getSavedConstructedDeck(stats = {}) {
     replacementCount: cards.length,
     additionCount: cards.length,
     valueCounts: getReplacementValueCounts(cards),
-    cardQuantities: { ...gameplayCardQuantities },
-    gameplayCardQuantities: { ...gameplayCardQuantities },
-    cardSuitChoices: { ...(deck.cardSuitChoices || {}) },
+    cardQuantities: canonicalQuantities,
+    gameplayCardQuantities: canonicalQuantities,
+    cardSuitChoices: canonicalSuitChoices,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
     collectorVariantSelections,
     gameplayConfigurationHash: deck.gameplayConfigurationHash || null,
@@ -1151,7 +1156,6 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
   const requestedQuantities = payload.gameplayCardQuantities || payload.cardQuantities;
   const requested = requestedQuantities && typeof requestedQuantities === "object" ? requestedQuantities : {};
-  const requestedSuitChoices = payload.cardSuitChoices && typeof payload.cardSuitChoices === "object" ? payload.cardSuitChoices : {};
   const requestedVariantSelections = payload.collectorVariantSelections && typeof payload.collectorVariantSelections === "object"
     ? payload.collectorVariantSelections
     : {};
@@ -1169,6 +1173,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
     const value = getReplacementCardValue(card);
     if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
+    if (quantity > 1) throw new Error(`${card.name} occupies only the ${value} of ${card.suit}; a deck can include it once.`);
     const entitled = Math.max(0, Math.floor(Number(collection.gameplayEntitlements?.[cardId] || 0)));
     if (quantity > entitled) {
       throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card.name}.`);
@@ -1182,10 +1187,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
       throw new Error(`Constructed decks stay at ${BASE_PLAYING_DECK_SIZE} cards total.`);
     }
     sanitized[cardId] = quantity;
-    const rawSuitChoices = Array.isArray(requestedSuitChoices[cardId]) ? requestedSuitChoices[cardId] : [];
-    sanitizedSuitChoices[cardId] = Array.from({ length: quantity }, (_, index) => (
-      normalizeDeckSuit(rawSuitChoices[index]) || DRAFT_CARD_SUITS[index % DRAFT_CARD_SUITS.length]
-    ));
+    sanitizedSuitChoices[cardId] = [card.suit];
     for (const suit of sanitizedSuitChoices[cardId]) {
       const slotKey = `${value}:${suit}`;
       slotCounts[slotKey] = (slotCounts[slotKey] || 0) + 1;
@@ -4129,7 +4131,7 @@ function getCampaignDeckAdditions(factionId, chapterIndex, side = "player") {
   return plan.slice(0, count)
     .map((cardId) => getCollectionCatalogCard(cardId))
     .filter(Boolean)
-    .map((card) => getPlayableCollectionCard(card, { suit: getDraftCardSuit() }));
+    .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }));
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
@@ -6864,7 +6866,7 @@ function legacyDeclareCampaignBossAttack(roomState) {
   const baseValue = minValue + ((game.turn + attackNumber + (campaign.chapterNumber || 1)) % valueRange);
   const notes = [`Boss strike ${attackNumber}/${campaign.attacksPerTurn}`];
   const value = applyCampaignBossAbilityToAttack(campaign, attackNumber, baseValue, notes);
-  const suits = ["â™ ", "â™¥", "â™¦", "â™£"];
+  const suits = DRAFT_CARD_SUITS;
   const suit = suits[(game.turn + attackNumber + (campaign.chapterNumber || 1)) % suits.length];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   const rank = rankNames[value] || String(value);
@@ -7379,7 +7381,7 @@ function createGameFromLobby(roomState, options = {}) {
   const random = createSharedSeededRandom(seed);
   const startingPriority = random() < 0.5 ? 1 : 2;
   
-  const suits = ["♠", "♥", "♦", "♣"];
+  const suits = DRAFT_CARD_SUITS;
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
@@ -7392,9 +7394,7 @@ function createGameFromLobby(roomState, options = {}) {
       variantId: card.variantId || `${definitionId}:standard`,
       collector: clonePlain(card.collector || null),
       value: Number(card.value),
-      suit: DRAFT_CARD_SUITS.includes(card.suit)
-        ? card.suit
-        : DRAFT_CARD_SUITS[Math.floor(random() * DRAFT_CARD_SUITS.length)],
+      suit: normalizeReplacementSuit(card),
       name: card.name,
       rank: String(card.value),
       faction: faction.name,
@@ -7553,7 +7553,7 @@ function createFreeForAllGameFromLobby(roomState) {
   roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
-  const suits = ["♠", "♥", "♦", "♣"];
+  const suits = DRAFT_CARD_SUITS;
   const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 
@@ -7565,7 +7565,7 @@ function createFreeForAllGameFromLobby(roomState) {
       variantId: card.variantId || `${card.gameplayCardId || card.definitionId || card.id}:standard`,
       collector: clonePlain(card.collector || null),
       value: Number(card.value),
-      suit: DRAFT_CARD_SUITS.includes(card.suit) ? card.suit : getDraftCardSuit(),
+      suit: normalizeReplacementSuit(card),
       name: card.name,
       rank: String(card.value),
       faction: faction.name,
@@ -8410,23 +8410,21 @@ io.on("connection", (socket) => {
     const key = String(playerNum);
     const normalizedSelections = Array.isArray(selections)
       ? selections.map((selection) => ({
-        cardCopyId: String(selection?.cardCopyId || ""),
-        suit: normalizeDeckSuit(selection?.suit)
+        cardCopyId: String(selection?.cardCopyId || "")
       })).filter((selection) => selection.cardCopyId)
       : [];
     const selectedIds = new Set(normalizedSelections.length > 0 ? normalizedSelections.map((selection) => selection.cardCopyId) : (Array.isArray(cardCopyIds) ? cardCopyIds.map(String) : []));
-    const suitByCardCopyId = Object.fromEntries(normalizedSelections.map((selection) => [selection.cardCopyId, selection.suit]));
     const pool = roomState.draft.draftedPools[key] || [];
     const selectedCards = pool
       .filter((card) => selectedIds.has(card.draftCopyId))
       .map((card) => {
-        const suit = suitByCardCopyId[card.draftCopyId] || normalizeReplacementSuit(card);
+        const suit = normalizeReplacementSuit(card);
         return { ...card, suit, replacementSuit: suit };
       });
     try {
       validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Draft decks must be one faction and keep four cards per value.");
+      socket.emit("errorMessage", error.message || "Draft decks must use one faction and one card per fixed rank-and-suit slot.");
       return;
     }
     roomState.draft.deckAdditions[key] = selectedCards;
@@ -8454,7 +8452,7 @@ io.on("connection", (socket) => {
     try {
       validation = validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Save a one-faction deck with no more than four cards of any value.");
+      socket.emit("errorMessage", error.message || "Save a one-faction deck with one card per fixed rank-and-suit slot.");
       return;
     }
     const factionIds = validation.factionIds;

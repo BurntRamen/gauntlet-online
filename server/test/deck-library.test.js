@@ -34,8 +34,8 @@ function constructedPayload(overrides = {}) {
   return {
     name: "Gold Guard",
     factionId: "rumin",
-    cardQuantities: { "rumin-gilded-scale-legionary": 2 },
-    cardSuitChoices: { "rumin-gilded-scale-legionary": ["spades", "hearts"] },
+    cardQuantities: { "rumin-gilded-scale-legionary": 1 },
+    cardSuitChoices: { "rumin-gilded-scale-legionary": ["spades"] },
     ...overrides
   };
 }
@@ -80,7 +80,7 @@ test("creates named constructed decks and appends immutable versions on edit", (
     deckId: first.record.id,
     name: "Gold Guard II",
     cardQuantities: { "rumin-gilded-scale-legionary": 1 },
-    cardSuitChoices: { "rumin-gilded-scale-legionary": ["diamonds"] }
+    cardSuitChoices: { "rumin-gilded-scale-legionary": ["spades"] }
   }), "account-1");
 
   assert.equal(updated.record.id, first.record.id);

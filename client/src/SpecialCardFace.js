@@ -15,7 +15,7 @@ export default function SpecialCardFace({ card, art = "" }) {
   const rawSuit = normalizeCardDisplayText(card?.suit).toLowerCase();
   const suit = ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" })[rawSuit] || rawSuit || "✦";
   const fallback = resolveVisualAsset(getCardIllustration({ factionId: card?.factionId }));
-  if (face && failedFace !== face) return <img className="custom-playing-card-face" src={resolveVisualAsset(face)} alt={`${card.name || "Custom faction card"}, ${rank}${card.suit ? ` ${card.suit}` : ", spades preview; choose replacement suit in deck"}`} decoding="async" onError={() => setFailedFace(face)} />;
+  if (face && failedFace !== face) return <img className="custom-playing-card-face" src={resolveVisualAsset(face)} alt={`${card.name || "Custom faction card"}, ${rank}${card.suit ? ` ${card.suit}` : ""}`} decoding="async" onError={() => setFailedFace(face)} />;
   return (
     <div className={`special-card-face ${suit === "♥" || suit === "♦" ? "is-red" : ""}${String(rank).length > 1 ? " has-two-digit-rank" : ""}`}>
       <img key={getCardIllustration(card, art)} src={resolveVisualAsset(getCardIllustration(card, art))} alt={`${card?.name || "Faction card"} illustration`} onError={(event) => { if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback; }} />

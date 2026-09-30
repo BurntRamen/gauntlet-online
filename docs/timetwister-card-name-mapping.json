@@ -1,438 +1,582 @@
 {
   "source": "Timetwister collection-data.js",
-  "policy": "Use Timetwister database names and card roles while preserving Gauntlet gameplay card IDs and mechanics.",
+  "policy": "Use Timetwister database names and card roles while preserving Gauntlet gameplay card IDs and assigning each card one fixed rank-and-suit replacement slot.",
   "cards": [
     {
       "id": "rumin-gilded-scale-legionary",
       "oldName": "Gilded Legion Spear",
       "newName": "Capital Investment Spear",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 3,
+      "suit": "spades"
     },
     {
       "id": "rumin-forum-ledger-runner",
       "oldName": "Forum Ledger Runner",
       "newName": "Rumin Scout",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "hearts"
     },
     {
       "id": "rumin-vault-shield-bearer",
       "oldName": "Vault Shield Bearer",
       "newName": "Rumin Sentry",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "diamonds"
     },
     {
       "id": "rumin-coin-scale-spear",
       "oldName": "Coin-Scale Spear",
       "newName": "Dividend Yield Blade",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 4,
+      "suit": "clubs"
     },
     {
       "id": "rumin-senate-vault-guard",
       "oldName": "Senate Vault Guard",
       "newName": "Rumin Warrior",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "spades"
     },
     {
       "id": "rumin-marble-market-tribune",
       "oldName": "Marble Market Tribune",
       "newName": "Corporate Banner",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 6,
+      "suit": "hearts"
     },
     {
       "id": "rumin-rumie-vault-shield",
       "oldName": "Rumie Vault Shield",
       "newName": "Shareholder's Shield",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 6,
+      "suit": "diamonds"
     },
     {
       "id": "rumin-imperial-scale-pike",
       "oldName": "Imperial Scale Pike",
       "newName": "Profit Margin Spear",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 5,
+      "suit": "clubs"
     },
     {
       "id": "rumin-aurelian-clawblade",
       "oldName": "Aurelian Clawblade",
       "newName": "Executive Authority Blade",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 7,
+      "suit": "spades"
     },
     {
       "id": "rumin-basilisk-standard",
       "oldName": "Basilisk Standard",
       "newName": "Colosseum Duelist",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 6,
+      "suit": "clubs"
     },
     {
       "id": "rumin-jewel-bank-contract",
       "oldName": "Jewel-Bank Standard",
       "newName": "Rumin Military Advisor",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "diamonds"
     },
     {
       "id": "rumin-tax-road-scout",
       "oldName": "Tax-Road Scout",
       "newName": "Rumin Javelineer",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "clubs"
     },
     {
       "id": "rumin-marble-phalanx",
       "oldName": "Phalanx Shield",
       "newName": "Rumin Shieldmaster",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "hearts"
     },
     {
       "id": "rumin-counting-house-aegis",
       "oldName": "Counting-House Aegis",
       "newName": "Rumin Business Analyst",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 7,
+      "suit": "hearts"
     },
     {
       "id": "rumin-triumphal-ram",
       "oldName": "Triumphal Ram",
       "newName": "Asset Crusher",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 8,
+      "suit": "diamonds"
     },
     {
       "id": "rumin-edict-of-the-vault",
       "oldName": "Edict of the Vault",
       "newName": "Rumin Legatus",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 8,
+      "suit": "spades"
     },
     {
       "id": "rumin-kaisers-gold-claw",
       "oldName": "Kaiser's Gold Claw",
       "newName": "Unstoppable Investment Lance",
-      "newType": "armament"
+      "newType": "armament",
+      "value": 9,
+      "suit": "spades"
     },
     {
       "id": "rumin-rumie-market-colossus",
       "oldName": "Rumie Market Colossus",
       "newName": "Rumin Warlord",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 10,
+      "suit": "hearts"
     },
     {
       "id": "sheen-rootwatch-initiate",
       "oldName": "Rootwatch Grove",
       "newName": "Verdant Guardian",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 3,
+      "suit": "hearts"
     },
     {
       "id": "sheen-quiet-grove-sentinel",
       "oldName": "Quiet Grove Sentinel",
       "newName": "Harmonic Warden",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "diamonds"
     },
     {
       "id": "sheen-mossbound-staff",
       "oldName": "Mossbound Staff",
       "newName": "Starroot Observer",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "clubs"
     },
     {
       "id": "sheen-living-bark-guard",
       "oldName": "Living Bark Bastion",
       "newName": "Greenhouse Guardian",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "spades"
     },
     {
       "id": "sheen-beli-vinebinder",
       "oldName": "Beli Vinebinder",
       "newName": "Entwined Thicket",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 5,
+      "suit": "hearts"
     },
     {
       "id": "sheen-harmony-ward",
       "oldName": "Harmony Ward",
       "newName": "Harmony Lab",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 4,
+      "suit": "clubs"
     },
     {
       "id": "sheen-thornroot-counterstroke",
       "oldName": "Thornroot Counterstroke",
       "newName": "Thorn Weaver",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 6,
+      "suit": "spades"
     },
     {
       "id": "sheen-beli-canopy-shield",
       "oldName": "Beli Canopy Shield",
       "newName": "Verdant Canopy",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 6,
+      "suit": "diamonds"
     },
     {
       "id": "sheen-nus-verdant-edict",
       "oldName": "Nu's Verdant Edict",
       "newName": "Verdant Dome",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 7,
+      "suit": "hearts"
     },
     {
       "id": "sheen-roots-that-remember",
       "oldName": "Roots That Remember",
       "newName": "Eternal Archive",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 5,
+      "suit": "diamonds"
     },
     {
       "id": "sheen-tangs-patient-hand",
       "oldName": "Tang's Meditation Garden",
       "newName": "Meditation Retreat",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 6,
+      "suit": "clubs"
     },
     {
       "id": "sheen-seedwall-acolyte",
       "oldName": "Seedwall Acolyte",
       "newName": "Root Guardian",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "spades"
     },
     {
       "id": "sheen-raincall-mender",
       "oldName": "Raincall Mender",
       "newName": "Sheen Mender",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "hearts"
     },
     {
       "id": "sheen-ringroot-bastion",
       "oldName": "Ringroot Bastion",
       "newName": "Oakheart Sentinel",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 7,
+      "suit": "diamonds"
     },
     {
       "id": "sheen-sapling-chorus",
       "oldName": "Sapling Chorus",
       "newName": "Goldenbloom Sower",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 3,
+      "suit": "clubs"
     },
     {
       "id": "sheen-nus-calm-command",
       "oldName": "Nu's Calm Command",
       "newName": "Concordant Elder",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 8,
+      "suit": "spades"
     },
     {
       "id": "sheen-emperors-heartwood",
       "oldName": "Emperor's Heartwood",
       "newName": "Evergreen Arbor",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 9,
+      "suit": "spades"
     },
     {
       "id": "sheen-beli-awakened",
       "oldName": "Beli Awakened",
       "newName": "Vital Grove",
-      "newType": "shelter"
+      "newType": "shelter",
+      "value": 10,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-deckhand-diver",
       "oldName": "Deckhand Diver",
       "newName": "Deep Dive",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 3,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-tideglass-cutlass",
       "oldName": "Tideglass Ambush",
       "newName": "Deckhand Recruit",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "clubs"
     },
     {
       "id": "frumo-sunken-coin",
       "oldName": "Sunken Coin Trap",
       "newName": "Vault Raider",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "spades"
     },
     {
       "id": "frumo-coral-hull-guard",
       "oldName": "Coral-Hull Guard",
       "newName": "Wavebreaker Maurauder",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "hearts"
     },
     {
       "id": "frumo-riptide-smuggler",
       "oldName": "Riptide Smuggler",
       "newName": "Hauntling Lure",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 5,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-lafayettes-chart",
       "oldName": "Lafayette's Chart",
       "newName": "Hit & Run",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 4,
+      "suit": "spades"
     },
     {
       "id": "frumo-pressure-lock-pistol",
       "oldName": "Pressure-Lock Pistol",
       "newName": "Frumo Sharpshooter",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 6,
+      "suit": "hearts"
     },
     {
       "id": "frumo-ristus-blackwake",
       "oldName": "Ristus Blackwake",
       "newName": "Riptide Veteran",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 6,
+      "suit": "clubs"
     },
     {
       "id": "frumo-captains-bad-wager",
       "oldName": "Captain's Bad Wager",
       "newName": "Renegade Outlaw",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 7,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-poleas-sunken-order",
       "oldName": "Polea's Sunken Order",
       "newName": "Command the Revolution",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 6,
+      "suit": "spades"
     },
     {
       "id": "frumo-leviathan-salvage",
       "oldName": "Leviathan Salvage",
       "newName": "Loot the Hold",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 5,
+      "suit": "clubs"
     },
     {
       "id": "frumo-kelpcloak-trickster",
       "oldName": "Kelpcloak Trickster",
       "newName": "Silent Corsair",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "hearts"
     },
     {
       "id": "frumo-ballast-hook",
       "oldName": "Ballast Hook",
       "newName": "Ocean Enforcer",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "spades"
     },
     {
       "id": "frumo-tide-debt-ledger",
       "oldName": "Tide-Debt Ledger",
       "newName": "Pirate's Gambit",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 4,
+      "suit": "hearts"
     },
     {
       "id": "frumo-abyssal-switchboard",
       "oldName": "Abyssal Switchboard",
       "newName": "Coordinated Strike",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 7,
+      "suit": "clubs"
     },
     {
       "id": "frumo-poleas-moonlit-map",
       "oldName": "Polea's Moonlit Map",
       "newName": "Tide Shaper",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 8,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-the-last-gamble",
       "oldName": "The Last Gamble",
       "newName": "Rally the Crew",
-      "newType": "ambush"
+      "newType": "ambush",
+      "value": 9,
+      "suit": "diamonds"
     },
     {
       "id": "frumo-ristus-rises",
       "oldName": "Ristus Rises",
       "newName": "Frumo Tidecrasher",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 10,
+      "suit": "clubs"
     },
     {
       "id": "bizi-copperline-technician",
       "oldName": "Copperline Technician",
       "newName": "Bizi Technician",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 3,
+      "suit": "clubs"
     },
     {
       "id": "bizi-voltage-ration",
       "oldName": "Voltage Ration",
       "newName": "Ammo Depot",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 2,
+      "suit": "spades"
     },
     {
       "id": "bizi-dune-circuit-runner",
       "oldName": "Dune Circuit Runner",
       "newName": "Aerial Drone",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "hearts"
     },
     {
       "id": "bizi-gearplate-shield",
       "oldName": "Gearplate Shield",
       "newName": "Bizi Guardian",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 5,
+      "suit": "diamonds"
     },
     {
       "id": "bizi-heras-calibration",
       "oldName": "Hera's Calibration",
       "newName": "Signal Relay",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 5,
+      "suit": "clubs"
     },
     {
       "id": "bizi-solar-array-adept",
       "oldName": "Solar Array Adept",
       "newName": "Electrostatic Field",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 5,
+      "suit": "spades"
     },
     {
       "id": "bizi-constanti-conduit",
       "oldName": "Constanti Conduit",
       "newName": "Signal Line",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 6,
+      "suit": "hearts"
     },
     {
       "id": "bizi-sandstorm-processor",
       "oldName": "Sandstorm Processor",
       "newName": "Air Traffic Controller",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 6,
+      "suit": "diamonds"
     },
     {
       "id": "bizi-focus-overclock",
       "oldName": "Focus Overclock",
       "newName": "Chrono-Forge Core",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 7,
+      "suit": "clubs"
     },
     {
       "id": "bizi-regnum-voltage-bank",
       "oldName": "Regnum Voltage Bank",
       "newName": "Gold Mine",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 6,
+      "suit": "spades"
     },
     {
       "id": "bizi-desert-logic-engine",
       "oldName": "Desert Logic Engine",
       "newName": "Battle Alarm",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 5,
+      "suit": "hearts"
     },
     {
       "id": "bizi-brass-spark",
       "oldName": "Brass Spark",
       "newName": "Bizi Sparksmith",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 2,
+      "suit": "diamonds"
     },
     {
       "id": "bizi-railspike-marshal",
       "oldName": "Railspike Marshal",
       "newName": "Velocity Vanguard",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 3,
+      "suit": "spades"
     },
     {
       "id": "bizi-heat-sink-matrix",
       "oldName": "Heat-Sink Matrix",
       "newName": "Utility Specialist",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 4,
+      "suit": "diamonds"
     },
     {
       "id": "bizi-clockwork-caravan",
       "oldName": "Clockwork Caravan",
       "newName": "Clockwork Merchant",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 7,
+      "suit": "hearts"
     },
     {
       "id": "bizi-voltaric-ultimatum",
       "oldName": "Voltaric Ultimatum",
       "newName": "Shrapnel Blaster",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 8,
+      "suit": "clubs"
     },
     {
       "id": "bizi-focus-prime-signal",
       "oldName": "Focus Prime Signal",
       "newName": "Interference Matrix",
-      "newType": "contraption"
+      "newType": "contraption",
+      "value": 9,
+      "suit": "diamonds"
     },
     {
       "id": "bizi-constanti-sunforge",
       "oldName": "Constanti Sunforge",
       "newName": "Bizi Architect",
-      "newType": "servitor"
+      "newType": "servitor",
+      "value": 10,
+      "suit": "spades"
     }
   ]
 }

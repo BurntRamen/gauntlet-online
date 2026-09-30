@@ -13,6 +13,7 @@ const { COLLECTION_CARDS, factionsData } = require("../server/gameContent");
 const FACTIONS = ["rumin", "sheen", "frumo", "bizi"];
 const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
 const RUNS_PER_ORDERED_MATCHUP = Math.max(1, Number(process.argv[2] || 10));
+const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
 function isCombatCard(card) {
   return !!card && !SUPPORT_TYPES.has(String(card.type || "").toLowerCase());
@@ -29,23 +30,10 @@ function shuffle(cards, random) {
 
 function constructedDeck(player, factionId, seed, rotation) {
   const deck = createStandardDeck(player, factionId);
-  const suitsByValue = new Map();
-  const definitionsByValue = new Map();
-  for (const definition of COLLECTION_CARDS.filter((card) => card.factionId === factionId)) {
-    const group = definitionsByValue.get(definition.value) || [];
-    group.push(definition);
-    definitionsByValue.set(definition.value, group);
-  }
-  const selectedDefinitions = [...definitionsByValue.values()].flatMap((group) => (
-    group.length <= 4
-      ? group
-      : Array.from({ length: 4 }, (_, index) => group[(index + rotation) % group.length])
-  ));
+  const selectedDefinitions = COLLECTION_CARDS.filter((card) => card.factionId === factionId);
   for (const definition of selectedDefinitions) {
-    const used = suitsByValue.get(definition.value) || 0;
-    const candidates = deck.filter((card) => card.value === definition.value);
-    const replaced = candidates[used];
-    suitsByValue.set(definition.value, used + 1);
+    const replaced = deck.find((card) => card.value === definition.value && card.suit === SUIT_SYMBOLS[definition.suit]);
+    if (!replaced) throw new Error(`${definition.id} has no matching ${definition.value} of ${definition.suit} slot.`);
     const deckIndex = deck.findIndex((card) => card.id === replaced.id);
     deck[deckIndex] = {
       ...replaced,

@@ -25,6 +25,20 @@ const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
   "rumin-kaisers-gold-claw"
 ]);
 const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
+const SUIT_KEYS = Object.freeze({
+  "♠": "spades", spade: "spades", spades: "spades",
+  "♥": "hearts", heart: "hearts", hearts: "hearts",
+  "♦": "diamonds", diamond: "diamonds", diamonds: "diamonds",
+  "♣": "clubs", club: "clubs", clubs: "clubs"
+});
+
+function suitKey(value) {
+  return SUIT_KEYS[String(value || "").toLowerCase()] || String(value || "").toLowerCase();
+}
+
+function suitsMatch(left, right) {
+  return !!left && !!right && suitKey(left) === suitKey(right);
+}
 const FACTION_PROFILES = {
   mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
   jali: { id: "jali", name: "Jali", commander: "Watane", city: "Katana, Floating City", general: { id: "basho", name: "Basho" } },
@@ -696,7 +710,7 @@ function calculateFactionAttackBonus(player, card) {
     if (
       attackNumber > 1
       && previousSuit
-      && previousSuit === card.suit
+      && suitsMatch(previousSuit, card.suit)
       && player.turnData.ruminMatchingSuitBonuses < 2
     ) {
       bonus += 1;
@@ -718,7 +732,7 @@ function calculateFactionAttackBonus(player, card) {
     id === "bizi"
     && attackNumber > 1
     && previousSuit
-    && previousSuit !== card.suit
+    && !suitsMatch(previousSuit, card.suit)
     && player.turnData.biziDifferentSuitBonuses < 2
   ) {
     bonus += 1;
@@ -763,12 +777,12 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     const weapon = entry.card;
     let weaponBonus = 0;
     if (cardIs(weapon, "rumin-gilded-scale-legionary")) {
-      const diamondPaid = [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map((entry) => entry.suit)].includes("♦");
+      const diamondPaid = [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map((entry) => entry.suit)].some((suit) => suitKey(suit) === "diamonds");
       weaponBonus = diamondPaid ? 2 : 0;
     } else if (cardIs(weapon, "rumin-coin-scale-spear")) weaponBonus = 2;
     else if (cardIs(weapon, "rumin-rumie-vault-shield")) weaponBonus = 3;
     else if (cardIs(weapon, "rumin-imperial-scale-pike")) {
-      weaponBonus = player.turnData.previousAttackSuit === card.suit ? 4 : 2;
+      weaponBonus = suitsMatch(player.turnData.previousAttackSuit, card.suit) ? 4 : 2;
     } else if (cardIs(weapon, "rumin-aurelian-clawblade")) weaponBonus = 4;
     else if (cardIs(weapon, "rumin-triumphal-ram")) weaponBonus = baseValue >= 8 ? 5 : 4;
     else if (cardIs(weapon, "rumin-kaisers-gold-claw")) weaponBonus = attackNumber === 4 ? 6 : 5;
@@ -819,7 +833,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   const differentSuit = (
     attackNumber > 1
     && player.turnData.previousAttackSuit
-    && player.turnData.previousAttackSuit !== card.suit
+    && !suitsMatch(player.turnData.previousAttackSuit, card.suit)
   );
   if (differentSuit && playerControlsCard(game, playerNumber, "bizi-constanti-conduit")) {
     bonus += 1;
@@ -1226,7 +1240,7 @@ function heraPaymentBonus(player, command, paymentIds) {
   }
   const matchingCard = paymentIds
     .map((id) => findHandCard(player, id))
-    .find((card) => player.turnData.suitsPlayedThisTurn.includes(card?.suit));
+    .find((card) => player.turnData.suitsPlayedThisTurn.some((suit) => suitsMatch(suit, card?.suit)));
   if (!matchingCard) {
     return { error: "Hera requires a payment card matching a suit you played this turn." };
   }
