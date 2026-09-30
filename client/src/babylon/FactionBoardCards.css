@@ -1,0 +1,37 @@
+.faction-board-cards { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.production-table-recovery ~ .faction-board-cards { display: none; }
+.faction-board-card {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
+  overflow: hidden; padding: 0; border: 1px solid #997344; border-radius: 5px;
+  background: #10151b; color: #eee5d5; box-shadow: 0 4px 10px #000b;
+  cursor: pointer; text-align: center;
+}
+.faction-board-card img { width: 100%; height: 100%; object-fit: cover; opacity: .78; }
+.faction-board-role { position: absolute; top: 0; left: 0; right: 0; padding: 3px 1px;
+  color: #efd5a2; background: #0b1019db; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.faction-board-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 3px 4px;
+  background: linear-gradient(transparent, #060b12 35%); }
+.faction-board-caption strong { display: block; font-size: 10px; line-height: 1.1;
+  overflow: hidden; max-height: 2.2em; }
+.faction-board-caption small { display: block; margin-top: 3px; color: #bdc5cf; font-size: 9px; }
+.faction-board-card.is-ready { border-color: #f3ce80; box-shadow: 0 0 0 2px #bd8d3b80, 0 0 18px #e8b35666; }
+.faction-board-card.is-ready small { color: #ffdd94; }
+.faction-board-card.is-active { border-color: #86bcff; box-shadow: 0 0 0 2px #4a9cfa, 0 0 16px #4a9cfa80; }
+.faction-board-card:hover, .faction-board-card:focus-visible { outline: 2px solid #f5dfad; outline-offset: 2px; }
+.faction-board-choices {
+  position: absolute; transform: translateX(-50%); width: 340px; max-width: calc(100% - 24px);
+  max-height: 65%; overflow: auto; padding: 10px; box-sizing: border-box;
+  pointer-events: auto; border: 1px solid #b5894f; border-radius: 8px;
+  background: #0c131dfc; color: #eee5d5; box-shadow: 0 10px 32px #000b;
+}
+.faction-board-choices header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.faction-board-choices header span { display: block; color: #c99b5d; text-transform: uppercase; font-size: 10px; }
+.faction-board-choices header strong { display: block; font-size: 14px; }
+.faction-board-choices button { min-height: 36px; color: #e9edf4; border: 1px solid #537798; border-radius: 4px; background: #192c40; cursor: pointer; }
+.faction-board-choices header button { min-width: 36px; font-size: 22px; }
+.faction-board-choices p { font-size: 12px; line-height: 1.45; }
+.faction-board-choices > button { display: block; width: 100%; margin-top: 6px; padding: 9px; text-align: left; }
+.faction-board-choices > button span { display: block; margin-top: 4px; font-size: 11px; }
+.faction-board-choices > button:disabled { opacity: .5; cursor: default; }
+.faction-board-choices > button[aria-pressed="true"] { border-color: #f3ce80; }
+.faction-board-note { color: #afbdcd; }
