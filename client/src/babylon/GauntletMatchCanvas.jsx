@@ -19,7 +19,6 @@ export default function GauntletMatchCanvas({
   graphicsQuality = "balanced",
   battlefieldTheme = "basic",
   colorTheme = "dark",
-  screenReadouts = false,
   cardBackAsset = "",
   handRailPresentation = null,
   capturePlaybackControl = null,
@@ -33,7 +32,6 @@ export default function GauntletMatchCanvas({
   const commandsRef = useRef(commands);
   const battlefieldThemeRef = useRef(battlefieldTheme);
   const colorThemeRef = useRef(colorTheme);
-  const screenReadoutsRef = useRef(screenReadouts);
   const cardBackAssetRef = useRef(cardBackAsset);
   const handRailPresentationRef = useRef(handRailPresentation);
   const graphicsQualityRef = useRef(normalizeGraphicsQuality(graphicsQuality));
@@ -96,7 +94,6 @@ export default function GauntletMatchCanvas({
         cardBackAsset: cardBackAssetRef.current,
         battlefieldTheme: battlefieldThemeRef.current,
         colorTheme: colorThemeRef.current,
-        screenReadouts: screenReadoutsRef.current,
         getHandRailPresentation: () => handRailPresentationRef.current?.current
       });
       if (!renderer.scene.activeCamera) {
