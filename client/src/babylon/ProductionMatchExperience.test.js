@@ -12,10 +12,11 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
   interactionLocked,
   interactionStatus,
   graphicsQuality,
+  colorTheme,
   onSceneMetrics
 }) {
   return (
-    <div data-testid="mock-gauntlet-canvas" data-graphics-quality={graphicsQuality}>
+    <div data-testid="mock-gauntlet-canvas" data-graphics-quality={graphicsQuality} data-match-theme={colorTheme}>
       {viewModel.instruction}
       <span data-testid="mock-canvas-cadence-tier">
         {viewModel.presentationCues?.[0]?.cadence?.tier || "rest"}
@@ -1046,6 +1047,28 @@ test("keeps live undo, draw, concession, and navigation controls around the Baby
   expect(respondDraw).toHaveBeenCalledWith(false);
   expect(concede).toHaveBeenCalledTimes(1);
   expect(leaveMatch).toHaveBeenCalledTimes(1);
+});
+
+test("switches the board and controls together, preserves the renderer, and remembers the theme", async () => {
+  window.localStorage.removeItem("gauntlet.matchTheme");
+  const adapter = adapterFor({ source: "live", controls: {} });
+  const first = render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  const shell = await screen.findByTestId("production-babylon-match");
+  const canvas = screen.getByTestId("mock-gauntlet-canvas");
+  expect(shell).toHaveAttribute("data-match-theme", "dark");
+  fireEvent.click(screen.getByText("Match"));
+  fireEvent.click(screen.getByRole("button", { name: "Light", exact: true }));
+  expect(shell).toHaveAttribute("data-match-theme", "light");
+  expect(canvas).toHaveAttribute("data-match-theme", "light");
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toBe(canvas);
+  expect(window.localStorage.getItem("gauntlet.matchTheme")).toBe("light");
+  first.unmount();
+  render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
+  expect(await screen.findByTestId("production-babylon-match")).toHaveAttribute("data-match-theme", "light");
+  fireEvent.click(screen.getByText("Match"));
+  fireEvent.click(screen.getByRole("button", { name: "Dark", exact: true }));
+  expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-match-theme", "dark");
+  window.localStorage.removeItem("gauntlet.matchTheme");
 });
 
 test("keeps discard, match log, keyboard help, faction abilities, and sound in the production shell", async () => {

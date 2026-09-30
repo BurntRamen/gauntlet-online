@@ -1,0 +1,102 @@
+.production-theme-setting { margin: 0; padding: 8px 10px 10px; border: 1px solid #71859a; border-radius: 6px; }
+.production-theme-setting legend { padding: 0 4px; font-size: 12px; font-weight: 800; }
+.production-theme-setting > div { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.production-theme-setting small { display: block; margin-top: 6px; font-size: 11px; line-height: 1.4; }
+.production-theme-setting button[aria-pressed="true"] { border-color: #78b9ff; background: #21466d; color: #fff; }
+.production-match-utilities-panel { max-height: calc(100dvh - 96px); overflow-y: auto; box-sizing: border-box; }
+
+@media (forced-colors: none) {
+  .production-match-experience[data-match-theme="light"] {
+    color-scheme: light;
+    --gauntlet-parchment: #26343d;
+    --gauntlet-bronze: #80551e;
+    --gauntlet-player-blue: #165b9c;
+    --gauntlet-player-red: #b42d40;
+    --gauntlet-navy: #e2e8ed;
+    --battlefield-plate: #f6f3ea;
+    --battlefield-plate-deep: #e5e9eb;
+    color: var(--gauntlet-parchment);
+    background: linear-gradient(145deg, #f5f0e3, #d8e1e7);
+  }
+  [data-match-theme="light"]::before { opacity: .12; }
+  [data-match-theme="light"] .production-table-vignette { box-shadow: inset 0 0 60px 12px #54657416; }
+  [data-match-theme="light"] :is(
+    .production-player-plate, .production-context-panel, .production-match-utilities-panel,
+    .production-match-utilities > summary, .production-campaign-encounter, .production-mode-marker,
+    .production-match-ledger, .production-reference-panel.is-docked, .production-reference-card,
+    .production-incoming-control, .production-control-notice, .production-control-confirmation,
+    .production-match-result, .production-card-preview, .production-combat-recap, .production-privacy-card,
+    .production-card-inspection, .faction-board-choices, .phone-hand-panel, .production-broadcast-marker,
+    .production-connection-banner, .production-table-recovery
+  ) { background: #f8f6f0; color: #26343d; border-color: #96a5ae; box-shadow: 0 6px 18px #31495720; }
+  [data-match-theme="light"] :is(
+    .production-player-copy span, .production-match-utilities-panel > span, .production-graphics-setting small,
+    .production-campaign-encounter p, .production-campaign-encounter blockquote,
+    .production-dialogue-status, .production-match-ledger small, .production-match-log small,
+    .production-action-reason, .production-incoming-control span, .production-control-notice span,
+    .production-card-state, .production-combat-recap p, .production-reference-card p,
+    .production-faction-card p, .production-faction-card small, .faction-board-note,
+    .production-faction-profile p, .production-faction-reference-actions button span,
+    .production-match-log span, .production-match-log-sequence, .production-result-facts dt,
+    .production-discard-grid button span, .production-keyboard-help dd,
+    .phone-hand-panel header, .phone-hand-panel header span
+  ) { color: #4c5e69; }
+  [data-match-theme="light"] :is(
+    .production-graphics-setting, .production-campaign-dialogue blockquote, .production-faction-card,
+    .production-faction-player, .production-keyboard-help, .production-match-log li,
+    .production-discard-card, .production-reference-section, .production-payment-readout,
+    .production-faction-reference > section, .production-faction-profile,
+    .production-discard-columns > section, .production-keyboard-help > div,
+    .production-match-log-sections > section, .production-result-facts div
+  ) { background: #e8edef; color: #26343d; border-color: #a8b4bb; }
+  [data-match-theme="light"] :is(
+    .production-mode-marker span, .production-graphics-setting label,
+    .production-campaign-dialogue blockquote > div > strong,
+    .production-reference-card h3, .production-faction-card h4,
+    .faction-board-choices header span, .production-payment-readout > strong,
+    .production-payment-readout > small, .production-faction-profile span,
+    .production-faction-reference-actions h4, .production-result-unlocks
+  ) { color: #80551e; }
+  [data-match-theme="light"] :is(.production-match-ledger strong, .production-match-log strong,
+    .production-faction-profile strong, .production-keyboard-help dt) { color: #26343d; }
+  [data-match-theme="light"] button:not(.phone-hand-card):not(.faction-board-card),
+  [data-match-theme="light"] select {
+    color: #26343d; background: #e7edf1; border-color: #879da9;
+  }
+  [data-match-theme="light"] button:not(.phone-hand-card):not(.faction-board-card):hover:not(:disabled) {
+    background: #d3e3ed; border-color: #376e97;
+  }
+  [data-match-theme="light"] button:not(.phone-hand-card):not(.faction-board-card)[aria-pressed="true"],
+  [data-match-theme="light"] button:not(.phone-hand-card):not(.faction-board-card)[aria-pressed="true"]:hover:not(:disabled) {
+    background: #235f93; border-color: #174a78; color: #fff;
+  }
+  [data-match-theme="light"] .production-action-primary { color: #fff !important; }
+  [data-match-theme="light"] .production-action-cancel { color: #684512 !important; background: #eee3cd !important; }
+  [data-match-theme="light"] button.danger:not(.phone-hand-card):not(.faction-board-card),
+  [data-match-theme="light"] button.danger:not(.phone-hand-card):not(.faction-board-card):hover:not(:disabled) {
+    color: #912638; background: #f5dde0; border-color: #b2606c;
+  }
+  [data-match-theme="light"] :is(button, summary, select):focus-visible { outline: 2px solid #165b9c; outline-offset: 2px; }
+  [data-match-theme="light"] .production-priority { color: #4c5e69; background: #e7edf1; }
+  [data-match-theme="light"] .has-priority .production-priority { color: var(--player-color); background: #fff; }
+  [data-match-theme="light"] .production-player-plate[data-player-color] { border-left-color: var(--player-color); }
+  [data-match-theme="light"] .production-player-plate.has-priority { border-color: var(--player-color); }
+  [data-match-theme="light"] .production-turn-marker { background: linear-gradient(90deg, transparent, #f8f6f0e6 20%, #f8f6f0e6 80%, transparent); }
+  [data-match-theme="light"] .production-turn-marker[data-phase="priority"] { --phase-color: #80551e; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="draw"] { --phase-color: #146860; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="attack"],
+  [data-match-theme="light"] .production-turn-marker[data-phase="combat"] { --phase-color: #a04616; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="block"] { --phase-color: #704697; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="damage"] { --phase-color: #aa3040; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="end"] { --phase-color: #2c6b46; }
+  [data-match-theme="light"] .production-turn-marker[data-phase="gameOver"] { --phase-color: #67518b; }
+  [data-match-theme="light"] .faction-board-card { background: #f4f0e6; color: #26343d; border-color: #937239; }
+  [data-match-theme="light"] .faction-board-role { color: #684512; background: #f8f4e9ed; }
+  [data-match-theme="light"] .faction-board-caption { background: linear-gradient(transparent, #f8f4e9 35%); }
+  [data-match-theme="light"] .faction-board-caption small { color: #4c5e69; }
+  [data-match-theme="light"] .faction-board-card.is-ready { border-color: #946313; box-shadow: 0 0 0 2px #b58738, 0 0 14px #cc9d4366; }
+  [data-match-theme="light"] .faction-board-card.is-ready small { color: #764c07; }
+  [data-match-theme="light"] .faction-board-card.is-active { border-color: #165b9c; box-shadow: 0 0 0 2px #165b9c; }
+  [data-match-theme="light"] .phone-hand-rail { scrollbar-color: #899eab #e8edef; }
+  [data-match-theme="light"] .production-reference-panel:not(.is-docked) { background: #ccd6dfb8; }
+}

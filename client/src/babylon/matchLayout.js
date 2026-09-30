@@ -179,6 +179,15 @@ export function getBattlefieldSafeFrame(width, height) {
   };
 }
 
+// Responsive layout uses CSS pixels; render resolution may change independently.
+export function getTableViewportSize(canvas, engine) {
+  const scale = engine.getHardwareScalingLevel();
+  return {
+    width: Math.max(1, canvas.clientWidth || engine.getRenderWidth() * scale),
+    height: Math.max(1, canvas.clientHeight || engine.getRenderHeight() * scale)
+  };
+}
+
 export function getTableCameraProjection(width, height, layoutProfile = null) {
   const safeWidth = Math.max(1, Number(width) || 1);
   const safeHeight = Math.max(1, Number(height) || 1);

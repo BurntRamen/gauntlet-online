@@ -10,7 +10,8 @@ const budgets = {
   // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
   // The 72-card guide stays in static HTML, outside the application bundle.
   // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
-  totalJavaScriptGzip: 708 * KIB
+  // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
+  totalJavaScriptGzip: 709 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {
