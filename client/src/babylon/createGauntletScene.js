@@ -635,9 +635,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   syncCamera();
 
   const hemi = new HemisphericLight("table-fill", new Vector3(0, 1, 0), babylonScene);
-  hemi.intensity = 0.58;
+  hemi.intensity = 0.82;
   hemi.diffuse = color(theme.fill);
-  hemi.groundColor = color("#020304");
+  hemi.groundColor = color("#0b1016");
   const key = new DirectionalLight("table-key", new Vector3(0.34, -1, 0.27), babylonScene);
   key.position = new Vector3(-9, 16, -7);
   key.intensity = 1.28;
@@ -655,8 +655,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   // blurring it on every frame.
   structuralShadowMap = shadowGenerator.getShadowMap();
   structuralShadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-  babylonScene.imageProcessingConfiguration.contrast = 1.12;
-  babylonScene.imageProcessingConfiguration.exposure = 1.08;
+  // Retain neutral contrast so dark stone and recessed lanes stay readable.
+  babylonScene.imageProcessingConfiguration.exposure = 1.14;
 
   const nativePalette = createNativeBoardPalette(babylonScene);
   const nativeStoneTexture = new Texture(
