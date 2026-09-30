@@ -338,6 +338,8 @@ test("uses a privacy curtain for local perspective handoff", async () => {
 });
 
 test("shows the reason a staged action cannot yet be confirmed", async () => {
+  const confirmCurrentAction = jest.fn();
+  const onRejectedAction = jest.fn();
   const viewModel = createViewModel();
   viewModel.selection.attackMode = { from: "hand" };
   viewModel.payment = { active: true, total: 5, required: 7 };
@@ -345,8 +347,8 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
 
   render(
     <ProductionMatchExperience
-      adapter={adapterFor({ viewModel })}
-      options={{ audioEnabled: false }}
+      adapter={adapterFor({ viewModel, commands: { confirmCurrentAction } })}
+      options={{ audioEnabled: false, onRejectedAction }}
     />
   );
 
@@ -356,7 +358,11 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
   expect(payment).toHaveTextContent("5 / 7");
   expect(payment).toHaveTextContent("Select 2 more payment value.");
   expect(screen.queryByRole("button", { name: "Pass Priority" })).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
+  const confirm = screen.getByRole("button", { name: "Confirm" });
+  expect(confirm).toBeEnabled();
+  fireEvent.click(confirm);
+  expect(onRejectedAction).toHaveBeenCalledWith("Select 2 more payment value.");
+  expect(confirmCurrentAction).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
 });
 

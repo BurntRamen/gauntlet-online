@@ -16,6 +16,7 @@ export default function AccessibleMatchControls({
   const passDisabled = !!viewModel?.interactions?.passDisabled
     || viewModel?.phase === "gameOver"
     || hasSelection;
+  const rejectedAttackCanExplain = !!viewModel?.selection?.attackMode;
   const unavailableLaneReasons = (viewModel?.lanes || [])
     .map((lane) => ({
       lane: lane.index + 1,
@@ -147,7 +148,10 @@ export default function AccessibleMatchControls({
             )}
             <div className="babylon-accessible-control-row">
               <button type="button" data-match-zone="actions" disabled={interactionLocked || passDisabled} onClick={() => commands.passPriority?.()}>{viewModel.interactions.passLabel || "Pass / Continue"}</button>
-              <button type="button" data-match-zone="actions" disabled={interactionLocked || viewModel.interactions.confirmDisabled} onClick={() => commands.confirmCurrentAction?.()}>{viewModel.interactions.confirmLabel || "Confirm"}</button>
+              <button type="button" data-match-zone="actions"
+                disabled={interactionLocked || (viewModel.interactions.confirmDisabled && !rejectedAttackCanExplain)}
+                title={viewModel.interactions.confirmReason || ""}
+                onClick={() => commands.confirmCurrentAction?.()}>{viewModel.interactions.confirmLabel || "Confirm"}</button>
               <button type="button" data-match-zone="actions" disabled={interactionLocked || !hasSelection} onClick={() => commands.cancelCurrentAction?.()}>Cancel</button>
             </div>
           </>

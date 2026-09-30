@@ -1293,7 +1293,14 @@ export class LocalDuelAdapter {
   }
 
   confirmCurrentAction() {
-    if (this.confirmState().disabled) return;
+    if (this.confirmState().disabled) {
+      if (this.selection.kind === "handAttack" || this.selection.kind === "laneAttack") {
+        const reason = this.confirmationReason() || "That attack cannot be performed right now.";
+        this.notice = `Unable to attack. ${reason}`;
+        this.emit();
+      }
+      return;
+    }
     if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
       this.selection = { ...this.selection, selectionRole: "payment" };
       this.notice = "Blocker staged. Choose payment cards.";

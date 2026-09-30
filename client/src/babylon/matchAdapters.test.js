@@ -118,6 +118,20 @@ test("local adapter immediately exposes a production match update", () => {
   adapter.dispose();
 });
 
+test("an underpaid attack stays staged and explains why confirmation was rejected", () => {
+  const adapter = createLocalDuelAdapter({ seed: "adapter-rejected-attack" });
+  const before = adapter.game.actionHistory.length;
+  adapter.activateHandCard(0);
+  expect(adapter.confirmState().disabled).toBe(true);
+
+  adapter.confirmCurrentAction();
+
+  expect(adapter.game.actionHistory).toHaveLength(before);
+  expect(adapter.selection.kind).toBe("handAttack");
+  expect(latestUpdate(adapter).viewModel.instruction).toMatch(/^Unable to attack\./);
+  adapter.dispose();
+});
+
 test("local adapter automatically finalizes portable record-v2 history after a completed match", async () => {
   const saved = [];
   const adapter = new LocalDuelAdapter({

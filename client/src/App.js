@@ -2514,7 +2514,7 @@ function HelperToggle({ enabled, onToggle, light = false }) {
 }
 
 function QuickActionButton({ children, className = "", disabled = false, reason = "", title = "", ...props }) {
-  const helpTitle = disabled && reason ? reason : title;
+  const helpTitle = reason || title;
   return (
     <button
       {...props}
@@ -5765,7 +5765,8 @@ export default function App() {
               onAudioEnabledChange: (enabled) => {
                 if (account?.id) setSignedInSoundMuted(!enabled);
                 else setAccountSoundMuted(!enabled);
-              }
+              },
+              onRejectedAction: factionVoiceFor
             }}
             onLeaveMatch={returnToMainMenu}
           />
@@ -5992,8 +5993,15 @@ export default function App() {
       setAttackMode({ from: "lane", lane, targetPlayer: targetOptions[0] || "" });
     };
     const confirmFfaAttack = () => {
-      if (!attackMode || !currentTarget) return;
-      if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
+      if (!attackMode) return;
+      if (!currentTarget) {
+        factionVoiceFor("Choose an opponent before confirming the attack.");
+        return;
+      }
+      if (attackMode.from === "hand" && selectedAttackCardIndex == null) {
+        factionVoiceFor("Choose an attacking card before confirming the attack.");
+        return;
+      }
       if (activeAttackCard && paymentTotal < activeAttackRequired) {
         factionVoiceFor(`Need ${activeAttackRequired} payment; selected ${paymentTotal}.`);
         return;
@@ -6076,7 +6084,7 @@ export default function App() {
             <div style={{ color: "#555", fontSize: 12 }}>
               {attackMode.from === "hand" ? "Choose an attack card, target, and payment." : "Choose a target and payment."}
             </div>
-            <QuickActionButton className="quick-action-primary" onClick={confirmFfaAttack} disabled={!!ffaAttackConfirmReason} reason={ffaAttackConfirmReason}>Confirm Attack</QuickActionButton>
+            <QuickActionButton className="quick-action-primary" onClick={confirmFfaAttack} reason={ffaAttackConfirmReason}>Confirm Attack</QuickActionButton>
             <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
           </>
         )}
@@ -6262,7 +6270,7 @@ export default function App() {
               {attackMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
                 <label>Target <select value={currentTarget} onChange={(e) => setAttackMode((prev) => ({ ...prev, targetPlayer: Number(e.target.value) }))}>{targetOptions.map((p) => <option key={p} value={p}>Player {p}</option>)}</select></label>
                 <div>Selected: {activeAttackCard ? getCardShortLabel(activeAttackCard) : "none"} - Pay {paymentTotal}/{activeAttackRequired}</div>
-                <button onClick={confirmFfaAttack} disabled={!activeAttackCard || !currentTarget}>Confirm Attack</button>
+                <button onClick={confirmFfaAttack} title={ffaAttackConfirmReason || ""}>Confirm Attack</button>
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
               {blockMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
@@ -6476,7 +6484,10 @@ export default function App() {
 
   function confirmAttack() {
     if (!attackMode) return;
-    if (attackMode.from === "hand" && selectedAttackCardIndex == null) return;
+    if (attackMode.from === "hand" && selectedAttackCardIndex == null) {
+      factionVoiceFor("Choose an attacking card before confirming the attack.");
+      return;
+    }
     if (activeAttackCard && paymentTotal < activeAttackRequired) {
       factionVoiceFor(`Need ${activeAttackRequired} payment; selected ${paymentTotal}.`);
       return;
@@ -6756,7 +6767,7 @@ export default function App() {
       )}
       {attackMode && (
         <>
-          <QuickActionButton className="quick-action-primary" onClick={confirmAttack} disabled={!!attackConfirmReason} reason={attackConfirmReason}>Confirm Attack</QuickActionButton>
+          <QuickActionButton className="quick-action-primary" onClick={confirmAttack} reason={attackConfirmReason}>Confirm Attack</QuickActionButton>
           <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
         </>
       )}

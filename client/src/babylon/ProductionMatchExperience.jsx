@@ -405,6 +405,7 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
         : viewModel?.selection?.attackMode
           ? "attack"
           : "priority";
+  const rejectedAttackCanExplain = !!viewModel?.selection?.attackMode;
   if (spectator) {
     return (
       <section className="production-context-panel spectator">
@@ -480,7 +481,7 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
             <button
               type="button"
               className="production-action-primary"
-              disabled={!connected || interactions.confirmDisabled}
+              disabled={!connected || (interactions.confirmDisabled && !rejectedAttackCanExplain)}
               title={interactions.confirmReason || ""}
               onClick={() => commands.confirmCurrentAction?.()}
             >
@@ -1552,6 +1553,8 @@ export default function ProductionMatchExperience({
     pause: () => playbackRef.current?.pause?.() || 0,
     resume: () => playbackRef.current?.resume?.() || 0
   }), []);
+  const onRejectedAction = options.onRejectedAction;
+  const presentationModelLoader = options.presentationModelLoader;
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
       interactionCueTokenRef.current += 1;
@@ -1562,17 +1565,25 @@ export default function ProductionMatchExperience({
       }));
       return callback?.(...args);
     };
+    const confirmCurrentAction = (...args) => {
+      if (viewModel?.selection?.attackMode && viewModel?.interactions?.confirmDisabled) {
+        onRejectedAction?.(
+          viewModel.interactions.confirmReason || "That attack cannot be performed right now."
+        );
+      }
+      return commands.confirmCurrentAction?.(...args);
+    };
     return {
       ...commands,
       activateHandCard: withTone("ui.select", commands.activateHandCard),
       activateLane: withTone("ui.select", commands.activateLane),
       activateAbility: withTone("ui.select", commands.activateAbility),
       passPriority: commands.passPriority,
-      confirmCurrentAction: withTone("ui.confirm", commands.confirmCurrentAction),
+      confirmCurrentAction: withTone("ui.confirm", confirmCurrentAction),
       cancelCurrentAction: withTone("ui.cancel", commands.cancelCurrentAction),
       inspectCard: withTone("ui.select", commands.inspectCard),
       closeInspection: withTone("ui.cancel", commands.closeInspection),
-      loadPresentationModule: options.presentationModelLoader,
+      loadPresentationModule: presentationModelLoader,
       presentationCue: playUiTone,
       previewCard: setPreviewCard,
       openDiscard: (pile) => {
@@ -1585,7 +1596,7 @@ export default function ProductionMatchExperience({
       newMatch: withTone("ui.confirm", commands.newMatch),
       concede: withTone("ui.confirm", commands.concede)
     };
-  }, [commands, options.presentationModelLoader, playUiTone, viewModel?.matchId, viewModel?.revision, viewModel?.top?.id, viewModel?.bottom?.id]);
+  }, [commands, onRejectedAction, playUiTone, presentationModelLoader, viewModel?.interactions?.confirmDisabled, viewModel?.interactions?.confirmReason, viewModel?.matchId, viewModel?.revision, viewModel?.selection?.attackMode, viewModel?.top?.id, viewModel?.bottom?.id]);
   const gameplayInputLocked = Boolean(
     transportUpdate?.connected === false
     || playbackState.inputLocked
@@ -1793,7 +1804,7 @@ export default function ProductionMatchExperience({
         gameplayCommands.passPriority?.();
         return;
       }
-      if (key === "c" && !presentedViewModel.interactions.confirmDisabled) {
+      if (key === "c" && (!presentedViewModel.interactions.confirmDisabled || presentedViewModel.selection?.attackMode)) {
         event.preventDefault();
         gameplayCommands.confirmCurrentAction?.();
         return;
