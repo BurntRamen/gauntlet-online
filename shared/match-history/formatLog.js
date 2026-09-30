@@ -121,7 +121,7 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
     case "resource.changed":
       return { icon: "priority", title: `${actor} · ${entry.resourceLabel}`, detail: `${entry.before} ${entry.amount >= 0 ? '+' : '−'} ${Math.abs(entry.amount)} = ${entry.after}` };
     case "priority.retained":
-      return { icon: "priority", title: `${actor} can act again`, detail: "Opponent may respond after the next pass." };
+      return { icon: "priority", title: `${actor} can act again`, detail: "The other player may respond after the next pass." };
     case "card.peeked":
       return { icon: "inspect", title: `${abilityName(entry, 'Private inspection')} · ${actor} inspected a card`, detail: entry.card ? `${logCardName(entry.card)}${entry.deckPosition ? ` · deck position ${entry.deckPosition}` : ''} · only visible to you` : "Card identity is private" };
     case "card.buffApplied":
