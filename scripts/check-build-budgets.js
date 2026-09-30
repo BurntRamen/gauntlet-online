@@ -11,7 +11,8 @@ const budgets = {
   // The 72-card guide stays in static HTML, outside the application bundle.
   // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
   // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
-  totalJavaScriptGzip: 709 * KIB
+  // Resolution-independent battlefield labels replace tiny in-scene text (~1.5 KiB).
+  totalJavaScriptGzip: 711 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

@@ -563,6 +563,11 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
 }
 
 export function createGauntletScene(engine, canvas, commands = {}) {
+  function replaceWorldReadout(mesh) {
+    if (!commands.screenReadouts) return;
+    mesh.metadata = { ...mesh.metadata, screenReadoutReplaced: true };
+    mesh.setEnabled(false);
+  }
   let theme = battlefieldTheme(commands.battlefieldTheme);
   const babylonScene = new Scene(engine);
   const sceneInstrumentation = new SceneInstrumentation(babylonScene);
@@ -1245,6 +1250,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     laneLabel.material.emissiveColor = color("#101d27");
     laneLabel.visibility = 0.8;
     laneLabel.isPickable = false;
+    replaceWorldReadout(laneLabel);
   });
 
   const handCombatMaterial = nativePalette.steelDark;
@@ -1469,6 +1475,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     y: 0.5,
     z: MATCH_LAYOUT.payment.z - MATCH_LAYOUT.payment.depth / 2 + 0.42
   });
+  replaceWorldReadout(paymentStatusPanel.face);
 
   const pileDockMeshes = new Map();
   const discardHitMeshes = [];
@@ -1574,6 +1581,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     });
     pileDockMeshes.set(name, { dock, dial });
+    replaceWorldReadout(dial.face);
   });
 
   const combatDials = {
@@ -1600,6 +1608,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       active: false
     })
   };
+
+  Object.values(combatDials).forEach((dial) => replaceWorldReadout(dial.face));
 
   function createPresentationLight(name, { x, y, z, width, height, tint, fallbackMaterial }) {
     const maskMaterial = new StandardMaterial(`${name}-mask-material`, babylonScene);
@@ -1854,7 +1864,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     authoredModuleRoots = [];
     nativeBoardStage?.resetAuthoredRoots?.();
     babylonScene.meshes.forEach((mesh) => {
-      if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(true);
+      if (mesh.metadata?.gauntletPresentationFallback) mesh.setEnabled(!mesh.metadata.screenReadoutReplaced);
     });
     loadAuthoredPresentationModules(
       babylonScene,

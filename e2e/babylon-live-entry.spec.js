@@ -727,12 +727,18 @@ test("resolution changes preserve framing and saved light mode updates the exist
   const match = page.getByTestId("production-babylon-match");
   const canvas = page.locator("canvas.babylon-match-canvas");
   await expect(match).toHaveAttribute("data-layout-profile", "ultrawide");
+  await expect(page.locator("[data-lane-readout]")).toHaveCount(3);
+  await expect(page.locator("[data-pile-readout]")).toHaveCount(4);
+  const deckReadout = page.locator('[data-pile-readout="localDeck"] strong');
+  await expect(deckReadout).toHaveText("44");
+  expect(await deckReadout.evaluate((element) => getComputedStyle(element).fontSize)).toBe("24px");
   await page.evaluate(() => { window.__themeOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
   const frame = await page.getByTestId("battlefield-safe-frame").boundingBox();
   await page.locator(".production-match-utilities > summary").click();
   await page.getByLabel("Graphics quality", { exact: true }).selectOption("performance");
   // This crosses the old 420-render-pixel breakpoint without resizing the display.
   await expect.poll(() => canvas.evaluate((element) => element.height)).toBeLessThanOrEqual(420);
+  expect(await deckReadout.evaluate((element) => getComputedStyle(element).fontSize)).toBe("24px");
   await expect(match).toHaveAttribute("data-layout-profile", "ultrawide");
   await expect(page.locator("[data-faction-role]")).toHaveCount(3);
   await page.getByRole("button", { name: "Light", exact: true }).click();
