@@ -374,32 +374,25 @@ export function createEngravedMedallion(scene, name, {
   return { base, field, ring, diamond };
 }
 
-function drawDial(texture, { label, value, accent, active }) {
+function drawDial(texture, { label, value, accent, active, light }) {
   const context = texture.getContext();
   const size = texture.getSize().width;
   context.clearRect(0, 0, size, size);
-  context.fillStyle = active ? "rgba(12, 27, 40, 1)" : "rgba(4, 10, 16, 1)";
+  context.fillStyle = light ? "#f6f0df" : "#101c24";
   context.beginPath();
   context.arc(size / 2, size / 2, size * 0.455, 0, Math.PI * 2);
   context.fill();
-  context.strokeStyle = active ? accent : "#c09351";
-  context.lineWidth = active ? 16 : 13;
-  context.stroke();
-  context.strokeStyle = "rgba(224, 234, 242, 0.42)";
-  context.lineWidth = 4;
-  context.beginPath();
-  context.arc(size / 2, size / 2, size * 0.365, 0, Math.PI * 2);
+  context.strokeStyle = accent;
+  context.lineWidth = active ? 18 : 12;
   context.stroke();
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.shadowColor = "rgba(0, 0, 0, 0.9)";
-  context.shadowBlur = 6;
-  context.fillStyle = active ? "#fff0c8" : "#e5d2ad";
-  context.font = `900 ${Math.round(size * 0.17)}px Arial`;
-  context.fillText(String(label || "").toUpperCase(), size / 2, size * 0.31);
-  context.fillStyle = "#f5f8fa";
-  context.font = `800 ${Math.round(size * 0.38)}px Georgia`;
-  context.fillText(String(value ?? "—"), size / 2, size * 0.61);
+  context.fillStyle = light ? "#243746" : "#f4e7cc";
+  context.font = `900 ${Math.round(size * (label.length > 5 ? 0.175 : 0.205))}px Arial`;
+  context.fillText(String(label || "").toUpperCase(), size / 2, size * 0.285, size * 0.79);
+  context.fillStyle = light ? "#142432" : "#ffffff";
+  context.font = `900 ${Math.round(size * 0.47)}px Arial`;
+  context.fillText(String(value ?? "—"), size / 2, size * 0.625, size * 0.76);
   texture.update(true);
 }
 
@@ -423,19 +416,21 @@ export function createBoardDial(scene, name, {
     accentMaterial: palette.bronze
   });
   const texture = new DynamicTexture(`${name}-dial-texture`, {
-    width: 256,
-    height: 256
+    width: 512,
+    height: 512
   }, scene, true);
   texture.hasAlpha = true;
   const material = new StandardMaterial(`${name}-dial-material`, scene);
   material.disableLighting = true;
   material.diffuseColor = Color3.White();
-  material.emissiveColor = color("#d8c9a9");
+  // Information is enamelled into the physical counter, independent of scene lighting.
+  material.emissiveColor = Color3.White();
   material.specularColor = Color3.Black();
   material.diffuseTexture = texture;
   material.opacityTexture = texture;
   material.useAlphaFromDiffuseTexture = true;
   material.backFaceCulling = false;
+  texture.anisotropicFilteringLevel = 8;
   const face = CreatePlane(`${name}-dial-face`, {
     width: diameter * 0.88,
     height: diameter * 0.88
@@ -444,13 +439,19 @@ export function createBoardDial(scene, name, {
   face.position.set(x, y + 0.15, z);
   face.material = material;
   face.isPickable = false;
-  const state = { label, value, active, accent };
+  const state = { label, value, active, accent, light: false };
   const redraw = () => drawDial(texture, state);
   redraw();
   return {
     ...medallion,
     face,
     texture,
+    setAppearance({ light = state.light, accent: nextAccent = state.accent } = {}) {
+      if (state.light === light && state.accent === nextAccent) return;
+      state.light = light;
+      state.accent = nextAccent;
+      redraw();
+    },
     setValue(nextValue) {
       if (state.value === nextValue) return;
       state.value = nextValue;

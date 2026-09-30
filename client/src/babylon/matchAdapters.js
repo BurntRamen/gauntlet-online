@@ -394,7 +394,8 @@ export class LocalDuelAdapter {
         card,
         card.factionId || this.game.players[this.perspective]?.faction?.id || "basic"
       ),
-      description: card.text || card.description || ""
+      description: card.rulesText || card.text || card.description || "",
+      raw: card
     };
     this.inspection = inspection;
     this.notice = `${inspection.label} · ${inspection.valueBreakdown.equation}`;

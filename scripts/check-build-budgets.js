@@ -11,8 +11,9 @@ const budgets = {
   // The 72-card guide stays in static HTML, outside the application bundle.
   // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
   // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
-  // Source-by-source effect receipts, persistent inspection/history, and the
-  // optional ability preview add about 12 KiB gzip (measured 720 KiB total).
+  // Native, theme-aware board inscriptions replace the screen-space overlay.
+  // Readable card rules, campaign applicability, and blocker eligibility previews.
+  // Source-by-source effect receipts and persistent inspection/history.
   // Keep the initial-load and largest-chunk ceilings unchanged.
   totalJavaScriptGzip: 725 * KIB
 };

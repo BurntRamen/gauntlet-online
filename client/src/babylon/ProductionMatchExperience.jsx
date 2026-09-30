@@ -6,6 +6,7 @@ import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
 import AbilityStatePanel from "./AbilityStatePanel";
 import GameIcon from "./GameIcon";
+import { cardDetails, selectedCardPreview } from "./cardDetails";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
 import {
@@ -1136,8 +1137,17 @@ function CampaignEncounter({ campaign, audioEnabled }) {
   );
 }
 
-function CardInspection({ inspection, commands }) {
+function CardAbilityDetails({ details }) {
+  return <>
+    {details.rules && <p className="production-card-rules">{details.rules}</p>}
+    {details.campaignAbility && <span className="production-card-campaign-note">Ability applies in campaign</span>}
+    {details.abilityStatus && <p className="production-card-ability-status" role="status">{details.abilityStatus}</p>}
+  </>;
+}
+
+function CardInspection({ inspection, commands, viewModel, snapshot }) {
   if (!inspection) return null;
+  const details = cardDetails(inspection, viewModel, snapshot);
   return (
     <section
       className="production-card-inspection"
@@ -1165,21 +1175,22 @@ function CardInspection({ inspection, commands }) {
         <strong>Printed value {inspection.value}</strong>
         {inspection.valueBreakdown && <>
           <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
-          <p>Current attack/block value {inspection.valueBreakdown.total}. Payment and printed-value eligibility use printed value, with their own applicable effects.</p>
+          <p>Attack/block: {inspection.valueBreakdown.total}. Printed value stays {inspection.valueBreakdown.printed}. Payment is calculated separately.</p>
           {inspection.valueBreakdown.modifiers.map(e => <p key={e.id}>{e.source.name}: {e.amount >= 0 ? '+' : ''}{e.amount} · {e.duration?.kind === 'combat' ? 'this combat' : 'until turn end'}</p>)}
           {inspection.valueBreakdown.notes?.length > 0 && <p>Sources: {inspection.valueBreakdown.notes.join('; ')}</p>}
         </>}
-        {inspection.description && <p>{inspection.description}</p>}
+        <CardAbilityDetails details={details} />
         <a href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
       </div>
     </section>
   );
 }
 
-function CardPreview({ preview }) {
+function CardPreview({ preview, viewModel, snapshot }) {
   if (!preview) return null;
+  const details = cardDetails(preview, viewModel, snapshot);
   return (
-    <aside className="production-card-preview" aria-label={`${preview.label || "Card"} preview`}>
+    <aside className="production-card-preview" aria-label={`${details.name} preview`}>
       <div className="production-card-preview-art">
         {preview.artPath ? (
           <img src={preview.artPath} alt="" />
@@ -1192,9 +1203,10 @@ function CardPreview({ preview }) {
           <GameIcon name={preview.stateIcon || "inspect"} size={15} />
           {preview.stateLabel || "Card preview"}
         </span>
-        <strong>{preview.label || "Card"}</strong>
-        {preview.value != null && <small>Printed {preview.printedValue ?? preview.value} · Current {preview.valueBreakdown?.total ?? preview.value}</small>}
+        <strong>{details.name}</strong>
+        {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value} · Attack/block {preview.valueBreakdown?.total ?? preview.value}</small>}
         {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
+        <CardAbilityDetails details={details} />
       </div>
     </aside>
   );
@@ -1425,6 +1437,7 @@ export default function ProductionMatchExperience({
     let active = true;
     setUpdate(null);
     setAuthoritativeUpdate(null);
+    setPreviewCard(null);
     setFeedEntries([]);
     const playback = new BattlefieldPlaybackQueue({
       reducedMotion,
@@ -1822,6 +1835,11 @@ export default function ProductionMatchExperience({
     && battlefieldViewModel?.phase === "gameOver"
     && (!playbackState.catchingUp || battlefieldViewModel?.presentationPlayback?.finalReconcile)
   );
+  const activeCardPreview = transportUpdate?.privacy?.required ? null : previewCard || (
+    transportUpdate?.source !== "replay" && !viewModel?.perspective?.spectator
+      ? selectedCardPreview(presentedViewModel)
+      : null
+  );
 
   if (adapterError) {
     return (
@@ -2003,7 +2021,7 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
-        <div className={`production-card-and-log${previewCard ? " has-preview" : ""}`}>
+        <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}`}>
           {update?.source !== "replay" && !referencePanel && (
             <MatchLedger
               entries={feedEntries}
@@ -2012,10 +2030,10 @@ export default function ProductionMatchExperience({
               onOpenAbilities={() => { setAbilityLogOnly(true); setReferencePanel("log"); }}
             />
           )}
-          <CardPreview preview={previewCard} />
+          <CardPreview preview={activeCardPreview} viewModel={presentedViewModel} snapshot={update?.snapshot} />
         </div>
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
-        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
+        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} viewModel={viewModel} snapshot={transportUpdate?.snapshot} />
         {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}

@@ -35,7 +35,7 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
       <button
         type="button"
         data-testid="mock-preview-card"
-        onMouseEnter={() => commands.previewCard?.({
+        onMouseEnter={() => commands.previewCard?.(viewModel.hand?.[0] || {
           label: "Seven of Hearts",
           value: 7,
           stateLabel: "Attacking in Lane 1",
@@ -1230,6 +1230,44 @@ test("opens keyboard zones without permanent duplicate chrome and exposes the di
   expect(screen.getByRole("dialog", { name: "Discard piles" })).toBeVisible();
   fireEvent.keyDown(window, { key: "Escape" });
   expect(screen.queryByRole("dialog", { name: "Discard piles" })).not.toBeInTheDocument();
+});
+
+test.each([
+  [0, null, "Unavailable: requires 1 acceleration counter. You have 0."],
+  [1, { available: true, active: false }, "Optional bonus available:"],
+  [1, { available: true, active: true }, "Bonus selected:"]
+])("keeps campaign replacement rules and block requirements visible with %s acceleration (%j)", async (counters, choice, status) => {
+  const raw = {
+    id: "heat-sink-instance",
+    definitionId: "bizi-heat-sink-matrix",
+    name: "Heat-Sink Matrix",
+    value: 4,
+    suit: "diamonds",
+    rulesText: "When blocking, you may remove 1 acceleration counter to give this +2 value."
+  };
+  const viewModel = {
+    ...createViewModel(),
+    hand: [{ id: raw.id, label: "4diamonds", value: 4, raw, selected: { blocker: true } }]
+  };
+  viewModel.interactions.abilities = choice
+    ? [{ id: `constructed:block-acceleration:${raw.id}`, label: "Spend acceleration", ...choice }]
+    : [];
+  render(<ProductionMatchExperience adapter={adapterFor({
+    viewModel,
+    snapshot: { campaign: { title: "The First Titan" }, players: { 1: { accelerationCounters: counters } } }
+  })} options={{ audioEnabled: false }} />);
+
+  const preview = await screen.findByRole("complementary", { name: "Heat-Sink Matrix preview" });
+  expect(preview).toHaveTextContent("Selected for blocker");
+  expect(preview).toHaveTextContent("4 ♦ · Value 4");
+  expect(preview).toHaveTextContent(raw.rulesText);
+  expect(preview).toHaveTextContent("Ability applies in campaign");
+  expect(within(preview).getByRole("status")).toHaveTextContent(status);
+  fireEvent.mouseEnter(screen.getByTestId("mock-preview-card"));
+  expect(preview).toHaveTextContent(raw.rulesText);
+  fireEvent.mouseLeave(screen.getByTestId("mock-preview-card"));
+  expect(preview).toBeVisible();
+  expect(preview).toHaveTextContent("Selected for blocker");
 });
 
 test("shows a nonmodal card-role preview and a persistent combat recap", async () => {

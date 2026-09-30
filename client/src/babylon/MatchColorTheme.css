@@ -35,6 +35,8 @@
     .production-dialogue-status, .production-match-ledger small, .production-match-log small,
     .production-action-reason, .production-incoming-control span, .production-control-notice span,
     .production-card-state, .production-combat-recap p, .production-reference-card p,
+    .production-card-rules, .production-card-ability-status, .production-card-campaign-note,
+    .production-card-preview-copy small, .production-inspection-copy p,
     .production-faction-card p, .production-faction-card small, .faction-board-note,
     .production-faction-profile p, .production-faction-reference-actions button span,
     .production-match-log span, .production-match-log-sequence, .production-result-facts dt,
