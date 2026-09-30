@@ -317,7 +317,7 @@ function createLaneReadout(scene, index, x, palette) {
     width: 1.95, depth: 2.1, palette
   });
   let signature = "";
-  const labels = { idle: "", legal: "AVAILABLE", active: "SELECTED", opposed: "ATTACK", blocked: "BLOCKED", resolving: "RESOLVING" };
+  const labels = { idle: "", legal: "AVAILABLE", active: "AVAILABLE", opposed: "ATTACK", blocked: "BLOCKED", resolving: "RESOLVING" };
   function setState({ state = "idle", attack = null, light = false } = {}) {
     const block = (attack?.blocks || []).reduce((total, entry) => total + Number(entry.value || 0), 0);
     const nextSignature = `${state}:${attack?.value}:${block}:${light}`;
