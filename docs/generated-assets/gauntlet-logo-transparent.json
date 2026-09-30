@@ -1,0 +1,22 @@
+{
+  "source": "client/public/assets/gauntlet/gauntlet-logo.png",
+  "output": "client/public/assets/gauntlet/gauntlet-logo-transparent.png",
+  "tool": "Built-in image_gen",
+  "purpose": "Transparent masthead overlay",
+  "prompt": "Use case: background-extraction. Edit target: the supplied existing Gauntlet logo. Remove ONLY the surrounding white background, producing a PNG with genuine alpha transparency. Preserve the exact existing emblem silhouette, GAUNTLET lettering, metallic textures, colors, cards, crystal, proportions and all interior artwork. Do not redesign, reinterpret, redraw, add a frame, add a shadow, or change any lettering. Keep all white/silver pixels inside the emblem opaque. Clean antialiased outer edges, no white halo. Center the complete uncut emblem with a small transparent margin (about 3%) suitable for overlay directly on a dark website masthead. Output the transparent cutout only.",
+  "validation": {
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "browserWidths": [
+      1440,
+      768,
+      390
+    ],
+    "horizontalOverflow": false
+  }
+}

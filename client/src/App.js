@@ -5787,7 +5787,7 @@ export default function App() {
           <div className="home-brand">
             <div className="home-brand-copy">
               <h1 className="home-brand-lockup">
-                <img className="home-brand-logo" src={resolveAssetPath("/assets/gauntlet/gauntlet-logo.png")} alt="Gauntlet" width="2508" height="2508" fetchPriority="high" />
+                <img className="home-brand-logo" src={resolveAssetPath("/assets/gauntlet/gauntlet-logo-transparent.png")} alt="Gauntlet" width="1254" height="1254" fetchPriority="high" />
                 <span className="home-brand-edition">Online</span>
               </h1>
             </div>
