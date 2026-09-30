@@ -17,6 +17,8 @@ import {
 import { createInteractionCue } from "./presentationCues";
 import {
   authoritativeMatchHistory,
+  abilityMatchHistory,
+  isAbilityLogEntry,
   formatMatchLogEntry,
   matchLogSequence
 } from "./matchLog";
@@ -682,18 +684,28 @@ function MatchLogRow({ entry, index, players, compact = false }) {
       <GameIcon name={content.icon} size={compact ? 13 : 16} />
       <div>
         <strong>{content.title}</strong>
+        {entry.turn != null && isAbilityLogEntry(entry) && !compact && <small>Turn {entry.turn}</small>}
         {content.detail && <small>{content.detail}</small>}
       </div>
     </li>
   );
 }
 
-function MatchLedger({ entries, snapshot, onOpen }) {
+function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
   const players = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
   const source = entries.length > 0 ? entries : history;
   const recent = source.slice(-3);
-  if (recent.length === 0) return null;
+  const abilityHistory = abilityMatchHistory(snapshot, entries);
+  const latest = abilityHistory.at(-1);
+  // Prefer the card's result to bookkeeping from the same action (for example,
+  // Katana's availability ending immediately after its card bonuses expire).
+  const lastAbility = latest?.revision != null
+    ? [...abilityHistory].reverse().find(entry => entry.revision === latest.revision
+      && (entry.target || entry.card || entry.calculation)) || latest
+    : latest;
+  const abilityContent = lastAbility && formatMatchLogEntry(lastAbility, { players });
+  if (recent.length === 0 && !lastAbility) return null;
   const sequenceOffset = Math.max(0, source.length - recent.length);
   return (
     <aside className="production-match-ledger" aria-label="Recent play order">
@@ -703,6 +715,14 @@ function MatchLedger({ entries, snapshot, onOpen }) {
           Full log · {Math.max(history.length, entries.length)}
         </button>
       </header>
+      {abilityContent && <button type="button" className="production-ability-recall"
+        aria-label="Recall last ability" onClick={onOpenAbilities}>
+        <span>Last ability{lastAbility.turn != null ? ` · Turn ${lastAbility.turn}` : ''} · View history</span>
+        <div aria-live="polite" aria-atomic="true">
+          <strong>{abilityContent.title}</strong>
+          {abilityContent.detail && <small>{abilityContent.detail}</small>}
+        </div>
+      </button>}
       <ol>
         {recent.map((entry, index) => (
           <MatchLogRow
@@ -719,7 +739,9 @@ function MatchLedger({ entries, snapshot, onOpen }) {
 }
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
-  playerId, onSelectPlayer, connected = true }) {
+  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter }) {
+  const [abilitySearch, setAbilitySearch] = useState("");
+  useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
   const players = Object.entries(snapshot?.players || {})
     .map(([playerId, player]) => ({ id: Number(playerId), ...player }))
@@ -731,6 +753,11 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
   ].map((entry, index) => [entry.id || `unrecorded-${index}`, entry])).values())
     .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0)).slice(-300);
   const numericalSequenceOffset = 0;
+  const abilityEvents = abilityMatchHistory(snapshot, recentEvents).reverse();
+  const filteredAbilities = abilityEvents.filter(entry => {
+    const content = formatMatchLogEntry(entry, { players: playersById });
+    return `${content.title} ${content.detail}`.toLocaleLowerCase().includes(abilitySearch.trim().toLocaleLowerCase());
+  });
   const titles = {
     discard: "Discard piles",
     log: "Match log",
@@ -792,7 +819,23 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
         {kind === "log" && (
           history.length === 0 && numericalEvents.length === 0 ? <p>No match actions recorded yet.</p> : (
             <div className="production-match-log-sections">
-              {numericalEvents.length > 0 && (
+              <nav className="production-log-filters" aria-label="Match log view">
+                <button type="button" aria-pressed={!abilitiesOnly} onClick={() => onAbilityFilter(false)}>All actions</button>
+                <button type="button" aria-pressed={abilitiesOnly} onClick={() => onAbilityFilter(true)}>Abilities &amp; effects · {abilityEvents.length}</button>
+              </nav>
+              {abilitiesOnly && <section aria-label="Ability match log">
+                <header><h3>Abilities &amp; effects</h3><span>Newest first</span></header>
+                <label className="production-ability-search">Find an ability or card
+                  <input type="search" value={abilitySearch} onChange={event => setAbilitySearch(event.target.value)}
+                    placeholder="e.g. Watane, Focus, 5♥" />
+                </label>
+                {!filteredAbilities.length && <p>{abilitySearch ? 'No matching ability events.' : 'No abilities recorded yet.'}</p>}
+                <ol className="production-match-log">
+                  {filteredAbilities.map((entry, index) => <MatchLogRow key={entry.id || index}
+                    entry={entry} index={index} players={playersById} />)}
+                </ol>
+              </section>}
+              {!abilitiesOnly && numericalEvents.length > 0 && (
                 <section aria-label="Latest numerical resolution details">
                   <header>
                     <h3>Latest calculation details</h3>
@@ -810,7 +853,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                   </ol>
                 </section>
               )}
-              {history.length > 0 && (
+              {!abilitiesOnly && history.length > 0 && (
                 <section aria-label="Authoritative chronological match record">
                   <header>
                     <h3>Complete play order</h3>
@@ -1239,6 +1282,10 @@ function CombatRecap({ events }) {
 
 export function eventCalloutContent(entry) {
   if (!entry) return null;
+  if (isAbilityLogEntry(entry)) {
+    const content = formatMatchLogEntry(entry);
+    return [content.icon, content.title, content.detail];
+  }
   if (/^(effect\.|resource\.|guest\.|jali\.|gracus\.|indela\.|priority\.retained|card\.peeked)/.test(entry.type)) {
     return ["priority", formatMatchLogEntry(entry).title];
   }
@@ -1291,6 +1338,7 @@ function MatchFeed({ entries, statusNotice, catchingUp }) {
           <strong key={currentEntry?.id || visibleNotice || "ready"}>
             {visibleNotice || currentContent?.[1] || "Resolving the current action…"}
           </strong>
+          {!visibleNotice && currentContent?.[2] && <small>{currentContent[2]}</small>}
         </div>
       </div>
     </section>
@@ -1329,6 +1377,7 @@ export default function ProductionMatchExperience({
   const [presentationKit, setPresentationKit] = useState(FALLBACK_PRESENTATION_KIT);
   const [adapterError, setAdapterError] = useState("");
   const [referencePanel, setReferencePanel] = useState(null);
+  const [abilityLogOnly, setAbilityLogOnly] = useState(false);
   const [referencePlayer, setReferencePlayer] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
@@ -1384,8 +1433,11 @@ export default function ProductionMatchExperience({
         setUpdate(next);
         if (frame.event) {
           setFeedEntries((current) => {
-            if (current.some((entry) => entry.id && entry.id === frame.event.id)) return current;
-            return [...current, frame.event].slice(-80);
+            // Animation beats combine fields for visual choreography. Keep each
+            // original receipt intact so different ability sources never mix.
+            const receipts = next.events?.length ? next.events : [frame.event];
+            const fresh = receipts.filter(entry => !current.some(saved => entry.id && saved.id === entry.id));
+            return fresh.length ? [...current, ...fresh].slice(-80) : current;
           });
         }
       },
@@ -1956,7 +2008,8 @@ export default function ProductionMatchExperience({
             <MatchLedger
               entries={feedEntries}
               snapshot={transportUpdate?.snapshot || update?.snapshot}
-              onOpen={() => setReferencePanel("log")}
+              onOpen={() => { setAbilityLogOnly(false); setReferencePanel("log"); }}
+              onOpenAbilities={() => { setAbilityLogOnly(true); setReferencePanel("log"); }}
             />
           )}
           <CardPreview preview={previewCard} />
@@ -1990,6 +2043,8 @@ export default function ProductionMatchExperience({
           playerId={referencePlayer}
           onSelectPlayer={setReferencePlayer}
           recentEvents={feedEntries}
+          abilitiesOnly={abilityLogOnly}
+          onAbilityFilter={setAbilityLogOnly}
           onClose={closeReference}
         />
       )}

@@ -32,7 +32,7 @@ export function createAbilityPreviewAdapter(scenario) {
   return a;
 }
 const guides = {
-  stack: 'Choose Watane → 5♥, confirm, then Katana → 5♥ and confirm. Open Faction abilities to see Printed 5 + Watane 2 + Katana 2 = 9. Finish the turn to see both effects expire.',
+  stack: 'Choose Watane → 5♥, confirm, then Katana → 5♥ and confirm. Last ability stays visible; click it to search the ability log. Inspect 5♥ for Printed 5 + Watane 2 + Katana 2 = 9. Finish the turn to see both effects expire.',
   peek: 'Choose Polea → inspect, select the opponent’s lane 1, then confirm. Close the inspection: the result stays in Faction abilities → Private inspections.',
   response: 'The opponent has already passed. Choose Monti → 5♥ and confirm, then pass. The opponent receives a fresh response instead of the round ending.',
   target: 'Choose Focus, then your lane 1. Only your eligible lane should be enabled, with the selected card clearly marked. Review +1 and the counter cost before confirming.',

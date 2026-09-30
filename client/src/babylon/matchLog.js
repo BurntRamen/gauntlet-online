@@ -1,1 +1,1 @@
-export { formatMatchLogEntry, authoritativeMatchHistory, matchLogSequence } from "@gauntlet/match-history";
+export { formatMatchLogEntry, authoritativeMatchHistory, matchLogSequence, isAbilityLogEntry, abilityMatchHistory } from "@gauntlet/match-history";

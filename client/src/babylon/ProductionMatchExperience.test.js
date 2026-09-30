@@ -110,6 +110,53 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("last ability survives routine actions and opens searchable ability history with calculations retained", async () => {
+  const effect = { id: 'watane', sequence: 1, revision: 2, turn: 2, type: 'effect.applied', player: 1,
+    source: { name: 'Watane' }, target: { name: '5♥' }, amount: 2, before: 5, after: 7,
+    contexts: ['attack', 'block'], duration: { kind: 'turn' } };
+  render(<ProductionMatchExperience adapter={adapterFor({ snapshot: {
+    players: { 1: { name: 'You' } }, effectHistory: [effect,
+      { id: 'ready', sequence: 2, revision: 2, type: 'effect.readied', source: 'Katana', label: 'Printed value ≤8 cards may receive +2' }],
+    publicCombatLog: [{ id: 'payment', sequence: 2, type: 'payment.discarded', total: 5, required: 5 }],
+    actionHistory: [{ id: 'pass', sequence: 3, type: 'priority.passed', player: 2 }]
+  } })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  const recall = await screen.findByRole('button', { name: 'Recall last ability' });
+  expect(recall).toHaveTextContent('Watane applied · 5♥');
+  expect(recall).toHaveTextContent('5 → 7');
+  fireEvent.click(recall);
+  const log = screen.getByRole('dialog', { name: 'Match log' });
+  expect(within(log).getByRole('region', { name: 'Ability match log' })).toHaveTextContent('Watane');
+  const search = within(log).getByRole('searchbox', { name: 'Find an ability or card' });
+  fireEvent.change(search, { target: { value: 'focus' } });
+  expect(log).toHaveTextContent('No matching ability events.');
+  fireEvent.change(search, { target: { value: 'watane' } });
+  expect(log).toHaveTextContent('Until turn end');
+  fireEvent.click(within(log).getByRole('button', { name: 'All actions' }));
+  expect(log).toHaveTextContent('Latest calculation details');
+  expect(log).toHaveTextContent('5/5');
+});
+
+test("grouped ability animations cannot mix one source with another source's description", async () => {
+  const expired = { id: 'expire-watane', sequence: 4, revision: 3, turn: 2, player: 1,
+    type: 'effect.expired', source: { name: 'Watane' }, target: { name: '5♥' },
+    amount: -2, before: 7, after: 5, reason: 'Turn ended', contexts: ['attack', 'block'] };
+  const readiness = { id: 'katana-ready-ended', sequence: 5, revision: 3, turn: 2, player: 1,
+    type: 'effect.expired', source: { name: 'Katana' }, label: 'Printed value ≤8 cards may receive +2' };
+  render(<ProductionMatchExperience adapter={adapterFor({
+    viewModel: { ...createViewModel(), events: [expired, readiness] }
+  })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Recall last ability' }));
+  const log = screen.getByRole('dialog', { name: 'Match log' });
+  fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Watane' } });
+  expect(log).toHaveTextContent('Watane expired · 5♥');
+  expect(log).toHaveTextContent('7 → 5');
+  expect(log).not.toHaveTextContent('Printed value ≤8');
+  fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Katana' } });
+  expect(log).toHaveTextContent('Katana availability ended');
+  expect(log).toHaveTextContent('Printed value ≤8');
+  expect(log).not.toHaveTextContent('7 → 5');
+});
+
 test("phone rail retains selected identities through rotation and does not expose privacy, spectator or replay hands", async () => {
   const originalWidth = window.innerWidth;
   const originalHeight = window.innerHeight;

@@ -53,7 +53,32 @@ test('private peeks survive later actions for their viewer only', () => {
   s = act(s, { type: 'useFactionAbility', abilityId: 'polea-peek', laneIndex: 0, targetPlayerId: 2 });
   s = act(s, { type: 'passPriority' });
   assert.equal(projectForPerspective(s, 1).effectHistory.find(e => e.type === 'card.peeked').card.id, 'private-enemy');
+  assert.equal(projectForPerspective(s, 1).effectHistory.find(e => e.type === 'card.peeked').source, 'Polea');
   for (const viewer of [0, 2]) assert.equal(projectForPerspective(s, viewer).effectHistory.find(e => e.type === 'card.peeked').card, undefined);
+});
+
+test('named acceleration and private deck ability records survive subsequent actions without exposing cards', () => {
+  let s = game('bizi');
+  s.players[1].accelerationCounters = 1;
+  s.lanes[0].facedown[1] = card('focus-lane');
+  s = act(s, { type: 'useFactionAbility', abilityId: 'focus-buff', laneIndex: 0 });
+  s = act(s, { type: 'passPriority' });
+  assert.equal(s.effectHistory.find(e => e.type === 'acceleration.spent').source, 'Focus');
+
+  s = game('mekan');
+  s.players[1].faction.general = { id: 'acama', name: 'Acama' };
+  s.lanes[0].facedown[1] = card('acama-lane');
+  s.players[1].deck = [card('private-deck-card', 7)];
+  s = act(s, { type: 'useFactionAbility', abilityId: 'mekan:look' });
+  const { formatMatchLogEntry } = require('../../shared/match-history');
+  const own = projectForPerspective(s, 1).effectHistory;
+  assert.equal(own.find(e => e.type === 'card.peeked').source, 'Acama');
+  assert.match(formatMatchLogEntry(own.find(e => e.type === 'ability.used')).title, /Acama/);
+  for (const viewer of [0, 2]) {
+    const other = projectForPerspective(s, viewer).effectHistory;
+    assert(!JSON.stringify(other).includes('private-deck-card'));
+    assert.equal(other.find(e => e.type === 'card.peeked').card, undefined);
+  }
 });
 
 test('Basho public formation survives live server projection for opponent and spectator', () => {

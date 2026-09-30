@@ -2071,6 +2071,7 @@ function applyCommand(current, rawCommand) {
         events.push(event(game, "card.peeked", {
           player,
           viewer: player,
+          source: "Polea",
           targetPlayer,
           laneIndex,
           card: { ...card }
@@ -2249,7 +2250,7 @@ function applyCommand(current, rawCommand) {
     entry.revision = game.revision;
   });
   game.effectHistory = [...(game.effectHistory || []), ...events.filter(entry =>
-    /^(effect\.|resource\.|guest\.|ability\.|jali\.|gracus\.|indela\.|priority\.retained|card\.peeked|lanes\.swapped|laneCard\.)/.test(entry.type)
+    /^(effect\.|resource\.|guest\.|ability\.|jali\.|gracus\.|indela\.|acceleration\.|choice\.|priority\.retained|card\.peeked|lanes\.swapped|laneCard\.)/.test(entry.type)
   ).map(entry => clone(entry))].slice(-200);
   const actionLogEntry = appendHistory(game, player, label, events);
   // Only already-public combat/payment receipts enter the reconnectable log.

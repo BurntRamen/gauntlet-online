@@ -106,7 +106,8 @@ function apply(game, number, id, events, event) {
     const count = general(player) === "ahu" ? 2 : 1;
     turn.mekanPeek = player.deck.slice(-count).reverse().map((card) => ({ ...card }));
     turn.mekanPeek.forEach((card, index) => events.push(event(game, "card.peeked", {
-      player: number, viewer: number, card: { ...card }, source: `Mekan deck position ${index + 1}`
+      player: number, viewer: number, card: { ...card }, source: general(player) === "ahu" ? "Ahu" : "Acama",
+      deckPosition: index + 1
     })));
   } else {
     const top = player.deck.pop();
@@ -118,7 +119,9 @@ function apply(game, number, id, events, event) {
     else player.deck.push(top);
     turn.mekanScryUsed = true;
   }
-  events.push(event(game, "ability.used", { player: number, abilityId: `mekan:${kind}`, source: "Mekan" }));
+  const deckAction = { look: "inspect deck", keep: "keep first card on top", bottom: "move first card to bottom" }[kind];
+  events.push(event(game, "ability.used", { player: number, abilityId: `mekan:${kind}`, source: "Mekan",
+    ...(deckAction ? { abilityName: `${general(player) === "ahu" ? "Ahu" : "Acama"} · ${deckAction}` } : {}) }));
   return null;
 }
 
