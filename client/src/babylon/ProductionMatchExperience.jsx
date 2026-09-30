@@ -1696,10 +1696,11 @@ export default function ProductionMatchExperience({
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
-        root.style.setProperty("--battlefield-bottom-reserve", Math.ceil(hudHeight) + "px");
+        root.style.setProperty("--battlefield-bottom-reserve",
+          (bounds.width >= 1366 && bounds.height > 520 ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities"]
+        const top = [".production-player-plate-top", ".production-match-utilities", ".production-turn-marker"]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",
           Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
