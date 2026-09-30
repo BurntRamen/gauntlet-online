@@ -1,0 +1,36 @@
+{
+  "id": "ability-clarity-release-20260930",
+  "createdAt": "2026-09-30T06:31:49.964Z",
+  "source": "Explicit user instruction in this chat",
+  "userRequest": "make sure it clear and concise for the player and then push it livve",
+  "correction": "live*",
+  "scope": "Polish player-facing ability messages and release the previously requested ability visibility and response-window fixes to existing Gauntlet production. Preserve calculation history, card labels, and latest main features.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "releaseApproval",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "conditions": [
+    "Integrate origin/main before release; test the combined change.",
+    "Use existing GitHub PR, Vercel client and Render backend release workflow.",
+    "No production settings, secrets, data or artwork changes."
+  ],
+  "scopedExceptions": [
+    "Reuse this existing isolated worktree; preserve all nine existing worktrees rather than deleting other tasks to meet retention cap.",
+    "Reconcile the existing feature branch from 6f78fa0 with latest canonical main 4988a04 before publication.",
+    "Use existing local preview port 3210 instead of 3102."
+  ]
+}

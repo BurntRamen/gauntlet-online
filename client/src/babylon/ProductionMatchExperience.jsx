@@ -920,9 +920,9 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                         }}
                       >
                         <strong>{ability.active ? `Continue ${ability.label}` : ability.label}</strong>
-                        <span>{ability.available === false
+                        {(ability.available === false || ability.intent !== ability.label) && <span>{ability.available === false
                           ? ability.reason || "Unavailable in the current match state."
-                          : ability.intent || "Begin this faction action."}</span>
+                          : ability.intent || "Choose this ability."}</span>}
                       </button>
                     )))}
                   </div>

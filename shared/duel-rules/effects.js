@@ -78,7 +78,7 @@ const PENDING_EFFECTS = {
 function pendingEffects(player) {
   return Object.entries(PENDING_EFFECTS).flatMap(([key, [source, label]]) => {
     const value = player?.turnData?.[key];
-    return value ? [{ key, source, label, value, duration: key === 'jaliRevenantCreated' ? 'Until turn end; each eligible card may be prepared once' : 'Until turn end, or until a stated next-action condition is consumed' }] : [];
+    return value ? [{ key, source, label, value, duration: key === 'jaliRevenantCreated' ? 'This turn · once per eligible card' : 'Until used or turn ends' }] : [];
   });
 }
 function recordEffectChanges(before, after, events, event) {

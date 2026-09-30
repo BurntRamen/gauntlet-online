@@ -112,7 +112,7 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
     case "effect.readied": {
       if (entry.private && !entry.source) return { icon: "priority", title: "Private effect updated", detail: "" };
       const source = entry.source?.name || entry.source || "Effect";
-      const verb = { "effect.applied": "applied", "effect.expired": entry.target ? "expired" : "availability ended", "effect.consumed": "used", "effect.readied": "ready" }[entry.type];
+      const verb = { "effect.applied": "applied", "effect.expired": entry.target ? "expired" : "no longer available", "effect.consumed": "used", "effect.readied": "ready" }[entry.type];
       return { icon: "priority", title: `${source} ${verb}${entry.target?.name ? ` · ${entry.target.name}` : ""}`,
         detail: [actor, entry.label, entry.amount != null ? `${entry.amount >= 0 ? '+' : '−'}${Math.abs(entry.amount)} ${(entry.contexts || []).join('/')}` : "",
           entry.target && entry.before != null && entry.after != null ? `${entry.before} → ${entry.after}` : "",
@@ -121,7 +121,7 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
     case "resource.changed":
       return { icon: "priority", title: `${actor} · ${entry.resourceLabel}`, detail: `${entry.before} ${entry.amount >= 0 ? '+' : '−'} ${Math.abs(entry.amount)} = ${entry.after}` };
     case "priority.retained":
-      return { icon: "priority", title: `${actor} retains priority`, detail: "Passes reset. Opponent may respond after the next pass." };
+      return { icon: "priority", title: `${actor} can act again`, detail: "Opponent may respond after the next pass." };
     case "card.peeked":
       return { icon: "inspect", title: `${abilityName(entry, 'Private inspection')} · ${actor} inspected a card`, detail: entry.card ? `${logCardName(entry.card)}${entry.deckPosition ? ` · deck position ${entry.deckPosition}` : ''} · only visible to you` : "Card identity is private" };
     case "card.buffApplied":
@@ -147,7 +147,7 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
       return { icon: "priority", title: `${actor} revealed ${entry.parity} omen ${entry.value}`, detail: `${(entry.sources || []).join(' + ')} · ${entry.parity === 'odd' ? 'own costs −' : 'opponent costs +'}${entry.triggers} this turn` };
     case "ability.used":
     case "ability.activated":
-      return { icon: "priority", title: `${actor} activated ${abilityName(entry)}`, detail: "Activation committed" };
+      return { icon: "priority", title: `${actor} activated ${abilityName(entry)}`, detail: "" };
     case "payment.discarded": {
       const overpayment = total != null && required != null ? Math.max(0, total - required) : null;
       return {

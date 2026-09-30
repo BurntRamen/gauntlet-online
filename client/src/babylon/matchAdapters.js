@@ -529,10 +529,10 @@ export class LocalDuelAdapter {
     if (this.previewCache?.key === key) return this.previewCache.value;
     const action = this.currentLegalAction();
     const response = command.abilityId?.startsWith("gracus:") || command.type.includes("Attack")
-      ? "Priority transfers to the opponent. The combat result is provisional."
-      : command.type.includes("Block") ? "Priority returns to the attacker; another response is possible."
-        : command.type === "placeFacedown" ? "This commits the placement; the next placement step follows."
-          : "You retain priority. Passes reset; your opponent can respond after you pass.";
+      ? "Your opponent acts next. They can still respond."
+      : command.type.includes("Block") ? "Your opponent can act next."
+        : command.type === "placeFacedown" ? "Confirm to place this card and continue."
+          : "You can act again. Your opponent can respond after you pass.";
     let value;
     if (/peek|:look$/.test(command.abilityId || "") || command.useDeckhandDiverPeek) {
       const target = command.laneIndex != null ? `${Number(command.targetPlayerId) === this.perspective ? "Your" : "Opponent"} lane ${command.laneIndex + 1}` : "Chosen inspection source";
@@ -549,7 +549,7 @@ export class LocalDuelAdapter {
         if (e.type === "jali.formationRevealed") lines.push("All three lane cards become public to your opponent and spectators.");
         if (e.type === "payment.discarded") lines.push(`Payment contribution ${e.total}; required cost ${e.required}.`);
       }
-      value = { title: "On confirmation", lines: lines.length ? lines : [action?.label || "Complete the selection"],
+      value = { title: "Confirm to apply", lines: lines.length ? lines : [action?.label || "Complete the selection"],
         error: result.accepted ? null : result.rejectionReason, response };
     }
     this.previewCache = { key, value }; return value;

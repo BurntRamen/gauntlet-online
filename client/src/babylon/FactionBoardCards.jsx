@@ -82,7 +82,8 @@ export default function FactionBoardCards({ faction, viewModel, commands, layout
               aria-pressed={Boolean(ability.active)}
               onClick={() => { commands.activateAbility?.(ability.id); close(); }}>
               <strong>{ability.label}</strong>
-              <span>{readOnly ? "Actions are unavailable right now." : ability.available === false ? ability.reason : ability.intent}</span>
+              {(readOnly || ability.available === false || ability.intent !== ability.label) &&
+                <span>{readOnly ? "Actions are unavailable right now." : ability.available === false ? ability.reason : ability.intent}</span>}
             </button>
           )) : <p className="faction-board-note">{selected.activated
             ? "No ability is available right now. This card lights up when you can use it."

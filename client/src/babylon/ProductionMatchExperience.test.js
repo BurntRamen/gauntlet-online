@@ -152,7 +152,7 @@ test("grouped ability animations cannot mix one source with another source's des
   expect(log).toHaveTextContent('7 → 5');
   expect(log).not.toHaveTextContent('Printed value ≤8');
   fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Katana' } });
-  expect(log).toHaveTextContent('Katana availability ended');
+  expect(log).toHaveTextContent('Katana no longer available');
   expect(log).toHaveTextContent('Printed value ≤8');
   expect(log).not.toHaveTextContent('7 → 5');
 });
@@ -1259,7 +1259,7 @@ test.each([
 
   const preview = await screen.findByRole("complementary", { name: "Heat-Sink Matrix preview" });
   expect(preview).toHaveTextContent("Selected for blocker");
-  expect(preview).toHaveTextContent("4 ♦ · Value 4");
+  expect(preview).toHaveTextContent("4 ♦ · Printed 4 · Attack/block 4");
   expect(preview).toHaveTextContent(raw.rulesText);
   expect(preview).toHaveTextContent("Ability applies in campaign");
   expect(within(preview).getByRole("status")).toHaveTextContent(status);
