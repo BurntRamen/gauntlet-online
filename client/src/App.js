@@ -1934,12 +1934,12 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   return (
     <MenuCard className="collection-workspace" title="Collection Workshop">
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
-        <div className="collection-summary-bar">
+        {collectionView !== "decks" && <div className="collection-summary-bar">
           <div className="collection-summary-stat"><span>Gameplay copies earned</span><strong>{ownedTotal}</strong></div>
           <div className="collection-summary-stat"><span>Collector variants</span><strong>{collectorVariantTotal}</strong></div>
           <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
           <div className="collection-summary-note"><span>Fair-play split</span>Campaign credits unlock gameplay. Paid collector packs add presentation choices only—never cards, copies, values, or abilities.</div>
-        </div>
+        </div>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
           {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
@@ -1969,19 +1969,19 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </>}
         {lastOpenedPack?.length > 0 && <PackOpening cards={lastOpenedPack} pacing={packPacing} autoPlay={lastOpenedPack !== initialOpenedPack.current} visible={collectionView === "packs"} />}
         {collectionView === "decks" && <>
-        <div className="collection-view-heading">
-          <div><h3>Deck Workshop</h3><p>Choose a saved deck, map replacements, and create its next version.</p></div>
-          <strong style={{ color: "#86efac" }}>{(deckLibrary.decks || []).filter((deck) => !deck.archived).length} active</strong>
+        <div className="deck-workspace-header">
+        <div className="deck-workspace-nav">
+          <select aria-label="Saved deck" value={selectedConstructedDeckId} onChange={(event) => { if (event.target.value) setSelectedConstructedDeckId(event.target.value); else startNewConstructedDeck(); }}>
+            <option value="">New deck</option>
+            {(deckLibrary.decks || []).filter((deck) => deck.format === "constructed" && !deck.archived).map((deck) => <option key={deck.id} value={deck.id}>{deck.name}</option>)}
+          </select>
+          <button type="button" onClick={startNewConstructedDeck}>New deck</button>
         </div>
-        <DeckLibraryPanel
-          library={deckLibrary}
-          selectedDeckId={selectedConstructedDeckId}
-          collectorCatalog={collectorCatalog}
-          onSelect={(deck) => setSelectedConstructedDeckId(deck.id)}
-          onNew={startNewConstructedDeck}
-          onAction={runDeckAction}
-          onOpenMatch={onOpenMatch}
-        />
+        <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
+          <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog}
+            onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onOpenMatch={onOpenMatch} />
+        </details>
+        </div>
         <DeckWorkshop
           key={selectedConstructedDeckId || "new-deck"}
           name={constructedDeckName} factionId={constructedFactionId}

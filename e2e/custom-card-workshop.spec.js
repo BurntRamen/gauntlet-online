@@ -24,7 +24,7 @@ test("full-art catalog and responsive workshop preserve selected suits and saved
   await expect(page.locator(".catalog-card-tile .custom-playing-card-face")).toHaveCount(72);
   await expect.poll(() => page.locator(".catalog-card-tile img").evaluateAll((images) => images.every((img) => img.complete && img.naturalWidth === 500))).toBe(true);
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
-  await page.locator(".deck-faction-picker").getByRole("button", { name: /Sheen/ }).click();
+  await page.getByLabel("Deck faction", { exact: true }).selectOption("sheen");
   const definition = COLLECTION_CARDS.find((entry) => entry.id === "sheen-raincall-mender");
   const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[definition.value] || String(definition.value);
   await page.getByRole("button", { name: `${rank} of hearts — Standard playing card`, exact: true }).click();
@@ -38,9 +38,11 @@ test("full-art catalog and responsive workshop preserve selected suits and saved
   await page.getByLabel("Deck name", { exact: true }).fill("Full Art Sheen QA");
   await page.getByRole("button", { name: "Create Deck", exact: true }).click();
   await expect(page.getByRole("button", { name: "Save New Version", exact: true })).toBeEnabled();
-  const out = path.resolve(__dirname, "../docs/generated-assets/card-proofs");
+  const out = path.resolve(__dirname, "../docs/generated-assets/workshop-compact-review");
+  fs.mkdirSync(out, { recursive: true });
   await page.locator(".constructed-workbench").screenshot({ path: path.join(out, "workshop-full-art-desktop.png") });
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Cards", exact: true }).click();
   await expect(page.locator(".deck-slot.is-replaced img")).toHaveAttribute("src", /sheen-raincall-mender-hearts\.webp\?v=2$/);
   const bounds = await page.locator(".deck-workshop").boundingBox();
   expect(bounds.width).toBeLessThanOrEqual(390);
