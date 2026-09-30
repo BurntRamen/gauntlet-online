@@ -1,10 +1,11 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v8";
+const RULES_VERSION = "gauntlet-duel-v9";
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
 const indela = require("./indela");
+const effects = require("./effects");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -422,10 +423,8 @@ function temporaryBonusNotes(card) {
     : temporaryBonus(card) ? [`Temporary value bonus +${temporaryBonus(card)} (source not recorded)`] : [];
 }
 
-function addTemporaryBonus(card, amount, source) {
-  const notes = temporaryBonusNotes(card);
-  card.temporaryValueBonus = temporaryBonus(card) + amount;
-  card.temporaryValueBonusNotes = [...notes, `${source} +${amount}`];
+function addTemporaryBonus(card, amount, source, game, sourceCardId) {
+  effects.addTemporaryEffect(card, amount, { name: source, ...(sourceCardId ? { cardId: sourceCardId } : {}) }, game.turn);
 }
 
 function controlledLaneEntries(game, playerNumber) {
@@ -474,7 +473,7 @@ function gainAcceleration(game, playerNumber, amount, source, notes, events) {
   }));
   for (const card of supportCards(game, playerNumber)) {
     if (cardIs(card, "bizi-solar-array-adept")) {
-      addTemporaryBonus(card, amount, "Electrostatic Field");
+      addTemporaryBonus(card, amount, "Electrostatic Field", game, card.id);
       if (notes) notes.push(`Electrostatic Field +${amount}`);
     }
   }
@@ -1133,7 +1132,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     }));
   }
   if (cardIs(card, "frumo-ristus-rises")) {
-    addTemporaryBonus(card, 1, "Tidal Surge");
+    addTemporaryBonus(card, 1, "Tidal Surge", game, card.id);
     player.turnData.frumoLaneSwappedThisTurn = true;
     events.push(event(game, "card.buffApplied", {
       player: playerNumber,
@@ -1199,6 +1198,7 @@ function clearTemporaryBonuses(game) {
     if (card && Object.prototype.hasOwnProperty.call(card, "temporaryValueBonus")) {
       delete card.temporaryValueBonus;
       delete card.temporaryValueBonusNotes;
+      delete card.temporaryEffects;
     }
     if (card) delete card.jaliKatanaPrepared;
   };
@@ -2086,7 +2086,7 @@ function applyCommand(current, rawCommand) {
         }
         for (const support of supportCards(game, player)) {
           if (cardIs(support, "frumo-riptide-smuggler") && !actor.turnData.frumoRiptideSmugglerUsed) {
-            addTemporaryBonus(support, 1, "Hauntling Lure");
+            addTemporaryBonus(support, 1, "Hauntling Lure", game, support.id);
             actor.turnData.frumoRiptideSmugglerUsed = true;
             events.push(event(game, "card.buffApplied", {
               player,
@@ -2101,11 +2101,12 @@ function applyCommand(current, rawCommand) {
         const target = resolveFactionTarget(game, actor, command);
         if (!target) return reject(current, command, "Choose a card you control for Polea.");
         if (target.card && Number.isFinite(Number(target.effectiveValue))) {
+          addTemporaryBonus(target.card, 1, "Polea", game);
           target.effectiveValue += 1;
           target.notes = [...(target.notes || []), "Polea +1"];
           target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), "Polea +1"];
         } else {
-          addTemporaryBonus(target, 1, "Polea");
+          addTemporaryBonus(target, 1, "Polea", game);
         }
         events.push(event(game, "card.buffApplied", { player, amount: 1, source: "Polea" }));
         label = `Player ${player} used Polea to give a card +1 this turn.`;
@@ -2143,11 +2144,12 @@ function applyCommand(current, rawCommand) {
       if (!target) return reject(current, command, "Choose a card you control for Focus.");
       const focusBonus = playerControlsCard(game, player, "bizi-focus-overclock") ? 3 : 1;
       if (target.card && Number.isFinite(Number(target.effectiveValue))) {
+        addTemporaryBonus(target.card, focusBonus, focusBonus === 3 ? "Focus / Chrono-Forge Core" : "Focus", game);
         target.effectiveValue += focusBonus;
         target.notes = [...(target.notes || []), `Focus +${focusBonus}`];
         target.valueNotes = [...(target.valueNotes || target.notes?.slice(0, -1) || []), `Focus +${focusBonus}`];
       } else {
-        addTemporaryBonus(target, focusBonus, "Focus");
+        addTemporaryBonus(target, focusBonus, focusBonus === 3 ? "Focus / Chrono-Forge Core" : "Focus", game);
       }
       actor.accelerationCounters -= 1;
       actor.turnData.focusUsed = true;
@@ -2232,11 +2234,23 @@ function applyCommand(current, rawCommand) {
     return reject(current, command, "Unsupported simulator command.");
   }
 
+  // Accepted activations reopen the response round. Automatic triggers are part
+  // of their originating command; Epicura has its own combat priority transfer.
+  if (command.type === "useFactionAbility" && !String(command.abilityId).startsWith("gracus:")) {
+    game.priorityPassed = { 1: false, 2: false };
+    game.message = `${label} Player ${player} retains priority. The opponent can respond after you pass.`;
+    events.push(event(game, "priority.retained", { player, abilityId: command.abilityId.split(":").slice(0, 2).join(":"), passesReset: true }));
+  }
+
+  effects.recordEffectChanges(current, game, events, event);
   game.revision = Number(current.revision || 0) + 1;
   game.lastCommandId = commandId;
   events.forEach((entry) => {
     entry.revision = game.revision;
   });
+  game.effectHistory = [...(game.effectHistory || []), ...events.filter(entry =>
+    /^(effect\.|resource\.|guest\.|ability\.|jali\.|gracus\.|indela\.|priority\.retained|card\.peeked|lanes\.swapped|laneCard\.)/.test(entry.type)
+  ).map(entry => clone(entry))].slice(-200);
   const actionLogEntry = appendHistory(game, player, label, events);
   // Only already-public combat/payment receipts enter the reconnectable log.
   game.publicCombatLog = [...(game.publicCombatLog || []), ...events.filter((entry) =>
@@ -2254,6 +2268,27 @@ function applyCommand(current, rawCommand) {
     actionLogEntry,
     animationEvents: events
   };
+}
+
+// The same payment rules power incomplete-selection previews and commitment.
+// Evaluate on a clone because some conditional helpers consume turn flags.
+function previewPayment(state, player, command) {
+  const game = clone(state), actor = game.players[player];
+  const blocking = command.type?.includes("Block");
+  if (!actor || !/declare(Hand|Lane)(Attack|Block)/.test(command.type || "")) return null;
+  const cards = blocking
+    ? command.type === "declareLaneBlock" ? [game.lanes[command.laneIndex]?.facedown[player]] : (command.blockerCardIds || []).map(id => findHandCard(actor, id))
+    : [command.type === "declareLaneAttack" ? game.lanes[command.laneIndex]?.facedown[player] : findHandCard(actor, command.cardId)];
+  if (!cards.length || cards.some(card => !card)) return null;
+  const ids = command.paymentCardIds || [], paymentCards = ids.map(id => findHandCard(actor, id)).filter(Boolean);
+  const hera = heraPaymentBonus(actor, command, ids);
+  const constructed = constructedPaymentBonus(game, player, command, { action: blocking ? "block" : "attack", card: cards[0], blockCards: blocking ? cards : undefined }, paymentCards);
+  const requirement = blocking
+    ? { required: Math.max(0, cards.reduce((n,c)=>n+cardValue(c),0) + indela.paymentAdjustment(game, player).amount) }
+    : attackPaymentRequirement(actor, cards[0], !!command.useMeerusFreeAttack, game);
+  return { total: paymentCards.reduce((n,c)=>n+cardValue(c),0) + Number(hera.bonus || 0) + Number(constructed.bonus || 0), required: requirement.required,
+    notes: [...(constructed.notes || []), ...(hera.bonus ? [`Hera +2 on ${effects.cardName(hera.card)}`] : [])],
+    error: hera.error || constructed.error || requirement.error || null };
 }
 
 function getFactionAbilityActions(game, playerNumber) {
@@ -2658,6 +2693,11 @@ function normalizeLegalAction(game, playerNumber, action) {
     } else if (action.abilityId === "lafayette-swap") {
       sources.push(selectionGroup("cardId", "handCard", handEntities));
       targets.push(selectionGroup("laneIndex", "laneCard", ownLaneCards));
+    } else if (/^(mekan|jali):/.test(action.abilityId)) {
+      const id = action.abilityId.split(":").slice(2).join(":");
+      const entry = effects.cardEntries(game).get(id);
+      if (entry) targets.push(selectionGroup("cardTarget", "abilityTarget", [{ ...entry.target, id: `card:${id}`, type: entry.target.zone === "lane" ? "laneCard" : "handCard" }]));
+      if (action.abilityId === "jali:basho") targets.push(selectionGroup("formation", "reveal", ownLaneCards, 3, 3));
     }
   }
 
@@ -2814,6 +2854,10 @@ function factionAbilityDefinitions(game, playerNumber) {
   if (faction === "bizi") {
     return [["focus-buff", "Focus · spend acceleration to buff a card"]];
   }
+  if (faction === "jali") return [["jali:watane", "Watane · spend a Revenant"], ["jali:katana", "Katana · prepare a card"], ["jali:basho", "Basho · reveal formation"]];
+  if (faction === "gracus") return [["gracus:epicura", "Epicura · create a Minotaur"]];
+  if (faction === "mekan") return [["mekan:encore", "Encore · mark a Guest"], ["mekan:remember", "San Mikal · remember a Guest"], ["mekan:invite", "Invite a Guest"],
+    ...(actor.faction?.general?.id === "monti" ? [["mekan:monti", "Monti · give a card +1"]] : [])];
   return [];
 }
 
@@ -2821,6 +2865,14 @@ function unavailableAbilityReason(game, playerNumber, abilityId) {
   const actor = game?.players?.[playerNumber];
   if (!actor || game.gameMode !== "factions") return "Faction actions are unavailable in this match.";
   if (game.phase !== "priority" || game.priority !== playerNumber) return "This ability requires your priority window.";
+  if (abilityId === "jali:watane") return actor.revenants > 0 ? "No controlled hand or lane card is available." : "Watane needs one Revenant. A bested card or Basho can create one.";
+  if (abilityId === "jali:katana") return actor.turnData.jaliRevenantCreated ? "No unprepared card with printed value 8 or less is available." : "Create a Revenant this turn to unlock Katana.";
+  if (abilityId === "jali:basho") return actor.turnData.jaliBashoUsed ? "Basho has been used this turn." : "Fill all three lanes with unrevealed cards first.";
+  if (abilityId === "gracus:epicura") return actor.turnData.gracusEpicuraUsed ? "Epicura has created a Minotaur this turn." : "Requires no combat, or an unblocked attack targeting you.";
+  if (abilityId === "mekan:monti") return actor.turnData.mekanMonti ? "Monti has been used this turn." : `Pay at least two cards this turn (${actor.turnData.mekanDiscards || 0}/2), then choose a hand or lane card.`;
+  if (abilityId === "mekan:encore") return actor.turnData.mekanEncore ? "Encore has been used this turn." : "Pay a non-Guest card this turn first.";
+  if (abilityId === "mekan:remember") return actor.turnData.mekanCityGuest ? "San Mikal has been used this turn." : "A non-Guest card must be defeated this turn first.";
+  if (abilityId === "mekan:invite") return "No uninvited Guest is in your discard pile.";
   if (abilityId.startsWith("polea-") && actor.turnData.poleaUsed) {
     const sunkenOrderReady = !actor.turnData.poleaSunkenOrderUsed
       && playerControlsCard(game, playerNumber, "frumo-poleas-sunken-order");
@@ -2860,10 +2912,10 @@ function getActionAvailability(game, player) {
     };
   });
   const factionAbilities = factionAbilityDefinitions(game, playerNumber).map(([abilityId, label]) => {
-    const action = legal.find((entry) => entry.type === "useFactionAbility" && entry.abilityId === abilityId);
+    const action = legal.find((entry) => entry.type === "useFactionAbility" && (entry.abilityId === abilityId || entry.abilityId?.startsWith(`${abilityId}:`)));
     return {
       type: "useFactionAbility",
-      abilityId,
+      abilityId: action?.abilityId || abilityId,
       label: action?.label || label,
       intent: action?.intent || FACTION_ABILITY_INTENTS[abilityId] || "",
       available: Boolean(action),
@@ -2896,6 +2948,9 @@ function getActionAvailability(game, player) {
 
 function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
   if (!entry || typeof entry !== "object") return entry;
+  if (entry.private && entry.viewer != null && Number(entry.viewer) !== viewer && entry.type !== "card.peeked") {
+    return { id: entry.id, sequence: entry.sequence, type: entry.type, player: entry.player, private: true };
+  }
   if (entry.type === "card.peeked" && Number(entry.viewer) !== viewer) {
     const sanitized = clone(entry);
     delete sanitized.card;
@@ -2907,6 +2962,13 @@ function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
   if (entry.type === "card.peeked" && Number(entry.viewer) === viewer) return clone(entry);
 
   const sanitized = clone(entry);
+  if (sanitized.target?.cardId && hiddenCardIds.has(sanitized.target.cardId)) {
+    const { owner, zone, laneIndex } = sanitized.target;
+    sanitized.target = { owner, zone, ...(laneIndex != null ? { laneIndex } : {}), name: zone === "lane" ? "Face-down lane card" : "Hidden card" };
+    delete sanitized.before;
+    delete sanitized.after;
+  }
+  if (sanitized.source?.cardId && hiddenCardIds.has(sanitized.source.cardId)) sanitized.source = { name: "Hidden source" };
   const belongsToOtherPlayer = Number(entry.player) !== viewer;
   if (entry.type === "cards.drawn" && belongsToOtherPlayer) {
     sanitized.count = Array.isArray(entry.cardIds) ? entry.cardIds.length : Number(entry.count || 0);
@@ -2960,6 +3022,8 @@ function projectForPerspective(game, perspectivePlayer) {
     .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
   projected.animationEvents = (projected.animationEvents || [])
     .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
+  projected.effectHistory = (projected.effectHistory || [])
+    .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
   projected.legalActions = [1, 2].includes(viewer) ? getLegalActions(game, viewer) : [];
   projected.actionAvailability = [1, 2].includes(viewer)
     ? getActionAvailability(game, viewer)
@@ -2984,6 +3048,9 @@ function createCommandEnvelope(state, actorPlayerId, command, commandId = null) 
 }
 
 module.exports = {
+  previewPayment,
+  valueBreakdown: effects.valueBreakdown,
+  pendingEffects: effects.pendingEffects,
   CARD_CONTENT_VERSION,
   COMMAND_SCHEMA_VERSION,
   CONSTRUCTED_CHOICE_INTENTS,

@@ -74,6 +74,41 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
   const damage = numeric(entry.damage ?? entry.amount);
 
   switch (entry.type) {
+    case "effect.applied":
+    case "effect.expired":
+    case "effect.consumed":
+    case "effect.readied": {
+      if (entry.private && !entry.source) return { icon: "priority", title: "Private effect updated", detail: "" };
+      const source = entry.source?.name || entry.source || "Effect";
+      const verb = { "effect.applied": "applied", "effect.expired": "expired", "effect.consumed": "used", "effect.readied": "ready" }[entry.type];
+      return { icon: "priority", title: `${source} ${verb}${entry.target?.name ? ` · ${entry.target.name}` : ""}`,
+        detail: [entry.label, entry.amount != null ? `${entry.amount >= 0 ? '+' : '−'}${Math.abs(entry.amount)} ${(entry.contexts || []).join('/')}` : "",
+          entry.target && entry.before != null && entry.after != null ? `${entry.before} → ${entry.after}` : "",
+          entry.type === "effect.applied" && entry.duration?.kind === "turn" ? "Until turn end" : entry.reason].filter(Boolean).join(" · ") };
+    }
+    case "resource.changed":
+      return { icon: "priority", title: `${actor} · ${entry.resourceLabel}`, detail: `${entry.before} ${entry.amount >= 0 ? '+' : '−'} ${Math.abs(entry.amount)} = ${entry.after}` };
+    case "priority.retained":
+      return { icon: "priority", title: `${actor} retains priority`, detail: "Passes reset. Opponent may respond after the next pass." };
+    case "card.peeked":
+      return { icon: "priority", title: `${actor} inspected a card privately`, detail: entry.card ? `${logCardName(entry.card)} · only visible to you` : "Card identity is private" };
+    case "guest.marked":
+      return { icon: "priority", title: `${entry.target?.name || "Card"} became a Guest`, detail: "Remains in discard until an invitation consumes it" };
+    case "jali.revenantCreated":
+      return { icon: "priority", title: `${actor} created a Revenant`, detail: `${entry.source} · ${entry.revenants} Revenants` };
+    case "jali.formationRevealed":
+      return { icon: "priority", title: `${actor} revealed their formation`, detail: "All three lane cards are public" };
+    case "gracus.minotaurCreated":
+      return { icon: "priority", title: `${actor} created a Minotaur ${entry.role}`, detail: "Value 4 · combat remains open for response" };
+    case "indela.omenRevealed":
+      return { icon: "priority", title: `${actor} revealed ${entry.parity} omen ${entry.value}`, detail: `${(entry.sources || []).join(' + ')} · ${entry.parity === 'odd' ? 'own costs −' : 'opponent costs +'}${entry.triggers} this turn` };
+    case "ability.used":
+      return { icon: "priority", title: `${actor} activated ${({
+        'jali:watane': 'Watane', 'jali:katana': 'Katana', 'jali:basho': 'Basho',
+        'mekan:monti': 'Monti', 'mekan:encore': 'Encore', 'mekan:remember': 'San Mikal',
+        'mekan:invite': 'Guest invitation', 'mekan:look': 'Private deck inspection',
+        'mekan:keep': 'Keep top card', 'mekan:bottom': 'Move card to bottom', 'gracus:epicura': 'Epicura'
+      })[entry.abilityId?.split(':').slice(0, 2).join(':')] || entry.source || entry.abilityId}`, detail: "Activation committed" };
     case "payment.discarded": {
       const overpayment = total != null && required != null ? Math.max(0, total - required) : null;
       return {

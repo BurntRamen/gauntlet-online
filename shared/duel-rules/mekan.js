@@ -1,4 +1,5 @@
 "use strict";
+const { addTemporaryEffect } = require("./effects");
 
 const isMekan = (player) => player?.faction?.id === "mekan";
 const general = (player) => player?.faction?.general?.id || player?.faction?.generalId || "monti";
@@ -98,8 +99,7 @@ function apply(game, number, id, events, event) {
   else if (kind === "cancel-invite") turn.mekanInvitation = null;
   else if (kind === "monti") {
     const card = [...player.hand, ...game.lanes.map((lane) => lane.facedown[number]).filter(Boolean)].find((entry) => entry.id === cardId);
-    card.temporaryValueBonus = Number(card.temporaryValueBonus || 0) + 1;
-    card.temporaryValueBonusNotes = [...(card.temporaryValueBonusNotes || []), "Grand Celebration +1"];
+    addTemporaryEffect(card, 1, { id: "mekan:monti", name: "Monti" }, game.turn);
     turn.mekanMonti = true;
   } else if (kind === "look") {
     turn.mekanLooked = true;

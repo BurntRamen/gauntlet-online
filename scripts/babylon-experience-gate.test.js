@@ -38,6 +38,7 @@ test("historical multi-block acceptance and an old rules version cannot qualify 
 
 test("complete independent evidence passes the experience gate", () => {
   const record = loadTemplate();
+  record.rulesVersion = require("../shared/duel-rules").RULES_VERSION;
   record.rendererVersion = "test-renderer";
   record.visualStates = record.visualStates.map((state, index) => ({
     ...state,

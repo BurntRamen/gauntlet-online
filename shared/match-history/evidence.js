@@ -13,7 +13,7 @@ function sanitizeLeagueCommand(command = {}) {
     "primeSignalBonus", "lastGambleChoice"
   ]) copyScalar(field);
   // This ability targets a private hand/lane card; keep intent, not its identity.
-  if (type === "useFactionAbility" && /^mekan:monti:/.test(safe.abilityId || "")) safe.abilityId = "mekan:monti";
+  if (type === "useFactionAbility" && /^(mekan:monti|jali:watane|jali:katana):/.test(safe.abilityId || "")) safe.abilityId = safe.abilityId.split(":").slice(0, 2).join(":");
   if (["declareHandAttack", "declareLaneAttack"].includes(type)) {
     safe.attackerCardId = command.attackerCardId || command.cardId || null;
     safe.paymentCardIds = [...(command.paymentCardIds || [])];
@@ -84,6 +84,16 @@ function enrichPublicEventCards(game, payload, beforeGame = null) {
 function sanitizeLeagueEvent(event = {}) {
   const type = String(event.type || "unknown");
   const { id: _id, sequence: _sequence, revision: _revision, type: _type, ...detail } = clonePlain(event);
+  if (type.startsWith("effect.")) {
+    if (detail.private) return { player: detail.player, private: true };
+    if (detail.target && ["hand", "lane", "deck"].includes(detail.target.zone) && !detail.target.public) {
+      detail.target = { owner: detail.target.owner, zone: detail.target.zone, name: "Hidden card", ...(detail.target.laneIndex != null ? { laneIndex: detail.target.laneIndex } : {}) };
+      delete detail.before; delete detail.after;
+    }
+    // Public replay cannot identify an unrevealed source instance.
+    if (detail.source?.cardId) detail.source = { name: "Card effect" };
+    return detail;
+  }
   // Lane-entry source is a runtime ID of the still face-down card.
   if (type === "laneEntry.resolved") {
     const { source: _source, cardId: _cardId, card: _card, ...publicDetail } = detail;

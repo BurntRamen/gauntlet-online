@@ -39,12 +39,14 @@ test("Mekan Guest actions appear in the production controls and enforce once-per
   const update = latestUpdate(adapter);
   expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({ id: abilityId, available: true }));
   update.commands.activateAbility(abilityId);
+  expect(adapter.game.players[adapter.controller].discard.find((entry) => entry.id === card.id).mekanGuest).toBeUndefined();
+  update.commands.confirmCurrentAction();
   expect(adapter.game.players[adapter.controller].discard.find((entry) => entry.id === card.id).mekanGuest).toBe(true);
   expect(latestUpdate(adapter).viewModel.interactions.abilities.some((entry) => entry.id === abilityId)).toBe(false);
   adapter.dispose();
 });
 
-test("Jali Revenant actions dispatch directly from the production controls", () => {
+test("Jali Revenant actions require confirmation in the production controls", () => {
   const adapter = createLocalDuelAdapter({ seed: "jali-controls", gameMode: "factions", factions: { 1: "jali", 2: "jali" } });
   const player = adapter.game.players[adapter.controller];
   player.revenants = 1;
@@ -53,6 +55,8 @@ test("Jali Revenant actions dispatch directly from the production controls", () 
   const update = latestUpdate(adapter);
   expect(update.viewModel.interactions.abilities).toContainEqual(expect.objectContaining({ id: abilityId, available: true }));
   update.commands.activateAbility(abilityId);
+  expect(adapter.game.players[adapter.controller].revenants).toBe(1);
+  update.commands.confirmCurrentAction();
   expect(adapter.game.players[adapter.controller].revenants).toBe(0);
   expect(adapter.game.players[adapter.controller].hand.find((entry) => entry.id === card.id).temporaryValueBonus).toBe(2);
   adapter.dispose();
@@ -410,11 +414,11 @@ test("constructed payment choices appear contextually and update the payment pre
   update.commands.activateHandCard(paymentIndex);
   update = latestUpdate(adapter);
   const forumChoice = update.viewModel.interactions.abilities
-    .find((ability) => ability.id === "constructed:forum-ledger");
+    .find((ability) => ability.id === `constructed:forum-ledger:${hand[paymentIndex].id}`);
   expect(forumChoice).toEqual(expect.objectContaining({ available: true, active: false }));
   expect(update.viewModel.payment.total).toBe(2);
 
-  update.commands.activateAbility("constructed:forum-ledger");
+  update.commands.activateAbility(forumChoice.id);
   update = latestUpdate(adapter);
   expect(update.viewModel.payment.total).toBe(3);
   expect(update.viewModel.interactions.confirmDisabled).toBe(false);
@@ -728,7 +732,7 @@ test("live adapter owns semantic envelopes and presents server rejection", async
     expect.any(Function)
   );
   expect(update.viewModel.statusNotice).toBe(
-    "The match advanced before that action was confirmed."
+    "The match advanced before that action was confirmed. Nothing was spent by this rejected action."
   );
   expect(update.viewModel.instruction).toMatch(/^Player 1 has priority:/);
   adapter.dispose();
@@ -805,7 +809,7 @@ test("live adapter discards unconfirmed selection when transport disconnects", (
   expect(update.viewModel.hand.every((card) => card.unavailable)).toBe(true);
 
   adapter.update({ game, player: 1, connected: true });
-  expect(adapter.createUpdate().viewModel.statusNotice).toMatch(/restored from the latest authoritative snapshot/i);
+  expect(adapter.createUpdate().viewModel.statusNotice).toMatch(/last action.s outcome is still unknown/i);
   adapter.dispose();
 });
 

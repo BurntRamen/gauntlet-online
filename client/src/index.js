@@ -5,9 +5,11 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+const AbilityPreview = React.lazy(() => import('./babylon/AbilityPreview'));
+const showAbilityPreview = process.env.REACT_APP_ABILITY_PREVIEW === 'true' && window.location.pathname === '/ability-preview';
 root.render(
   <React.StrictMode>
-    <App />
+    {showAbilityPreview ? <React.Suspense fallback={<p>Loading ability preview…</p>}><AbilityPreview /></React.Suspense> : <App />}
   </React.StrictMode>
 );
 

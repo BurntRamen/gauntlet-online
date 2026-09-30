@@ -4,6 +4,7 @@ import DialoguePlaybackControls, { DialogueVoiceButton } from "../DialoguePlayba
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
+import AbilityStatePanel from "./AbilityStatePanel";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
@@ -423,7 +424,13 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
     );
   }
   return (
-    <section className={`production-context-panel${viewModel?.payment?.active ? " has-payment" : ""}`} aria-label="Current match action">
+    <section className={`production-context-panel${viewModel?.payment?.active ? " has-payment" : ""}${viewModel?.abilityPreview ? " has-ability-preview" : ""}`} aria-label="Current match action">
+      {viewModel?.abilityPreview && <div className="ability-commit-preview" aria-label="Commitment preview" aria-live="polite">
+        <b>{viewModel.abilityPreview.title}</b>
+        {viewModel.abilityPreview.lines.map((line, i) => <p key={i}>{line}</p>)}
+        {viewModel.abilityPreview.error && <p>{viewModel.abilityPreview.error}</p>}
+        <p>{viewModel.abilityPreview.response}</p>
+      </div>}
       <div className="production-context-copy" aria-live="polite">
         <span className="production-context-kicker">
           <GameIcon name={actionIcon} size={15} />
@@ -720,7 +727,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
   const playersById = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
   const numericalEvents = Array.from(new Map([
-    ...(snapshot?.publicCombatLog || []), ...recentEvents
+    ...(snapshot?.publicCombatLog || []), ...(snapshot?.effectHistory || []), ...recentEvents
   ].map((entry, index) => [entry.id || `unrecorded-${index}`, entry])).values())
     .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0)).slice(-300);
   const numericalSequenceOffset = 0;
@@ -826,6 +833,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
         )}
         {kind === "factions" && (
           <div className="production-faction-reference">
+            <AbilityStatePanel viewModel={viewModel} commands={commands} />
             {shownPlayers.map((player) => (
               <section key={player.id} className={player.id === viewModel?.perspective?.player ? "is-local" : ""}>
                 <span>Player {player.id}</span>
@@ -1111,7 +1119,13 @@ function CardInspection({ inspection, commands }) {
       <div className="production-inspection-copy">
         <span>Card inspection</span>
         <h2>{inspection.label}</h2>
-        <strong>Value {inspection.value}</strong>
+        <strong>Printed value {inspection.value}</strong>
+        {inspection.valueBreakdown && <>
+          <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
+          <p>Current attack/block value {inspection.valueBreakdown.total}. Payment and printed-value eligibility use printed value, with their own applicable effects.</p>
+          {inspection.valueBreakdown.modifiers.map(e => <p key={e.id}>{e.source.name}: {e.amount >= 0 ? '+' : ''}{e.amount} · {e.duration?.kind === 'combat' ? 'this combat' : 'until turn end'}</p>)}
+          {inspection.valueBreakdown.notes?.length > 0 && <p>Sources: {inspection.valueBreakdown.notes.join('; ')}</p>}
+        </>}
         {inspection.description && <p>{inspection.description}</p>}
         <a href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
       </div>
@@ -1136,7 +1150,8 @@ function CardPreview({ preview }) {
           {preview.stateLabel || "Card preview"}
         </span>
         <strong>{preview.label || "Card"}</strong>
-        {preview.value != null && <small>Value {preview.value}</small>}
+        {preview.value != null && <small>Printed {preview.printedValue ?? preview.value} · Current {preview.valueBreakdown?.total ?? preview.value}</small>}
+        {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
       </div>
     </aside>
   );
@@ -1224,6 +1239,9 @@ function CombatRecap({ events }) {
 
 export function eventCalloutContent(entry) {
   if (!entry) return null;
+  if (/^(effect\.|resource\.|guest\.|jali\.|gracus\.|indela\.|priority\.retained|card\.peeked)/.test(entry.type)) {
+    return ["priority", formatMatchLogEntry(entry).title];
+  }
   const laneNumber = entry.laneIndex != null && Number.isInteger(Number(entry.laneIndex))
     ? Number(entry.laneIndex) + 1
     : null;
@@ -1535,10 +1553,12 @@ export default function ProductionMatchExperience({
       instruction: disconnected
         ? "Connection interrupted. The current table is preserved while reconnecting."
         : "Resolving the current table action…",
+      abilityPreview: null,
       interactions: {
         ...viewModel.interactions,
         handInteractionEnabled: false,
         legalLanes: [],
+        legalLaneTargets: [],
         abilities: [],
         confirmDisabled: true,
         confirmReason: disconnected

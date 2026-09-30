@@ -1,4 +1,5 @@
 "use strict";
+const { addTemporaryEffect } = require("./effects");
 
 const isJali = (player) => player?.faction?.id === "jali";
 const cardValue = (card) => ({ A: 14, K: 13, Q: 12, J: 11 }[card?.rank] || Number(card?.value) || 0);
@@ -78,8 +79,7 @@ function apply(game, playerNumber, abilityId, events, event) {
   } else {
     const card = controlledCards(game, playerNumber).find((entry) => entry.id === cardId);
     if (!card) return "That card is no longer under your control.";
-    card.temporaryValueBonus = Number(card.temporaryValueBonus || 0) + 2;
-    card.temporaryValueBonusNotes = [...(card.temporaryValueBonusNotes || []), kind === "watane" ? "Watane Revenant +2" : "Katana +2"];
+    addTemporaryEffect(card, 2, { id: `jali:${kind}`, name: kind === "watane" ? "Watane" : "Katana" }, game.turn);
     if (kind === "watane") player.revenants = Math.max(0, Number(player.revenants || 0) - 1);
     else card.jaliKatanaPrepared = true;
   }

@@ -72,6 +72,11 @@ export default function FactionBoardCards({ faction, viewModel, commands, layout
           <header><div><span>{selected.role}</span><strong>{selected.name}</strong></div>
             <button type="button" onClick={close} aria-label="Close faction card">×</button></header>
           {selected.text && <p>{selected.text}</p>}
+          <p className="faction-board-note">{selected.activated
+            ? "Optional activation · choose an action, review its targets and cost, then confirm."
+            : /^(sheen:commander|gracus:general|indela:city)$/.test(`${faction.id}:${selected.role}`)
+              ? "Always active · applies while its stated conditions hold."
+              : "Automatic trigger · no activation needed. Watch the stated condition and turn progress."}</p>
           {selected.abilities.length ? selected.abilities.map((ability) => (
             <button type="button" key={ability.id} disabled={readOnly || ability.available === false}
               aria-pressed={Boolean(ability.active)}

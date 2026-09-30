@@ -1,3 +1,4 @@
+import { laneTargetEnabled, laneTargetSelected } from "./abilityTargets";
 export const PRESENTATION_SNAPSHOT_VERSION = "gauntlet.presentation-snapshot.v1";
 
 const ZONE_PRIORITY = Object.freeze({
@@ -83,6 +84,8 @@ function addActor(actors, actor, priority = ZONE_PRIORITY[actor.zone.kind] || 0)
 }
 
 function handSelectionRole(card) {
+  if (card?.selected?.ability) return "ability";
+  if (card?.selected?.paymentBonus) return "payment";
   if (card?.selected?.attacker) return "attacker";
   if (card?.selected?.blocker) return "blocker";
   if (card?.selected?.payment) return "payment";
@@ -130,6 +133,8 @@ function addCombatAttack(actors, attack, bottomPlayer, combatSlots, source = "st
     selectionRole: side === "local" ? "attacker" : "danger",
     preview: {
       ...attack.card,
+      value: attack.value,
+      valueBreakdown: { ...attack.card.valueBreakdown, total: attack.value, notes: attack.notes },
       stateLabel: laneIndex == null ? "Hand-combat attacker" : `Lane ${laneIndex + 1} attacker`,
       stateIcon: "attack"
     }
@@ -153,6 +158,8 @@ function addCombatAttack(actors, attack, bottomPlayer, combatSlots, source = "st
       selectionRole: "blocker",
       preview: {
         ...block.card,
+        value: block.value,
+        valueBreakdown: { ...block.card.valueBreakdown, total: block.value, notes: block.notes },
         stateLabel: laneIndex == null ? "Hand-combat blocker" : `Lane ${laneIndex + 1} blocker`,
         stateIcon: "block"
       }
@@ -440,14 +447,14 @@ export function createPresentationSnapshot(viewModel, options = {}) {
         slotIndex: 0,
         count: 1
       }, {
-        faceDown: true,
-        selected: selectedAttack || selectedBlock,
+        faceDown: !lane.localCard?.raw?.revealed,
+        selected: selectedAttack || selectedBlock || laneTargetSelected(viewModel, laneIndex, "local"),
         selectionRole: selectedBlock ? "blocker" : selectedAttack ? "attacker" : null,
         interaction: {
           type: "lane",
           laneIndex,
           owner: "local",
-          enabled: (viewModel?.interactions?.legalLanes || []).includes(laneIndex)
+          enabled: laneTargetEnabled(viewModel, laneIndex, "local")
         },
         preview: lane.localCard ? {
           ...lane.localCard,
@@ -457,8 +464,9 @@ export function createPresentationSnapshot(viewModel, options = {}) {
       }));
     }
     if (lane.hasOpponentCard) {
-      const actorId = `hidden:player-${topPlayer}:lane:${laneIndex}`;
-      addActor(actors, actorFromCard(null, actorId, {
+      const publicCard = lane.opponentCard?.visible ? lane.opponentCard : null;
+      const actorId = publicCard ? visibleCardIdentity(publicCard) : `hidden:player-${topPlayer}:lane:${laneIndex}`;
+      addActor(actors, actorFromCard(publicCard, actorId, {
         kind: "lane",
         side: "opponent",
         role: "facedown",
@@ -466,15 +474,16 @@ export function createPresentationSnapshot(viewModel, options = {}) {
         slotIndex: 0,
         count: 1
       }, {
-        faceDown: true,
+        faceDown: !publicCard,
+        selected: laneTargetSelected(viewModel, laneIndex, "opponent"),
         interaction: {
           type: "lane",
           laneIndex,
           owner: "opponent",
-          enabled: (viewModel?.interactions?.legalLanes || []).includes(laneIndex)
+          enabled: laneTargetEnabled(viewModel, laneIndex, "opponent")
         },
         preview: {
-          label: "Opponent face-down card",
+          ...(publicCard || { label: "Opponent face-down card" }),
           stateLabel: `Face-down in Lane ${laneIndex + 1}`,
           stateIcon: "placement"
         }
@@ -496,6 +505,7 @@ export function createPresentationSnapshot(viewModel, options = {}) {
     actors.forEach((entry) => {
       if (entry.actor.zone.kind !== "combat" || entry.actor.zone.role !== "attacker") return;
       if (entry.actor.zone.side !== "local") return;
+      entry.actor.selected = viewModel.selection.abilityMode?.attackId === entry.actor.zone.attackId;
       entry.actor.interaction = {
         type: "attack",
         enabled: true,

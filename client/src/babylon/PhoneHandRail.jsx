@@ -93,7 +93,7 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
               data-match-zone="hand" data-card-index={index}
               data-hand-actor-id={visibleCardIdentity(card, `player-${viewModel.perspective?.player}:hand:${index}`)}
               data-selection-role={role || ""}
-              aria-label={visible ? `${card.label}, value ${card.value}${role ? ", selected " + role : ""}` : "Face-down card"}
+              aria-label={visible ? `${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ''}${role ? ", selected " + role : ""}${card.selected?.paymentBonus ? ', selected payment bonus recipient' : ''}` : "Face-down card"}
               aria-pressed={selected} disabled={interactionLocked || card.unavailable || !visible}
               onFocus={(event) => { event.currentTarget.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "instant" }); measure(); }}
               onClick={(event) => {
@@ -109,7 +109,7 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
               <span className="phone-hand-rank" aria-hidden="true">{visible
                 ? (card.rank || card.label) + ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" }[card.suit] || (card.rank ? card.suit : ""))
                 : "?"}</span>
-              {selected && <span className="phone-hand-selection" aria-hidden="true">{role}</span>}
+              {selected && <span className="phone-hand-selection" aria-hidden="true">{card.selected?.paymentBonus ? 'payment bonus' : role}</span>}
             </button>
           );
         })}

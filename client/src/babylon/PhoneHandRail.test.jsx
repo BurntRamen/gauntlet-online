@@ -73,7 +73,7 @@ test("concealed cards never expose their art, value or raw data; failed art reta
   expect(commands.inspectCard).not.toHaveBeenCalled();
   fireEvent.error(document.querySelector("img"));
   expect(document.querySelector("img")).toBeNull();
-  expect(screen.getByRole("button", { name: "3♥, value 3" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "3♥, printed value 3" })).toBeEnabled();
 });
 
 test("phone portrait and short phone landscape use the rail, ordinary tablet and desktop retain canvas hands", () => {

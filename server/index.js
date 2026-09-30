@@ -5102,7 +5102,7 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   }
   for (const [laneIndex, lane] of (visibleGame.lanes || []).entries()) {
     for (const playerNum of [1, 2]) {
-      if (viewerPlayerNum !== playerNum && lane.facedown?.[playerNum]) {
+      if (viewerPlayerNum !== playerNum && lane.facedown?.[playerNum] && !lane.facedown[playerNum].revealed) {
         lane.facedown[playerNum] = {
           id: `hidden-lane-${laneIndex}-p${playerNum}`,
           hidden: true

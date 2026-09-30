@@ -125,14 +125,14 @@ test("phone rail retains selected identities through rotation and does not expos
   size(390, 844);
   const mounted = render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false }} />);
   try {
-    expect(await screen.findByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     size(844, 390);
     expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
-    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     size(1200, 800);
     expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
     size(390, 844);
-    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     for (const overrides of [
       { privacy: { required: true, player: 1 } },
       { viewModel: { ...viewModel, perspective: { player: 1, spectator: true } } },

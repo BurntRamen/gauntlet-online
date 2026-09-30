@@ -1,0 +1,5 @@
+.ability-preview-page { background: #101b25; color: #e2edf5; }
+.ability-preview-page > header { min-height: 84px; padding: 10px 16px; box-sizing: border-box; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font: 14px/1.4 system-ui; }
+.ability-preview-page > header p { flex-basis: 100%; margin: 0; font-size: 13px; }
+.ability-preview-page > header button, .ability-preview-page > header select { border: 1px solid #7193ab; border-radius: 5px; background: #19364b; color: #eef7ff; padding: 7px; }
+.ability-preview-page .production-match-experience { height: calc(100dvh - 100px); min-height: 620px; }

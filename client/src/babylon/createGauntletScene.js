@@ -2464,6 +2464,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       motionDelayMs: animateTransition ? transition.delayMs : 0,
       motionPlaybackRate: presentationPlaybackRate(),
       selected: actor.selected,
+      legal: actor.interaction?.enabled === true && !!(currentViewModel?.selection?.abilityMode),
       hovered,
       selectionRole: actor.selectionRole,
       scale: position.scale,
@@ -2478,7 +2479,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         responsiveRecompose,
         localFeedbackChanged
       }),
-      badgeText: ""
+      badgeText: actor.card?.selected?.paymentBonus ? "Pay bonus" : actor.card?.valueBreakdown?.modifiers?.length ? `Value ${actor.card.valueBreakdown.total}` : ""
     });
     record.motionSourceZone = transition?.fromZone || null;
     record.presentationActor = actor;
