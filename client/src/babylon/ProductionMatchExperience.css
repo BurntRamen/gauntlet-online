@@ -946,17 +946,17 @@
   }
   .production-campaign-encounter ~ .production-card-and-log > .production-card-preview {
     position: static;
-    width: min(200px, 100%);
-    height: 320px;
+    width: min(280px, 100%);
+    height: auto;
     min-height: 0;
-    flex: 0 1 320px;
+    flex: 0 1 auto;
     box-sizing: border-box;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
   }
   .production-campaign-encounter ~ .production-card-and-log .production-card-preview-art {
     position: relative;
     min-height: 0;
-    aspect-ratio: auto;
+    aspect-ratio: 5 / 7;
   }
   .production-campaign-encounter ~ .production-card-and-log .production-card-preview-art img {
     position: absolute;
@@ -1227,7 +1227,7 @@
   top: 94px;
   right: max(18px, env(safe-area-inset-right));
   display: grid;
-  width: 180px;
+  width: 260px;
   gap: 8px;
   padding: 9px;
   border: 1px solid rgba(181, 137, 79, 0.72);
@@ -1241,9 +1241,11 @@
 
 .production-card-preview-art {
   display: grid;
-  width: 100%;
-  min-height: 226px;
+  width: auto;
+  height: clamp(90px, calc(100dvh - 550px), 230px);
+  min-height: 0;
   aspect-ratio: 5 / 7;
+  justify-self: center;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(230, 225, 209, 0.5);
@@ -1261,7 +1263,8 @@
 
 .production-card-preview-copy {
   display: grid;
-  gap: 3px;
+  gap: 6px;
+  overflow-wrap: anywhere;
 }
 
 .production-card-state {
@@ -1282,6 +1285,24 @@
 .production-card-preview-copy > small {
   color: #b7c3cc;
   font-size: 10px;
+}
+
+.production-card-rules,
+.production-card-ability-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.production-card-ability-status {
+  padding-top: 7px;
+  border-top: 1px solid rgba(181, 137, 79, 0.4);
+  color: #c7dcff;
+}
+
+.production-card-campaign-note {
+  color: #b9ddbd;
+  font-size: 11px;
 }
 
 .production-card-inspection {

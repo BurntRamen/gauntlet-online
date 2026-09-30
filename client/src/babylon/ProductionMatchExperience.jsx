@@ -5,6 +5,7 @@ import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
 import GameIcon from "./GameIcon";
+import { cardDetails, selectedCardPreview } from "./cardDetails";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
 import {
@@ -1085,8 +1086,17 @@ function CampaignEncounter({ campaign, audioEnabled }) {
   );
 }
 
-function CardInspection({ inspection, commands }) {
+function CardAbilityDetails({ details }) {
+  return <>
+    {details.rules && <p className="production-card-rules">{details.rules}</p>}
+    {details.campaignAbility && <span className="production-card-campaign-note">Ability applies in campaign</span>}
+    {details.abilityStatus && <p className="production-card-ability-status" role="status">{details.abilityStatus}</p>}
+  </>;
+}
+
+function CardInspection({ inspection, commands, viewModel, snapshot }) {
   if (!inspection) return null;
+  const details = cardDetails(inspection, viewModel, snapshot);
   return (
     <section
       className="production-card-inspection"
@@ -1112,17 +1122,18 @@ function CardInspection({ inspection, commands }) {
         <span>Card inspection</span>
         <h2>{inspection.label}</h2>
         <strong>Value {inspection.value}</strong>
-        {inspection.description && <p>{inspection.description}</p>}
+        <CardAbilityDetails details={details} />
         <a href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
       </div>
     </section>
   );
 }
 
-function CardPreview({ preview }) {
+function CardPreview({ preview, viewModel, snapshot }) {
   if (!preview) return null;
+  const details = cardDetails(preview, viewModel, snapshot);
   return (
-    <aside className="production-card-preview" aria-label={`${preview.label || "Card"} preview`}>
+    <aside className="production-card-preview" aria-label={`${details.name} preview`}>
       <div className="production-card-preview-art">
         {preview.artPath ? (
           <img src={preview.artPath} alt="" />
@@ -1135,8 +1146,9 @@ function CardPreview({ preview }) {
           <GameIcon name={preview.stateIcon || "inspect"} size={15} />
           {preview.stateLabel || "Card preview"}
         </span>
-        <strong>{preview.label || "Card"}</strong>
-        {preview.value != null && <small>Value {preview.value}</small>}
+        <strong>{details.name}</strong>
+        {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Value {preview.value}</small>}
+        <CardAbilityDetails details={details} />
       </div>
     </aside>
   );
@@ -1358,6 +1370,7 @@ export default function ProductionMatchExperience({
     let active = true;
     setUpdate(null);
     setAuthoritativeUpdate(null);
+    setPreviewCard(null);
     setFeedEntries([]);
     const playback = new BattlefieldPlaybackQueue({
       reducedMotion,
@@ -1750,6 +1763,11 @@ export default function ProductionMatchExperience({
     && battlefieldViewModel?.phase === "gameOver"
     && (!playbackState.catchingUp || battlefieldViewModel?.presentationPlayback?.finalReconcile)
   );
+  const activeCardPreview = transportUpdate?.privacy?.required ? null : previewCard || (
+    transportUpdate?.source !== "replay" && !viewModel?.perspective?.spectator
+      ? selectedCardPreview(presentedViewModel)
+      : null
+  );
 
   if (adapterError) {
     return (
@@ -1931,7 +1949,7 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
-        <div className={`production-card-and-log${previewCard ? " has-preview" : ""}`}>
+        <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}`}>
           {update?.source !== "replay" && !referencePanel && (
             <MatchLedger
               entries={feedEntries}
@@ -1939,10 +1957,10 @@ export default function ProductionMatchExperience({
               onOpen={() => setReferencePanel("log")}
             />
           )}
-          <CardPreview preview={previewCard} />
+          <CardPreview preview={activeCardPreview} viewModel={presentedViewModel} snapshot={update?.snapshot} />
         </div>
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
-        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} />
+        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} viewModel={viewModel} snapshot={transportUpdate?.snapshot} />
         {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}

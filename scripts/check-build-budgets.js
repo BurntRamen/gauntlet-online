@@ -12,7 +12,8 @@ const budgets = {
   // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
   // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
   // Native, theme-aware board inscriptions replace the screen-space overlay.
-  totalJavaScriptGzip: 710 * KIB
+  // Readable card rules, campaign applicability, and blocker eligibility previews.
+  totalJavaScriptGzip: 711 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

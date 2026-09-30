@@ -1,0 +1,13 @@
+{
+  "id": "campaign-card-preview-20260930",
+  "userDirection": "fix this display issue\nFollow-up: locally? i need live",
+  "scope": "Publish the campaign replacement-card display fix: readable card names and rules, campaign applicability, acceleration block requirements, and persistent selected-card previews.",
+  "authorizationBasis": "Explicit production publication request in the active user task, taking precedence over generic skill defaults.",
+  "grants": ["codeEdit", "createBranch", "commit", "push", "merge", "deploy", "publication"],
+  "denials": ["productionDatabase", "driveWriteback", "canonApproval", "manufacturing", "spending"],
+  "implementationDecisions": [
+    "Use an isolated release worktree from current origin/main to protect all existing dirty checkouts; temporarily exceed the default retained-worktree cap rather than delete user work.",
+    "Port only the card display fix, preserving current themes, campaign log layout, keyword guide, gameplay, artwork, and deployment settings.",
+    "Use the existing pull-request checks and Vercel production integration; verify the production alias after merge."
+  ]
+}
