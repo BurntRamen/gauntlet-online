@@ -2627,3 +2627,17 @@
   .production-turn-marker small { font-size: 10px; }
 }
 .production-turn-marker[data-phase="combat"] { --phase-color: #ffa56d; }
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .production-turn-marker {
+    top: 6px; left: 224px; right: 88px; transform: none;
+    padding: 4px; grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 8px; font-size: 10px;
+  }
+  .production-turn-marker > span { grid-row: 1 / 3; align-self: center; }
+  .production-turn-marker strong { font-size: 14px; }
+  .production-turn-marker small { font-size: 9px; }
+  .production-match-ledger { top: 58px; }
+  .has-phone-hand .production-context-panel { height: 64px; }
+  .has-phone-hand .production-player-plate-bottom { bottom: 68px; }
+}

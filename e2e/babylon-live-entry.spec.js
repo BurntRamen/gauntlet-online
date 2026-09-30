@@ -695,6 +695,29 @@ test("normal Faction Training Grounds entry uses the same production match and s
   )).toBeGreaterThan(initialRevision);
 });
 
+test("board faction cards route available orders through hand and lane selection", async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1836, height: 878 });
+  await prepareGuest(page, baseURL, "Board Ability Reviewer", "Practice");
+  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await chooseLobbyFaction(page, "Frumo");
+  await page.getByRole("button", { name: "Confirm Start" }).click();
+  const commander = page.locator('[data-faction-role="commander"]');
+  await expect(commander).toHaveClass(/is-ready/);
+  await expect(page.locator('[data-faction-role="city"]')).toContainText("Passive");
+  await commander.click();
+  const choices = page.getByRole("dialog", { name: "Lord Commander Polea abilities" });
+  await expect(choices.getByRole("button", { name: /inspect a face-down card/ })).toBeDisabled();
+  await choices.getByRole("button", { name: /place a hand card/ }).click();
+  await expect(choices).toBeHidden();
+  await expect(currentAction(page)).toContainText(/hand card/i);
+  await clickHandCardByValue(page, "lowest");
+  await activateLaneButton(page, "Lane 1");
+  await currentAction(page).getByRole("button", { name: "Confirm Placement", exact: true }).click();
+  await waitForPlaybackSettled(page);
+  await expect(commander).not.toHaveClass(/is-ready/);
+  await expect(page.locator('[data-faction-role="general"]')).toHaveClass(/is-ready/);
+});
+
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
   await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");

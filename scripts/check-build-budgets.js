@@ -9,7 +9,8 @@ const budgets = {
   largestAsyncGzip: 350 * KIB,
   // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
   // The 72-card guide stays in static HTML, outside the application bundle.
-  totalJavaScriptGzip: 706 * KIB
+  // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
+  totalJavaScriptGzip: 708 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

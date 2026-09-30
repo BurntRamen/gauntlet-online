@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
+import FactionBoardCards from "./FactionBoardCards";
 import GameIcon from "./GameIcon";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
@@ -1936,6 +1937,12 @@ export default function ProductionMatchExperience({
             capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
           />
+          {!phoneHandActive && visualViewModel.mode === "factions" && (
+            <FactionBoardCards key={`${viewModel.matchId}:${visualViewModel.bottom?.id}`}
+              faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}
+              viewModel={presentedViewModel} commands={gameplayCommands}
+              layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked} />
+          )}
         </div>
 
         <div className="production-table-vignette" aria-hidden="true" />
