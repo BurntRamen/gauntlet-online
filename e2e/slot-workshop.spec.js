@@ -31,7 +31,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   const card = COLLECTION_CARDS.find((entry) => entry.id === "sheen-raincall-mender");
   const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[card.value] || String(card.value);
   await page.getByRole("button", { name: `${rank} of hearts — Standard playing card`, exact: true }).click();
-  await page.getByRole("button", { name: `Swap ${rank} of hearts for Raincall Mender`, exact: true }).click();
+  await page.getByRole("button", { name: `Swap ${rank} of hearts for ${card.name}`, exact: true }).click();
   await expect(page.locator(".deck-slot-preview img")).toHaveAttribute("src", /sheen-raincall-mender-hearts\.webp\?v=2$/);
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(1);
   await expect(page.locator(".deck-preview-copy")).toContainText("Clean block: Heal 1.");
@@ -47,7 +47,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   const getSaved = () => JSON.parse(fs.readFileSync(storePath, "utf8")).accounts.find((entry) => entry.id === account.id).stats.savedConstructedDeck;
   expect(getSaved().cardSuitChoices[card.id]).toEqual(["hearts"]);
   expect(getSaved().deckBoxId).toBe("obsidian");
-  await page.getByRole("button", { name: `${rank} of hearts — Raincall Mender`, exact: true }).click();
+  await page.getByRole("button", { name: `${rank} of hearts — ${card.name}`, exact: true }).click();
   const out = path.resolve(__dirname, "../docs/generated-assets/workshop-compact-review");
   fs.mkdirSync(out, { recursive: true });
   await page.locator(".deck-workshop").screenshot({ path: path.join(out, "deck-workshop-desktop.png") });
@@ -78,7 +78,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await expect(resizer).toHaveAttribute("aria-valuenow", "340");
   await page.getByRole("button", { name: "Compact", exact: true }).click();
   await page.getByRole("button", { name: "Preview", exact: true }).click();
-  await page.getByRole("button", { name: `${rank} of hearts — Raincall Mender`, exact: true }).click();
+  await page.getByRole("button", { name: `${rank} of hearts — ${card.name}`, exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".deck-workshop")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);

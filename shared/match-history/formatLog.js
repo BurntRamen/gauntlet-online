@@ -59,6 +59,38 @@ function explainPayment(calculation) {
   return `Payment: ${base} base${delta ? ` ${delta > 0 ? "+" : "−"} ${Math.abs(delta)} bonus` : ""} = ${calculation.total}`;
 }
 
+const ABILITY_NAMES = {
+  'jali:watane': 'Watane', 'jali:katana': 'Katana', 'jali:basho': 'Basho',
+  'mekan:monti': 'Monti', 'mekan:encore': 'Encore', 'mekan:remember': 'San Mikal',
+  'mekan:invite': 'San Mikal · invite a Guest', 'mekan:cancel-invite': 'San Mikal · cancel invitation',
+  'mekan:look': 'Private deck inspection', 'mekan:keep': 'Keep top card',
+  'mekan:bottom': 'Move card to bottom', 'gracus:epicura': 'Epicura'
+};
+
+function abilityName(entry, fallback = 'Ability') {
+  return entry.abilityName || ABILITY_NAMES[entry.abilityId?.split(':').slice(0, 2).join(':')]
+    || entry.source?.name || (typeof entry.source === 'string' ? entry.source : null) || fallback;
+}
+
+function isAbilityLogEntry(entry) {
+  if (!entry || (entry.private && !entry.source && !entry.card)) return false;
+  if (/^(effect\.|ability\.|guest\.|jali\.|gracus\.|indela\.|acceleration\.|card\.(peeked|buffApplied)$|lanes\.swapped$|laneCard\.swappedWithHand$|choice\.committed$)/.test(entry.type)) return true;
+  if (['card.placedFacedown', 'cards.drawn'].includes(entry.type) && entry.source) return true;
+  const calculation = entry.calculation;
+  return Boolean(calculation && (calculation.notes?.length || calculation.reductions?.length
+    || calculation.attack?.notes?.length
+    || calculation.blocks?.some(block => block.notes?.length || block.preventionNotes?.length)));
+}
+
+// The snapshot and incoming events have already been projected for this viewer.
+function abilityMatchHistory(snapshot, entries = []) {
+  return Array.from(new Map([
+    ...entries, ...authoritativeMatchHistory(snapshot), ...(snapshot?.publicCombatLog || []),
+    ...(snapshot?.effectHistory || [])
+  ].filter(isAbilityLogEntry).map((entry, index) => [entry.id || `unrecorded-${index}`, entry])).values())
+    .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+}
+
 function formatMatchLogEntry(entry, { players = {} } = {}) {
   if (!entry) return { title: "Match state updated.", detail: "", icon: "priority" };
   const actor = playerLabel(entry.player ?? entry.attacker, players);
@@ -74,6 +106,48 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
   const damage = numeric(entry.damage ?? entry.amount);
 
   switch (entry.type) {
+    case "effect.applied":
+    case "effect.expired":
+    case "effect.consumed":
+    case "effect.readied": {
+      if (entry.private && !entry.source) return { icon: "priority", title: "Private effect updated", detail: "" };
+      const source = entry.source?.name || entry.source || "Effect";
+      const verb = { "effect.applied": "applied", "effect.expired": entry.target ? "expired" : "no longer available", "effect.consumed": "used", "effect.readied": "ready" }[entry.type];
+      return { icon: "priority", title: `${source} ${verb}${entry.target?.name ? ` · ${entry.target.name}` : ""}`,
+        detail: [actor, entry.label, entry.amount != null ? `${entry.amount >= 0 ? '+' : '−'}${Math.abs(entry.amount)} ${(entry.contexts || []).join('/')}` : "",
+          entry.target && entry.before != null && entry.after != null ? `${entry.before} → ${entry.after}` : "",
+          entry.type === "effect.applied" && entry.duration?.kind === "turn" ? "Until turn end" : entry.reason].filter(Boolean).join(" · ") };
+    }
+    case "resource.changed":
+      return { icon: "priority", title: `${actor} · ${entry.resourceLabel}`, detail: `${entry.before} ${entry.amount >= 0 ? '+' : '−'} ${Math.abs(entry.amount)} = ${entry.after}` };
+    case "priority.retained":
+      return { icon: "priority", title: `${actor} can act again`, detail: "The other player may respond after the next pass." };
+    case "card.peeked":
+      return { icon: "inspect", title: `${abilityName(entry, 'Private inspection')} · ${actor} inspected a card`, detail: entry.card ? `${logCardName(entry.card)}${entry.deckPosition ? ` · deck position ${entry.deckPosition}` : ''} · only visible to you` : "Card identity is private" };
+    case "card.buffApplied":
+      return { icon: "priority", title: `${abilityName(entry)} · ${actor} gave a card ${entry.amount >= 0 ? '+' : '−'}${Math.abs(entry.amount)}`, detail: "Attack/block value · until turn end" };
+    case "acceleration.gained":
+    case "acceleration.spent":
+      return { icon: "priority", title: `${abilityName(entry, 'Acceleration')} · ${actor} ${entry.type.endsWith('spent') ? 'spent' : 'gained'} ${entry.amount ?? 1} acceleration`, detail: "" };
+    case "lanes.swapped":
+      return { icon: "placement", title: `${abilityName(entry)} · ${actor} moved lane cards`, detail: `Lane ${Number(entry.laneA) + 1} ↔ Lane ${Number(entry.laneB) + 1}` };
+    case "laneCard.swappedWithHand":
+      return { icon: "placement", title: `${abilityName(entry)} · ${actor} exchanged a hand and lane card`, detail: `Lane ${Number(entry.laneIndex) + 1}` };
+    case "choice.committed":
+      return { icon: "priority", title: `${abilityName(entry)} · ${actor} chose ${entry.choice || 'an effect'}`, detail: "Choice committed" };
+    case "guest.marked":
+      return { icon: "priority", title: `${abilityName(entry, 'Guest ability')} · ${entry.target?.name || "Card"} became a Guest`, detail: "Remains in discard until an invitation consumes it" };
+    case "jali.revenantCreated":
+      return { icon: "priority", title: `${abilityName(entry, 'Jali')} · ${actor} created a Revenant`, detail: `${entry.revenants} Revenants` };
+    case "jali.formationRevealed":
+      return { icon: "priority", title: `Basho · ${actor} revealed their formation`, detail: "All three lane cards are public" };
+    case "gracus.minotaurCreated":
+      return { icon: "priority", title: `Epicura · ${actor} created a Minotaur ${entry.role}`, detail: "Value 4 · combat remains open for response" };
+    case "indela.omenRevealed":
+      return { icon: "priority", title: `${actor} revealed ${entry.parity} omen ${entry.value}`, detail: `${(entry.sources || []).join(' + ')} · ${entry.parity === 'odd' ? 'own costs −' : 'opponent costs +'}${entry.triggers} this turn` };
+    case "ability.used":
+    case "ability.activated":
+      return { icon: "priority", title: `${actor} activated ${abilityName(entry)}`, detail: "" };
     case "payment.discarded": {
       const overpayment = total != null && required != null ? Math.max(0, total - required) : null;
       return {
@@ -137,13 +211,13 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
     case "cards.drawn":
       return {
         icon: "placement",
-        title: `${actor} drew ${cardCount == null ? "cards (count not recorded)" : countLabel(cardCount, "card")}`,
+        title: `${entry.source ? `${abilityName(entry)} · ` : ''}${actor} drew ${cardCount == null ? "cards (count not recorded)" : countLabel(cardCount, "card")}`,
         detail: cardCount == null ? "" : `Hand +${cardCount}`
       };
     case "card.placedFacedown":
       return {
         icon: "placement",
-        title: `${actor} placed a face-down card`,
+        title: `${entry.source ? `${abilityName(entry)} · ` : ''}${actor} placed a face-down card`,
         detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}`
       };
     case "priority.granted":
@@ -188,4 +262,4 @@ function matchLogSequence(entry, fallbackIndex = 0) {
   return numeric(entry?.sequence) ?? fallbackIndex + 1;
 }
 
-module.exports = { formatMatchLogEntry, authoritativeMatchHistory, matchLogSequence };
+module.exports = { formatMatchLogEntry, authoritativeMatchHistory, matchLogSequence, isAbilityLogEntry, abilityMatchHistory };

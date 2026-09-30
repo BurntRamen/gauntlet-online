@@ -13,7 +13,9 @@ const budgets = {
   // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
   // Native, theme-aware board inscriptions replace the screen-space overlay.
   // Readable card rules, campaign applicability, and blocker eligibility previews.
-  totalJavaScriptGzip: 711 * KIB
+  // Source-by-source effect receipts and persistent inspection/history.
+  // Keep the initial-load and largest-chunk ceilings unchanged.
+  totalJavaScriptGzip: 725 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

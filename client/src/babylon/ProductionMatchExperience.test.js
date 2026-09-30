@@ -110,6 +110,53 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("last ability survives routine actions and opens searchable ability history with calculations retained", async () => {
+  const effect = { id: 'watane', sequence: 1, revision: 2, turn: 2, type: 'effect.applied', player: 1,
+    source: { name: 'Watane' }, target: { name: '5♥' }, amount: 2, before: 5, after: 7,
+    contexts: ['attack', 'block'], duration: { kind: 'turn' } };
+  render(<ProductionMatchExperience adapter={adapterFor({ snapshot: {
+    players: { 1: { name: 'You' } }, effectHistory: [effect,
+      { id: 'ready', sequence: 2, revision: 2, type: 'effect.readied', source: 'Katana', label: 'Printed value ≤8 cards may receive +2' }],
+    publicCombatLog: [{ id: 'payment', sequence: 2, type: 'payment.discarded', total: 5, required: 5 }],
+    actionHistory: [{ id: 'pass', sequence: 3, type: 'priority.passed', player: 2 }]
+  } })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  const recall = await screen.findByRole('button', { name: 'Recall last ability' });
+  expect(recall).toHaveTextContent('Watane applied · 5♥');
+  expect(recall).toHaveTextContent('5 → 7');
+  fireEvent.click(recall);
+  const log = screen.getByRole('dialog', { name: 'Match log' });
+  expect(within(log).getByRole('region', { name: 'Ability match log' })).toHaveTextContent('Watane');
+  const search = within(log).getByRole('searchbox', { name: 'Find an ability or card' });
+  fireEvent.change(search, { target: { value: 'focus' } });
+  expect(log).toHaveTextContent('No matching ability events.');
+  fireEvent.change(search, { target: { value: 'watane' } });
+  expect(log).toHaveTextContent('Until turn end');
+  fireEvent.click(within(log).getByRole('button', { name: 'All actions' }));
+  expect(log).toHaveTextContent('Latest calculation details');
+  expect(log).toHaveTextContent('5/5');
+});
+
+test("grouped ability animations cannot mix one source with another source's description", async () => {
+  const expired = { id: 'expire-watane', sequence: 4, revision: 3, turn: 2, player: 1,
+    type: 'effect.expired', source: { name: 'Watane' }, target: { name: '5♥' },
+    amount: -2, before: 7, after: 5, reason: 'Turn ended', contexts: ['attack', 'block'] };
+  const readiness = { id: 'katana-ready-ended', sequence: 5, revision: 3, turn: 2, player: 1,
+    type: 'effect.expired', source: { name: 'Katana' }, label: 'Printed value ≤8 cards may receive +2' };
+  render(<ProductionMatchExperience adapter={adapterFor({
+    viewModel: { ...createViewModel(), events: [expired, readiness] }
+  })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Recall last ability' }));
+  const log = screen.getByRole('dialog', { name: 'Match log' });
+  fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Watane' } });
+  expect(log).toHaveTextContent('Watane expired · 5♥');
+  expect(log).toHaveTextContent('7 → 5');
+  expect(log).not.toHaveTextContent('Printed value ≤8');
+  fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Katana' } });
+  expect(log).toHaveTextContent('Katana no longer available');
+  expect(log).toHaveTextContent('Printed value ≤8');
+  expect(log).not.toHaveTextContent('7 → 5');
+});
+
 test("phone rail retains selected identities through rotation and does not expose privacy, spectator or replay hands", async () => {
   const originalWidth = window.innerWidth;
   const originalHeight = window.innerHeight;
@@ -125,14 +172,14 @@ test("phone rail retains selected identities through rotation and does not expos
   size(390, 844);
   const mounted = render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false }} />);
   try {
-    expect(await screen.findByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     size(844, 390);
     expect(screen.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "rail");
-    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     size(1200, 800);
     expect(screen.queryByTestId("phone-hand-rail")).not.toBeInTheDocument();
     size(390, 844);
-    expect(screen.getByRole("button", { name: "8♥, value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "8♥, printed value 8, selected attacker" })).toHaveAttribute("aria-pressed", "true");
     for (const overrides of [
       { privacy: { required: true, player: 1 } },
       { viewModel: { ...viewModel, perspective: { player: 1, spectator: true } } },
@@ -1212,7 +1259,7 @@ test.each([
 
   const preview = await screen.findByRole("complementary", { name: "Heat-Sink Matrix preview" });
   expect(preview).toHaveTextContent("Selected for blocker");
-  expect(preview).toHaveTextContent("4 ♦ · Value 4");
+  expect(preview).toHaveTextContent("4 ♦ · Printed 4 · Attack/block 4");
   expect(preview).toHaveTextContent(raw.rulesText);
   expect(preview).toHaveTextContent("Ability applies in campaign");
   expect(within(preview).getByRole("status")).toHaveTextContent(status);

@@ -1,0 +1,207 @@
+{
+  "contract": "eggs.execution-packet@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "ability-clarity-release-20260930-execution",
+  "createdAt": "2026-09-30T06:31:49.964Z",
+  "expiresAt": "2026-09-30T14:31:49.968Z",
+  "project": {
+    "id": "gauntlet",
+    "manifestVersion": "1.1.0",
+    "manifestSource": "repo-local",
+    "mode": "repository-backed"
+  },
+  "task": {
+    "id": "ability-clarity-release-20260930",
+    "requestSummary": "Polish player-facing ability messages and release the previously requested ability visibility and response-window fixes to existing Gauntlet production. Preserve calculation history, card labels, and latest main features.",
+    "contractRequired": true,
+    "contractResolved": true,
+    "unresolvedComments": []
+  },
+  "authority": {
+    "account": "timetwisterbrand@gmail.com",
+    "resolutionPacketId": "ability-clarity-release-20260930-authority",
+    "mode": "live",
+    "complete": true,
+    "current": true,
+    "conflictFree": true,
+    "writebackDisabled": true
+  },
+  "classification": {
+    "modality": "code",
+    "identityBearing": false,
+    "visualAuthorityMaterial": false,
+    "visualSkillRequired": false
+  },
+  "repositoryState": {
+    "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
+    "branch": "codex/ability-visibility",
+    "base": "4988a04a8bcf8fe48a1a2930befdca422e6edfe2; integrated by merge 18b8339",
+    "canonicalBranch": "main",
+    "worktreeCount": 9,
+    "overlappingDirtyPaths": [],
+    "unrelatedDirtyPaths": [],
+    "matchesManifest": true
+  },
+  "workspaceState": {
+    "strategy": "dedicated-worktree",
+    "bindingResolved": true,
+    "policySatisfied": true
+  },
+  "skills": [
+    "eggs-project-preflight@1.0.0",
+    "eggs-safe-project-execution@1.0.0",
+    "eggs-review-handoff@1.0.0"
+  ],
+  "permissions": [
+    {
+      "action": "codeEdit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "createBranch",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "commit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "push",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "merge",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "deploy",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "releaseApproval",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "publication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "productionDatabase",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "driveWriteback",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "canonApproval",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "manufacturing",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "spending",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "externalCommunication",
+      "manifest": "task-contract-required",
+      "taskContract": "denied",
+      "effective": "denied"
+    }
+  ],
+  "commands": [
+    {
+      "id": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "asset-report",
+      "argv": [
+        "npm",
+        "run",
+        "report:match-assets",
+        "--",
+        "--strict"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-entry",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-usability",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:usability"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-performance",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:performance"
+      ],
+      "cwd": ".",
+      "required": true
+    }
+  ],
+  "preview": {
+    "required": true,
+    "routes": [
+      "/",
+      "/ability-preview"
+    ],
+    "readinessChecks": [
+      "http://127.0.0.1:3210/ability-preview; concise named activation, target, stacked values, expiration and searchable match log. Production preview flag must be off."
+    ]
+  },
+  "blockers": [],
+  "determination": "ready"
+}

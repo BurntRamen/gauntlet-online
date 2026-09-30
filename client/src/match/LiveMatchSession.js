@@ -85,7 +85,7 @@ export class LiveMatchSession {
           reject(new Error(result?.rejection?.message || "The latest match snapshot is unavailable."));
           return;
         }
-        this.update({ game: result.snapshot, resyncing: false });
+        this.update({ game: result.snapshot, commandResult: result.commandResult || null, resyncing: false });
         resolve(result);
       });
     });

@@ -2,9 +2,9 @@ import { BOARD_LAYOUT_PROFILES, getBoardLayoutProfile } from "./boardStage";
 import { getTableCameraProjection } from "./matchLayout";
 
 export function factionAbilityRole(id = "") {
-  if (/^(polea-|focus-|gracus:epicura:|jali:watane:|mekan:encore:)/.test(id)) return "commander";
-  if (/^(lafayette-|meerus-|hera-|jali:basho$|mekan:(monti:|look$|keep$|bottom$))/.test(id)) return "general";
-  if (/^(jali:katana:|mekan:(remember:|invite:|cancel-invite$))/.test(id)) return "city";
+  if (/^(polea-|focus-|gracus:epicura(?=:|$)|jali:watane(?=:|$)|mekan:encore(?=:|$))/.test(id)) return "commander";
+  if (/^(lafayette-|meerus-|hera-|jali:basho$|mekan:(monti(?=:|$)|look$|keep$|bottom$))/.test(id)) return "general";
+  if (/^(jali:katana(?=:|$)|mekan:(remember(?=:|$)|invite(?=:|$)|cancel-invite$))/.test(id)) return "city";
   return null;
 }
 

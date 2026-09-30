@@ -372,6 +372,21 @@
   gap: 3px;
 }
 
+.production-context-panel.has-ability-preview > .ability-commit-preview {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 100%;
+  max-height: min(260px, 38vh);
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid #85bcdc;
+  border-radius: 8px;
+  background: #0c1c29;
+  color: #edf6fc;
+}
+
 /* Selection changes the controls inside this fixed rail, never the table size. */
 .production-context-panel.has-payment .production-context-kicker {
   display: none;
@@ -917,6 +932,17 @@
 }
 
 .production-card-and-log { display: contents; }
+.ability-commit-preview { border-left: 3px solid #83c7f5; padding: 4px 8px; font-size: 12px; line-height: 1.45; }
+.ability-commit-preview p { margin: 4px 0; }
+.ability-value-equation { font-size: 18px; font-weight: 700; color: #d4ecff; }
+.ability-state-panel { grid-column: 1 / -1; color: #dbe7ef; }
+.ability-state-panel h3, .ability-state-panel h4 { margin: 4px 0 8px; }
+.ability-state-panel p { font-size: 13px; line-height: 1.5; }
+.ability-state-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.ability-state-columns article { display: grid; gap: 5px; margin: 8px 0; padding: 8px; border: 1px solid #496477; border-radius: 6px; }
+.ability-state-columns small { display: block; color: #becfdb; font-size: 12px; line-height: 1.45; }
+.ability-state-columns button { text-align: left; color: #c1e8ff; border: 0; background: transparent; padding: 4px 0; cursor: pointer; text-decoration: underline; }
+@media (max-width: 700px) { .ability-state-columns { grid-template-columns: 1fr; } }
 
 /* Campaign dialogue owns the left rail. Recent plays and card previews share
    the right rail, so neither can obscure the other or resize the table. */
@@ -1030,6 +1056,52 @@
   color: #e0e5e9;
   font-size: 12px;
   line-height: 1.25;
+}
+
+.production-match-ledger .production-ability-recall {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(181, 137, 79, 0.4);
+  border-radius: 0;
+  background: rgba(94, 65, 27, 0.3);
+  text-align: left;
+}
+
+.production-ability-recall > span {
+  color: #dbc79f;
+  font-size: 10px;
+}
+
+.production-ability-recall > div { display: grid; gap: 3px; }
+.production-match-ledger .production-ability-recall strong,
+.production-match-ledger .production-ability-recall small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.production-log-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.production-log-filters button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #7893aa;
+  border-radius: 6px;
+  background: #101d2b;
+  color: #eef4fa;
+  font: inherit;
+  cursor: pointer;
+}
+.production-log-filters button[aria-pressed="true"] { outline: 2px solid #dbc79f; }
+.production-ability-search { display: grid; gap: 6px; margin: 12px 0; }
+.production-ability-search input {
+  padding: 10px;
+  border: 1px solid #7893aa;
+  border-radius: 6px;
+  background: #101d2b;
+  color: #eef4fa;
+  font: inherit;
 }
 
 .production-match-ledger small {

@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "ability-clarity-release-20260930-authority",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-09-30T06:31:49.964Z",
+  "expiresAt": "2026-09-30T14:31:49.968Z",
+  "resolver": "Codex; connected Google Drive profile verified",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://drive.google.com/file/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/view",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "Live fetch: 00-00 Creative OS Governance Directive — Operational; modified 2026-09-21T18:12:16.293Z",
+      "resolvedAt": "2026-09-30T06:31:49.964Z",
+      "constraints": [
+        {
+          "id": "governance-scope",
+          "statement": "Follow existing explicit user authorization for this scoped code release; do not promote canon or broaden operational permissions.",
+          "scope": "Ability clarity and response-window release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://drive.google.com/file/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/view",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "Live fetch: 00-00 Master System Index; modified 2026-09-17T13:16:05.502Z",
+      "resolvedAt": "2026-09-30T06:31:49.964Z",
+      "constraints": [
+        {
+          "id": "master-index-scope",
+          "statement": "Use the named Gauntlet rulebook, dossier and card registry as the exact product authority chain.",
+          "scope": "Ability clarity and response-window release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://drive.google.com/file/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/view",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet — Project Dossier & Generation Contract — Operational v1; modified 2026-09-22T03:31:04.442Z",
+      "resolvedAt": "2026-09-30T06:31:49.964Z",
+      "constraints": [
+        {
+          "id": "project-dossier-scope",
+          "statement": "Preserve basic 1v1 rules and competitive clarity; change explanatory interface text and technical behavior only.",
+          "scope": "Ability clarity and response-window release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://drive.google.com/file/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/view",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet Rules — Operational v1; modified 2026-08-19T20:05:18.713Z",
+      "resolvedAt": "2026-09-30T06:31:49.964Z",
+      "constraints": [
+        {
+          "id": "rulebook-scope",
+          "statement": "Any action breaks consecutive passes. Preserve the opponent's permitted ability opportunity before blocking and damage only after consecutive passes.",
+          "scope": "Ability clarity and response-window release"
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://drive.google.com/file/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/view",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Live fetch: Gauntlet Card Registry — Operational v1; modified 2026-08-19T20:17:38.785Z; controlling sheet 0 only",
+      "resolvedAt": "2026-09-30T06:31:49.964Z",
+      "constraints": [
+        {
+          "id": "asset-registry-scope",
+          "statement": "Preserve controlling sheet 0 card names and text. Use existing ability names in explanations; do not adopt divergent sibling tabs.",
+          "scope": "Ability clarity and response-window release"
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}

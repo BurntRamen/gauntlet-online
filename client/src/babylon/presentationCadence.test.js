@@ -11,6 +11,15 @@ import {
 } from "./presentationCadence";
 
 describe("tiered presentation cadence", () => {
+  test("new effect receipts retain their explanations with reduced motion", () => {
+    const events = [
+      { id: "buff", type: "effect.applied", source: { name: "Watane" }, amount: 2, before: 5, after: 7 },
+      { id: "expired", type: "effect.expired", source: { name: "Katana" }, amount: -2, before: 7, after: 5 }
+    ];
+    const beats = projectPresentationBeats(events);
+    expect(beats.flatMap(b => b.events)).toEqual(events);
+    for (const beat of beats) expect(resolvePresentationBeatTiming(beat, { reducedMotion: true }).durationMs).toBeGreaterThan(0);
+  });
   test("keeps tiers, phases, and motion profiles in one monotonic contract", () => {
     expect(Object.values(CADENCE_TIERS)).toEqual([
       "rest",

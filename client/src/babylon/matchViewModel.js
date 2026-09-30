@@ -5,6 +5,7 @@ import {
 } from "../cardArt";
 
 const LANE_INDEXES = [0, 1, 2];
+const { valueBreakdown, pendingEffects } = require("@gauntlet/duel-rules");
 
 function numericPlayerKeys(players) {
   return Object.keys(players || {})
@@ -43,7 +44,7 @@ function cardLabel(card) {
 }
 
 function normalizeCard(card, { visible = true, factionId = null, id = "hidden" } = {}) {
-  if (!visible || !card) {
+  if (!visible || !card || card.hidden) {
     return {
       id,
       visible: false,
@@ -66,6 +67,8 @@ function normalizeCard(card, { visible = true, factionId = null, id = "hidden" }
     rank: cardRank(card),
     suit: cardSuit(card),
     value: cardValue(card),
+    printedValue: cardValue(card),
+    valueBreakdown: valueBreakdown(card),
     artPath: getPlayingCardArtPath(card, resolvedFactionId),
     factionId: resolvedFactionId,
     expectsFaceArt: expectsPlayingCardArt(card),
@@ -137,6 +140,10 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
     deckCount: Number(source.deckCount ?? 0),
     discardCount: Number(source.discardCount ?? source.discard?.length ?? 0),
     revenants: Number(source.revenants || 0),
+    accelerationCounters: Number(source.accelerationCounters || 0),
+    progress: isLocal ? { attacks: Number(source.turnData?.attacksDeclaredThisTurn || 0), blocks: Number(source.turnData?.blocksDeclaredThisTurn || 0), previousValue: source.turnData?.previousPlayedValue, previousSuit: source.turnData?.previousAttackSuit } : null,
+    pendingEffects: isLocal ? pendingEffects(source) : [],
+    guests: (source.discard || []).filter(card => card.mekanGuest).map(card => ({ id: card.id, label: card.name || cardLabel(card), invited: source.turnData?.mekanInvitation === card.id })),
     connected: source.connected !== false,
     profile: source.profile || null,
     isLocal,
@@ -170,7 +177,7 @@ function normalizeAttack(game, attack, laneIndex, owner) {
     owner: attackOwner,
     laneIndex,
     targetPlayer: attack.targetPlayer ?? null,
-    card: normalizeCard(attack.card, { factionId: attackFactionId, id: `attack-${laneIndex}` }),
+    card: { ...normalizeCard(attack.card, { factionId: attackFactionId, id: `attack-${laneIndex}` }), valueBreakdown: valueBreakdown(attack.card, attack.effectiveValue, attack.valueNotes || attack.notes) },
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
     payment: normalizePayment(attack.payment, attackOwner, attackFactionId),
@@ -183,11 +190,12 @@ function normalizeAttack(game, attack, laneIndex, owner) {
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
+      notes: block.valueNotes || block.notes || [],
       payment: normalizePayment(block.payment, block.player ?? null, factionForPlayer(game, block.player)),
-      card: normalizeCard(block.card, {
+      card: { ...normalizeCard(block.card, {
         factionId: block.card?.factionId || factionForPlayer(game, block.player),
         id: `${attack.id}-block-${index}`
-      })
+      }), valueBreakdown: valueBreakdown(block.card, block.effectiveValue, block.valueNotes || block.notes) }
     }))
   };
 }
@@ -199,7 +207,7 @@ function normalizeHandAttack(game, attack) {
     id: attack.id,
     owner: attack.player ?? null,
     targetPlayer: attack.targetPlayer ?? null,
-    card: normalizeCard(attack.card, { factionId: attackFactionId, id: `hand-attack-${attack.id}` }),
+    card: { ...normalizeCard(attack.card, { factionId: attackFactionId, id: `hand-attack-${attack.id}` }), valueBreakdown: valueBreakdown(attack.card, attack.effectiveValue, attack.valueNotes || attack.notes) },
     value: Number(attack.effectiveValue ?? attack.value ?? cardValue(attack.card)),
     notes: Array.isArray(attack.notes) ? attack.notes.slice() : [],
     payment: normalizePayment(attack.payment, attack.player ?? null, attackFactionId),
@@ -212,11 +220,12 @@ function normalizeHandAttack(game, attack) {
       id: block.id || `${attack.id}-block-${index}`,
       owner: block.player ?? null,
       value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
+      notes: block.valueNotes || block.notes || [],
       payment: normalizePayment(block.payment, block.player ?? null, factionForPlayer(game, block.player)),
-      card: normalizeCard(block.card, {
+      card: { ...normalizeCard(block.card, {
         factionId: block.card?.factionId || factionForPlayer(game, block.player),
         id: `${attack.id}-block-${index}`
-      })
+      }), valueBreakdown: valueBreakdown(block.card, block.effectiveValue, block.valueNotes || block.notes) }
     }))
   };
 }
@@ -230,21 +239,21 @@ function normalizeLane(game, laneIndex, bottomPlayer, topPlayer, spectator) {
     id: block.id || `block-${laneIndex}-${index}`,
     owner: block.player ?? null,
     value: Number(block.effectiveValue ?? block.value ?? cardValue(block.card)),
-    card: normalizeCard(block.card, {
+    card: { ...normalizeCard(block.card, {
       factionId: block.card?.factionId || factionForPlayer(game, block.player),
       id: `block-${laneIndex}-${index}`
-    })
+    }), valueBreakdown: valueBreakdown(block.card, block.effectiveValue, block.valueNotes || block.notes) }
   }));
 
   return {
     id: `lane-${laneIndex}`,
     index: laneIndex,
     localCard: normalizeCard(localCard, {
-      visible: !!localCard && !spectator,
+      visible: !!localCard && (!spectator || !!localCard.revealed),
       factionId: localCard?.factionId || factionForPlayer(game, bottomPlayer),
       id: `local-lane-${laneIndex}`
     }),
-    opponentCard: normalizeCard(opponentCard, { visible: false, id: `opponent-lane-${laneIndex}` }),
+    opponentCard: normalizeCard(opponentCard, { visible: !!opponentCard?.revealed, id: `opponent-lane-${laneIndex}` }),
     playerOneCard: normalizeCard(lane.facedown?.[1], { visible: false, id: `p1-lane-${laneIndex}` }),
     playerTwoCard: normalizeCard(lane.facedown?.[2], { visible: false, id: `p2-lane-${laneIndex}` }),
     attack,
@@ -267,6 +276,8 @@ function normalizeSelection(hand, interaction = {}) {
       payment: payments.has(index),
       blocker: selectedBlockers.has(index),
       placement: interaction.selectedPlacementCardIndex === index
+      , ability: interaction.abilityCardId === card.id
+      , paymentBonus: interaction.paymentBonusCardId === card.id
     },
     unavailable: !!interaction.unavailableHandIndexes?.includes(index),
     interactionEnabled: !!interaction.handInteractionEnabled
@@ -364,6 +375,9 @@ export function createGauntletMatchViewModel({
       required: Number(interaction.paymentRequired || 0),
       active: !!interaction.paymentActive
     },
+    abilityPreview: interaction.abilityPreview || null,
+    effectHistory: (game.effectHistory || []).slice(),
+    privatePeeks: (game.effectHistory || []).filter(e => e.type === "card.peeked" && e.card && Number(e.viewer) === localPlayer),
     selection: {
       role: interaction.handSelectionRole || "primary",
       attackMode: interaction.attackMode || null,
@@ -384,6 +398,7 @@ export function createGauntletMatchViewModel({
       handInteractionEnabled: !!interaction.handInteractionEnabled,
       legalLanes: Array.from(legalLanes),
       highlightedLanes: Array.from(highlightedLanes),
+      legalLaneTargets: interaction.legalLaneTargets,
       laneUnavailableReasons: (interaction.laneUnavailableReasons || []).slice(),
       abilities: (interaction.abilities || []).map((ability) => ({ ...ability })),
       confirmDisabled: !!confirmDisabled,

@@ -1,5 +1,6 @@
 import {
   authoritativeMatchHistory,
+  abilityMatchHistory,
   formatMatchLogEntry,
   matchLogSequence
 } from "./matchLog";
@@ -113,4 +114,43 @@ test("names combat and pitch cards without exposing internal IDs and preserves r
 test("does not invent modifier sources for historical totals without receipts", () => {
   expect(formatMatchLogEntry({ type: "damage.calculated", attackValue: 14, blockValue: 5, damage: 9 },
     { players: { 2: { faction: { id: "sheen" } } } }).detail).toBe("14 attack − 5 block − 0 prevention = 9 damage");
+});
+
+test("ability recall keeps named sources, automatic calculation notes and expiration after later passes", () => {
+  const applied = { id: 'buff', sequence: 3, type: 'effect.applied', player: 1,
+    source: { name: 'Watane' }, target: { name: '5♥' }, amount: 2, before: 5, after: 7,
+    contexts: ['attack', 'block'], duration: { kind: 'turn' } };
+  const expired = { ...applied, id: 'expired', sequence: 7, type: 'effect.expired',
+    amount: -2, before: 7, after: 5, reason: 'Turn ended' };
+  const automatic = { id: 'attack', sequence: 4, type: 'attack.declared',
+    calculation: { attack: { card: { rank: '5', suit: '♥' }, baseValue: 5,
+      effectiveValue: 8, notes: ['Kaiser +3'] } } };
+  const history = abilityMatchHistory({ effectHistory: [applied, expired], publicCombatLog: [automatic] },
+    [applied, { id: 'pass', sequence: 8, type: 'priority.passed', player: 1 }]);
+  expect(history.map(e => e.id)).toEqual(['buff', 'attack', 'expired']);
+  expect(formatMatchLogEntry(applied, { players })).toMatchObject({
+    title: 'Watane applied · 5♥', detail: 'Ada · +2 attack/block · 5 → 7 · Until turn end'
+  });
+  expect(formatMatchLogEntry(expired).detail).toContain('7 → 5 · Turn ended');
+  expect(formatMatchLogEntry(automatic).detail).toContain('Kaiser +3');
+});
+
+test("ability recall has readable labels without internal IDs or private results", () => {
+  for (const entry of [
+    { type: 'card.buffApplied', source: 'Focus', amount: 1 },
+    { type: 'lanes.swapped', source: 'Polea', laneA: 0, laneB: 1 },
+    { type: 'laneCard.swappedWithHand', source: 'Lafayette', laneIndex: 0 },
+    { type: 'choice.committed', source: 'Rally the Crew', choice: 'attack' },
+    { type: 'acceleration.gained', source: 'Focus', amount: 1 },
+    { type: 'ability.used', abilityId: 'jali:watane:secret-card' }
+  ]) {
+    const formatted = formatMatchLogEntry(entry);
+    expect(formatted.title).not.toBe('Match state updated.');
+    expect(formatted.title).not.toContain('secret-card');
+    expect(abilityMatchHistory({ effectHistory: [entry] })).toHaveLength(1);
+  }
+  expect(abilityMatchHistory({ effectHistory: [
+    { type: 'card.peeked', private: true, player: 2 },
+    { type: 'effect.readied', private: true, player: 2 }
+  ] })).toHaveLength(0);
 });

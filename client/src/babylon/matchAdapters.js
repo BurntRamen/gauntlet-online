@@ -17,12 +17,19 @@ const {
   createMatch,
   currentPlacementPlayer,
   getLegalActions,
+  previewPayment,
+  valueBreakdown,
   projectForPerspective
 } = require("@gauntlet/duel-rules");
 
 function uniqueClientId() {
   if (typeof window !== "undefined" && window.crypto?.randomUUID) return window.crypto.randomUUID();
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function displayCardName(card) {
+  if (!card) return "selected payment";
+  return card.name || `${card.rank || card.value}${({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" })[card.suit] || card.suit || ""}`;
 }
 
 export const EMPTY_MATCH_SELECTION = Object.freeze({
@@ -375,10 +382,13 @@ export class LocalDuelAdapter {
       ? cardOrId
       : this.game.players[this.perspective]?.hand?.find((entry) => entry.id === cardOrId);
     if (!card || card.hidden) return null;
+    const attacks = [...(this.game.handAttacks || []), ...this.game.lanes.map(l => l.attack)].filter(Boolean);
+    const combat = attacks.flatMap(a => [a, ...(a.block || [])]).find(entry => entry.card?.id === card.id);
     const inspection = {
       id: card.id,
       label: card.name || `${card.rank || ""}${card.suit || ""}`,
       value: cardValue(card),
+      valueBreakdown: valueBreakdown(card, combat?.effectiveValue, combat?.valueNotes || combat?.notes),
       factionId: card.factionId || this.game.players[this.perspective]?.faction?.id || "basic",
       artPath: getPlayingCardArtPath(
         card,
@@ -388,7 +398,7 @@ export class LocalDuelAdapter {
       raw: card
     };
     this.inspection = inspection;
-    this.notice = `${inspection.label} · value ${inspection.value}`;
+    this.notice = `${inspection.label} · ${inspection.valueBreakdown.equation}`;
     this.emit();
     return inspection;
   }
@@ -495,6 +505,56 @@ export class LocalDuelAdapter {
     };
   }
 
+  commandForSelection() {
+    const s = this.selection;
+    const common = { player: this.controller, ...this.constructedCommandFields(), paymentCardIds: s.paymentCardIds, useHeraBonus: s.useHeraBonus, useMeerusFreeAttack: s.useMeerusFreeAttack };
+    if (s.kind === "ability") {
+      const [laneA, laneB] = s.abilityLaneIndexes || [];
+      return { ...common, type: "useFactionAbility", abilityId: s.abilityId, cardId: s.abilityCardId,
+        laneIndex: laneA, laneA, laneB, attackId: s.abilityAttackId, targetType: s.abilityTargetType || "laneCard",
+        targetPlayerId: s.abilityTargetOwner === "opponent" ? (this.controller === 1 ? 2 : 1) : this.controller };
+    }
+    if (s.kind === "handAttack") return { ...common, type: "declareHandAttack", cardId: s.attackerCardId };
+    if (s.kind === "laneAttack") return { ...common, type: "declareLaneAttack", laneIndex: s.laneIndex };
+    if (s.kind === "handBlock") return { ...common, type: "declareHandBlock", blockerCardIds: s.blockerCardIds, attackId: activeAttack(this.game)?.attack.id };
+    if (s.kind === "laneBlock") return { ...common, type: "declareLaneBlock", laneIndex: s.laneIndex };
+    if (s.kind === "placement") return { ...common, type: "placeFacedown", cardId: s.placementCardId, laneIndex: s.laneIndex };
+    return null;
+  }
+
+  abilityPreview() {
+    const command = this.commandForSelection();
+    if (!command || !this.connected || this.privacyRequired || this.controller !== this.perspective) return null;
+    const key = JSON.stringify([this.game.matchId, this.game.revision, this.perspective, command]);
+    if (this.previewCache?.key === key) return this.previewCache.value;
+    const action = this.currentLegalAction();
+    const response = command.abilityId?.startsWith("gracus:") || command.type.includes("Attack")
+      ? "Your opponent acts next. They can still respond."
+      : command.type.includes("Block") ? "Your opponent can act next."
+        : command.type === "placeFacedown" ? "Confirm to place this card and continue."
+          : "You can act again. Your opponent can respond after you pass.";
+    let value;
+    if (/peek|:look$/.test(command.abilityId || "") || command.useDeckhandDiverPeek) {
+      const target = command.laneIndex != null ? `${Number(command.targetPlayerId) === this.perspective ? "Your" : "Opponent"} lane ${command.laneIndex + 1}` : "Chosen inspection source";
+      value = { title: "Confirm private inspection", lines: [action?.label || "Inspect the chosen card privately", `Target: ${target}`, "The card becomes visible only to you after confirmation."], response };
+    } else {
+      const result = applyCommand(this.projectGameForView(), command);
+      const lines = [];
+      if (this.selection.forumLedgerPaymentCardId) lines.push(`Stockbroker’s Gloves: ${displayCardName(this.game.players[this.controller].hand.find(c => c.id === this.selection.forumLedgerPaymentCardId))} contributes +1 payment.`);
+      if (result.accepted) for (const e of result.animationEvents || []) {
+        if (e.type === "effect.applied") lines.push(`${e.target?.name}: ${e.before} ${e.amount >= 0 ? '+' : '−'} ${e.source.name} ${Math.abs(e.amount)} = ${e.after} (${e.contexts.join('/')}; until turn end)`);
+        if (e.type === "resource.changed") lines.push(`${e.resourceLabel}: ${e.before} → ${e.after}`);
+        if (e.type === "attack.declared") lines.push(`Attack value ${e.effectiveValue}. Damage depends on the opponent’s response.`);
+        if (e.type === "block.declared") lines.push(`Block value ${e.blockValue}. Combat is not resolved yet.`);
+        if (e.type === "jali.formationRevealed") lines.push("All three lane cards become public to your opponent and spectators.");
+        if (e.type === "payment.discarded") lines.push(`Payment contribution ${e.total}; required cost ${e.required}.`);
+      }
+      value = { title: "Confirm to apply", lines: lines.length ? lines : [action?.label || "Complete the selection"],
+        error: result.accepted ? null : result.rejectionReason, response };
+    }
+    this.previewCache = { key, value }; return value;
+  }
+
   selectionValues() {
     const hand = this.game.players[this.perspective]?.hand || [];
     const pending = activeAttack(this.game);
@@ -517,13 +577,16 @@ export class LocalDuelAdapter {
       && this.selection.paymentCardIds.includes(this.selection.forumLedgerPaymentCardId)
     ) ? 1 : 0;
     const jewelBonus = this.selection.useJewelBankBonus ? 2 : 0;
+    const authoritative = previewPayment(this.game, this.controller, this.commandForSelection() || {});
     return {
-      total: sumCards(hand, this.selection.paymentCardIds) + hera.bonus + forumBonus + jewelBonus,
-      required: this.selection.kind === "handBlock"
+      total: authoritative?.total ?? (sumCards(hand, this.selection.paymentCardIds) + hera.bonus + forumBonus + jewelBonus),
+      required: authoritative?.required ?? (this.selection.kind === "handBlock"
         ? blockers.reduce((sum, card) => sum + cardValue(card), 0)
         : this.selection.kind === "laneBlock"
           ? cardValue(laneBlocker)
-          : meerus.active ? 0 : Number(legalAction?.requiredPayment ?? cardValue(attackCard)),
+          : meerus.active ? 0 : Number(legalAction?.requiredPayment ?? cardValue(attackCard))),
+      error: authoritative?.error,
+      notes: authoritative?.notes || [],
       hera,
       meerus,
       forumBonus,
@@ -536,6 +599,7 @@ export class LocalDuelAdapter {
     if (this.selection.kind === "ability") {
       const lanes = this.selection.abilityLaneIndexes || [];
       const abilityId = this.selection.abilityId;
+      if (/^(mekan|jali|gracus):/.test(abilityId)) return { label: "Confirm Activation", disabled: !this.currentLegalAction() };
       if (abilityId === "polea-place" || abilityId === "lafayette-swap") {
         return {
           label: abilityId === "polea-place" ? "Confirm Placement" : "Confirm Swap",
@@ -558,15 +622,15 @@ export class LocalDuelAdapter {
       };
     }
     if (this.selection.kind === "handAttack" || this.selection.kind === "laneAttack") {
-      return { label: "Confirm Attack", disabled: values.total < values.required };
+      return { label: "Confirm Attack", disabled: !!values.error || values.total < values.required };
     }
     if (this.selection.kind === "handBlock") {
       if (this.selection.blockerCardIds.length !== 1) return { label: "Choose Blocker", disabled: true };
       if (this.selection.selectionRole === "blocker") return { label: "Choose Payment", disabled: false };
-      return { label: "Confirm Block", disabled: values.total < values.required };
+      return { label: "Confirm Block", disabled: !!values.error || values.total < values.required };
     }
     if (this.selection.kind === "laneBlock") {
-      return { label: "Confirm Block", disabled: values.total < values.required };
+      return { label: "Confirm Block", disabled: !!values.error || values.total < values.required };
     }
     if (this.selection.kind === "placement") {
       return { label: "Place Facedown", disabled: !this.selection.placementCardId };
@@ -576,6 +640,7 @@ export class LocalDuelAdapter {
 
   confirmationReason() {
     const values = this.selectionValues();
+    if (values.error) return values.error;
     if (this.selection.kind === "handAttack" || this.selection.kind === "laneAttack") {
       const missing = Math.max(0, values.required - values.total);
       return missing > 0 ? `Select ${missing} more payment value.` : "";
@@ -605,7 +670,7 @@ export class LocalDuelAdapter {
   projectGameForView() {
     const spectator = this.role === "spectator" || !this.perspective;
     return spectator
-      ? clone(this.game)
+      ? projectForPerspective(this.game, null)
       : projectForPerspective(this.game, this.perspective);
   }
 
@@ -633,6 +698,7 @@ export class LocalDuelAdapter {
         : `Placement ${opportunity} of 6 · Player ${actor}: choose a hand card for Lane ${laneIndex + 1}, or skip.`;
     }
     if (this.selection.kind === "ability") {
+      if (/^(mekan|jali|gracus):/.test(this.selection.abilityId)) return `${this.currentLegalAction()?.label || "Ability selected"}. Review the target and consequence, then confirm activation.`;
       const lanes = this.selection.abilityLaneIndexes || [];
       if (this.selection.abilityId === "polea-place") {
         return this.selection.abilityCardId
@@ -654,13 +720,13 @@ export class LocalDuelAdapter {
           : "Choose a hand card and an occupied lane for Lafayette.";
       }
       if (this.selection.abilityId === "focus-buff") {
-        return "Choose one of your lane cards or your active attacker for Focus +1.";
+        return "Choose one of your lane cards or your active attacker. Review Focus’s value and counter cost before confirming.";
       }
     }
     const heraNote = values.hera.active ? " Hera adds +2 to the matching payment card." : "";
     const meerusNote = values.meerus.active ? " Meerus makes this attack free." : "";
     const constructedNotes = [
-      this.selection.forumLedgerPaymentCardId ? "Forum payment +1" : "",
+      this.selection.forumLedgerPaymentCardId ? `Stockbroker’s Gloves +1 on ${displayCardName(this.game.players[this.controller].hand.find(c => c.id === this.selection.forumLedgerPaymentCardId))}` : "",
       this.selection.useJewelBankBonus ? "Single payment +2" : "",
       this.selection.armWeaponCardIds.length ? `${this.selection.armWeaponCardIds.length} weapon selected` : "",
       this.selection.useSandstormProcessor ? "Sandstorm +2" : "",
@@ -704,6 +770,13 @@ export class LocalDuelAdapter {
   createUpdate() {
     const spectator = this.role === "spectator" || !this.perspective;
     const projected = this.projectGameForView();
+    const privatePeek = (projected.lastEvents || []).find(e => e.type === "card.peeked" && e.card && Number(e.viewer) === this.perspective);
+    if (privatePeek && this.seenPeekId !== privatePeek.id && !this.privacyRequired) {
+      this.seenPeekId = privatePeek.id;
+      const card = privatePeek.card;
+      this.inspection = { id: card.id, label: card.name || `${card.rank}${card.suit}`, value: cardValue(card), valueBreakdown: valueBreakdown(card),
+        description: `Private inspection · only you see this result. ${card.text || ""}`, artPath: getPlayingCardArtPath(card, card.factionId || "basic") };
+    }
     const projectedHand = spectator
       ? []
       : projected.players[this.perspective]?.hand || [];
@@ -737,6 +810,7 @@ export class LocalDuelAdapter {
     } else if (this.selection.kind === "ability") {
       legalLanes = [...new Set(
         actionSelectionEntities(this.currentLegalAction(), "targets")
+          .filter((entity) => entity.laneIndex != null)
           .map((entity) => Number(entity.laneIndex))
           .filter((laneIndex) => Number.isInteger(laneIndex))
       )];
@@ -815,16 +889,11 @@ export class LocalDuelAdapter {
     }
     for (const option of this.currentConstructedOptions()) {
       if (option.id === "forum-ledger-payment") {
-        const selectedPayment = this.selection.paymentCardIds[0] || null;
-        abilities.push({
-          id: "constructed:forum-ledger",
-          label: selectedPayment
-            ? option.label
-            : "Select a payment first",
-          active: !!this.selection.forumLedgerPaymentCardId,
-          available: !!selectedPayment,
-          intent: "Optional: choose one selected payment card to provide +1."
-        });
+        for (const id of this.selection.paymentCardIds) {
+          const card = projectedHand.find(c => c.id === id);
+          abilities.push({ id: `constructed:forum-ledger:${id}`, label: `Stockbroker’s Gloves · ${card?.rank}${card?.suit} pays +1`,
+            active: this.selection.forumLedgerPaymentCardId === id, available: true, intent: "Select this payment recipient; applied only when the attack is confirmed." });
+        }
       } else if (option.id === "jewel-bank-payment") {
         const available = this.selection.paymentCardIds.length === 1;
         abilities.push({
@@ -969,6 +1038,12 @@ export class LocalDuelAdapter {
             }
           : null,
         abilities,
+        abilityPreview: this.abilityPreview(),
+        abilityCardId: this.selection.abilityCardId,
+        paymentBonusCardId: this.selection.forumLedgerPaymentCardId || (values.hera.active ? values.hera.matchingCard?.id : null),
+        legalLaneTargets: this.selection.kind === "ability"
+          ? actionSelectionEntities(this.currentLegalAction(), "targets").filter(e => e.laneIndex != null).map(e => ({ laneIndex: Number(e.laneIndex), owner: Number(e.owner) }))
+          : legalLanes.map(laneIndex => ({ laneIndex, owner: this.controller })),
         handSelectionRole: this.selection.selectionRole,
         selectedAttackCardIndex: attackIndex >= 0 ? attackIndex : null,
         selectedBlockCardIndexes: selectedIndexes(projectedHand, this.selection.blockerCardIds),
@@ -1215,83 +1290,14 @@ export class LocalDuelAdapter {
 
   confirmCurrentAction() {
     if (this.confirmState().disabled) return;
-    const pending = activeAttack(this.game);
-    if (this.selection.kind === "ability") {
-      const [laneA, laneB] = this.selection.abilityLaneIndexes || [];
-      const command = {
-        type: "useFactionAbility",
-        abilityId: this.selection.abilityId,
-        cardId: this.selection.abilityCardId,
-        laneIndex: laneA,
-        laneA,
-        laneB,
-        targetPlayerId: this.selection.abilityTargetOwner === "opponent"
-          ? (this.controller === 1 ? 2 : 1)
-          : this.controller,
-        targets: {
-          laneIndex: laneA,
-          laneA,
-          laneB,
-          cardId: this.selection.abilityCardId,
-          attackId: this.selection.abilityAttackId,
-          targetPlayerId: this.selection.abilityTargetOwner === "opponent"
-            ? (this.controller === 1 ? 2 : 1)
-            : this.controller,
-          targetType: this.selection.abilityTargetType || "laneCard"
-        }
-      };
-      command.attackId = this.selection.abilityAttackId;
-      command.targetType = this.selection.abilityTargetType || "laneCard";
-      Object.assign(command, this.constructedCommandFields());
-      this.dispatch(command);
-    } else if (this.selection.kind === "handAttack") {
-      this.dispatch({
-        type: "declareHandAttack",
-        cardId: this.selection.attackerCardId,
-        attackerCardId: this.selection.attackerCardId,
-        paymentCardIds: this.selection.paymentCardIds,
-        useHeraBonus: this.selection.useHeraBonus,
-        useMeerusFreeAttack: this.selection.useMeerusFreeAttack,
-        ...this.constructedCommandFields()
-      });
-    } else if (this.selection.kind === "laneAttack") {
-      this.dispatch({
-        type: "declareLaneAttack",
-        laneIndex: this.selection.laneIndex,
-        paymentCardIds: this.selection.paymentCardIds,
-        useHeraBonus: this.selection.useHeraBonus,
-        useMeerusFreeAttack: this.selection.useMeerusFreeAttack,
-        ...this.constructedCommandFields()
-      });
-    } else if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
+    if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
       this.selection = { ...this.selection, selectionRole: "payment" };
       this.notice = "Blocker staged. Choose payment cards.";
       this.emit();
-    } else if (this.selection.kind === "handBlock") {
-      this.dispatch({
-        type: "declareHandBlock",
-        attackId: pending?.attack.id,
-        blockerCardIds: this.selection.blockerCardIds,
-        paymentCardIds: this.selection.paymentCardIds,
-        useHeraBonus: this.selection.useHeraBonus,
-        ...this.constructedCommandFields()
-      });
-    } else if (this.selection.kind === "laneBlock") {
-      this.dispatch({
-        type: "declareLaneBlock",
-        laneIndex: this.selection.laneIndex,
-        paymentCardIds: this.selection.paymentCardIds,
-        useHeraBonus: this.selection.useHeraBonus,
-        ...this.constructedCommandFields()
-      });
-    } else if (this.selection.kind === "placement") {
-      this.dispatch({
-        type: "placeFacedown",
-        laneIndex: this.selection.laneIndex,
-        cardId: this.selection.placementCardId,
-        ...this.constructedCommandFields()
-      });
+      return;
     }
+    const command = this.commandForSelection();
+    return command ? this.dispatch(command) : undefined;
   }
 
   passOrDecline() {
@@ -1311,21 +1317,27 @@ export class LocalDuelAdapter {
     if (abilityId.startsWith("mekan:") || abilityId.startsWith("jali:") || abilityId.startsWith("gracus:")) {
       if (this.privacyRequired || this.controller !== this.perspective) return;
       if (!this.legalActions().some((action) => action.abilityId === abilityId)) return;
-      this.dispatch({ type: "useFactionAbility", abilityId, player: this.controller });
+      const cardId = abilityId.split(":").slice(2).join(":");
+      const laneIndex = this.game.lanes.findIndex(lane => lane.facedown[this.controller]?.id === cardId);
+      const isCard = this.game.players[this.controller].hand.some(c => c.id === cardId) || laneIndex >= 0;
+      this.selection = this.selection.abilityId === abilityId ? freshSelection() : freshSelection({ kind: "ability", abilityId,
+        abilityCardId: isCard ? cardId : null, abilityLaneIndexes: laneIndex >= 0 ? [laneIndex] : abilityId === "jali:basho" ? [0, 1, 2] : [] });
+      this.notice = "";
+      this.emit();
       return;
     }
     if (abilityId.startsWith("constructed:")) {
       if (this.privacyRequired || this.controller !== this.perspective) return;
       const options = this.currentConstructedOptions();
       this.notice = "";
-      if (abilityId === "constructed:forum-ledger") {
-        const paymentCardId = this.selection.paymentCardIds[0] || null;
-        if (!paymentCardId) {
-          this.notice = "Select a payment card before applying Stockbroker's Gloves.";
+      if (abilityId.startsWith("constructed:forum-ledger")) {
+        const paymentCardId = abilityId.slice("constructed:forum-ledger:".length);
+        if (!this.selection.paymentCardIds.includes(paymentCardId)) {
+          this.notice = "Choose the payment card that Stockbroker’s Gloves will enhance.";
         } else {
           this.selection = {
             ...this.selection,
-            forumLedgerPaymentCardId: this.selection.forumLedgerPaymentCardId
+            forumLedgerPaymentCardId: this.selection.forumLedgerPaymentCardId === paymentCardId
               ? null
               : paymentCardId
           };
@@ -1609,7 +1621,8 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     connected = this.connected,
     controlState = this.controlState,
     commandSubmissionFrozen = this.commandSubmissionFrozen,
-    resyncing = this.resyncing
+    resyncing = this.resyncing,
+    commandResult = null
   } = {}) {
     const previousMatchId = this.game?.matchId || null;
     const nextMatchId = game?.matchId || null;
@@ -1621,6 +1634,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     const previousRevision = Number(this.game?.revision || 0);
     const nextRevision = Number(game?.revision || 0);
     const revisionChanged = nextRevision !== previousRevision;
+    const selectionInvalidated = revisionChanged && !!this.selection.kind && !this.pendingCommand;
     const disconnectedNow = this.connected && connected === false;
     const reconnectedNow = !this.connected && connected === true;
     const identityChanged = (
@@ -1683,12 +1697,25 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
       } else if (this.pendingCommand && nextRevision > Number(this.pendingCommand.baseRevision || 0)) {
         this.commandStatus = {
           commandId: this.pendingCommand.commandId,
-          state: "superseded",
+          state: "unknown",
           revision: nextRevision
         };
         this.pendingCommand = null;
       }
-      this.notice = "";
+      this.notice = selectionInvalidated ? "The table changed. Your unsubmitted selection was cleared; nothing was spent by that selection. Choose again." : "";
+    }
+    const unresolved = ["unknown", "interrupted"].includes(this.commandStatus?.state);
+    if (unresolved && !matchChanged) {
+      const id = this.commandStatus.commandId;
+      const known = commandResult?.commandId === id ? commandResult : this.commandResults.get(id);
+      if (game?.lastCommandId === id || (known && known.rejection?.code !== "COMMAND_STATUS_UNKNOWN")) {
+        const accepted = game?.lastCommandId === id || known?.accepted;
+        this.commandStatus = { commandId: id, state: accepted ? "presented" : "rejected", revision: nextRevision };
+        this.notice = accepted ? "Your action was accepted. The authoritative table is restored." : "Your action was rejected. Nothing was spent by that action.";
+      } else if (this.connected) {
+        this.notice = "The table is restored, but the last action's outcome is still unknown. Actions stay locked until the server confirms whether anything was spent.";
+        if (reconnectedNow) this.session?.requestResync?.(id).catch(() => {});
+      }
     }
     this.emit();
   }
@@ -1699,6 +1726,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     const inputLocked = (
       !this.connected
       || !!this.pendingCommand
+      || ["unknown", "interrupted"].includes(this.commandStatus?.state)
       || !!this.pendingControl
       || this.role === "spectator"
       || this.commandSubmissionFrozen
@@ -1711,6 +1739,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
       viewModel: {
         ...update.viewModel,
         statusNotice: this.notice || "",
+        abilityPreview: inputLocked ? null : update.viewModel.abilityPreview,
         hand: update.viewModel.hand.map((card) => ({
           ...card,
           interactionEnabled: inputLocked ? false : card.interactionEnabled,
@@ -1726,6 +1755,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
             available: inputLocked ? false : ability.available
           })),
           legalLanes: inputLocked ? [] : update.viewModel.interactions.legalLanes,
+          legalLaneTargets: inputLocked ? [] : update.viewModel.interactions.legalLaneTargets,
           highlightedLanes: inputLocked ? [] : update.viewModel.interactions.highlightedLanes,
           confirmDisabled: inputLocked
             ? true
@@ -1859,7 +1889,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     if (!this.connected) {
       return this.rejectLiveCommand("TRANSPORT_DISCONNECTED", "Reconnect before submitting an action.");
     }
-    if (this.commandSubmissionFrozen || this.resyncing) {
+    if (this.commandSubmissionFrozen || this.resyncing || ["unknown", "interrupted"].includes(this.commandStatus?.state)) {
       return this.rejectLiveCommand("COMMANDS_FROZEN", "Wait for the authoritative match state before submitting an action.");
     }
     if (this.pendingCommand) {
@@ -1909,7 +1939,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
           revision: Number(this.game.revision || 0),
           rejection: {
             code: "COMMAND_STATUS_UNKNOWN",
-            message: `${error?.message || "The command acknowledgement was not received."} The match was resynchronized before another action can be submitted.`
+            message: `${error?.message || "The command acknowledgement was not received."} The action outcome is unknown. Waiting for authoritative synchronization; resources may have changed.`
           }
         };
       }
@@ -1919,12 +1949,16 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     if (this.commandResults.size > 100) {
       this.commandResults.delete(this.commandResults.keys().next().value);
     }
-    if (this.pendingCommand !== envelope) return result;
+    if (this.pendingCommand !== envelope) {
+      if (this.connected && this.commandStatus?.commandId === commandId && ["unknown", "interrupted"].includes(this.commandStatus.state)) this.update({ commandResult: result });
+      return result;
+    }
     this.pendingCommand = null;
     this.selection = freshSelection();
     if (!result?.accepted) {
-      this.commandStatus = { commandId, state: "rejected", revision: Number(result?.revision || this.game.revision || 0) };
-      this.notice = result?.rejection?.message || "The server rejected that action.";
+      const unknown = result?.rejection?.code === "COMMAND_STATUS_UNKNOWN";
+      this.commandStatus = { commandId, state: unknown ? "unknown" : "rejected", revision: Number(result?.revision || this.game.revision || 0) };
+      this.notice = `${result?.rejection?.message || "The server rejected that action."}${unknown ? "" : " Nothing was spent by this rejected action."}`;
     } else {
       const presented = this.game?.lastCommandId === commandId && Number(this.game.revision || 0) >= Number(result.revision || 0);
       this.commandStatus = {

@@ -181,6 +181,8 @@ const DAMAGE_CONSEQUENCE_TYPES = new Set([
   "combat.resolutionCompleted"
 ]);
 const ABILITY_MUTATION_TYPES = new Set([
+  "effect.applied", "effect.expired", "effect.readied", "effect.consumed",
+  "resource.changed", "guest.marked", "ability.used", "jali.revenantCreated", "jali.formationRevealed", "gracus.minotaurCreated", "indela.omenRevealed",
   "ability.activated",
   "acceleration.gained",
   "acceleration.spent",

@@ -1,3 +1,4 @@
+import { laneTargetEnabled, laneTargetSelected } from "./abilityTargets";
 export default function AccessibleMatchControls({
   viewModel,
   commands,
@@ -60,7 +61,7 @@ export default function AccessibleMatchControls({
                   data-card-index={index}
                   disabled={interactionLocked || card.unavailable}
                   aria-pressed={Object.values(card.selected || {}).some(Boolean)}
-                  aria-label={`${card.label}, value ${card.value}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}`}
+                  aria-label={`${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}${card.selected?.ability ? ", selected ability target" : ""}${card.selected?.paymentBonus ? ", selected payment bonus recipient" : ""}`}
                   onClick={() => commands.activateHandCard?.(index)}
                   onContextMenu={(event) => { event.preventDefault(); commands.inspectCard?.(card.raw); }}
                 >
@@ -70,7 +71,7 @@ export default function AccessibleMatchControls({
             </div>
             <div className="babylon-accessible-control-row">
               {viewModel.lanes.flatMap((lane) => {
-                const legal = viewModel.interactions.legalLanes.includes(lane.index);
+                const legal = laneTargetEnabled(viewModel, lane.index, "local");
                 if (viewModel.selection.abilityMode?.abilityId === "polea-peek") {
                   return [
                     lane.hasLocalCard ? (
@@ -79,6 +80,7 @@ export default function AccessibleMatchControls({
                         key={`${lane.id}-local`}
                         data-match-zone="lanes"
                         disabled={interactionLocked || !legal}
+                        aria-pressed={laneTargetSelected(viewModel, lane.index, "local")}
                         onClick={() => commands.activateLane?.(lane.index, "local")}
                       >
                         Your Lane {lane.index + 1}
@@ -89,7 +91,8 @@ export default function AccessibleMatchControls({
                         type="button"
                         key={`${lane.id}-opponent`}
                         data-match-zone="lanes"
-                        disabled={interactionLocked || !legal}
+                        disabled={interactionLocked || !laneTargetEnabled(viewModel, lane.index, "opponent")}
+                        aria-pressed={laneTargetSelected(viewModel, lane.index, "opponent")}
                         onClick={() => commands.activateLane?.(lane.index, "opponent")}
                       >
                         Opponent Lane {lane.index + 1}
@@ -104,6 +107,7 @@ export default function AccessibleMatchControls({
                     data-match-zone="lanes"
                     disabled={interactionLocked || !legal}
                     title={!legal ? viewModel.interactions.laneUnavailableReasons?.[lane.index] || "" : ""}
+                    aria-pressed={laneTargetSelected(viewModel, lane.index, "local")}
                     onClick={() => commands.activateLane?.(
                       lane.index,
                       viewModel.selection.abilityMode?.targetOwner || "local"
