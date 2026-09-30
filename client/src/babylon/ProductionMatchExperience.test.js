@@ -899,7 +899,7 @@ test("plays and stops campaign opening dialogue from the production shell", asyn
 
     await screen.findByTestId("production-babylon-match");
     document.querySelector(".production-campaign-encounter").open = true;
-    fireEvent.click(screen.getByRole("button", { name: "Play dialogue" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play exchange" }));
     expect(window.Audio).toHaveBeenCalledWith("/voices/narrator.mp3");
     expect(clip.play).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Playing Narrator.")).toBeVisible();

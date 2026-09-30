@@ -1,0 +1,18 @@
+.dialogue-playback { margin: 10px 0; }
+.dialogue-playback-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.dialogue-playback-buttons button {
+  padding: 7px 12px;
+  border: 1px solid rgba(231, 201, 110, .42);
+  border-radius: 5px;
+  background: #29190d;
+  color: #f6df9a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dialogue-playback-buttons button:disabled { opacity: .5; cursor: default; }
+.dialogue-playback-buttons button:focus-visible { outline: 2px solid #f6df9a; outline-offset: 3px; }
+.dialogue-playback-status { margin: 7px 0 0; font-size: 12px; line-height: 1.5; }
+.campaign-dialogue-line.is-playing { background: rgba(231, 201, 110, .08); border-radius: 5px; box-shadow: inset 3px 0 #e7c96e; }
+.campaign-dialogue-line.is-playing .campaign-dialogue-speaker-mark { border-color: #e7c96e; }

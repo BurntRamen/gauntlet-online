@@ -1,0 +1,498 @@
+{
+  "method": "Spectral harmonic pitch extraction from existing faction themes, revoiced as slow soft keys and sine pads. Instrumental interpretations, not literal transcriptions; no source vocals or percussion are mixed into the output.",
+  "generator": "scripts/build-dossier-music.py",
+  "tracks": [
+    {
+      "faction": "rumin",
+      "source": "client/public/assets/gauntlet/music/rumin-1.mp3",
+      "sourceSha256": "583e6b637ac43d1624549af646e857a816a1c0887c1ff66495c8d895d3e5073b",
+      "sourcePassageSeconds": [
+        8,
+        40
+      ],
+      "output": "client/public/assets/gauntlet/music/dossiers/rumin-reverie.wav",
+      "outputSha256": "d44bcd96e63f70ba20921edc2beee158994e7e28102760135e4393d66159c5b1",
+      "durationSeconds": 48,
+      "sampleRate": 22050,
+      "peakDbfs": -10.91,
+      "rmsDbfs": -23.0,
+      "melodyMidi": [
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        58,
+        63,
+        64,
+        63,
+        63,
+        63,
+        64,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        64,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        64,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63,
+        63
+      ],
+      "harmonyMidi": [
+        [
+          51,
+          54,
+          58
+        ],
+        [
+          51,
+          54,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ]
+      ]
+    },
+    {
+      "faction": "sheen",
+      "source": "client/public/assets/gauntlet/music/sheen-1.mp3",
+      "sourceSha256": "3e29866c8559888b4615dca0cc5b5e4c8faacbfea950a99986a598392975e5a5",
+      "sourcePassageSeconds": [
+        8,
+        40
+      ],
+      "output": "client/public/assets/gauntlet/music/dossiers/sheen-reverie.wav",
+      "outputSha256": "d813a9828115b79fde5e4d87c6555a00a883b71bbe64ce97d87ea2c9f98f9027",
+      "durationSeconds": 48,
+      "sampleRate": 22050,
+      "peakDbfs": -10.1,
+      "rmsDbfs": -23.0,
+      "melodyMidi": [
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        58,
+        60,
+        60,
+        64,
+        64,
+        67,
+        68,
+        69,
+        69,
+        72,
+        72,
+        72,
+        72,
+        74,
+        74,
+        74,
+        76,
+        74,
+        74,
+        72,
+        69,
+        69,
+        69,
+        69,
+        69,
+        69,
+        69,
+        69,
+        69,
+        69,
+        72,
+        72,
+        72,
+        72,
+        72,
+        72,
+        74,
+        74,
+        72,
+        72,
+        72,
+        76,
+        76,
+        76,
+        76,
+        76,
+        76,
+        76,
+        76,
+        76,
+        72,
+        72,
+        76,
+        76,
+        76,
+        76,
+        76,
+        74
+      ],
+      "harmonyMidi": [
+        [
+          55,
+          58,
+          62
+        ],
+        [
+          53,
+          57,
+          60
+        ],
+        [
+          48,
+          52,
+          55
+        ],
+        [
+          57,
+          60,
+          64
+        ],
+        [
+          53,
+          57,
+          60
+        ],
+        [
+          57,
+          60,
+          64
+        ],
+        [
+          57,
+          60,
+          64
+        ],
+        [
+          57,
+          60,
+          64
+        ]
+      ]
+    },
+    {
+      "faction": "frumo",
+      "source": "client/public/assets/gauntlet/music/frumo-1.mp3",
+      "sourceSha256": "a52771d826ff6e5ea7c6896c2751c96425d48d2501084ac13f785736bf9a0cae",
+      "sourcePassageSeconds": [
+        8,
+        40
+      ],
+      "output": "client/public/assets/gauntlet/music/dossiers/frumo-reverie.wav",
+      "outputSha256": "1c9a44e1614920dbad500ff4676c46d44bada90378ecee72a0f912ed03c7060b",
+      "durationSeconds": 48,
+      "sampleRate": 22050,
+      "peakDbfs": -10.59,
+      "rmsDbfs": -23.0,
+      "melodyMidi": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        70,
+        63,
+        63,
+        63,
+        63,
+        65,
+        66,
+        68,
+        70,
+        70,
+        73,
+        73,
+        75,
+        75,
+        75,
+        75,
+        75,
+        68,
+        70,
+        70,
+        70,
+        71,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        74,
+        74,
+        73,
+        73,
+        70,
+        70,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        74,
+        73,
+        73,
+        75,
+        75,
+        75,
+        75,
+        75
+      ],
+      "harmonyMidi": [
+        [
+          56,
+          60,
+          63
+        ],
+        [
+          51,
+          54,
+          58
+        ],
+        [
+          51,
+          54,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          56,
+          60,
+          63
+        ],
+        [
+          51,
+          54,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ],
+        [
+          51,
+          55,
+          58
+        ]
+      ]
+    },
+    {
+      "faction": "bizi",
+      "source": "client/public/assets/gauntlet/music/bizi-1.mp3",
+      "sourceSha256": "903e74f313b9ce109d5bf4628443f29ee39ae1bcb81f264b56bb2b05f9b8cf28",
+      "sourcePassageSeconds": [
+        8,
+        40
+      ],
+      "output": "client/public/assets/gauntlet/music/dossiers/bizi-reverie.wav",
+      "outputSha256": "1ef09ed4a508963c427ea5569fabd53784d0c6fde9bcfa6bcefc3b9db6668d03",
+      "durationSeconds": 48,
+      "sampleRate": 22050,
+      "peakDbfs": -10.23,
+      "rmsDbfs": -23.0,
+      "melodyMidi": [
+        59,
+        60,
+        60,
+        67,
+        67,
+        67,
+        67,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        55,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        55,
+        55,
+        55,
+        55
+      ],
+      "harmonyMidi": [
+        [
+          48,
+          52,
+          55
+        ],
+        [
+          48,
+          51,
+          55
+        ],
+        [
+          48,
+          51,
+          55
+        ],
+        [
+          48,
+          52,
+          55
+        ],
+        [
+          48,
+          52,
+          55
+        ],
+        [
+          48,
+          51,
+          55
+        ],
+        [
+          48,
+          52,
+          55
+        ],
+        [
+          48,
+          52,
+          55
+        ]
+      ]
+    }
+  ]
+}

@@ -1,49 +1,10 @@
-import { useEffect, useRef, useState } from "react";
 import { resolveVisualAsset } from "./GauntletVisuals";
+import { dossierMusicSource, useDialoguePlayback } from "./dialoguePlayback";
+import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 
-function splitDialogueLine(line) {
-  const text = String(line || "");
-  const separator = text.indexOf(":");
-  if (separator <= 0) return { speaker: "Narrator", text };
-  return {
-    speaker: text.slice(0, separator).trim(),
-    text: text.slice(separator + 1).trim()
-  };
-}
-
-export function CampaignBriefingDialogue({ title, lines = [], audio = [] }) {
-  const activeAudioRef = useRef(null);
-  const [playingIndex, setPlayingIndex] = useState(-1);
-  const dialogueLines = (Array.isArray(lines) ? lines : []).filter(Boolean);
-  const audioLines = Array.isArray(audio) ? audio : [];
-
-  useEffect(() => () => {
-    if (!activeAudioRef.current) return;
-    activeAudioRef.current.pause();
-    activeAudioRef.current.currentTime = 0;
-  }, []);
-
-  function playVoice(index) {
-    if (activeAudioRef.current) {
-      activeAudioRef.current.pause();
-      activeAudioRef.current.currentTime = 0;
-      activeAudioRef.current = null;
-    }
-    if (playingIndex === index) {
-      setPlayingIndex(-1);
-      return;
-    }
-    const source = audioLines[index];
-    if (!source || typeof window === "undefined" || typeof window.Audio !== "function") return;
-    const clip = new window.Audio(resolveVisualAsset(source));
-    clip.onended = () => setPlayingIndex(-1);
-    clip.onerror = () => setPlayingIndex(-1);
-    activeAudioRef.current = clip;
-    setPlayingIndex(index);
-    clip.play().catch(() => setPlayingIndex(-1));
-  }
-
-  if (dialogueLines.length === 0) return null;
+export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true, musicEnabled = true, musicVolume = 0.18 }) {
+  const playback = useDialoguePlayback({ lines, audio, scopeKey, enabled: audioEnabled, musicSource: dossierMusicSource(factionId), musicEnabled, musicVolume });
+  if (playback.entries.length === 0) return null;
 
   return (
     <section className="campaign-briefing-section campaign-dialogue-transcript" aria-label={title}>
@@ -51,21 +12,17 @@ export function CampaignBriefingDialogue({ title, lines = [], audio = [] }) {
         <span>Dialogue archive</span>
         <h3>{title}</h3>
       </div>
+      <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       <div className="campaign-dialogue-lines">
-        {dialogueLines.map((line, index) => {
-          const entry = splitDialogueLine(line);
-          const hasAudio = Boolean(audioLines[index]);
+        {playback.entries.map((entry, index) => {
+          const isPlaying = playback.playingIndex === index;
           return (
-            <article className="campaign-dialogue-line" key={`${entry.speaker}-${index}`}>
+            <article className={`campaign-dialogue-line${isPlaying ? " is-playing" : ""}`} key={`${entry.speaker}-${index}`}>
               <span className="campaign-dialogue-speaker-mark" aria-hidden="true">{entry.speaker.slice(0, 1)}</span>
               <div>
                 <div className="campaign-dialogue-speaker">
                   <strong>{entry.speaker}</strong>
-                  {hasAudio && (
-                    <button type="button" onClick={() => playVoice(index)} aria-label={`${playingIndex === index ? "Stop" : "Play"} ${entry.speaker} voice`}>
-                      {playingIndex === index ? "Stop Voice" : "Play Voice"}
-                    </button>
-                  )}
+                  <DialogueVoiceButton playback={playback} index={index} enabled={audioEnabled} />
                 </div>
                 <p>{entry.text}</p>
               </div>
@@ -89,6 +46,9 @@ export default function CampaignChapterBriefing({
   completed,
   current,
   canPlayAsPlayer,
+  audioEnabled = true,
+  musicEnabled = true,
+  musicVolume = 0.18,
   onBack,
   onStartChapter,
   onPrevious,
@@ -127,7 +87,7 @@ export default function CampaignChapterBriefing({
             <p>{chapter.story}</p>
           </section>
 
-          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} />
+          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} musicEnabled={musicEnabled} musicVolume={musicVolume} />
 
           {completed ? (
             <>
@@ -138,7 +98,7 @@ export default function CampaignChapterBriefing({
                 </div>
                 <p className="campaign-briefing-lede">{chapter.afterBattle}</p>
               </section>
-              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} />
+              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} musicEnabled={musicEnabled} musicVolume={musicVolume} />
             </>
           ) : (
             <section className="campaign-briefing-section campaign-after-action is-classified">
