@@ -179,6 +179,9 @@ test("two real browser clients share the live Babylon engine and reconnect safel
 });
 
 test("faction abilities, spectator privacy, responsive layout, and accessibility use the same renderer", async ({ browser, baseURL }) => {
+  // Two software-rendered WebGL contexts plus axe and trace/video teardown can
+  // exceed the default minute on CI even after every assertion has passed.
+  test.setTimeout(120000);
   const duel = await seedDuel({ mode: "factions", factionId: "frumo" });
   const priority = duel.players[1].state.priority;
   const playerContext = await browser.newContext({ viewport: { width: 1536, height: 864 } });
