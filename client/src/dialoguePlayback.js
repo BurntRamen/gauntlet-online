@@ -102,9 +102,9 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
   const play = (startIndex = 0, sequence = true) => {
     stop("");
     if (!settings.enabled) { publish({ status: "Enable sound to hear dialogue." }); return; }
-    if (!AudioCtor) { publish({ status: "Dialogue audio is unavailable in this browser." }); return; }
+    if (!AudioCtor) { publish({ status: "Audio unavailable." }); return; }
     if (!entries.some((entry, index) => index >= startIndex && entry.source && (sequence || index === startIndex))) {
-      publish({ status: "No recorded dialogue is available for this passage." });
+      publish({ status: "No recording available." });
       return;
     }
     activePlayer?.stop("Another dialogue is playing.");
@@ -130,18 +130,18 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
       const failed = (error) => {
         if (!isCurrent() || interruptedByPause(error)) return;
         if (error?.name === "NotAllowedError") {
-          stop("Playback was blocked. Select Play again to allow dialogue audio.");
+          stop("Playback was blocked. Try Play again.");
         } else if (sequence) {
           skipped += 1;
           playIndex(next + 1);
         } else {
-          stop(`Unable to play ${entries[next].speaker}'s recorded line.`);
+          stop("Recording unavailable.");
         }
       };
       clip.onended = () => {
         if (!isCurrent()) return;
         if (sequence) playIndex(next + 1);
-        else stop("Dialogue line finished.");
+        else stop("Dialogue finished.");
       };
       clip.onerror = failed;
       publish({ playingIndex: next, paused: false, status: `Playing ${entries[next].speaker}.` });
@@ -166,10 +166,10 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
     publish({ paused: false, status: `Playing ${entries[state.playingIndex].speaker}.` });
     try {
       Promise.resolve(current.play()).catch((error) => {
-        if (voice === current && !interruptedByPause(error)) stop("Playback was blocked. Select Play again to allow dialogue audio.");
+        if (voice === current && !interruptedByPause(error)) stop("Playback was blocked. Try Play again.");
       });
       playBed();
-    } catch (_error) { stop("Playback was blocked. Select Play again to allow dialogue audio."); }
+    } catch (_error) { stop("Playback was blocked. Try Play again."); }
   };
 
   const player = {
@@ -179,7 +179,7 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
     configure(next) {
       if ("musicSource" in next && next.musicSource !== settings.musicSource) stopBed();
       settings = { ...settings, ...next };
-      if (!settings.enabled && state.mode) stop("Sound muted. Dialogue playback stopped.");
+      if (!settings.enabled && state.mode) stop("Sound muted.");
       else syncBed();
     }
   };

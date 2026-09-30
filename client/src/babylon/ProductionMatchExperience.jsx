@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDialoguePlayback } from "../dialoguePlayback";
-import DialoguePlaybackControls from "../DialoguePlaybackControls";
+import DialoguePlaybackControls, { DialogueVoiceButton } from "../DialoguePlaybackControls";
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
 import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
@@ -278,23 +278,12 @@ function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
       <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       <div className="production-campaign-dialogue-lines">
         {entries.map((parts, index) => {
-          const hasAudio = Boolean(parts.source);
           const isPlaying = playingIndex === index;
           return (
             <blockquote className={isPlaying ? "is-playing" : ""} key={`${parts.speaker}-${index}`}>
               <div>
                 <strong>{parts.speaker}</strong>
-                {hasAudio && (
-                  <button
-                    type="button"
-                    aria-label={`${isPlaying ? "Stop" : "Play"} ${parts.speaker} voice`}
-                    aria-pressed={isPlaying}
-                    disabled={!audioEnabled}
-                    onClick={() => isPlaying ? playback.stop() : playback.play(index, false)}
-                  >
-                    {isPlaying ? "Stop voice" : "Play voice"}
-                  </button>
-                )}
+                <DialogueVoiceButton playback={playback} index={index} enabled={audioEnabled} />
               </div>
               <p>{parts.text}</p>
             </blockquote>

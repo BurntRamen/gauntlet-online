@@ -10,7 +10,7 @@ import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import { useDialogueActivity, useDialoguePlayback } from "./dialoguePlayback";
-import DialoguePlaybackControls from "./DialoguePlaybackControls";
+import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -2718,7 +2718,6 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
       <div style={{ display: "grid", gap: compact ? 3 : 6, fontSize: compact ? 11 : 14 }}>
         {playback.entries.map((entry, index) => {
           const { speaker, text: spoken } = entry;
-          const hasAudio = Boolean(entry.source);
           const isPlaying = playback.playingIndex === index;
           const speakerImage = getCampaignSpeakerImage(speaker);
           return (
@@ -2749,13 +2748,8 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
               <span style={{ display: "grid", gap: 3, minWidth: 0 }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}</strong>
-                  {hasAudio && (
-                    <button
-                      type="button"
-                      onClick={() => isPlaying ? playback.stop() : playback.play(index, false)}
-                      disabled={!audioEnabled}
-                      aria-pressed={isPlaying}
-                      aria-label={`${isPlaying ? "Stop" : "Play"} ${speaker} voice`}
+                    <DialogueVoiceButton
+                      playback={playback} index={index} enabled={audioEnabled}
                       style={{
                         border: "1px solid rgba(250,204,21,0.42)",
                         borderRadius: 4,
@@ -2766,10 +2760,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                         cursor: "pointer",
                         fontSize: compact ? 10 : 12
                       }}
-                    >
-                      {isPlaying ? "Stop Voice" : "Play Voice"}
-                    </button>
-                  )}
+                    />
                 </span>
                 <span>{spoken}</span>
               </span>

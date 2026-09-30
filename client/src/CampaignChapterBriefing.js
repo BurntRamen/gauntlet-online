@@ -1,6 +1,6 @@
 import { resolveVisualAsset } from "./GauntletVisuals";
 import { dossierMusicSource, useDialoguePlayback } from "./dialoguePlayback";
-import DialoguePlaybackControls from "./DialoguePlaybackControls";
+import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 
 export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true, musicEnabled = true, musicVolume = 0.18 }) {
   const playback = useDialoguePlayback({ lines, audio, scopeKey, enabled: audioEnabled, musicSource: dossierMusicSource(factionId), musicEnabled, musicVolume });
@@ -15,7 +15,6 @@ export function CampaignBriefingDialogue({ title, lines = [], audio = [], factio
       <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       <div className="campaign-dialogue-lines">
         {playback.entries.map((entry, index) => {
-          const hasAudio = Boolean(entry.source);
           const isPlaying = playback.playingIndex === index;
           return (
             <article className={`campaign-dialogue-line${isPlaying ? " is-playing" : ""}`} key={`${entry.speaker}-${index}`}>
@@ -23,11 +22,7 @@ export function CampaignBriefingDialogue({ title, lines = [], audio = [], factio
               <div>
                 <div className="campaign-dialogue-speaker">
                   <strong>{entry.speaker}</strong>
-                  {hasAudio && (
-                    <button type="button" disabled={!audioEnabled} onClick={() => isPlaying ? playback.stop() : playback.play(index, false)} aria-pressed={isPlaying} aria-label={`${isPlaying ? "Stop" : "Play"} ${entry.speaker} voice`}>
-                      {isPlaying ? "Stop Voice" : "Play Voice"}
-                    </button>
-                  )}
+                  <DialogueVoiceButton playback={playback} index={index} enabled={audioEnabled} />
                 </div>
                 <p>{entry.text}</p>
               </div>
