@@ -692,10 +692,10 @@ export class LocalDuelAdapter {
       const actor = currentPlacementPlayer(this.game);
       const laneIndex = this.game.endPlacementLaneIndex;
       const opportunity = laneIndex * 2 + Number(this.game.endPlacementStep || 0) + 1;
-      const occupied = !!this.game.lanes[laneIndex]?.facedown?.[actor];
-      return occupied
-        ? `Placement ${opportunity} of 6 · Player ${actor}: Lane ${laneIndex + 1} is occupied, so skip this placement.`
-        : `Placement ${opportunity} of 6 · Player ${actor}: choose a hand card for Lane ${laneIndex + 1}, or skip.`;
+      const canPlace = this.legalActions().some((action) => action.type === "placeFacedown");
+      return canPlace
+        ? `Placement ${opportunity} of 6 · Player ${actor}: choose a combatant or support for Lane ${laneIndex + 1}, or skip.`
+        : `Placement ${opportunity} of 6 · Player ${actor}: both available slots are occupied, so skip this placement.`;
     }
     if (this.selection.kind === "ability") {
       if (/^(mekan|jali|gracus):/.test(this.selection.abilityId)) return `${this.currentLegalAction()?.label || "Ability selected"}. Review the target and consequence, then confirm activation.`;
@@ -751,7 +751,11 @@ export class LocalDuelAdapter {
     if (this.selection.kind === "handBlock") return `Choose ${values.required} payment for the selected blocker.${heraNote}${constructedNote}`;
     if (this.selection.kind === "laneBlock") return `Same-lane blocker · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "placement") {
-      return `Choose a card for Lane ${this.selection.laneIndex + 1}, or skip this placement.${constructedNote}`;
+      const selected = this.game.players[this.controller]?.hand?.find((card) => card.id === this.selection.placementCardId);
+      const role = ["armament", "shelter", "ambush", "contraption"].includes(String(selected?.type || "").toLowerCase())
+        ? "support slot"
+        : "combat slot";
+      return `Place this card in Lane ${this.selection.laneIndex + 1}'s ${role}, or skip this placement.${constructedNote}`;
     }
     if (this.game.phase === "priority" && !activeAttack(this.game)) {
       const hasLaneAttack = this.legalActions().some((action) => action.type === "declareLaneAttack");

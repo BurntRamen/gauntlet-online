@@ -41,14 +41,17 @@ function lanePosition(actor, profile) {
     side === "opponent" ? "opponentFacedown" : "localFacedown",
     profile
   );
+  const supportOffset = actor.zone.role === "support" ? (side === "opponent" ? -0.72 : 0.72) : 0;
   return {
-    x: anchor.x,
-    y: anchor.y,
-    z: anchor.z,
+    x: anchor.x + (actor.zone.role === "support" ? (profile.id === "portrait" ? 0.52 : 0.68) : 0),
+    y: anchor.y + (actor.zone.role === "support" ? 0.025 : 0),
+    z: anchor.z + supportOffset,
     rotationX: Math.PI / 2,
     rotationY: 0,
     rotationZ: side === "opponent" ? Math.PI : 0,
-    scale: profile.id === "portrait" ? 0.55 : profile.id === "short-landscape" ? 0.59 : 0.64
+    scale: actor.zone.role === "support"
+      ? (profile.id === "portrait" ? 0.39 : profile.id === "short-landscape" ? 0.42 : 0.46)
+      : (profile.id === "portrait" ? 0.55 : profile.id === "short-landscape" ? 0.59 : 0.64)
   };
 }
 

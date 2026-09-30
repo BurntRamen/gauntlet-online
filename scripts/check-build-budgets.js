@@ -9,13 +9,13 @@ const budgets = {
   largestAsyncGzip: 350 * KIB,
   // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
   // The 72-card guide stays in static HTML, outside the application bundle.
-  // The projected faction-card row and accessible ability chooser add ~1.7 KiB.
+  // The projected faction-card row, support-slot actors, and accessible ability chooser.
   // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
   // Native, theme-aware board inscriptions replace the screen-space overlay.
   // Readable card rules, campaign applicability, and blocker eligibility previews.
   // Source-by-source effect receipts and persistent inspection/history.
   // Keep the initial-load and largest-chunk ceilings unchanged.
-  totalJavaScriptGzip: 725 * KIB
+  totalJavaScriptGzip: 726 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

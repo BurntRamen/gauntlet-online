@@ -164,7 +164,7 @@ test("local play gives actionable guidance through all six placement opportuniti
 
   expect(update.viewModel.phase).toBe("end");
   expect(update.viewModel.instruction).toMatch(
-    /^Placement 1 of 6 · Player [12]: choose a hand card for Lane 1, or skip\.$/
+    /^Placement 1 of 6 · Player [12]: choose a combatant or support for Lane 1, or skip\.$/
   );
   expect(update.viewModel.interactions.passLabel).toBe("Skip Lane");
 
@@ -174,7 +174,7 @@ test("local play gives actionable guidance through all six placement opportuniti
   update = latestUpdate(adapter);
 
   expect(update.viewModel.instruction).toMatch(
-    /^Placement 2 of 6 · Player [12]: choose a hand card for Lane 1, or skip\.$/
+    /^Placement 2 of 6 · Player [12]: choose a combatant or support for Lane 1, or skip\.$/
   );
   adapter.dispose();
 });
@@ -482,7 +482,7 @@ test.each([
   {
     name: "Vital Grove",
     faction: "sheen",
-    definitionId: "sheen-beli-awakened",
+    supportDefinitionId: "sheen-beli-awakened",
     abilityId: "constructed:beli-awakened",
     configure: (adapter) => {
       adapter.game.players[adapter.controller].turnData.beliAwakenedReady = true;
@@ -533,6 +533,7 @@ test.each([
 ])("$name is selectable and submitted by the production interaction controller", ({
   faction,
   definitionId,
+  supportDefinitionId,
   abilityId,
   configure,
   expectedNote
@@ -552,6 +553,11 @@ test.each([
   hand[1].value = 10;
   hand[1].rank = "10";
   if (definitionId) makeConstructed(hand[0], definitionId);
+  if (supportDefinitionId) {
+    makeConstructed(hand[2], supportDefinitionId, { type: "shelter" });
+    const support = hand.splice(2, 1)[0];
+    adapter.game.lanes[0].support[adapter.controller] = support;
+  }
   configure(adapter);
 
   let update = latestUpdate(adapter);

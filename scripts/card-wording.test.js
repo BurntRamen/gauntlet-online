@@ -31,8 +31,8 @@ test("large print fits every card without entering the mirrored index", async ()
 });
 
 test("Nu shows the added bonus; optional costs and timing stay visible", () => {
-  assert.equal(CARD_WORDING["sheen-nus-verdant-edict"], "Third block: +1 value.");
-  assert.equal(COLLECTION_CARDS.find((card) => card.id === "sheen-nus-verdant-edict").text, "Your third block this turn gets +3 value instead of +2.");
+  assert.equal(CARD_WORDING["sheen-nus-verdant-edict"], "Your third block: +1 value.");
+  assert.equal(COLLECTION_CARDS.find((card) => card.id === "sheen-nus-verdant-edict").text, "While Verdant Dome occupies a support slot, your third block during the turn gets +1 additional value.");
   for (const id of ["rumin-forum-ledger-runner", "rumin-jewel-bank-contract", "sheen-beli-awakened", "frumo-deckhand-diver", "bizi-gearplate-shield", "bizi-heat-sink-matrix", "bizi-sandstorm-processor"]) {
     assert.match(CARD_WORDING[id], /\bmay\b/i, id);
   }
@@ -41,5 +41,5 @@ test("Nu shows the added bonus; optional costs and timing stay visible", () => {
   assert.match(CARD_WORDING["bizi-clockwork-caravan"], /turn end\. Once/);
   assert.match(CARD_WORDING["sheen-thornroot-counterstroke"], /No damage taken this turn/);
   assert.match(CARD_WORDING["frumo-lafayettes-chart"], /hand–lane swap/);
-  assert.equal(CARD_WORDING["frumo-tide-debt-ledger"], "After a swap: next payment card pays +1.");
+  assert.equal(CARD_WORDING["frumo-tide-debt-ledger"], "Reveal after a swap: next payment card pays +1. Then discard this.");
 });

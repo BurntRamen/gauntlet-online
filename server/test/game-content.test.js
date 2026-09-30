@@ -115,7 +115,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
   assert.deepEqual(missing, []);
 });
 
-test("uses one exclusive constructed card type for each Initiative faction", () => {
+test("uses ten Servitors and eight faction support cards for each Initiative faction", () => {
   for (const [cards, expectedType] of [
     [RUMIN_COLLECTION_CARDS, "armament"],
     [SHEEN_COLLECTION_CARDS, "shelter"],
@@ -123,7 +123,9 @@ test("uses one exclusive constructed card type for each Initiative faction", () 
     [BIZI_COLLECTION_CARDS, "contraption"]
   ]) {
     assert.equal(cards.length, 18);
-    assert.deepEqual([...new Set(cards.map((card) => card.type))], [expectedType]);
+    assert.equal(cards.filter((card) => card.type === "servitor").length, 10);
+    assert.equal(cards.filter((card) => card.type === expectedType).length, 8);
+    assert.deepEqual([...new Set(cards.map((card) => card.type))].sort(), [expectedType, "servitor"].sort());
   }
 });
 

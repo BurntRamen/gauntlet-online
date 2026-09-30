@@ -9,7 +9,7 @@ const effects = require("./effects");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v6";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v7";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -24,6 +24,7 @@ const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
   "rumin-triumphal-ram",
   "rumin-kaisers-gold-claw"
 ]);
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
 const FACTION_PROFILES = {
   mekan: { id: "mekan", name: "Mekan", commander: "Allegro, Celebrator of Life", city: "San Mikal, Burial Ground", general: { id: "monti", name: "Monti, Keeper of the Eternal Festival" } },
   jali: { id: "jali", name: "Jali", commander: "Watane", city: "Katana, Floating City", general: { id: "basho", name: "Basho" } },
@@ -109,6 +110,14 @@ function cardIs(card, definitionId) {
 
 function cardHasType(card, type) {
   return String(card?.type || "").toLowerCase() === String(type || "").toLowerCase();
+}
+
+function isSupportCard(card) {
+  return SUPPORT_TYPES.has(String(card?.type || "").toLowerCase());
+}
+
+function isCombatCard(card) {
+  return !isSupportCard(card);
 }
 
 function hashSeed(input) {
@@ -215,6 +224,7 @@ function createTurnData() {
     biziClockworkCaravanUsed: false,
     biziEndTurnDraws: 0,
     biziPrimeSignalAvailable: 0,
+    biziNextServitorBonus: 0,
     sheenNextAttackBonus: 0,
     sheenNextBlockBonus: 0,
     sheenEndTurnDraws: 0,
@@ -343,6 +353,7 @@ function createMatch(options = {}) {
     },
     lanes: [0, 1, 2].map(() => ({
       facedown: { 1: null, 2: null },
+      support: { 1: null, 2: null },
       attack: null,
       block: []
     })),
@@ -434,8 +445,20 @@ function controlledLaneEntries(game, playerNumber) {
   });
 }
 
+function controlledSupportEntries(game, playerNumber) {
+  return game.lanes.flatMap((lane, laneIndex) => {
+    const support = lane.support?.[playerNumber] || null;
+    const legacySupport = isSupportCard(lane.facedown?.[playerNumber]) ? lane.facedown[playerNumber] : null;
+    return [
+      ...(support ? [{ card: support, laneIndex, zone: "support" }] : []),
+      ...(legacySupport ? [{ card: legacySupport, laneIndex, zone: "facedown" }] : [])
+    ];
+  });
+}
+
 function supportCards(game, playerNumber) {
   return [
+    ...controlledSupportEntries(game, playerNumber).map((entry) => entry.card),
     ...controlledLaneEntries(game, playerNumber).map((entry) => entry.card),
     ...game.handAttacks.filter((attack) => attack.player === playerNumber).map((attack) => attack.card),
     ...game.lanes.flatMap((lane) => lane.attack?.player === playerNumber ? [lane.attack.card] : [])
@@ -444,6 +467,25 @@ function supportCards(game, playerNumber) {
 
 function playerControlsCard(game, playerNumber, definitionId) {
   return supportCards(game, playerNumber).some((card) => cardIs(card, definitionId));
+}
+
+function consumeControlledSupport(game, playerNumber, definitionId, events, source) {
+  for (const lane of game.lanes) {
+    for (const zone of ["support", "facedown"]) {
+      const card = lane[zone]?.[playerNumber];
+      if (!cardIs(card, definitionId)) continue;
+      lane[zone][playerNumber] = null;
+      card.revealed = true;
+      game.players[playerNumber].discard.push(card);
+      events.push(event(game, "support.triggered", {
+        player: playerNumber,
+        source: source || card.name || definitionId,
+        card: publicLogCard(card)
+      }));
+      return card;
+    }
+  }
+  return null;
 }
 
 function gainLifeFromBlocking(game, playerNumber, amount, source, notes, events) {
@@ -471,11 +513,9 @@ function gainAcceleration(game, playerNumber, amount, source, notes, events) {
     total: player.accelerationCounters,
     source
   }));
-  for (const card of supportCards(game, playerNumber)) {
-    if (cardIs(card, "bizi-solar-array-adept")) {
-      addTemporaryBonus(card, amount, "Electrostatic Field", game, card.id);
-      if (notes) notes.push(`Electrostatic Field +${amount}`);
-    }
+  if (playerControlsCard(game, playerNumber, "bizi-solar-array-adept")) {
+    player.turnData.biziNextServitorBonus += amount;
+    if (notes) notes.push(`Electrostatic Field readied +${amount}`);
   }
 }
 
@@ -700,7 +740,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     : [];
   if (!unique(selectedWeaponIds)) return { error: "Each armed weapon must be selected once." };
 
-  const availableWeapons = controlledLaneEntries(game, playerNumber)
+  const availableWeapons = controlledSupportEntries(game, playerNumber)
     .filter((entry) => (
       entry.card.factionId === "rumin"
       && cardHasType(entry.card, "armament")
@@ -746,7 +786,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     }
     bonus += weaponBonus;
     attachedCards.push(weapon);
-    game.lanes[entry.laneIndex].facedown[playerNumber] = null;
+    game.lanes[entry.laneIndex][entry.zone || "support"][playerNumber] = null;
     notes.push(`${weapon.name || "Rumin armament"} armed +${weaponBonus}`);
   }
   if (cardIs(card, "sheen-thornroot-counterstroke") && !player.turnData.damageTakenThisTurn) {
@@ -758,7 +798,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     notes.push("Tranquility Chamber +3");
   }
   if (command.useBeliAwakenedBonus) {
-    if (!cardIs(card, "sheen-beli-awakened") || !player.turnData.beliAwakenedReady) {
+    if (!playerControlsCard(game, playerNumber, "sheen-beli-awakened") || !player.turnData.beliAwakenedReady) {
       return { error: "Vital Grove's +3 is only available after a damage-free block." };
     }
     bonus += 3;
@@ -769,6 +809,11 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     bonus += player.turnData.sheenNextAttackBonus;
     notes.push(`Sheen next attack +${player.turnData.sheenNextAttackBonus}`);
     player.turnData.sheenNextAttackBonus = 0;
+  }
+  if (cardHasType(card, "servitor") && player.turnData.biziNextServitorBonus) {
+    bonus += player.turnData.biziNextServitorBonus;
+    notes.push(`Electrostatic Field +${player.turnData.biziNextServitorBonus}`);
+    player.turnData.biziNextServitorBonus = 0;
   }
 
   const differentSuit = (
@@ -922,7 +967,7 @@ function applyAfterConstructedAttack(game, playerNumber, attack, payment, events
   const player = game.players[playerNumber];
   const card = attack.card;
   const notes = attack.notes;
-  if (cardIs(card, "rumin-marble-market-tribune")) {
+  if (playerControlsCard(game, playerNumber, "rumin-marble-market-tribune") && isCombatCard(card)) {
     player.turnData.ruminNextWeaponArmBonus += 1;
     notes.push("Corporate Banner next weapon +1");
   }
@@ -938,15 +983,11 @@ function applyAfterConstructedAttack(game, playerNumber, attack, payment, events
     player.turnData.ruminJewelBankAvailable = true;
     notes.push("Board of Directors' Insignia readied");
   }
-  if (cardIs(card, "bizi-focus-prime-signal")) {
-    gainAcceleration(game, playerNumber, 2, "Interference Matrix", notes, events);
-    player.turnData.biziPrimeSignalAvailable = Math.min(4, player.accelerationCounters);
-    notes.push(`Interference Matrix readied up to +${player.turnData.biziPrimeSignalAvailable}`);
-  }
-  if (cardIs(card, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
+  if (playerControlsCard(game, playerNumber, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
     player.life += 1;
     notes.push("Loot the Hold +1 life");
     events.push(event(game, "life.gained", { player: playerNumber, amount: 1, source: "Loot the Hold" }));
+    consumeControlledSupport(game, playerNumber, "frumo-leviathan-salvage", events, "Loot the Hold");
   }
 }
 
@@ -1000,13 +1041,17 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
     bonus += 2;
     notes.push("Ballistic Shield +2");
   }
-  if (cardIs(card, "sheen-nus-verdant-edict") && blockNumber === 3) {
+  if (playerControlsCard(game, playerNumber, "sheen-nus-verdant-edict") && blockNumber === 3) {
     bonus += 1;
     notes.push("Verdant Dome +1");
   }
   if (playerControlsCard(game, playerNumber, "sheen-emperors-heartwood")) {
     bonus += 1;
     notes.push("Evergreen Arbor +1");
+  }
+  if (playerControlsCard(game, playerNumber, "sheen-harmony-ward") && blockNumber >= 2) {
+    bonus += 1;
+    notes.push("Harmony Lab +1");
   }
   if (player.turnData.sheenNextBlockBonus) {
     bonus += player.turnData.sheenNextBlockBonus;
@@ -1039,7 +1084,7 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
     preventDamage += 1;
     notes.push("Insurance Policy Plate prevents 1");
   }
-  if (cardIs(card, "sheen-beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
+  if (playerControlsCard(game, playerNumber, "sheen-beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
     preventDamage += 1;
     player.turnData.beliCanopyShieldUsed = true;
     notes.push("Verdant Canopy prevents 1");
@@ -1064,14 +1109,14 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
   const player = game.players[playerNumber];
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0);
   if (
-    blockEntries.some((entry) => cardIs(entry.card, "sheen-beli-vinebinder"))
+    playerControlsCard(game, playerNumber, "sheen-beli-vinebinder")
     && blockNumber >= 2
   ) {
     player.turnData.sheenNextAttackBonus += 1;
     blockEntries[0].notes.push("Entwined Thicket next attack +1");
   }
   if (
-    blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand"))
+    playerControlsCard(game, playerNumber, "sheen-tangs-patient-hand")
     && blockNumber >= 2
   ) {
     player.turnData.sheenEndTurnDraws += 1;
@@ -1102,18 +1147,6 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
     player.turnData.ruminJewelBankAvailable = true;
     blockEntries[0].notes.push("Board of Directors' Insignia readied");
   }
-  if (blockEntries.some((entry) => cardIs(entry.card, "bizi-focus-prime-signal"))) {
-    gainAcceleration(
-      game,
-      playerNumber,
-      2,
-      "Interference Matrix",
-      blockEntries[0].notes,
-      events
-    );
-    player.turnData.biziPrimeSignalAvailable = Math.min(4, player.accelerationCounters);
-    blockEntries[0].notes.push(`Interference Matrix readied up to +${player.turnData.biziPrimeSignalAvailable}`);
-  }
 }
 
 function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command, events) {
@@ -1130,6 +1163,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
       zone: "deck",
       card: topCard ? { ...topCard } : null
     }));
+    consumeControlledSupport(game, playerNumber, "frumo-deckhand-diver", events, "Deep Dive");
   }
   if (cardIs(card, "frumo-ristus-rises")) {
     addTemporaryBonus(card, 1, "Tidal Surge", game, card.id);
@@ -1146,6 +1180,12 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
   }
   if (cardIs(card, "frumo-abyssal-switchboard")) {
     player.turnData.frumoNextActionBonus += 1;
+    consumeControlledSupport(game, playerNumber, "frumo-abyssal-switchboard", events, "Coordinated Strike");
+  }
+  if (cardIs(card, "bizi-focus-prime-signal")) {
+    const notes = [];
+    gainAcceleration(game, playerNumber, 2, "Interference Matrix", notes, events);
+    player.turnData.biziPrimeSignalAvailable = Math.min(4, player.accelerationCounters);
   }
   events.push(event(game, "laneEntry.resolved", {
     player: playerNumber,
@@ -1211,6 +1251,8 @@ function clearTemporaryBonuses(game) {
   game.lanes.forEach((lane) => {
     clearCard(lane.facedown[1]);
     clearCard(lane.facedown[2]);
+    clearCard(lane.support?.[1]);
+    clearCard(lane.support?.[2]);
   });
 }
 
@@ -1630,6 +1672,7 @@ function applyCommand(current, rawCommand) {
       ? findHandCard(actor, command.attackerCardId || command.cardId)
       : game.lanes[laneIndex]?.facedown?.[player];
     if (!attackCard) return reject(current, command, laneIndex == null ? "Select an attacker from hand." : "That lane has no attacking card.");
+    if (!isCombatCard(attackCard)) return reject(current, command, "Only a Servitor or standard playing card can attack.");
     const requirement = attackPaymentRequirement(actor, attackCard, !!command.useMeerusFreeAttack, game);
     if (requirement.error) return reject(current, command, requirement.error);
     const paymentIds = Array.isArray(command.paymentCardIds) ? command.paymentCardIds : [];
@@ -1783,6 +1826,9 @@ function applyCommand(current, rawCommand) {
       if (ids.length !== 1) return reject(current, command, "Choose exactly one hand blocker.");
       blockCards = ids.map((id) => findHandCard(actor, id));
       if (blockCards.some((card) => !card)) return reject(current, command, "Every blocker must be in the defender’s hand.");
+    }
+    if (blockCards.some((card) => !isCombatCard(card))) {
+      return reject(current, command, "Only a Servitor or standard playing card can block.");
     }
     if (!campaignBossHasAction(game, player)) {
       return reject(current, command, "The campaign boss has used all actions this turn.");
@@ -2001,14 +2047,22 @@ function applyCommand(current, rawCommand) {
         if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex > 2) {
           return reject(current, command, "Choose an empty lane.");
         }
-        if (game.lanes[laneIndex].facedown[player]) {
-          return reject(current, command, "Polea can only place into an empty lane.");
+        const slot = isSupportCard(card) ? "support" : "facedown";
+        if (!game.lanes[laneIndex][slot]) game.lanes[laneIndex][slot] = { 1: null, 2: null };
+        if (game.lanes[laneIndex][slot][player]) {
+          return reject(current, command, `Polea can only place into an empty ${slot === "support" ? "support" : "combat"} slot.`);
         }
         removeCardsFromHand(actor, [card.id]);
-        game.lanes[laneIndex].facedown[player] = card;
+        game.lanes[laneIndex][slot][player] = card;
         const laneEntry = applyConstructedLaneEntry(game, player, card, laneIndex, command, events);
         if (laneEntry.error) return reject(current, command, laneEntry.error);
-        events.push(event(game, "card.placedFacedown", { player, cardId: card.id, laneIndex, source: "Polea" }));
+        events.push(event(game, slot === "support" ? "card.supportPlaced" : "card.placedFacedown", {
+          player,
+          cardId: card.id,
+          laneIndex,
+          source: "Polea",
+          card: slot === "support" ? publicLogCard(card) : undefined
+        }));
         label = `Player ${player} used Polea to place a card in Lane ${laneIndex + 1}.`;
       } else if (abilityId === "polea-swap") {
         const laneA = Number(command.laneA ?? command.targets?.laneA);
@@ -2040,6 +2094,7 @@ function applyCommand(current, rawCommand) {
         actor.turnData.frumoLaneSwappedThisTurn = true;
         if (playerControlsCard(game, player, "frumo-tide-debt-ledger")) {
           actor.turnData.frumoNextPaymentBonus += 1;
+          consumeControlledSupport(game, player, "frumo-tide-debt-ledger", events, "Pirate's Gambit");
         }
         events.push(event(game, "lanes.swapped", {
           player,
@@ -2084,10 +2139,12 @@ function applyCommand(current, rawCommand) {
             source: "Rally the Crew",
             choice: lastGambleChoice
           }));
+          consumeControlledSupport(game, player, "frumo-the-last-gamble", events, "Rally the Crew");
         }
         for (const support of supportCards(game, player)) {
           if (cardIs(support, "frumo-riptide-smuggler") && !actor.turnData.frumoRiptideSmugglerUsed) {
-            addTemporaryBonus(support, 1, "Hauntling Lure", game, support.id);
+            actor.turnData.frumoNextActionBonus += 1;
+            actor.turnData.frumoNextActionKind = "attack";
             actor.turnData.frumoRiptideSmugglerUsed = true;
             events.push(event(game, "card.buffApplied", {
               player,
@@ -2095,6 +2152,8 @@ function applyCommand(current, rawCommand) {
               amount: 1,
               source: "Hauntling Lure"
             }));
+            consumeControlledSupport(game, player, "frumo-riptide-smuggler", events, "Hauntling Lure");
+            break;
           }
         }
         label = `Player ${player} used Polea to inspect a face-down card.`;
@@ -2115,13 +2174,17 @@ function applyCommand(current, rawCommand) {
         return reject(current, command, "Unknown Polea mode.");
       }
       actor.turnData.poleaUsed = true;
-      if (usingSunkenOrder) actor.turnData.poleaSunkenOrderUsed = true;
+      if (usingSunkenOrder) {
+        actor.turnData.poleaSunkenOrderUsed = true;
+        consumeControlledSupport(game, player, "frumo-poleas-sunken-order", events, "Command the Revolution");
+      }
     } else if (abilityId === "lafayette-swap") {
       if (actorFaction !== "frumo") return reject(current, command, "Lafayette belongs to Frumo.");
       if (actor.turnData.lafayetteUsed) return reject(current, command, "Lafayette has already been used this turn.");
       const handCard = findHandCard(actor, cardId);
       const laneCard = game.lanes[laneIndex]?.facedown?.[player];
       if (!handCard || !laneCard) return reject(current, command, "Choose a hand card and an occupied lane you control.");
+      if (!isCombatCard(handCard)) return reject(current, command, "Lafayette can only swap a Servitor or standard playing card into the combat slot.");
       const handIndex = actor.hand.findIndex((card) => card.id === handCard.id);
       actor.hand[handIndex] = laneCard;
       game.lanes[laneIndex].facedown[player] = handCard;
@@ -2129,9 +2192,11 @@ function applyCommand(current, rawCommand) {
       actor.turnData.frumoLaneSwappedThisTurn = true;
       if (playerControlsCard(game, player, "frumo-lafayettes-chart")) {
         actor.turnData.frumoNextPaymentBonus += 1;
+        consumeControlledSupport(game, player, "frumo-lafayettes-chart", events, "Hit & Run");
       }
       if (playerControlsCard(game, player, "frumo-tide-debt-ledger")) {
         actor.turnData.frumoNextPaymentBonus += 1;
+        consumeControlledSupport(game, player, "frumo-tide-debt-ledger", events, "Pirate's Gambit");
       }
       const laneEntry = applyConstructedLaneEntry(game, player, handCard, laneIndex, command, events);
       if (laneEntry.error) return reject(current, command, laneEntry.error);
@@ -2207,17 +2272,23 @@ function applyCommand(current, rawCommand) {
       return reject(current, command, "It is not that player’s placement opportunity.");
     }
     const laneIndex = game.endPlacementLaneIndex;
-    const occupied = !!game.lanes[laneIndex].facedown[player];
     if (command.type === "placeFacedown") {
-      if (occupied) return reject(current, command, "That lane is already occupied and must be skipped.");
       const card = findHandCard(actor, command.cardId);
       if (!card) return reject(current, command, "Select a card from the acting player’s hand.");
+      const slot = isSupportCard(card) ? "support" : "facedown";
+      if (!game.lanes[laneIndex][slot]) game.lanes[laneIndex][slot] = { 1: null, 2: null };
+      if (game.lanes[laneIndex][slot][player]) {
+        return reject(current, command, slot === "support"
+          ? "That lane already has a support card and must be skipped."
+          : "That lane already has a combat card and must be skipped.");
+      }
       removeCardsFromHand(actor, [card.id]);
-      game.lanes[laneIndex].facedown[player] = card;
+      game.lanes[laneIndex][slot][player] = card;
       const laneEntry = applyConstructedLaneEntry(game, player, card, laneIndex, command, events);
       if (laneEntry.error) return reject(current, command, laneEntry.error);
-      events.push(event(game, "card.placedFacedown", { player, cardId: card.id, laneIndex }));
-      label = `Player ${player} placed a face-down card in Lane ${laneIndex + 1}.`;
+      const placementEvent = slot === "support" ? "card.supportPlaced" : "card.placedFacedown";
+      events.push(event(game, placementEvent, { player, cardId: card.id, laneIndex, card: slot === "support" ? publicLogCard(card) : undefined }));
+      label = `Player ${player} placed ${slot === "support" ? card.name : "a face-down card"} in Lane ${laneIndex + 1}.`;
     } else {
       events.push(event(game, "lanePlacement.skipped", { player, laneIndex }));
       label = `Player ${player} skipped Lane ${laneIndex + 1}.`;
@@ -2302,6 +2373,9 @@ function getFactionAbilityActions(game, playerNumber) {
   actions.push(...jali.actions(game, playerNumber));
   actions.push(...gracus.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
+  const canPoleaPlace = actor.hand.some((card) => game.lanes.some((lane) => (
+    isSupportCard(card) ? !lane.support?.[playerNumber] : !lane.facedown[playerNumber]
+  )));
   const activeCombat = pendingAttack(game);
   const controlsActiveAttack = activeCombat?.attack?.player === playerNumber;
 
@@ -2314,7 +2388,7 @@ function getFactionAbilityActions(game, playerNumber) {
       )
     );
     if (poleaAvailable) {
-      if (actor.hand.length && ownLaneCount < game.lanes.length) {
+      if (canPoleaPlace) {
         actions.push({
           type: "useFactionAbility",
           abilityId: "polea-place",
@@ -2407,7 +2481,7 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
     });
   }
   if (source === "hand") {
-    const weapons = controlledLaneEntries(game, playerNumber)
+    const weapons = controlledSupportEntries(game, playerNumber)
       .filter((entry) => (
         entry.card.factionId === "rumin"
         && cardHasType(entry.card, "armament")
@@ -2436,7 +2510,7 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
       label: "Searchlight Beacon · attack with +2"
     });
   }
-  if (cardIs(card, "sheen-beli-awakened") && player.turnData.beliAwakenedReady) {
+  if (playerControlsCard(game, playerNumber, "sheen-beli-awakened") && player.turnData.beliAwakenedReady) {
     options.push({
       id: "beli-awakened",
       kind: "toggle",
@@ -2609,7 +2683,7 @@ function normalizeLegalAction(game, playerNumber, action) {
     sources.push(selectionGroup(
       "blockerCardIds",
       "blocker",
-      handEntities,
+      handEntities.filter((entity) => isCombatCard(findHandCard(actor, entity.cardId))),
       1,
       1,
       false
@@ -2692,7 +2766,7 @@ function normalizeLegalAction(game, playerNumber, action) {
       const controlledTargets = controlledAttack ? [...ownLaneCards, controlledAttack] : ownLaneCards;
       targets.push(selectionGroup("cardTarget", "buffTarget", controlledTargets));
     } else if (action.abilityId === "lafayette-swap") {
-      sources.push(selectionGroup("cardId", "handCard", handEntities));
+      sources.push(selectionGroup("cardId", "handCard", handEntities.filter((entity) => isCombatCard(findHandCard(actor, entity.cardId)))));
       targets.push(selectionGroup("laneIndex", "laneCard", ownLaneCards));
     } else if (/^(mekan|jali):/.test(action.abilityId)) {
       const id = action.abilityId.split(":").slice(2).join(":");
@@ -2762,13 +2836,13 @@ function getLegalActions(game, player) {
     }
     const actions = [{ type: "declineBlock", attackId: pending.attack.id }];
     if (pending.laneIndex == null) {
-      if (actor.hand.length) {
+      if (actor.hand.some(isCombatCard)) {
         actions.unshift({
           type: "declareHandBlock",
           attackId: pending.attack.id,
           minimumBlockers: 1,
           maximumBlockers: 1,
-          optionalEffects: getConstructedBlockOptions(game, playerNumber, actor.hand)
+          optionalEffects: getConstructedBlockOptions(game, playerNumber, actor.hand.filter(isCombatCard))
         });
       }
     } else if (game.lanes[pending.laneIndex].facedown[playerNumber]) {
@@ -2789,7 +2863,7 @@ function getLegalActions(game, player) {
     if (game.priority !== playerNumber) return [];
     return [
       ...getFactionAbilityActions(game, playerNumber),
-      ...actor.hand.map((card) => ({
+      ...actor.hand.filter(isCombatCard).map((card) => ({
         type: "declareHandAttack",
         cardId: card.id,
         requiredPayment: attackPaymentRequirement(actor, card, false, game).required,
@@ -2820,11 +2894,17 @@ function getLegalActions(game, player) {
   if (game.phase === "end" && currentPlacementPlayer(game) === playerNumber) {
     const laneIndex = game.endPlacementLaneIndex;
     const actions = [{ type: "skipPlacement", laneIndex }];
-    if (!game.lanes[laneIndex].facedown[playerNumber]) {
-      actions.unshift(...actor.hand.map((card) => ({
+    const placementCards = actor.hand.filter((card) => (
+      isSupportCard(card)
+        ? !game.lanes[laneIndex].support?.[playerNumber]
+        : !game.lanes[laneIndex].facedown[playerNumber]
+    ));
+    if (placementCards.length) {
+      actions.unshift(...placementCards.map((card) => ({
         type: "placeFacedown",
         laneIndex,
         cardId: card.id,
+        placementRole: isSupportCard(card) ? "support" : "combat",
         optionalEffects: cardIs(card, "frumo-deckhand-diver")
           ? [{
               id: "deckhand-diver-peek",
@@ -3012,10 +3092,15 @@ function projectForPerspective(game, perspectivePlayer) {
     projected.players[player].deck = [];
   }
   projected.lanes.forEach((lane, laneIndex) => {
+    if (!lane.support) lane.support = { 1: null, 2: null };
     for (const player of [1, 2]) {
       if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed) {
         hiddenCardIds.add(lane.facedown[player].id);
         lane.facedown[player] = { id: `hidden-lane-${laneIndex}-p${player}`, hidden: true };
+      }
+      if (player !== viewer && cardHasType(lane.support[player], "ambush") && !lane.support[player].revealed) {
+        hiddenCardIds.add(lane.support[player].id);
+        lane.support[player] = { id: `hidden-support-${laneIndex}-p${player}`, hidden: true, type: "ambush" };
       }
     }
   });

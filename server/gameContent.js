@@ -1,7 +1,7 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-rules-v2";
-const CONTENT_VERSION = "gauntlet-content-v10";
+const RULES_VERSION = "gauntlet-rules-v3";
+const CONTENT_VERSION = "gauntlet-content-v11";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -25,8 +25,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-forum-ledger-runner",
     factionId: "rumin",
-    name: "Stockbroker's Gloves",
-    type: "armament",
+    name: "Rumin Scout",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "If this is your first attack this turn, you may treat one payment card as +1 value."
@@ -34,8 +34,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-vault-shield-bearer",
     factionId: "rumin",
-    name: "Insurance Policy Plate",
-    type: "armament",
+    name: "Rumin Sentry",
+    type: "servitor",
     rarity: "common",
     value: 4,
     text: "When blocking, prevent 1 damage if you overpaid for this block."
@@ -52,8 +52,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-senate-vault-guard",
     factionId: "rumin",
-    name: "Hedge Fund Vest",
-    type: "armament",
+    name: "Rumin Warrior",
+    type: "servitor",
     rarity: "uncommon",
     value: 5,
     text: "The first time each turn you overpay for this by 2 or more, gain 1 life."
@@ -97,8 +97,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-basilisk-standard",
     factionId: "rumin",
-    name: "Market Rally Drum",
-    type: "armament",
+    name: "Colosseum Duelist",
+    type: "servitor",
     rarity: "rare",
     value: 6,
     text: "Your fourth attack each turn gets +2 additional value if an armament is armed to it."
@@ -106,8 +106,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-jewel-bank-contract",
     factionId: "rumin",
-    name: "Board of Directors' Insignia",
-    type: "armament",
+    name: "Rumin Military Advisor",
+    type: "servitor",
     rarity: "rare",
     value: 5,
     text: "After this attacks or blocks, the next Rumin attack this turn may treat its single payment card as +2 value."
@@ -115,8 +115,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-tax-road-scout",
     factionId: "rumin",
-    name: "Insider's Javelin",
-    type: "armament",
+    name: "Rumin Javelineer",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "If this is your first attack this turn, it costs 1 less to play."
@@ -124,8 +124,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-marble-phalanx",
     factionId: "rumin",
-    name: "Ballistic Shield",
-    type: "armament",
+    name: "Rumin Shieldmaster",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "When this blocks from a lane, it gets +2 value."
@@ -133,8 +133,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-counting-house-aegis",
     factionId: "rumin",
-    name: "Diversified Portfolio",
-    type: "armament",
+    name: "Rumin Business Analyst",
+    type: "servitor",
     rarity: "uncommon",
     value: 7,
     text: "The first time each turn you overpay for a Rumin card by 2 or more, gain 1 life."
@@ -151,8 +151,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-edict-of-the-vault",
     factionId: "rumin",
-    name: "Battle Cry Horn",
-    type: "armament",
+    name: "Rumin Legatus",
+    type: "servitor",
     rarity: "rare",
     value: 8,
     text: "When paid for your fourth attack this turn, this pays +3 additional value."
@@ -169,8 +169,8 @@ const RUMIN_COLLECTION_CARDS = [
   {
     id: "rumin-rumie-market-colossus",
     factionId: "rumin",
-    name: "Crown of Authority",
-    type: "armament",
+    name: "Rumin Warlord",
+    type: "servitor",
     rarity: "mythic",
     value: 10,
     text: "When this attacks, each eligible Rumin armament you control in a lane may arm to it. Each armed armament gives an extra +1 value."
@@ -181,8 +181,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-rootwatch-initiate",
     factionId: "sheen",
-    name: "Root Haven",
-    type: "shelter",
+    name: "Verdant Guardian",
+    type: "servitor",
     rarity: "common",
     value: 3,
     text: "When this blocks, it gets +1 value if you have already blocked this turn."
@@ -190,8 +190,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-quiet-grove-sentinel",
     factionId: "sheen",
-    name: "Healing Hollow",
-    type: "shelter",
+    name: "Harmonic Warden",
+    type: "servitor",
     rarity: "common",
     value: 4,
     text: "If this prevents all damage from an attack, gain 1 life."
@@ -199,8 +199,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-mossbound-staff",
     factionId: "sheen",
-    name: "Negotiation Grounds",
-    type: "shelter",
+    name: "Starroot Observer",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "When paid for a block, the first blocking card gets +1 value."
@@ -208,8 +208,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-living-bark-guard",
     factionId: "sheen",
-    name: "Barkskin Bastion",
-    type: "shelter",
+    name: "Greenhouse Guardian",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "This may block hand attacks as though it had +1 value."
@@ -235,8 +235,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-thornroot-counterstroke",
     factionId: "sheen",
-    name: "Thorned Refuge",
-    type: "shelter",
+    name: "Thorn Weaver",
+    type: "servitor",
     rarity: "uncommon",
     value: 6,
     text: "If you took no damage this turn, this gets +2 value while attacking."
@@ -280,8 +280,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-seedwall-acolyte",
     factionId: "sheen",
-    name: "Sapling Sanctuary",
-    type: "shelter",
+    name: "Root Guardian",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "When this blocks the first incoming attack each turn, it gets +1 value."
@@ -289,8 +289,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-raincall-mender",
     factionId: "sheen",
-    name: "Rainfall Refuge",
-    type: "shelter",
+    name: "Sheen Mender",
+    type: "servitor",
     rarity: "common",
     value: 4,
     text: "After this blocks, gain 1 life if you took no damage from that attack."
@@ -298,8 +298,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-ringroot-bastion",
     factionId: "sheen",
-    name: "Rootbind Refuge",
-    type: "shelter",
+    name: "Oakheart Sentinel",
+    type: "servitor",
     rarity: "uncommon",
     value: 7,
     text: "When this blocks from a lane, it gets +2 value."
@@ -307,8 +307,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-sapling-chorus",
     factionId: "sheen",
-    name: "Floral Canopy",
-    type: "shelter",
+    name: "Goldenbloom Sower",
+    type: "servitor",
     rarity: "uncommon",
     value: 3,
     text: "When paid for your second or later block each turn, that blocker gets +1 value."
@@ -316,8 +316,8 @@ const SHEEN_COLLECTION_CARDS = [
   {
     id: "sheen-nus-calm-command",
     factionId: "sheen",
-    name: "Tranquility Chamber",
-    type: "shelter",
+    name: "Concordant Elder",
+    type: "servitor",
     rarity: "rare",
     value: 8,
     text: "If you have blocked three or more times this turn, this attacks with +3 value."
@@ -355,8 +355,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-tideglass-cutlass",
     factionId: "frumo",
-    name: "Turning of the Tides",
-    type: "ambush",
+    name: "Deckhand Recruit",
+    type: "servitor",
     rarity: "common",
     value: 4,
     text: "Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value."
@@ -364,8 +364,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-sunken-coin",
     factionId: "frumo",
-    name: "Collect Tribute",
-    type: "ambush",
+    name: "Vault Raider",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "When paid for an attack, block, or ability, this pays +1 value if you control an empty lane."
@@ -373,8 +373,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-coral-hull-guard",
     factionId: "frumo",
-    name: "Frozen Barrier",
-    type: "ambush",
+    name: "Wavebreaker Maurauder",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn."
@@ -400,8 +400,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-pressure-lock-pistol",
     factionId: "frumo",
-    name: "Opening Salvo",
-    type: "ambush",
+    name: "Frumo Sharpshooter",
+    type: "servitor",
     rarity: "uncommon",
     value: 6,
     text: "When this attacks after a consecutive-value card was played, it gets +2 value."
@@ -409,8 +409,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ristus-blackwake",
     factionId: "frumo",
-    name: "Coastal Raid",
-    type: "ambush",
+    name: "Riptide Veteran",
+    type: "servitor",
     rarity: "uncommon",
     value: 6,
     text: "When this attacks from a lane while you control an empty lane, it gets +1 value."
@@ -418,8 +418,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-captains-bad-wager",
     factionId: "frumo",
-    name: "Sink or Swim",
-    type: "ambush",
+    name: "Renegade Outlaw",
+    type: "servitor",
     rarity: "rare",
     value: 7,
     text: "When this attacks from a lane after you played an even-value card, it gets +3 value this turn."
@@ -445,8 +445,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-kelpcloak-trickster",
     factionId: "frumo",
-    name: "Sudden Scheme",
-    type: "ambush",
+    name: "Silent Corsair",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "When this enters a lane, it counts as a lane swap for your Frumo cards this turn."
@@ -454,8 +454,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ballast-hook",
     factionId: "frumo",
-    name: "Anchor's Hold",
-    type: "ambush",
+    name: "Ocean Enforcer",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "When this attacks from a lane while you control an empty lane, it gets +1 value."
@@ -481,8 +481,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-poleas-moonlit-map",
     factionId: "frumo",
-    name: "X Marks the Spot",
-    type: "ambush",
+    name: "Tide Shaper",
+    type: "servitor",
     rarity: "rare",
     value: 8,
     text: "If this receives the Ristus consecutive-value bonus, it gets +1 additional value."
@@ -499,8 +499,8 @@ const FRUMO_COLLECTION_CARDS = [
   {
     id: "frumo-ristus-rises",
     factionId: "frumo",
-    name: "Tidal Surge",
-    type: "ambush",
+    name: "Frumo Tidecrasher",
+    type: "servitor",
     rarity: "mythic",
     value: 10,
     text: "When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards."
@@ -511,8 +511,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-copperline-technician",
     factionId: "bizi",
-    name: "Mechanical Refinery",
-    type: "contraption",
+    name: "Bizi Technician",
+    type: "servitor",
     rarity: "common",
     value: 3,
     text: "When you overpay for this by 2 or more, gain 1 acceleration counter."
@@ -529,8 +529,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-dune-circuit-runner",
     factionId: "bizi",
-    name: "Hovercraft",
-    type: "contraption",
+    name: "Aerial Drone",
+    type: "servitor",
     rarity: "common",
     value: 4,
     text: "If your previous attack had a different suit, this attacks with +1 value."
@@ -538,8 +538,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-gearplate-shield",
     factionId: "bizi",
-    name: "Bunker Defenses",
-    type: "contraption",
+    name: "Bizi Guardian",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "When blocking, you may remove 1 acceleration counter to give this +2 value."
@@ -574,8 +574,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-sandstorm-processor",
     factionId: "bizi",
-    name: "Searchlight Beacon",
-    type: "contraption",
+    name: "Air Traffic Controller",
+    type: "servitor",
     rarity: "uncommon",
     value: 6,
     text: "If you have 2 or more acceleration counters, this may attack with +2 value."
@@ -610,8 +610,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-brass-spark",
     factionId: "bizi",
-    name: "Spare Part Scrapyard",
-    type: "contraption",
+    name: "Bizi Sparksmith",
+    type: "servitor",
     rarity: "common",
     value: 2,
     text: "When paid for your first Bizi card each turn, this pays +1 additional value."
@@ -619,8 +619,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-railspike-marshal",
     factionId: "bizi",
-    name: "Iron Express",
-    type: "contraption",
+    name: "Velocity Vanguard",
+    type: "servitor",
     rarity: "common",
     value: 5,
     text: "If your previous attack had a different suit, this attacks with +1 value."
@@ -628,8 +628,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-heat-sink-matrix",
     factionId: "bizi",
-    name: "Smoke Screen",
-    type: "contraption",
+    name: "Utility Specialist",
+    type: "servitor",
     rarity: "uncommon",
     value: 4,
     text: "When blocking, you may remove 1 acceleration counter to give this +2 value."
@@ -637,8 +637,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-clockwork-caravan",
     factionId: "bizi",
-    name: "Energy Transporter",
-    type: "contraption",
+    name: "Clockwork Merchant",
+    type: "servitor",
     rarity: "uncommon",
     value: 7,
     text: "The first time each turn you overpay for this by 2 or more, draw 1 extra card at end of turn."
@@ -646,8 +646,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-voltaric-ultimatum",
     factionId: "bizi",
-    name: "Incinerator Turret",
-    type: "contraption",
+    name: "Shrapnel Blaster",
+    type: "servitor",
     rarity: "rare",
     value: 8,
     text: "Remove 2 acceleration counters: this attacks with +5 value."
@@ -664,8 +664,8 @@ const BIZI_COLLECTION_CARDS = [
   {
     id: "bizi-constanti-sunforge",
     factionId: "bizi",
-    name: "Armored Battleship",
-    type: "contraption",
+    name: "Bizi Architect",
+    type: "servitor",
     rarity: "mythic",
     value: 10,
     text: "When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed."
@@ -673,7 +673,29 @@ const BIZI_COLLECTION_CARDS = [
 ];
 
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+const SUPPORT_RULES_TEXT = {
+  "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
+  "sheen-beli-vinebinder": "While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value.",
+  "sheen-harmony-ward": "While Harmony Lab occupies a support slot, your second and each later block during the turn gets +1 value.",
+  "sheen-beli-canopy-shield": "While Verdant Canopy occupies a support slot, once each turn after you block, prevent 1 additional damage from that attack.",
+  "sheen-nus-verdant-edict": "While Verdant Dome occupies a support slot, your third block during the turn gets +1 additional value.",
+  "sheen-roots-that-remember": "While Eternal Archive occupies a support slot, whenever you gain life from blocking, your next block that turn gets +1 value.",
+  "sheen-tangs-patient-hand": "While Meditation Retreat occupies a support slot, after your second block each turn, gain 1 life and draw one extra card at the end of the turn.",
+  "sheen-emperors-heartwood": "While Evergreen Arbor occupies a support slot, each of your blocking cards gets +1 value; on your third and later blocks each turn, also gain 1 life.",
+  "sheen-beli-awakened": "While Vital Grove occupies a support slot, after you block without taking damage, you may give your next attack that turn +3 value.",
+  "frumo-deckhand-diver": "When Deep Dive enters a support slot, you may reveal it to privately inspect the top card of your deck, then discard Deep Dive.",
+  "frumo-riptide-smuggler": "After your first face-down-card inspection each turn, reveal Hauntling Lure to give your next attack +1 value, then discard Hauntling Lure.",
+  "frumo-lafayettes-chart": "After you exchange a hand card with a lane card, reveal Hit & Run so your next payment card pays +1 additional value, then discard Hit & Run.",
+  "frumo-poleas-sunken-order": "Reveal Command the Revolution to use one Polea mode an additional time this turn, targeting only your own cards, then discard this Ambush.",
+  "frumo-leviathan-salvage": "When your first played card of the turn receives a Ristus consecutive-value bonus, reveal Loot the Hold to gain 1 life, then discard this Ambush.",
+  "frumo-tide-debt-ledger": "After you swap a lane card, reveal Pirate's Gambit so your next payment card pays +1 additional value, then discard Pirate's Gambit.",
+  "frumo-abyssal-switchboard": "When Coordinated Strike enters a support slot, reveal it to give your next attack or block +1 value, then discard it.",
+  "frumo-the-last-gamble": "When you inspect a face-down card, reveal Rally the Crew and choose attack or block; your next card of that kind gets +4 value, then discard this Ambush.",
+  "bizi-solar-array-adept": "While Electrostatic Field occupies a support slot, each acceleration counter you gain gives your next Bizi Servitor attack +1 value that turn.",
+  "bizi-focus-prime-signal": "When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have."
+};
 for (const card of COLLECTION_CARDS) {
+  if (SUPPORT_RULES_TEXT[card.id]) card.text = SUPPORT_RULES_TEXT[card.id];
   card.displayText = getCardWording(card);
   card.gameplayCardId = card.id;
   card.freeAcquisition = FREE_GAMEPLAY_ACQUISITION;
@@ -1377,8 +1399,8 @@ function validateGameContent() {
     if (!factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);
     if (!PLAYING_DECK_VALUES.includes(card.value)) throw new Error(`Invalid game content: card ${card.id} has an invalid value.`);
-    if (card.type !== signatureTypes.get(card.factionId)) {
-      throw new Error(`Invalid game content: card ${card.id} must use the ${signatureTypes.get(card.factionId)} signature type.`);
+    if (!["servitor", signatureTypes.get(card.factionId)].includes(card.type)) {
+      throw new Error(`Invalid game content: card ${card.id} must be a Servitor or use the ${signatureTypes.get(card.factionId)} signature type.`);
     }
     if (card.gameplayCardId !== card.id) throw new Error(`Invalid game content: card ${card.id} has an unstable gameplay identity.`);
     if (card.freeAcquisition !== FREE_GAMEPLAY_ACQUISITION) {

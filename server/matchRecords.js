@@ -79,6 +79,7 @@ function getPublicStateForChecksum(game) {
     players,
     lanes: (game?.lanes || []).map((lane) => ({
       facedown: Object.fromEntries(Object.entries(lane.facedown || {}).map(([playerNum, card]) => [playerNum, !!card])),
+      support: Object.fromEntries(Object.entries(lane.support || {}).map(([playerNum, card]) => [playerNum, !!card])),
       attack: lane.attack ? {
         player: lane.attack.player,
         targetPlayer: lane.attack.targetPlayer ?? null,

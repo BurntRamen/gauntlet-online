@@ -11,7 +11,12 @@ const {
 const { COLLECTION_CARDS, factionsData } = require("../server/gameContent");
 
 const FACTIONS = ["rumin", "sheen", "frumo", "bizi"];
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
 const RUNS_PER_ORDERED_MATCHUP = Math.max(1, Number(process.argv[2] || 10));
+
+function isCombatCard(card) {
+  return !!card && !SUPPORT_TYPES.has(String(card.type || "").toLowerCase());
+}
 
 function shuffle(cards, random) {
   const result = cards.map((card) => ({ ...card }));
@@ -130,7 +135,9 @@ function chooseCommand(game) {
     }
     const handAction = legal.find((action) => action.type === "declareHandBlock");
     if (handAction) {
-      const blockers = [...game.players[player].hand].sort((left, right) => cardValue(right) - cardValue(left));
+      const blockers = game.players[player].hand
+        .filter(isCombatCard)
+        .sort((left, right) => cardValue(right) - cardValue(left));
       for (const blocker of blockers) {
         const paymentCardIds = paymentIds(game.players[player].hand, cardValue(blocker), [blocker.id]);
         if (paymentCardIds) {

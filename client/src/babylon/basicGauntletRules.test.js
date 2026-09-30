@@ -144,7 +144,7 @@ function constructedAttackScenario({
   };
 }
 
-function constructedHandBlockScenario({ faction, definitionId, configure = () => {} }) {
+function constructedHandBlockScenario({ faction, definitionId, support = false, configure = () => {} }) {
   let state = setupFaction(faction === "rumin" ? "sheen" : "rumin", faction);
   const attacker = state.players[1].hand[0];
   const attackPayment = state.players[1].hand[1];
@@ -164,7 +164,14 @@ function constructedHandBlockScenario({ faction, definitionId, configure = () =>
   blocker.rank = "4";
   blockPayment.value = 10;
   blockPayment.rank = "10";
-  makeConstructed(blocker, definitionId);
+  if (support) {
+    const supportCard = state.players[2].hand[2];
+    makeConstructed(supportCard, definitionId);
+    state.players[2].hand = state.players[2].hand.filter((card) => card.id !== supportCard.id);
+    state.lanes[0].support[2] = supportCard;
+  } else {
+    makeConstructed(blocker, definitionId);
+  }
   configure(state, blocker, blockPayment);
   const semanticCommand = {
     type: "declareHandBlock",
@@ -186,6 +193,34 @@ function constructedHandBlockScenario({ faction, definitionId, configure = () =>
 }
 
 describe("shared Basic Gauntlet simulator rules", () => {
+  test("support cards use a separate lane slot and never become legal attackers", () => {
+    const state = setupFaction("rumin", "sheen");
+    const support = state.players[1].hand[0];
+    const servitor = state.players[1].hand[1];
+    makeConstructed(support, "rumin-coin-scale-spear", { type: "armament" });
+    makeConstructed(servitor, "rumin-forum-ledger-runner", { type: "servitor" });
+    state.phase = "end";
+    state.endPlacementLaneIndex = 0;
+    state.endPlacementFirstPlayer = 1;
+    state.endPlacementStep = 0;
+    const placed = applyCommand(state, {
+      type: "placeFacedown",
+      player: 1,
+      laneIndex: 0,
+      cardId: support.id
+    });
+    expect(placed.accepted).toBe(true);
+    expect(placed.state.lanes[0].support[1].id).toBe(support.id);
+    expect(placed.state.lanes[0].facedown[1]).toBeNull();
+
+    placed.state.phase = "priority";
+    placed.state.priority = 1;
+    placed.state.priorityPassed = { 1: false, 2: false };
+    const actions = getLegalActions(placed.state, 1);
+    expect(actions.some((action) => action.type === "declareHandAttack" && action.cardId === support.id)).toBe(false);
+    expect(actions.some((action) => action.type === "declareHandAttack" && action.cardId === servitor.id)).toBe(true);
+  });
+
   test("starts at 42 life and deals eight cards to each player", () => {
     const state = setup();
     expect(state.players[1].life).toBe(STARTING_LIFE);
@@ -1156,12 +1191,14 @@ describe("shared Basic Gauntlet simulator rules", () => {
     {
       definitionId: "sheen-beli-canopy-shield",
       faction: "sheen",
+      support: true,
       note: "Verdant Canopy prevents 1",
       expectedPrevention: 1
     },
     {
       definitionId: "sheen-nus-verdant-edict",
       faction: "sheen",
+      support: true,
       note: "Verdant Dome +1",
       configure: (state) => {
         state.players[2].turnData.blocksDeclaredThisTurn = 2;
@@ -1490,7 +1527,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.accepted).toBe(true);
     expect(result.state.players[1].life).toBe(lifeBefore + 1);
     expect(result.state.players[1].accelerationCounters).toBe(2);
-    expect(result.state.lanes[1].facedown[1].temporaryValueBonus).toBe(2);
+    expect(result.state.players[1].turnData.biziNextServitorBonus).toBe(2);
   });
 
   test.each([
@@ -1548,17 +1585,19 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.lanes[1].facedown[1].temporaryValueBonus).toBe(3);
   });
 
-  test("bizi-focus-prime-signal gains two counters and readies its bounded next-card choice", () => {
-    const { state, attack } = constructedAttackScenario({
-      faction: "bizi",
-      definitionId: "bizi-focus-prime-signal"
-    });
-    expect(attack.notes).toEqual(expect.arrayContaining([
-      "Interference Matrix +2 acceleration",
-      "Interference Matrix readied up to +3"
-    ]));
-    expect(state.players[1].accelerationCounters).toBe(3);
-    expect(state.players[1].turnData.biziPrimeSignalAvailable).toBe(3);
+  test("bizi-focus-prime-signal gains two counters and readies its bounded next-card choice on entry", () => {
+    const state = setupFaction("bizi", "rumin");
+    const signal = state.players[1].hand[0];
+    makeConstructed(signal, "bizi-focus-prime-signal", { type: "contraption" });
+    state.phase = "end";
+    state.endPlacementLaneIndex = 0;
+    state.endPlacementFirstPlayer = 1;
+    state.endPlacementStep = 0;
+    const result = applyCommand(state, { type: "placeFacedown", player: 1, laneIndex: 0, cardId: signal.id });
+    expect(result.accepted).toBe(true);
+    expect(result.state.players[1].accelerationCounters).toBe(2);
+    expect(result.state.players[1].turnData.biziPrimeSignalAvailable).toBe(2);
+    expect(result.state.lanes[0].support[1].id).toBe(signal.id);
   });
 
   test.each([
@@ -1664,6 +1703,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const { state, block } = constructedHandBlockScenario({
       faction: "sheen",
       definitionId: "sheen-beli-vinebinder",
+      support: true,
       configure: (game) => {
         game.players[2].turnData.blocksDeclaredThisTurn = 1;
       }
@@ -1689,10 +1729,12 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const roots = state.players[2].hand[2];
     blocker.value = 4;
     blockPayment.value = 10;
-    makeConstructed(blocker, "sheen-tangs-patient-hand", { type: "tactic" });
+    const retreat = state.players[2].hand[3];
+    makeConstructed(retreat, "sheen-tangs-patient-hand", { type: "shelter" });
     makeConstructed(roots, "sheen-roots-that-remember", { type: "relic" });
-    state.players[2].hand = state.players[2].hand.filter((card) => card.id !== roots.id);
-    state.lanes[0].facedown[2] = roots;
+    state.players[2].hand = state.players[2].hand.filter((card) => ![roots.id, retreat.id].includes(card.id));
+    state.lanes[0].support[2] = roots;
+    state.lanes[1].support[2] = retreat;
     state.players[2].turnData.blocksDeclaredThisTurn = 1;
     const lifeBefore = state.players[2].life;
 
@@ -1767,7 +1809,8 @@ describe("shared Basic Gauntlet simulator rules", () => {
     });
 
     expect(result.accepted).toBe(true);
-    expect(result.state.lanes[0].facedown[1].temporaryValueBonus).toBe(1);
+    expect(result.state.players[1].turnData.frumoNextActionBonus).toBe(1);
+    expect(result.state.players[1].turnData.frumoNextActionKind).toBe("attack");
     expect(result.state.players[1].turnData.frumoRiptideSmugglerUsed).toBe(true);
   });
 
@@ -1957,7 +2000,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     let state = setupFaction("rumin", "sheen");
     const contract = state.players[1].hand.find((card) => card.value === 2);
     const contractPayment = state.players[1].hand.find((card) => card.value === 3);
-    makeConstructed(contract, "rumin-jewel-bank-contract", { type: "armament" });
+    makeConstructed(contract, "rumin-jewel-bank-contract", { type: "servitor" });
     let result = applyCommand(state, {
       type: "declareHandAttack",
       player: 1,
@@ -2058,7 +2101,10 @@ describe("shared Basic Gauntlet simulator rules", () => {
     const state = setupFaction("sheen", "rumin");
     const attacker = state.players[1].hand.find((card) => card.value === 4);
     const payment = state.players[1].hand.find((card) => card.value >= 4 && card.id !== attacker.id);
-    makeConstructed(attacker, "sheen-beli-awakened");
+    const grove = state.players[1].hand.find((card) => ![attacker.id, payment.id].includes(card.id));
+    makeConstructed(grove, "sheen-beli-awakened", { type: "shelter" });
+    state.players[1].hand = state.players[1].hand.filter((card) => card.id !== grove.id);
+    state.lanes[0].support[1] = grove;
     state.players[1].turnData.beliAwakenedReady = true;
 
     const withoutChoice = applyCommand(state, {

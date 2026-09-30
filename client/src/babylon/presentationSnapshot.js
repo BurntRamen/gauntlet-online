@@ -489,6 +489,36 @@ export function createPresentationSnapshot(viewModel, options = {}) {
         }
       }));
     }
+    if (lane.hasLocalSupport) {
+      const known = lane.localSupport?.visible ? lane.localSupport : null;
+      const actorId = visibleCardIdentity(known, `player-${bottomPlayer}:support:${laneIndex}`);
+      addActor(actors, actorFromCard(known, actorId, {
+        kind: "lane",
+        side: "local",
+        role: "support",
+        laneIndex,
+        slotIndex: 0,
+        count: 1
+      }, {
+        faceDown: !known,
+        preview: known ? { ...known, stateLabel: `Support in Lane ${laneIndex + 1}`, stateIcon: "ability" } : null
+      }));
+    }
+    if (lane.hasOpponentSupport) {
+      const known = lane.opponentSupport?.visible ? lane.opponentSupport : null;
+      const actorId = visibleCardIdentity(known, `player-${topPlayer}:support:${laneIndex}`);
+      addActor(actors, actorFromCard(known, actorId, {
+        kind: "lane",
+        side: "opponent",
+        role: "support",
+        laneIndex,
+        slotIndex: 0,
+        count: 1
+      }, {
+        faceDown: !known,
+        preview: known ? { ...known, stateLabel: `Opponent support in Lane ${laneIndex + 1}`, stateIcon: "ability" } : null
+      }));
+    }
   });
 
   const attacks = viewModel?.attacks || [];

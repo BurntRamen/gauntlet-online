@@ -49,6 +49,7 @@ function cardEntries(game) {
   };
   (game.lanes || []).forEach((lane, i) => {
     for (const p of [1, 2]) add(lane.facedown[p], p, 'lane', { laneIndex: i });
+    for (const p of [1, 2]) add(lane.support?.[p], p, 'support', { laneIndex: i });
     combat(lane.attack, i);
   });
   (game.handAttacks || []).forEach(a => combat(a, null));
@@ -66,6 +67,7 @@ const PENDING_EFFECTS = {
   sheenEndTurnDraws: ['Meditation Retreat', 'Extra draws after end-turn refill'],
   frumoNextPaymentBonus: ['Frumo swap', 'Next payment bonus'],
   frumoNextActionBonus: ['Frumo', 'Next qualifying attack/block bonus'],
+  biziNextServitorBonus: ['Electrostatic Field', 'Next Servitor bonus'],
   biziPrimeSignalAvailable: ['Interference Matrix', 'Next card bonus'],
   biziEndTurnDraws: ['Energy Transporter', 'Extra draws after end-turn refill'],
   mekanInvitation: ['San Mikal', 'Invited Guest: next matching printed value +1'],

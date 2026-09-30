@@ -360,7 +360,7 @@ function actionKind(entries) {
   if (commandKind === "block" || eventTypes.has("block.declared")) return "block";
   if (commandKind === "attack" || eventTypes.has("attack.declared")) return "attack";
   if (commandKind === "ability" || [...REPLAY_ABILITY_EVENTS].some((type) => eventTypes.has(type))) return "ability";
-  if (commandKind === "placement" || eventTypes.has("card.placedFacedown")) return "placement";
+  if (commandKind === "placement" || eventTypes.has("card.placedFacedown") || eventTypes.has("card.supportPlaced")) return "placement";
   if (eventTypes.has("damage.calculated") || eventTypes.has("damage.dealt")) return "resolution";
   if (commandKind === "result" || eventTypes.has("match.ended") || eventTypes.has("match.abandoned")) return "result";
   if (eventTypes.has("turn.started")) return "turn";

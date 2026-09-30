@@ -220,6 +220,12 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
         title: `${entry.source ? `${abilityName(entry)} · ` : ''}${actor} placed a face-down card`,
         detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}`
       };
+    case "card.supportPlaced":
+      return {
+        icon: "ability",
+        title: `${actor} placed a support card`,
+        detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}`
+      };
     case "priority.granted":
       return { icon: "priority", title: `Priority → ${actor}`, detail: "Next action" };
     case "priority.passed":

@@ -120,7 +120,7 @@ function sanitizeLeagueEvent(event = {}) {
       laneIndex: detail.laneIndex ?? null
     };
   }
-  if (type === "card.placedFacedown") {
+  if (type === "card.placedFacedown" || type === "card.supportPlaced") {
     return {
       ...(detail.publicTotals ? { publicTotals: detail.publicTotals } : {}),
       player: detail.player ?? null,

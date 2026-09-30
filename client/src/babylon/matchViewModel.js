@@ -234,6 +234,8 @@ function normalizeLane(game, laneIndex, bottomPlayer, topPlayer, spectator) {
   const lane = game?.lanes?.[laneIndex] || {};
   const localCard = bottomPlayer ? lane.facedown?.[bottomPlayer] : null;
   const opponentCard = topPlayer ? lane.facedown?.[topPlayer] : null;
+  const localSupport = bottomPlayer ? lane.support?.[bottomPlayer] : null;
+  const opponentSupport = topPlayer ? lane.support?.[topPlayer] : null;
   const attack = normalizeAttack(game, lane.attack, laneIndex, null);
   const blocks = (lane.block || []).map((block, index) => ({
     id: block.id || `block-${laneIndex}-${index}`,
@@ -254,13 +256,25 @@ function normalizeLane(game, laneIndex, bottomPlayer, topPlayer, spectator) {
       id: `local-lane-${laneIndex}`
     }),
     opponentCard: normalizeCard(opponentCard, { visible: !!opponentCard?.revealed, id: `opponent-lane-${laneIndex}` }),
+    localSupport: normalizeCard(localSupport, {
+      visible: !!localSupport && !spectator && !localSupport.hidden,
+      factionId: localSupport?.factionId || factionForPlayer(game, bottomPlayer),
+      id: `local-support-${laneIndex}`
+    }),
+    opponentSupport: normalizeCard(opponentSupport, {
+      visible: !!opponentSupport && !opponentSupport.hidden,
+      factionId: opponentSupport?.factionId || factionForPlayer(game, topPlayer),
+      id: `opponent-support-${laneIndex}`
+    }),
     playerOneCard: normalizeCard(lane.facedown?.[1], { visible: false, id: `p1-lane-${laneIndex}` }),
     playerTwoCard: normalizeCard(lane.facedown?.[2], { visible: false, id: `p2-lane-${laneIndex}` }),
     attack,
     blocks,
     hasLocalCard: !!localCard,
     hasOpponentCard: !!opponentCard,
-    hasAnyCard: !!lane.facedown?.[1] || !!lane.facedown?.[2],
+    hasLocalSupport: !!localSupport,
+    hasOpponentSupport: !!opponentSupport,
+    hasAnyCard: !!lane.facedown?.[1] || !!lane.facedown?.[2] || !!lane.support?.[1] || !!lane.support?.[2],
     isActive: !!attack || blocks.length > 0
   };
 }
