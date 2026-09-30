@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DeckVisual } from "./GauntletVisuals";
 import DeckBox from "./DeckBox";
+import DeckNameEditor from "./DeckNameEditor";
 import { getDeckFeaturedArt } from "./contentArt";
 import "./DeckLibraryPanel.css";
 
@@ -12,7 +13,11 @@ const DECK_ACCENTS = {
   basic: "#c89b52"
 };
 
-function DeckRow({ deck, active, selected, collectorCatalog, onSelect, onAction, onOpenMatch }) {
+function DeckRow({ deck, active, selected, collectorCatalog, onSelect, onAction, onRename, onOpenMatch }) {
+  const [renaming, setRenaming] = useState(false);
+  const [draftName, setDraftName] = useState(deck.name);
+  const renameButton = useRef(null);
+  const closeRename = () => { setRenaming(false); renameButton.current?.focus(); };
   const record = deck.record || {};
   const versionCount = deck.versions?.length || 1;
   const latestMatchId = record.recentMatchIds?.[0] || null;
@@ -40,17 +45,20 @@ function DeckRow({ deck, active, selected, collectorCatalog, onSelect, onAction,
       <div className="deck-library-actions">
         {!deck.archived && !active && <button type="button" className="deck-library-use" onClick={() => onAction(deck.id, "activate")}>Make Active</button>}
         <div className="deck-library-more-actions" aria-label={`${deck.name} management actions`}>
+            {onRename && <button type="button" ref={renameButton} onClick={() => { setDraftName(deck.name); setRenaming(true); }}>Rename</button>}
             {!deck.archived && <button type="button" onClick={() => onAction(deck.id, "duplicate")}>Duplicate</button>}
             {!deck.archived && <button type="button" onClick={() => onAction(deck.id, "feature")}>{deck.featured ? "Unfeature" : "Feature"}</button>}
             {latestMatchId && <button type="button" onClick={() => onOpenMatch(latestMatchId)}>Recent Match</button>}
             <button type="button" className={!deck.archived ? "is-danger" : ""} onClick={() => onAction(deck.id, deck.archived ? "restore" : "archive")}>{deck.archived ? "Restore" : "Archive"}</button>
         </div>
       </div>
+      {renaming && <DeckNameEditor label="New deck name" autoFocus name={draftName} onChange={setDraftName} savedName={deck.name}
+        onCancel={closeRename} onSave={async (name) => { await onRename(deck.id, name); closeRename(); }} />}
     </div>
   );
 }
 
-export default function DeckLibraryPanel({ library, selectedDeckId, collectorCatalog = [], onSelect, onNew, onAction, onOpenMatch }) {
+export default function DeckLibraryPanel({ library, selectedDeckId, collectorCatalog = [], onSelect, onNew, onAction, onRename, onOpenMatch }) {
   const [showArchived, setShowArchived] = useState(false);
   const decks = (library?.decks || []).filter((deck) => showArchived || !deck.archived);
   const activeIds = new Set([
@@ -82,6 +90,7 @@ export default function DeckLibraryPanel({ library, selectedDeckId, collectorCat
           collectorCatalog={collectorCatalog}
           onSelect={onSelect}
           onAction={onAction}
+          onRename={onRename}
           onOpenMatch={onOpenMatch}
         />
       ))}

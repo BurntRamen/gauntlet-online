@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import SpecialCardFace from "./SpecialCardFace";
 import DeckBox, { DECK_BOXES } from "./DeckBox";
+import DeckNameEditor from "./DeckNameEditor";
 import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import { getPlayingCardArtPath } from "./cardArt";
 import { buildDeckSlots, replaceDeckSlot, DECK_SUITS, DECK_VALUES, rankLabel, slotLabel } from "./deckSlots";
@@ -14,7 +15,7 @@ function readLayout() {
   } catch { return { cards: false, preview: true, width: 290 }; }
 }
 export default function DeckWorkshop({ name, factionId, factions, loadoutPicker, renderRules, cards, owned, quantities, suitChoices, variantsByCard, variantSelections, boxId,
-  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onSave, onReset, onRestore, saved, versionCount, message, invalid }) {
+  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid }) {
   const faction = factions.find((entry) => entry.id === factionId) || {};
   const [selectedKey, setSelectedKey] = useState("2:spades");
   const [candidateId, setCandidateId] = useState("");
@@ -92,7 +93,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
           onPointerUp={(event) => { dragRef.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }}
           onPointerCancel={() => { dragRef.current = null; }} onLostPointerCapture={() => { dragRef.current = null; }} />
         <aside className="deck-inspection-rail" aria-label="Deck name and selected card">
-          <label className="deck-name-label"><span>Deck name</span><input aria-label="Deck name" value={name} maxLength={80} onChange={(event) => onNameChange(event.target.value)} /></label>
+          <DeckNameEditor name={name} onChange={onNameChange} savedName={savedName} onSave={saved ? onRename : undefined} />
           <div className="deck-inspector-scroll">
             <div className="deck-preview-heading"><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
             {layout.preview && <div className="deck-slot-preview" aria-label={(preview?.name || slotLabel(selected)) + " selected card preview"}>

@@ -1,0 +1,10 @@
+.deck-name-editor { display: grid; min-width: 0; gap: 6px; margin: 0 0 8px; }
+.deck-name-editor > label { display: grid; min-width: 0; gap: 4px; color: #b9cbc3; font-size: 11px; }
+.deck-name-editor > label > input { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #6f8a7c; border-radius: 4px; background: #162b2f; color: #fff0cf; font: 16px Georgia, serif; cursor: text; }
+.deck-name-editor input::placeholder { color: #9cafab; }
+.deck-name-editor :is(input, button):focus-visible { outline: 2px solid #edc979; outline-offset: 2px; }
+.deck-name-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.deck-name-actions > button { padding: 6px 9px; border: 1px solid #627c6f; border-radius: 4px; background: #2b473b; color: #f0e8d1; font-size: 11px; cursor: pointer; }
+.deck-name-actions > button:disabled { opacity: .5; cursor: default; }
+.deck-name-editor > p { margin: 0; color: #ffb5aa; font-size: 11px; }
+.deck-library-row > .deck-name-editor { grid-column: 1 / -1; max-width: 420px; width: 100%; margin: 0; }
