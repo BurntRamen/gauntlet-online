@@ -9,6 +9,7 @@ import {
   getLanePosition,
   getPaymentPosition,
   getTableCameraProjection,
+  getTableViewportSize,
   MATCH_LAYOUT,
   normalizePresentationLaneIndex,
   normalizeVisibleCardRotation
@@ -16,6 +17,22 @@ import {
 import { createBoardStageDescriptor, getBoardLayoutProfile } from "./boardStage";
 import { BOARD_LAYOUT_PROFILES } from "./boardStage";
 import { resolveActorPosition } from "./presentationGeometry";
+
+test("desktop framing stays fixed when quality or adaptive rendering changes pixel resolution", () => {
+  const canvas = { clientWidth: 1890, clientHeight: 750 };
+  const expected = getTableCameraProjection(canvas.clientWidth, canvas.clientHeight);
+  for (const scale of [0.75, 1, 1.6, 2.04, 3]) {
+    const engine = { getHardwareScalingLevel: () => scale,
+      getRenderWidth: () => Math.round(canvas.clientWidth / scale),
+      getRenderHeight: () => Math.round(canvas.clientHeight / scale) };
+    const { width, height } = getTableViewportSize(canvas, engine);
+    expect(getTableCameraProjection(width, height)).toEqual(expected);
+    expect(getBoardLayoutProfile(width, height).id).toBe("desktop");
+  }
+  canvas.clientWidth = 844; canvas.clientHeight = 390;
+  const resized = getTableViewportSize(canvas, { getHardwareScalingLevel: () => 2 });
+  expect(getBoardLayoutProfile(resized.width, resized.height).id).toBe("short-landscape");
+});
 
 function expectNoCardOverlap(positions) {
   positions.forEach((left, leftIndex) => {

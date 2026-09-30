@@ -718,6 +718,34 @@ test("board faction cards route available orders through hand and lane selection
   await expect(page.locator('[data-faction-role="general"]')).toHaveClass(/is-ready/);
 });
 
+test("resolution changes preserve framing and saved light mode updates the existing match", async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 2560, height: 900 });
+  await prepareGuest(page, baseURL, "Theme Reviewer", "Practice");
+  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await chooseLobbyFaction(page, "Frumo");
+  await page.getByRole("button", { name: "Confirm Start" }).click();
+  const match = page.getByTestId("production-babylon-match");
+  const canvas = page.locator("canvas.babylon-match-canvas");
+  await expect(match).toHaveAttribute("data-layout-profile", "ultrawide");
+  await page.evaluate(() => { window.__themeOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
+  const frame = await page.getByTestId("battlefield-safe-frame").boundingBox();
+  await page.locator(".production-match-utilities > summary").click();
+  await page.getByLabel("Graphics quality", { exact: true }).selectOption("performance");
+  // This crosses the old 420-render-pixel breakpoint without resizing the display.
+  await expect.poll(() => canvas.evaluate((element) => element.height)).toBeLessThanOrEqual(420);
+  await expect(match).toHaveAttribute("data-layout-profile", "ultrawide");
+  await expect(page.locator("[data-faction-role]")).toHaveCount(3);
+  await page.getByRole("button", { name: "Light", exact: true }).click();
+  await expect(match).toHaveAttribute("data-match-theme", "light");
+  expect(await page.evaluate(() => localStorage.getItem("gauntlet.matchTheme"))).toBe("light");
+  await page.setViewportSize({ width: 2559, height: 900 });
+  await page.setViewportSize({ width: 2560, height: 900 });
+  await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).y).toBe(frame.y);
+  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await expect(match).toHaveAttribute("data-match-theme", "dark");
+  expect(await page.evaluate(() => window.__themeOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
+});
+
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
   await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");

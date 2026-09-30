@@ -18,6 +18,7 @@ export default function GauntletMatchCanvas({
   interactionStatus = "",
   graphicsQuality = "balanced",
   battlefieldTheme = "basic",
+  colorTheme = "dark",
   cardBackAsset = "",
   handRailPresentation = null,
   capturePlaybackControl = null,
@@ -30,6 +31,7 @@ export default function GauntletMatchCanvas({
   const rendererFailedRef = useRef(false);
   const commandsRef = useRef(commands);
   const battlefieldThemeRef = useRef(battlefieldTheme);
+  const colorThemeRef = useRef(colorTheme);
   const cardBackAssetRef = useRef(cardBackAsset);
   const handRailPresentationRef = useRef(handRailPresentation);
   const graphicsQualityRef = useRef(normalizeGraphicsQuality(graphicsQuality));
@@ -41,6 +43,7 @@ export default function GauntletMatchCanvas({
   const [rendererError, setRendererError] = useState("");
   commandsRef.current = commands;
   battlefieldThemeRef.current = battlefieldTheme;
+  colorThemeRef.current = colorTheme;
   cardBackAssetRef.current = cardBackAsset;
   handRailPresentationRef.current = handRailPresentation;
   graphicsQualityRef.current = normalizeGraphicsQuality(graphicsQuality);
@@ -90,6 +93,7 @@ export default function GauntletMatchCanvas({
         presentationCue: (...args) => commandsRef.current.presentationCue?.(...args),
         cardBackAsset: cardBackAssetRef.current,
         battlefieldTheme: battlefieldThemeRef.current,
+        colorTheme: colorThemeRef.current,
         getHandRailPresentation: () => handRailPresentationRef.current?.current
       });
       if (!renderer.scene.activeCamera) {
@@ -271,11 +275,11 @@ export default function GauntletMatchCanvas({
 
   useEffect(() => {
     try {
-      rendererRef.current?.updatePresentation({ battlefieldTheme, cardBackAsset });
+      rendererRef.current?.updatePresentation({ battlefieldTheme, colorTheme, cardBackAsset });
     } catch (error) {
       reportRendererFailure(error, "The Babylon presentation could not update.");
     }
-  }, [battlefieldTheme, cardBackAsset]);
+  }, [battlefieldTheme, colorTheme, cardBackAsset]);
 
   useEffect(() => {
     const engine = engineRef.current;

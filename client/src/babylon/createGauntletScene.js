@@ -23,6 +23,7 @@ import { TextBlock, TextWrapping } from "@babylonjs/gui/2D/controls/textBlock.js
 import {
   getHandHoverPosition,
   getTableCameraProjection,
+  getTableViewportSize,
   MATCH_LAYOUT,
   normalizePresentationLaneIndex,
   normalizeVisibleCardRotation
@@ -198,7 +199,15 @@ function color(hex) {
   return Color3.FromHexString(hex);
 }
 
-function battlefieldTheme(themeId) {
+const LIGHT_BATTLEFIELD_THEME = Object.freeze({
+  light: true, clear: [0.84, 0.87, 0.89],
+  fill: "#e9eff1", key: "#fff0d8", rim: "#a5c4d3",
+  graphite: "#b9b4a8", graphiteDeep: "#9eaaa9", stone: "#c8c2b4", well: "#899898",
+  glow: "#b5b0a3", deepGlow: "#93a6ab", tableSpecular: "#343c40"
+});
+
+function battlefieldTheme(themeId, colorTheme) {
+  if (colorTheme === "light") return LIGHT_BATTLEFIELD_THEME;
   const normalized = String(themeId || "basic").toLowerCase();
   return BATTLEFIELD_THEMES[normalized] || BATTLEFIELD_THEMES.basic;
 }
@@ -378,10 +387,10 @@ function materialFromStaticTexture(scene, name, path, fallbackTexture, fallbackC
     true,
     Texture.TRILINEAR_SAMPLINGMODE,
     () => {
-      material.diffuseTexture = texture;
+      if (options.useTexture?.() !== false) material.diffuseTexture = texture;
     },
     () => {
-      material.diffuseTexture = fallbackTexture;
+      if (options.useTexture?.() !== false) material.diffuseTexture = fallbackTexture;
     }
   );
   texture.anisotropicFilteringLevel = options.anisotropy || 12;
@@ -578,7 +587,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let nativeBoardStage = null;
   let structuralShadowMap = null;
   const staticBoardMeshes = new Set();
-  let activeLayoutProfile = getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight());
+  let activeLayoutProfile = BOARD_LAYOUT_PROFILES.desktop;
 
   function isDynamicBoardMesh(mesh) {
     const name = mesh?.name || "";
@@ -615,8 +624,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   function syncCamera() {
-    const width = Math.max(1, engine.getRenderWidth());
-    const height = Math.max(1, engine.getRenderHeight());
+    const { width, height } = getTableViewportSize(canvas, engine);
     const rail = commands.getHandRailPresentation?.();
     const profile = (rail?.enabled && BOARD_LAYOUT_PROFILES[rail.layoutProfile]) || getBoardLayoutProfile(width, height);
     const projection = getTableCameraProjection(width, height, profile);
@@ -800,6 +808,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       emissive: "#010407",
       specular: theme.tableSpecular,
       anisotropy: 8,
+      useTexture: () => !theme.light,
       level: 0.82
     }
   );
@@ -811,6 +820,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   tableSurfaceMaterial.specularColor = color(theme.tableSpecular);
   tableSurfaceMaterial.alpha = 1;
   tableSurfaceMaterial.backFaceCulling = false;
+  const tableSurfaceTexture = tableSurfaceMaterial.diffuseTexture;
   createChamferedPlate(babylonScene, "table-inlay", {
     width: MATCH_LAYOUT.table.width - 0.45,
     height: 0.09,
@@ -1913,16 +1923,27 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   });
   cardBackSlot.setPath(commands.cardBackAsset || MATCH_ASSETS.cardBack);
 
+  const themedAccents = Object.entries({ bronze: "#6d5434", bronzeBright: "#967443",
+    bronzeDark: "#584b36", steel: "#6e7b83", steelDark: "#46515b",
+    stoneRaised: "#8f9b9d", wellShadow: "#5c6d74" }).map(([role, lightColor]) =>
+    [nativePalette[role], nativePalette[role].emissiveColor.clone(), color(lightColor)]);
+  let appliedTheme = null;
   function updatePresentation(options = {}) {
     if (disposed) return;
-    const nextTheme = battlefieldTheme(options.battlefieldTheme);
-    if (nextTheme !== theme) {
+    const nextTheme = battlefieldTheme(options.battlefieldTheme, options.colorTheme);
+    if (nextTheme !== appliedTheme) {
       theme = nextTheme;
+      appliedTheme = theme;
       babylonScene.clearColor = new Color4(...theme.clear, 1);
       hemi.diffuse = color(theme.fill);
       key.diffuse = color(theme.key);
       rim.diffuse = color(theme.rim);
+      themedAccents.forEach(([material, darkColor, lightColor]) => {
+        material.emissiveColor = theme.light ? lightColor : darkColor;
+      });
       for (const name of ["graphite", "graphiteDeep", "stone", "well"]) {
+        nativePalette[name].diffuseTexture = theme.light ? null : nativeStoneTexture;
+        nativePalette[name].emissiveTexture = theme.light ? null : nativeStoneTexture;
         nativePalette[name].diffuseColor = color(theme[name]);
         nativePalette[name].emissiveColor = color(
           name === "graphiteDeep" || name === "well" ? theme.deepGlow : theme.glow
@@ -1931,9 +1952,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       tableSurfaceMaterial.diffuseColor = color(theme.graphite);
       tableSurfaceMaterial.emissiveColor = color(theme.glow);
       tableSurfaceMaterial.specularColor = color(theme.tableSpecular);
+      tableSurfaceMaterial.diffuseTexture = theme.light ? null : tableSurfaceTexture;
+      tableSurfaceMaterial.emissiveTexture = theme.light ? null : tableSurfaceTexture;
     }
     cardBackSlot.setPath(options.cardBackAsset || MATCH_ASSETS.cardBack);
   }
+  updatePresentation(commands);
   let currentViewModel = null;
   let currentBoardPresentation = null;
   let responsiveRecompose = false;
@@ -2695,7 +2719,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     syncPresentationKit(viewModel.presentationKit);
     currentBoardPresentation = projectBoardPresentation(viewModel, {
       activeCue: primaryPresentationCue(viewModel.presentationCues),
-      profile: getBoardLayoutProfile(engine.getRenderWidth(), engine.getRenderHeight())
+      profile: activeLayoutProfile
     });
     const requestedSnapshot = createPresentationSnapshot(viewModel, {
       source: viewModel.presentationSource,

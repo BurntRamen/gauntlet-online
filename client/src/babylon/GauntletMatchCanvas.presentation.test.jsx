@@ -49,12 +49,12 @@ test("theme and card-back changes preserve the engine, renderer, view model and 
     const originalOptions = createGauntletScene.mock.calls[0][2];
     mounted.rerender(<GauntletMatchCanvas
       viewModel={viewModel} commands={{ activateHandCard: latestHandler }}
-      battlefieldTheme="bizi" cardBackAsset="/existing-bizi-back.jpg"
+      battlefieldTheme="bizi" colorTheme="light" cardBackAsset="/existing-bizi-back.jpg"
     />);
     expect(Engine).toHaveBeenCalledTimes(1);
     expect(createGauntletScene).toHaveBeenCalledTimes(1);
     expect(renderer.updatePresentation).toHaveBeenLastCalledWith({
-      battlefieldTheme: "bizi", cardBackAsset: "/existing-bizi-back.jpg"
+      battlefieldTheme: "bizi", colorTheme: "light", cardBackAsset: "/existing-bizi-back.jpg"
     });
     expect(renderer.update).toHaveBeenCalledWith(viewModel);
     expect(renderer.dispose).not.toHaveBeenCalled();

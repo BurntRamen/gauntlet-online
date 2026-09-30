@@ -24,6 +24,7 @@ import {
   normalizeGraphicsQuality
 } from "./rendererLifecycle";
 import "./ProductionMatchExperience.css";
+import "./MatchColorTheme.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
@@ -31,6 +32,15 @@ import { PlayerAvatar, resolveProfileAvatarUrl } from "../ProfileAvatar";
 import { getPlayingCardArtPath } from "../cardArt";
 
 const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
+const MATCH_THEME_STORAGE_KEY = "gauntlet.matchTheme";
+
+function initialMatchTheme() {
+  try {
+    return window.localStorage.getItem(MATCH_THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+  } catch (_error) {
+    return "dark";
+  }
+}
 
 function initialGraphicsQuality(explicitQuality) {
   if (explicitQuality != null) return normalizeGraphicsQuality(explicitQuality);
@@ -493,6 +503,8 @@ function MatchUtilities({
   graphicsQuality,
   graphicsScalingLevel,
   onGraphicsQualityChange,
+  colorTheme,
+  onColorThemeChange,
   onOpenReference
 }) {
   const [confirmingConcede, setConfirmingConcede] = useState(false);
@@ -537,6 +549,16 @@ function MatchUtilities({
       <summary>Match</summary>
       <div className="production-match-utilities-panel">
         {controls.roomCode && <span>Room {controls.roomCode}</span>}
+        <fieldset className="production-theme-setting">
+          <legend>Match theme</legend>
+          <div>
+            {["dark", "light"].map((mode) => (
+              <button key={mode} type="button" aria-pressed={colorTheme === mode}
+                onClick={() => onColorThemeChange(mode)}>{mode === "light" ? "Light" : "Dark"}</button>
+            ))}
+          </div>
+          <small>Board and controls · saved on this device.</small>
+        </fieldset>
         <div className="production-graphics-setting">
           <label htmlFor="gauntlet-graphics-quality">Graphics quality</label>
           <select
@@ -1293,6 +1315,7 @@ export default function ProductionMatchExperience({
   const [previewCard, setPreviewCard] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
+  const [colorTheme, setColorTheme] = useState(initialMatchTheme);
   const [sceneMetrics, setSceneMetrics] = useState(null);
   const adapterRef = useRef(adapter);
   const sceneMetricsSignatureRef = useRef("");
@@ -1407,6 +1430,12 @@ export default function ProductionMatchExperience({
     }
     options.onGraphicsQualityChange?.(normalized);
   }, [options]);
+  const updateColorTheme = useCallback((mode) => {
+    setColorTheme(mode);
+    try { window.localStorage.setItem(MATCH_THEME_STORAGE_KEY, mode); } catch (_error) {
+      // The current match can still switch when storage is unavailable.
+    }
+  }, []);
   const handleSceneMetrics = useCallback((metrics) => {
     const signature = JSON.stringify({
       matchId: metrics?.matchId,
@@ -1577,7 +1606,7 @@ export default function ProductionMatchExperience({
           (bounds.width >= 1366 && bounds.height > 520 ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities", ".production-turn-marker"]
+        const top = [".production-player-plate-top", ".production-match-utilities > summary", ".production-turn-marker"]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",
           Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
@@ -1788,6 +1817,7 @@ export default function ProductionMatchExperience({
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
       data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
       data-graphics-quality={graphicsQuality}
+      data-match-theme={colorTheme}
       data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
       <div
@@ -1803,6 +1833,7 @@ export default function ProductionMatchExperience({
             interactionLocked={gameplayInputLocked}
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
+            colorTheme={colorTheme}
             cardBackAsset={options.cardBackAsset}
             handRailPresentation={phoneHandActive ? handRailRef : null}
             interactionStatus={transportUpdate?.connected === false
@@ -1864,6 +1895,8 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             graphicsScalingLevel={sceneMetrics?.hardwareScalingLevel}
             onGraphicsQualityChange={updateGraphicsQuality}
+            colorTheme={colorTheme}
+            onColorThemeChange={updateColorTheme}
             onOpenReference={openReference}
           />
         )}
