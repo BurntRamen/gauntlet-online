@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DeckVisual } from "./GauntletVisuals";
+import DeckBox from "./DeckBox";
 import { getDeckFeaturedArt } from "./contentArt";
 import "./DeckLibraryPanel.css";
 
@@ -16,13 +17,14 @@ function DeckRow({ deck, active, selected, collectorCatalog, onSelect, onAction,
   const versionCount = deck.versions?.length || 1;
   const latestMatchId = record.recentMatchIds?.[0] || null;
   const factionId = deck.factionId || "basic";
+  const currentVersion = deck.versions?.find((version) => version.id === deck.currentVersionId) || deck.versions?.[deck.versions.length - 1];
   return (
     <div
       className={`deck-library-row deck-${factionId} ${selected ? "selected" : ""} ${deck.archived ? "archived" : ""}`}
       style={{ "--deck-accent": DECK_ACCENTS[factionId] || DECK_ACCENTS.basic }}
     >
       <button type="button" className="deck-library-main" aria-label={`${deck.name} ${deck.factionName || deck.factionId} / ${deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"} / version ${versionCount} ${record.wins || 0} wins ${record.losses || 0} losses ${record.draws || 0} draws`} onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
-        <DeckVisual deck={{ ...deck, name: "" }} art={getDeckFeaturedArt(deck, collectorCatalog)} decorative />
+        {deck.format === "constructed" ? <DeckBox boxId={currentVersion?.deckBoxId} factionId={factionId} name={deck.factionName || factionId} compact /> : <DeckVisual deck={{ ...deck, name: "" }} art={getDeckFeaturedArt(deck, collectorCatalog)} decorative />}
         <span className="deck-library-copy">
           <span className="deck-library-format">{deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"}</span>
           <strong>{deck.name}</strong>

@@ -60,6 +60,7 @@
 
 .deck-library-main { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 12px; align-items: center; min-width: 0; padding: 0; border: 0; background: transparent; color: #f8fafc; cursor: pointer; text-align: left; }
 .deck-library-main:disabled { cursor: default; }
+.deck-library-main > .deck-box { justify-self: center; }
 .deck-library-main .deck-visual { min-height: 90px; }
 .deck-library-copy,
 .deck-library-main strong,

@@ -845,6 +845,10 @@ function getLegacyDeckIdentity(deck, format) {
   };
 }
 
+function normalizeDeckBoxId(value) {
+  return ["classic", "faction", "obsidian"].includes(value) ? value : "classic";
+}
+
 function normalizeDeckVersion(version = {}) {
   const gameplayCardQuantities = normalizeOwnershipCounts(version.gameplayCardQuantities || version.cardQuantities);
   const collectorVariantSelections = Object.fromEntries(Object.entries(version.collectorVariantSelections || {})
@@ -852,6 +856,7 @@ function normalizeDeckVersion(version = {}) {
     .filter(([, variantId]) => !!variantId));
   const normalized = {
     ...version,
+    deckBoxId: normalizeDeckBoxId(version.deckBoxId),
     cardQuantities: gameplayCardQuantities,
     gameplayCardQuantities,
     collectorVariantSelections
@@ -863,7 +868,7 @@ function normalizeDeckVersion(version = {}) {
     gameplayCardQuantities,
     cardSuitChoices: clonePlain(version.cardSuitChoices || {})
   };
-  const presentationConfiguration = { collectorVariantSelections };
+  const presentationConfiguration = version.presentationConfiguration || { collectorVariantSelections, deckBoxId: normalized.deckBoxId };
   return {
     ...normalized,
     mechanicalConfiguration,
@@ -1125,6 +1130,7 @@ function getSavedConstructedDeck(stats = {}) {
     cardQuantities: { ...gameplayCardQuantities },
     gameplayCardQuantities: { ...gameplayCardQuantities },
     cardSuitChoices: { ...(deck.cardSuitChoices || {}) },
+    deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
     collectorVariantSelections,
     gameplayConfigurationHash: deck.gameplayConfigurationHash || null,
     collectorConfigurationHash: deck.collectorConfigurationHash || null,
@@ -1137,6 +1143,9 @@ function getSavedConstructedDeck(stats = {}) {
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
   if (payload.generalId && !getFactionById(payload.factionId, payload.generalId)) throw new Error("Choose a General belonging to this faction.");
+  if (payload.deckBoxId != null && !["classic", "faction", "obsidian"].includes(payload.deckBoxId)) {
+    throw new Error("Choose a valid deck box.");
+  }
   const factionId = String(payload.factionId || "");
   const faction = getFactionById(factionId);
   if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
@@ -1213,6 +1222,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     cardQuantities: sanitized,
     gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
+    deckBoxId: normalizeDeckBoxId(payload.deckBoxId),
     collectorVariantSelections,
     savedAt: new Date().toISOString()
   };

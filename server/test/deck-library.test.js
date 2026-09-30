@@ -92,6 +92,29 @@ test("creates named constructed decks and appends immutable versions on edit", (
   assert.equal(getSavedConstructedDeck(stats).replacementCount, 1);
 });
 
+test("deck boxes persist through versioning and duplication without changing gameplay", () => {
+  const stats = makeConstructedStats();
+  const original = saveConstructedDeckToLibrary(stats, constructedPayload({ deckBoxId: "faction" }), "account-1");
+  const initialVersion = original.record.versions[0];
+  const updated = saveConstructedDeckToLibrary(stats, constructedPayload({ deckId: original.record.id, deckBoxId: "obsidian" }), "account-1");
+  const latest = updated.record.versions[1];
+  assert.equal(getSavedConstructedDeck(stats).deckBoxId, "obsidian");
+  assert.equal(initialVersion.deckBoxId, "faction");
+  assert.equal(latest.gameplayConfigurationHash, initialVersion.gameplayConfigurationHash);
+  assert.notEqual(latest.collectorConfigurationHash, initialVersion.collectorConfigurationHash);
+  const duplicate = updateDeckLibraryRecord(stats, original.record.id, { action: "duplicate" });
+  assert.equal(duplicate.versions[0].deckBoxId, "obsidian");
+  assert.throws(() => saveConstructedDeckToLibrary(stats, constructedPayload({ deckBoxId: "unknown" })), /valid deck box/);
+});
+
+test("a standard 52-card deck can be saved after clearing every swap", () => {
+  const stats = makeConstructedStats();
+  const saved = saveConstructedDeckToLibrary(stats, constructedPayload({ cardQuantities: {}, cardSuitChoices: {}, deckBoxId: "classic" }));
+  assert.equal(saved.playableDeck.cardCount, 52);
+  assert.equal(saved.playableDeck.replacementCount, 0);
+  assert.equal(saved.playableDeck.deckBoxId, "classic");
+});
+
 test("duplicates, features, activates, archives, and restores library decks", () => {
   const stats = makeConstructedStats();
   const original = saveConstructedDeckToLibrary(stats, constructedPayload(), "account-1").record;

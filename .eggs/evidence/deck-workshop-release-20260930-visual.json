@@ -1,0 +1,65 @@
+{
+  "contract": "eggs.visual-admission@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "deck-workshop-release-20260930-visual",
+  "projectId": "gauntlet",
+  "taskId": "deck-workshop-release-20260930",
+  "scope": {
+    "outputId": "deck-workshop-and-pack-reveal",
+    "surface": "Gauntlet Online Build / Collection Workshop / Decks and Packs",
+    "format": "Responsive React/CSS interface",
+    "exact": true
+  },
+  "modality": "deterministic-layout",
+  "directive": {
+    "required": true,
+    "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+    "status": "controlling",
+    "scopeMatches": true
+  },
+  "gate0": {
+    "required": false,
+    "passed": true,
+    "evidence": [
+      "Direct user request defines the standard 52-card layout and live publication scope; existing live card artwork reused, no image generation."
+    ]
+  },
+  "sourcePermissions": [
+    {
+      "sourceId": "origin/main@8e90cf64bdd719ee1790d2a4e51e7b5d65cf0c3c",
+      "use": "Preserve current code, artwork, card wording, and faction/general functionality",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "active-user-task",
+      "use": "Publish implemented deck workshop layout, CSS deck boxes, and pack animation",
+      "status": "allowed"
+    }
+  ],
+  "rejectedLineage": [],
+  "promptConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "cosmetics-only",
+    "ordered-reveal",
+    "responsive-accessible"
+  ],
+  "qaConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "cosmetics-only",
+    "ordered-reveal",
+    "responsive-accessible"
+  ],
+  "genericFallback": false,
+  "neighborCollision": false,
+  "layoutSeparation": "not-applicable",
+  "decision": "admit",
+  "reasons": [
+    "Direct instruction authorizes this standard playing-card interface. This is deterministic UI and reuses current Gauntlet art. No canon or rights promotion."
+  ]
+}
