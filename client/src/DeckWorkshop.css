@@ -55,8 +55,6 @@
 .deck-panel-resizer::after { content: ""; position: absolute; left: 6px; top: calc(50% - 22px); height: 44px; border-left: 2px solid #526664; }
 .deck-panel-resizer:hover::after { border-color: #eac57f; }
 .deck-inspection-rail { min-width: 0; display: flex; flex-direction: column; max-height: 515px; }
-.deck-name-label { display: flex; flex-direction: column; gap: 3px; color: #a6b9b2; font-size: 10px; padding: 0 3px 8px; }
-.deck-name-label input { width: 100%; box-sizing: border-box; min-width: 0; padding: 4px 0 6px; border: 0; border-bottom: 1px solid #475b54; background: transparent; color: #eee4cb; font: 18px Georgia, serif; }
 .deck-inspector-scroll { overflow-y: auto; scrollbar-color: #526b61 #12212a; padding: 0 4px; }
 .deck-preview-heading { display: flex; justify-content: space-between; gap: 8px; margin: 4px 0 8px; color: #dce3d6; font-size: 11px; }
 .deck-preview-heading small { color: #bdb18e; text-transform: capitalize; }
@@ -130,8 +128,10 @@
   .deck-slot > b { font-size: 12px; }
   .deck-slot.is-replaced .deck-slot-card-name { font-size: 8px; }
   .deck-slot-footer { gap: 8px; font-size: 9px; }
-  .deck-inspection-rail { max-height: none; }
-  .deck-inspector-scroll { overflow: visible; }
+  .deck-inspection-rail { display: contents; }
+  .deck-inspection-rail > .deck-name-editor { grid-row: 1; }
+  .deck-slot-panel { grid-row: 2; }
+  .deck-inspector-scroll { overflow: visible; grid-row: 3; }
   .deck-slot-preview { width: 125px; float: left; margin: 0 12px 10px 0; }
   .deck-slot-choices { clear: both; }
   .deck-settings-content { grid-template-columns: minmax(0, 1fr); gap: 14px; }

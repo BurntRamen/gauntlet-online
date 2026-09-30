@@ -1,0 +1,31 @@
+{
+  "id": "deck-naming-20260930",
+  "userDirection": "just to clarify im speaking about build / decks workshop . once updated please push live\nFollow-up: too bulky needs a simplified view that is just as intuitive but allows more agency over the screen\nFollow-up: you currently arent able to edit the names of the decks in creating them or ever",
+  "scope": "Repair deck naming during creation and for saved decks, make the editing controls explicit, verify persistence, and publish through the authorized release workflow.",
+  "authorizationBasis": "Explicit live publication request in the active user task.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Temporarily retain an isolated release worktree beyond the default two-worktree cap to preserve the user's five existing checkouts and uncommitted work. No existing worktree is deleted or overwritten."
+  ],
+  "conditions": [
+    "Apply only this task's code on origin/main; preserve newer faction/general selection and wording.",
+    "Run current repository checks before merge.",
+    "Use existing Vercel/Render deployment settings."
+  ]
+}

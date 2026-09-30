@@ -1786,6 +1786,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectionView, setCollectionView] = useState("packs");
+  const loadedConstructedVersion = useRef("");
 
   useEffect(() => {
     const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
@@ -1794,6 +1795,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   }, [account?.id, account?.stats?.deckLibrary?.activeConstructedDeckId, account?.stats?.deckLibrary?.decks, selectedConstructedDeckId]);
 
   useEffect(() => {
+    const versionKey = JSON.stringify([account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.savedAt]);
+    // Account updates and name-only saves must not replace in-progress card edits.
+    if (loadedConstructedVersion.current === versionKey) return;
+    loadedConstructedVersion.current = versionKey;
     setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
@@ -1803,6 +1808,10 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
     setConstructedSaveMessage("");
   }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId]);
+
+  useEffect(() => {
+    setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.name, savedConstructedDeck?.factionName]);
 
   if (!account) {
     return (
@@ -1931,6 +1940,12 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     }
   }
 
+  async function renameDeck(deckId, name) {
+    const deck = await onDeckAction(deckId, "rename", { name });
+    setConstructedSaveMessage("Deck name saved.");
+    return deck;
+  }
+
   return (
     <MenuCard className="collection-workspace" title="Collection Workshop">
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
@@ -1979,12 +1994,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div>
         <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
           <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog}
-            onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onOpenMatch={onOpenMatch} />
+            onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
         <DeckWorkshop
           key={selectedConstructedDeckId || "new-deck"}
           name={constructedDeckName} factionId={constructedFactionId}
+          savedName={savedConstructedDeck?.name} onRename={(name) => renameDeck(selectedConstructedDeckId, name)}
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
           renderRules={(card) => <CardRulesDetails card={card} />}
           loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}

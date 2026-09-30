@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 
 const library = {
@@ -68,4 +68,23 @@ test("shows active deck identity and exposes library actions", () => {
 
   fireEvent.click(screen.getByLabelText("Archived"));
   expect(screen.getByText("Old Guard")).toBeInTheDocument();
+});
+
+test("constructed and draft decks expose rename; cancellation leaves their names unchanged", async () => {
+  const onRename = jest.fn().mockResolvedValue({});
+  render(<DeckLibraryPanel library={library} onRename={onRename} />);
+  const actions = screen.getByLabelText("Root Draft management actions");
+  const rename = within(actions).getByRole("button", { name: "Rename" });
+  fireEvent.click(rename);
+  fireEvent.change(screen.getByLabelText("New deck name"), { target: { value: "Forest Draft" } });
+  fireEvent.keyDown(screen.getByLabelText("New deck name"), { key: "Escape" });
+  expect(onRename).not.toHaveBeenCalled();
+  expect(rename).toHaveFocus();
+  fireEvent.click(rename);
+  expect(screen.getByLabelText("New deck name")).toHaveValue("Root Draft");
+  fireEvent.change(screen.getByLabelText("New deck name"), { target: { value: "Forest Draft" } });
+  await act(async () => fireEvent.click(screen.getByRole("button", { name: "Save name" })));
+  expect(onRename).toHaveBeenCalledWith("draft-1", "Forest Draft");
+  expect(screen.queryByLabelText("New deck name")).not.toBeInTheDocument();
+  expect(screen.getAllByRole("button", { name: "Rename" })).toHaveLength(2);
 });
