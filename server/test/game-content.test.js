@@ -10,6 +10,7 @@ const {
   COLLECTOR_VARIANTS,
   CONTENT_VERSION,
   DECK_RULES,
+  DRAFT_SETS,
   FRUMO_COLLECTION_CARDS,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
@@ -209,4 +210,28 @@ test("draft projection keeps a player's pack private and never publishes bot pic
   assert.equal(Object.hasOwn(spectator, "botPickLog"), false);
   assert.equal(viewer.myCurrentPack.cards[0].id, card.id);
   assert.equal(spectator.myCurrentPack, null);
+});
+
+test("draft sets publish their factions and packs stay inside the selected set", () => {
+  const content = getPublicGameContent();
+  assert.deepEqual(content.draftSets, DRAFT_SETS);
+
+  const initiative = DRAFT_SETS.find((set) => set.id === "initiative");
+  const beyond = DRAFT_SETS.find((set) => set.id === "reath-beyond");
+  for (let run = 0; run < 20; run += 1) {
+    const initiativePack = __test.createDraftPack(1, initiative.factionIds);
+    assert.equal(initiativePack.cards.every((card) => initiative.factionIds.includes(card.factionId)), true);
+    const beyondPack = __test.createDraftPack(1, beyond.factionIds);
+    assert.equal(beyondPack.cards.every((card) => beyond.factionIds.includes(card.factionId)), true);
+  }
+
+  const room = __test.createDraftRoom({ setId: "reath-beyond" });
+  room.lobby.players[1].connected = true;
+  room.lobby.players[2].connected = true;
+  __test.startDraft(room);
+  const allCards = Object.values(room.draft.currentPacks).flatMap((pack) => pack.cards);
+  assert.equal(allCards.every((card) => beyond.factionIds.includes(card.factionId)), true);
+  assert.equal(__test.sanitizeDraftForViewer(room, 1).setId, "reath-beyond");
+  assert.throws(() => __test.createDraftRoom({ setId: "legacies" }), /still in development/);
+  __test.rooms.delete(room.roomCode);
 });

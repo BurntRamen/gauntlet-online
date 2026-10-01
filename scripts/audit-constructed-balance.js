@@ -8,10 +8,12 @@ const {
   createStandardDeck,
   getLegalActions
 } = require("../shared/duel-rules");
-const { COLLECTION_CARDS, factionsData } = require("../server/gameContent");
+const { COLLECTION_CARDS, getFactionById } = require("../server/gameContent");
 
-const FACTIONS = ["rumin", "sheen", "frumo", "bizi", "zynarth", "astral-vanguard"];
-const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
+const ALL_FACTIONS = ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"];
+const CONSTRUCTED_FACTIONS = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
+const DEFAULT_GENERALS = { mekan: "monti", jali: "basho", gracus: "platus", indela: "ramar" };
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation"]);
 const RUNS_PER_ORDERED_MATCHUP = Math.max(1, Number(process.argv[2] || 10));
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
@@ -49,6 +51,14 @@ function constructedDeck(player, factionId, seed, rotation) {
   return shuffle(deck, createSeededRandom(seed));
 }
 
+function standardDeck(player, factionId, seed) {
+  return shuffle(createStandardDeck(player, factionId), createSeededRandom(seed));
+}
+
+function simulationFaction(factionId) {
+  return getFactionById(factionId, DEFAULT_GENERALS[factionId]) || getFactionById(factionId);
+}
+
 function paymentIds(hand, required, excluded = []) {
   const excludedIds = new Set(excluded);
   const candidates = hand
@@ -69,6 +79,17 @@ function pendingAttack(game) {
     ...game.handAttacks,
     ...game.lanes.map((lane) => lane.attack).filter(Boolean)
   ][0] || null;
+}
+
+function indelaPaymentAdjustment(game, player) {
+  const opponent = player === 1 ? 2 : 1;
+  const ownReduction = game.players[player]?.faction?.id === "indela"
+    ? Number(game.players[player].turnData?.indelaOwnReduction || 0)
+    : 0;
+  const opponentTax = game.players[opponent]?.faction?.id === "indela"
+    ? Number(game.players[opponent].turnData?.indelaOpponentTax || 0)
+    : 0;
+  return opponentTax - ownReduction;
 }
 
 function applyConstructedChoices(command, action, game, player) {
@@ -116,7 +137,7 @@ function chooseCommand(game) {
     const laneAction = legal.find((action) => action.type === "declareLaneBlock");
     if (laneAction) {
       const blocker = game.lanes[laneAction.laneIndex].facedown[player];
-      const paymentCardIds = paymentIds(game.players[player].hand, cardValue(blocker));
+      const paymentCardIds = paymentIds(game.players[player].hand, Math.max(0, cardValue(blocker) + indelaPaymentAdjustment(game, player)));
       if (paymentCardIds) {
         return { player, command: applyConstructedChoices({ type: "declareLaneBlock", player, laneIndex: laneAction.laneIndex, paymentCardIds }, laneAction, game, player) };
       }
@@ -127,7 +148,7 @@ function chooseCommand(game) {
         .filter(isCombatCard)
         .sort((left, right) => cardValue(right) - cardValue(left));
       for (const blocker of blockers) {
-        const paymentCardIds = paymentIds(game.players[player].hand, cardValue(blocker), [blocker.id]);
+        const paymentCardIds = paymentIds(game.players[player].hand, Math.max(0, cardValue(blocker) + indelaPaymentAdjustment(game, player)), [blocker.id]);
         if (paymentCardIds) {
           const command = { type: "declareHandBlock", player, attackId: pending.id, blockerCardIds: [blocker.id], paymentCardIds };
           return { player, command: applyConstructedChoices(command, handAction, game, player) };
@@ -147,7 +168,16 @@ function chooseCommand(game) {
     .sort((left, right) => Number(right.requiredPayment || 0) - Number(left.requiredPayment || 0));
   for (const action of attacks) {
     const attacker = action.type === "declareHandAttack" ? action.cardId : null;
-    const paymentCardIds = paymentIds(game.players[player].hand, action.requiredPayment, attacker ? [attacker] : []);
+    const attackCard = attacker
+      ? game.players[player].hand.find((card) => card.id === attacker)
+      : game.lanes[action.laneIndex]?.facedown?.[player];
+    const opponent = player === 1 ? 2 : 1;
+    const platusTax = game.players[opponent]?.faction?.general?.id === "platus" ? 1 : 0;
+    const requiredPayment = Math.max(
+      Number(action.requiredPayment || 0),
+      Math.max(0, cardValue(attackCard) + indelaPaymentAdjustment(game, player) + platusTax)
+    );
+    const paymentCardIds = paymentIds(game.players[player].hand, requiredPayment, attacker ? [attacker] : []);
     if (!paymentCardIds) continue;
     const command = action.type === "declareHandAttack"
       ? { type: action.type, player, cardId: action.cardId, paymentCardIds }
@@ -159,15 +189,16 @@ function chooseCommand(game) {
     : null;
 }
 
-function runMatch(factionOne, factionTwo, run) {
-  const seed = `balance-${factionOne}-${factionTwo}-${run}`;
+function runMatch(factionOne, factionTwo, run, withFactionCards) {
+  const mode = withFactionCards ? "constructed" : "standard";
+  const seed = `balance-${mode}-${factionOne}-${factionTwo}-${run}`;
   let state = createMatch({
     seed,
     gameMode: "factions",
-    factions: { 1: factionsData[factionOne], 2: factionsData[factionTwo] },
+    factions: { 1: simulationFaction(factionOne), 2: simulationFaction(factionTwo) },
     decks: {
-      1: constructedDeck(1, factionOne, `${seed}-one`, run),
-      2: constructedDeck(2, factionTwo, `${seed}-two`, run)
+      1: withFactionCards ? constructedDeck(1, factionOne, `${seed}-one`, run) : standardDeck(1, factionOne, `${seed}-one`),
+      2: withFactionCards ? constructedDeck(2, factionTwo, `${seed}-two`, run) : standardDeck(2, factionTwo, `${seed}-two`)
     }
   }).state;
   let commands = 0;
@@ -183,34 +214,49 @@ function runMatch(factionOne, factionTwo, run) {
   return { winner: state.winner, turns: state.turn, commands };
 }
 
-const summary = Object.fromEntries(FACTIONS.map((faction) => [faction, { wins: 0, losses: 0, games: 0 }]));
-const totalMatches = FACTIONS.length * (FACTIONS.length - 1) * RUNS_PER_ORDERED_MATCHUP;
-let totalTurns = 0;
-let totalCommands = 0;
-for (const factionOne of FACTIONS) {
-  for (const factionTwo of FACTIONS) {
-    if (factionOne === factionTwo) continue;
-    for (let run = 0; run < RUNS_PER_ORDERED_MATCHUP; run += 1) {
-      const result = runMatch(factionOne, factionTwo, run);
-      const winnerFaction = result.winner === 1 ? factionOne : factionTwo;
-      const loserFaction = result.winner === 1 ? factionTwo : factionOne;
-      summary[winnerFaction].wins += 1;
-      summary[loserFaction].losses += 1;
-      summary[winnerFaction].games += 1;
-      summary[loserFaction].games += 1;
-      totalTurns += result.turns;
-      totalCommands += result.commands;
+function runMatrix(factions, withFactionCards) {
+  const summary = Object.fromEntries(factions.map((faction) => [faction, { wins: 0, losses: 0, games: 0 }]));
+  const matchups = {};
+  const totalMatches = factions.length * (factions.length - 1) * RUNS_PER_ORDERED_MATCHUP;
+  let totalTurns = 0;
+  let totalCommands = 0;
+  for (const factionOne of factions) {
+    for (const factionTwo of factions) {
+      if (factionOne === factionTwo) continue;
+      const matchupKey = `${factionOne} vs ${factionTwo}`;
+      matchups[matchupKey] = { games: 0, firstWins: 0, secondWins: 0 };
+      for (let run = 0; run < RUNS_PER_ORDERED_MATCHUP; run += 1) {
+        const result = runMatch(factionOne, factionTwo, run, withFactionCards);
+        const winnerFaction = result.winner === 1 ? factionOne : factionTwo;
+        const loserFaction = result.winner === 1 ? factionTwo : factionOne;
+        summary[winnerFaction].wins += 1;
+        summary[loserFaction].losses += 1;
+        summary[winnerFaction].games += 1;
+        summary[loserFaction].games += 1;
+        matchups[matchupKey].games += 1;
+        matchups[matchupKey][result.winner === 1 ? "firstWins" : "secondWins"] += 1;
+        totalTurns += result.turns;
+        totalCommands += result.commands;
+      }
     }
   }
+  for (const faction of factions) {
+    summary[faction].winRate = Number((summary[faction].wins / summary[faction].games).toFixed(3));
+  }
+  return {
+    withFactionCards,
+    factionsIncluded: factions,
+    matches: totalMatches,
+    averageTurns: Number((totalTurns / totalMatches).toFixed(2)),
+    averageCommands: Number((totalCommands / totalMatches).toFixed(2)),
+    factions: summary,
+    matchups
+  };
 }
 
-for (const faction of FACTIONS) {
-  summary[faction].winRate = Number((summary[faction].wins / summary[faction].games).toFixed(3));
-}
 console.log(JSON.stringify({
   runsPerOrderedMatchup: RUNS_PER_ORDERED_MATCHUP,
-  matches: totalMatches,
-  averageTurns: Number((totalTurns / totalMatches).toFixed(2)),
-  averageCommands: Number((totalCommands / totalMatches).toFixed(2)),
-  factions: summary
+  standardDecks: runMatrix(ALL_FACTIONS, false),
+  factionCardDecks: runMatrix(CONSTRUCTED_FACTIONS, true),
+  note: "Faction-card results include only factions with complete constructed catalogs."
 }, null, 2));

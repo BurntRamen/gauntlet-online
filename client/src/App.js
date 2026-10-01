@@ -2210,6 +2210,8 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
           <MenuCard title="Draft Status">
             <div style={{ color: "#dbeafe", display: "grid", gap: 6 }}>
               <div><strong>Status:</strong> {draft?.status || "lobby"}</div>
+              <div><strong>Set:</strong> {draft?.setName || "Initiative"}</div>
+              <div><strong>Factions:</strong> {(draft?.factionIds || []).map((id) => PACK_THEMES[id]?.name || id).join(", ")}</div>
               <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
               <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
               <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
@@ -3476,6 +3478,7 @@ export default function App() {
   const [rankedFactionId, setRankedFactionId] = useState("rumin");
   const [rankedGeneralId, setRankedGeneralId] = useState(null);
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
+  const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
   const [draftPickPending, setDraftPickPending] = useState(false);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
@@ -4579,8 +4582,8 @@ export default function App() {
 
   function createRoom() { if (!account) setPlayAsGuest(true); enterRoom("createRoom", playerIdentityPayload()); }
   function createFreeForAllRoom() { if (!account) setPlayAsGuest(true); enterRoom("createFreeForAllRoom", playerIdentityPayload()); }
-  function createDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createDraftRoom", playerIdentityPayload()); }
-  function createBotDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createBotDraftRoom", playerIdentityPayload()); }
+  function createDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createDraftRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
+  function createBotDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createBotDraftRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
 
   function startDraft() {
     socket.emit("startDraft");
@@ -5324,6 +5327,19 @@ export default function App() {
                 <div className="play-draft-grid">
                   <MenuCard className="play-focus-panel" title="Draft a Deck">
                     {!account && <p>Guest drafts are practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your draft</MenuButton></p>}
+                    <label style={{ display: "grid", gap: 6, marginBottom: 12, color: "#dbeafe", fontWeight: 800 }}>
+                      Draft set
+                      <select value={draftSetId} onChange={(event) => setDraftSetId(event.target.value)} style={{ padding: 10, borderRadius: 6 }}>
+                        {(gameContent.draftSets || []).map((set) => (
+                          <option key={set.id} value={set.id} disabled={!set.draftAvailable}>
+                            Set {set.number}: {set.name}{set.draftAvailable ? "" : " — cards coming soon"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {(gameContent.draftSets || []).find((set) => set.id === draftSetId)?.factionIds?.length > 0 && (
+                      <p style={{ color: "#bfdbfe", fontSize: 13 }}>Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
+                    )}
                     <div className="play-choice-grid">
                       <button type="button" onClick={createDraftRoom}><span>2–8 Players</span><strong>Draft with friends</strong><small>Live Draft: choose cards together, then build your deck.</small></button>
                       <button type="button" onClick={createBotDraftRoom}><span>Solo Table</span><strong>Draft against bots</strong><small>Bot Draft: choose cards with seven automated drafters.</small></button>

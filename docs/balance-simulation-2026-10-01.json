@@ -1,0 +1,740 @@
+{
+  "runsPerOrderedMatchup": 10,
+  "standardDecks": {
+    "withFactionCards": false,
+    "factionsIncluded": [
+      "rumin",
+      "sheen",
+      "frumo",
+      "bizi",
+      "mekan",
+      "jali",
+      "gracus",
+      "indela",
+      "zynarth",
+      "astral-vanguard"
+    ],
+    "matches": 900,
+    "averageTurns": 3.04,
+    "averageCommands": 51.42,
+    "factions": {
+      "rumin": {
+        "wins": 84,
+        "losses": 96,
+        "games": 180,
+        "winRate": 0.467
+      },
+      "sheen": {
+        "wins": 87,
+        "losses": 93,
+        "games": 180,
+        "winRate": 0.483
+      },
+      "frumo": {
+        "wins": 94,
+        "losses": 86,
+        "games": 180,
+        "winRate": 0.522
+      },
+      "bizi": {
+        "wins": 101,
+        "losses": 79,
+        "games": 180,
+        "winRate": 0.561
+      },
+      "mekan": {
+        "wins": 77,
+        "losses": 103,
+        "games": 180,
+        "winRate": 0.428
+      },
+      "jali": {
+        "wins": 81,
+        "losses": 99,
+        "games": 180,
+        "winRate": 0.45
+      },
+      "gracus": {
+        "wins": 96,
+        "losses": 84,
+        "games": 180,
+        "winRate": 0.533
+      },
+      "indela": {
+        "wins": 119,
+        "losses": 61,
+        "games": 180,
+        "winRate": 0.661
+      },
+      "zynarth": {
+        "wins": 78,
+        "losses": 102,
+        "games": 180,
+        "winRate": 0.433
+      },
+      "astral-vanguard": {
+        "wins": 83,
+        "losses": 97,
+        "games": 180,
+        "winRate": 0.461
+      }
+    },
+    "matchups": {
+      "rumin vs sheen": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "rumin vs frumo": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "rumin vs bizi": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "rumin vs mekan": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "rumin vs jali": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "rumin vs gracus": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "rumin vs indela": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "rumin vs zynarth": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "rumin vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "sheen vs rumin": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "sheen vs frumo": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "sheen vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "sheen vs mekan": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "sheen vs jali": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "sheen vs gracus": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "sheen vs indela": {
+        "games": 10,
+        "firstWins": 1,
+        "secondWins": 9
+      },
+      "sheen vs zynarth": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "sheen vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "frumo vs rumin": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "frumo vs sheen": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "frumo vs bizi": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "frumo vs mekan": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "frumo vs jali": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "frumo vs gracus": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "frumo vs indela": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "frumo vs zynarth": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "frumo vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "bizi vs rumin": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs sheen": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs frumo": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs mekan": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs jali": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs gracus": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs indela": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "bizi vs zynarth": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "mekan vs rumin": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "mekan vs sheen": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "mekan vs frumo": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "mekan vs bizi": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "mekan vs jali": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "mekan vs gracus": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "mekan vs indela": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "mekan vs zynarth": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "mekan vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "jali vs rumin": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "jali vs sheen": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "jali vs frumo": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "jali vs bizi": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "jali vs mekan": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "jali vs gracus": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "jali vs indela": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "jali vs zynarth": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "jali vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "gracus vs rumin": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "gracus vs sheen": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "gracus vs frumo": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "gracus vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "gracus vs mekan": {
+        "games": 10,
+        "firstWins": 9,
+        "secondWins": 1
+      },
+      "gracus vs jali": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "gracus vs indela": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "gracus vs zynarth": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "gracus vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "indela vs rumin": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "indela vs sheen": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "indela vs frumo": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "indela vs bizi": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "indela vs mekan": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "indela vs jali": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "indela vs gracus": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "indela vs zynarth": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "indela vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      },
+      "zynarth vs rumin": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "zynarth vs sheen": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "zynarth vs frumo": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "zynarth vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "zynarth vs mekan": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "zynarth vs jali": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "zynarth vs gracus": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "zynarth vs indela": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "zynarth vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "astral-vanguard vs rumin": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "astral-vanguard vs sheen": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "astral-vanguard vs frumo": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "astral-vanguard vs bizi": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "astral-vanguard vs mekan": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "astral-vanguard vs jali": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "astral-vanguard vs gracus": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "astral-vanguard vs indela": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "astral-vanguard vs zynarth": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      }
+    }
+  },
+  "factionCardDecks": {
+    "withFactionCards": true,
+    "factionsIncluded": [
+      "rumin",
+      "sheen",
+      "frumo",
+      "bizi",
+      "zynarth",
+      "astral-vanguard"
+    ],
+    "matches": 300,
+    "averageTurns": 2.99,
+    "averageCommands": 50.41,
+    "factions": {
+      "rumin": {
+        "wins": 50,
+        "losses": 50,
+        "games": 100,
+        "winRate": 0.5
+      },
+      "sheen": {
+        "wins": 51,
+        "losses": 49,
+        "games": 100,
+        "winRate": 0.51
+      },
+      "frumo": {
+        "wins": 51,
+        "losses": 49,
+        "games": 100,
+        "winRate": 0.51
+      },
+      "bizi": {
+        "wins": 67,
+        "losses": 33,
+        "games": 100,
+        "winRate": 0.67
+      },
+      "zynarth": {
+        "wins": 37,
+        "losses": 63,
+        "games": 100,
+        "winRate": 0.37
+      },
+      "astral-vanguard": {
+        "wins": 44,
+        "losses": 56,
+        "games": 100,
+        "winRate": 0.44
+      }
+    },
+    "matchups": {
+      "rumin vs sheen": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "rumin vs frumo": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "rumin vs bizi": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "rumin vs zynarth": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "rumin vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "sheen vs rumin": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "sheen vs frumo": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "sheen vs bizi": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "sheen vs zynarth": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "sheen vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "frumo vs rumin": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "frumo vs sheen": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "frumo vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "frumo vs zynarth": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "frumo vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs rumin": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs sheen": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs frumo": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "bizi vs zynarth": {
+        "games": 10,
+        "firstWins": 6,
+        "secondWins": 4
+      },
+      "bizi vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 8,
+        "secondWins": 2
+      },
+      "zynarth vs rumin": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "zynarth vs sheen": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "zynarth vs frumo": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "zynarth vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "zynarth vs astral-vanguard": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "astral-vanguard vs rumin": {
+        "games": 10,
+        "firstWins": 5,
+        "secondWins": 5
+      },
+      "astral-vanguard vs sheen": {
+        "games": 10,
+        "firstWins": 3,
+        "secondWins": 7
+      },
+      "astral-vanguard vs frumo": {
+        "games": 10,
+        "firstWins": 4,
+        "secondWins": 6
+      },
+      "astral-vanguard vs bizi": {
+        "games": 10,
+        "firstWins": 2,
+        "secondWins": 8
+      },
+      "astral-vanguard vs zynarth": {
+        "games": 10,
+        "firstWins": 7,
+        "secondWins": 3
+      }
+    }
+  },
+  "note": "Faction-card results include only factions with complete constructed catalogs."
+}

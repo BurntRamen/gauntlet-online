@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v5";
-const CONTENT_VERSION = "gauntlet-content-v13";
+const CONTENT_VERSION = "gauntlet-content-v14";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -11,6 +11,12 @@ const INDELA_LEGACY = LEGACIES.factions.find((faction) => faction.id === "indela
 const FREE_GAMEPLAY_ACQUISITION = "earned-gameplay-pack";
 const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
 const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
+
+const DRAFT_SETS = Object.freeze([
+  Object.freeze({ id: "initiative", number: 1, name: "Initiative", factionIds: Object.freeze(["rumin", "sheen", "frumo", "bizi"]), draftAvailable: true }),
+  Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
+  Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true })
+]);
 
 const RUMIN_COLLECTION_CARDS = [
   {
@@ -1611,6 +1617,7 @@ function getPublicGameContent() {
     rulesVersion: RULES_VERSION,
     contentVersion: CONTENT_VERSION,
     factions: listFactions(),
+    draftSets: DRAFT_SETS,
     upcomingSets: [{
       ...LEGACIES,
       factions: LEGACIES.factions.map((legacyFaction) => {
@@ -1641,6 +1648,7 @@ module.exports = {
   CONTENT_VERSION,
   DECK_RULES,
   DRAFT_CARD_SUITS,
+  DRAFT_SETS,
   FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,

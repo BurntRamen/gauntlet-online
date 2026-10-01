@@ -130,6 +130,7 @@ const {
   COLLECTOR_VARIANTS,
   COLLECTION_CARDS,
   DRAFT_CARD_SUITS,
+  DRAFT_SETS,
   FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,
@@ -716,13 +717,19 @@ function createDraftPlayerSeat() {
   };
 }
 
-function createDraftPack(ownerPlayer) {
+function getDraftSet(setId = "initiative") {
+  return DRAFT_SETS.find((set) => set.id === setId) || DRAFT_SETS.find((set) => set.id === "initiative");
+}
+
+function createDraftPack(ownerPlayer, factionIds) {
+  const availableFactionIds = (factionIds || [])
+    .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
+  if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   return {
     id: crypto.randomUUID(),
     ownerPlayer,
     cards: DRAFT_PACK_SLOTS.map((slot) => {
-      const factionIds = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
-      const factionId = factionIds[crypto.randomInt(factionIds.length)];
+      const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
       const rarity = resolveBoosterSlot(slot);
       const card = pickCollectionCard(factionId, rarity);
       return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
@@ -2609,6 +2616,8 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     name: draftDeck.name,
     factionId: draftDeck.factionId,
     factionName: draftDeck.factionName,
+    setId: draftDeck.setId || null,
+    setName: draftDeck.setName || null,
     draftType: draftDeck.draftType === "bot" ? "bot" : "player",
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: BASE_PLAYING_DECK_SIZE,
@@ -4664,6 +4673,8 @@ function createFreeForAllRoom() {
 }
 
 function createDraftRoom(options = {}) {
+  const draftSet = getDraftSet(options.setId);
+  if (!draftSet?.draftAvailable) throw new Error(draftSet?.unavailableReason || "That set is not available for draft yet.");
   let roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   while (rooms.has(roomCode)) {
     roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -4683,6 +4694,9 @@ function createDraftRoom(options = {}) {
     },
     game: null,
     draft: {
+      setId: draftSet.id,
+      setName: draftSet.name,
+      factionIds: [...draftSet.factionIds],
       status: "lobby",
       maxPlayers: 8,
       packsPerPlayer: DRAFT_PACKS_PER_PLAYER,
@@ -5103,6 +5117,9 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
     status: draft.status,
     league: !!draft.league,
     botDraft: !!draft.botDraft,
+    setId: draft.setId,
+    setName: draft.setName,
+    factionIds: [...(draft.factionIds || [])],
     maxPlayers: draft.maxPlayers,
     packsPerPlayer: draft.packsPerPlayer,
     packSize: draft.packSize,
@@ -5355,7 +5372,7 @@ function startDraft(roomState) {
     draft.draftedPools[key] = [];
     draft.deckAdditions[key] = [];
     for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
-      draft.unopenedPacks[key].push(createDraftPack(playerNum));
+      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds));
     }
     draft.currentPacks[key] = draft.unopenedPacks[key].shift();
   });
@@ -7987,7 +8004,7 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "freeForAll" });
   });
 
-  onClientEvent("createDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+  onClientEvent("createDraftRoom", async ({ authToken, guestName, setId } = {}, ack) => {
     console.log("[Socket] createDraftRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -7996,7 +8013,12 @@ io.on("connection", (socket) => {
       if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
       return;
     }
-    const roomState = createDraftRoom();
+    const draftSet = getDraftSet(setId);
+    if (!draftSet?.draftAvailable) {
+      if (typeof ack === "function") ack({ ok: false, error: draftSet?.unavailableReason || "That set is not available for draft yet." });
+      return;
+    }
+    const roomState = createDraftRoom({ setId: draftSet.id });
     const lobbyPlayer = roomState.lobby.players[1];
     lobbyPlayer.socket = socket.id;
     lobbyPlayer.connected = true;
@@ -8012,7 +8034,7 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft" });
   });
 
-  onClientEvent("createBotDraftRoom", async ({ authToken, guestName } = {}, ack) => {
+  onClientEvent("createBotDraftRoom", async ({ authToken, guestName, setId } = {}, ack) => {
     console.log("[Socket] createBotDraftRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
@@ -8021,7 +8043,12 @@ io.on("connection", (socket) => {
       if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
       return;
     }
-    const roomState = createDraftRoom({ botDraft: true });
+    const draftSet = getDraftSet(setId);
+    if (!draftSet?.draftAvailable) {
+      if (typeof ack === "function") ack({ ok: false, error: draftSet?.unavailableReason || "That set is not available for draft yet." });
+      return;
+    }
+    const roomState = createDraftRoom({ botDraft: true, setId: draftSet.id });
     const lobbyPlayer = roomState.lobby.players[1];
     lobbyPlayer.socket = socket.id;
     lobbyPlayer.connected = true;
@@ -8512,6 +8539,8 @@ io.on("connection", (socket) => {
       name: `${faction?.name || factionIds[0]} Draft Deck`,
       factionId: factionIds[0],
       factionName: faction?.name || factionIds[0],
+      setId: roomState.draft.setId,
+      setName: roomState.draft.setName,
       draftType: roomState.draft.botDraft ? "bot" : "player",
       cards: selectedCards
     });
@@ -9912,6 +9941,8 @@ module.exports = {
     buildCompletionEnvelope,
     buildCompetitiveCapabilitySnapshot,
     buildCollectorVariantProvenance,
+    createDraftPack,
+    createDraftRoom,
     matchArchive,
     matchPersistence,
     finalizeCompletedMatch,
@@ -9938,6 +9969,7 @@ module.exports = {
     deleteRoom,
     rooms,
     startEndPhase,
+    startDraft,
     advanceEndPlacement,
     validateAuthConfiguration,
     accountAvatarUploadHeaders,
