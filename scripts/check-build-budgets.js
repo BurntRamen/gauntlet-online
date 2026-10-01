@@ -14,8 +14,9 @@ const budgets = {
   // Native, theme-aware board inscriptions replace the screen-space overlay.
   // Readable card rules, campaign applicability, and blocker eligibility previews.
   // Source-by-source effect receipts and persistent inspection/history.
+  // Zynarth and Astral Vanguard add two complete deterministic faction engines.
   // Keep the initial-load and largest-chunk ceilings unchanged.
-  totalJavaScriptGzip: 726 * KIB
+  totalJavaScriptGzip: 730 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

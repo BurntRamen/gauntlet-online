@@ -1,15 +1,17 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v9";
+const RULES_VERSION = "gauntlet-duel-v10";
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
 const indela = require("./indela");
+const zynarth = require("./zynarth");
+const astralVanguard = require("./astralVanguard");
 const effects = require("./effects");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v7";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v8";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -24,7 +26,7 @@ const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
   "rumin-triumphal-ram",
   "rumin-kaisers-gold-claw"
 ]);
-const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation"]);
 const SUIT_KEYS = Object.freeze({
   "♠": "spades", spade: "spades", spades: "spades",
   "♥": "hearts", heart: "hearts", hearts: "hearts",
@@ -71,7 +73,9 @@ const FACTION_PROFILES = {
     commander: "Focus, Conductor of Progress",
     general: "Hera",
     city: "Constanti, Technology Hub"
-  }
+  },
+  zynarth: { id: "zynarth", name: "Zynarth", commander: "Broodmother Zalara", city: "Brood Nest", general: { id: "klar", name: "K'Lar, Biomass Keeper" } },
+  "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } }
 };
 const FACTION_ABILITY_INTENTS = Object.freeze({
   "polea-place": "Put a card from your hand into an empty lane you control.",
@@ -131,7 +135,7 @@ function isSupportCard(card) {
 }
 
 function isCombatCard(card) {
-  return !isSupportCard(card);
+  return Boolean(card) && !isSupportCard(card) && !card.zynarthEgg;
 }
 
 function hashSeed(input) {
@@ -244,7 +248,23 @@ function createTurnData() {
     sheenEndTurnDraws: 0,
     beliCanopyShieldUsed: false,
     beliAwakenedReady: false,
-    tangLifeGainUsed: false
+    tangLifeGainUsed: false,
+    zynarthHatched: false,
+    zynarthKlarUsed: false,
+    zynarthSacrificed: false,
+    zynarthUnderlingAttackUsed: false,
+    zynarthUnderlingBlockUsed: false,
+    zynarthAdaptiveCarapaceUsed: false,
+    zynarthCarrionVatUsed: false,
+    zynarthWorkerCreated: false,
+    zynarthWorkerPaymentBonus: 0,
+    astralAldenUsed: false,
+    astralMyraUsed: false,
+    astralStaged: false,
+    astralSupplyUsed: false,
+    astralNextPaymentBonus: 0,
+    astralLaneAttackUsed: false,
+    astralCleanBlockUsed: false
   };
 }
 
@@ -393,6 +413,7 @@ function createMatch(options = {}) {
   drawToEight(game, 1, events);
   drawToEight(game, 2, events);
   indela.revealOmens(game, startingPriority, events, event);
+  zynarth.startTurn(game, startingPriority, events, event);
   events.push(event(game, "match.started"), event(game, "priority.granted", { player: startingPriority }));
   appendHistory(game, null, `New deterministic match started with seed “${seed}”.`, events);
   game.lastEvents = events.map((entry) => ({ ...entry }));
@@ -483,6 +504,14 @@ function playerControlsCard(game, playerNumber, definitionId) {
   return supportCards(game, playerNumber).some((card) => cardIs(card, definitionId));
 }
 
+function controlledUnderlings(game, playerNumber) {
+  return game.lanes.map((lane) => lane.facedown[playerNumber]).filter((card) => card?.zynarthUnderling);
+}
+
+function controlledSupportsOfType(game, playerNumber, type) {
+  return controlledSupportEntries(game, playerNumber).filter((entry) => cardHasType(entry.card, type));
+}
+
 function consumeControlledSupport(game, playerNumber, definitionId, events, source) {
   for (const lane of game.lanes) {
     for (const zone of ["support", "facedown"]) {
@@ -555,7 +584,9 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
   const consume = {
     jewelBank: false,
     frumoNextPayment: false,
-    biziVoltage: false
+    biziVoltage: false,
+    astralPayment: false,
+    zynarthWorkerPayment: false
   };
   const paymentIds = paymentCards.map((card) => card.id);
   const selectedForumCardId = command.forumLedgerPaymentCardId || null;
@@ -635,6 +666,26 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
     bonus += 2;
     notes.push("Signal Relay payment +2");
   }
+  if (Number(player.turnData.astralNextPaymentBonus || 0) > 0 && paymentCards.length) {
+    bonus += player.turnData.astralNextPaymentBonus;
+    consume.astralPayment = true;
+    notes.push(`Myra Cross payment +${player.turnData.astralNextPaymentBonus}`);
+  }
+  if (
+    player.turnData.astralStaged
+    && !player.turnData.astralSupplyUsed
+    && paymentCards.length
+    && playerControlsCard(game, playerNumber, "astral-vanguard-forward-supply-cache")
+  ) {
+    bonus += 1;
+    consume.astralSupply = true;
+    notes.push("Forward Supply Cache payment +1");
+  }
+  if (Number(player.turnData.zynarthWorkerPaymentBonus || 0) > 0 && paymentCards.length) {
+    bonus += 1;
+    consume.zynarthWorkerPayment = true;
+    notes.push("Worker payment +1");
+  }
   return { bonus, notes, consume };
 }
 
@@ -642,6 +693,9 @@ function consumeConstructedPaymentBonus(player, consume) {
   if (consume?.jewelBank) player.turnData.ruminJewelBankAvailable = false;
   if (consume?.frumoNextPayment) player.turnData.frumoNextPaymentBonus = 0;
   if (consume?.biziVoltage) player.turnData.biziVoltageBonusUsed = true;
+  if (consume?.astralPayment) player.turnData.astralNextPaymentBonus = 0;
+  if (consume?.astralSupply) player.turnData.astralSupplyUsed = true;
+  if (consume?.zynarthWorkerPayment) player.turnData.zynarthWorkerPaymentBonus = 0;
 }
 
 function calculateFrumoConsecutiveBonus(player, card) {
@@ -930,6 +984,42 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     player.turnData.frumoNextActionKind = null;
   }
 
+  const underlings = controlledUnderlings(game, playerNumber);
+  const otherUnderlings = underlings.filter((entry) => entry.id !== card.id);
+  if (cardIs(card, "zynarth-spore-runner") && attackNumber === 1 && underlings.length) { bonus += 1; notes.push("Spore Runner +1"); }
+  if (cardIs(card, "zynarth-nutrient-tender") && underlings.length) { bonus += 1; notes.push("Nutrient Tender +1"); }
+  if (cardIs(card, "zynarth-brood-shepherd") && source === "lane") { bonus += 1; notes.push("Brood Shepherd +1"); }
+  if (cardIs(card, "zynarth-adaptive-stalker")) {
+    const forms = new Set(underlings.map((entry) => entry.zynarthForm));
+    const amount = Math.min(2, forms.size); bonus += amount; if (amount) notes.push(`Adaptive Stalker +${amount}`);
+  }
+  if (cardIs(card, "zynarth-hunting-cluster")) { const amount = Math.min(2, otherUnderlings.length); bonus += amount; if (amount) notes.push(`Hunting Cluster +${amount}`); }
+  if (cardIs(card, "zynarth-brood-titan") && underlings.length >= 2) { bonus += 2; notes.push("Brood Titan +2"); }
+  if (cardIs(card, "zynarth-ancient-devourer")) { const amount = Math.min(3, underlings.length); bonus += amount; if (amount) notes.push(`Ancient Devourer +${amount}`); }
+  if (player.turnData.zynarthSacrificed && playerControlsCard(game, playerNumber, "zynarth-ravenous-cycle")) { bonus += 2; notes.push("Ravenous Cycle +2"); player.turnData.zynarthSacrificed = false; }
+  if (underlings.length >= 3 && playerControlsCard(game, playerNumber, "zynarth-metabolic-web")) { bonus += 1; notes.push("Metabolic Web +1"); }
+  if (card?.zynarthUnderling && playerControlsCard(game, playerNumber, "zynarth-broodmind-synapse")) { bonus += 1; notes.push("Broodmind Synapse +1"); }
+  if (card?.zynarthForm === "soldier") { const amount = Math.min(3, underlings.filter((entry) => entry.zynarthForm === "soldier" && entry.id !== card.id).length); bonus += amount; if (amount) notes.push(`Soldier cluster +${amount}`); }
+  if (card?.zynarthUnderling && !player.turnData.zynarthUnderlingAttackUsed) {
+    player.turnData.zynarthUnderlingAttackUsed = true;
+    if (playerControlsCard(game, playerNumber, "zynarth-pheromone-route")) { bonus += 1; notes.push("Pheromone Route +1"); }
+  }
+
+  const previousSuit = player.turnData.previousAttackSuit;
+  if (cardIs(card, "astral-vanguard-orbital-pathfinder") && attackNumber === 1 && player.turnData.astralStaged) { bonus += 1; notes.push("Orbital Pathfinder +1"); }
+  if (cardIs(card, "astral-vanguard-breach-team") && source === "lane") { bonus += 1; notes.push("Breach Team +1"); }
+  if (cardIs(card, "astral-vanguard-shock-trooper") && card.astralDeployedTurn === game.turn) { bonus += 2; notes.push("Shock Trooper +2"); }
+  if (cardIs(card, "astral-vanguard-electronic-warfare-specialist") && previousSuit && !suitsMatch(previousSuit, card.suit)) { bonus += 1; notes.push("Electronic Warfare +1"); }
+  if (cardIs(card, "astral-vanguard-incendiary-trooper") && game.lanes.some((lane) => lane.facedown[otherPlayer(playerNumber)])) { bonus += 1; notes.push("Incendiary Trooper +1"); }
+  if (cardIs(card, "astral-vanguard-jump-trooper") && source === "hand") { bonus += 1; notes.push("Jump Trooper +1"); }
+  if (cardIs(card, "astral-vanguard-powered-breacher") && source === "lane" && controlledSupportsOfType(game, playerNumber, "operation").length) { bonus += 2; notes.push("Powered Breacher +2"); }
+  if (cardIs(card, "astral-vanguard-aegis-shock-company") && source === "lane" && card.astralDeployedTurn === game.turn) { bonus += 3; notes.push("Aegis Shock Company +3"); }
+  if (source === "lane" && !player.turnData.astralLaneAttackUsed && playerControlsCard(game, playerNumber, "astral-vanguard-suppression-order")) { bonus += 1; notes.push("Suppression Order +1"); }
+  if (source === "lane" && !player.turnData.astralLaneAttackUsed && playerControlsCard(game, playerNumber, "astral-vanguard-breach-charge")) { bonus += 2; notes.push("Breach Charge +2"); }
+  if (previousSuit && !suitsMatch(previousSuit, card.suit) && playerControlsCard(game, playerNumber, "astral-vanguard-orbital-interdiction")) { bonus += 1; notes.push("Orbital Interdiction +1"); }
+  if (player.turnData.astralStaged && playerControlsCard(game, playerNumber, "astral-vanguard-tactical-relay")) { bonus += 1; notes.push("Tactical Relay +1"); player.turnData.astralStaged = false; }
+  if (source === "lane") player.turnData.astralLaneAttackUsed = true;
+
   return { bonus, notes, attachedCards };
 }
 
@@ -1103,6 +1193,15 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
     player.turnData.beliCanopyShieldUsed = true;
     notes.push("Verdant Canopy prevents 1");
   }
+  const underlings = controlledUnderlings(game, playerNumber);
+  if (cardIs(card, "zynarth-carapace-keeper") && underlings.length) { bonus += 1; notes.push("Carapace Keeper +1"); }
+  if (cardIs(card, "zynarth-hive-warden") && context.laneBlock) { bonus += 2; notes.push("Hive Warden +2"); }
+  if (card?.zynarthUnderling && !player.turnData.zynarthUnderlingBlockUsed && playerControlsCard(game, playerNumber, "zynarth-hardened-nursery")) { bonus += 1; notes.push("Hardened Nursery +1"); player.turnData.zynarthUnderlingBlockUsed = true; }
+  if (card?.zynarthUnderling && playerControlsCard(game, playerNumber, "zynarth-broodmind-synapse")) { bonus += 1; notes.push("Broodmind Synapse +1"); }
+  if (card?.zynarthUnderling && !player.turnData.zynarthAdaptiveCarapaceUsed && playerControlsCard(game, playerNumber, "zynarth-adaptive-carapace")) { preventDamage += 1; notes.push("Adaptive Carapace prevents 1"); player.turnData.zynarthAdaptiveCarapaceUsed = true; }
+  if (card?.zynarthForm === "guard") { preventDamage += 2; notes.push("Guard prevents 2"); }
+  if (card?.zynarthForm === "soldier") { const amount = Math.min(3, underlings.filter((entry) => entry.zynarthForm === "soldier" && entry.id !== card.id).length); bonus += amount; if (amount) notes.push(`Soldier cluster +${amount}`); }
+  if (cardIs(card, "astral-vanguard-emp-grenadier")) { const amount = Math.min(2, controlledSupportsOfType(game, playerNumber, "operation").length); bonus += amount; if (amount) notes.push(`EMP Grenadier +${amount}`); }
 
   if (context.firstBlocker) {
     const primeSignalBonus = Number(command.primeSignalBonus || 0);
@@ -1326,10 +1425,30 @@ function resolveAttack(game, attack, laneIndex, events) {
       if (cardIs(block.card, "sheen-raincall-mender")) {
         gainLifeFromBlocking(game, defender, 1, "Rainfall Refuge", block.notes, events);
       }
+      if (cardIs(block.card, "astral-vanguard-combat-medic")) {
+        gainLifeFromBlocking(game, defender, 1, "Combat Medic", block.notes, events);
+      }
+    }
+    if (playerControlsCard(game, defender, "astral-vanguard-field-triage") && !game.players[defender].turnData.astralCleanBlockUsed) {
+      game.players[defender].turnData.astralCleanBlockUsed = true;
+      gainLifeFromBlocking(game, defender, 1, "Field Triage", attack.block[0].notes, events);
     }
     if (playerControlsCard(game, defender, "sheen-beli-awakened")) {
       game.players[defender].turnData.beliAwakenedReady = true;
     }
+  }
+  const defeated = damage === 0 && (attack.block || []).length
+    ? [{ player: attack.player, card: attack.card }]
+    : damage > 0 ? (attack.block || []).map((block) => ({ player: block.player, card: block.card })) : [];
+  for (const entry of defeated) {
+    if (!entry.card?.zynarthUnderling) continue;
+    const owner = game.players[entry.player];
+    if (playerControlsCard(game, entry.player, "zynarth-carrion-vat") && !owner.turnData.zynarthCarrionVatUsed) {
+      owner.life += 1;
+      owner.turnData.zynarthCarrionVatUsed = true;
+      events.push(event(game, "life.gained", { player: entry.player, amount: 1, source: "Carrion Vat" }));
+    }
+    if (playerControlsCard(game, entry.player, "zynarth-biomass-reclaimer")) owner.turnData.zynarthSacrificed = true;
   }
   if (!attack.card?.token) game.players[attack.player].discard.push(attack.card);
   mekan.combat(game, attack, damage);
@@ -1457,6 +1576,7 @@ function startNextTurn(game, events) {
   game.players[1].turnData = createTurnData();
   game.players[2].turnData = createTurnData();
   indela.revealOmens(game, next, events, event);
+  zynarth.startTurn(game, next, events, event);
   let campaignMessage = "";
   if (game.campaign) {
     game.campaign.bossAttacksThisTurn = 0;
@@ -2033,6 +2153,14 @@ function applyCommand(current, rawCommand) {
     const error = gracus.apply(game, player, command.abilityId, events, event);
     if (error) return reject(current, command, error);
     label = `Player ${player} used a Gracus ability.`;
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("zynarth:")) {
+    const error = zynarth.apply(game, player, command.abilityId, events, event);
+    if (error) return reject(current, command, error);
+    label = `Player ${player} used a Zynarth ability.`;
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("astral:")) {
+    const error = astralVanguard.apply(game, player, command.abilityId, events, event);
+    if (error) return reject(current, command, error);
+    label = `Player ${player} used an Astral Vanguard ability.`;
   } else if (command.type === "useFactionAbility") {
     if (game.phase !== "priority" || game.priority !== player) {
       return reject(current, command, "Faction abilities require your priority window.");
@@ -2386,6 +2514,8 @@ function getFactionAbilityActions(game, playerNumber) {
   actions.push(...mekan.actions(game, playerNumber));
   actions.push(...jali.actions(game, playerNumber));
   actions.push(...gracus.actions(game, playerNumber));
+  actions.push(...zynarth.actions(game, playerNumber));
+  actions.push(...astralVanguard.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
   const canPoleaPlace = actor.hand.some((card) => game.lanes.some((lane) => (
     isSupportCard(card) ? !lane.support?.[playerNumber] : !lane.facedown[playerNumber]
@@ -2859,7 +2989,7 @@ function getLegalActions(game, player) {
           optionalEffects: getConstructedBlockOptions(game, playerNumber, actor.hand.filter(isCombatCard))
         });
       }
-    } else if (game.lanes[pending.laneIndex].facedown[playerNumber]) {
+    } else if (isCombatCard(game.lanes[pending.laneIndex].facedown[playerNumber])) {
       actions.unshift({
         type: "declareLaneBlock",
         laneIndex: pending.laneIndex,
@@ -2886,7 +3016,7 @@ function getLegalActions(game, player) {
           ? [{ id: "meerus-free-attack", requiredPayment: 0 }]
           : []
       })),
-      ...game.lanes.flatMap((lane, laneIndex) => lane.facedown[playerNumber]
+      ...game.lanes.flatMap((lane, laneIndex) => isCombatCard(lane.facedown[playerNumber])
         ? [{
             type: "declareLaneAttack",
             laneIndex,
@@ -2953,6 +3083,8 @@ function factionAbilityDefinitions(game, playerNumber) {
   if (faction === "gracus") return [["gracus:epicura", "Epicura · create a Minotaur"]];
   if (faction === "mekan") return [["mekan:encore", "Encore · mark a Guest"], ["mekan:remember", "San Mikal · remember a Guest"], ["mekan:invite", "Invite a Guest"],
     ...(actor.faction?.general?.id === "monti" ? [["mekan:monti", "Monti · give a card +1"]] : [])];
+  if (faction === "zynarth") return [["zynarth:hatch", "Zalara · hatch an Egg"], ["zynarth:klar", "K'Lar · sacrifice two Underlings"]];
+  if (faction === "astral-vanguard") return [["astral:stage", "Myra Cross · stage a card"], ["astral:deploy", "Alden · deploy the top Servitor"]];
   return [];
 }
 

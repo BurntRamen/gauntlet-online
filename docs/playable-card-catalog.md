@@ -1,10 +1,10 @@
 # Playable card catalog
 
-Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v12` and rules version `gauntlet-rules-v4`.
+Generated from the authoritative registry in `server/gameContent.js` at content version `gauntlet-content-v13` and rules version `gauntlet-rules-v5`.
 
 Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Every faction card has one fixed rank-and-suit slot and replaces that exact standard card; players cannot reassign its suit, and the deck always remains 52 cards.
 
-For Rumin, Sheen, Frumo, and Bizi, each 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, and Contraptions occupy a separate lane support slot and remain until their rules remove them.
+Each published 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, and Operations occupy a separate lane support slot and remain until their rules remove them.
 
 Edit Commander, General, and City definitions in `server/gameContent.js`. The Legacies source text is in `server/legaciesContent.js`. Edit constructed cards in the faction card arrays in `server/gameContent.js`. Mechanical changes must also be reflected in `shared/duel-rules/`.
 
@@ -231,6 +231,80 @@ No faction-specific constructed replacements are published yet. This faction cur
 ### Constructed replacement cards
 
 No faction-specific constructed replacements are published yet. This faction currently plays the complete standard 52-card deck.
+
+## Zynarth
+
+- Faction ID: `zynarth`
+- Standard playing cards: **52**
+- Constructed replacement cards: **18**
+
+### Faction cards
+
+| Role | Name | Ability | Rules text |
+|---|---|---|---|
+| Commander | Broodmother Zalara | — | At the start of your turn, create an Egg in an empty lane. Once per turn, hatch an Egg into a Worker, Soldier, or Guard. |
+| General (`klar`) | K'Lar, Biomass Keeper | — | Once per turn, sacrifice two Underlings you control to draw one card. |
+| City | Brood Nest | — | The first time you hatch each turn, you may hatch a second Egg into a Worker. |
+
+### Constructed replacement cards
+
+| Slot | Type | Name | Card ID | Rules text |
+|---:|---|---|---|---|
+| 2♠ | servitor | Spore Runner | `zynarth-spore-runner` | On your first attack each turn, this gets +1 value if you control an Underling. |
+| 2♥ | servitor | Nutrient Tender | `zynarth-nutrient-tender` | This gets +1 value while attacking if you control an Egg, Worker, Soldier, or Guard. |
+| 3♦ | servitor | Brood Shepherd | `zynarth-brood-shepherd` | When this attacks from a lane, it gets +1 value. |
+| 4♣ | servitor | Carapace Keeper | `zynarth-carapace-keeper` | When this blocks, it gets +1 value if you control an Underling. |
+| 5♠ | servitor | Adaptive Stalker | `zynarth-adaptive-stalker` | When this attacks, it gets +1 value for each different Underling form you control, up to +2. |
+| 5♥ | servitor | Hunting Cluster | `zynarth-hunting-cluster` | When this attacks, it gets +1 value for each other Underling you control, up to +2. |
+| 6♦ | servitor | Biomass Reclaimer | `zynarth-biomass-reclaimer` | The first time an Underling you control is defeated each turn, your next attack gets +1 value. |
+| 7♣ | servitor | Hive Warden | `zynarth-hive-warden` | When this blocks from a lane, it gets +2 value. |
+| 9♠ | servitor | Brood Titan | `zynarth-brood-titan` | When this attacks, it gets +2 value if you control two or more Underlings. |
+| 10♥ | servitor | Ancient Devourer | `zynarth-ancient-devourer` | When this attacks, it gets +1 value for each Underling you control, up to +3. |
+| 3♣ | biomorph | Spawning Pool | `zynarth-spawning-pool` | While this occupies a support slot, the first Underling you hatch each turn gets +1 value until end of turn. |
+| 4♦ | biomorph | Pheromone Route | `zynarth-pheromone-route` | While this occupies a support slot, your first attack each turn made by an Underling gets +1 value. |
+| 6♠ | biomorph | Hardened Nursery | `zynarth-hardened-nursery` | While this occupies a support slot, your first Underling block each turn gets +1 value. |
+| 6♥ | biomorph | Metabolic Web | `zynarth-metabolic-web` | While this occupies a support slot, your attacks get +1 value while you control three Underlings. |
+| 7♦ | biomorph | Adaptive Carapace | `zynarth-adaptive-carapace` | While this occupies a support slot, once each turn after an Underling blocks, prevent 1 damage. |
+| 8♣ | biomorph | Carrion Vat | `zynarth-carrion-vat` | While this occupies a support slot, the first time one of your Underlings is defeated each turn, gain 1 life. |
+| 9♦ | biomorph | Ravenous Cycle | `zynarth-ravenous-cycle` | While this occupies a support slot, after you sacrifice an Underling, your next attack this turn gets +2 value. |
+| 10♣ | biomorph | Broodmind Synapse | `zynarth-broodmind-synapse` | While this occupies a support slot, your Underlings get +1 value while attacking or blocking. |
+
+## Astral Vanguard
+
+- Faction ID: `astral-vanguard`
+- Standard playing cards: **52**
+- Constructed replacement cards: **18**
+
+### Faction cards
+
+| Role | Name | Ability | Rules text |
+|---|---|---|---|
+| Commander | High Marshal Alden | — | Once per turn, deploy the top card of your deck to an empty lane if it is a Servitor with printed value 3 or less. |
+| General (`myra-cross`) | Sergeant Myra Cross | — | Once per turn, put a card from your hand on top of your deck. Your next payment this turn gets +2 value. |
+| City | Vanguard Outpost | — | Whenever a Servitor enters one of your lanes directly from your deck, it gets +1 value until end of turn. |
+
+### Constructed replacement cards
+
+| Slot | Type | Name | Card ID | Rules text |
+|---:|---|---|---|---|
+| 2♣ | servitor | Orbital Pathfinder | `astral-vanguard-orbital-pathfinder` | On your first attack each turn, this gets +1 value if you staged a card this turn. |
+| 3♠ | servitor | Breach Team | `astral-vanguard-breach-team` | When this attacks from a lane, it gets +1 value. |
+| 3♥ | servitor | Shock Trooper | `astral-vanguard-shock-trooper` | If this entered a lane directly from your deck this turn, it gets +2 value while attacking. |
+| 4♦ | servitor | Electronic Warfare Specialist | `astral-vanguard-electronic-warfare-specialist` | When this attacks after an attack of a different suit, it gets +1 value. |
+| 5♣ | servitor | Incendiary Trooper | `astral-vanguard-incendiary-trooper` | When this attacks, it gets +1 value if the opponent controls a lane card. |
+| 5♠ | servitor | Combat Medic | `astral-vanguard-combat-medic` | After this blocks and you take no damage, gain 1 life. |
+| 6♥ | servitor | Jump Trooper | `astral-vanguard-jump-trooper` | When this attacks from your hand, it gets +1 value. |
+| 7♦ | servitor | Powered Breacher | `astral-vanguard-powered-breacher` | When this attacks from a lane, it gets +2 value if that lane has an Operation. |
+| 7♣ | servitor | EMP Grenadier | `astral-vanguard-emp-grenadier` | When this blocks, it gets +1 value for each Operation you control, up to +2. |
+| 10♠ | servitor | Aegis Shock Company | `astral-vanguard-aegis-shock-company` | When this attacks from a lane, it gets +3 value if it entered from your deck this turn. |
+| 2♥ | operation | Drop Pod Beacon | `astral-vanguard-drop-pod-beacon` | While this occupies a support slot, the first Servitor deployed from your deck each turn gets +1 additional value. |
+| 4♠ | operation | Forward Supply Cache | `astral-vanguard-forward-supply-cache` | While this occupies a support slot, your first payment after staging a card gets +1 value. |
+| 6♣ | operation | Field Triage | `astral-vanguard-field-triage` | While this occupies a support slot, the first time you block without taking damage each turn, gain 1 life. |
+| 6♠ | operation | Suppression Order | `astral-vanguard-suppression-order` | While this occupies a support slot, your first lane attack each turn gets +1 value. |
+| 8♥ | operation | Breach Charge | `astral-vanguard-breach-charge` | While this occupies a support slot, your first Servitor attack from its lane each turn gets +2 value. |
+| 8♦ | operation | Tactical Relay | `astral-vanguard-tactical-relay` | While this occupies a support slot, the first staged card you play each turn gets +1 value. |
+| 9♣ | operation | Orbital Interdiction | `astral-vanguard-orbital-interdiction` | While this occupies a support slot, your attacks after a different-suit attack get +1 value. |
+| 10♦ | operation | Fleet Command | `astral-vanguard-fleet-command` | While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1. |
 
 ## Standard 52-card deck
 

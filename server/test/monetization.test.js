@@ -95,7 +95,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 72);
+  assert.equal(COLLECTION_CARDS.length, 108);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);

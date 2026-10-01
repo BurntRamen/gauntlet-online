@@ -1629,7 +1629,9 @@ const PACK_THEMES = {
   mekan: { name: "Mekan", subtitle: "Eternal Festival", accent: "#f6c453", glow: "rgba(246,196,83,0.3)", background: "linear-gradient(145deg, #3f1638, #9a3f65 42%, #0f766e 88%)", art: "radial-gradient(circle at 24% 30%, rgba(253,224,71,.65), transparent 16%), linear-gradient(135deg, rgba(157,23,77,.82), rgba(13,148,136,.7))" },
   jali: { name: "Jali", subtitle: "Revenant Formation", accent: "#fb7185", glow: "rgba(251,113,133,0.3)", background: "linear-gradient(145deg, #2b0b16, #7f1d3a 42%, #1e293b 88%)", art: "repeating-linear-gradient(135deg, rgba(255,228,230,.12) 0 3px, transparent 3px 24px), radial-gradient(circle at 70% 24%, rgba(251,113,133,.48), transparent 24%)" },
   gracus: { name: "Gracus", subtitle: "Giant Coast Arena", accent: "#f59e0b", glow: "rgba(245,158,11,.3)", background: "linear-gradient(145deg, #431407, #9a3412 44%, #155e75 90%)", art: "radial-gradient(circle at 50% 25%, rgba(251,191,36,.5), transparent 22%), repeating-linear-gradient(90deg, rgba(255,237,213,.1) 0 3px, transparent 3px 28px)" },
-  indela: { name: "Indela", subtitle: "Academy of Omens", accent: "#c4b5fd", glow: "rgba(196,181,253,.3)", background: "linear-gradient(145deg, #1e1b4b, #581c87 46%, #172554 90%)", art: "repeating-radial-gradient(circle at 50% 40%, rgba(254,243,199,.18) 0 2px, transparent 2px 28px), radial-gradient(circle at 50% 38%, rgba(192,132,252,.5), transparent 25%)" }
+  indela: { name: "Indela", subtitle: "Academy of Omens", accent: "#c4b5fd", glow: "rgba(196,181,253,.3)", background: "linear-gradient(145deg, #1e1b4b, #581c87 46%, #172554 90%)", art: "repeating-radial-gradient(circle at 50% 40%, rgba(254,243,199,.18) 0 2px, transparent 2px 28px), radial-gradient(circle at 50% 38%, rgba(192,132,252,.5), transparent 25%)" },
+  zynarth: { name: "Zynarth", subtitle: "Adaptive Brood", accent: "#a3e635", glow: "rgba(163,230,53,.3)", background: "linear-gradient(145deg, #1a2e05, #3f6212 44%, #3b0764 90%)", art: "radial-gradient(circle at 32% 30%, rgba(190,242,100,.5), transparent 20%), repeating-radial-gradient(circle at 60% 60%, rgba(217,249,157,.12) 0 3px, transparent 3px 26px)" },
+  "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" }
 };
 
 function getBattlefieldTexture(factionId) {
@@ -2123,11 +2125,14 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
         textAlign: "left",
         display: "grid",
         gap: 5,
-        minHeight: 132,
+        minHeight: 310,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.48 : 1
       }}
     >
+      <span style={{ display: "block", width: "100%", maxWidth: 180, aspectRatio: "5 / 7", justifySelf: "center", overflow: "hidden", borderRadius: 7, boxShadow: `0 8px 22px ${theme.glow}` }}>
+        <SpecialCardFace card={card} />
+      </span>
       <strong style={{ color: rarity.color }}>{card.name}</strong>
       <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
       <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
@@ -2207,12 +2212,6 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
               {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
               {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {(savedDraftDeck.draftType || "player") === "bot" ? "Bot Draft" : "Player Draft"}</div>}
             </div>
-            {isBotDraft && draft?.botPickLog?.length > 0 && (
-              <div style={{ marginTop: 10, padding: 10, borderRadius: 8, border: "1px solid rgba(125,211,252,0.22)", background: "rgba(15,23,42,0.42)", color: "#bfdbfe", fontSize: 12, display: "grid", gap: 3 }}>
-                <strong style={{ color: "#fde68a" }}>Recent bot picks</strong>
-                {draft.botPickLog.slice(-5).map((line, index) => <div key={`${line}-${index}`}>{line}</div>)}
-              </div>
-            )}
           </MenuCard>
         </div>
 

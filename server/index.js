@@ -648,14 +648,13 @@ function publicCollectorVariant(variant) {
 }
 
 function collectionSummary(stats = {}) {
+  const catalog = Object.fromEntries([...new Set(COLLECTION_CARDS.map((card) => card.factionId))].map((factionId) => [
+    factionId,
+    COLLECTION_CARDS.filter((card) => card.factionId === factionId).map(getPlayableCollectionCard)
+  ]));
   return {
     ...normalizeCollection(stats),
-    catalog: {
-      rumin: COLLECTION_CARDS.filter((card) => card.factionId === "rumin").map(getPlayableCollectionCard),
-      sheen: COLLECTION_CARDS.filter((card) => card.factionId === "sheen").map(getPlayableCollectionCard),
-      frumo: COLLECTION_CARDS.filter((card) => card.factionId === "frumo").map(getPlayableCollectionCard),
-      bizi: COLLECTION_CARDS.filter((card) => card.factionId === "bizi").map(getPlayableCollectionCard)
-    },
+    catalog,
     collectorCatalog: COLLECTOR_VARIANTS.map(publicCollectorVariant),
     boosters: BOOSTER_PRODUCTS,
     collectorPacks: COLLECTOR_PACK_PRODUCTS
@@ -691,7 +690,7 @@ function createDraftPack(ownerPlayer) {
     id: crypto.randomUUID(),
     ownerPlayer,
     cards: DRAFT_PACK_SLOTS.map((slot) => {
-      const factionIds = ["rumin", "sheen", "frumo", "bizi"];
+      const factionIds = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
       const factionId = factionIds[crypto.randomInt(factionIds.length)];
       const rarity = resolveBoosterSlot(slot);
       const card = pickCollectionCard(factionId, rarity);
@@ -5069,7 +5068,6 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
     myPool,
     myDeckAdditions,
     poolCounts,
-    botPickLog: draft.botDraft ? (draft.botPickLog || []).slice(-12) : [],
     deckAdditionCounts: Object.fromEntries(Object.entries(draft.deckAdditions || {}).map(([key, cards]) => [key, cards.length])),
     completedAt: draft.completedAt
   };
@@ -9885,6 +9883,7 @@ module.exports = {
     recordAccountGameResult,
     recordFinalGameStats,
     resolveDamage,
+    sanitizeDraftForViewer,
     sanitizeGameForViewer,
     sweepRoomLifecycle,
     deleteRoom,

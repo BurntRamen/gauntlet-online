@@ -8,7 +8,8 @@ const escape = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<",
 
 function buildGuide() {
   const terms = KEYWORDS.map(({ word, example, meaning }) => `<tr id="${word.toLowerCase()}"><th scope="row">${word}<small>${escape(example)}</small></th><td>${escape(meaning)}</td></tr>`).join("\n");
-  const cards = ["rumin", "sheen", "frumo", "bizi"].map((faction) => `<section id="${faction}"><h2>${faction[0].toUpperCase() + faction.slice(1)} cards</h2><div class="cards">${COLLECTION_CARDS.filter((card) => card.factionId === faction).map((card) => {
+  const factionIds = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
+  const cards = factionIds.map((faction) => `<section id="${faction}"><h2>${faction === "astral-vanguard" ? "Astral Vanguard" : faction[0].toUpperCase() + faction.slice(1)} cards</h2><div class="cards">${COLLECTION_CARDS.filter((card) => card.factionId === faction).map((card) => {
     const keywords = KEYWORDS.filter(({ word }) => new RegExp(`\\b${word === "Overpay" ? "Overpa(?:y|id)" : word}`, "i").test(card.displayText));
     return `<article id="${card.id}"><h3>${escape(card.name)}</h3><p class="short">${escape(card.displayText)}</p><p class="full">${escape(card.text)}</p>${keywords.length ? `<dl>${keywords.map(({ word, meaning }) => `<dt>${word}</dt><dd>${escape(meaning)}</dd>`).join("")}</dl>` : ""}<a href="#keywords">Keyword definitions ↑</a></article>`;
   }).join("\n")}</div></section>`).join("\n");
@@ -19,10 +20,10 @@ function buildGuide() {
 </style></head><body><main>
 <a href="/">← Gauntlet Online</a><p class="eyebrow">Card reference</p><h1>Card keyword guide</h1><p class="intro">Cards use a simple pattern: <strong>trigger: effect.</strong> Repeated mechanics have one consistent keyword. Numbers show the extra bonus, and full rules sit beside every shortened ability below.</p>
 <div class="example"><span>Nu’s Verdant Edict</span><strong>Third block: +1 value.</strong><small>This is +1 on top of Emperor Nu’s existing +2 third-block bonus, for +3 total.</small></div>
-<nav aria-label="Guide sections"><a href="#keywords">Keywords</a><a href="#reading">Reading cards</a><a href="#rumin">Rumin</a><a href="#sheen">Sheen</a><a href="#frumo">Frumo</a><a href="#bizi">Bizi</a></nav>
+<nav aria-label="Guide sections"><a href="#keywords">Keywords</a><a href="#reading">Reading cards</a>${factionIds.map((id) => `<a href="#${id}">${id === "astral-vanguard" ? "Astral Vanguard" : id[0].toUpperCase() + id.slice(1)}</a>`).join("")}</nav>
 <section id="keywords"><h2>The lexicon</h2><table><caption class="intro">Ten reusable mechanics</caption><thead><tr><th scope="col">Keyword</th><th scope="col">Meaning</th></tr></thead><tbody>${terms}</tbody></table></section>
 <section id="reading"><h2>Reading a card</h2><ul>${CONVENTIONS.map((text) => `<li>${escape(text)}</li>`).join("")}</ul></section>
-${cards}<footer>Gauntlet · ${WORDING_VERSION} · 72 custom faction cards. Short wording changes presentation only.</footer>
+${cards}<footer>Gauntlet · ${WORDING_VERSION} · ${COLLECTION_CARDS.length} custom faction cards. Short wording changes presentation only.</footer>
 </main></body></html>\n`;
   const root = path.resolve(__dirname, "..");
   fs.writeFileSync(path.join(root, "client/public/card-keywords.html"), html);
@@ -32,6 +33,6 @@ ${cards}<footer>Gauntlet · ${WORDING_VERSION} · 72 custom faction cards. Short
 }
 if (require.main === module) {
   buildGuide();
-  console.log("Built the keyword guide and all 72 card references.");
+  console.log(`Built the keyword guide and all ${COLLECTION_CARDS.length} card references.`);
 }
 module.exports = { buildGuide };

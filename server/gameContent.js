@@ -1,7 +1,7 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-rules-v4";
-const CONTENT_VERSION = "gauntlet-content-v12";
+const RULES_VERSION = "gauntlet-rules-v5";
+const CONTENT_VERSION = "gauntlet-content-v13";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -672,7 +672,49 @@ const BIZI_COLLECTION_CARDS = [
   }
 ];
 
-const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS];
+const ZYNARTH_COLLECTION_CARDS = [
+  { id: "zynarth-spore-runner", factionId: "zynarth", name: "Spore Runner", type: "servitor", rarity: "common", value: 2, text: "On your first attack each turn, this gets +1 value if you control an Underling." },
+  { id: "zynarth-nutrient-tender", factionId: "zynarth", name: "Nutrient Tender", type: "servitor", rarity: "common", value: 2, text: "This gets +1 value while attacking if you control an Egg, Worker, Soldier, or Guard." },
+  { id: "zynarth-brood-shepherd", factionId: "zynarth", name: "Brood Shepherd", type: "servitor", rarity: "common", value: 3, text: "When this attacks from a lane, it gets +1 value." },
+  { id: "zynarth-carapace-keeper", factionId: "zynarth", name: "Carapace Keeper", type: "servitor", rarity: "common", value: 4, text: "When this blocks, it gets +1 value if you control an Underling." },
+  { id: "zynarth-adaptive-stalker", factionId: "zynarth", name: "Adaptive Stalker", type: "servitor", rarity: "uncommon", value: 5, text: "When this attacks, it gets +1 value for each different Underling form you control, up to +2." },
+  { id: "zynarth-hunting-cluster", factionId: "zynarth", name: "Hunting Cluster", type: "servitor", rarity: "uncommon", value: 5, text: "When this attacks, it gets +1 value for each other Underling you control, up to +2." },
+  { id: "zynarth-biomass-reclaimer", factionId: "zynarth", name: "Biomass Reclaimer", type: "servitor", rarity: "uncommon", value: 6, text: "The first time an Underling you control is defeated each turn, your next attack gets +1 value." },
+  { id: "zynarth-hive-warden", factionId: "zynarth", name: "Hive Warden", type: "servitor", rarity: "rare", value: 7, text: "When this blocks from a lane, it gets +2 value." },
+  { id: "zynarth-brood-titan", factionId: "zynarth", name: "Brood Titan", type: "servitor", rarity: "rare", value: 9, text: "When this attacks, it gets +2 value if you control two or more Underlings." },
+  { id: "zynarth-ancient-devourer", factionId: "zynarth", name: "Ancient Devourer", type: "servitor", rarity: "mythic", value: 10, text: "When this attacks, it gets +1 value for each Underling you control, up to +3." },
+  { id: "zynarth-spawning-pool", factionId: "zynarth", name: "Spawning Pool", type: "biomorph", rarity: "common", value: 3, text: "While this occupies a support slot, the first Underling you hatch each turn gets +1 value until end of turn." },
+  { id: "zynarth-pheromone-route", factionId: "zynarth", name: "Pheromone Route", type: "biomorph", rarity: "common", value: 4, text: "While this occupies a support slot, your first attack each turn made by an Underling gets +1 value." },
+  { id: "zynarth-hardened-nursery", factionId: "zynarth", name: "Hardened Nursery", type: "biomorph", rarity: "uncommon", value: 6, text: "While this occupies a support slot, your first Underling block each turn gets +1 value." },
+  { id: "zynarth-metabolic-web", factionId: "zynarth", name: "Metabolic Web", type: "biomorph", rarity: "uncommon", value: 6, text: "While this occupies a support slot, your attacks get +1 value while you control three Underlings." },
+  { id: "zynarth-adaptive-carapace", factionId: "zynarth", name: "Adaptive Carapace", type: "biomorph", rarity: "uncommon", value: 7, text: "While this occupies a support slot, once each turn after an Underling blocks, prevent 1 damage." },
+  { id: "zynarth-carrion-vat", factionId: "zynarth", name: "Carrion Vat", type: "biomorph", rarity: "rare", value: 8, text: "While this occupies a support slot, the first time one of your Underlings is defeated each turn, gain 1 life." },
+  { id: "zynarth-ravenous-cycle", factionId: "zynarth", name: "Ravenous Cycle", type: "biomorph", rarity: "rare", value: 9, text: "While this occupies a support slot, after you sacrifice an Underling, your next attack this turn gets +2 value." },
+  { id: "zynarth-broodmind-synapse", factionId: "zynarth", name: "Broodmind Synapse", type: "biomorph", rarity: "mythic", value: 10, text: "While this occupies a support slot, your Underlings get +1 value while attacking or blocking." }
+];
+
+const ASTRAL_VANGUARD_COLLECTION_CARDS = [
+  { id: "astral-vanguard-orbital-pathfinder", factionId: "astral-vanguard", name: "Orbital Pathfinder", type: "servitor", rarity: "common", value: 2, text: "On your first attack each turn, this gets +1 value if you staged a card this turn." },
+  { id: "astral-vanguard-breach-team", factionId: "astral-vanguard", name: "Breach Team", type: "servitor", rarity: "common", value: 3, text: "When this attacks from a lane, it gets +1 value." },
+  { id: "astral-vanguard-shock-trooper", factionId: "astral-vanguard", name: "Shock Trooper", type: "servitor", rarity: "common", value: 3, text: "If this entered a lane directly from your deck this turn, it gets +2 value while attacking." },
+  { id: "astral-vanguard-electronic-warfare-specialist", factionId: "astral-vanguard", name: "Electronic Warfare Specialist", type: "servitor", rarity: "common", value: 4, text: "When this attacks after an attack of a different suit, it gets +1 value." },
+  { id: "astral-vanguard-incendiary-trooper", factionId: "astral-vanguard", name: "Incendiary Trooper", type: "servitor", rarity: "uncommon", value: 5, text: "When this attacks, it gets +1 value if the opponent controls a lane card." },
+  { id: "astral-vanguard-combat-medic", factionId: "astral-vanguard", name: "Combat Medic", type: "servitor", rarity: "uncommon", value: 5, text: "After this blocks and you take no damage, gain 1 life." },
+  { id: "astral-vanguard-jump-trooper", factionId: "astral-vanguard", name: "Jump Trooper", type: "servitor", rarity: "uncommon", value: 6, text: "When this attacks from your hand, it gets +1 value." },
+  { id: "astral-vanguard-powered-breacher", factionId: "astral-vanguard", name: "Powered Breacher", type: "servitor", rarity: "rare", value: 7, text: "When this attacks from a lane, it gets +2 value if that lane has an Operation." },
+  { id: "astral-vanguard-emp-grenadier", factionId: "astral-vanguard", name: "EMP Grenadier", type: "servitor", rarity: "rare", value: 7, text: "When this blocks, it gets +1 value for each Operation you control, up to +2." },
+  { id: "astral-vanguard-aegis-shock-company", factionId: "astral-vanguard", name: "Aegis Shock Company", type: "servitor", rarity: "mythic", value: 10, text: "When this attacks from a lane, it gets +3 value if it entered from your deck this turn." },
+  { id: "astral-vanguard-drop-pod-beacon", factionId: "astral-vanguard", name: "Drop Pod Beacon", type: "operation", rarity: "common", value: 2, text: "While this occupies a support slot, the first Servitor deployed from your deck each turn gets +1 additional value." },
+  { id: "astral-vanguard-forward-supply-cache", factionId: "astral-vanguard", name: "Forward Supply Cache", type: "operation", rarity: "common", value: 4, text: "While this occupies a support slot, your first payment after staging a card gets +1 value." },
+  { id: "astral-vanguard-field-triage", factionId: "astral-vanguard", name: "Field Triage", type: "operation", rarity: "uncommon", value: 6, text: "While this occupies a support slot, the first time you block without taking damage each turn, gain 1 life." },
+  { id: "astral-vanguard-suppression-order", factionId: "astral-vanguard", name: "Suppression Order", type: "operation", rarity: "uncommon", value: 6, text: "While this occupies a support slot, your first lane attack each turn gets +1 value." },
+  { id: "astral-vanguard-breach-charge", factionId: "astral-vanguard", name: "Breach Charge", type: "operation", rarity: "uncommon", value: 8, text: "While this occupies a support slot, your first Servitor attack from its lane each turn gets +2 value." },
+  { id: "astral-vanguard-tactical-relay", factionId: "astral-vanguard", name: "Tactical Relay", type: "operation", rarity: "rare", value: 8, text: "While this occupies a support slot, the first staged card you play each turn gets +1 value." },
+  { id: "astral-vanguard-orbital-interdiction", factionId: "astral-vanguard", name: "Orbital Interdiction", type: "operation", rarity: "rare", value: 9, text: "While this occupies a support slot, your attacks after a different-suit attack get +1 value." },
+  { id: "astral-vanguard-fleet-command", factionId: "astral-vanguard", name: "Fleet Command", type: "operation", rarity: "mythic", value: 10, text: "While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1." }
+];
+
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
   "rumin-forum-ledger-runner": "hearts",
@@ -745,7 +787,17 @@ const FIXED_CARD_SUITS = Object.freeze({
   "bizi-clockwork-caravan": "hearts",
   "bizi-voltaric-ultimatum": "clubs",
   "bizi-focus-prime-signal": "diamonds",
-  "bizi-constanti-sunforge": "spades"
+  "bizi-constanti-sunforge": "spades",
+  "zynarth-spore-runner": "spades", "zynarth-nutrient-tender": "hearts", "zynarth-brood-shepherd": "diamonds", "zynarth-carapace-keeper": "clubs",
+  "zynarth-adaptive-stalker": "spades", "zynarth-hunting-cluster": "hearts", "zynarth-biomass-reclaimer": "diamonds", "zynarth-hive-warden": "clubs",
+  "zynarth-brood-titan": "spades", "zynarth-ancient-devourer": "hearts", "zynarth-spawning-pool": "clubs", "zynarth-pheromone-route": "diamonds",
+  "zynarth-hardened-nursery": "spades", "zynarth-metabolic-web": "hearts", "zynarth-adaptive-carapace": "diamonds", "zynarth-carrion-vat": "clubs",
+  "zynarth-ravenous-cycle": "diamonds", "zynarth-broodmind-synapse": "clubs",
+  "astral-vanguard-orbital-pathfinder": "clubs", "astral-vanguard-breach-team": "spades", "astral-vanguard-shock-trooper": "hearts", "astral-vanguard-electronic-warfare-specialist": "diamonds",
+  "astral-vanguard-incendiary-trooper": "clubs", "astral-vanguard-combat-medic": "spades", "astral-vanguard-jump-trooper": "hearts", "astral-vanguard-powered-breacher": "diamonds",
+  "astral-vanguard-emp-grenadier": "clubs", "astral-vanguard-aegis-shock-company": "spades", "astral-vanguard-drop-pod-beacon": "hearts", "astral-vanguard-forward-supply-cache": "spades",
+  "astral-vanguard-field-triage": "clubs", "astral-vanguard-suppression-order": "spades", "astral-vanguard-breach-charge": "hearts", "astral-vanguard-tactical-relay": "diamonds",
+  "astral-vanguard-orbital-interdiction": "clubs", "astral-vanguard-fleet-command": "diamonds"
 });
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
@@ -909,6 +961,26 @@ const factionsData = {
     general: { name: "Hera", image: "/assets/gauntlet/factions/bizi/hera-general.webp", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
     city: { name: "Constanti, Technology Hub", image: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
   },
+  zynarth: {
+    id: "zynarth",
+    name: "Zynarth",
+    campaignPending: true,
+    draftRules: true,
+    cardImage: "/assets/gauntlet/factions/zynarth/brood-nest.webp",
+    commander: { name: "Broodmother Zalara", image: "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp", text: "At the start of your turn, create an Egg in an empty lane. Once per turn, hatch an Egg into a Worker, Soldier, or Guard." },
+    general: { id: "klar", name: "K'Lar, Biomass Keeper", image: "/assets/gauntlet/factions/zynarth/klar-biomass-keeper.webp", text: "Once per turn, sacrifice two Underlings you control to draw one card." },
+    city: { name: "Brood Nest", image: "/assets/gauntlet/factions/zynarth/brood-nest.webp", text: "The first time you hatch each turn, you may hatch a second Egg into a Worker." }
+  },
+  "astral-vanguard": {
+    id: "astral-vanguard",
+    name: "Astral Vanguard",
+    campaignPending: true,
+    draftRules: true,
+    cardImage: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp",
+    commander: { name: "High Marshal Alden", image: "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp", text: "Once per turn, deploy the top card of your deck to an empty lane if it is a Servitor with printed value 3 or less." },
+    general: { id: "myra-cross", name: "Sergeant Myra Cross", image: "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp", text: "Once per turn, put a card from your hand on top of your deck. Your next payment this turn gets +2 value." },
+    city: { name: "Vanguard Outpost", image: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp", text: "Whenever a Servitor enters one of your lanes directly from your deck, it gets +1 value until end of turn." }
+  },
   xendra: {
     id: "xendra",
     name: "XenDra",
@@ -926,7 +998,7 @@ factionsData.gracus.general = factionsData.gracus.generals[0];
 factionsData.indela.general = factionsData.indela.generals[0];
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -1431,7 +1503,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 8) throw new Error("Invalid game content: expected eight playable factions.");
+  if (playableFactionIds.length !== 10) throw new Error("Invalid game content: expected ten playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);
@@ -1441,7 +1513,7 @@ function validateGameContent() {
       requireText(faction[role]?.text, `factions.${factionId}.${role}.text`);
     }
     const chapters = campaignChapters[factionId];
-    if (faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
+    if (!faction.campaignPending && faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
       throw new Error(`Invalid game content: faction ${factionId} has an invalid campaign chapter count.`);
     }
   }
@@ -1468,7 +1540,9 @@ function validateGameContent() {
     ["rumin", "armament"],
     ["sheen", "shelter"],
     ["frumo", "ambush"],
-    ["bizi", "contraption"]
+    ["bizi", "contraption"],
+    ["zynarth", "biomorph"],
+    ["astral-vanguard", "operation"]
   ]);
   for (const card of COLLECTION_CARDS) {
     requireText(card.id, "cards.id");
@@ -1554,6 +1628,7 @@ function getPublicGameContent() {
 validateGameContent();
 
 module.exports = {
+  ASTRAL_VANGUARD_COLLECTION_CARDS,
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   BIZI_CAMPAIGN_ART,
@@ -1578,6 +1653,7 @@ module.exports = {
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,
+  ZYNARTH_COLLECTION_CARDS,
   campaignChapters,
   factionsData,
   getCollectorVariantById,
