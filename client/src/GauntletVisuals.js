@@ -7,6 +7,8 @@ export const FACTION_VISUALS = {
   sheen: { name: "Sheen", accent: "#71b187", art: "/assets/gauntlet/sheen-card.webp" },
   frumo: { name: "Frumo", accent: "#69a8dc", art: "/assets/gauntlet/frumo-card.webp" },
   bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" },
+  zynarth: { name: "Zynarth", accent: "#a3e635", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp" },
+  "astral-vanguard": { name: "Astral Vanguard", accent: "#60a5fa", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
   xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
   basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
 };

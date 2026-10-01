@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "gauntlet-content-v12",
+  "contentVersion": "gauntlet-content-v13",
   "generatedFrom": "server/gameContent.js collectorVariants[].art",
   "summary": {
-    "gameplayCardCount": 72,
-    "collectorVariantCount": 144,
-    "variantsWithArt": 144,
+    "gameplayCardCount": 108,
+    "collectorVariantCount": 216,
+    "variantsWithArt": 216,
     "variantsMissingArt": 0,
-    "gameplayCardsWithAnyDedicatedArt": 72,
+    "gameplayCardsWithAnyDedicatedArt": 108,
     "gameplayCardsMissingAllDedicatedArt": 0
   },
   "cards": [
@@ -1017,6 +1017,510 @@
       "currentArt": {
         "standard": "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp",
         "collector": "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-spore-runner",
+      "faction": "zynarth",
+      "name": "Spore Runner",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "zynarth-spore-runner:standard",
+      "collectorVariantId": "zynarth-spore-runner:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-spore-runner.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-spore-runner.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-nutrient-tender",
+      "faction": "zynarth",
+      "name": "Nutrient Tender",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "zynarth-nutrient-tender:standard",
+      "collectorVariantId": "zynarth-nutrient-tender:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-nutrient-tender.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-nutrient-tender.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-brood-shepherd",
+      "faction": "zynarth",
+      "name": "Brood Shepherd",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "zynarth-brood-shepherd:standard",
+      "collectorVariantId": "zynarth-brood-shepherd:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-brood-shepherd.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-brood-shepherd.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-carapace-keeper",
+      "faction": "zynarth",
+      "name": "Carapace Keeper",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "zynarth-carapace-keeper:standard",
+      "collectorVariantId": "zynarth-carapace-keeper:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-carapace-keeper.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-carapace-keeper.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-adaptive-stalker",
+      "faction": "zynarth",
+      "name": "Adaptive Stalker",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "zynarth-adaptive-stalker:standard",
+      "collectorVariantId": "zynarth-adaptive-stalker:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-adaptive-stalker.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-adaptive-stalker.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-hunting-cluster",
+      "faction": "zynarth",
+      "name": "Hunting Cluster",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "zynarth-hunting-cluster:standard",
+      "collectorVariantId": "zynarth-hunting-cluster:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-hunting-cluster.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-hunting-cluster.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-biomass-reclaimer",
+      "faction": "zynarth",
+      "name": "Biomass Reclaimer",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "zynarth-biomass-reclaimer:standard",
+      "collectorVariantId": "zynarth-biomass-reclaimer:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-biomass-reclaimer.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-biomass-reclaimer.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-hive-warden",
+      "faction": "zynarth",
+      "name": "Hive Warden",
+      "type": "servitor",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "zynarth-hive-warden:standard",
+      "collectorVariantId": "zynarth-hive-warden:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-hive-warden.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-hive-warden.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-brood-titan",
+      "faction": "zynarth",
+      "name": "Brood Titan",
+      "type": "servitor",
+      "rarity": "rare",
+      "value": 9,
+      "standardVariantId": "zynarth-brood-titan:standard",
+      "collectorVariantId": "zynarth-brood-titan:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-brood-titan.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-brood-titan.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-ancient-devourer",
+      "faction": "zynarth",
+      "name": "Ancient Devourer",
+      "type": "servitor",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "zynarth-ancient-devourer:standard",
+      "collectorVariantId": "zynarth-ancient-devourer:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-ancient-devourer.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-ancient-devourer.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-spawning-pool",
+      "faction": "zynarth",
+      "name": "Spawning Pool",
+      "type": "biomorph",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "zynarth-spawning-pool:standard",
+      "collectorVariantId": "zynarth-spawning-pool:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-spawning-pool.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-spawning-pool.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-pheromone-route",
+      "faction": "zynarth",
+      "name": "Pheromone Route",
+      "type": "biomorph",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "zynarth-pheromone-route:standard",
+      "collectorVariantId": "zynarth-pheromone-route:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-pheromone-route.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-pheromone-route.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-hardened-nursery",
+      "faction": "zynarth",
+      "name": "Hardened Nursery",
+      "type": "biomorph",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "zynarth-hardened-nursery:standard",
+      "collectorVariantId": "zynarth-hardened-nursery:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-hardened-nursery.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-hardened-nursery.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-metabolic-web",
+      "faction": "zynarth",
+      "name": "Metabolic Web",
+      "type": "biomorph",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "zynarth-metabolic-web:standard",
+      "collectorVariantId": "zynarth-metabolic-web:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-metabolic-web.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-metabolic-web.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-adaptive-carapace",
+      "faction": "zynarth",
+      "name": "Adaptive Carapace",
+      "type": "biomorph",
+      "rarity": "uncommon",
+      "value": 7,
+      "standardVariantId": "zynarth-adaptive-carapace:standard",
+      "collectorVariantId": "zynarth-adaptive-carapace:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-adaptive-carapace.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-adaptive-carapace.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-carrion-vat",
+      "faction": "zynarth",
+      "name": "Carrion Vat",
+      "type": "biomorph",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "zynarth-carrion-vat:standard",
+      "collectorVariantId": "zynarth-carrion-vat:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-carrion-vat.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-carrion-vat.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-ravenous-cycle",
+      "faction": "zynarth",
+      "name": "Ravenous Cycle",
+      "type": "biomorph",
+      "rarity": "rare",
+      "value": 9,
+      "standardVariantId": "zynarth-ravenous-cycle:standard",
+      "collectorVariantId": "zynarth-ravenous-cycle:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-ravenous-cycle.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-ravenous-cycle.webp"
+      }
+    },
+    {
+      "gameplayCardId": "zynarth-broodmind-synapse",
+      "faction": "zynarth",
+      "name": "Broodmind Synapse",
+      "type": "biomorph",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "zynarth-broodmind-synapse:standard",
+      "collectorVariantId": "zynarth-broodmind-synapse:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/zynarth/zynarth-broodmind-synapse.webp",
+        "collector": "/assets/gauntlet/constructed/zynarth/zynarth-broodmind-synapse.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-orbital-pathfinder",
+      "faction": "astral-vanguard",
+      "name": "Orbital Pathfinder",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "astral-vanguard-orbital-pathfinder:standard",
+      "collectorVariantId": "astral-vanguard-orbital-pathfinder:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-orbital-pathfinder.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-orbital-pathfinder.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-breach-team",
+      "faction": "astral-vanguard",
+      "name": "Breach Team",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "astral-vanguard-breach-team:standard",
+      "collectorVariantId": "astral-vanguard-breach-team:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-breach-team.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-breach-team.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-shock-trooper",
+      "faction": "astral-vanguard",
+      "name": "Shock Trooper",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 3,
+      "standardVariantId": "astral-vanguard-shock-trooper:standard",
+      "collectorVariantId": "astral-vanguard-shock-trooper:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-shock-trooper.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-shock-trooper.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-electronic-warfare-specialist",
+      "faction": "astral-vanguard",
+      "name": "Electronic Warfare Specialist",
+      "type": "servitor",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "astral-vanguard-electronic-warfare-specialist:standard",
+      "collectorVariantId": "astral-vanguard-electronic-warfare-specialist:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-electronic-warfare-specialist.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-electronic-warfare-specialist.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-incendiary-trooper",
+      "faction": "astral-vanguard",
+      "name": "Incendiary Trooper",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "astral-vanguard-incendiary-trooper:standard",
+      "collectorVariantId": "astral-vanguard-incendiary-trooper:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-incendiary-trooper.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-incendiary-trooper.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-combat-medic",
+      "faction": "astral-vanguard",
+      "name": "Combat Medic",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 5,
+      "standardVariantId": "astral-vanguard-combat-medic:standard",
+      "collectorVariantId": "astral-vanguard-combat-medic:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-combat-medic.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-combat-medic.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-jump-trooper",
+      "faction": "astral-vanguard",
+      "name": "Jump Trooper",
+      "type": "servitor",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "astral-vanguard-jump-trooper:standard",
+      "collectorVariantId": "astral-vanguard-jump-trooper:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-jump-trooper.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-jump-trooper.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-powered-breacher",
+      "faction": "astral-vanguard",
+      "name": "Powered Breacher",
+      "type": "servitor",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "astral-vanguard-powered-breacher:standard",
+      "collectorVariantId": "astral-vanguard-powered-breacher:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-powered-breacher.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-powered-breacher.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-emp-grenadier",
+      "faction": "astral-vanguard",
+      "name": "EMP Grenadier",
+      "type": "servitor",
+      "rarity": "rare",
+      "value": 7,
+      "standardVariantId": "astral-vanguard-emp-grenadier:standard",
+      "collectorVariantId": "astral-vanguard-emp-grenadier:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-emp-grenadier.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-emp-grenadier.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-aegis-shock-company",
+      "faction": "astral-vanguard",
+      "name": "Aegis Shock Company",
+      "type": "servitor",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "astral-vanguard-aegis-shock-company:standard",
+      "collectorVariantId": "astral-vanguard-aegis-shock-company:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-aegis-shock-company.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-aegis-shock-company.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-drop-pod-beacon",
+      "faction": "astral-vanguard",
+      "name": "Drop Pod Beacon",
+      "type": "operation",
+      "rarity": "common",
+      "value": 2,
+      "standardVariantId": "astral-vanguard-drop-pod-beacon:standard",
+      "collectorVariantId": "astral-vanguard-drop-pod-beacon:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-drop-pod-beacon.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-drop-pod-beacon.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-forward-supply-cache",
+      "faction": "astral-vanguard",
+      "name": "Forward Supply Cache",
+      "type": "operation",
+      "rarity": "common",
+      "value": 4,
+      "standardVariantId": "astral-vanguard-forward-supply-cache:standard",
+      "collectorVariantId": "astral-vanguard-forward-supply-cache:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-forward-supply-cache.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-forward-supply-cache.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-field-triage",
+      "faction": "astral-vanguard",
+      "name": "Field Triage",
+      "type": "operation",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "astral-vanguard-field-triage:standard",
+      "collectorVariantId": "astral-vanguard-field-triage:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-field-triage.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-field-triage.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-suppression-order",
+      "faction": "astral-vanguard",
+      "name": "Suppression Order",
+      "type": "operation",
+      "rarity": "uncommon",
+      "value": 6,
+      "standardVariantId": "astral-vanguard-suppression-order:standard",
+      "collectorVariantId": "astral-vanguard-suppression-order:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-suppression-order.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-suppression-order.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-breach-charge",
+      "faction": "astral-vanguard",
+      "name": "Breach Charge",
+      "type": "operation",
+      "rarity": "uncommon",
+      "value": 8,
+      "standardVariantId": "astral-vanguard-breach-charge:standard",
+      "collectorVariantId": "astral-vanguard-breach-charge:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-breach-charge.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-breach-charge.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-tactical-relay",
+      "faction": "astral-vanguard",
+      "name": "Tactical Relay",
+      "type": "operation",
+      "rarity": "rare",
+      "value": 8,
+      "standardVariantId": "astral-vanguard-tactical-relay:standard",
+      "collectorVariantId": "astral-vanguard-tactical-relay:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-tactical-relay.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-tactical-relay.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-orbital-interdiction",
+      "faction": "astral-vanguard",
+      "name": "Orbital Interdiction",
+      "type": "operation",
+      "rarity": "rare",
+      "value": 9,
+      "standardVariantId": "astral-vanguard-orbital-interdiction:standard",
+      "collectorVariantId": "astral-vanguard-orbital-interdiction:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-orbital-interdiction.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-orbital-interdiction.webp"
+      }
+    },
+    {
+      "gameplayCardId": "astral-vanguard-fleet-command",
+      "faction": "astral-vanguard",
+      "name": "Fleet Command",
+      "type": "operation",
+      "rarity": "mythic",
+      "value": 10,
+      "standardVariantId": "astral-vanguard-fleet-command:standard",
+      "collectorVariantId": "astral-vanguard-fleet-command:collector-foil",
+      "currentArt": {
+        "standard": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-fleet-command.webp",
+        "collector": "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-fleet-command.webp"
       }
     }
   ]

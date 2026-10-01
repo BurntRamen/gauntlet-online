@@ -17,7 +17,7 @@ const lines = [
   "",
   "Every playable faction receives a standard 52-card deck: one card of each rank (2–10, Jack, Queen, King, Ace) in each of the four suits (spades, hearts, diamonds, clubs). Every faction card has one fixed rank-and-suit slot and replaces that exact standard card; players cannot reassign its suit, and the deck always remains 52 cards.",
   "",
-  "For Rumin, Sheen, Frumo, and Bizi, each 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, and Contraptions occupy a separate lane support slot and remain until their rules remove them.",
+  "Each published 18-card constructed pool contains 10 Servitors and 8 faction support cards. Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, and Operations occupy a separate lane support slot and remain until their rules remove them.",
   "",
   "Edit Commander, General, and City definitions in `server/gameContent.js`. The Legacies source text is in `server/legaciesContent.js`. Edit constructed cards in the faction card arrays in `server/gameContent.js`. Mechanical changes must also be reflected in `shared/duel-rules/`.",
   ""

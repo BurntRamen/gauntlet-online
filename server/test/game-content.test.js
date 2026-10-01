@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const {
+  ASTRAL_VANGUARD_COLLECTION_CARDS,
   BIZI_COLLECTION_CARDS,
   COLLECTION_CARDS,
   COLLECTOR_VARIANTS,
@@ -13,12 +14,13 @@ const {
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,
+  ZYNARTH_COLLECTION_CARDS,
   getPublicGameContent,
   validateGameContent
 } = require("../gameContent");
 const { FACTIONS } = require("../game/factions");
 const { createMatch } = require("../../shared/duel-rules");
-const { server } = require("../index");
+const { server, __test } = require("../index");
 
 test.after(() => server.close());
 
@@ -29,7 +31,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 8);
+  assert.equal(content.factions.length, 10);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
   assert.equal(content.campaigns.xendra.chapters.length, 8);
   assert.equal(content.cards.length, COLLECTION_CARDS.length);
@@ -104,15 +106,14 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
 });
 
 test("maps every catalog constructed card into the shared deterministic rules", () => {
-  const sharedRulesSource = fs.readFileSync(
-    path.join(__dirname, "..", "..", "shared", "duel-rules", "index.js"),
-    "utf8"
-  );
+  const sharedRulesSource = ["index.js", "zynarth.js", "astralVanguard.js"]
+    .map((file) => fs.readFileSync(path.join(__dirname, "..", "..", "shared", "duel-rules", file), "utf8"))
+    .join("\n");
   const missing = COLLECTION_CARDS
     .map((card) => card.id)
     .filter((cardId) => !sharedRulesSource.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 72);
+  assert.equal(COLLECTION_CARDS.length, 108);
   assert.deepEqual(missing, []);
 });
 
@@ -121,7 +122,9 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
     [RUMIN_COLLECTION_CARDS, "armament"],
     [SHEEN_COLLECTION_CARDS, "shelter"],
     [FRUMO_COLLECTION_CARDS, "ambush"],
-    [BIZI_COLLECTION_CARDS, "contraption"]
+    [BIZI_COLLECTION_CARDS, "contraption"],
+    [ZYNARTH_COLLECTION_CARDS, "biomorph"],
+    [ASTRAL_VANGUARD_COLLECTION_CARDS, "operation"]
   ]) {
     assert.equal(cards.length, 18);
     assert.equal(cards.filter((card) => card.type === "servitor").length, 10);
@@ -131,7 +134,7 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
 });
 
 test("assigns every constructed card one unique, balanced rank-and-suit slot", () => {
-  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS]) {
+  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS, ZYNARTH_COLLECTION_CARDS, ASTRAL_VANGUARD_COLLECTION_CARDS]) {
     const slots = cards.map((card) => `${card.value}:${card.suit}`);
     assert.equal(new Set(slots).size, cards.length);
     assert.equal(cards.every((card) => ["spades", "hearts", "diamonds", "clubs"].includes(card.suit)), true);
@@ -155,7 +158,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     .map((card) => card.id)
     .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 72);
+  assert.equal(COLLECTION_CARDS.length, 108);
   assert.deepEqual(missing, []);
 });
 
@@ -186,4 +189,24 @@ test("serves the validated public content manifest", async () => {
   assert.equal(body.content.contentVersion, CONTENT_VERSION);
   assert.equal(body.content.rulesVersion, RULES_VERSION);
   assert.equal(body.content.campaigns.rumin.chapters.length, 12);
+});
+
+test("draft projection keeps a player's pack private and never publishes bot picks", () => {
+  const card = getPublicGameContent().cards.find((entry) => entry.factionId === "zynarth");
+  const roomState = {
+    roomCode: "PRIVATE",
+    lobby: { players: { 1: { accountName: "Drafter", connected: true } }, spectators: [] },
+    draft: {
+      status: "drafting", league: false, botDraft: true, maxPlayers: 8, packsPerPlayer: 3, packSize: 8,
+      activePlayers: [1], round: 1, pickNumber: 1, direction: "left", baseDeck: { cardCount: 52 },
+      currentPacks: { 1: { cards: [{ ...card, draftCopyId: "private-card" }] } },
+      draftedPools: { 1: [] }, deckAdditions: { 1: [] }, botPickLog: ["Bot picked a mythic card."]
+    }
+  };
+  const viewer = __test.sanitizeDraftForViewer(roomState, 1);
+  const spectator = __test.sanitizeDraftForViewer(roomState, null);
+  assert.equal(Object.hasOwn(viewer, "botPickLog"), false);
+  assert.equal(Object.hasOwn(spectator, "botPickLog"), false);
+  assert.equal(viewer.myCurrentPack.cards[0].id, card.id);
+  assert.equal(spectator.myCurrentPack, null);
 });

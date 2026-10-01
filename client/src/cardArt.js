@@ -7,7 +7,7 @@ export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi"
 export function getCustomCardArtDefinition(card) {
   const id = [card?.gameplayCardId, card?.definitionId, card?.id].find((candidate) => CUSTOM_CARD_IDS.has(candidate));
   if (!id) return null;
-  const factionId = id.split("-")[0];
+  const factionId = id.startsWith("astral-vanguard-") ? "astral-vanguard" : id.split("-")[0];
   return { id, factionId, illustration: `/assets/gauntlet/constructed/${factionId}/${id}.webp` };
 }
 
@@ -83,7 +83,7 @@ export function getPlayingCardArtPath(card, factionId) {
   const customFace = getCustomCardFacePath(card);
   if (customFace) return customFace;
   const requestedFaction = String(factionId || card?.factionId || "basic").toLowerCase();
-  const faction = new Set(["mekan", "jali", "gracus", "indela"]).has(requestedFaction) ? "basic" : requestedFaction;
+  const faction = new Set(["mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"]).has(requestedFaction) ? "basic" : requestedFaction;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
   const rank = getPlayingCardRankSlug(card);
 

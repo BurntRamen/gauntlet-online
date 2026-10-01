@@ -145,9 +145,18 @@ async function activateLaneButton(page, name) {
 
 async function payUntilEnabled(page, confirmationName) {
   const confirmation = currentAction(page).getByRole("button", { name: confirmationName });
-  for (let selection = 0; selection < 8 && await confirmation.isDisabled(); selection += 1) {
+  const paymentTotal = currentAction(page).getByRole("status").locator("strong");
+  for (let selection = 0; selection < 8; selection += 1) {
+    const [total, required] = String(await paymentTotal.textContent())
+      .split("/")
+      .map((value) => Number(value.trim()));
+    if (total >= required) break;
     await clickHandCardByValue(page, "highest");
   }
+  await expect.poll(async () => {
+    const [total, required] = String(await paymentTotal.textContent()).split("/").map((value) => Number(value.trim()));
+    return total >= required;
+  }).toBe(true);
   await expect(confirmation).toBeEnabled();
 }
 

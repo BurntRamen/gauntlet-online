@@ -1364,7 +1364,7 @@ function normalizeBattlefieldFactionId(viewModel) {
   const bottomFaction = viewModel?.bottom?.factionId;
   const topFaction = viewModel?.top?.factionId;
   const resolved = String(localFaction || bottomFaction || topFaction || "basic").toLowerCase();
-  return ["rumin", "sheen", "frumo", "bizi"].includes(resolved) ? resolved : "basic";
+  return ["rumin", "sheen", "frumo", "bizi", "zynarth", "astral-vanguard"].includes(resolved) ? resolved : "basic";
 }
 
 export default function ProductionMatchExperience({

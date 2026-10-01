@@ -18,7 +18,7 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 ## Conventions
 
 - Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.
-- Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes and Contraptions enter a lane's support slot and remain there until their text or another rule removes them.
+- Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs and Operations enter a lane's support slot and remain there until their text or another rule removes them.
 - Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.
 - First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.
 - +N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.
@@ -101,3 +101,39 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Shrapnel Blaster | May spend 2: attack +5 value. | Remove 2 acceleration counters: this attacks with +5 value. |
 | Interference Matrix | Enter: Charge 2. Next card: may add +1 per charge, up to +4 value. | When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have. |
 | Bizi Architect | Attack: may spend up to 3. +2 value per charge spent. | When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed. |
+| Spore Runner | First attack, with an Underling: +1 value. | On your first attack each turn, this gets +1 value if you control an Underling. |
+| Nutrient Tender | Attack, while you control an Underling: +1 value. | This gets +1 value while attacking if you control an Egg, Worker, Soldier, or Guard. |
+| Brood Shepherd | Lane attack: +1 value. | When this attacks from a lane, it gets +1 value. |
+| Carapace Keeper | Block, while you control an Underling: +1 value. | When this blocks, it gets +1 value if you control an Underling. |
+| Adaptive Stalker | Attack: +1 per different Underling form, up to +2. | When this attacks, it gets +1 value for each different Underling form you control, up to +2. |
+| Hunting Cluster | Attack: +1 per other Underling, up to +2. | When this attacks, it gets +1 value for each other Underling you control, up to +2. |
+| Biomass Reclaimer | First defeated Underling: next attack +1 value. | The first time an Underling you control is defeated each turn, your next attack gets +1 value. |
+| Hive Warden | Lane block: +2 value. | When this blocks from a lane, it gets +2 value. |
+| Brood Titan | Attack, with 2+ Underlings: +2 value. | When this attacks, it gets +2 value if you control two or more Underlings. |
+| Ancient Devourer | Attack: +1 per Underling, up to +3. | When this attacks, it gets +1 value for each Underling you control, up to +3. |
+| Spawning Pool | First hatch: that Underling +1 value this turn. | While this occupies a support slot, the first Underling you hatch each turn gets +1 value until end of turn. |
+| Pheromone Route | First Underling attack: +1 value. | While this occupies a support slot, your first attack each turn made by an Underling gets +1 value. |
+| Hardened Nursery | First Underling block: +1 value. | While this occupies a support slot, your first Underling block each turn gets +1 value. |
+| Metabolic Web | With 3 Underlings: your attacks +1 value. | While this occupies a support slot, your attacks get +1 value while you control three Underlings. |
+| Adaptive Carapace | After an Underling blocks: Ward 1. Once. | While this occupies a support slot, once each turn after an Underling blocks, prevent 1 damage. |
+| Carrion Vat | First defeated Underling: Heal 1. | While this occupies a support slot, the first time one of your Underlings is defeated each turn, gain 1 life. |
+| Ravenous Cycle | After a sacrifice: next attack +2 value. | While this occupies a support slot, after you sacrifice an Underling, your next attack this turn gets +2 value. |
+| Broodmind Synapse | Your Underlings attack and block with +1 value. | While this occupies a support slot, your Underlings get +1 value while attacking or blocking. |
+| Orbital Pathfinder | First attack, after staging: +1 value. | On your first attack each turn, this gets +1 value if you staged a card this turn. |
+| Breach Team | Lane attack: +1 value. | When this attacks from a lane, it gets +1 value. |
+| Shock Trooper | Deployed from deck this turn: attack +2 value. | If this entered a lane directly from your deck this turn, it gets +2 value while attacking. |
+| Electronic Warfare Specialist | Attack, new suit: +1 value. | When this attacks after an attack of a different suit, it gets +1 value. |
+| Incendiary Trooper | Attack, against an occupied lane: +1 value. | When this attacks, it gets +1 value if the opponent controls a lane card. |
+| Combat Medic | Clean block: Heal 1. | After this blocks and you take no damage, gain 1 life. |
+| Jump Trooper | Hand attack: +1 value. | When this attacks from your hand, it gets +1 value. |
+| Powered Breacher | Lane attack with an Operation: +2 value. | When this attacks from a lane, it gets +2 value if that lane has an Operation. |
+| EMP Grenadier | Block: +1 per Operation, up to +2. | When this blocks, it gets +1 value for each Operation you control, up to +2. |
+| Aegis Shock Company | Lane attack after deployment: +3 value. | When this attacks from a lane, it gets +3 value if it entered from your deck this turn. |
+| Drop Pod Beacon | First deck deployment: +1 extra value. | While this occupies a support slot, the first Servitor deployed from your deck each turn gets +1 additional value. |
+| Forward Supply Cache | First payment after staging: pays +1. | While this occupies a support slot, your first payment after staging a card gets +1 value. |
+| Field Triage | First clean block: Heal 1. | While this occupies a support slot, the first time you block without taking damage each turn, gain 1 life. |
+| Suppression Order | First lane attack: +1 value. | While this occupies a support slot, your first lane attack each turn gets +1 value. |
+| Breach Charge | First Servitor lane attack: +2 value. | While this occupies a support slot, your first Servitor attack from its lane each turn gets +2 value. |
+| Tactical Relay | First staged card played: +1 value. | While this occupies a support slot, the first staged card you play each turn gets +1 value. |
+| Orbital Interdiction | Your new-suit attacks: +1 value. | While this occupies a support slot, your attacks after a different-suit attack get +1 value. |
+| Fleet Command | Deck deployments get +2 instead of +1. | While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1. |

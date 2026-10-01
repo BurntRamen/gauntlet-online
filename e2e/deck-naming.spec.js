@@ -35,8 +35,8 @@ test("deck names can be typed during creation and renamed without creating card 
   const versionId = savedDeck().currentVersionId;
   const card = COLLECTION_CARDS.find(entry => entry.factionId === "rumin");
   const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[card.value] || String(card.value);
-  await page.getByRole("button", { name: rank + " of hearts — Standard playing card", exact: true }).click();
-  await page.getByRole("button", { name: "Swap " + rank + " of hearts for " + card.name, exact: true }).click();
+  await page.getByRole("button", { name: rank + " of " + card.suit + " — Standard playing card", exact: true }).click();
+  await page.getByRole("button", { name: "Swap " + rank + " of " + card.suit + " for " + card.name, exact: true }).click();
   await typeName(name, "The Copper Guard");
   await page.getByRole("button", { name: "Save name", exact: true }).click();
   await expect.poll(() => savedDeck().name).toBe("The Copper Guard");

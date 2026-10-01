@@ -2389,3 +2389,51 @@ describe("shared Basic Gauntlet simulator rules", () => {
     );
   });
 });
+
+const EXPEDITIONS_CARD_IDS = [
+  "zynarth-spore-runner", "zynarth-nutrient-tender", "zynarth-brood-shepherd", "zynarth-carapace-keeper",
+  "zynarth-adaptive-stalker", "zynarth-hunting-cluster", "zynarth-biomass-reclaimer", "zynarth-hive-warden",
+  "zynarth-brood-titan", "zynarth-ancient-devourer", "zynarth-spawning-pool", "zynarth-pheromone-route",
+  "zynarth-hardened-nursery", "zynarth-metabolic-web", "zynarth-adaptive-carapace", "zynarth-carrion-vat",
+  "zynarth-ravenous-cycle", "zynarth-broodmind-synapse",
+  "astral-vanguard-orbital-pathfinder", "astral-vanguard-breach-team", "astral-vanguard-shock-trooper",
+  "astral-vanguard-electronic-warfare-specialist", "astral-vanguard-incendiary-trooper", "astral-vanguard-combat-medic",
+  "astral-vanguard-jump-trooper", "astral-vanguard-powered-breacher", "astral-vanguard-emp-grenadier",
+  "astral-vanguard-aegis-shock-company", "astral-vanguard-drop-pod-beacon", "astral-vanguard-forward-supply-cache",
+  "astral-vanguard-field-triage", "astral-vanguard-suppression-order", "astral-vanguard-breach-charge",
+  "astral-vanguard-tactical-relay", "astral-vanguard-orbital-interdiction", "astral-vanguard-fleet-command"
+];
+
+describe("Zynarth and Astral Vanguard faction engines", () => {
+  test("tracks the complete fixed-slot card catalog without duplicate identities", () => {
+    expect(EXPEDITIONS_CARD_IDS).toHaveLength(36);
+    expect(new Set(EXPEDITIONS_CARD_IDS).size).toBe(36);
+  });
+
+  test("Zalara creates an Egg and can hatch it into a chosen Underling", () => {
+    let state = setupFaction("zynarth", "rumin");
+    expect(state.lanes[0].facedown[1]).toMatchObject({ zynarthForm: "egg", zynarthEgg: true });
+    const hatch = getLegalActions(state, 1).find((action) => action.abilityId === "zynarth:hatch:0:soldier");
+    expect(hatch).toBeTruthy();
+    state = accepted(state, { type: "useFactionAbility", player: 1, abilityId: hatch.abilityId });
+    expect(state.lanes[0].facedown[1]).toMatchObject({ zynarthForm: "soldier", value: 2, token: true });
+    expect(getLegalActions(state, 1).some((action) => action.abilityId?.startsWith("zynarth:hatch:"))).toBe(false);
+  });
+
+  test("Myra stages a card and Alden deploys a low-value Servitor from the deck", () => {
+    let state = setupFaction("astral-vanguard", "rumin");
+    const staged = state.players[1].hand[0];
+    state = accepted(state, { type: "useFactionAbility", player: 1, abilityId: `astral:stage:${staged.id}` });
+    expect(state.players[1].deck.at(-1).id).toBe(staged.id);
+    expect(state.players[1].turnData.astralNextPaymentBonus).toBe(2);
+
+    state.players[1].deck[state.players[1].deck.length - 1] = {
+      id: "test-drop-unit", definitionId: "astral-vanguard-breach-team", factionId: "astral-vanguard",
+      name: "Breach Team", type: "servitor", value: 3, rank: "3", suit: "♠"
+    };
+    const deploy = getLegalActions(state, 1).find((action) => action.abilityId === "astral:deploy:0");
+    state = accepted(state, { type: "useFactionAbility", player: 1, abilityId: deploy.abilityId });
+    expect(state.lanes[0].facedown[1]).toMatchObject({ definitionId: "astral-vanguard-breach-team", astralDeployedTurn: state.turn });
+    expect(state.lanes[0].facedown[1].temporaryValueBonus).toBe(1);
+  });
+});

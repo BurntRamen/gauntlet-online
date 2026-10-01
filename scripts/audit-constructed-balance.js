@@ -10,7 +10,7 @@ const {
 } = require("../shared/duel-rules");
 const { COLLECTION_CARDS, factionsData } = require("../server/gameContent");
 
-const FACTIONS = ["rumin", "sheen", "frumo", "bizi"];
+const FACTIONS = ["rumin", "sheen", "frumo", "bizi", "zynarth", "astral-vanguard"];
 const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption"]);
 const RUNS_PER_ORDERED_MATCHUP = Math.max(1, Number(process.argv[2] || 10));
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };

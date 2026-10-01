@@ -133,6 +133,24 @@
   --battlefield-plate-deep: rgba(6, 3, 16, 0.97);
 }
 
+.production-match-experience[data-battlefield-faction="zynarth"] {
+  --battlefield-accent: #a3e635;
+  --battlefield-glow: rgba(132, 204, 22, 0.25);
+  --battlefield-wash: rgba(63, 98, 18, 0.34);
+  --battlefield-shadow: rgba(7, 18, 4, 0.95);
+  --battlefield-plate: rgba(16, 35, 9, 0.93);
+  --battlefield-plate-deep: rgba(4, 10, 2, 0.97);
+}
+
+.production-match-experience[data-battlefield-faction="astral-vanguard"] {
+  --battlefield-accent: #60a5fa;
+  --battlefield-glow: rgba(59, 130, 246, 0.26);
+  --battlefield-wash: rgba(30, 64, 175, 0.34);
+  --battlefield-shadow: rgba(3, 8, 24, 0.95);
+  --battlefield-plate: rgba(8, 20, 48, 0.93);
+  --battlefield-plate-deep: rgba(2, 5, 15, 0.97);
+}
+
 .production-battlefield-safe-frame {
   position: absolute;
   z-index: 1;
