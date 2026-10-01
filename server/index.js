@@ -430,6 +430,19 @@ function getPlayableCollectionCard(card, overrides = {}) {
 }
 
 const BOOSTER_PRODUCTS = {
+  "initiative-all-factions": {
+    id: "initiative-all-factions",
+    name: "Initiative All-Faction Pack",
+    displayName: "Initiative",
+    subtitle: "Every Faction. One Pack.",
+    productType: "earned-gameplay-pack",
+    pool: "all-factions",
+    cardCount: 12,
+    artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
+    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.map((card) => card.factionId))],
+    slots: ["common", "common", "common", "common", "common", "common", "uncommon", "uncommon", "uncommon", "rare", "rare", "wild"],
+    description: "A 12-card free-play reward with at least one gameplay card from every faction that has a constructed catalog."
+  },
   "rumin-foundation": {
     id: "rumin-foundation",
     name: "Rumin Foundation Pack",
@@ -465,10 +478,28 @@ const BOOSTER_PRODUCTS = {
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
     description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+  },
+  "zynarth-foundation": {
+    id: "zynarth-foundation",
+    name: "Zynarth Foundation Pack",
+    productType: "earned-gameplay-pack",
+    factionId: "zynarth",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "A seeded Zynarth reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+  },
+  "astral-vanguard-foundation": {
+    id: "astral-vanguard-foundation",
+    name: "Astral Vanguard Foundation Pack",
+    productType: "earned-gameplay-pack",
+    factionId: "astral-vanguard",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "A seeded Astral Vanguard reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   }
 };
 
-const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).map((pack) => {
+const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
   const id = `${pack.factionId}-collector`;
   return [id, {
     id,
@@ -2782,6 +2813,12 @@ function pickCollectionCard(factionId, rarity) {
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
 }
 
+function pickCollectionCardFromPool(rarity) {
+  const cardPool = COLLECTION_CARDS.filter((card) => card.rarity === rarity);
+  if (cardPool.length === 0) return null;
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
+}
+
 function resolveBoosterSlot(slot) {
   if (slot !== "wild") return slot;
   return crypto.randomInt(100) < 20 ? "mythic" : "rare";
@@ -2795,9 +2832,21 @@ function openCollectionBooster(stats, packId) {
   if (collection.packCredits <= 0) {
     throw new Error("You need an earned gameplay-pack credit. Clear a new campaign chapter to earn one.");
   }
-  const openedCards = pack.slots
-    .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
-    .filter(Boolean);
+  let openedCards;
+  if (pack.pool === "all-factions") {
+    const guaranteedFactions = pack.guaranteedFactionIds || [];
+    const guaranteedCards = guaranteedFactions
+      .map((factionId) => pickCollectionCard(factionId, "common"))
+      .filter(Boolean);
+    const remainingSlots = pack.slots.slice(guaranteedFactions.length);
+    openedCards = guaranteedCards.concat(remainingSlots
+      .map((slot) => pickCollectionCardFromPool(resolveBoosterSlot(slot)))
+      .filter(Boolean));
+  } else {
+    openedCards = pack.slots
+      .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
+      .filter(Boolean);
+  }
 
   openedCards.forEach((card) => {
     collection.gameplayEntitlements[card.gameplayCardId] = (collection.gameplayEntitlements[card.gameplayCardId] || 0) + 1;

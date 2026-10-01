@@ -118,6 +118,13 @@
   background-position: center 24%;
   background-size: cover;
 }
+.booster-pack-art-featured {
+  min-height: 148px;
+  background-color: #020617;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
 .booster-pack-art::before {
   content: "";
   position: absolute;

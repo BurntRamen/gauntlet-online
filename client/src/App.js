@@ -1621,6 +1621,8 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
   );
 }
 
+const INITIATIVE_PACK_THEME = { name: "Initiative", subtitle: "Every Faction. One Pack.", accent: "#f6c453", glow: "rgba(246,196,83,.36)", background: "linear-gradient(145deg, #020617, #111827 48%, #172554 100%)", art: "radial-gradient(circle at 50% 20%, rgba(246,196,83,.22), transparent 32%)" };
+
 const PACK_THEMES = {
   rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
   sheen: { name: "Sheen", subtitle: "Living Forest", accent: "#86efac", glow: "rgba(134,239,172,0.3)", background: "linear-gradient(145deg, #052e16, #166534 42%, #0f172a 82%)", art: "repeating-linear-gradient(115deg, rgba(220,252,231,0.72) 0 3px, transparent 3px 12px), linear-gradient(135deg, rgba(5,46,22,0.95), rgba(74,222,128,0.62))" },
@@ -1702,8 +1704,10 @@ function normalizeReplacementSuitId(suit) {
 }
 
 function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onBuyPack }) {
-  const theme = PACK_THEMES[booster.factionId] || PACK_THEMES.rumin;
-  const factionArt = resolveAssetPath(`/assets/gauntlet/${booster.factionId}-card.webp`);
+  const theme = booster.pool === "all-factions" ? INITIATIVE_PACK_THEME : (PACK_THEMES[booster.factionId] || PACK_THEMES.rumin);
+  const factionArt = resolveAssetPath(booster.artPath || `/assets/gauntlet/${booster.factionId}-card.webp`);
+  const displayName = booster.displayName || theme.name;
+  const subtitle = booster.subtitle || theme.subtitle;
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
     counts[slot] = (counts[slot] || 0) + 1;
     return counts;
@@ -1720,10 +1724,10 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className="booster-pack-hanger" />
       <span className="booster-pack-topline">Gauntlet Online</span>
       <span className="booster-pack-set">Earned Gameplay Pack</span>
-      <strong>{theme.name}</strong>
-      <span className="booster-pack-subtitle">{theme.subtitle}</span>
-      <span className="booster-pack-art" style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.06), rgba(2,6,23,0.58)), url(${factionArt})` }}>
-        <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>
+      <strong>{displayName}</strong>
+      <span className="booster-pack-subtitle">{subtitle}</span>
+      <span className={`booster-pack-art ${booster.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.28)), url(${factionArt})` }}>
+        {!booster.artPath && <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>}
       </span>
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
@@ -1740,19 +1744,20 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       >
         {opening ? "Opening..." : canOpen ? "Open Earned Pack" : "Earn a Campaign Credit"}
       </button>
-      <span className="booster-pack-retail">
-        <span>COLLECTOR VARIANTS ONLY</span>
-        <span>$1.00</span>
-      </span>
-      <button
-        type="button"
-        onClick={() => onBuyPack(collectorPack?.id)}
-        disabled={!collectorPack}
-        style={{ zIndex: 2, justifySelf: "start", border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.48)", color: "#fff7dc", fontWeight: 900, fontSize: 12 }}
-      >
-        Buy $1 Collector Pack
-      </button>
-      <small style={{ zIndex: 2, color: "#fde68a", lineHeight: 1.25 }}>Cosmetic finishes and provenance only. No cards, copies, values, or abilities.</small>
+      {collectorPack && <>
+        <span className="booster-pack-retail">
+          <span>COLLECTOR VARIANTS ONLY</span>
+          <span>$1.00</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => onBuyPack(collectorPack.id)}
+          style={{ zIndex: 2, justifySelf: "start", border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.48)", color: "#fff7dc", fontWeight: 900, fontSize: 12 }}
+        >
+          Buy $1 Collector Pack
+        </button>
+        <small style={{ zIndex: 2, color: "#fde68a", lineHeight: 1.25 }}>Cosmetic finishes and provenance only. No cards, copies, values, or abilities.</small>
+      </>}
     </article>
   );
 }
@@ -1820,7 +1825,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   if (!account) {
     return (
       <MenuCard title="Collection">
-        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to open faction boosters and build a card collection.</p>
+        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to open all-faction or seeded faction packs and build a card collection.</p>
       </MenuCard>
     );
   }
@@ -1966,7 +1971,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div>
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
-          <div><h3>Gameplay & Collector Packs</h3><p>Open free-play rewards for mechanics, or browse cosmetic collector variants.</p></div>
+          <div><h3>Gameplay & Collector Packs</h3><p>Open an Initiative pack for every catalog faction, or choose a seeded faction pack. Collector variants remain cosmetic.</p></div>
           <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         <PackPacingPicker value={packPacing} onChange={setPackPacing} />

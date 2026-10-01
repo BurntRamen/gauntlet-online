@@ -246,6 +246,26 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
 });
 
+test("Initiative packs include every catalog faction and keep faction packs seeded", () => {
+  const initiativeStats = { collection: { packCredits: 1 } };
+  const initiativeCards = openCollectionBooster(initiativeStats, "initiative-all-factions");
+  assert.equal(initiativeCards.length, 12);
+  assert.deepEqual(
+    [...new Set(initiativeCards.map((card) => card.factionId))].sort(),
+    ["astral-vanguard", "bizi", "frumo", "rumin", "sheen", "zynarth"]
+  );
+
+  const zynarthStats = { collection: { packCredits: 1 } };
+  const zynarthCards = openCollectionBooster(zynarthStats, "zynarth-foundation");
+  assert.equal(zynarthCards.length, 8);
+  assert.equal(zynarthCards.every((card) => card.factionId === "zynarth"), true);
+
+  const astralStats = { collection: { packCredits: 1 } };
+  const astralCards = openCollectionBooster(astralStats, "astral-vanguard-foundation");
+  assert.equal(astralCards.length, 8);
+  assert.equal(astralCards.every((card) => card.factionId === "astral-vanguard"), true);
+});
+
 test("a physical collector entitlement changes presentation provenance but no competitive capability", () => {
   const unpaidStats = makeStats();
   const physicalStats = structuredClone(unpaidStats);
