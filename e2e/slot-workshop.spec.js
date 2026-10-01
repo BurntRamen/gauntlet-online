@@ -22,7 +22,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.getByRole("button", { name: "Open Collection Workshop" }).click();
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await expect(page.locator(".deck-slot")).toHaveCount(52);
-  await expect(page.getByLabel("Deck faction", { exact: true }).locator("option")).toHaveCount(8);
+  await expect(page.getByLabel("Deck faction", { exact: true }).locator("option")).toHaveCount(10);
   await expect(page.getByRole("button", { name: "Compact", exact: true })).toHaveAttribute("aria-pressed", "true");
   expect((await page.locator(".deck-slot-panel").boundingBox()).height).toBeLessThan(550);
   await expect(page.locator(".deck-settings")).not.toHaveAttribute("open", "");
