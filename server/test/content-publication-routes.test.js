@@ -162,6 +162,30 @@ test("renamed Training AI keeps its engine decisions and FFA consumes the same b
   await call("/rollback", { expectedRevision: state.revision, releaseId: originalId });
 });
 
+test("collection labels, collector artwork and commander audio use the same deployed asset release", async () => {
+  let state = (await call()).body;
+  const originalId = state.activeReleaseId;
+  const card = state.live.domains.cards.find((entry) => entry.factionId === "rumin");
+  const variant = state.live.domains.assets.find((entry) => entry.variantId === card.defaultVariantId);
+  const artwork = state.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
+  const account = async () => (await (await fetch(`${origin}/api/auth/me`, { headers: { Authorization: `Bearer ${__test.issueAccountSession(accounts[0]).token}` } })).json()).account;
+  const before = await account();
+  state = (await call("/draft", { expectedRevision: state.revision, domain: "cards", id: card.id, field: "name", value: "Reviewed collection label" }, accounts[0], "PATCH")).body;
+  state = (await call("/draft", { expectedRevision: state.revision, domain: "assets", id: variant.id, field: "art", value: artwork.id }, accounts[0], "PATCH")).body;
+  state = (await call("/preview", { expectedRevision: state.revision })).body;
+  state = (await call("/publish", { expectedRevision: state.revision, label: "Collection presentation" })).body;
+  const after = await account();
+  assert.equal(after.collection.catalog.rumin.find((entry) => entry.id === card.id).name, "Reviewed collection label");
+  const cosmetic = after.collection.collectorCatalog.find((entry) => entry.variantId === variant.variantId);
+  assert.equal(cosmetic.art, artwork.path);
+  assert.equal(cosmetic.presentation.illustration, artwork.path);
+  assert.equal(cosmetic.gameplay.name, "Reviewed collection label");
+  assert.match(__test.contentPublication.active().factions.rumin.commander.announcementAudio.denied, /^\/assets\/gauntlet\/releases\//);
+  await call("/rollback", { expectedRevision: state.revision, releaseId: originalId });
+  assert.deepEqual((await account()).collection.catalog, before.collection.catalog);
+  assert.deepEqual((await account()).collection.collectorCatalog, before.collection.collectorCatalog);
+});
+
 test("HTTP stale writes, invalid drafts and stale previews fail without replacing live content", async () => {
   let state = (await call()).body;
   const originalId = state.activeReleaseId, staleRevision = state.revision;

@@ -728,10 +728,13 @@ function normalizeCollection(stats = {}) {
   };
 }
 
-function publicCollectorVariant(variant) {
-  const gameplayCard = getGameplayCardById(variant.gameplayCardId);
+function publicCollectorVariant(variant, content = null) {
+  const manifest = content && typeof content === "object" ? content : getPublicGameContent();
+  const published = manifest.collectorVariants.find((entry) => entry.variantId === variant.variantId);
+  const gameplayCard = manifest.cards.find((entry) => entry.id === variant.gameplayCardId);
   return {
     ...variant,
+    ...published,
     gameplay: gameplayCard ? {
       gameplayCardId: gameplayCard.gameplayCardId,
       name: gameplayCard.name,
@@ -749,7 +752,7 @@ function collectionSummary(stats = {}) {
   return {
     ...normalizeCollection(stats),
     catalog,
-    collectorCatalog: COLLECTOR_VARIANTS.map(publicCollectorVariant),
+    collectorCatalog: manifest.collectorVariants.map((variant) => publicCollectorVariant(variant, manifest)),
     boosters: BOOSTER_PRODUCTS,
     collectorPacks: COLLECTOR_PACK_PRODUCTS
   };

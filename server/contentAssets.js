@@ -11,7 +11,7 @@ function resolveAssetFields(value, field = "") {
   const referenceField = ["art", "image", "cardImage", "coverImage", "dialogueAudio", "endDialogueAudio"].includes(field);
   if (typeof value === "string") return referenceField ? resolveAsset(value) : value;
   if (Array.isArray(value)) return value.map((child) => resolveAssetFields(child, field));
-  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, resolveAssetFields(child, key)]));
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, resolveAssetFields(child, field === "announcementAudio" ? "dialogueAudio" : key)]));
   return value;
 }
 function cardPresentation(card, variant, sourceCard, sourceVariant, releaseId) {
