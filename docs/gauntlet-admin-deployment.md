@@ -1,6 +1,6 @@
 # Gauntlet Admin deployment and GitHub publishing
 
-The release integrates Admin v2 with production commit `324a7ff7275346b35c720509668744ac60ea78c8`, preserving the current ten playable factions and 126 cards. Earlier Admin reports describe the original 72-card implementation; they are historical qualification, not the deployment status of this release.
+The release integrates Admin v2 with production commit `aa235b97f381059a1ecf40888741ebe35efa67d2`, preserving the current ten playable factions and 126 cards. Earlier Admin reports describe the original 72-card implementation; they are historical qualification, not the deployment status of this release.
 
 ## Private access
 
@@ -39,6 +39,6 @@ The `file` provider remains for isolated development and tests. Compatible v1 co
 
 ## Release validation
 
-Current integration: 2,800 captured production engine outcomes match both legacy ingress and explicit effect contracts; 56 encounter setups retain their bounded behavior. The asset validator verifies 1,186 immutable references and their file digests. Run `npm run check:content-release`, server/client suites, bundle checks, and browser suites. Admin browser tests use isolated accounts and a test backend, never production data.
+Current integration: 2,800 captured production engine outcomes match both legacy ingress and explicit effect contracts; 56 encounter setups retain their bounded behavior. The asset validator verifies 1,191 immutable references and their file digests. Run `npm run check:content-release`, server/client suites, bundle checks, and browser suites. Admin browser tests use isolated accounts and a test backend, never production data.
 
 After merge, verify Vercel's deployment and the backend's `X-Gauntlet-Commit`, confirm guest API/direct-route denial, verify both authorized sessions and an unrelated account, and inspect the live authoring connection before claiming publishing is operational. A successful frontend build alone does not establish backend deployment or GitHub credential configuration.

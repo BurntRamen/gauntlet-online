@@ -14730,6 +14730,94 @@
       "bytes": 467110
     },
     {
+      "id": "asset:voices/focus-1.mp3",
+      "source": "/assets/gauntlet/voices/focus-1.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.3.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.bizi.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eba3b3834189deb653457a33e8dd643007ab76fb8eaed85609bb921811a55983.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "eba3b3834189deb653457a33e8dd643007ab76fb8eaed85609bb921811a55983",
+      "bytes": 68062
+    },
+    {
+      "id": "asset:voices/kaiser-1.mp3",
+      "source": "/assets/gauntlet/voices/kaiser-1.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/016719dd7560fdf5264859f30779de859ad15a8ba39c5321914ad49b26f04bfc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "016719dd7560fdf5264859f30779de859ad15a8ba39c5321914ad49b26f04bfc",
+      "bytes": 73078
+    },
+    {
+      "id": "asset:voices/leafen-gao-1.mp3",
+      "source": "/assets/gauntlet/voices/leafen-gao-1.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2e44c73b1bc1b51d68c421dedf58bf7cc66efb8269d81591056379297ccf9c1c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2e44c73b1bc1b51d68c421dedf58bf7cc66efb8269d81591056379297ccf9c1c",
+      "bytes": 77675
+    },
+    {
+      "id": "asset:voices/polea-1.mp3",
+      "source": "/assets/gauntlet/voices/polea-1.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fa69bbd9c3ac1ecac3f7af7f35d6795d6f04b1f0c8878d440ca0156e3087d6e6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fa69bbd9c3ac1ecac3f7af7f35d6795d6f04b1f0c8878d440ca0156e3087d6e6",
+      "bytes": 57613
+    },
+    {
       "id": "asset:voices/rumin-ch01-after-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/rumin-ch01-after-01-narrator.mp3",
       "associations": [
@@ -18172,6 +18260,28 @@
       "mediaType": "audio/mpeg",
       "sha256": "0fedf24ffe94855b48328810512a301efab2ee7578afe330c901da2ccf6e34f3",
       "bytes": 75162
+    },
+    {
+      "id": "asset:voices/zalara-1.mp3",
+      "source": "/assets/gauntlet/voices/zalara-1.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f2556dc53798778753634c1f56c6bf9c410c7e05cc768b826c14ce3f6ebc2941.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f2556dc53798778753634c1f56c6bf9c410c7e05cc768b826c14ce3f6ebc2941",
+      "bytes": 65137
     }
   ],
   "faces": {
@@ -19068,5 +19178,5 @@
     "indela-frost-nova": "/assets/gauntlet/constructed/indela/indela-frost-nova.webp",
     "indela-elemental-array": "/assets/gauntlet/constructed/indela/indela-elemental-array.webp"
   },
-  "version": "gauntlet-assets-2e437c432d9aaef14806428a4336f7b5c8959a3840b592fb4aee60d2b75ce27e"
+  "version": "gauntlet-assets-5d1a896cb78cd20f1a44c3dc7a27b9a621eeda04e72dd26c1a1e6b1496ec5d17"
 }
