@@ -8,7 +8,9 @@ const { clone, hash, validateAuthoredContent, resolveEngineContent } = require("
 const REPOSITORY = "BurntRamen/gauntlet-online";
 const DRAFT_BRANCH = "codex/gauntlet-admin-draft";
 const DRAFT_PATH = "content/gauntlet-draft.json";
-const RELEASE_PATH = "content/gauntlet-release.json";
+// Keep releases inside Render's server root so a content-only merge triggers
+// deployment even when the service filters changes to that directory.
+const RELEASE_PATH = "server/content/gauntlet-release.json";
 const RELEASE_SCHEMA = "gauntlet.repository-release.v1";
 const MAX_BYTES = 16 * 1024 * 1024;
 function fail(status, message) { throw Object.assign(new Error(message), { status }); }
