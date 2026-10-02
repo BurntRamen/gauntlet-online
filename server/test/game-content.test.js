@@ -12,6 +12,7 @@ const {
   DECK_RULES,
   DRAFT_SETS,
   FRUMO_COLLECTION_CARDS,
+  INDELA_COLLECTION_CARDS,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,
@@ -114,7 +115,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
     .map((card) => card.id)
     .filter((cardId) => !sharedRulesSource.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 108);
+  assert.equal(COLLECTION_CARDS.length, 126);
   assert.deepEqual(missing, []);
 });
 
@@ -125,7 +126,8 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
     [FRUMO_COLLECTION_CARDS, "ambush"],
     [BIZI_COLLECTION_CARDS, "contraption"],
     [ZYNARTH_COLLECTION_CARDS, "biomorph"],
-    [ASTRAL_VANGUARD_COLLECTION_CARDS, "operation"]
+    [ASTRAL_VANGUARD_COLLECTION_CARDS, "operation"],
+    [INDELA_COLLECTION_CARDS, "arcana"]
   ]) {
     assert.equal(cards.length, 18);
     assert.equal(cards.filter((card) => card.type === "servitor").length, 10);
@@ -135,7 +137,7 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
 });
 
 test("assigns every constructed card one unique, balanced rank-and-suit slot", () => {
-  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS, ZYNARTH_COLLECTION_CARDS, ASTRAL_VANGUARD_COLLECTION_CARDS]) {
+  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS, ZYNARTH_COLLECTION_CARDS, ASTRAL_VANGUARD_COLLECTION_CARDS, INDELA_COLLECTION_CARDS]) {
     const slots = cards.map((card) => `${card.value}:${card.suit}`);
     assert.equal(new Set(slots).size, cards.length);
     assert.equal(cards.every((card) => ["spades", "hearts", "diamonds", "clubs"].includes(card.suit)), true);
@@ -159,7 +161,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     .map((card) => card.id)
     .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 108);
+  assert.equal(COLLECTION_CARDS.length, 126);
   assert.deepEqual(missing, []);
 });
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v10";
+const RULES_VERSION = "gauntlet-duel-v11";
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
@@ -11,7 +11,7 @@ const effects = require("./effects");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v8";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v9";
 const STARTING_LIFE = 42;
 const HAND_SIZE = 8;
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -26,7 +26,7 @@ const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
   "rumin-triumphal-ram",
   "rumin-kaisers-gold-claw"
 ]);
-const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation"]);
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
 const SUIT_KEYS = Object.freeze({
   "♠": "spades", spade: "spades", spades: "spades",
   "♥": "hearts", heart: "hearts", hearts: "hearts",
@@ -264,7 +264,11 @@ function createTurnData() {
     astralSupplyUsed: false,
     astralNextPaymentBonus: 0,
     astralLaneAttackUsed: false,
-    astralCleanBlockUsed: false
+    astralCleanBlockUsed: false,
+    indelaElementalArrayUsed: false,
+    indelaFrostbiteGaleUsed: false,
+    indelaGlacialInsightUsed: false,
+    indelaEndTurnDraws: 0
   };
 }
 
@@ -512,6 +516,17 @@ function controlledSupportsOfType(game, playerNumber, type) {
   return controlledSupportEntries(game, playerNumber).filter((entry) => cardHasType(entry.card, type));
 }
 
+function currentIndelaOmenParity(player) {
+  const value = Number(player?.turnData?.indelaRevealedValues?.[0]);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value % 2 === 0 ? "even" : "odd";
+}
+
+function cardMatchesIndelaOmen(player, card) {
+  const parity = currentIndelaOmenParity(player);
+  return parity ? (cardValue(card) % 2 === 0 ? "even" : "odd") === parity : false;
+}
+
 function consumeControlledSupport(game, playerNumber, definitionId, events, source) {
   for (const lane of game.lanes) {
     for (const zone of ["support", "facedown"]) {
@@ -685,6 +700,23 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
     bonus += 1;
     consume.zynarthWorkerPayment = true;
     notes.push("Worker payment +1");
+  }
+  const omenParity = currentIndelaOmenParity(player);
+  if (
+    context.card?.factionId === "indela"
+    && omenParity === "odd"
+    && paymentCards.some((card) => cardIs(card, "indela-mystic-of-embers"))
+  ) {
+    bonus += 1;
+    notes.push("Mystic of Embers payment +1");
+  }
+  if (
+    context.card?.factionId === "indela"
+    && omenParity === "even"
+    && paymentCards.some((card) => cardIs(card, "indela-arctic-channeler"))
+  ) {
+    bonus += 1;
+    notes.push("Arctic Channeler payment +1");
   }
   return { bonus, notes, consume };
 }
@@ -1020,6 +1052,32 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   if (player.turnData.astralStaged && playerControlsCard(game, playerNumber, "astral-vanguard-tactical-relay")) { bonus += 1; notes.push("Tactical Relay +1"); player.turnData.astralStaged = false; }
   if (source === "lane") player.turnData.astralLaneAttackUsed = true;
 
+  const omenParity = currentIndelaOmenParity(player);
+  const oddOmen = omenParity === "odd";
+  const oppositeOmenParity = omenParity && !cardMatchesIndelaOmen(player, card);
+  if (cardIs(card, "indela-student-of-flame") && oddOmen && attackNumber === 1) { bonus += 1; notes.push("Student of Flame +1"); }
+  if (cardIs(card, "indela-blazing-initiate") && oddOmen && Number(player.turnData.previousPlayedValue || 0) % 2 === 1) { bonus += 1; notes.push("Blazing Initiate +1"); }
+  if (cardIs(card, "indela-flameweaver") && oddOmen && source === "lane") { bonus += 1; notes.push("Flameweaver +1"); }
+  if (cardIs(card, "indela-fire-enchanter") && oddOmen && attackNumber >= 3) { bonus += 1; notes.push("Fire Enchanter +1"); }
+  if (cardIs(card, "indela-headmaster")) {
+    const amount = Math.min(2, controlledSupportsOfType(game, playerNumber, "arcana").length);
+    bonus += amount;
+    if (amount) notes.push(`Headmaster of Kashi +${amount}`);
+  }
+  if (oppositeOmenParity && playerControlsCard(game, playerNumber, "indela-arcane-amplification")) { bonus += 1; notes.push("Arcane Amplification +1"); }
+  if (oddOmen && attackNumber === 1 && playerControlsCard(game, playerNumber, "indela-elemental-infusion")) { bonus += 1; notes.push("Elemental Infusion +1"); }
+  if (oddOmen && source === "lane" && playerControlsCard(game, playerNumber, "indela-scorched-earth-ritual")) { bonus += 1; notes.push("Scorched Earth Ritual +1"); }
+  if (oddOmen && attackNumber >= 3 && playerControlsCard(game, playerNumber, "indela-ring-of-fire")) { bonus += 1; notes.push("Ring of Fire +1"); }
+  if (
+    cardMatchesIndelaOmen(player, card)
+    && !player.turnData.indelaElementalArrayUsed
+    && playerControlsCard(game, playerNumber, "indela-elemental-array")
+  ) {
+    bonus += 1;
+    player.turnData.indelaElementalArrayUsed = true;
+    notes.push("Elemental Array +1");
+  }
+
   return { bonus, notes, attachedCards };
 }
 
@@ -1202,6 +1260,40 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   if (card?.zynarthForm === "guard") { preventDamage += 2; notes.push("Guard prevents 2"); }
   if (card?.zynarthForm === "soldier") { const amount = Math.min(3, underlings.filter((entry) => entry.zynarthForm === "soldier" && entry.id !== card.id).length); bonus += amount; if (amount) notes.push(`Soldier cluster +${amount}`); }
   if (cardIs(card, "astral-vanguard-emp-grenadier")) { const amount = Math.min(2, controlledSupportsOfType(game, playerNumber, "operation").length); bonus += amount; if (amount) notes.push(`EMP Grenadier +${amount}`); }
+
+  const omenParity = currentIndelaOmenParity(player);
+  const evenOmen = omenParity === "even";
+  const oppositeOmenParity = omenParity && !cardMatchesIndelaOmen(player, card);
+  if (cardIs(card, "indela-frost-apprentice") && evenOmen && blockNumber === 1) { bonus += 1; notes.push("Frost Apprentice +1"); }
+  if (cardIs(card, "indela-glacier-initiate") && evenOmen && context.attack.source === "hand") { bonus += 1; notes.push("Glacier Initiate +1"); }
+  if (cardIs(card, "indela-blizzard-caller") && evenOmen && context.laneBlock) { bonus += 1; notes.push("Blizzard Caller +1"); }
+  if (cardIs(card, "indela-headmaster")) {
+    const amount = Math.min(2, controlledSupportsOfType(game, playerNumber, "arcana").length);
+    bonus += amount;
+    if (amount) notes.push(`Headmaster of Kashi +${amount}`);
+  }
+  if (oppositeOmenParity && playerControlsCard(game, playerNumber, "indela-arcane-amplification")) { bonus += 1; notes.push("Arcane Amplification +1"); }
+  if (evenOmen && blockNumber === 1 && playerControlsCard(game, playerNumber, "indela-elemental-infusion")) { bonus += 1; notes.push("Elemental Infusion +1"); }
+  if (evenOmen && playerControlsCard(game, playerNumber, "indela-frost-nova")) { bonus += 1; notes.push("Frost Nova +1"); }
+  if (
+    evenOmen
+    && blockNumber === 1
+    && !player.turnData.indelaFrostbiteGaleUsed
+    && playerControlsCard(game, playerNumber, "indela-frostbite-gale")
+  ) {
+    preventDamage += 1;
+    player.turnData.indelaFrostbiteGaleUsed = true;
+    notes.push("Frostbite Gale prevents 1");
+  }
+  if (
+    cardMatchesIndelaOmen(player, card)
+    && !player.turnData.indelaElementalArrayUsed
+    && playerControlsCard(game, playerNumber, "indela-elemental-array")
+  ) {
+    bonus += 1;
+    player.turnData.indelaElementalArrayUsed = true;
+    notes.push("Elemental Array +1");
+  }
 
   if (context.firstBlocker) {
     const primeSignalBonus = Number(command.primeSignalBonus || 0);
@@ -1436,6 +1528,15 @@ function resolveAttack(game, attack, laneIndex, events) {
     if (playerControlsCard(game, defender, "sheen-beli-awakened")) {
       game.players[defender].turnData.beliAwakenedReady = true;
     }
+    if (
+      currentIndelaOmenParity(game.players[defender]) === "even"
+      && playerControlsCard(game, defender, "indela-glacial-insight")
+      && !game.players[defender].turnData.indelaGlacialInsightUsed
+    ) {
+      game.players[defender].turnData.indelaGlacialInsightUsed = true;
+      game.players[defender].turnData.indelaEndTurnDraws += 1;
+      attack.block[0].notes.push("Glacial Insight end-turn draw");
+    }
   }
   const defeated = damage === 0 && (attack.block || []).length
     ? [{ player: attack.player, card: attack.card }]
@@ -1561,6 +1662,13 @@ function startNextTurn(game, events) {
       playerNumber,
       Number(turnData.biziEndTurnDraws || 0),
       "Energy Transporter",
+      events
+    );
+    drawExtraCards(
+      game,
+      playerNumber,
+      Number(turnData.indelaEndTurnDraws || 0),
+      "Glacial Insight",
       events
     );
   }

@@ -1,11 +1,10 @@
-import customCardArt from "./customCardArt.json";
-
-const CUSTOM_CARD_IDS = new Set(customCardArt);
+const CUSTOM_CARD_ID = /^(?:rumin|sheen|frumo|bizi|zynarth|astral-vanguard|indela)-/;
 
 export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
 
 export function getCustomCardArtDefinition(card) {
-  const id = [card?.gameplayCardId, card?.definitionId, card?.id].find((candidate) => CUSTOM_CARD_IDS.has(candidate));
+  const id = [card?.gameplayCardId, card?.definitionId, card?.id]
+    .find((candidate) => CUSTOM_CARD_ID.test(String(candidate || "")));
   if (!id) return null;
   const factionId = id.startsWith("astral-vanguard-") ? "astral-vanguard" : id.split("-")[0];
   return { id, factionId, illustration: `/assets/gauntlet/constructed/${factionId}/${id}.webp` };

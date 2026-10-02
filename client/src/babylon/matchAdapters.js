@@ -752,7 +752,7 @@ export class LocalDuelAdapter {
     if (this.selection.kind === "laneBlock") return `Same-lane blocker · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "placement") {
       const selected = this.game.players[this.controller]?.hand?.find((card) => card.id === this.selection.placementCardId);
-      const role = ["armament", "shelter", "ambush", "contraption"].includes(String(selected?.type || "").toLowerCase())
+      const role = ["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"].includes(String(selected?.type || "").toLowerCase())
         ? "support slot"
         : "combat slot";
       return `Place this card in Lane ${this.selection.laneIndex + 1}'s ${role}, or skip this placement.${constructedNote}`;

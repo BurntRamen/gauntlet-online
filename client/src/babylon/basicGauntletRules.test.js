@@ -2404,6 +2404,21 @@ const EXPEDITIONS_CARD_IDS = [
   "astral-vanguard-tactical-relay", "astral-vanguard-orbital-interdiction", "astral-vanguard-fleet-command"
 ];
 
+const INDELA_CARD_IDS = [
+  "indela-student-of-flame", "indela-frost-apprentice", "indela-blazing-initiate", "indela-glacier-initiate",
+  "indela-flameweaver", "indela-blizzard-caller", "indela-mystic-of-embers", "indela-arctic-channeler",
+  "indela-fire-enchanter", "indela-headmaster", "indela-arcane-amplification", "indela-elemental-infusion",
+  "indela-scorched-earth-ritual", "indela-frostbite-gale", "indela-glacial-insight", "indela-ring-of-fire",
+  "indela-frost-nova", "indela-elemental-array"
+];
+
+describe("Indela constructed catalog", () => {
+  test("tracks all eighteen deterministic fixed-slot identities", () => {
+    expect(INDELA_CARD_IDS).toHaveLength(18);
+    expect(new Set(INDELA_CARD_IDS).size).toBe(18);
+  });
+});
+
 describe("Zynarth and Astral Vanguard faction engines", () => {
   test("tracks the complete fixed-slot card catalog without duplicate identities", () => {
     expect(EXPEDITIONS_CARD_IDS).toHaveLength(36);

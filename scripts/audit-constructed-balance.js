@@ -13,7 +13,7 @@ const { COLLECTION_CARDS, getFactionById } = require("../server/gameContent");
 const ALL_FACTIONS = ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"];
 const CONSTRUCTED_FACTIONS = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
 const DEFAULT_GENERALS = { mekan: "monti", jali: "basho", gracus: "platus", indela: "ramar" };
-const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation"]);
+const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
 const RUNS_PER_ORDERED_MATCHUP = Math.max(1, Number(process.argv[2] || 10));
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 

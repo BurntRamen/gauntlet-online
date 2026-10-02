@@ -1,7 +1,7 @@
 "use strict";
 
-const RULES_VERSION = "gauntlet-rules-v5";
-const CONTENT_VERSION = "gauntlet-content-v14";
+const RULES_VERSION = "gauntlet-rules-v6";
+const CONTENT_VERSION = "gauntlet-content-v15";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -720,7 +720,31 @@ const ASTRAL_VANGUARD_COLLECTION_CARDS = [
   { id: "astral-vanguard-fleet-command", factionId: "astral-vanguard", name: "Fleet Command", type: "operation", rarity: "mythic", value: 10, text: "While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1." }
 ];
 
-const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS];
+// Indela translates Timetwister's fire/ice spell school into Gauntlet's omen system.
+// Fire cards reward odd omens and aggressive sequencing; ice cards reward even omens
+// and defensive play. Arcana occupy support slots and never attack or block.
+const INDELA_COLLECTION_CARDS = [
+  { id: "indela-student-of-flame", factionId: "indela", name: "Student of Flame", type: "servitor", rarity: "common", value: 2, text: "While your omen is odd, this gets +1 value on your first attack each turn." },
+  { id: "indela-frost-apprentice", factionId: "indela", name: "Frost Apprentice", type: "servitor", rarity: "common", value: 2, text: "While your omen is even, this gets +1 value on your first block each turn." },
+  { id: "indela-blazing-initiate", factionId: "indela", name: "Blazing Initiate", type: "servitor", rarity: "common", value: 3, text: "While your omen is odd, this gets +1 value when it attacks after an odd-value card." },
+  { id: "indela-glacier-initiate", factionId: "indela", name: "Glacier Initiate", type: "servitor", rarity: "common", value: 4, text: "While your omen is even, this gets +1 value when it blocks an attack from hand." },
+  { id: "indela-flameweaver", factionId: "indela", name: "Flameweaver", type: "servitor", rarity: "uncommon", value: 5, text: "While your omen is odd, this gets +1 value when it attacks from a lane." },
+  { id: "indela-blizzard-caller", factionId: "indela", name: "Blizzard Caller", type: "servitor", rarity: "uncommon", value: 5, text: "While your omen is even, this gets +1 value when it blocks from a lane." },
+  { id: "indela-mystic-of-embers", factionId: "indela", name: "Mystic of Embers", type: "servitor", rarity: "uncommon", value: 6, text: "While your omen is odd, this pays +1 additional value for an Indela card." },
+  { id: "indela-arctic-channeler", factionId: "indela", name: "Arctic Channeler", type: "servitor", rarity: "uncommon", value: 6, text: "While your omen is even, this pays +1 additional value for an Indela card." },
+  { id: "indela-fire-enchanter", factionId: "indela", name: "Fire Enchanter", type: "servitor", rarity: "rare", value: 7, text: "While your omen is odd, this gets +1 value on your third or later attack each turn." },
+  { id: "indela-headmaster", factionId: "indela", name: "Headmaster of Kashi", type: "servitor", rarity: "mythic", value: 10, text: "When this attacks or blocks, it gets +1 value for each Arcana you control, up to +2." },
+  { id: "indela-arcane-amplification", factionId: "indela", name: "Arcane Amplification", type: "arcana", rarity: "common", value: 3, text: "While this occupies a support slot, Kashi gives an additional +1 value to your cards of the parity opposite your omen." },
+  { id: "indela-elemental-infusion", factionId: "indela", name: "Elemental Infusion", type: "arcana", rarity: "common", value: 4, text: "While this occupies a support slot, your first attack gets +1 during an odd omen; your first block gets +1 during an even omen." },
+  { id: "indela-scorched-earth-ritual", factionId: "indela", name: "Scorched Earth Ritual", type: "arcana", rarity: "uncommon", value: 5, text: "While this occupies a support slot and your omen is odd, your lane attacks get +1 value." },
+  { id: "indela-frostbite-gale", factionId: "indela", name: "Frostbite Gale", type: "arcana", rarity: "uncommon", value: 6, text: "While this occupies a support slot and your omen is even, prevent 1 damage after your first block each turn." },
+  { id: "indela-glacial-insight", factionId: "indela", name: "Glacial Insight", type: "arcana", rarity: "rare", value: 7, text: "While this occupies a support slot and your omen is even, your first clean block each turn draws 1 extra card at turn end." },
+  { id: "indela-ring-of-fire", factionId: "indela", name: "Ring of Fire", type: "arcana", rarity: "rare", value: 8, text: "While this occupies a support slot and your omen is odd, your third and later attacks get +1 value." },
+  { id: "indela-frost-nova", factionId: "indela", name: "Frost Nova", type: "arcana", rarity: "rare", value: 9, text: "While this occupies a support slot and your omen is even, your blocking cards get +1 value." },
+  { id: "indela-elemental-array", factionId: "indela", name: "Elemental Array", type: "arcana", rarity: "mythic", value: 10, text: "While this occupies a support slot, your first attack or block each turn matching your omen's parity gets +1 value." }
+];
+
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
   "rumin-forum-ledger-runner": "hearts",
@@ -803,7 +827,12 @@ const FIXED_CARD_SUITS = Object.freeze({
   "astral-vanguard-incendiary-trooper": "clubs", "astral-vanguard-combat-medic": "spades", "astral-vanguard-jump-trooper": "hearts", "astral-vanguard-powered-breacher": "diamonds",
   "astral-vanguard-emp-grenadier": "clubs", "astral-vanguard-aegis-shock-company": "spades", "astral-vanguard-drop-pod-beacon": "hearts", "astral-vanguard-forward-supply-cache": "spades",
   "astral-vanguard-field-triage": "clubs", "astral-vanguard-suppression-order": "spades", "astral-vanguard-breach-charge": "hearts", "astral-vanguard-tactical-relay": "diamonds",
-  "astral-vanguard-orbital-interdiction": "clubs", "astral-vanguard-fleet-command": "diamonds"
+  "astral-vanguard-orbital-interdiction": "clubs", "astral-vanguard-fleet-command": "diamonds",
+  "indela-student-of-flame": "hearts", "indela-frost-apprentice": "spades", "indela-blazing-initiate": "diamonds", "indela-glacier-initiate": "clubs",
+  "indela-flameweaver": "hearts", "indela-blizzard-caller": "spades", "indela-mystic-of-embers": "diamonds", "indela-arctic-channeler": "clubs",
+  "indela-fire-enchanter": "hearts", "indela-headmaster": "spades", "indela-arcane-amplification": "clubs", "indela-elemental-infusion": "diamonds",
+  "indela-scorched-earth-ritual": "clubs", "indela-frostbite-gale": "spades", "indela-glacial-insight": "diamonds", "indela-ring-of-fire": "hearts",
+  "indela-frost-nova": "clubs", "indela-elemental-array": "diamonds"
 });
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
@@ -1548,7 +1577,8 @@ function validateGameContent() {
     ["frumo", "ambush"],
     ["bizi", "contraption"],
     ["zynarth", "biomorph"],
-    ["astral-vanguard", "operation"]
+    ["astral-vanguard", "operation"],
+    ["indela", "arcana"]
   ]);
   for (const card of COLLECTION_CARDS) {
     requireText(card.id, "cards.id");
@@ -1651,6 +1681,7 @@ module.exports = {
   DRAFT_SETS,
   FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
+  INDELA_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,

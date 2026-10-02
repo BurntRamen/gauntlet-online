@@ -95,7 +95,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 108);
+  assert.equal(COLLECTION_CARDS.length, 126);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);
@@ -252,7 +252,7 @@ test("Initiative packs include every catalog faction and keep faction packs seed
   assert.equal(initiativeCards.length, 12);
   assert.deepEqual(
     [...new Set(initiativeCards.map((card) => card.factionId))].sort(),
-    ["astral-vanguard", "bizi", "frumo", "rumin", "sheen", "zynarth"]
+    ["astral-vanguard", "bizi", "frumo", "indela", "rumin", "sheen", "zynarth"]
   );
 
   const zynarthStats = { collection: { packCredits: 1 } };
@@ -264,6 +264,11 @@ test("Initiative packs include every catalog faction and keep faction packs seed
   const astralCards = openCollectionBooster(astralStats, "astral-vanguard-foundation");
   assert.equal(astralCards.length, 8);
   assert.equal(astralCards.every((card) => card.factionId === "astral-vanguard"), true);
+
+  const indelaStats = { collection: { packCredits: 1 } };
+  const indelaCards = openCollectionBooster(indelaStats, "indela-foundation");
+  assert.equal(indelaCards.length, 8);
+  assert.equal(indelaCards.every((card) => card.factionId === "indela"), true);
 });
 
 test("a physical collector entitlement changes presentation provenance but no competitive capability", () => {

@@ -133,6 +133,7 @@ const {
   DRAFT_SETS,
   FREE_GAMEPLAY_ACQUISITION,
   FRUMO_COLLECTION_CARDS,
+  INDELA_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
@@ -497,6 +498,15 @@ const BOOSTER_PRODUCTS = {
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
     description: "A seeded Astral Vanguard reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+  },
+  "indela-foundation": {
+    id: "indela-foundation",
+    name: "Indela Foundation Pack",
+    productType: "earned-gameplay-pack",
+    factionId: "indela",
+    cardCount: 8,
+    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
+    description: "A seeded Indela reward containing gameplay unlocks. Earn credits through first-time campaign clears."
   }
 };
 

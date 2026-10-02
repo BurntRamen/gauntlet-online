@@ -18,7 +18,7 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 ## Conventions
 
 - Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.
-- Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs and Operations enter a lane's support slot and remain there until their text or another rule removes them.
+- Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.
 - Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.
 - First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.
 - +N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.
@@ -137,3 +137,21 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Tactical Relay | First staged card played: +1 value. | While this occupies a support slot, the first staged card you play each turn gets +1 value. |
 | Orbital Interdiction | Your new-suit attacks: +1 value. | While this occupies a support slot, your attacks after a different-suit attack get +1 value. |
 | Fleet Command | Deck deployments get +2 instead of +1. | While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1. |
+| Student of Flame | Odd omen, first attack: +1 value. | While your omen is odd, this gets +1 value on your first attack each turn. |
+| Frost Apprentice | Even omen, first block: +1 value. | While your omen is even, this gets +1 value on your first block each turn. |
+| Blazing Initiate | Odd omen, attack after an odd-value play: +1 value. | While your omen is odd, this gets +1 value when it attacks after an odd-value card. |
+| Glacier Initiate | Even omen, block a hand attack: +1 value. | While your omen is even, this gets +1 value when it blocks an attack from hand. |
+| Flameweaver | Odd omen, lane attack: +1 value. | While your omen is odd, this gets +1 value when it attacks from a lane. |
+| Blizzard Caller | Even omen, lane block: +1 value. | While your omen is even, this gets +1 value when it blocks from a lane. |
+| Mystic of Embers | Odd omen, pay for Indela: pays +1. | While your omen is odd, this pays +1 additional value for an Indela card. |
+| Arctic Channeler | Even omen, pay for Indela: pays +1. | While your omen is even, this pays +1 additional value for an Indela card. |
+| Fire Enchanter | Odd omen, third+ attack: +1 value. | While your omen is odd, this gets +1 value on your third or later attack each turn. |
+| Headmaster of Kashi | Attack or block: +1 per Arcana you control, up to +2. | When this attacks or blocks, it gets +1 value for each Arcana you control, up to +2. |
+| Arcane Amplification | Kashi gives +1 additional value. | While this occupies a support slot, Kashi gives an additional +1 value to your cards of the parity opposite your omen. |
+| Elemental Infusion | Odd omen, first attack: +1. Even omen, first block: +1. | While this occupies a support slot, your first attack gets +1 during an odd omen; your first block gets +1 during an even omen. |
+| Scorched Earth Ritual | Odd omen: your lane attacks +1 value. | While this occupies a support slot and your omen is odd, your lane attacks get +1 value. |
+| Frostbite Gale | Even omen, first block: Ward 1. | While this occupies a support slot and your omen is even, prevent 1 damage after your first block each turn. |
+| Glacial Insight | Even omen, first clean block: draw 1 extra at turn end. | While this occupies a support slot and your omen is even, your first clean block each turn draws 1 extra card at turn end. |
+| Ring of Fire | Odd omen: your third+ attacks +1 value. | While this occupies a support slot and your omen is odd, your third and later attacks get +1 value. |
+| Frost Nova | Even omen: your blocks +1 value. | While this occupies a support slot and your omen is even, your blocking cards get +1 value. |
+| Elemental Array | First attack or block matching your omen parity: +1 value. | While this occupies a support slot, your first attack or block each turn matching your omen's parity gets +1 value. |

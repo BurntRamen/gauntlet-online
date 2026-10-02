@@ -4,7 +4,7 @@
 const WORDING_VERSION = "card-wording-v1";
 const CONVENTIONS = [
   "Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.",
-  "Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs and Operations enter a lane's support slot and remain there until their text or another rule removes them.",
+  "Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.",
   "Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.",
   "First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.",
   "+N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.",
@@ -131,7 +131,25 @@ const CARD_WORDING = {
   "astral-vanguard-breach-charge": "First Servitor lane attack: +2 value.",
   "astral-vanguard-tactical-relay": "First staged card played: +1 value.",
   "astral-vanguard-orbital-interdiction": "Your new-suit attacks: +1 value.",
-  "astral-vanguard-fleet-command": "Deck deployments get +2 instead of +1."
+  "astral-vanguard-fleet-command": "Deck deployments get +2 instead of +1.",
+  "indela-student-of-flame": "Odd omen, first attack: +1 value.",
+  "indela-frost-apprentice": "Even omen, first block: +1 value.",
+  "indela-blazing-initiate": "Odd omen, attack after an odd-value play: +1 value.",
+  "indela-glacier-initiate": "Even omen, block a hand attack: +1 value.",
+  "indela-flameweaver": "Odd omen, lane attack: +1 value.",
+  "indela-blizzard-caller": "Even omen, lane block: +1 value.",
+  "indela-mystic-of-embers": "Odd omen, pay for Indela: pays +1.",
+  "indela-arctic-channeler": "Even omen, pay for Indela: pays +1.",
+  "indela-fire-enchanter": "Odd omen, third+ attack: +1 value.",
+  "indela-headmaster": "Attack or block: +1 per Arcana you control, up to +2.",
+  "indela-arcane-amplification": "Kashi gives +1 additional value.",
+  "indela-elemental-infusion": "Odd omen, first attack: +1. Even omen, first block: +1.",
+  "indela-scorched-earth-ritual": "Odd omen: your lane attacks +1 value.",
+  "indela-frostbite-gale": "Even omen, first block: Ward 1.",
+  "indela-glacial-insight": "Even omen, first clean block: draw 1 extra at turn end.",
+  "indela-ring-of-fire": "Odd omen: your third+ attacks +1 value.",
+  "indela-frost-nova": "Even omen: your blocks +1 value.",
+  "indela-elemental-array": "First attack or block matching your omen parity: +1 value."
 };
 
 // ‘New suit’ always compares attacks, never payments or other card plays.
