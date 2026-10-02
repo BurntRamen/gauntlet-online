@@ -1,7 +1,7 @@
 import { logCardToken, logSourceToken, visualMatchLog } from "./logVisualModel";
 
 const players = {
-  1: { name: "Ada", faction: { id: "sheen", commander: { name: "Emperor Nu", image: "/nu.webp" } } },
+  1: { name: "Ada", faction: { id: "sheen", commander: { name: "Emperor Nu", image: "/nu.webp" }, general: { name: "Tang", image: "/tang.webp" } } },
   2: { name: "Bo", faction: { id: "rumin", city: { name: "Rume", image: "/rume.webp" }, general: { name: "Kaiser, the Jewel", image: "/kaiser.webp" } } }
 };
 const tokens = (entry, context = players) => visualMatchLog(entry, context).groups.flat();
@@ -64,4 +64,11 @@ test("shows all blockers, their bonuses, and the recorded combined block", () =>
   const result = tokens({ type: "block.declared", player: 1, totalBlock: 10, calculation: { blocks: [receipt, receipt] } });
   expect(result.filter(t => t.kind === "card")).toHaveLength(2);
   expect(result).toContainEqual(expect.objectContaining({ value: 10, label: "Total block" }));
+});
+
+test("keeps the general's portrait with a healing effect", () => {
+  expect(tokens({ type: "life.gained", source: "Tang", player: 1, amount: 2 })).toEqual(expect.arrayContaining([
+    expect.objectContaining({ kind: "source", role: "general", label: "Tang", art: "/tang.webp" }),
+    expect.objectContaining({ kind: "number", icon: "life", value: 2 })
+  ]));
 });

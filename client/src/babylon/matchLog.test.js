@@ -10,6 +10,11 @@ const players = {
   2: { accountName: "Babbage" }
 };
 
+test("announces healing and its general source in the expanded log", () => {
+  expect(formatMatchLogEntry({ type: "life.gained", player: 1, source: "Tang", amount: 2, from: 38, to: 40 }, { players }))
+    .toEqual({ icon: "life", title: "Ada gained 2 life", detail: "Tang · Life 38 → 40" });
+});
+
 test("formats payment and combat events as explicit numerical explanations", () => {
   expect(formatMatchLogEntry({
     type: "payment.discarded",

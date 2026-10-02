@@ -122,7 +122,7 @@ export function visualMatchLog(entry = {}, players = {}) {
     case "damage.dealt":
     case "life.gained":
     case "campaign.bossHealed":
-      add(value(entry.amount ?? entry.damage, "life", label));
+      add(source, value(entry.amount ?? entry.damage, "life", label));
       if (entry.from != null && entry.to != null) add(value(entry.from, null, "Life before"), symbol("→"), value(entry.to, "life", "Life after"));
       break;
     case "cards.drawn":
