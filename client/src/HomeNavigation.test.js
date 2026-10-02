@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
-import HomeNavigation from "./HomeNavigation";
+import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
 
 function NavigationHarness({ onContinue, onSound = () => {}, onPreloadArea = () => {} }) {
   const [area, setArea] = useState("journey");
@@ -68,30 +68,42 @@ test("preloads an area when its navigation target is approached", () => {
   expect(onPreloadArea).toHaveBeenCalledWith("matches");
 });
 
-function rewardStep(player = "one", credits = 9, onClick = jest.fn()) {
-  return { eyebrow: "Vault Reward", title: "Open " + credits + " earned packs", compactTitle: credits + " unused pack credits", description: "Claim your faction cards.", actionLabel: "Open Collection", onClick, minimizeKey: "test-vault-reward:" + player };
+
+function RewardHarness({ player = "one", credits = 9 }) {
+  const [minimized, setMinimized] = useVaultRewardPreference(player);
+  return <>
+    <aside aria-label="Utilities">{minimized && <VaultCreditBadge credits={credits} onRestore={() => setMinimized(false)} />}</aside>
+    <HomeNavigation activeArea="journey" onSelectArea={() => {}} nextStep={minimized || !credits ? null : {
+      title: "Open earned packs", description: "Claim your faction cards.", actionLabel: "Open Collection", onClick: () => {}, onMinimize: () => setMinimized(true)
+    }} />
+  </>;
 }
 
-test("minimizes rewards, retains collection access, and remembers the player's preference", () => {
+test("moves minimized rewards to the utility badge and restores the banner", () => {
   localStorage.clear();
-  const onClick = jest.fn();
-  const props = { activeArea: "journey", onSelectArea: () => {}, nextStep: rewardStep("one", 9, onClick) };
-  const { unmount } = render(<HomeNavigation {...props} />);
+  const { unmount } = render(<RewardHarness />);
   fireEvent.click(screen.getByRole("button", { name: "Minimize reward" }));
-  expect(screen.getByRole("button", { name: "Show reward" })).toHaveAttribute("aria-expanded", "false");
-  expect(screen.getByText("Claim your faction cards.")).not.toBeVisible();
-  expect(screen.getByRole("heading", { name: "9 unused pack credits" })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Open Collection" }));
-  expect(onClick).toHaveBeenCalledTimes(1);
+  expect(document.querySelector(".journey-next-step")).toBeNull();
+  const badge = screen.getByRole("button", { name: "9 unused pack credits. Show vault reward" });
+  expect(screen.getByRole("complementary", { name: "Utilities" })).toContainElement(badge);
   unmount();
-  const { rerender } = render(<HomeNavigation {...props} nextStep={rewardStep("one", 10)} />);
-  expect(screen.getByRole("heading", { name: "10 unused pack credits" })).toBeInTheDocument();
-  rerender(<HomeNavigation {...props} nextStep={rewardStep("two")} />);
-  expect(screen.getByRole("button", { name: "Minimize reward" })).toHaveAttribute("aria-expanded", "true");
-  rerender(<HomeNavigation {...props} />);
-  fireEvent.click(screen.getByRole("button", { name: "Show reward" }));
-  expect(screen.getByText("Claim your faction cards.")).toBeVisible();
-  expect(localStorage.getItem("test-vault-reward:one")).toBe("false");
+  const { rerender } = render(<RewardHarness credits={10} />);
+  expect(screen.getByRole("button", { name: "10 unused pack credits. Show vault reward" })).toBeInTheDocument();
+  rerender(<RewardHarness player="two" />);
+  expect(screen.getByRole("button", { name: "Minimize reward" })).toBeInTheDocument();
+  rerender(<RewardHarness />);
+  fireEvent.click(screen.getByRole("button", { name: "9 unused pack credits. Show vault reward" }));
+  expect(screen.getByRole("heading", { name: "Open earned packs" })).toBeInTheDocument();
+  expect(document.querySelector(".vault-credit-badge")).toBeNull();
+});
+
+test("removes the badge once credits are spent", () => {
+  localStorage.clear();
+  const { rerender } = render(<RewardHarness />);
+  fireEvent.click(screen.getByRole("button", { name: "Minimize reward" }));
+  rerender(<RewardHarness credits={0} />);
+  expect(document.querySelector(".vault-credit-badge")).toBeNull();
+  expect(document.querySelector(".journey-next-step")).toBeNull();
 });
 
 test("does not offer minimize for ordinary recommendations", () => {
@@ -99,12 +111,11 @@ test("does not offer minimize for ordinary recommendations", () => {
   expect(screen.queryByRole("button", { name: "Minimize reward" })).not.toBeInTheDocument();
 });
 
-test("reward minimization remains usable when browser storage is blocked", () => {
+test("remains usable when browser storage is blocked", () => {
   const read = jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
   const write = jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
-  render(<HomeNavigation activeArea="journey" onSelectArea={() => {}} nextStep={rewardStep()} />);
+  render(<RewardHarness />);
   fireEvent.click(screen.getByRole("button", { name: "Minimize reward" }));
-  expect(screen.getByRole("button", { name: "Show reward" })).toBeInTheDocument();
-  read.mockRestore();
-  write.mockRestore();
+  expect(screen.getByRole("button", { name: "9 unused pack credits. Show vault reward" })).toBeInTheDocument();
+  read.mockRestore(); write.mockRestore();
 });

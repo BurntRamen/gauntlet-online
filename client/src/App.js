@@ -3,7 +3,7 @@ import { flushSync } from "react-dom";
 import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
-import HomeNavigation from "./HomeNavigation";
+import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import DeckWorkshop from "./DeckWorkshop";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
@@ -3441,6 +3441,7 @@ export default function App() {
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [account, setAccount] = useState(null);
+  const [vaultRewardMinimized, setVaultRewardMinimized] = useVaultRewardPreference(account?.id);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState("login");
   const [authForm, setAuthForm] = useState({ name: "", password: "" });
@@ -4980,8 +4981,7 @@ export default function App() {
   } else if (packCredits > 0) {
     journeyNextStep = {
       eyebrow: "Vault Reward",
-      minimizeKey: "gauntlet:vault-reward-minimized:" + (account?.id || "guest"),
-      compactTitle: packCredits + " unused pack credit" + (packCredits === 1 ? "" : "s"),
+      onMinimize: () => setVaultRewardMinimized(true),
       factionId: buildDeckFactionId,
       image: "/assets/gauntlet/ui/vault-pack-credits-v1.webp",
       progress: `${packCredits} credit${packCredits === 1 ? "" : "s"} ready to claim`,
@@ -5020,6 +5020,8 @@ export default function App() {
       onClick: () => navigateHomeArea("play")
     };
   }
+
+  if (vaultRewardMinimized && journeyNextStep?.onMinimize) journeyNextStep = null;
 
   if (!hasSavedRoom && !(INITIAL_JOIN_ROOM_CODE && roomCodeInput)) {
     if (homeArea === "matches" || homeArea === "identity") journeyNextStep = null;
@@ -5232,6 +5234,7 @@ export default function App() {
               />
               <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
             </div>
+            {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
           </div>
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}

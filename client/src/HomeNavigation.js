@@ -47,7 +47,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
           <h2 id="home-area-title">{activeLabel}</h2>
         </div>
         <div className="home-area-content-inner" key={activeArea}>
-          {nextStep && <NextStepNotice key={nextStep.minimizeKey || "recommendation"} nextStep={nextStep} activeArea={activeArea} onSound={onSound} />}
+          {nextStep && <NextStepNotice nextStep={nextStep} activeArea={activeArea} onSound={onSound} />}
           {children}
         </div>
       </section>
@@ -56,27 +56,15 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
 }
 
 function NextStepNotice({ nextStep, activeArea, onSound }) {
-  const [minimized, setMinimized] = useState(() => {
-    if (!nextStep.minimizeKey) return false;
-    try { return localStorage.getItem(nextStep.minimizeKey) === "true"; }
-    catch { return false; }
-  });
-  function toggleMinimized() {
-    const value = !minimized;
-    setMinimized(value);
-    try { localStorage.setItem(nextStep.minimizeKey, String(value)); }
-    catch { /* Keep the control usable when browser storage is unavailable. */ }
-    onSound("tab");
-  }
   return (
-    <section className={"journey-next-step" + (activeArea !== "journey" ? " is-contextual" : "") + (minimized ? " is-minimized" : "")} aria-labelledby="journey-next-title">
-      {!minimized && <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
+    <section className={"journey-next-step" + (activeArea !== "journey" ? " is-contextual" : "")} aria-labelledby="journey-next-title">
+      {<FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
         {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
       </FactionArtwork>}
       <div className="journey-next-copy">
         <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
-        <h2 id="journey-next-title">{minimized ? nextStep.compactTitle || nextStep.title : nextStep.title}</h2>
-        <div id="journey-next-details" hidden={minimized}>
+        <h2 id="journey-next-title">{nextStep.title}</h2>
+        <div id="journey-next-details">
           <p>{nextStep.description}</p>
           {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
         </div>
@@ -85,10 +73,30 @@ function NextStepNotice({ nextStep, activeArea, onSound }) {
         <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
           {nextStep.actionLabel}
         </button>
-        {nextStep.minimizeKey && <button type="button" className="journey-next-toggle" aria-expanded={!minimized} aria-controls="journey-next-details" onClick={toggleMinimized}>
-          {minimized ? "Show reward" : "Minimize reward"}
+        {nextStep.onMinimize && <button type="button" className="journey-next-toggle" aria-expanded="true" aria-controls="journey-next-details" onClick={() => { nextStep.onMinimize(); onSound("tab"); }}>
+          Minimize reward
         </button>}
       </div>
     </section>
   );
+}
+
+export function useVaultRewardPreference(playerId) {
+  const key = "gauntlet:vault-reward-minimized:" + (playerId || "guest");
+  const [changes, setChanges] = useState({});
+  let saved = false;
+  try { saved = localStorage.getItem(key) === "true"; } catch {}
+  return [changes[key] ?? saved, (value) => {
+    setChanges(previous => ({ ...previous, [key]: value }));
+    try { localStorage.setItem(key, String(value)); } catch {}
+  }];
+}
+
+export function VaultCreditBadge({ credits, onRestore }) {
+  if (credits <= 0) return null;
+  const label = credits + " unused pack credit" + (credits === 1 ? "" : "s") + ". Show vault reward";
+  return <button type="button" className="vault-credit-badge" aria-label={label} title={label} onClick={onRestore}>
+    <img src={resolveVisualAsset("/assets/gauntlet/ui/vault-pack-credits-v1.webp")} alt="" width="32" height="32" />
+    <strong>{credits}</strong>
+  </button>;
 }
