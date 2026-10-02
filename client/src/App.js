@@ -9,6 +9,7 @@ import DeckWorkshop from "./DeckWorkshop";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
+import CollectorCardPresentation from "./CollectorCardPresentation";
 import { useDialogueActivity, useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
@@ -649,7 +650,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
           aria-label={card ? interactionLabel || `Inspect ${card.name || getCardShortLabel(card)}` : "No card"}
           aria-pressed={typeof interactionPressed === "boolean" ? interactionPressed : undefined}
         >
-          <img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" />
+          <CollectorCardPresentation card={card}><img src={resolveAssetPath(playingCardArt)} alt={`${rank} ${suit}`} loading="lazy" decoding="async" className="card-face-art" /></CollectorCardPresentation>
         </button>
       ) : card ? (
         <button
@@ -695,7 +696,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onActivate ? "pointer" : onInspect && card ? "zoom-in" : "default" }}
       >
         {card?.image ? (
-          <img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></CollectorCardPresentation>
         ) : (
           <div style={{ textAlign: "center", fontSize: 34, lineHeight: "50px", color: suitColor }}>{suit}</div>
         )}
@@ -767,7 +768,7 @@ function CardInspectModal({ card, onClose, artFactionId }) {
     return (
       <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.82)", display: "grid", placeItems: "center", padding: 18 }}>
         <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "auto", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
-          <img src={resolveAssetPath(playingCardArt)} alt={`${card.name || getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "78dvh", objectFit: "contain", display: "block" }} />
+          <CollectorCardPresentation card={card}><img src={resolveAssetPath(playingCardArt)} alt={`${card.name || getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "78dvh", objectFit: "contain", display: "block" }} /></CollectorCardPresentation>
           <CardRulesDetails card={card} />
           <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: "1px solid rgba(255,255,255,0.45)", borderRadius: 4, background: "rgba(7,16,26,0.9)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
         </div>
@@ -779,7 +780,7 @@ function CardInspectModal({ card, onClose, artFactionId }) {
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
       <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 94vw)", border: "2px solid rgba(250, 204, 21, 0.75)", borderRadius: 10, background: "linear-gradient(180deg, #f8fafc, #e5e7eb)", boxShadow: "0 24px 80px rgba(0,0,0,0.55)", overflow: "hidden" }}>
         <div style={{ position: "relative", height: 210, background: "#0f172a" }}>
-          {getCardIllustration(card) ? <img src={resolveAssetPath(getCardIllustration(card))} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
+          {getCardIllustration(card) ? <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(getCardIllustration(card))} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></CollectorCardPresentation> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
           <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: 0, borderRadius: 6, background: "rgba(15,23,42,0.86)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
         </div>
         <div style={{ padding: 16 }}>
@@ -1526,7 +1527,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
         <CardRulesDetails card={card} />
         <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
       </div>
-      {expanded && <CardInspectModal card={card} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
+      {expanded && <CardInspectModal card={{ ...card, collector: variant }} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
     </aside>
   );
 }
@@ -1830,7 +1831,9 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         generalId: deckRules.factions?.find((entry) => entry.id === constructedFactionId)?.generals?.find((entry) => entry.id === constructedGeneralId)?.id || null,
         gameplayCardQuantities: constructedQuantities,
         cardSuitChoices: constructedSuitChoices,
-        collectorVariantSelections: constructedVariantSelections,
+        collectorVariantSelections: Object.fromEntries(Object.keys(constructedQuantities)
+          .filter((cardId) => constructedQuantities[cardId] > 0)
+          .map((cardId) => [cardId, findCollectorVariant(cardId, availableVariantsByGameplayCard[cardId] || [], constructedVariantSelections[cardId])?.variantId || constructedCardsById[cardId]?.defaultVariantId])),
         deckBoxId: constructedBoxId
       });
       if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
@@ -2592,7 +2595,7 @@ function CombatStrip({ game, perspectivePlayer, onInspect }) {
           <div key={summary.id} className={`combat-scene${incoming ? " is-incoming" : ""}`}>
             <button type="button" className="combat-card" onClick={() => onInspect?.(summary.card)} title={`Inspect ${getCardShortLabel(summary.card)}`}>
               {cardArt ? (
-                <img src={resolveAssetPath(cardArt)} alt={getCardShortLabel(summary.card)} />
+                <CollectorCardPresentation card={summary.card}><img src={resolveAssetPath(cardArt)} alt={getCardShortLabel(summary.card)} /></CollectorCardPresentation>
               ) : (
                 <span className="combat-card-fallback"><strong>{getCardRank(summary.card)}</strong>{getSuitSymbol(summary.card?.suit)}</span>
               )}

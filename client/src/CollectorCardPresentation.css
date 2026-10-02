@@ -1,0 +1,27 @@
+.special-card-presentation { position: relative; display: block; width: 100%; aspect-ratio: 5 / 7; overflow: hidden; border-radius: 9px; isolation: isolate; container-type: inline-size; }
+.special-card-presentation > img,
+.special-card-presentation > .special-card-face,
+.special-card-presentation > .custom-playing-card-face { width: 100%; height: 100%; }
+.special-card-presentation.is-animated-collector { --collector-a: #67e8f9; --collector-b: #f6c453; --collector-c: #c084fc; box-shadow: 0 0 0 1px color-mix(in srgb, var(--collector-b) 75%, white), 0 0 16px color-mix(in srgb, var(--collector-a) 42%, transparent), inset 0 0 14px color-mix(in srgb, var(--collector-c) 22%, transparent); }
+.is-animated-collector::before { content: ""; position: absolute; z-index: 2; inset: -14%; pointer-events: none; background: radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--collector-a) 68%, transparent), transparent 32%), radial-gradient(circle at 78% 58%, color-mix(in srgb, var(--collector-c) 62%, transparent), transparent 38%), linear-gradient(115deg, transparent 28%, color-mix(in srgb, var(--collector-b) 42%, transparent) 48%, transparent 68%); background-size: 120% 120%, 135% 135%, 190% 100%; mix-blend-mode: soft-light; animation: collector-background-shift 6.4s ease-in-out infinite alternate; }
+.is-animated-collector > img,
+.is-animated-collector .special-card-face > img { animation: collector-art-parallax 8s ease-in-out infinite alternate; }
+.collector-card-sheen { position: absolute; z-index: 3; inset: -45%; pointer-events: none; opacity: .54; mix-blend-mode: color-dodge; background: conic-gradient(from 20deg at 50% 50%, transparent 0 19%, color-mix(in srgb, var(--collector-a) 72%, transparent) 24%, color-mix(in srgb, var(--collector-b) 88%, transparent) 29%, transparent 35% 57%, color-mix(in srgb, var(--collector-c) 68%, transparent) 63%, transparent 70%); animation: collector-foil-orbit 7s linear infinite; }
+.collector-card-sheen::after { content: ""; position: absolute; inset: 23%; border-radius: 42%; opacity: .7; background: radial-gradient(circle at 20% 30%, var(--collector-b) 0 1px, transparent 2px), radial-gradient(circle at 76% 21%, var(--collector-a) 0 1px, transparent 2px), radial-gradient(circle at 68% 72%, var(--collector-c) 0 1.5px, transparent 3px); background-size: 37px 41px, 43px 47px, 53px 59px; animation: collector-star-drift 4.6s ease-in-out infinite alternate; }
+.special-card-presentation.is-animated-collector::after { content: "✦"; position: absolute; z-index: 4; top: 4.5%; right: 5%; display: grid; width: 12%; aspect-ratio: 1; place-items: center; pointer-events: none; border: 1px solid color-mix(in srgb, var(--collector-b) 72%, white); border-radius: 50%; color: white; background: color-mix(in srgb, var(--collector-c) 46%, #06101c); box-shadow: 0 0 9px var(--collector-a); font-size: clamp(7px, 4.2cqw, 16px); animation: collector-sigil-breathe 2.8s ease-in-out infinite; }
+@keyframes collector-foil-orbit { to { transform: rotate(360deg) scale(1.08); } }
+@keyframes collector-art-parallax { from { transform: scale(1.005) translate3d(-.35%, .2%, 0); filter: saturate(1.12) contrast(1.03) hue-rotate(-3deg); } to { transform: scale(1.035) translate3d(.65%, -.45%, 0); filter: saturate(1.35) contrast(1.08) hue-rotate(5deg); } }
+@keyframes collector-background-shift { from { transform: translate3d(-5%, 2%, 0) rotate(-2deg); opacity: .48; } to { transform: translate3d(6%, -3%, 0) rotate(3deg); opacity: .9; } }
+@keyframes collector-star-drift { from { transform: translate3d(-3%, -2%, 0); opacity: .38; } to { transform: translate3d(4%, 3%, 0); opacity: .9; } }
+@keyframes collector-sigil-breathe { 50% { transform: scale(1.12); filter: brightness(1.35); box-shadow: 0 0 15px var(--collector-a); } }
+@media (prefers-reduced-motion: reduce) {
+  .is-animated-collector::before, .is-animated-collector > img, .is-animated-collector .special-card-face > img, .collector-card-sheen, .collector-card-sheen::after, .special-card-presentation.is-animated-collector::after { animation: none; }
+  .collector-card-sheen { transform: rotate(18deg); opacity: .28; }
+}
+.special-card-presentation.collector-illustration { height: 100%; aspect-ratio: auto; }
+.reduced-motion .is-animated-collector::before,
+.reduced-motion .is-animated-collector::after,
+.reduced-motion .is-animated-collector > img,
+.reduced-motion .is-animated-collector .special-card-face > img,
+.reduced-motion .collector-card-sheen,
+.reduced-motion .collector-card-sheen::after { animation: none !important; }

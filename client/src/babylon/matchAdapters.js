@@ -782,7 +782,7 @@ export class LocalDuelAdapter {
       this.seenPeekId = privatePeek.id;
       const card = privatePeek.card;
       this.inspection = { id: card.id, label: card.name || `${card.rank}${card.suit}`, value: cardValue(card), valueBreakdown: valueBreakdown(card),
-        description: `Private inspection · only you see this result. ${card.text || ""}`, artPath: getPlayingCardArtPath(card, card.factionId || "basic") };
+        description: `Private inspection · only you see this result. ${card.text || ""}`, artPath: getPlayingCardArtPath(card, card.factionId || "basic"), raw: card };
     }
     const projectedHand = spectator
       ? []

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SpecialCardFace from "./SpecialCardFace";
+import { collectorVersionLabel } from "./collectorPresentation";
 import DeckBox, { DECK_BOXES } from "./DeckBox";
 import DeckNameEditor from "./DeckNameEditor";
 import CardZoom from "./CardZoom";
@@ -116,6 +117,14 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
             <div className="deck-preview-heading"><div><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
               <button type="button" className="deck-zoom-button" aria-label={"Zoom " + (preview?.name || slotLabel(selected))} aria-haspopup="dialog" onClick={() => openZoom(preview || selected)}>⤢ <span>Zoom</span></button>
             </div>
+            {preview && variants.length > 0 && <div className="deck-card-version">
+              <label className="deck-finish-label">Card version
+                <select disabled={saving} aria-label={preview.name + " card version"} value={selectedVariant?.variantId || ""} onChange={(event) => onVariantChange(preview.id, event.target.value)}>
+                  {variants.map((variant) => <option key={variant.variantId} value={variant.variantId}>{collectorVersionLabel(variant)}</option>)}
+                </select>
+              </label>
+              <small>{selected.card?.id === preview.id ? "Used for this card in game when you save this deck." : "Swap this card in and save the deck to use this version in game."}</small>
+            </div>}
             {layout.preview && <div className="deck-slot-preview" aria-label={(preview?.name || slotLabel(selected)) + " selected card preview"}>
               {preview ? <SpecialCardFace card={preview} art={selectedVariant?.art} presentation={selectedVariant} /> : <img src={resolveVisualAsset(getPlayingCardArtPath(selected, "basic"))} alt={slotLabel(selected) + " standard playing card"} />}
             </div>}
@@ -160,9 +169,6 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
             </button>)}</div>
           </section>
           <div className="deck-settings-actions">
-            {preview && variants.length > 0 && <label className="deck-finish-label">Card finish<select aria-label={preview.name + " card finish"} value={selectedVariant?.variantId || ""} onChange={(event) => onVariantChange(preview.id, event.target.value)}>
-              {variants.map((variant) => <option key={variant.variantId} value={variant.variantId}>{variant.name || variant.finish}</option>)}
-            </select></label>}
             <button type="button" onClick={onReset} disabled={!swaps}>Reset swaps</button>
             {saved && <button type="button" onClick={onRestore}>Restore saved version</button>}
           </div>

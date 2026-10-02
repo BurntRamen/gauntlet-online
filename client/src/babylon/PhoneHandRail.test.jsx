@@ -82,3 +82,12 @@ test("phone portrait and short phone landscape use the rail, ordinary tablet and
   expect(usesPhoneHandRail(1024, 768)).toBe(false);
   expect(usesPhoneHandRail(1440, 900)).toBe(false);
 });
+
+test("the mobile hand shows the equipped foil only while the card is visible", () => {
+  const foil = { ...cards[0], raw: { ...cards[0].raw, collector: { finish: "foil", animationStyle: "living-canopy" } } };
+  const props = { commands: {}, presentationRef: presentation() };
+  const { container, rerender } = render(<PhoneHandRail {...props} viewModel={{ ...viewModel, hand: [foil] }} />);
+  expect(container.querySelector(".is-animated-collector")).toHaveAttribute("data-collector-style", "living-canopy");
+  rerender(<PhoneHandRail {...props} viewModel={{ ...viewModel, hand: [{ ...foil, visible: false }] }} />);
+  expect(container.querySelector(".is-animated-collector")).toBeNull();
+});

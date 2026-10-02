@@ -121,6 +121,21 @@ test("collector animation metadata follows a face-up card onto the 3D table", ()
   }));
 });
 
+test("the real match raw-card shape retains its foil style, while face-down actors reveal no finish", () => {
+  const foil = { ...card("equipped"), raw: { id: "equipped", collector: { finish: "foil", animationStyle: "sunken-tide" } } };
+  const snapshot = createPresentationSnapshot(viewModel({
+    hand: [foil],
+    lanes: [{ index: 0, hasLocalCard: true, localCard: { ...foil, id: "hidden-lane", visible: false } }]
+  }));
+  expect(snapshot.actorById.get("card:equipped")).toEqual(expect.objectContaining({ collectorAnimated: true, collectorStyle: "sunken-tide" }));
+  const hidden = snapshot.actors.filter((actor) => actor.faceDown);
+  expect(hidden.length).toBeGreaterThan(0);
+  hidden.forEach((actor) => {
+    expect(actor.collectorAnimated).toBe(false);
+    expect(actor.collectorStyle).toBeNull();
+  });
+});
+
 test("reports an ordinary face-up actor that lost its required art path", () => {
   const missing = { ...card("missing"), artPath: "" };
   const snapshot = createPresentationSnapshot(viewModel({

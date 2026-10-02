@@ -69,9 +69,7 @@ test("matching cards switch views and zoom without changing the deck, on desktop
   await icons.click();
   await matching.getByRole("button", { name: "Preview Aerial Drone", exact: true }).click();
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(0);
-  await page.locator(".deck-settings > summary").click();
-  await page.getByLabel("Aerial Drone card finish", { exact: true }).selectOption(`${card.id}:collector-foil`);
-  await page.locator(".deck-settings > summary").click();
+  await page.getByLabel("Aerial Drone card version", { exact: true }).selectOption(`${card.id}:collector-foil`);
   await expect(matching.locator(".is-animated-collector")).toHaveAttribute("data-collector-style", "charged-engine");
   await page.emulateMedia({ reducedMotion: "reduce" });
   const swapBounds = await matching.getByRole("button", { name: "Swap 4 of hearts for Aerial Drone", exact: true }).boundingBox();

@@ -7,6 +7,8 @@ import FactionBoardCards from "./FactionBoardCards";
 import AbilityStatePanel from "./AbilityStatePanel";
 import GameIcon from "./GameIcon";
 import { cardDetails, selectedCardPreview } from "./cardDetails";
+import CollectorCardPresentation from "../CollectorCardPresentation";
+import SpecialCardFace from "../SpecialCardFace";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
 import {
@@ -806,7 +808,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                       const artPath = getPlayingCardArtPath(card, player.faction?.id || "basic");
                       return (
                         <button type="button" key={card.id || index} onClick={() => commands.inspectCard?.(card)}>
-                          {artPath && <img src={artPath} alt="" loading="lazy" />}
+                          {artPath && <MatchCardArt card={card} artPath={artPath} loading="lazy" />}
                           <strong>{cardDisplayName(card)}</strong>
                           <span>Value {card.value}</span>
                         </button>
@@ -1174,7 +1176,7 @@ function CardInspection({ inspection, commands, viewModel, snapshot }) {
       </button>
       <div className="production-inspection-card">
         {inspection.artPath ? (
-          <img src={inspection.artPath} alt={`${inspection.label}, value ${inspection.value}`} />
+          <MatchCardArt card={inspection} artPath={inspection.artPath} alt={`${inspection.label}, value ${inspection.value}`} />
         ) : (
           <div className="production-inspection-fallback">{inspection.label}</div>
         )}
@@ -1196,6 +1198,12 @@ function CardInspection({ inspection, commands, viewModel, snapshot }) {
   );
 }
 
+function MatchCardArt({ card, artPath, alt = "", loading }) {
+  const raw = card?.raw || card;
+  if (raw?.presentation?.composed) return <SpecialCardFace card={raw} />;
+  return <CollectorCardPresentation card={card}><img src={artPath} alt={alt} loading={loading} /></CollectorCardPresentation>;
+}
+
 function CardPreview({ preview, viewModel, snapshot }) {
   if (!preview) return null;
   const details = cardDetails(preview, viewModel, snapshot);
@@ -1203,7 +1211,7 @@ function CardPreview({ preview, viewModel, snapshot }) {
     <aside className="production-card-preview" aria-label={`${details.name} preview`}>
       <div className="production-card-preview-art">
         {preview.artPath ? (
-          <img src={preview.artPath} alt="" />
+          <MatchCardArt card={preview} artPath={preview.artPath} />
         ) : (
           <span>{preview.label || "Card"}</span>
         )}

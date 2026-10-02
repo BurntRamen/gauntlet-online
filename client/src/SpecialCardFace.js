@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CollectorCardPresentation from "./CollectorCardPresentation";
 import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import { getCustomCardArtDefinition, getCustomCardFacePath, getPlayingCardRankSlug, normalizeCardDisplayText } from "./cardArt";
 import "./SpecialCardFace.css";
@@ -16,8 +17,6 @@ export default function SpecialCardFace({ card, art = "", presentation = null })
   const rawSuit = normalizeCardDisplayText(card?.suit).toLowerCase();
   const suit = ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" })[rawSuit] || rawSuit || "✦";
   const fallback = resolveVisualAsset(getCardIllustration({ factionId: card?.factionId }));
-  const collector = presentation || card?.collector || (card?.paid ? card : null);
-  const animated = collector?.animated || collector?.finish === "foil";
   const content = face && failedFace !== face
     ? <img className="custom-playing-card-face" src={resolveVisualAsset(face)} alt={`${card.name || "Custom faction card"}, ${rank}${card.suit ? ` ${card.suit}` : ""}`} decoding="async" onError={() => setFailedFace(face)} />
     : (
@@ -28,9 +27,5 @@ export default function SpecialCardFace({ card, art = "", presentation = null })
       <span className="special-card-corner is-bottom" aria-hidden="true"><b>{rank}</b><span>{suit}</span></span>
     </div>
   );
-  return <div className={`special-card-presentation${animated ? " is-animated-collector" : ""}`}
-    data-collector-style={animated ? collector?.animationStyle || card?.factionId || "living-foil" : undefined}>
-    {content}
-    {animated && <i className="collector-card-sheen" />}
-  </div>;
+  return <CollectorCardPresentation card={card} presentation={presentation} alwaysWrap>{content}</CollectorCardPresentation>;
 }

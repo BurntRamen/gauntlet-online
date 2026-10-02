@@ -38,3 +38,13 @@ test("paid foil presentations receive the animated collector layers", () => {
   expect(container.querySelector(".special-card-presentation")).toHaveAttribute("data-collector-style", "elemental-omen");
   expect(container.querySelector(".collector-card-sheen")).toBeInTheDocument();
 });
+
+test("an explicit standard choice overrides an equipped foil and restores it when removed", () => {
+  const card = { name: "Guard", value: 3, suit: "spades", collector: { finish: "foil", animationStyle: "gilded-march" } };
+  const { container, rerender } = render(<SpecialCardFace card={card} />);
+  expect(container.querySelector(".collector-card-sheen")).toBeInTheDocument();
+  rerender(<SpecialCardFace card={card} presentation={{ finish: "standard" }} />);
+  expect(container.querySelector(".collector-card-sheen")).toBeNull();
+  rerender(<SpecialCardFace card={card} />);
+  expect(container.querySelector("[data-collector-style]")).toHaveAttribute("data-collector-style", "gilded-march");
+});

@@ -1276,6 +1276,19 @@ test.each([
   expect(preview).toHaveTextContent("Selected for blocker");
 });
 
+test("equipped foil survives the selected-card preview and inspection dialog", async () => {
+  const raw = { id: "foil-guard", name: "Foil Guard", value: 3, suit: "spades", collector: { finish: "foil", animationStyle: "gilded-march" } };
+  const card = { id: raw.id, label: raw.name, value: 3, raw, artPath: "/cards/guard.webp", selected: { attacker: true } };
+  const viewModel = { ...createViewModel(), hand: [card] };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel, inspection: card })} options={{ audioEnabled: false }} />);
+  const preview = await screen.findByRole("complementary", { name: "Foil Guard preview" });
+  const inspection = screen.getByRole("dialog", { name: "Inspect Foil Guard" });
+  [preview, inspection].forEach((element) => {
+    expect(element.querySelector("[data-collector-style]")).toHaveAttribute("data-collector-style", "gilded-march");
+    expect(element.querySelector(".collector-card-sheen")).toHaveAttribute("aria-hidden", "true");
+  });
+});
+
 test("shows a nonmodal card-role preview and a persistent combat recap", async () => {
   jest.useFakeTimers();
   let publish;

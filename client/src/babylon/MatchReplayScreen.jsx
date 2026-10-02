@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getPlayingCardArtPath } from "../cardArt";
+import CollectorCardPresentation from "../CollectorCardPresentation";
 import ProductionMatchExperience from "./ProductionMatchExperience";
 import { createReplayMatchAdapter } from "./ReplayMatchAdapter";
 import ReplayTranscript from "./ReplayTranscript";
@@ -22,9 +23,9 @@ function ReplayCard({ card, role }) {
   const art = cardArt(card);
   return (
     <article className={`replay-focus-card ${role || "supporting"}`} aria-label={`${role || "Public"} card: ${cardLabel(card)}`}>
-      <div className="replay-focus-art" style={art ? { backgroundImage: `url(${art})` } : undefined} aria-hidden="true">
+      <CollectorCardPresentation card={card}><div className="replay-focus-art" style={art ? { backgroundImage: `url(${art})` } : undefined} aria-hidden="true">
         {!art && <strong>{card.rank || card.value || "◆"}<small>{card.suit || ""}</small></strong>}
-      </div>
+      </div></CollectorCardPresentation>
       <div>
         <strong>{cardLabel(card)}</strong>
         <span>{[card.rank && `${card.rank}${card.suit || ""}`, card.value != null && `Value ${card.value}`, card.factionId].filter(Boolean).join(" · ")}</span>

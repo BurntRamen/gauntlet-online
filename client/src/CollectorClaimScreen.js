@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { resolveVisualAsset } from "./GauntletVisuals";
+import CollectorCardPresentation from "./CollectorCardPresentation";
 import "./CollectorClaimScreen.css";
 
 async function readJson(response) {
@@ -164,7 +165,7 @@ export default function CollectorClaimScreen({
                 <ul>
                   {variants.map((variant, index) => (
                     <li key={`${variant.variantId}-${index}`}>
-                      {variant.art && <span className={`collector-claim-art${variant.animated || variant.finish === "foil" ? " is-animated" : ""}`} data-style={variant.animationStyle || "living-foil"}><img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" /></span>}
+                      {variant.art && <span className="collector-claim-art"><CollectorCardPresentation card={variant}><img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" /></CollectorCardPresentation></span>}
                       <span className="collector-claim-reward-copy">
                         <strong>{variant.name || variant.variantId}</strong>
                         <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}{variant.animated ? " / animated" : ""}</small>

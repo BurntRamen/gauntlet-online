@@ -33,7 +33,10 @@ function Preview({ preview, domain, row, catalog, onClose }) {
     if (match) { factionId = match[0]; chapter = match[1].chapters.find((entry) => entry.deckTemplate?.id === row.id); }
   }
   let card = domain === "cards" ? manifest.cards.find((entry) => entry.id === row.id) : domain === "assets" ? manifest.cards.find((entry) => entry.id === row.gameplayCardId) : null;
-  if (domain === "assets" && card) card = { ...card, presentation: manifest.collectorVariants.find((entry) => entry.variantId === row.id)?.presentation || card.presentation };
+  if (domain === "assets" && card) {
+    const variant = manifest.collectorVariants.find((entry) => entry.variantId === row.id);
+    card = { ...card, collector: variant, presentation: variant?.presentation || card.presentation };
+  }
   const art = domain === "assets" ? card?.presentation?.illustration || row.art : manifest.collectorVariants.find((entry) => entry.variantId === card?.defaultVariantId)?.art;
   return <section className="admin-preview" aria-label="Isolated draft preview">
     <div className="admin-title-row"><h4>Saved draft preview</h4><button onClick={onClose}>Close preview</button></div>
