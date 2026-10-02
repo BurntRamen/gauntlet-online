@@ -5315,7 +5315,7 @@ export default function App() {
                   {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
                   <div className="play-choice-grid">
                     <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>{gameContent.modeMetadata?.basic?.name || "Basic vs AI"}</strong><small>{gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."}</small></button>
-                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>{gameContent.modeMetadata?.factions?.name || "Factions"} vs AI</strong><small>{gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."}</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>{gameContent.modeMetadata?.factions?.name || "Factions vs AI"}</strong><small>{gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."}</small></button>
                   </div>
                 </MenuCard>
               )}

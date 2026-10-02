@@ -65,9 +65,9 @@ function createAuthoredBaseline(catalog) {
   domains.assets = manifest.collectorVariants.map((variant) => ({ id: variant.variantId, ...clone(variant) }));
   domains.decks = catalog.domains.decks.map((deck) => ({ id: deck.id, name: deck.name, description: deck.id === "standard" ? "52 value-and-suit slots. Constructed cards replace matching slots." : "Campaign cards replace slots in the standard faction deck. Card choices and quantities follow this chapter.", plan: deck.id === "standard" ? clone(manifest.deckRules) : { encounterId: deck.id.replace(/:decks$/, "") } }));
   const modeCopy = {
-    basic: ["Basic vs AI", "Priority, payment, blocking, and lanes."], factions: ["Faction duel", "Commanders, cities, generals, and faction powers."],
+    basic: ["Basic vs AI", "Practice priority, payment, blocking, and lanes."], factions: ["Factions vs AI", "Commanders, cities, generals, and faction powers."],
     draft: ["Live Draft", "Draft with players, then save your deck."], freeForAll: ["Free-For-All", "Open a multiplayer faction table."],
-    campaign: ["Commander archives", "Choose a faction and follow its campaign."], draftLeague: ["Draft League", "Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."],
+    campaign: ["Enter the commander archives", "Choose a faction and follow its campaign."], draftLeague: ["Draft League", "Play a human opponent using a saved draft deck. Live-draft and bot-draft decks use separate queues."],
     ranked: ["Ranked", "Play ranked matches against another signed-in player. BO1 scores each match; BO3 scores the completed series while retaining every game result."], practice: ["Practice privately", "Choose core rules or the complete faction game."]
   };
   domains.game = catalog.game.modes.map((mode) => ({ id: mode.id, name: modeCopy[mode.id][0], description: modeCopy[mode.id][1] }));
