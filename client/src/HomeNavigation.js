@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./HomeNavigation.css";
 import { FactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
 
@@ -46,23 +47,48 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
           <h2 id="home-area-title">{activeLabel}</h2>
         </div>
         <div className="home-area-content-inner" key={activeArea}>
-          {nextStep && <section className={`journey-next-step${activeArea !== "journey" ? " is-contextual" : ""}`} aria-labelledby="journey-next-title">
-            <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
-              {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
-            </FactionArtwork>
-            <div className="journey-next-copy">
-              <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
-              <h2 id="journey-next-title">{nextStep.title}</h2>
-              <p>{nextStep.description}</p>
-              {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
-            </div>
-            <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
-              {nextStep.actionLabel}
-            </button>
-          </section>}
+          {nextStep && <NextStepNotice key={nextStep.minimizeKey || "recommendation"} nextStep={nextStep} activeArea={activeArea} onSound={onSound} />}
           {children}
         </div>
       </section>
     </>
+  );
+}
+
+function NextStepNotice({ nextStep, activeArea, onSound }) {
+  const [minimized, setMinimized] = useState(() => {
+    if (!nextStep.minimizeKey) return false;
+    try { return localStorage.getItem(nextStep.minimizeKey) === "true"; }
+    catch { return false; }
+  });
+  function toggleMinimized() {
+    const value = !minimized;
+    setMinimized(value);
+    try { localStorage.setItem(nextStep.minimizeKey, String(value)); }
+    catch { /* Keep the control usable when browser storage is unavailable. */ }
+    onSound("tab");
+  }
+  return (
+    <section className={"journey-next-step" + (activeArea !== "journey" ? " is-contextual" : "") + (minimized ? " is-minimized" : "")} aria-labelledby="journey-next-title">
+      {!minimized && <FactionArtwork factionId={nextStep.factionId || "basic"} decorative className="journey-next-art">
+        {nextStep.image && <img src={resolveVisualAsset(nextStep.image)} alt="" loading="lazy" decoding="async" />}
+      </FactionArtwork>}
+      <div className="journey-next-copy">
+        <div className="journey-next-label">{nextStep.eyebrow || "Continue Journey"}</div>
+        <h2 id="journey-next-title">{minimized ? nextStep.compactTitle || nextStep.title : nextStep.title}</h2>
+        <div id="journey-next-details" hidden={minimized}>
+          <p>{nextStep.description}</p>
+          {nextStep.progress && <span className="journey-next-progress">{nextStep.progress}</span>}
+        </div>
+      </div>
+      <div className="journey-next-actions">
+        <button type="button" className="journey-next-action" onClick={() => { onSound("commit"); nextStep.onClick(); }}>
+          {nextStep.actionLabel}
+        </button>
+        {nextStep.minimizeKey && <button type="button" className="journey-next-toggle" aria-expanded={!minimized} aria-controls="journey-next-details" onClick={toggleMinimized}>
+          {minimized ? "Show reward" : "Minimize reward"}
+        </button>}
+      </div>
+    </section>
   );
 }
