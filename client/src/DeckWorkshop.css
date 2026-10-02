@@ -42,15 +42,32 @@
 .deck-slot-footer > span:last-child { margin-left: auto; }
 .deck-slot-footer i { display: inline-block; width: 6px; height: 8px; background: #e9e5d5; margin-right: 4px; }
 .deck-slot-footer span + span i { background: var(--faction-accent); }
-.view-cards .deck-slot-scroll { height: 438px; overflow-y: auto; padding: 2px; }
-.view-cards .deck-rank-row + .deck-rank-row { margin-top: 8px; }
-.view-cards .deck-slot { height: auto; aspect-ratio: 5 / 7; width: 100%; max-width: 100px; justify-self: center; padding: 0; }
-.view-cards .deck-slot > b { position: absolute; top: 5px; left: 5px; flex-direction: column; font-size: 18px; gap: 0; }
-.view-cards .deck-slot-pip { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); font: 28px Georgia, serif; }
-.view-cards .deck-slot > .special-card-presentation { width: 100%; height: 100%; border: 0; border-radius: 0; }
-.view-cards .is-replaced > b { display: none; }
-.view-cards .deck-slot-card-name { position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 2px; text-align: center; white-space: normal; font-size: 8px; }
-.view-cards .is-replaced .deck-slot-card-name { background: #0c1b23ed; }
+.view-cards .deck-slot-panel { container-type: inline-size; container-name: deck-cards; }
+.view-cards .deck-slot-scroll { height: 438px; overflow-y: auto; padding: 2px; scrollbar-gutter: stable; }
+.view-cards .deck-suit-headings, .view-cards .deck-rank-row { grid-template-columns: 14px repeat(4, minmax(0, 1fr)); gap: 6px; }
+.view-cards .deck-suit-headings { text-align: left; padding-left: 2px; padding-right: 17px; }
+.view-cards .deck-suit-headings > span:not(:first-child) { padding-left: 7px; }
+.view-cards .deck-rank-row + .deck-rank-row { margin-top: 6px; }
+.view-cards .deck-slot { display: grid; grid-template-columns: clamp(56px, 34%, 76px) minmax(0, 1fr); align-items: start; gap: 8px; height: auto; width: 100%; padding: 6px; border-radius: 5px; }
+.view-cards .deck-slot.is-standard { background: #142f26; border-color: #345044; color: #d7e0d6; }
+.view-cards .deck-slot:hover { background: #28473b; }
+.view-cards .deck-slot-art { position: relative; display: block; width: 100%; aspect-ratio: 5 / 7; border-radius: 4px; overflow: hidden; background: #e9e5d5; color: #263832; }
+.view-cards :is(.suit-hearts, .suit-diamonds) .deck-slot-art { color: #a13d38; }
+.view-cards .deck-slot-art > b { position: absolute; top: 5px; left: 5px; display: grid; font: 700 16px/1 Georgia, serif; }
+.view-cards .deck-slot-art > b small { font-size: 13px; }
+.view-cards .deck-slot-pip { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 26px Georgia, serif; }
+.view-cards .deck-slot-art > .special-card-presentation { width: 100%; height: 100%; border: 0; border-radius: 4px; }
+.deck-slot-card-copy { display: grid; gap: 6px; min-width: 0; padding: 3px 0; text-align: left; }
+.view-cards .deck-slot-card-copy .deck-slot-card-name { display: block; white-space: normal; overflow: visible; overflow-wrap: anywhere; font-size: 13px; line-height: 1.3; opacity: 1; }
+.deck-slot-card-rules { font-size: 12px; line-height: 1.4; color: #bdcec2; overflow-wrap: anywhere; }
+.view-cards .is-standard .deck-slot-card-rules { color: #94afa1; }
+@container deck-cards (max-width: 760px) {
+  .view-cards .deck-suit-headings, .view-cards .deck-rank-label { display: none; }
+  .view-cards .deck-rank-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container deck-cards (max-width: 420px) {
+  .view-cards .deck-rank-row { grid-template-columns: minmax(0, 1fr); }
+}
 .deck-panel-resizer { cursor: col-resize; touch-action: none; position: relative; }
 .deck-panel-resizer::after { content: ""; position: absolute; left: 6px; top: calc(50% - 22px); height: 44px; border-left: 2px solid #526664; }
 .deck-panel-resizer:hover::after { border-color: #eac57f; }
@@ -159,7 +176,7 @@
   .deck-workshop-columns { grid-template-columns: minmax(0, 1fr) 250px; gap: 12px; }
   .deck-panel-resizer { display: none; }
   .deck-workshop-toolbar { gap: 8px; }
-  .deck-slot.is-standard .deck-slot-card-name { display: none; }
+  .view-compact .deck-slot.is-standard .deck-slot-card-name { display: none; }
   .deck-suit-headings small { display: none; }
 }
 @media (max-width: 650px) {
@@ -176,7 +193,7 @@
   .deck-slot-heading > span { max-width: 140px; text-align: right; font-size: 10px; }
   .deck-slot { height: 32px; padding: 0 4px; gap: 3px; }
   .deck-slot > b { font-size: 12px; }
-  .deck-slot.is-replaced .deck-slot-card-name { font-size: 8px; }
+  .view-compact .deck-slot.is-replaced .deck-slot-card-name { font-size: 8px; }
   .deck-slot-footer { gap: 8px; font-size: 9px; }
   .deck-inspection-rail { display: contents; }
   .deck-inspection-rail > .deck-name-editor { grid-row: 1; }

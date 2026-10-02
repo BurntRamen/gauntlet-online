@@ -1,0 +1,65 @@
+{
+  "contract": "eggs.visual-admission@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "workshop-card-rows-20261002-visual",
+  "projectId": "gauntlet",
+  "taskId": "workshop-card-rows-20261002",
+  "scope": {
+    "outputId": "deck-card-rows",
+    "surface": "Gauntlet Online Build / Decks / Your deck Cards view",
+    "format": "Compact responsive horizontal card rows",
+    "exact": true
+  },
+  "modality": "deterministic-layout",
+  "directive": {
+    "required": true,
+    "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+    "status": "controlling",
+    "scopeMatches": true
+  },
+  "gate0": {
+    "required": false,
+    "passed": true,
+    "evidence": [
+      "Direct user request defines the standard 52-card layout and live publication scope; existing live card artwork reused, no image generation."
+    ]
+  },
+  "sourcePermissions": [
+    {
+      "sourceId": "origin/main@20cb884422e68c652f893847ce9dece73ac47996",
+      "use": "Preserve current code, artwork, card wording, and faction/general functionality",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "active-user-task",
+      "use": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live.",
+      "status": "allowed"
+    }
+  ],
+  "rejectedLineage": [],
+  "promptConstraintIds": [
+    "exact-cards-view-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "left-image-right-copy",
+    "readable-rules",
+    "responsive-accessible"
+  ],
+  "qaConstraintIds": [
+    "exact-cards-view-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "left-image-right-copy",
+    "readable-rules",
+    "responsive-accessible"
+  ],
+  "genericFallback": false,
+  "neighborCollision": false,
+  "layoutSeparation": "not-applicable",
+  "decision": "admit",
+  "reasons": [
+    "User screenshot inspected: centered 100px images leave broad empty suit-column gutters and captions are tiny. Reuse exact current card artwork with left image and larger right-side name/rules; no new art or lore."
+  ]
+}

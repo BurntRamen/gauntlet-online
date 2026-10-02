@@ -1,0 +1,31 @@
+{
+  "id": "workshop-card-rows-20261002",
+  "userDirection": "just to clarify im speaking about build / decks workshop . once updated please push live\nFollow-up: too bulky needs a simplified view that is just as intuitive but allows more agency over the screen\nFollow-up: you currently arent able to edit the names of the decks in creating them or ever\nFollow-up: the matching cards preview should be able to toggle between this list view and an icon view. users should also be allowed to zoom in on a card by toggling a button and seeing it appear as a new large overlay box with the card. im generally looking for a more appealing visual experience here\nFollow-up: theres alot of space inbetween cards and to the left of the first column. restructure it so the images are moved over to the left and on their right is the rules text and name with slightly bigger text than the name is currently using.",
+  "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live.",
+  "authorizationBasis": "Explicit live publication request in the active user task.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Reuse existing isolated checkout; retain ten existing worktrees to protect unrelated work, despite default cap two."
+  ],
+  "conditions": [
+    "Apply only this task's code on origin/main; preserve newer faction/general selection and wording.",
+    "Run current repository checks before merge.",
+    "Use existing Vercel/Render deployment settings."
+  ]
+}
