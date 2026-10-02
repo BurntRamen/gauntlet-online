@@ -17,6 +17,7 @@ const budgets = {
   // Zynarth and Astral Vanguard add two complete deterministic faction engines.
   // Artwork gallery controls and the accessible card zoom dialog add ~2 KiB.
   // Keep the initial-load and largest-chunk ceilings unchanged.
+  // Per-player persistent minimization for unused vault pack credits.
   totalJavaScriptGzip: 732 * KIB
 };
 
