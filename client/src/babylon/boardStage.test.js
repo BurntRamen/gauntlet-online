@@ -151,6 +151,22 @@ test("desktop hands use readable cards with distinct card slots", () => {
   });
 });
 
+test("enlarged desktop hands stay below the board and crowded hands stay within its width", () => {
+  [BOARD_LAYOUT_PROFILES.desktop, BOARD_LAYOUT_PROFILES.ultrawide].forEach((profile) => {
+    const board = boardModuleDescriptors(profile).find(module => module.id === "board-base");
+    [8, 10, 12].forEach(count => {
+      const hand = Array.from({ length: count }, (_, slotIndex) => actorBoundsAt(resolveActorPosition({
+        zone: { kind: "hand", side: "local", slotIndex, count }
+      }, profile)));
+      hand.forEach(bounds => {
+        expect(overlaps(bounds, board.bounds)).toBe(false);
+        expect(bounds.left).toBeGreaterThan(board.bounds.left);
+        expect(bounds.right).toBeLessThan(board.bounds.right);
+      });
+    });
+  });
+});
+
 test("short-landscape camera preserves a readable share of the battlefield width", () => {
   const projection = getTableCameraProjection(836, 268);
   const profile = getBoardLayoutProfile(836, 268);
