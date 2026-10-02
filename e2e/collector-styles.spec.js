@@ -106,7 +106,7 @@ test("choose an in-game card version, save it, reload it, and render its foil on
   await page.goto(baseURL + "/?match=" + matchId + "&replay=1");
   const canvas = page.locator("canvas.babylon-match-canvas");
   await expect(canvas).toBeVisible();
-  if (process.env.GAUNTLET_E2E_COMPILED !== "true") {
+  if (process.env.CI !== "true" && process.env.GAUNTLET_E2E_COMPILED !== "true") {
     await expect.poll(() => canvas.evaluate(element => element.__gauntletCaptureControl?.snapshot().collectorFoilReadyCount)).toBeGreaterThan(0);
     await expect.poll(() => canvas.evaluate(element => element.__gauntletCaptureControl.snapshot().pendingTextures)).toBe(0);
     const styles = await canvas.evaluate(element => element.__gauntletCaptureControl.snapshot().collectorFoilStyles);

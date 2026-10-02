@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "collector-finish-20261002-authority",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-10-02T22:20:18.097Z",
+  "expiresAt": "2026-10-03T06:20:18.097Z",
+  "resolver": "Codex; connected Google Drive profile verified",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://docs.google.com/document/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/edit",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "00-00 Creative OS Governance Directive — Operational; live revision ANLCKQkzh2jMpQkq0-GqI5zNK41dzE5_u3NXNwHpEio6O_NvKEr4FJ5c8KkvuU4V4dbxSr6bLzlgB3T8dioYthNJkuSO7QVTn_BNehzUyxhc",
+      "resolvedAt": "2026-10-02T22:20:18.097Z",
+      "constraints": [
+        {
+          "id": "preserve-gameplay-and-art",
+          "statement": "Preserve card names, rules, values, suits and existing approved artwork. Cosmetic version selection grants no gameplay power.",
+          "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments."
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://docs.google.com/document/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/edit",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "00-00 Master System Index; live revision ANLCKQmSKOSWGzJpXhlMmkvxoIKG4M76eScG7U1gl-HRkPJA4LmfrDXXOvms7IsaZWodpE8N0XacFU0XqFKWcfHRTq4Neyu8vYy5zWmUYeQP",
+      "resolvedAt": "2026-10-02T22:20:18.097Z",
+      "constraints": [
+        {
+          "id": "preserve-gameplay-and-art",
+          "statement": "Preserve card names, rules, values, suits and existing approved artwork. Cosmetic version selection grants no gameplay power.",
+          "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments."
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Gauntlet — Project Dossier & Generation Contract — Operational v1; live revision ANLCKQmmpIiDBcaBvv8-05C6LrJsffe15f0_x7uGfgvESfQ_O-MSqU-Nm08_d5Zw4pfFc8QYufqQFNdCwM4xvz5JmfuYs3JKImPcRpQ2kT-Z",
+      "resolvedAt": "2026-10-02T22:20:18.097Z",
+      "constraints": [
+        {
+          "id": "preserve-gameplay-and-art",
+          "statement": "Preserve card names, rules, values, suits and existing approved artwork. Cosmetic version selection grants no gameplay power.",
+          "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments."
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://docs.google.com/document/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/edit",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Gauntlet Rules — Operational v1; live revision ANLCKQngUYdIjbPZkShgPUXT0uRuz0Ke54vzDLLZZL5cv0QDYb_3RCp8iDdk9plePOBY9FPANxaycfQeLlwgm3c",
+      "resolvedAt": "2026-10-02T22:20:18.097Z",
+      "constraints": [
+        {
+          "id": "preserve-gameplay-and-art",
+          "statement": "Preserve card names, rules, values, suits and existing approved artwork. Cosmetic version selection grants no gameplay power.",
+          "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments."
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://docs.google.com/spreadsheets/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/edit",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Live Card Registry — Operational v1 A1:E3; headers CardType, Name, Text, faction, Image.",
+      "resolvedAt": "2026-10-02T22:20:18.097Z",
+      "constraints": [
+        {
+          "id": "preserve-card-registry",
+          "statement": "No card content or registry mutation in this presentation-only release.",
+          "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments."
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}

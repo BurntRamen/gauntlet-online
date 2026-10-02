@@ -1,0 +1,34 @@
+{
+  "id": "collector-finish-20261002",
+  "userDirection": "the foil animation used in the collection workshop collector styles needs to be propagated to all available touchpoints. and the player should be able to choose in deckbuilding which version of the card theyd like to use in game\nClarification: use the version selector for the player to choose which version is used in game\nRelease authorization: live please",
+  "scope": "Propagate the existing Collector Styles foil animation across card touchpoints and save the selected deckbuilding card version for gameplay; publish through the existing main-branch Vercel/Render deployments.",
+  "authorizationBasis": "Direct user request in this task authorizes publication of the implemented and reviewed local change.",
+  "grants": [
+    "codeEdit",
+    "createBranch",
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "publication",
+    "releaseApproval"
+  ],
+  "denials": [
+    "productionDatabase",
+    "driveWriteback",
+    "canonApproval",
+    "manufacturing",
+    "spending",
+    "externalCommunication"
+  ],
+  "exceptions": [
+    "Retain the 11 existing worktrees to protect unrelated user work; reuse this task's dedicated checkout instead of removing others.",
+    "Task changes were implemented locally before release authorization. Integrate them onto current origin/main before publishing."
+  ],
+  "conditions": [
+    "Preserve the newer card-row layout from PR41.",
+    "Use the existing main-branch production deployment settings.",
+    "Pass release checks before merge; verify public deployment after merge.",
+    "This propagates the existing foil rendering and approved images; no new visual assets, identity redesign or Drive authority mutation."
+  ]
+}
