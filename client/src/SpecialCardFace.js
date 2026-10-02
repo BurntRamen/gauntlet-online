@@ -16,7 +16,7 @@ export default function SpecialCardFace({ card, art = "", presentation = null })
   const suit = ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" })[rawSuit] || rawSuit || "✦";
   const fallback = resolveVisualAsset(getCardIllustration({ factionId: card?.factionId }));
   const collector = presentation || card?.collector || (card?.paid ? card : null);
-  const animated = collector?.animated === true || collector?.finish === "foil";
+  const animated = collector?.animated || collector?.finish === "foil";
   const content = face && failedFace !== face
     ? <img className="custom-playing-card-face" src={resolveVisualAsset(face)} alt={`${card.name || "Custom faction card"}, ${rank}${card.suit ? ` ${card.suit}` : ""}`} decoding="async" onError={() => setFailedFace(face)} />
     : (
@@ -30,6 +30,6 @@ export default function SpecialCardFace({ card, art = "", presentation = null })
   return <div className={`special-card-presentation${animated ? " is-animated-collector" : ""}`}
     data-collector-style={animated ? collector?.animationStyle || card?.factionId || "living-foil" : undefined}>
     {content}
-    {animated && <span className="collector-card-sheen" aria-hidden="true" />}
+    {animated && <i className="collector-card-sheen" />}
   </div>;
 }
