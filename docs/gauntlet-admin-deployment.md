@@ -1,6 +1,6 @@
 # Gauntlet Admin deployment and GitHub publishing
 
-The release integrates Admin v2 with production commit `aa235b97f381059a1ecf40888741ebe35efa67d2`, preserving the current ten playable factions and 126 cards. Earlier Admin reports describe the original 72-card implementation; they are historical qualification, not the deployment status of this release.
+The release integrates Admin v2 with production commit `28651afe464f1915ff4cfaca031a28de36ee0da2`, preserving the current ten playable factions, 126 cards, commander announcers, and set-specific Sealed play. Earlier Admin reports describe the original 72-card implementation; they are historical qualification, not the deployment status of this release.
 
 ## Private access
 
@@ -22,7 +22,7 @@ The backend is https://gauntlet-online.onrender.com. Configure its server enviro
 
 [GitHub's permission reference](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens) describes those API permissions. Repository protections and required reviews continue to apply; the server does not bypass them. A missing/expired credential leaves the deployed release intact and blocks authoring with an explicit connection error.
 
-Admin content needs **no persistent server disk or new database**. Player/account persistence and existing live-room recovery are separate existing systems and are unchanged by this choice. Production deployments still use the existing GitHub main → Vercel/Render connections. Dashboard access is needed only for the new server credential, not ordinary code publication.
+Admin content needs **no persistent server disk or new database**. Player/account persistence and existing live-room recovery are separate existing systems and are unchanged by this choice. Production deployments still use the existing GitHub main → Vercel/Render connections. Check the live authoring connection first; dashboard access is necessary only if its server credential needs configuration.
 
 ## Content lifecycle
 

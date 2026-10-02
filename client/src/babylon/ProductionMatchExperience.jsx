@@ -892,7 +892,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                   ["General", factionProfile(player.faction?.general, "General")],
                   ["City", factionProfile(player.faction?.city, "City")]
                 ].map(([role, profile]) => profile && (
-                  <article className={`production-faction-profile${role === "Commander" && onCommanderClick ? " is-interactive" : ""}`} key={role}
+                  <div className={`production-faction-profile${role === "Commander" && onCommanderClick ? " is-interactive" : ""}`} key={role}
                     role={role === "Commander" && onCommanderClick ? "button" : undefined}
                     tabIndex={role === "Commander" && onCommanderClick ? 0 : undefined}
                     onClick={role === "Commander" ? onCommanderClick : undefined}
@@ -908,7 +908,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                       <strong>{profile.name}</strong>
                       {profile.text && <p>{profile.text}</p>}
                     </div>
-                  </article>
+                  </div>
                 ))}
                 {player.id === viewModel?.perspective?.player && !viewModel?.perspective?.spectator && (
                   <div className="production-faction-reference-actions" aria-label="Available faction actions">
