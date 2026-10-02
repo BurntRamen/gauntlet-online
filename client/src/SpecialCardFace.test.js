@@ -28,3 +28,13 @@ test("registered cards show the full-art face for their fixed replacement suit",
   rerender(<SpecialCardFace card={{ id: "rumin-gilded-scale-legionary", name: "Gilded Scale Legionary", value: 3, suit: "clubs" }} />);
   expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-clubs.webp?v=2");
 });
+
+test("paid foil presentations receive the animated collector layers", () => {
+  const { container } = render(<SpecialCardFace
+    card={{ id: "indela-student-of-flame", name: "Student of Flame", factionId: "indela", value: 2, suit: "hearts" }}
+    presentation={{ paid: true, finish: "foil", animated: true, animationStyle: "elemental-omen" }}
+  />);
+  expect(container.querySelector(".special-card-presentation")).toHaveClass("is-animated-collector");
+  expect(container.querySelector(".special-card-presentation")).toHaveAttribute("data-collector-style", "elemental-omen");
+  expect(container.querySelector(".collector-card-sheen")).toBeInTheDocument();
+});

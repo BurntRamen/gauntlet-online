@@ -441,6 +441,20 @@ function findMetadata(mesh) {
   return null;
 }
 
+function addCollectorFoil(scene, materials, root, id) {
+  if (root.gauntletCollectorFoil) return;
+  const foil = CreatePlane(`card-collector-foil-${id}`, {
+    width: MATCH_LAYOUT.card.width - 0.1,
+    height: MATCH_LAYOUT.card.height - 0.1
+  }, scene);
+  foil.parent = root;
+  foil.position.z = -(MATCH_LAYOUT.card.depth / 2 + 0.014);
+  foil.material = materials.collectorFoil;
+  foil.visibility = 0.08;
+  foil.isPickable = false;
+  root.gauntletCollectorFoil = foil;
+}
+
 function createCard(scene, materials, shadowGenerator, id, options = {}) {
   const root = CreateBox(`card-${id}`, {
     width: MATCH_LAYOUT.card.width,
@@ -473,6 +487,8 @@ function createCard(scene, materials, shadowGenerator, id, options = {}) {
   face.isPickable = true;
   face.enablePointerMoveEvents = true;
   root.gauntletFace = face;
+
+  if (options.collectorAnimated) addCollectorFoil(scene, materials, root, id);
 
   const halo = CreateBox(`card-halo-${id}`, {
     width: MATCH_LAYOUT.card.width + 0.3,
@@ -1032,7 +1048,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       specular: "#a98752"
     }),
     selectionBlue: selectionMaterials.blue,
-    contactShadow: contactShadowMaterial
+    contactShadow: contactShadowMaterial,
+    collectorFoil: purpleMaterial
   };
   materials.cardBack.emissiveColor = color("#171b20");
   materials.cardBack.specularColor = color("#7e6744");
@@ -2347,6 +2364,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       : options.hovered
         ? 0.46
         : 0.58;
+    if (options.collectorAnimated) addCollectorFoil(babylonScene, materials, record.mesh, id);
+    record.mesh.gauntletCollectorFoil?.setEnabled(Boolean(options.collectorAnimated && !options.faceDown));
     updateBadge(
       record,
       options.badgeText,
@@ -2479,6 +2498,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       scale: position.scale,
       alpha: actor.unavailable ? 0.42 : 1,
       metadata: actorMetadata(actor),
+      collectorAnimated: actor.collectorAnimated,
       motionDestinationZone: actor.zone,
       // Reflow/reconcile changes update the canonical pose without inventing
       // travel. Selection updates the existing halo in place; only hover and
@@ -3055,6 +3075,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       priorityHandoff.visibility = 0;
     }
     for (const [id, record] of objects.entries()) {
+      const collectorFoil = record.mesh.gauntletCollectorFoil;
+      if (collectorFoil?.isEnabled()) {
+        collectorFoil.visibility = currentViewModel?.reducedMotion
+          ? 0.055
+          : 0.075 + Math.sin(motionClockMs / 620 + id.length) * 0.035;
+      }
       if (!record.motion && !record.holdUntilMs) continue;
       if (record.holdUntilMs && motionClockMs >= record.holdUntilMs && !record.departureStarted) {
         record.departureStarted = true;

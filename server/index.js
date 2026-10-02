@@ -520,7 +520,7 @@ const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCT
     factionId: pack.factionId,
     variantCount: pack.cardCount,
     priceUsd: 1,
-    description: "Collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
+    description: "Animated collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
   }];
 }));
 
@@ -1120,7 +1120,10 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
             finish: variant.finish,
             frame: variant.frame,
             border: variant.border,
-            art: variant.art
+            art: variant.art,
+            animated: variant.animated === true,
+            animationStyle: variant.animationStyle || null,
+            motionProfile: variant.motionProfile || null
           } : null,
           suit,
           replacementSuit: suit

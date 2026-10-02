@@ -22,7 +22,7 @@ const PHYSICAL_COLLECTOR_PRODUCTS = Object.freeze({
     collectorPackId: "rumin-collector",
     edition: "foundation-collector",
     finish: "foil",
-    description: "Eight account-bound Rumin Foundation collector foils associated with one physical box fulfillment. Cosmetic presentation only.",
+    description: "Eight account-bound Rumin Foundation animated collector foils associated with one physical box fulfillment. Cosmetic presentation only.",
     competitivePower: false,
     variantIds: Object.freeze([
       "rumin-gilded-scale-legionary:collector-foil",
@@ -89,7 +89,11 @@ function publicCollectorEntitlementProduct(product) {
         edition: variant.edition,
         finish: variant.finish,
         frame: variant.frame,
-        border: variant.border
+        border: variant.border,
+        art: variant.art,
+        animated: variant.animated === true,
+        animationStyle: variant.animationStyle || null,
+        motionProfile: variant.motionProfile || null
       } : { variantId };
     })
   };

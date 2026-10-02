@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v15";
+const CONTENT_VERSION = "gauntlet-content-v16";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -869,6 +869,16 @@ function getConstructedCardArt(card) {
   return `/assets/gauntlet/constructed/${card.factionId}/${card.id}.webp`;
 }
 
+const COLLECTOR_ANIMATION_STYLES = Object.freeze({
+  rumin: "gilded-march",
+  sheen: "living-canopy",
+  frumo: "sunken-tide",
+  bizi: "charged-engine",
+  zynarth: "brood-pulse",
+  "astral-vanguard": "orbital-sweep",
+  indela: "elemental-omen"
+});
+
 const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
   {
     schemaVersion: COLLECTOR_VARIANT_SCHEMA_VERSION,
@@ -888,13 +898,16 @@ const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
     schemaVersion: COLLECTOR_VARIANT_SCHEMA_VERSION,
     variantId: `${card.id}:collector-foil`,
     gameplayCardId: card.gameplayCardId,
-    name: `${card.name} Collector Foil`,
+    name: `${card.name} Animated Collector Foil`,
     edition: "foundation-collector",
     finish: "foil",
     frame: "collector-gilded",
     border: "collector",
     art: getConstructedCardArt(card),
     collectorRarity: card.rarity,
+    animated: true,
+    animationStyle: COLLECTOR_ANIMATION_STYLES[card.factionId] || "living-foil",
+    motionProfile: "living-foil-v1",
     acquisition: PAID_COLLECTOR_ACQUISITION,
     paid: true
   }
@@ -1530,6 +1543,11 @@ function validateCollectorVariant(variant, gameplayCards = COLLECTION_CARDS) {
   requireText(variant.finish, `collectorVariants.${variant.variantId}.finish`);
   requireText(variant.frame, `collectorVariants.${variant.variantId}.frame`);
   requireText(variant.acquisition, `collectorVariants.${variant.variantId}.acquisition`);
+  if (variant.paid) {
+    if (variant.animated !== true) throw new Error(`Invalid collector variant: ${variant.variantId} must use animated presentation.`);
+    requireText(variant.animationStyle, `collectorVariants.${variant.variantId}.animationStyle`);
+    requireText(variant.motionProfile, `collectorVariants.${variant.variantId}.motionProfile`);
+  }
   return true;
 }
 

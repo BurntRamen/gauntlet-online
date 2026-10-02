@@ -3117,9 +3117,9 @@ textarea:focus-visible {
   .workshop-browser .card-art-inspector-image { align-self: center; padding: 6px; }
 }
 
-.card-art-inspector-image > .custom-playing-card-face { position: relative; inset: auto; width: 100%; height: auto; object-fit: contain; }
-.catalog-card-tile > .custom-playing-card-face, .opened-card-reveal > .custom-playing-card-face { width: 100%; height: auto; max-height: 280px; object-fit: contain; margin-bottom: 8px; }
-.constructed-card-art > .custom-playing-card-face { height: auto; object-fit: contain; }
+.card-art-inspector-image > .special-card-presentation { position: relative; inset: auto; width: 100%; height: auto; }
+.catalog-card-tile > .special-card-presentation, .opened-card-reveal > .special-card-presentation { width: 100%; height: auto; max-height: 280px; margin-bottom: 8px; }
+.constructed-card-art > .special-card-presentation { height: auto; }
 .deck-composition > summary { cursor: pointer; margin-bottom: 0; }
 .deck-composition[open] > summary { margin-bottom: 12px; }
 .workshop-browser > .card-art-inspector { position: sticky; top: 12px; }

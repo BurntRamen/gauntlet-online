@@ -113,6 +113,14 @@ test("keeps face art stable as one actor moves from hand to combat", () => {
   expect(presentationSnapshotMetrics(combat).missingFaceArtCount).toBe(0);
 });
 
+test("collector animation metadata follows a face-up card onto the 3D table", () => {
+  const foil = { ...card("foil"), collector: { finish: "foil", animated: true, animationStyle: "gilded-march" } };
+  const snapshot = createPresentationSnapshot(viewModel({ hand: [foil], bottom: { id: 1, handCount: 1, deckCount: 51, discardCount: 0 } }));
+  expect(snapshot.actorById.get("card:foil")).toEqual(expect.objectContaining({
+    collectorAnimated: true
+  }));
+});
+
 test("reports an ordinary face-up actor that lost its required art path", () => {
   const missing = { ...card("missing"), artPath: "" };
   const snapshot = createPresentationSnapshot(viewModel({

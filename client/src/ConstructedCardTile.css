@@ -32,6 +32,8 @@
   background: #08131d;
 }
 
+.constructed-card-art > .special-card-presentation { width: 100%; height: 100%; border-radius: 0; }
+
 .constructed-card-art > img,
 .constructed-card-art > .faction-artwork {
   display: block;

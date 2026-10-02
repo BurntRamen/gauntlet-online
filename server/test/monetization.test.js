@@ -106,6 +106,9 @@ test("every competitive gameplay definition has a free acquisition path and free
   }
   assert.equal(COLLECTOR_VARIANTS.filter((variant) => variant.paid).every((variant) => (
     variant.acquisition === PAID_COLLECTOR_ACQUISITION
+    && variant.animated === true
+    && variant.motionProfile === "living-foil-v1"
+    && typeof variant.animationStyle === "string"
   )), true);
 });
 

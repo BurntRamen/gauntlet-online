@@ -72,7 +72,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
                 aria-pressed={selected.key === slot.key} aria-label={slotLabel(slot) + " — " + (slot.card?.name || "Standard playing card")}
                 title={slotLabel(slot) + " · " + (slot.card?.name || "Standard")}
                 onClick={() => { setSelectedKey(slot.key); setCandidateId(""); }}>
-                {layout.cards && slot.card && <SpecialCardFace card={{ ...slot.card, factionId, suit: slot.suit }} />}
+                {layout.cards && slot.card && <SpecialCardFace card={{ ...slot.card, factionId, suit: slot.suit }} presentation={(variantsByCard[slot.card.id] || []).find((variant) => variant.variantId === variantSelections[slot.card.id])} />}
                 <b>{rankLabel(value)}<small>{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</small></b>
                 <span className="deck-slot-card-name">{slot.card?.name || "Standard"}</span>
                 {layout.cards && !slot.card && <span className="deck-slot-pip" aria-hidden="true">{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</span>}
@@ -97,7 +97,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
           <div className="deck-inspector-scroll">
             <div className="deck-preview-heading"><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
             {layout.preview && <div className="deck-slot-preview" aria-label={(preview?.name || slotLabel(selected)) + " selected card preview"}>
-              {preview ? <SpecialCardFace card={preview} art={selectedVariant?.art} /> : <img src={resolveVisualAsset(getPlayingCardArtPath(selected, "basic"))} alt={slotLabel(selected) + " standard playing card"} />}
+              {preview ? <SpecialCardFace card={preview} art={selectedVariant?.art} presentation={selectedVariant} /> : <img src={resolveVisualAsset(getPlayingCardArtPath(selected, "basic"))} alt={slotLabel(selected) + " standard playing card"} />}
             </div>}
             {preview && <div className="deck-preview-copy"><h4>{preview.name}</h4><p>{preview.displayText || preview.text}</p>{renderRules?.(preview)}</div>}
             <section className="deck-slot-choices" aria-label={"Replacements for " + slotLabel(selected)}>

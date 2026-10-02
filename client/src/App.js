@@ -1607,7 +1607,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
   return (
     <aside className={`card-art-inspector${compact ? " is-compact" : ""}`} style={{ "--rarity-color": rarity.color, "--rarity-border": rarity.border }} aria-label={`${card.name} selected card preview`}>
       <button ref={previewButton} type="button" className="card-art-inspector-image" aria-label={`Enlarge ${card.name}`} onClick={() => setExpanded(true)}>
-        <SpecialCardFace card={card} art={art} />
+        <SpecialCardFace card={card} art={art} presentation={variant} />
       </button>
       <div className="card-art-inspector-copy">
         <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
@@ -1962,7 +1962,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-summary-stat"><span>Gameplay copies earned</span><strong>{ownedTotal}</strong></div>
           <div className="collection-summary-stat"><span>Collector variants</span><strong>{collectorVariantTotal}</strong></div>
           <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
-          <div className="collection-summary-note"><span>Fair-play split</span>Campaign credits unlock gameplay. Paid collector packs add presentation choices only—never cards, copies, values, or abilities.</div>
+          <div className="collection-summary-note"><span>Fair-play split</span>Campaign credits unlock gameplay. Paid collector packs add animated presentation choices only—never cards, copies, values, or abilities.</div>
         </div>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
           {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (

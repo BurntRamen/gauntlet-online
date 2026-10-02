@@ -164,10 +164,10 @@ export default function CollectorClaimScreen({
                 <ul>
                   {variants.map((variant, index) => (
                     <li key={`${variant.variantId}-${index}`}>
-                      {variant.art && <img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" />}
+                      {variant.art && <span className={`collector-claim-art${variant.animated || variant.finish === "foil" ? " is-animated" : ""}`} data-style={variant.animationStyle || "living-foil"}><img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" /></span>}
                       <span className="collector-claim-reward-copy">
                         <strong>{variant.name || variant.variantId}</strong>
-                        <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}</small>
+                        <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}{variant.animated ? " / animated" : ""}</small>
                       </span>
                     </li>
                   ))}

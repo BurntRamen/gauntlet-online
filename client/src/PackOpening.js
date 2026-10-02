@@ -56,7 +56,7 @@ export default function PackOpening({ cards, pacing = "medium", autoPlay = true,
       <div className={`pack-reveal-stage rarity-${revealed ? current.rarity : "sealed"}`}>
         <div className="pack-reveal-halo" aria-hidden="true" />
         <div key={revealed} className={`pack-reveal-card ${revealed ? "is-face-up" : "is-sealed"}`}>
-          {revealed ? <SpecialCardFace card={current} /> : <CardBackArt cardBackId="classic" decorative />}
+          {revealed ? <SpecialCardFace card={current} presentation={current.collector || (current.paid ? current : null)} /> : <CardBackArt cardBackId="classic" decorative />}
         </div>
       </div>
       <div className="pack-reveal-caption" role="status" aria-live="polite" aria-atomic="true"><span>{revealed ? `${current.rarity} · ${revealed} of ${ordered.length}` : `${ordered.length} cards inside`}</span><h3>{revealed ? current.name : "Breaking the seal…"}</h3><p>{revealed ? (current.displayText || current.text) : "One card at a time."}</p></div>
@@ -64,6 +64,6 @@ export default function PackOpening({ cards, pacing = "medium", autoPlay = true,
       <div className="pack-reveal-controls">{complete ? <button type="button" className="pack-reveal-primary" autoFocus onClick={dismiss}>View all cards</button> : <><button type="button" onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? "Resume" : "Pause"}</button><button type="button" className="pack-reveal-primary" onClick={() => setRevealed((count) => Math.min(count + 1, ordered.length))}>Next card</button><button type="button" onClick={dismiss}>Reveal all</button></>}</div>
       <small className="pack-reveal-note">Already added to your collection.</small>
     </dialog>}
-    {dismissed && visible && <section className="pack-opened-summary" aria-label="Last opened pack"><div><span className="pack-reveal-eyebrow">Added to your collection</span><h4>Your latest pack</h4></div><div className="pack-opened-cards">{ordered.map((card, index) => <article className={`rarity-${card.rarity}`} key={`${card.id}-${index}`}><SpecialCardFace card={card} /><span>{card.rarity}</span><strong>{card.name}</strong></article>)}</div></section>}
+    {dismissed && visible && <section className="pack-opened-summary" aria-label="Last opened pack"><div><span className="pack-reveal-eyebrow">Added to your collection</span><h4>Your latest pack</h4></div><div className="pack-opened-cards">{ordered.map((card, index) => <article className={`rarity-${card.rarity}`} key={`${card.id}-${index}`}><SpecialCardFace card={card} presentation={card.collector || (card.paid ? card : null)} /><span>{card.rarity}</span><strong>{card.name}</strong></article>)}</div></section>}
   </>;
 }

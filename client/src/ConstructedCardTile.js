@@ -37,7 +37,7 @@ export default function ConstructedCardTile({
       aria-label={`${card.name} deck-building card`}
     >
       <div className="constructed-card-art">
-        <SpecialCardFace card={card} art={art} />
+        <SpecialCardFace card={card} art={art} presentation={selectedVariant} />
       </div>
 
       <div className="constructed-card-content">

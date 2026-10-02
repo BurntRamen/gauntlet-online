@@ -63,6 +63,7 @@ function actorFromCard(card, actorId, zone, options = {}) {
     card: card || null,
     label: card?.label || card?.name || (options.faceDown ? "Face-down card" : "Card"),
     artPath: faceDown ? "" : (card?.artPath || card?.collector?.art || ""),
+    collectorAnimated: !faceDown && Boolean(card?.collector?.animated || card?.collector?.finish === "foil"),
     factionId: faceDown ? "" : (card?.factionId || card?.raw?.factionId || ""),
     expectsFaceArt: !faceDown && Boolean(card?.expectsFaceArt),
     faceDown,
