@@ -388,7 +388,7 @@ function buildMatchRecord(roomState, options = {}) {
       draftType: roomState.draftLeagueMatch?.draftType || null
     } : roomState.draft ? {
       league: !!roomState.draft.league,
-      draftType: roomState.draft.botDraft ? "bot" : "player"
+      draftType: roomState.draft.sealed ? "sealed" : roomState.draft.botDraft ? "bot" : "player"
     } : null,
     combatStats,
     notableMoments: {

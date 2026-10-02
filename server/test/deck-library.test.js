@@ -133,16 +133,19 @@ test("duplicates, features, activates, archives, and restores library decks", ()
   assert.equal(stats.deckLibrary.decks.find((deck) => deck.id === duplicate.id).archived, false);
 });
 
-test("preserves separate player and bot draft snapshots", () => {
+test("preserves separate live draft, bot draft, and sealed snapshots", () => {
   const stats = {};
   const player = saveDraftDeckToLibrary(stats, draftDeck("player", "Player Draft"), "account-1");
   const bot = saveDraftDeckToLibrary(stats, draftDeck("bot", "Bot Draft"), "account-1");
+  const sealed = saveDraftDeckToLibrary(stats, draftDeck("sealed", "Sealed"), "account-1");
 
   assert.equal(stats.deckLibrary.activeDraftDeckIds.player, player.id);
   assert.equal(stats.deckLibrary.activeDraftDeckIds.bot, bot.id);
+  assert.equal(stats.deckLibrary.activeDraftDeckIds.sealed, sealed.id);
   assert.equal(getSavedDraftDeck(stats, "player").deckId, player.id);
   assert.equal(getSavedDraftDeck(stats, "bot").deckId, bot.id);
-  assert.equal(stats.deckLibrary.decks.filter((deck) => deck.format === "draft").length, 2);
+  assert.equal(getSavedDraftDeck(stats, "sealed").deckId, sealed.id);
+  assert.equal(stats.deckLibrary.decks.filter((deck) => deck.format === "draft").length, 3);
 });
 
 test("attributes results to the immutable deck version used by a match", () => {

@@ -274,6 +274,18 @@ test("started games and drafts reject new seats but allow spectators and reconne
   [host, replacement, ...ffa.players].forEach((socket) => socket.disconnect());
 });
 
+test("sealed room creation opens a private six-pack pool for the selected set", async () => {
+  const host = await connect();
+  const stateReady = event(host, "draftState", (state) => state.sealed && state.status === "building");
+  const assignment = await enter(host, "createSealedRoom", { guestName: "Sealed Host", setId: "reath-beyond" });
+  const state = await stateReady;
+  assert.equal(state.roomCode, assignment.roomCode);
+  assert.equal(state.packsPerPlayer, 6);
+  assert.equal(state.myPool.length, 48);
+  assert.equal(state.myPool.every((card) => ["zynarth", "astral-vanguard"].includes(card.factionId)), true);
+  host.disconnect();
+});
+
 test("intentional lobby leave releases the seat and clears prior readiness", async () => {
   const host = await connect(), guest = await connect();
   const assignment = await create(host, "Host");

@@ -21,6 +21,7 @@ const budgets = {
   // Keep the initial-load and largest-chunk ceilings unchanged.
   // Per-player persistent minimization for unused vault pack credits.
   // Admin is lazy-loaded and measured separately; player contracts add ~3 KiB.
+  // Includes the set-specific Sealed controls from the current player release.
   totalJavaScriptGzip: 736 * KIB
 };
 

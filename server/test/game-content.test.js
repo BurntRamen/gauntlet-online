@@ -238,6 +238,18 @@ test("draft sets publish their factions and packs stay inside the selected set",
   const allCards = Object.values(room.draft.currentPacks).flatMap((pack) => pack.cards);
   assert.equal(allCards.every((card) => beyond.factionIds.includes(card.factionId)), true);
   assert.equal(__test.sanitizeDraftForViewer(room, 1).setId, "reath-beyond");
+  const sealedRoom = __test.createDraftRoom({ setId: "reath-beyond", sealed: true });
+  sealedRoom.lobby.players[1].connected = true;
+  __test.openSealedPool(sealedRoom, 1);
+  const sealedView = __test.sanitizeDraftForViewer(sealedRoom, 1);
+  const sealedSpectator = __test.sanitizeDraftForViewer(sealedRoom, null);
+  assert.equal(sealedView.sealed, true);
+  assert.equal(sealedView.status, "building");
+  assert.equal(sealedView.myPool.length, 48);
+  assert.equal(sealedView.myPool.every((card) => beyond.factionIds.includes(card.factionId)), true);
+  assert.equal(sealedSpectator.myPool.length, 0);
   assert.throws(() => __test.createDraftRoom({ setId: "legacies" }), /still in development/);
+  assert.throws(() => __test.createDraftRoom({ setId: "legacies", sealed: true }), /still in development/);
   __test.rooms.delete(room.roomCode);
+  __test.rooms.delete(sealedRoom.roomCode);
 });

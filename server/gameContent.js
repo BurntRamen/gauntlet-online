@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v16";
+const CONTENT_VERSION = "gauntlet-content-v17";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -13,9 +13,9 @@ const PAID_COLLECTOR_ACQUISITION = "paid-collector-pack";
 const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
 
 const DRAFT_SETS = Object.freeze([
-  Object.freeze({ id: "initiative", number: 1, name: "Initiative", factionIds: Object.freeze(["rumin", "sheen", "frumo", "bizi"]), draftAvailable: true }),
-  Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
-  Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true })
+  Object.freeze({ id: "initiative", number: 1, name: "Initiative", factionIds: Object.freeze(["rumin", "sheen", "frumo", "bizi"]), draftAvailable: true, sealedAvailable: true }),
+  Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: false, sealedAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
+  Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
