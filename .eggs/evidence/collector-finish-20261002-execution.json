@@ -35,7 +35,7 @@
   "repositoryState": {
     "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
     "branch": "codex/collector-finish-touchpoints",
-    "base": "47516def7b828ecec1fcf40d143096474f469adb",
+    "base": "a79422a1042d2e9f4570bbaba6cc7aff7e1090c2",
     "canonicalBranch": "main",
     "worktreeCount": 11,
     "overlappingDirtyPaths": [],
