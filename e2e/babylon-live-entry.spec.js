@@ -1070,7 +1070,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   const completion = (await (await completionResponsePromise).json()).completion;
   const refreshedAccount = (await (await accountRefreshPromise).json()).account;
   await expect(page.getByText("First clear", { exact: true })).toBeVisible();
-  await expect(page.getByText("+1", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("+1", { exact: true })).toBeVisible();
   await expect(page.getByText("Next mission", { exact: true })).toBeVisible();
 
   const matchId = await match.getAttribute("data-match-id");
