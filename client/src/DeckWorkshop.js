@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import SpecialCardFace from "./SpecialCardFace";
 import DeckBox, { DECK_BOXES } from "./DeckBox";
 import DeckNameEditor from "./DeckNameEditor";
+import CardZoom from "./CardZoom";
 import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import { getPlayingCardArtPath } from "./cardArt";
 import { buildDeckSlots, replaceDeckSlot, DECK_SUITS, DECK_VALUES, rankLabel, slotLabel } from "./deckSlots";
@@ -11,8 +12,8 @@ const LAYOUT_KEY = "gauntlet_workshop_layout";
 function readLayout() {
   try {
     const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY)) || {};
-    return { cards: saved.cards === true, preview: saved.preview !== false, width: Math.max(250, Math.min(420, Number(saved.width) || 290)) };
-  } catch { return { cards: false, preview: true, width: 290 }; }
+    return { cards: saved.cards === true, preview: saved.preview !== false, matches: saved.matches === "list" ? "list" : "icons", width: Math.max(250, Math.min(420, Number(saved.width) || 290)) };
+  } catch { return { cards: false, preview: true, matches: "icons", width: 290 }; }
 }
 export default function DeckWorkshop({ name, factionId, factions, loadoutPicker, renderRules, cards, owned, quantities, suitChoices, variantsByCard, variantSelections, boxId,
   onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid }) {
@@ -21,6 +22,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   const [candidateId, setCandidateId] = useState("");
   const [saving, setSaving] = useState(false);
   const [layout, setLayout] = useState(readLayout);
+  const [zoom, setZoom] = useState(null);
   const dragRef = useRef(null);
   useEffect(() => {
     try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout)); } catch { /* Session controls still work without storage. */ }
@@ -31,7 +33,12 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   const candidate = candidates.find((card) => card.id === candidateId) || selected.card;
   const preview = candidate ? { ...candidate, factionId } : null;
   const variants = preview ? variantsByCard[preview.id] || [] : [];
-  const selectedVariant = variants.find((variant) => variant.variantId === variantSelections[preview?.id]) || variants.find((variant) => variant.variantId === preview?.defaultVariantId) || variants[0];
+  const presentationFor = (card) => {
+    const finishes = variantsByCard[card?.id] || [];
+    return finishes.find((variant) => variant.variantId === variantSelections[card?.id]) || finishes.find((variant) => variant.variantId === card?.defaultVariantId) || finishes[0];
+  };
+  const selectedVariant = presentationFor(preview);
+  const openZoom = (card) => setZoom({ card: { ...card, factionId }, presentation: presentationFor(card) });
   const swaps = slots.filter((slot) => slot.card).length;
   const canUse = (card) => selected.card?.id === card.id || Number(quantities[card.id] || 0) === 0;
   const replace = (card) => {
@@ -95,21 +102,37 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
         <aside className="deck-inspection-rail" aria-label="Deck name and selected card">
           <DeckNameEditor name={name} onChange={onNameChange} savedName={savedName} onSave={saved ? onRename : undefined} />
           <div className="deck-inspector-scroll">
-            <div className="deck-preview-heading"><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
+            <div className="deck-preview-heading"><div><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
+              <button type="button" className="deck-zoom-button" aria-label={"Zoom " + (preview?.name || slotLabel(selected))} aria-haspopup="dialog" onClick={() => openZoom(preview || selected)}>⤢ <span>Zoom</span></button>
+            </div>
             {layout.preview && <div className="deck-slot-preview" aria-label={(preview?.name || slotLabel(selected)) + " selected card preview"}>
               {preview ? <SpecialCardFace card={preview} art={selectedVariant?.art} presentation={selectedVariant} /> : <img src={resolveVisualAsset(getPlayingCardArtPath(selected, "basic"))} alt={slotLabel(selected) + " standard playing card"} />}
             </div>}
             {preview && <div className="deck-preview-copy"><h4>{preview.name}</h4><p>{preview.displayText || preview.text}</p>{renderRules?.(preview)}</div>}
             <section className="deck-slot-choices" aria-label={"Replacements for " + slotLabel(selected)}>
-              <span className="deck-eyebrow">Matching cards</span>
+              <div className="deck-matches-heading"><span className="deck-eyebrow">Matching cards <span className="deck-match-count">{candidates.length}</span></span>
+                <div className="deck-match-views" role="group" aria-label="Matching cards view">
+                  <button type="button" aria-pressed={layout.matches === "list"} onClick={() => setLayout((current) => ({ ...current, matches: "list" }))}><span aria-hidden="true">☰</span> List</button>
+                  <button type="button" aria-pressed={layout.matches === "icons"} onClick={() => setLayout((current) => ({ ...current, matches: "icons" }))}><span aria-hidden="true">▦</span> Icons</button>
+                </div>
+              </div>
               {candidates.length === 0 && <p className="deck-no-candidates">No owned {faction.name} card is assigned to this exact rank and suit.</p>}
-              {candidates.map((card) => <div className="deck-candidate" key={card.id}>
-                <button type="button" aria-pressed={preview?.id === card.id} onClick={() => setCandidateId(card.id)}>
-                  <strong>{card.name}</strong><small>{rankLabel(card.value)}{DECK_SUITS.find((suit) => suit.id === card.suit)?.symbol} · {card.rarity}</small>
-                </button>
-                <button type="button" className="deck-swap-button" disabled={!canUse(card) || selected.card?.id === card.id} onClick={() => replace(card)}
-                  aria-label={"Swap " + slotLabel(selected) + " for " + card.name}>{selected.card?.id === card.id ? "In deck" : canUse(card) ? "Swap" : "In use"}</button>
-              </div>)}
+              <div className={"deck-matches view-" + layout.matches}>
+                {candidates.map((card) => {
+                  const presentation = presentationFor(card);
+                  return <div className={"deck-candidate rarity-" + card.rarity + (preview?.id === card.id ? " is-selected" : "")} key={card.id}>
+                    <button type="button" className="deck-candidate-select" aria-label={"Preview " + card.name} aria-pressed={preview?.id === card.id} onClick={() => setCandidateId(card.id)}>
+                      {layout.matches === "icons" && <span className="deck-candidate-art"><SpecialCardFace card={{ ...card, factionId }} art={presentation?.art} presentation={presentation} /></span>}
+                      <span className="deck-candidate-label"><strong>{card.name}</strong><small>{rankLabel(card.value)}{DECK_SUITS.find((suit) => suit.id === card.suit)?.symbol} · {card.rarity}</small></span>
+                    </button>
+                    <div className="deck-candidate-actions">
+                      <button type="button" className="deck-zoom-button" aria-label={"Zoom matching card " + card.name} aria-haspopup="dialog" onClick={() => openZoom(card)}>⤢ <span>Zoom</span></button>
+                      <button type="button" className="deck-swap-button" disabled={!canUse(card) || selected.card?.id === card.id} onClick={() => replace(card)}
+                        aria-label={"Swap " + slotLabel(selected) + " for " + card.name}>{selected.card?.id === card.id ? "In deck" : canUse(card) ? "Swap" : "In use"}</button>
+                    </div>
+                  </div>;
+                })}
+              </div>
               {selected.card && <button type="button" className="deck-restore-slot" onClick={() => replace(null)}>Restore standard {rankLabel(selected.value)}{DECK_SUITS.find((suit) => suit.id === selected.suit).symbol}</button>}
             </section>
           </div>
@@ -135,6 +158,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
         </div>
       </details>
       {(message || invalid) && <p className="deck-workshop-message" role="status">{message || "Resolve conflicting replacements before saving."}</p>}
+      {zoom && <CardZoom card={zoom.card} presentation={zoom.presentation} factionName={faction.name} renderRules={renderRules} onClose={() => setZoom(null)} />}
     </section>
   );
 }

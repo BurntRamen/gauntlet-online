@@ -3,7 +3,7 @@ const base = require("./playwright.config");
 const data = path.join(__dirname, ".playwright-data/slot-workshop");
 module.exports = {
   ...base,
-  testMatch: ["slot-workshop.spec.js", "deck-naming.spec.js"],
+  testMatch: ["slot-workshop.spec.js", "deck-naming.spec.js", "workshop-card-gallery.spec.js"],
   reporter: [["list"]],
   use: { ...base.use, baseURL: "http://127.0.0.1:3104" },
   webServer: [
