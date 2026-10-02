@@ -1,0 +1,204 @@
+{
+  "contract": "eggs.review-handoff@1.0.0",
+  "schemaVersion": "1.0.0",
+  "handoffId": "workshop-card-rows-20261002-review",
+  "projectId": "gauntlet",
+  "taskId": "workshop-card-rows-20261002",
+  "outcome": {
+    "summary": "Restructured deck Cards view into left-aligned image and right-side name/full-rules rows, ready for the authorized live release.",
+    "delivered": [
+      "Card images start at the left of each suit column, eliminating the centered image gutters.",
+      "Names are 13px and full rules 12px, wrap naturally and remain beside the images.",
+      "Responsive four/two/one-column layout; standard slots identify rank and suit; all 52 slots remain selectable.",
+      "Verified compact mode, zoom, exact swaps, naming, boxes and pack reveals."
+    ],
+    "notDone": [
+      "Live deployment and published-client verification follow the authorized merge."
+    ]
+  },
+  "authority": [
+    {
+      "id": "task-contract",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-rows-20261002-contract.json",
+      "exact": true
+    },
+    {
+      "id": "live-authority",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-rows-20261002-authority.json",
+      "exact": true
+    },
+    {
+      "id": "dossier",
+      "kind": "drive",
+      "location": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+      "exact": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "source-branch",
+      "kind": "repository",
+      "location": "https://github.com/BurntRamen/gauntlet-online/tree/codex/workshop-card-rows",
+      "exact": true
+    },
+    {
+      "id": "client",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-rows-client.log",
+      "exact": true
+    },
+    {
+      "id": "build",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-rows-build.log",
+      "exact": true
+    },
+    {
+      "id": "assets",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-rows-assets.log",
+      "exact": true
+    },
+    {
+      "id": "regressions",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-rows-browser.log",
+      "exact": true
+    },
+    {
+      "id": "layout",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-rows-layout.log",
+      "exact": true
+    },
+    {
+      "id": "visual-admission",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-rows-20261002-visual.json",
+      "exact": true
+    },
+    {
+      "id": "wide",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-rows-review/cards-wide.png",
+      "exact": true
+    },
+    {
+      "id": "desktop",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-rows-review/cards-desktop.png",
+      "exact": true
+    },
+    {
+      "id": "tablet",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-rows-review/cards-tablet.png",
+      "exact": true
+    },
+    {
+      "id": "mobile",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-rows-review/cards-mobile.png",
+      "exact": true
+    }
+  ],
+  "provenance": [
+    {
+      "from": "task-contract",
+      "to": "source-branch",
+      "relationship": "constrains"
+    },
+    {
+      "from": "dossier",
+      "to": "source-branch",
+      "relationship": "governs"
+    },
+    {
+      "from": "layout",
+      "to": "source-branch",
+      "relationship": "validated"
+    },
+    {
+      "from": "source-branch",
+      "to": "mobile",
+      "relationship": "produced"
+    }
+  ],
+  "deviations": [
+    "Reused existing isolated checkout, retaining ten worktrees and excluding prior unrelated evidence.",
+    "570 client tests, production build, unchanged bundle limits and strict asset check passed. Four affected browser flows passed, covering 1720/1366/1024/390px layout plus workshop regressions.",
+    "The new fixture's first account name exceeded the existing username limit; shortened it and reran the layout test successfully. No application auth changes.",
+    "Existing card artwork and full rules text are reused verbatim. Names/rules remain outside the art and complete text wraps without clipping.",
+    "Gameplay and backend are unchanged; affected client/build/asset and workshop entry/usability checks ran locally. Broader match-only suites are outside this UI change."
+  ],
+  "automatedDetermination": "mechanically-complete",
+  "humanDecisions": [
+    {
+      "id": "requested-live-release",
+      "question": "Restructure the Cards view as requested and continue the user's explicit live-publication authorization.",
+      "owner": "Giuseppe",
+      "state": "answered",
+      "doesNotGrant": [
+        "canon",
+        "manufacturing",
+        "rights"
+      ]
+    }
+  ],
+  "statuses": {
+    "generated": {
+      "state": "yes",
+      "evidence": [
+        "source-branch"
+      ]
+    },
+    "mechanicallyValidated": {
+      "state": "yes",
+      "evidence": [
+        "client",
+        "build",
+        "assets",
+        "regressions",
+        "layout"
+      ]
+    },
+    "humanReviewed": {
+      "state": "no",
+      "evidence": []
+    },
+    "approved": {
+      "state": "yes",
+      "evidence": [
+        "task-contract"
+      ],
+      "actor": "Giuseppe"
+    },
+    "canonApproved": {
+      "state": "not-applicable",
+      "evidence": []
+    },
+    "releaseApproved": {
+      "state": "yes",
+      "evidence": [
+        "task-contract"
+      ],
+      "actor": "Giuseppe"
+    },
+    "published": {
+      "state": "no",
+      "evidence": []
+    },
+    "deployed": {
+      "state": "no",
+      "evidence": []
+    },
+    "manufactured": {
+      "state": "not-applicable",
+      "evidence": []
+    }
+  },
+  "feedbackRouting": [],
+  "nextSafeAction": "Publish through the authorized PR workflow and verify the new Cards layout on the production frontend with isolated local account APIs."
+}

@@ -79,10 +79,21 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
                 aria-pressed={selected.key === slot.key} aria-label={slotLabel(slot) + " — " + (slot.card?.name || "Standard playing card")}
                 title={slotLabel(slot) + " · " + (slot.card?.name || "Standard")}
                 onClick={() => { setSelectedKey(slot.key); setCandidateId(""); }}>
-                {layout.cards && slot.card && <SpecialCardFace card={{ ...slot.card, factionId, suit: slot.suit }} presentation={(variantsByCard[slot.card.id] || []).find((variant) => variant.variantId === variantSelections[slot.card.id])} />}
-                <b>{rankLabel(value)}<small>{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</small></b>
-                <span className="deck-slot-card-name">{slot.card?.name || "Standard"}</span>
-                {layout.cards && !slot.card && <span className="deck-slot-pip" aria-hidden="true">{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</span>}
+                {layout.cards ? <>
+                  <span className="deck-slot-art">
+                    {slot.card ? <SpecialCardFace card={{ ...slot.card, factionId, suit: slot.suit }} presentation={presentationFor(slot.card)} /> : <>
+                      <b>{rankLabel(value)}<small>{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</small></b>
+                      <span className="deck-slot-pip" aria-hidden="true">{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</span>
+                    </>}
+                  </span>
+                  <span className="deck-slot-card-copy">
+                    <strong className="deck-slot-card-name">{slot.card?.name || slotLabel(slot)}</strong>
+                    <span className="deck-slot-card-rules">{slot.card?.text || slot.card?.rulesText || slot.card?.displayText || "Standard playing card"}</span>
+                  </span>
+                </> : <>
+                  <b>{rankLabel(value)}<small>{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</small></b>
+                  <span className="deck-slot-card-name">{slot.card?.name || "Standard"}</span>
+                </>}
               </button>)}
             </div>)}
           </div>

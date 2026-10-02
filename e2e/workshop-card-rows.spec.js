@@ -1,0 +1,68 @@
+const { test, expect } = require("@playwright/test");
+const fs = require("node:fs");
+const path = require("node:path");
+const { COLLECTION_CARDS } = require("../server/gameContent");
+
+test("deck Cards view places readable names and full rules beside left-aligned images", async ({ page, request, baseURL }) => {
+  test.setTimeout(120000);
+  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Rows QA ${Date.now()}`, password: "Local-Card-Rows-42" } });
+  expect(response.ok()).toBeTruthy();
+  const session = await response.json();
+  const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
+  const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
+  const cards = COLLECTION_CARDS.filter(card => card.factionId === "bizi" && card.value < 6);
+  store.accounts.find(account => account.id === session.account.id).stats.collection.gameplayEntitlements = Object.fromEntries(cards.map(card => [card.id, 1]));
+  fs.writeFileSync(storePath, JSON.stringify(store));
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
+  await page.goto(baseURL);
+  await page.locator('button[data-area="build"]').click();
+  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+  await page.getByRole("tab", { name: "Decks", exact: true }).click();
+  await page.getByLabel("Deck faction", { exact: true }).selectOption("bizi");
+  await page.getByLabel("Deck name", { exact: true }).fill("Bizi field notes");
+  for (const card of cards) {
+    await page.getByRole("button", { name: `${card.value} of ${card.suit} — Standard playing card`, exact: true }).click();
+    await page.getByRole("button", { name: `Swap ${card.value} of ${card.suit} for ${card.name}`, exact: true }).click();
+  }
+  await page.getByRole("button", { name: "Cards", exact: true }).click();
+  await expect(page.locator(".deck-slot")).toHaveCount(52);
+  await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(cards.length);
+  const first = page.getByRole("button", { name: "2 of spades — Ammo Depot", exact: true });
+  await first.click();
+  const out = path.resolve(__dirname, "../.eggs/evidence/workshop-rows-review");
+  fs.mkdirSync(out, { recursive: true });
+  for (const [width, height, label] of [[1720, 960, "wide"], [1366, 900, "desktop"], [1024, 768, "tablet"], [390, 844, "mobile"]]) {
+    await page.setViewportSize({ width, height });
+    await first.scrollIntoViewIfNeeded();
+    const bounds = await first.boundingBox();
+    const art = await first.locator(".deck-slot-art").boundingBox();
+    const copy = await first.locator(".deck-slot-card-copy").boundingBox();
+    expect(art.x - bounds.x).toBeLessThanOrEqual(8);
+    expect(copy.x).toBeGreaterThan(art.x + art.width);
+    expect(copy.x - (art.x + art.width)).toBeLessThanOrEqual(10);
+    expect(copy.x + copy.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+    expect(await first.locator(".deck-slot-card-name").evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(13);
+    expect(await first.locator(".deck-slot-card-rules").evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(12);
+    expect(await first.locator(".deck-slot-card-rules").evaluate(node => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await expect(first.locator(".deck-slot-card-rules")).toHaveText(cards.find(card => card.name === "Ammo Depot").text);
+    await page.locator(".deck-slot-panel").screenshot({ path: path.join(out, `cards-${label}.png`) });
+  }
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await expect(first).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".deck-preview-copy h4")).toHaveText("Ammo Depot");
+  await page.getByRole("button", { name: "Compact", exact: true }).click();
+  await expect(page.locator(".deck-slot")).toHaveCount(52);
+  await expect(page.locator(".deck-slot-card-rules")).toHaveCount(0);
+  expect((await first.boundingBox()).height).toBeLessThanOrEqual(34);
+  await page.getByRole("button", { name: "Cards", exact: true }).click();
+  await page.getByRole("button", { name: "Restore standard 2♠", exact: true }).click();
+  await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(cards.length - 1);
+  const standard = page.getByRole("button", { name: "2 of spades — Standard playing card", exact: true });
+  await expect(standard.locator(".deck-slot-card-name")).toHaveText("2 of spades");
+  await expect(standard.locator(".deck-slot-card-rules")).toHaveText("Standard playing card");
+  expect(errors).toEqual([]);
+});
