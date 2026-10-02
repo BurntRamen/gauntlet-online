@@ -1,6 +1,6 @@
 const OBJECT_EVENTS = new Set([
   "joinMatchmaking", "joinDraftLeague", "createRoom", "createFriendChallenge",
-  "createFreeForAllRoom", "createDraftRoom", "createBotDraftRoom", "createAiTutorialRoom",
+  "createFreeForAllRoom", "createDraftRoom", "createBotDraftRoom", "createSealedRoom", "createAiTutorialRoom",
   "createCampaignRoom", "joinRoom", "reconnectToRoom", "selectFaction", "setGameMode",
   "draftPick", "setDraftDeckAdditions", "duelCommand", "requestMatchState", "respondDraw",
   "respondUndo", "confirmAttack", "confirmBlock", "usePolea", "useLafayette",
@@ -10,7 +10,7 @@ const STRING_FIELDS = ["authToken", "guestName", "roomCode", "reconnectToken", "
   "friendId", "factionId", "chapterId", "draftType", "cardCopyId", "commandId"];
 const ROOM_ENTRY_EVENTS = new Set([
   "createRoom", "createFriendChallenge", "createFreeForAllRoom", "createDraftRoom",
-  "createBotDraftRoom", "createAiTutorialRoom", "createCampaignRoom", "joinRoom"
+  "createBotDraftRoom", "createSealedRoom", "createAiTutorialRoom", "createCampaignRoom", "joinRoom"
 ]);
 
 function validPayload(event, payload) {

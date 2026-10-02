@@ -2122,6 +2122,11 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
   );
 }
 
+function limitedDeckSourceLabel(draftType) {
+  if (draftType === "sealed") return "Sealed";
+  return draftType === "bot" ? "Bot Draft" : "Live Draft";
+}
+
 function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
   const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
@@ -2147,15 +2152,16 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
   const canStart = player === 1 && draft?.status === "lobby";
   const hasPickedThisPass = !!draft?.myCurrentPack?.pickedThisPass;
   const isBotDraft = !!draft?.botDraft;
+  const isSealed = !!draft?.sealed;
 
   return (
     <div style={MENU_THEME.page}>
       <div style={MENU_THEME.frame}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Draft League Match" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
-            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Draft League" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
-            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
+            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Limited League Match" : isSealed ? "Six Pack Sealed" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
+            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Limited League" : isSealed ? "Gauntlet Sealed" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
+            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isSealed ? "Open six packs from one set, then build a one-faction 52-card deck from your private pool." : isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
           </div>
           <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
             <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
@@ -2164,7 +2170,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-          <MenuCard title="Draft Table">
+          {!isSealed && <MenuCard title="Draft Table">
             <p style={{ color: "#bfdbfe", marginTop: 0 }}>Seats: {connectedPlayers.length}/8</p>
             <div style={{ display: "grid", gap: 6 }}>
               {Array.from({ length: 8 }, (_, index) => index + 1).map((seatNum) => {
@@ -2181,19 +2187,21 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
             {canStart && !isBotDraft && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
             {draft?.status === "lobby" && !canStart && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Waiting for Player 1 to start the draft.</p>}
             {draft?.status === "lobby" && isBotDraft && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Preparing bot draft seats...</p>}
-          </MenuCard>
+          </MenuCard>}
 
           <MenuCard title="Draft Status">
             <div style={{ color: "#dbeafe", display: "grid", gap: 6 }}>
               <div><strong>Status:</strong> {draft?.status || "lobby"}</div>
               <div><strong>Set:</strong> {draft?.setName || "Initiative"}</div>
               <div><strong>Factions:</strong> {(draft?.factionIds || []).map((id) => PACK_THEMES[id]?.name || id).join(", ")}</div>
-              <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
-              <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
-              <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
+              {isSealed ? <div><strong>Pool:</strong> {draft?.packsPerPlayer || 6} packs · {myPool.length} cards</div> : <>
+                <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
+                <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
+                <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
+              </>}
               <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
               {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
-              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {(savedDraftDeck.draftType || "player") === "bot" ? "Bot Draft" : "Player Draft"}</div>}
+              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {limitedDeckSourceLabel(savedDraftDeck.draftType)}</div>}
             </div>
           </MenuCard>
         </div>
@@ -2221,7 +2229,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
         )}
 
         {draft?.status === "building" && !isSpectator && (
-          <MenuCard title={`Build Draft Deck (${myDeckAdditions.length} swaps)`}>
+          <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck (${myDeckAdditions.length} swaps)`}>
             <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Every card has a fixed rank and suit and replaces that exact slot in your 52-card base deck.</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
               <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
@@ -2233,12 +2241,12 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
                 <div>{selectedFactionName || "Choose your first card"}</div>
               </div>
               <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Draft League</strong>
+                <strong>Limited League</strong>
                 <div>{savedDraftDeck ? `Saved: ${savedDraftDeck.factionName || savedDraftDeck.factionId}` : "No saved deck yet"}</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for Draft League</MenuButton>
+              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for {isSealed ? "Sealed" : "Draft"} League</MenuButton>
               {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
               {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
               {selectedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: "bold" }}>Two cards are replacing the same {selectedSlotWarning[0].replace(":", " of ")}.</span>}
@@ -2265,7 +2273,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
           </MenuCard>
         )}
 
-        <MenuCard title={`Your Draft Pool (${myPool.length})`}>
+        <MenuCard title={`Your ${isSealed ? "Sealed" : "Draft"} Pool (${myPool.length})`}>
           {isSpectator ? (
             <p style={{ color: "#bfdbfe", margin: 0 }}>Spectators can watch seat and pick counts, but not hidden packs.</p>
           ) : myPool.length === 0 ? (
@@ -4619,6 +4627,7 @@ export default function App() {
   function createFreeForAllRoom() { if (!account) setPlayAsGuest(true); enterRoom("createFreeForAllRoom", playerIdentityPayload()); }
   function createDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createDraftRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
   function createBotDraftRoom() { if (!account) setPlayAsGuest(true); enterRoom("createBotDraftRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
+  function createSealedRoom() { if (!account) setPlayAsGuest(true); enterRoom("createSealedRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
 
   function startDraft() {
     socket.emit("startDraft");
@@ -5371,10 +5380,10 @@ export default function App() {
 
               {playView === "draft" && (
                 <div className="play-draft-grid">
-                  <MenuCard className="play-focus-panel" title="Draft a Deck">
-                    {!account && <p>Guest drafts are practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your draft</MenuButton></p>}
+                  <MenuCard className="play-focus-panel" title="Draft or Sealed">
+                    {!account && <p>Guest limited play is practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your deck</MenuButton></p>}
                     <label style={{ display: "grid", gap: 6, marginBottom: 12, color: "#dbeafe", fontWeight: 800 }}>
-                      Draft set
+                      Limited set
                       <select value={draftSetId} onChange={(event) => setDraftSetId(event.target.value)} style={{ padding: 10, borderRadius: 6 }}>
                         {(gameContent.draftSets || []).map((set) => (
                           <option key={set.id} value={set.id} disabled={!set.draftAvailable}>
@@ -5389,6 +5398,7 @@ export default function App() {
                     <div className="play-choice-grid">
                       <button type="button" onClick={createDraftRoom}><span>2–8 Players</span><strong>Draft with friends</strong><small>Live Draft: choose cards together, then build your deck.</small></button>
                       <button type="button" onClick={createBotDraftRoom}><span>Solo Table</span><strong>Draft against bots</strong><small>Bot Draft: choose cards with seven automated drafters.</small></button>
+                      <button type="button" onClick={createSealedRoom}><span>6 Packs</span><strong>Open a Sealed pool</strong><small>Sealed: open a private pool from this set and build immediately.</small></button>
                     </div>
                   </MenuCard>
                   <MatchmakingPanel
@@ -5396,8 +5406,8 @@ export default function App() {
                     status={draftLeagueStatus}
                     onJoin={() => joinDraftLeague("player", 1)}
                     onLeave={leaveDraftLeague}
-                    title="Draft League"
-                    description="Play a human opponent using a saved draft deck. Live-draft and bot-draft decks use separate queues."
+                    title="Limited League"
+                    description="Play a human opponent using a saved Draft or Sealed deck. Each limited format has its own queue."
                     joinLabel="Play saved live-draft deck"
                     cancelLabel="Leave Draft Queue"
                     signedOutText="Sign in and save a draft deck to enter Draft League."
@@ -5406,6 +5416,8 @@ export default function App() {
                         <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Live-draft deck · Best of 3</MenuButton>
                         <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Play saved bot-draft deck</MenuButton>
                         <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot-draft deck · Best of 3</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("sealed", 1)} disabled={!account}>Play saved sealed deck</MenuButton>
+                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("sealed", 3)} disabled={!account}>Sealed deck · Best of 3</MenuButton>
                       </>
                     )}
                   />
@@ -5619,7 +5631,7 @@ export default function App() {
                 {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
                   <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
                     <DeckVisual deck={deck} decorative />
-                    <div><span>{deck.factionName} · {deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Live"} Draft` : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
+                    <div><span>{deck.factionName} · {deck.format === "draft" ? limitedDeckSourceLabel(deck.draftType) : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
                   </article>
                 ))}</div> : <p className="identity-empty-copy">Feature up to three decks from Build to make them part of your identity.</p>}
               </section>

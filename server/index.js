@@ -734,6 +734,7 @@ function collectionSummary(stats = {}) {
 }
 
 const DRAFT_PACKS_PER_PLAYER = 3;
+const SEALED_PACKS_PER_PLAYER = 6;
 const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
 const DRAFT_BOT_NAMES = [
   "Atlas Surveyor",
@@ -759,6 +760,10 @@ function createDraftPlayerSeat() {
 
 function getDraftSet(setId = "initiative") {
   return DRAFT_SETS.find((set) => set.id === setId) || DRAFT_SETS.find((set) => set.id === "initiative");
+}
+
+function normalizeDraftType(draftType) {
+  return draftType === "bot" || draftType === "sealed" ? draftType : "player";
 }
 
 function createDraftPack(ownerPlayer, factionIds) {
@@ -977,7 +982,7 @@ function createDeckRecordFromLegacy(deck, format, ownerId = null) {
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId || "Basic",
     format,
     source: format === "draft" ? "draft" : "legacy-migration",
-    draftType: format === "draft" ? (deck.draftType === "bot" ? "bot" : "player") : null,
+    draftType: format === "draft" ? normalizeDraftType(deck.draftType) : null,
     coverId: deck.factionId || "basic",
     archived: false,
     featured: false,
@@ -1038,12 +1043,15 @@ function normalizeDeckLibrary(stats = {}, ownerId = null) {
     ? raw.activeConstructedDeckId
     : decks.find((deck) => deck.format === "constructed" && !deck.archived)?.id || null;
   const activeDraftDeckIds = {
-    player: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.player && deck.format === "draft" && deck.draftType !== "bot" && !deck.archived)
+    player: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.player && deck.format === "draft" && normalizeDraftType(deck.draftType) === "player" && !deck.archived)
       ? raw.activeDraftDeckIds.player
-      : decks.find((deck) => deck.format === "draft" && deck.draftType !== "bot" && !deck.archived)?.id || null,
+      : decks.find((deck) => deck.format === "draft" && normalizeDraftType(deck.draftType) === "player" && !deck.archived)?.id || null,
     bot: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.bot && deck.format === "draft" && deck.draftType === "bot" && !deck.archived)
       ? raw.activeDraftDeckIds.bot
-      : decks.find((deck) => deck.format === "draft" && deck.draftType === "bot" && !deck.archived)?.id || null
+      : decks.find((deck) => deck.format === "draft" && deck.draftType === "bot" && !deck.archived)?.id || null,
+    sealed: decks.some((deck) => deck.id === raw.activeDraftDeckIds?.sealed && deck.format === "draft" && deck.draftType === "sealed" && !deck.archived)
+      ? raw.activeDraftDeckIds.sealed
+      : decks.find((deck) => deck.format === "draft" && deck.draftType === "sealed" && !deck.archived)?.id || null
   };
   const library = {
     schemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
@@ -1064,14 +1072,16 @@ function getActiveDeckRecord(stats = {}, format, draftType = "player") {
   const library = normalizeDeckLibrary(stats);
   const deckId = format === "constructed"
     ? library.activeConstructedDeckId
-    : library.activeDraftDeckIds[draftType === "bot" ? "bot" : "player"];
+    : library.activeDraftDeckIds[normalizeDraftType(draftType)];
   return library.decks.find((deck) => deck.id === deckId && !deck.archived) || null;
 }
 
 function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
   const libraryRecord = requestedDraftType
     ? getActiveDeckRecord(stats, "draft", requestedDraftType)
-    : getActiveDeckRecord(stats, "draft", stats.savedDraftDeck?.draftType || "player") || getActiveDeckRecord(stats, "draft", "bot");
+    : getActiveDeckRecord(stats, "draft", stats.savedDraftDeck?.draftType || "player")
+      || getActiveDeckRecord(stats, "draft", "bot")
+      || getActiveDeckRecord(stats, "draft", "sealed");
   const libraryVersion = getDeckRecordVersion(libraryRecord);
   const deck = libraryVersion ? {
     ...libraryVersion,
@@ -1095,7 +1105,7 @@ function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
     factionId: deck.factionId,
     factionName: deck.factionName || getFactionById(deck.factionId)?.name || deck.factionId,
     generalId: deck.generalId || getFactionById(deck.factionId)?.general?.id || null,
-    draftType: deck.draftType === "bot" ? "bot" : "player",
+    draftType: normalizeDraftType(deck.draftType),
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: BASE_PLAYING_DECK_SIZE,
     cardCount: BASE_PLAYING_DECK_SIZE,
@@ -1410,7 +1420,7 @@ function saveDraftDeckToLibrary(stats = {}, savedDraftDeck, ownerId = null) {
     factionName: savedDraftDeck.factionName,
     format: "draft",
     source: "draft",
-    draftType: savedDraftDeck.draftType === "bot" ? "bot" : "player",
+    draftType: normalizeDraftType(savedDraftDeck.draftType),
     coverId: savedDraftDeck.factionId,
     archived: false,
     featured: false,
@@ -1462,7 +1472,7 @@ function updateDeckLibraryRecord(stats = {}, deckId, patch = {}) {
   } else if (action === "activate") {
     if (record.archived) throw new Error("Restore this deck before activating it.");
     if (record.format === "constructed") library.activeConstructedDeckId = record.id;
-    else library.activeDraftDeckIds[record.draftType === "bot" ? "bot" : "player"] = record.id;
+    else library.activeDraftDeckIds[normalizeDraftType(record.draftType)] = record.id;
   } else if (action === "feature") {
     if (record.archived) throw new Error("Restore this deck before featuring it.");
     const featuredCount = library.decks.filter((deck) => deck.featured && !deck.archived && deck.id !== record.id).length;
@@ -2661,7 +2671,7 @@ async function saveAccountDraftDeck(accountId, draftDeck) {
     factionName: draftDeck.factionName,
     setId: draftDeck.setId || null,
     setName: draftDeck.setName || null,
-    draftType: draftDeck.draftType === "bot" ? "bot" : "player",
+    draftType: normalizeDraftType(draftDeck.draftType),
     baseCardCount: BASE_PLAYING_DECK_SIZE,
     maxCardCount: BASE_PLAYING_DECK_SIZE,
     cardCount: BASE_PLAYING_DECK_SIZE,
@@ -4355,7 +4365,8 @@ let roomRecoveryInitialized = false;
 const matchmakingQueue = [];
 const draftLeagueQueues = {
   player: [],
-  bot: []
+  bot: [],
+  sealed: []
 };
 
 function listSpectatableSeasonMatches(season = getActiveSeason()) {
@@ -4543,7 +4554,7 @@ app.get("/api/admin/overview", async (req, res) => {
       activePlay: {
         rooms: studioActiveRooms(),
         rankedQueue: matchmakingQueue.length,
-        draftQueues: { player: draftLeagueQueues.player.length, bot: draftLeagueQueues.bot.length }
+        draftQueues: { player: draftLeagueQueues.player.length, bot: draftLeagueQueues.bot.length, sealed: draftLeagueQueues.sealed.length }
       },
       matches: {
         recent: recentRecords,
@@ -4717,7 +4728,10 @@ function createFreeForAllRoom() {
 
 function createDraftRoom(options = {}) {
   const draftSet = getDraftSet(options.setId);
-  if (!draftSet?.draftAvailable) throw new Error(draftSet?.unavailableReason || "That set is not available for draft yet.");
+  const sealed = !!options.sealed;
+  if (!(sealed ? draftSet?.sealedAvailable : draftSet?.draftAvailable)) {
+    throw new Error(draftSet?.unavailableReason || `That set is not available for ${sealed ? "sealed" : "draft"} yet.`);
+  }
   let roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   while (rooms.has(roomCode)) {
     roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -4741,8 +4755,8 @@ function createDraftRoom(options = {}) {
       setName: draftSet.name,
       factionIds: [...draftSet.factionIds],
       status: "lobby",
-      maxPlayers: 8,
-      packsPerPlayer: DRAFT_PACKS_PER_PLAYER,
+      maxPlayers: sealed ? 1 : 8,
+      packsPerPlayer: sealed ? SEALED_PACKS_PER_PLAYER : DRAFT_PACKS_PER_PLAYER,
       packSize: DRAFT_PACK_SLOTS.length,
       activePlayers: [],
       round: 0,
@@ -4754,6 +4768,7 @@ function createDraftRoom(options = {}) {
       deckAdditions: {},
       completedAt: null,
       baseDeck: createBaseDeckSummary(),
+      sealed,
       botDraft: !!options.botDraft,
       botPickLog: []
     },
@@ -4772,6 +4787,25 @@ function createDraftRoom(options = {}) {
   }
   rooms.set(roomCode, roomState);
   return roomState;
+}
+
+function openSealedPool(roomState, playerNum = 1) {
+  const draft = roomState.draft;
+  if (!draft?.sealed) throw new Error("That room is not a sealed event.");
+  const key = String(playerNum);
+  draft.status = "building";
+  draft.activePlayers = [playerNum];
+  draft.round = 0;
+  draft.pickNumber = 0;
+  draft.direction = null;
+  draft.unopenedPacks = {};
+  draft.currentPacks = {};
+  draft.draftedPools = { [key]: [] };
+  draft.deckAdditions = { [key]: [] };
+  for (let packIndex = 0; packIndex < SEALED_PACKS_PER_PLAYER; packIndex++) {
+    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds).cards);
+  }
+  draft.completedAt = new Date().toISOString();
 }
 
 function getLobbyPlayerNumbers(roomState) {
@@ -4937,7 +4971,7 @@ function createDraftLeagueRoom(entryA, entryB) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
       playerSocket.emit("draftLeagueStatus", {
         inQueue: false,
-        message: `${entryA.bestOf === 3 ? "Best-of-3 d" : "D"}raft league match found. Using your saved ${assignment.entry.savedDraftDeck.factionName} deck.`,
+        message: `${entryA.bestOf === 3 ? "Best-of-3 " : ""}${entryA.draftType === "sealed" ? "Sealed" : "Draft"} league match found. Using your saved ${assignment.entry.savedDraftDeck.factionName} deck.`,
         roomCode: roomState.roomCode
       });
     }
@@ -5160,6 +5194,7 @@ function sanitizeDraftForViewer(roomState, viewerPlayerNum = null) {
     status: draft.status,
     league: !!draft.league,
     botDraft: !!draft.botDraft,
+    sealed: !!draft.sealed,
     setId: draft.setId,
     setName: draft.setName,
     factionIds: [...(draft.factionIds || [])],
@@ -7882,7 +7917,7 @@ io.on("connection", (socket) => {
 
   onClientEvent("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {
     console.log("[Socket] joinDraftLeague");
-    const requestedDraftType = draftType === "bot" ? "bot" : "player";
+    const requestedDraftType = normalizeDraftType(draftType);
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
@@ -7901,7 +7936,7 @@ io.on("connection", (socket) => {
     if ((savedDraftDeck.draftType || "player") !== requestedDraftType) {
       socket.emit("draftLeagueStatus", {
         inQueue: false,
-        message: `Your saved deck is from a ${savedDraftDeck.draftType === "bot" ? "bot" : "player"} draft. Save a ${requestedDraftType} draft deck before entering this queue.`
+        message: `Your saved deck is from ${savedDraftDeck.draftType === "sealed" ? "sealed" : `a ${savedDraftDeck.draftType === "bot" ? "bot" : "player"} draft`}. Save a ${requestedDraftType === "sealed" ? "sealed" : `${requestedDraftType} draft`} deck before entering this queue.`
       });
       return;
     }
@@ -7934,7 +7969,7 @@ io.on("connection", (socket) => {
     socket.data.authToken = authToken || socket.data.authToken;
     socket.emit("draftLeagueStatus", {
       inQueue: true,
-      message: `Searching for a ${requestedBestOf === 3 ? "best-of-3 " : ""}${requestedDraftType} draft league opponent... ${queue.length} player${queue.length === 1 ? "" : "s"} in this queue.`,
+      message: `Searching for a ${requestedBestOf === 3 ? "best-of-3 " : ""}${requestedDraftType === "sealed" ? "sealed" : `${requestedDraftType} draft`} league opponent... ${queue.length} player${queue.length === 1 ? "" : "s"} in this queue.`,
       queueSize: queue.length,
       draftType: requestedDraftType,
       bestOf: requestedBestOf
@@ -8107,6 +8142,37 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
     emitDraftState(roomState);
     if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft", botDraft: true });
+  });
+
+  onClientEvent("createSealedRoom", async ({ authToken, guestName, setId } = {}, ack) => {
+    console.log("[Socket] createSealedRoom");
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const identity = await requirePlayerIdentity(socket, authToken, guestName);
+    if (!identity) {
+      if (typeof ack === "function") ack({ ok: false, error: "Sign in or enter a guest name first." });
+      return;
+    }
+    const draftSet = getDraftSet(setId);
+    if (!draftSet?.sealedAvailable) {
+      if (typeof ack === "function") ack({ ok: false, error: draftSet?.unavailableReason || "That set is not available for sealed yet." });
+      return;
+    }
+    const roomState = createDraftRoom({ sealed: true, setId: draftSet.id });
+    const lobbyPlayer = roomState.lobby.players[1];
+    lobbyPlayer.socket = socket.id;
+    lobbyPlayer.connected = true;
+    lobbyPlayer.reconnectToken = makeReconnectToken();
+    lobbyPlayer.accountId = identity.id;
+    lobbyPlayer.accountName = identity.name;
+    lobbyPlayer.profile = clonePlain(identity.profile || null);
+    lobbyPlayer.isGuest = identity.type === "guest";
+    await touchAccountStats(identity.id, "gamesCreated");
+    attachPlayerSocket(roomState, socket, 1);
+    openSealedPool(roomState, 1);
+    emitLobbyState(roomState);
+    emitDraftState(roomState);
+    if (typeof ack === "function") ack({ ok: true, roomCode: roomState.roomCode, gameMode: "draft", sealed: true });
   });
 
   onClientEvent("createAiTutorialRoom", async ({ authToken, guestName, mode } = {}) => {
@@ -8579,12 +8645,12 @@ io.on("connection", (socket) => {
     }
     const faction = getFactionById(factionIds[0]);
     const savedAccount = await saveAccountDraftDeck(lobbyPlayer.accountId, {
-      name: `${faction?.name || factionIds[0]} Draft Deck`,
+      name: `${faction?.name || factionIds[0]} ${roomState.draft.sealed ? "Sealed" : "Draft"} Deck`,
       factionId: factionIds[0],
       factionName: faction?.name || factionIds[0],
       setId: roomState.draft.setId,
       setName: roomState.draft.setName,
-      draftType: roomState.draft.botDraft ? "bot" : "player",
+      draftType: roomState.draft.sealed ? "sealed" : roomState.draft.botDraft ? "bot" : "player",
       cards: selectedCards
     });
     if (!savedAccount) {
@@ -8593,7 +8659,7 @@ io.on("connection", (socket) => {
     }
     socket.emit("accountUpdated", savedAccount);
     socket.emit("draftDeckSaved", {
-      message: `Saved ${selectedCards.length} ${faction?.name || "draft"} swap${selectedCards.length === 1 ? "" : "s"} for ${roomState.draft.botDraft ? "Bot Draft" : "Player Draft"} League.`
+      message: `Saved ${selectedCards.length} ${faction?.name || "limited"} swap${selectedCards.length === 1 ? "" : "s"} for ${roomState.draft.sealed ? "Sealed" : roomState.draft.botDraft ? "Bot Draft" : "Player Draft"} League.`
     });
   });
 
@@ -10013,6 +10079,7 @@ module.exports = {
     rooms,
     startEndPhase,
     startDraft,
+    openSealedPool,
     advanceEndPlacement,
     validateAuthConfiguration,
     accountAvatarUploadHeaders,

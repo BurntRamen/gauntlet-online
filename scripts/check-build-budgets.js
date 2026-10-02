@@ -18,7 +18,8 @@ const budgets = {
   // Artwork gallery controls and the accessible card zoom dialog add ~2 KiB.
   // Keep the initial-load and largest-chunk ceilings unchanged.
   // Per-player persistent minimization for unused vault pack credits.
-  totalJavaScriptGzip: 732 * KIB
+  // Set-specific Sealed pool creation, building, saving, and queue controls.
+  totalJavaScriptGzip: 732 * KIB + 256
 };
 
 if (!fs.existsSync(buildDirectory)) {
