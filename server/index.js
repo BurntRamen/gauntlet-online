@@ -524,6 +524,24 @@ const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCT
   }];
 }));
 
+const WELCOME_COLLECTOR_GRANT_VERSION = 1;
+const WELCOME_COLLECTOR_VARIANT_IDS = Object.freeze([
+  "sheen-rootwatch-initiate:collector-foil",
+  "zynarth-spore-runner:collector-foil",
+  "indela-student-of-flame:collector-foil"
+]);
+const WELCOME_COLLECTOR_PROVENANCE = Object.freeze({
+  entitlementId: "welcome-collector-v1",
+  productId: "welcome-collector-styles",
+  acquisition: "free-welcome-grant",
+  issuanceSource: "automatic-account-welcome",
+  acquiredAt: null
+});
+
+for (const variantId of WELCOME_COLLECTOR_VARIANT_IDS) {
+  if (!getCollectorVariantById(variantId)?.paid) throw new Error(`Invalid welcome collector variant ${variantId}.`);
+}
+
 function emptyProgression() {
   return {
     achievements: {},
@@ -542,7 +560,7 @@ function emptyProgression() {
 
 function emptyCollection() {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     cards: {},
     gameplayEntitlements: {},
     collectorVariants: {},
@@ -557,6 +575,7 @@ function emptyCollection() {
     collectorIssuanceReceipts: {},
     collectorRedemptionReceipts: {},
     collectorVariantProvenance: {},
+    welcomeCollectorGrant: null,
     lastPack: null,
     lastGameplayPack: null,
     lastCollectorPack: null
@@ -635,6 +654,9 @@ function normalizeCollection(stats = {}) {
     gameplayEntitlements[gameplayCardId] = Math.max(gameplayEntitlements[gameplayCardId] || 0, count);
   }
   const collectorVariants = normalizeOwnershipCounts(collection.collectorVariants);
+  for (const variantId of WELCOME_COLLECTOR_VARIANT_IDS) {
+    collectorVariants[variantId] = Math.max(collectorVariants[variantId] || 0, 1);
+  }
   for (const [gameplayCardId, count] of Object.entries(gameplayEntitlements)) {
     const gameplayCard = getGameplayCardById(gameplayCardId);
     if (!gameplayCard) continue;
@@ -655,8 +677,12 @@ function normalizeCollection(stats = {}) {
   const lastGameplayPack = collection.lastGameplayPack || collection.lastPack || null;
   const collectorIssuanceReceipts = normalizeCollectorIssuanceReceipts(collection.collectorIssuanceReceipts);
   const collectorRedemptionReceipts = normalizeCollectorRedemptionReceipts(collection.collectorRedemptionReceipts);
+  const collectorVariantProvenance = buildCollectorVariantProvenance(collectorRedemptionReceipts);
+  for (const variantId of WELCOME_COLLECTOR_VARIANT_IDS) {
+    collectorVariantProvenance[variantId] = [WELCOME_COLLECTOR_PROVENANCE, ...(collectorVariantProvenance[variantId] || [])];
+  }
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     cards: { ...base.cards, ...gameplayEntitlements },
     gameplayEntitlements,
     collectorVariants,
@@ -670,7 +696,11 @@ function normalizeCollection(stats = {}) {
     openedCollectorPacks: Math.max(0, Number(collection.openedCollectorPacks || 0)),
     collectorIssuanceReceipts,
     collectorRedemptionReceipts,
-    collectorVariantProvenance: buildCollectorVariantProvenance(collectorRedemptionReceipts),
+    collectorVariantProvenance,
+    welcomeCollectorGrant: {
+      version: WELCOME_COLLECTOR_GRANT_VERSION,
+      variantIds: [...WELCOME_COLLECTOR_VARIANT_IDS]
+    },
     lastPack: lastGameplayPack,
     lastGameplayPack,
     lastCollectorPack: collection.lastCollectorPack || null

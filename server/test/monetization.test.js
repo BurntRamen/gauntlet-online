@@ -127,6 +127,27 @@ test("collector variants cannot contain mechanical overrides or unknown gameplay
   );
 });
 
+test("every account receives three idempotent free collector styles without gameplay power", () => {
+  const stats = {};
+  const before = buildCompetitiveCapabilitySnapshot(stats);
+  const first = normalizeCollection(stats);
+  stats.collection = first;
+  const second = normalizeCollection(stats);
+  const welcomeIds = [
+    "sheen-rootwatch-initiate:collector-foil",
+    "zynarth-spore-runner:collector-foil",
+    "indela-student-of-flame:collector-foil"
+  ];
+
+  assert.equal(first.schemaVersion, 3);
+  assert.deepEqual(first.welcomeCollectorGrant, { version: 1, variantIds: welcomeIds });
+  assert.deepEqual(second, first);
+  assert.equal(welcomeIds.every((variantId) => first.collectorVariants[variantId] === 1), true);
+  assert.equal(welcomeIds.every((variantId) => first.collectorVariantProvenance[variantId][0].acquisition === "free-welcome-grant"), true);
+  assert.deepEqual(first.gameplayEntitlements, {});
+  assert.deepEqual(buildCompetitiveCapabilitySnapshot(stats), before);
+});
+
 test("legacy account collections and constructed decks normalize deterministically", () => {
   const stats = makeStats();
   const firstCollection = normalizeCollection(stats);

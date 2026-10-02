@@ -162,7 +162,7 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   assert.equal(patchCount, 2);
   assert.equal(first.grantedVariants.length, 8);
   assert.equal(Object.values(accounts[0].stats.collection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 2);
-  assert.equal(Object.values(accounts[0].stats.collection.collectorVariants).reduce((sum, count) => sum + count, 0), 10);
+  assert.equal(Object.values(accounts[0].stats.collection.collectorVariants).reduce((sum, count) => sum + count, 0), 13);
   assert.equal(Object.keys(accounts[0].stats.collection.collectorRedemptionReceipts).length, 1);
 
   const refreshedSession = accountSession(accounts[0]);
