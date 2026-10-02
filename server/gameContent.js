@@ -937,6 +937,33 @@ const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 
+const COMMANDER_ANNOUNCEMENTS = Object.freeze({
+  rumin: { selected: "The Jewel answers. Let the empire witness our victory.", clicked: "Discipline, tribute, triumph. In that order.", wounded: "Our line bends at twenty-one. It does not break.", critical: "Ten life remains. Spend everything. Yield nothing.", denied: "The treasury will not underwrite this assault." },
+  sheen: { selected: "The roots remember us. We grow toward victory.", clicked: "Be still. Even the smallest root can split stone.", wounded: "At twenty-one, the canopy thins. Guard the living heart.", critical: "Ten life remains. Take root and endure.", denied: "The roots have not gathered enough strength." },
+  frumo: { selected: "All sails answer the Lord Commander. Make ready.", clicked: "The tide favors the captain who gives it orders.", wounded: "Twenty-one life. Reef the sails and hold the line.", critical: "Ten life. One last broadside decides the sea.", denied: "A poor wager, captain." },
+  bizi: { selected: "Conductor online. Progress is now inevitable.", clicked: "Every mechanism has a purpose. Including you.", wounded: "Life reserve at twenty-one. Redirecting power to defense.", critical: "Critical threshold: ten. Release every safeguard.", denied: "Insufficient power allocation." },
+  mekan: { selected: "The guests have arrived. Let the eternal festival begin.", clicked: "Every ending is only another invitation.", wounded: "Twenty-one life, and still the procession dances.", critical: "Ten life remains. Celebrate as if dawn depends on it.", denied: "The celebration remembers every payment." },
+  jali: { selected: "The fallen march beside us. Form the line.", clicked: "A warrior bested is a warrior waiting to return.", wounded: "Twenty-one life. Call the names of those we have lost.", critical: "Ten life. Raise the Revenants and stand.", denied: "The formation has not yet answered." },
+  gracus: { selected: "The arena has its champions. Let the contest begin!", clicked: "Give the crowd a battle worthy of legend.", wounded: "Twenty-one life! Now the true contest begins.", critical: "Ten life! Roar louder than death itself!", denied: "The arena rejects that challenge." },
+  indela: { selected: "The omen is cast. Fire and frost await my word.", clicked: "The next card is already written in the stars.", wounded: "Twenty-one life. Read the omen, then rewrite it.", critical: "Ten life remains. Unseal the final theorem.", denied: "The omen does not permit it." },
+  zynarth: { selected: "The brood awakens. One will become many.", clicked: "Hatch. Adapt. Consume. Begin again.", wounded: "Twenty-one life. The wounded brood evolves.", critical: "Ten life. Break every shell. Release the swarm.", denied: "The brood is not ready to strike." },
+  "astral-vanguard": { selected: "Vanguard deployed. Every soldier to their mark.", clicked: "Plan the descent. Control the ground. Finish the mission.", wounded: "Twenty-one life. Tighten formation and hold the outpost.", critical: "Ten life. All units, execute final deployment.", denied: "Deployment parameters are incomplete." }
+});
+
+const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
+  rumin: "/assets/gauntlet/voices/kaiser-1.mp3",
+  sheen: "/assets/gauntlet/voices/leafen-gao-1.mp3",
+  frumo: "/assets/gauntlet/voices/polea-1.mp3",
+  bizi: "/assets/gauntlet/voices/focus-1.mp3",
+  zynarth: "/assets/gauntlet/voices/zalara-1.mp3"
+});
+
+const COMMANDER_VOICE_PROFILES = Object.freeze({
+  rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
+  mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
+  zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82]
+});
+
 // ============ FACTION DATA ============
 const factionsData = {
   mekan: {
@@ -1044,6 +1071,12 @@ factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.i
 factionsData.jali.general = factionsData.jali.generals[0];
 factionsData.gracus.general = factionsData.gracus.generals[0];
 factionsData.indela.general = factionsData.indela.generals[0];
+for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)) {
+  factionsData[factionId].commander.announcements = announcements;
+  factionsData[factionId].commander.voiceProfile = COMMANDER_VOICE_PROFILES[factionId];
+  const deniedClip = COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
+  if (deniedClip) factionsData[factionId].commander.announcementAudio = { denied: deniedClip };
+}
 
 function listFactions() {
   return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"].map((id) => factionsData[id]);
@@ -1564,6 +1597,11 @@ function validateGameContent() {
     for (const role of ["commander", "general", "city"]) {
       requireText(faction[role]?.name, `factions.${factionId}.${role}.name`);
       requireText(faction[role]?.text, `factions.${factionId}.${role}.text`);
+    }
+    if (!faction.campaignOnly) {
+      for (const event of ["selected", "clicked", "wounded", "critical"]) {
+        requireText(faction.commander.announcements?.[event], `factions.${factionId}.commander.announcements.${event}`);
+      }
     }
     const chapters = campaignChapters[factionId];
     if (!faction.campaignPending && faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
