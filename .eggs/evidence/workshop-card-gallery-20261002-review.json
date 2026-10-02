@@ -108,6 +108,12 @@
       "kind": "preview",
       "location": ".eggs/evidence/workshop-gallery-review/zoom-mobile.png",
       "exact": true
+    },
+    {
+      "id": "navigation",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-navigation.log",
+      "exact": true
     }
   ],
   "provenance": [
@@ -135,9 +141,10 @@
   "deviations": [
     "Reused existing isolated checkout and preserved nine worktrees; unrelated prior evidence excluded.",
     "551 client, 218 server and 37 qualification checks passed. Affected workshop entry/usability checks passed in Chromium at desktop and mobile sizes; native modal axe audit reports no violations.",
-    "The aggregate JavaScript allowance increased by 2 KiB for the gallery/dialog (731.0/732 KiB); initial-load cap remains 175 KiB (173.8 measured).",
+    "The aggregate JavaScript allowance increased by 2 KiB for the gallery/dialog (731.2/732 KiB); initial-load cap remains 175 KiB (174.1 measured).",
     "Updated stale pack-size fixture to actual response count after Initiative packs; bounded name-save polling now tolerates a local JSON file mid-write without weakening saved-name/version checks.",
-    "Reused existing card assets exactly. Visually inspected compact list/icons and desktop/mobile overlays; no new illustration, lore or logo changes."
+    "Reused existing card assets exactly. Visually inspected compact list/icons and desktop/mobile overlays; no new illustration, lore or logo changes.",
+    "Merged current main 901a436 (vault reward minimization) without conflict; combined build, seven navigation tests and all three desktop/mobile workshop regressions passed."
   ],
   "automatedDetermination": "mechanically-complete",
   "humanDecisions": [
@@ -167,7 +174,8 @@
         "client",
         "build",
         "assets",
-        "browser"
+        "browser",
+        "navigation"
       ]
     },
     "humanReviewed": {

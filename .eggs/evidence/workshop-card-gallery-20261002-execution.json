@@ -35,7 +35,7 @@
   "repositoryState": {
     "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
     "branch": "codex/workshop-card-gallery",
-    "base": "7369d1fdc683b2559099d6b4576c0e103ab49cc6",
+    "base": "901a436de63986a92b38d6a931efb4600ec7f84b",
     "canonicalBranch": "main",
     "worktreeCount": 9,
     "overlappingDirtyPaths": [],
