@@ -22,7 +22,8 @@ const budgets = {
   // Per-player persistent minimization for unused vault pack credits.
   // Admin is lazy-loaded and measured separately; player contracts add ~3 KiB.
   // Includes the set-specific Sealed controls from the current player release.
-  totalJavaScriptGzip: 736 * KIB
+  // Card/source thumbnails, recorded-value shorthand, and accessible log disclosures.
+  totalJavaScriptGzip: 740 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

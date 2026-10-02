@@ -1202,6 +1202,7 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
   fireEvent.click(screen.getByRole("button", { name: "Match log" }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Match log" })).getByLabelText(/Action .*Player 1 declared a lane attack/));
   expect(screen.getByText("Player 1 declared a lane attack.")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   fireEvent.click(screen.getByRole("button", { name: "Faction abilities" }));

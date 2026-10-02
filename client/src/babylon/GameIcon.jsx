@@ -1,4 +1,12 @@
 const ICONS = {
+  life: <path d="M12 21 4 13C-2 7 6-1 12 6c6-7 14 1 8 7Z" />,
+  draw: <><rect x="7" y="6" width="13" height="16" rx="2" /><path d="M16 3H5a2 2 0 0 0-2 2v13M11 11h5M11 15h5" /></>,
+  turn: <><path d="M20 10a8 8 0 1 0-2 8M20 3v7h-7" /></>,
+  swap: <><path d="M3 7h17m-4-4 4 4-4 4M21 17H4m4-4-4 4 4 4" /></>,
+  ability: <><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5Z" /></>,
+  commander: <><path d="m3 6 5 4 4-7 4 7 5-4-2 12H5ZM6 21h12" /></>,
+  city: <><path d="M3 21V8h5v13M8 21V3h8v18M16 21V10h5v11M11 7h2M11 11h2M11 15h2M1 21h22" /></>,
+  general: <><path d="M12 3 20 6v6c0 4-4 7-8 9-4-2-8-5-8-9V6ZM8 15l8-8M10 7h6v6" /></>,
   attack: (
     <>
       <path d="M6 18 18 6" />

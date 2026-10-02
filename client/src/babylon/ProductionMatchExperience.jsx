@@ -6,6 +6,7 @@ import PhoneHandRail, { usePhoneHandLayout } from "./PhoneHandRail";
 import FactionBoardCards from "./FactionBoardCards";
 import AbilityStatePanel from "./AbilityStatePanel";
 import GameIcon from "./GameIcon";
+import { MatchLogRow, VisualLogSummary, MatchLogLegend } from "./VisualMatchLog";
 import { cardDetails, selectedCardPreview } from "./cardDetails";
 import CollectorCardPresentation from "../CollectorCardPresentation";
 import SpecialCardFace from "../SpecialCardFace";
@@ -22,8 +23,7 @@ import {
   authoritativeMatchHistory,
   abilityMatchHistory,
   isAbilityLogEntry,
-  formatMatchLogEntry,
-  matchLogSequence
+  formatMatchLogEntry
 } from "./matchLog";
 import {
   GRAPHICS_QUALITY_OPTIONS,
@@ -31,6 +31,7 @@ import {
 } from "./rendererLifecycle";
 import "./ProductionMatchExperience.css";
 import "./MatchColorTheme.css";
+import "./VisualMatchLog.css";
 import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
@@ -680,21 +681,6 @@ function factionProfile(value, fallbackName) {
   };
 }
 
-function MatchLogRow({ entry, index, players, compact = false }) {
-  const content = formatMatchLogEntry(entry, { players });
-  return (
-    <li>
-      <span className="production-match-log-sequence">#{matchLogSequence(entry, index)}</span>
-      <GameIcon name={content.icon} size={compact ? 13 : 16} />
-      <div>
-        <strong>{content.title}</strong>
-        {entry.turn != null && isAbilityLogEntry(entry) && !compact && <small>Turn {entry.turn}</small>}
-        {content.detail && <small>{content.detail}</small>}
-      </div>
-    </li>
-  );
-}
-
 function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
   const players = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
@@ -723,8 +709,8 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
         aria-label="Recall last ability" onClick={onOpenAbilities}>
         <span>Last ability{lastAbility.turn != null ? ` · Turn ${lastAbility.turn}` : ''} · View history</span>
         <div aria-live="polite" aria-atomic="true">
-          <strong>{abilityContent.title}</strong>
-          {abilityContent.detail && <small>{abilityContent.detail}</small>}
+          <VisualLogSummary entry={lastAbility} players={players} compact />
+          <span className="visual-log-sr-only">{abilityContent.title}. {abilityContent.detail}</span>
         </div>
       </button>}
       <ol>
@@ -823,6 +809,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
         {kind === "log" && (
           history.length === 0 && numericalEvents.length === 0 ? <p>No match actions recorded yet.</p> : (
             <div className="production-match-log-sections">
+              <MatchLogLegend />
               <nav className="production-log-filters" aria-label="Match log view">
                 <button type="button" aria-pressed={!abilitiesOnly} onClick={() => onAbilityFilter(false)}>All actions</button>
                 <button type="button" aria-pressed={abilitiesOnly} onClick={() => onAbilityFilter(true)}>Abilities &amp; effects · {abilityEvents.length}</button>
