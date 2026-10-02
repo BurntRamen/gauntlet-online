@@ -122,3 +122,18 @@ test("GitHub transport sends credentials only to the fixed repository API and sa
   assert.equal(calls[0].options.redirect, "error");
   assert.equal(calls[0].options.headers.Authorization, "Bearer private-test-token");
 });
+
+test("existing server GitHub credentials are recognized without requiring a renamed secret", async (t) => {
+  const keys = ["GAUNTLET_GITHUB_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"];
+  const previous = keys.map((key) => process.env[key]);
+  t.after(() => keys.forEach((key, index) => { if (previous[index] === undefined) delete process.env[key]; else process.env[key] = previous[index]; }));
+  for (const selected of keys) {
+    keys.forEach((key) => delete process.env[key]);
+    process.env[selected] = "existing-server-test-credential";
+    const repo = repository();
+    const store = createGitHubContentPublication({ baseline, client: repo.client, releaseFile: "missing-test-release.json" });
+    assert.equal((await store.status()).connectionRequired, false, selected);
+    const state = await draft(store);
+    assert.equal(state.draft.snapshot.domains.game.find((entry) => entry.id === "practice").name, "Published practice");
+  }
+});

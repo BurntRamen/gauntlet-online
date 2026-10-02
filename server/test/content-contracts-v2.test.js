@@ -21,6 +21,11 @@ function storeFixture(t) {
   return { directory, store: createContentPublication({ baseline, directory }) };
 }
 
+test("the published faction chooser preserves the source registry's presentation order", () => {
+  const manifest = authored.resolveEngineContent(baseline, "test-release").manifest;
+  assert.deepEqual(manifest.factions.map((faction) => faction.id), require("../gameContent").getPublicGameContent().factions.map((faction) => faction.id));
+});
+
 test("all 2,800 current-production pre-conversion engine outcomes remain equivalent with explicit card and faction effects", () => {
   const expected = require("./fixtures/content-v2/engine-behavior-production.json");
   assert.equal(Object.keys(expected).length, 2800);

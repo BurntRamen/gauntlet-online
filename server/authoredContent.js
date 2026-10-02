@@ -186,7 +186,9 @@ function resolveEngineContent(snapshot, releaseId) {
       campaign.characters[character.narrativeKey] = typeof original === "string" ? character.description : { ...original, description: character.description };
     }
   }
-  manifest.factions = Object.values(factions).filter((faction) => !faction.campaignOnly);
+  // Preserve the production presentation order, which differs from registry
+  // object insertion order as additional factions are introduced.
+  manifest.factions = manifest.factions.map((faction) => factions[faction.id]);
   manifest.cards = clone(domains.cards);
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
   manifest.modeMetadata = Object.fromEntries(domains.game.map((mode) => [mode.id, { name: mode.name, description: mode.description }]));

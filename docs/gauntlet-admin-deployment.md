@@ -18,7 +18,7 @@ Names and owner tokens grant no access. Empty/invalid environment overrides disa
 The backend is https://gauntlet-online.onrender.com. Configure its server environment:
 
 - `GAUNTLET_CONTENT_PROVIDER=github` (also the default on Render and in production).
-- `GAUNTLET_GITHUB_TOKEN`: a credential scoped to **BurntRamen/gauntlet-online**, with Contents and Pull requests read/write, Checks read, and Commit statuses read. A repository owner can create a repository-limited fine-grained token. Use an expiration and rotate it in the server environment. Do not put it in client variables, source files, chat, or browser storage.
+- `GAUNTLET_GITHUB_TOKEN`: a credential scoped to **BurntRamen/gauntlet-online**, with Contents and Pull requests read/write, Checks read, and Commit statuses read. Existing server `GITHUB_TOKEN` or `GH_TOKEN` is also recognized, so verify the live connection before requesting new setup. A repository owner can create a repository-limited fine-grained token when needed. Use an expiration and rotate it in the server environment. Do not put it in client variables, source files, chat, or browser storage.
 
 [GitHub's permission reference](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens) describes those API permissions. Repository protections and required reviews continue to apply; the server does not bypass them. A missing/expired credential leaves the deployed release intact and blocks authoring with an explicit connection error.
 

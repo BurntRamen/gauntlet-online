@@ -51,7 +51,7 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   return { request, readFile, putFile };
 }
 
-function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET_GITHUB_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
   const seed = createContentPublication({ baseline, memory: true });
   const initial = seed.exportState();
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
