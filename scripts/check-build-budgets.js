@@ -16,7 +16,8 @@ const budgets = {
   // Source-by-source effect receipts and persistent inspection/history.
   // Zynarth and Astral Vanguard add two complete deterministic faction engines.
   // Keep the initial-load and largest-chunk ceilings unchanged.
-  totalJavaScriptGzip: 730 * KIB
+  // Per-player persistent minimization for unused vault pack credits.
+  totalJavaScriptGzip: 731 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {
