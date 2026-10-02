@@ -443,7 +443,7 @@ test(`two ordinary ${profile} browser clients complete live Basic combat and pla
       await expect.poll(() => page.locator(".phone-hand-card").first().evaluate((card) => {
         const rect = card.getBoundingClientRect();
         return [rect.width, rect.height];
-      })).toEqual([80, 112]);
+      })).toEqual([92, 129]);
       await expectNativeSceneDiagnostics(page);
     }
   }
