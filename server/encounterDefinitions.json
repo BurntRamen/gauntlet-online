@@ -1,0 +1,1466 @@
+{
+  "brothers-of-destiny": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Fortified Claim",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Remex: Fortified Claim"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-republic": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Fortified Claim",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Tribune Marcell: Fortified Claim"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-jewel": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Fortified Claim",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Corrupt Governor Severan: Fortified Claim"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gaulic-wars": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Fortified Claim",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Gaulic Warchief Vercan: Fortified Claim"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "three-runes": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Senate Pressure",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Ancient Rune Guardian: Senate Pressure"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "first-empire-bank": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Senate Pressure",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Market Collapse: Senate Pressure"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-crossing": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Senate Pressure",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Senate General Cassius: Senate Pressure"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "last-republic": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Senate Pressure",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Brutus: Senate Pressure"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "emperor-of-gold": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Imperial Doctrine",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Rebel Senate Coalition: Imperial Doctrine"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear",
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx",
+      "rumin-coin-scale-spear",
+      "rumin-senate-vault-guard"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "ides-of-rumie": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Imperial Doctrine",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Brutus and the Conspirators: Imperial Doctrine"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear",
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx",
+      "rumin-coin-scale-spear",
+      "rumin-senate-vault-guard"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "war-of-successors": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Imperial Doctrine",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Brutus: Imperial Doctrine"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear",
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx",
+      "rumin-coin-scale-spear",
+      "rumin-senate-vault-guard"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "first-emperor": {
+    "version": 1,
+    "bossLife": 51,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Imperial Doctrine",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Bobei the Great: Imperial Doctrine"
+    },
+    "playerAdditions": [
+      "rumin-gilded-scale-legionary",
+      "rumin-forum-ledger-runner",
+      "rumin-tax-road-scout",
+      "rumin-coin-scale-spear",
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx"
+    ],
+    "bossAdditions": [
+      "rumin-vault-shield-bearer",
+      "rumin-marble-phalanx",
+      "rumin-coin-scale-spear",
+      "rumin-senate-vault-guard"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "iron-roots": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Ironroot Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Emperor Blackthorn: Ironroot Pressure"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "verdant-uprising": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Ironroot Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "The Thorn Guard Commanders: Ironroot Pressure"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "obsidian-throne": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Ironroot Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Blackthorn, Lord of Iron: Ironroot Pressure"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "beli-living-city": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Ironroot Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "The Great Blight: Ironroot Pressure"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "root-network": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Thorned Advance",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Ash Serpent: Thorned Advance"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "blooming-age": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Thorned Advance",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Drought King: Thorned Advance"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "court-of-blossoms": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Thorned Advance",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Minister Hollowvine: Thorned Advance"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-reformer": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Thorned Advance",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Lord Goldroot: Thorned Advance"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "thorned-crown": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Living Siege",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "healAtTurnStart": 0,
+      "tier": 2,
+      "name": "Ringan: Living Siege"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff",
+      "sheen-quiet-grove-sentinel",
+      "sheen-raincall-mender"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-harmony-ward"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "war-of-roots": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Living Siege",
+      "text": "Odd-numbered boss attacks get +1 value, and the boss restores 1 life at the start of each turn.",
+      "healAtTurnStart": 1,
+      "tier": 3,
+      "name": "The Thornblade Generals: Living Siege"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff",
+      "sheen-quiet-grove-sentinel",
+      "sheen-raincall-mender"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-harmony-ward"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "fall-of-thorn-mang": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Living Siege",
+      "text": "Odd-numbered boss attacks get +1 value, and the boss restores 1 life at the start of each turn.",
+      "healAtTurnStart": 1,
+      "tier": 3,
+      "name": "Tang, Crown of Thorns: Living Siege"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff",
+      "sheen-quiet-grove-sentinel",
+      "sheen-raincall-mender"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-harmony-ward"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "green-era": {
+    "version": 1,
+    "bossLife": 51,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Living Siege",
+      "text": "Odd-numbered boss attacks get +1 value, and the boss restores 1 life at the start of each turn.",
+      "healAtTurnStart": 1,
+      "tier": 3,
+      "name": "The Great Renewal: Living Siege"
+    },
+    "playerAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-mossbound-staff",
+      "sheen-quiet-grove-sentinel",
+      "sheen-raincall-mender"
+    ],
+    "bossAdditions": [
+      "sheen-rootwatch-initiate",
+      "sheen-seedwall-acolyte",
+      "sheen-living-bark-guard",
+      "sheen-harmony-ward"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "tax-of-tides": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Tide Feint",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Royal Tax Collector: Tide Feint"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "voices-of-revolution": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Tide Feint",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Royal Governor of Coral Bay: Tide Feint"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "fall-of-silver-shoals": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Tide Feint",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "General Carnot: Tide Feint"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "sunken-fortress": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Tide Feint",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "King Ludvik: Tide Feint"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "trial-of-king": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Boarding Rush",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Royal Loyalists: Boarding Rush"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "reign-of-revolution": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Boarding Rush",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Robespier the Red Tide: Boarding Rush"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "hero-of-republic": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Boarding Rush",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Admiral of the Northern Coalition: Boarding Rush"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "lord-commander": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Boarding Rush",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Council Rivals: Boarding Rush"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "frumo-empire": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Admiral's Ruse",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "evenBonus": 1,
+      "tier": 2,
+      "name": "Polea's Shadow: Admiral's Ruse"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard",
+      "frumo-riptide-smuggler"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "hundred-fleets": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Admiral's Ruse",
+      "text": "Even-numbered boss attacks get +2 value.",
+      "evenBonus": 2,
+      "tier": 3,
+      "name": "The Coral Crown, Kelpbound Princes, and Brasswater League: Admiral's Ruse"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard",
+      "frumo-riptide-smuggler"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "frozen-sea": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Admiral's Ruse",
+      "text": "Even-numbered boss attacks get +2 value.",
+      "evenBonus": 2,
+      "tier": 3,
+      "name": "The Ice Leviathan: Admiral's Ruse"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard",
+      "frumo-riptide-smuggler"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "last-tide": {
+    "version": 1,
+    "bossLife": 51,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Admiral's Ruse",
+      "text": "Even-numbered boss attacks get +2 value.",
+      "evenBonus": 2,
+      "tier": 3,
+      "name": "Lord Commander Polea: Admiral's Ruse"
+    },
+    "playerAdditions": [
+      "frumo-deckhand-diver",
+      "frumo-kelpcloak-trickster",
+      "frumo-sunken-coin",
+      "frumo-tideglass-cutlass",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard"
+    ],
+    "bossAdditions": [
+      "frumo-sunken-coin",
+      "frumo-ballast-hook",
+      "frumo-coral-hull-guard",
+      "frumo-riptide-smuggler"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "kharons-vision": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Prototype Surge",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Maxor the Usurper: Prototype Surge"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "first-titan": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Prototype Surge",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Assembly of Doubt: Prototype Surge"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "golden-empire": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Prototype Surge",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Vandal Engine: Prototype Surge"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "riot-of-sparks": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Prototype Surge",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Riot Leader: Prototype Surge"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "last-victories": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Overclock Directive",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 1,
+      "name": "The Desert Coalition, Iron Tribes, and Sea Raiders: Overclock Directive"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "age-of-focus": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Overclock Directive",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 1,
+      "name": "Emperor Maurice: Overclock Directive"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "great-invasion": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Overclock Directive",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 2,
+      "name": "Khosar the Conqueror: Overclock Directive"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "heras-counterattack": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "late-pressure",
+      "title": "Overclock Directive",
+      "text": "The boss's last two scripted attacks each turn get +1 value.",
+      "tier": 2,
+      "name": "Khosar: Overclock Directive"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "three-titans": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "final-push",
+      "title": "Machine Logic",
+      "text": "The boss's final scripted attack each turn gets +1 value.",
+      "tier": 2,
+      "name": "Machina, Melech, and Meca Cult Leaders: Machine Logic"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-schism": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Machine Logic",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Archon Severus: Machine Logic"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-restoration": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Machine Logic",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Corrupt Governors and Invaders: Machine Logic"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "last-gear": {
+    "version": 1,
+    "bossLife": 51,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Machine Logic",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "The Iron Sultan: Machine Logic"
+    },
+    "playerAdditions": [
+      "bizi-copperline-technician",
+      "bizi-brass-spark",
+      "bizi-voltage-ration",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "bossAdditions": [
+      "bizi-copperline-technician",
+      "bizi-dune-circuit-runner",
+      "bizi-railspike-marshal",
+      "bizi-gearplate-shield"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "longest-night": {
+    "version": 1,
+    "bossLife": 16,
+    "attacksPerTurn": 1,
+    "minAttackValue": 2,
+    "maxAttackValue": 4,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Unreliable Perception",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Terrified Villager: Unreliable Perception"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "silent-village": {
+    "version": 1,
+    "bossLife": 20,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 4,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Unreliable Perception",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Village Elder: Unreliable Perception"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "dreams-that-remember": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Unreliable Perception",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Syllith, the Echoing Child: Unreliable Perception"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "beneath-observatory": {
+    "version": 1,
+    "bossLife": 28,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Unreliable Perception",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Thrallmaker: Unreliable Perception"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "deep-currents": {
+    "version": 1,
+    "bossLife": 32,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Hallucination Loop",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Nulth, the Hollow Voice: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-enlightened": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Hallucination Loop",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Arel Voss, Enlightened Conduit: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-eclipse": {
+    "version": 1,
+    "bossLife": 40,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Hallucination Loop",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 2,
+      "name": "Sovereign Krauth, Crown of Static: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "witness-oblivion": {
+    "version": 1,
+    "bossLife": 44,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Hallucination Loop",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 2,
+      "name": "The Last Defenders of Reath: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  }
+}

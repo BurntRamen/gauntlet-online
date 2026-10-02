@@ -110,7 +110,10 @@ Server variables:
 | `ROOM_SWEEP_INTERVAL_MS` | Frequency of stale-room lifecycle checks | `30000` (30 seconds) |
 | `ACCOUNT_AUTH_SECRET` | HMAC secret for account sessions | Development fallback; required secret in production |
 | `ACCOUNT_SESSION_TTL_MS` | Lifetime of a signed account session | `604800000` (7 days) |
-| `OWNER_STATS_TOKEN` | Token for owner-only statistics endpoints | Empty |
+| `GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID` | Stable ID for the existing simply account allowed into Admin | Existing production simply ID; override for local/test accounts |
+| `GAUNTLET_ADMIN_BURNT_RAMEN_ACCOUNT_ID` | Stable ID for the existing Burnt Ramen account allowed into Admin | Verified production ID; explicitly empty denies this slot |
+| `GAUNTLET_CONTENT_PROVIDER` | Content persistence provider: `github` in production, `file` for isolated development | `file` locally |
+| `GAUNTLET_GITHUB_TOKEN` | Server-only repository-scoped GitHub credential for shared drafts and publication | Empty; live inspection remains available |
 | `COLLECTOR_ENTITLEMENT_SECRET` | Dedicated HMAC secret for account-bound physical collector entitlements; keep server-only | Domain-separated key derived from `ACCOUNT_AUTH_SECRET` when omitted |
 | `PUBLIC_CLIENT_URL` | Public client origin used to construct personalized collector claim links | HTTPS `CLIENT_URL`, otherwise the production Vercel URL |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
@@ -143,6 +146,16 @@ npm run check
 6. Open a pull request targeting `main`. Do not merge or deploy directly from a local feature branch.
 
 ## Deployment and persistence
+
+### Private Gauntlet Admin
+
+Open `/admin/gauntlet` or `/?admin=1` and use the existing account sign-in. Every admin API and direct API-server admin route checks a two-account ID allowlist for simply and Burnt Ramen. Owner tokens no longer grant access. Pin the corresponding account IDs in each environment; there is no display-name fallback or role-management UI.
+
+Content and Game share structured drafts across campaigns, encounters, factions, cards, deck templates, characters, assets and mode metadata. Publishing validates and previews a draft, creates an immutable release, activates it for future games and can restore earlier compatible releases. Existing games retain their content version. Players and Matches remain inspection surfaces; System retains the existing explicit archive-recovery tools. See [the v2 conversion report](docs/gauntlet-admin-v2.md) for typed encounters, card/faction effects, asset pinning, real-engine playtest, editable fields and verification. The [v1 report](docs/gauntlet-admin-authoring.md) and [original architecture audit](docs/gauntlet-admin-architecture.md) preserve earlier context.
+
+Production content authoring uses GitHub: shared drafts and immutable history live on a dedicated branch; publication and rollback create content-only pull requests, wait for checks, then use the existing main-branch deployment. A merged release becomes live only when the backend serves that packaged release. Configure the server-only `GAUNTLET_GITHUB_TOKEN` for the repository; no persistent disk is needed for Admin content. Assets deploy with the frontend through a digest-verified immutable manifest. Mechanical publication requires an exact-draft real-engine playtest. The file provider remains available for isolated development/tests. See [the deployment guide](docs/gauntlet-admin-deployment.md).
+
+Browser checks use isolated fixtures: build with `REACT_APP_SOCKET_URL=http://127.0.0.1:4117`, then run `npx playwright test --config=playwright.admin.config.js`. The inspection and authoring modules are separate lazy chunks with a combined 16 KiB gzip cap; the player-code budget is 704 KiB for the v2 contracts/composition, while the 175 KiB initial-bundle and 350 KiB async-chunk ceilings remain in force.
 
 The React client is deployed from the `client` directory on Vercel at `https://gauntlet-online.vercel.app`. The Node/Express/Socket.IO server is deployed from the `server` directory on Render at `https://gauntlet-online.onrender.com`. These deployment roots remain separate; the repository does not use npm workspaces.
 

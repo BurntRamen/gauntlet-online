@@ -1,8 +1,6 @@
-export const DECK_SUITS = [
-  { id: "spades", symbol: "♠" }, { id: "hearts", symbol: "♥" },
-  { id: "diamonds", symbol: "♦" }, { id: "clubs", symbol: "♣" }
-];
-export const DECK_VALUES = Array.from({ length: 13 }, (_, index) => index + 2);
+import { SUITS, SUIT_NAMES, VALUES } from "@gauntlet/duel-rules/gameConfig";
+export const DECK_SUITS = SUITS.map((symbol, index) => ({ id: SUIT_NAMES[index], symbol }));
+export const DECK_VALUES = VALUES;
 export const rankLabel = (value) => ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[value] || String(value);
 export const slotLabel = (slot) => `${rankLabel(slot.value)} of ${slot.suit}`;
 

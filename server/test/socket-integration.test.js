@@ -8,9 +8,12 @@ const { io: createClient } = require("socket.io-client");
 const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "gauntlet-socket-integration-"));
 process.env.ACCOUNT_DATA_FILE = path.join(tempDirectory, "accounts.json");
 process.env.FACTION_STATS_DATA_FILE = path.join(tempDirectory, "faction-stats.json");
-process.env.MATCH_RECORD_DATA_FILE = path.join(tempDirectory, "match-records.json");
+process.env.MATCH_DATA_FILE = path.join(tempDirectory, "match-records.json");
+process.env.MATCH_ARCHIVE_DATA_DIR = path.join(tempDirectory, "archive");
+process.env.GAUNTLET_CONTENT_DATA_DIR = path.join(tempDirectory, "content");
 process.env.ROOM_STATE_DATA_FILE = path.join(tempDirectory, "rooms.json");
-process.env.AUTH_SECRET = "socket-integration-test-secret-with-enough-length";
+process.env.ACCOUNT_AUTH_SECRET = "socket-integration-test-secret-with-enough-length";
+for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"]) delete process.env[key];
 
 const { server, __test } = require("../index");
 

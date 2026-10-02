@@ -5,7 +5,9 @@ const zlib = require("node:zlib");
 const buildDirectory = path.resolve(__dirname, "../client/build/static/js");
 const KIB = 1024;
 const budgets = {
-  mainGzip: 175 * KIB,
+  // Typed content presentation adds about 1 KiB to the production entry point.
+  mainGzip: 177 * KIB,
+  adminGzip: 18 * KIB,
   largestAsyncGzip: 350 * KIB,
   // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
   // The 72-card guide stays in static HTML, outside the application bundle.
@@ -18,7 +20,8 @@ const budgets = {
   // Artwork gallery controls and the accessible card zoom dialog add ~2 KiB.
   // Keep the initial-load and largest-chunk ceilings unchanged.
   // Per-player persistent minimization for unused vault pack credits.
-  totalJavaScriptGzip: 732 * KIB
+  // Admin is lazy-loaded and measured separately; player contracts add ~3 KiB.
+  totalJavaScriptGzip: 736 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {
@@ -42,9 +45,12 @@ const largestAsync = asynchronous.reduce(
   (largest, asset) => (!largest || asset.gzipBytes > largest.gzipBytes ? asset : largest),
   null
 );
-const totalGzipBytes = assets.reduce((total, asset) => total + asset.gzipBytes, 0);
+const adminAssets = assets.filter((asset) => /^gauntlet-admin(?:-authoring)?\./.test(asset.name));
+const adminGzipBytes = adminAssets.reduce((total, asset) => total + asset.gzipBytes, 0);
+const totalGzipBytes = assets.reduce((total, asset) => total + asset.gzipBytes, 0) - adminGzipBytes;
 
 const failures = [];
+if (adminGzipBytes > budgets.adminGzip) failures.push(`Admin JavaScript is ${adminGzipBytes} bytes gzip; budget is ${budgets.adminGzip}.`);
 if (!main) failures.push("Could not identify the main client bundle.");
 if (main && main.gzipBytes > budgets.mainGzip) {
   failures.push(`Main bundle is ${main.gzipBytes} bytes gzip; budget is ${budgets.mainGzip}.`);
@@ -69,7 +75,8 @@ console.log(
   `  largest async: ${largestAsync ? `${largestAsync.name} ${toKib(largestAsync.gzipBytes)}` : "none"}`
   + ` / ${toKib(budgets.largestAsyncGzip)}`
 );
-console.log(`  all JavaScript: ${toKib(totalGzipBytes)} / ${toKib(budgets.totalJavaScriptGzip)}`);
+console.log(`  player JavaScript: ${toKib(totalGzipBytes)} / ${toKib(budgets.totalJavaScriptGzip)}`);
+console.log(`  lazy Admin JavaScript: ${toKib(adminGzipBytes)} / ${toKib(budgets.adminGzip)}`);
 
 if (failures.length > 0) {
   throw new Error(failures.join("\n"));

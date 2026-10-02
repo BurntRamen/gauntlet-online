@@ -1,8 +1,9 @@
+const { hasCardEffect, factionMechanicId } = require("./effectRegistry");
 "use strict";
 
 const { addTemporaryEffect } = require("./effects");
 
-const isZynarth = (player) => player?.faction?.id === "zynarth";
+const isZynarth = (player) => factionMechanicId(player) === "zynarth";
 const underlings = (game, playerNumber) => game.lanes
   .map((lane, laneIndex) => ({ card: lane.facedown[playerNumber], laneIndex }))
   .filter(({ card }) => card?.zynarthUnderling);
@@ -49,7 +50,7 @@ function hatch(game, playerNumber, laneIndex, form, events, event, source = "Bro
   const entry = game.lanes[laneIndex]?.facedown?.[playerNumber];
   if (!entry?.zynarthEgg) return false;
   const card = token(game, playerNumber, form);
-  if (game.lanes.some((lane) => lane.support?.[playerNumber]?.definitionId === "zynarth-spawning-pool")) {
+  if (game.lanes.some((lane) => hasCardEffect(lane.support?.[playerNumber], "zynarth-spawning-pool"))) {
     addTemporaryEffect(card, 1, { name: "Spawning Pool" }, game.turn);
   }
   game.lanes[laneIndex].facedown[playerNumber] = card;

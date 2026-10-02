@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./Studio.css";
+import GauntletAdmin from "./GauntletAdmin";
 
 function shortId(value) {
   return value ? String(value).slice(0, 10) : "—";
@@ -13,10 +14,9 @@ function Status({ good, children }) {
   return <span className={`studio-status ${good ? "is-good" : "is-warning"}`}>{children}</span>;
 }
 
-export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onOpenReplay }) {
+export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthorizedChange, onOpenMatch, onOpenReplay }) {
   const sessionRef = useRef("");
-  const [ownerToken, setOwnerToken] = useState("");
-  const [authorized, setAuthorized] = useState(false);
+  const [authorizedToken, setAuthorizedToken] = useState("");
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,78 +24,68 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
   const [importRecord, setImportRecord] = useState(null);
   const [importPreview, setImportPreview] = useState(null);
   const [importMessage, setImportMessage] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
-  const loadOverview = useCallback(async (sessionToken = sessionRef.current) => {
-    if (!sessionToken) return;
-    setLoading(true);
-    try {
-      const response = await fetch(`${serverUrl}/api/admin/overview`, {
-        headers: { "x-owner-session": sessionToken }
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Could not load Studio operations.");
-      setOverview(body);
-      setError("");
-    } catch (loadError) {
-      setError(loadError.message);
-      if (/authorization/i.test(loadError.message)) {
-        sessionRef.current = "";
-        setAuthorized(false);
-        onAuthorizedChange?.(false);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [onAuthorizedChange, serverUrl]);
-
-  useEffect(() => () => {
+  const closeAdmin = useCallback(() => {
     sessionRef.current = "";
-  }, []);
+    setAuthorizedToken("");
+    setOverview(null);
+    setImportRecord(null);
+    setImportPreview(null);
+    setImportMessage("");
+    onAuthorizedChange?.(false);
+  }, [onAuthorizedChange]);
 
-  async function authorize(event) {
-    event.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    let active = true;
+    closeAdmin();
     setError("");
-    try {
-      const response = await fetch(`${serverUrl}/api/admin/session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerToken })
-      });
-      const body = await response.json();
-      setOwnerToken("");
-      if (!response.ok) throw new Error(body.error || "Owner authorization failed.");
-      sessionRef.current = body.sessionToken;
-      setAuthorized(true);
-      onAuthorizedChange?.(true);
-      await loadOverview(body.sessionToken);
-    } catch (authorizationError) {
-      setError(authorizationError.message);
-      setAuthorized(false);
-      onAuthorizedChange?.(false);
-    } finally {
-      setLoading(false);
-    }
-  }
+    if (!authToken) return undefined;
+    setLoading(true);
+    fetch(`${serverUrl}/api/admin/access`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then(async (response) => {
+        const body = await response.json();
+        if (!response.ok || !body.authorized) throw new Error(body.error || "This account does not have admin access.");
+        if (active) {
+          sessionRef.current = authToken;
+          setAuthorizedToken(authToken);
+          onAuthorizedChange?.(true);
+        }
+      })
+      .catch((failure) => { if (active) setError(failure.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; sessionRef.current = ""; };
+  }, [authToken, serverUrl, closeAdmin, onAuthorizedChange, attempt]);
 
-  async function ownerRequest(path, options = {}) {
+  const ownerRequest = useCallback(async (path, options = {}) => {
+    const token = sessionRef.current;
+    if (!token || token !== authToken) throw new Error("Sign in with an authorized account.");
     const response = await fetch(`${serverUrl}${path}`, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        "x-owner-session": sessionRef.current,
-        ...(options.headers || {})
-      }
+      headers: { "Content-Type": "application/json", ...(options.headers || {}), Authorization: `Bearer ${token}` }
     });
     const body = await response.json();
-    if (!response.ok) throw new Error(body.error || "Studio archive operation failed.");
+    if (sessionRef.current !== token) throw new Error("Admin session closed.");
+    if (response.status === 401 || response.status === 403) closeAdmin();
+    if (!response.ok) throw new Error(body.error || "Admin data is unavailable.");
     return body;
-  }
+  }, [authToken, closeAdmin, serverUrl]);
+
+  const loadOverview = useCallback(async () => {
+    setLoading(true);
+    try { setOverview(await ownerRequest("/api/admin/overview")); setError(""); }
+    catch (failure) { setError(failure.message); }
+    finally { setLoading(false); }
+  }, [ownerRequest]);
+
+  useEffect(() => {
+    if (authorizedToken && authorizedToken === authToken) loadOverview();
+  }, [authorizedToken, authToken, loadOverview]);
 
   async function downloadMatchJson(matchId) {
     try {
       const response = await fetch(`${serverUrl}/api/matches/${encodeURIComponent(matchId)}/archive`, {
-        headers: { "x-owner-session": sessionRef.current }
+        headers: { Authorization: `Bearer ${sessionRef.current}` }
       });
       if (!response.ok) throw new Error((await response.json()).error || "Could not download match JSON.");
       const blob = await response.blob();
@@ -158,17 +148,14 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
     }
   }
 
-  if (!authorized) {
+  if (!authorizedToken || authorizedToken !== authToken) {
     return (
       <section className="studio-gate" aria-labelledby="studio-gate-title">
-        <span>Private operations</span>
-        <h3 id="studio-gate-title">Owner authorization required</h3>
-        <p>Studio is not linked from the player experience. The owner credential is exchanged for a short-lived, memory-only session and is never stored in the browser.</p>
-        <form onSubmit={authorize}>
-          <label htmlFor="studio-owner-token">Owner token</label>
-          <input id="studio-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={(event) => setOwnerToken(event.target.value)} />
-          <button type="submit" disabled={!ownerToken || loading}>{loading ? "Authorizing…" : "Open Studio"}</button>
-        </form>
+        <span>Gauntlet Admin · private operations</span>
+        <h3 id="studio-gate-title">Private administration</h3>
+        <p>Gauntlet Admin is restricted to simply and Burnt Ramen. Access is checked by the server using your existing account session.</p>
+        {!authToken && <button onClick={onSignIn}>Sign in through Identity</button>}
+        {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}
       </section>
     );
@@ -179,7 +166,7 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
   const collector = overview?.collector || {};
   const system = overview?.system || {};
   const season = overview?.season || {};
-  return (
+  const operations = overview ? (
     <div className="studio" aria-busy={loading}>
       <header className="studio-header">
         <div><span>Owner operations</span><h3>Gauntlet Studio</h3><p>Safe production projections only—no player hands, deck contents, credentials, or signed claim tokens.</p></div>
@@ -253,5 +240,6 @@ export default function Studio({ serverUrl, onAuthorizedChange, onOpenMatch, onO
       </section>
       <p className="studio-generated">Generated {formatDate(overview?.generatedAt)} · account storage {system.accountStorage || "unknown"} · Supabase {system.supabaseConfigured ? "configured" : "not configured"}</p>
     </div>
-  );
+  ) : <p role={error ? "alert" : "status"}>{error || "Loading existing operations…"}</p>;
+  return <GauntletAdmin request={ownerRequest} onClose={closeAdmin} operations={operations} />;
 }

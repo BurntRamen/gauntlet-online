@@ -1,0 +1,1154 @@
+[
+  {
+    "id": "gilded-scale-legionary",
+    "version": 1,
+    "legacyCardId": "rumin-gilded-scale-legionary",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "gilded-scale-legionary",
+    "parameters": {}
+  },
+  {
+    "id": "forum-ledger-runner",
+    "version": 1,
+    "legacyCardId": "rumin-forum-ledger-runner",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "forum-ledger-runner",
+    "parameters": {}
+  },
+  {
+    "id": "vault-shield-bearer",
+    "version": 1,
+    "legacyCardId": "rumin-vault-shield-bearer",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "vault-shield-bearer",
+    "parameters": {}
+  },
+  {
+    "id": "coin-scale-spear",
+    "version": 1,
+    "legacyCardId": "rumin-coin-scale-spear",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "coin-scale-spear",
+    "parameters": {
+      "armBonus": {
+        "min": 0,
+        "max": 8,
+        "default": 2
+      }
+    }
+  },
+  {
+    "id": "senate-vault-guard",
+    "version": 1,
+    "legacyCardId": "rumin-senate-vault-guard",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "senate-vault-guard",
+    "parameters": {}
+  },
+  {
+    "id": "marble-market-tribune",
+    "version": 1,
+    "legacyCardId": "rumin-marble-market-tribune",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "marble-market-tribune",
+    "parameters": {}
+  },
+  {
+    "id": "rumie-vault-shield",
+    "version": 1,
+    "legacyCardId": "rumin-rumie-vault-shield",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "rumie-vault-shield",
+    "parameters": {
+      "armBonus": {
+        "min": 0,
+        "max": 8,
+        "default": 3
+      }
+    }
+  },
+  {
+    "id": "imperial-scale-pike",
+    "version": 1,
+    "legacyCardId": "rumin-imperial-scale-pike",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "imperial-scale-pike",
+    "parameters": {}
+  },
+  {
+    "id": "aurelian-clawblade",
+    "version": 1,
+    "legacyCardId": "rumin-aurelian-clawblade",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "aurelian-clawblade",
+    "parameters": {
+      "armBonus": {
+        "min": 0,
+        "max": 8,
+        "default": 4
+      }
+    }
+  },
+  {
+    "id": "basilisk-standard",
+    "version": 1,
+    "legacyCardId": "rumin-basilisk-standard",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "basilisk-standard",
+    "parameters": {}
+  },
+  {
+    "id": "jewel-bank-contract",
+    "version": 1,
+    "legacyCardId": "rumin-jewel-bank-contract",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "jewel-bank-contract",
+    "parameters": {}
+  },
+  {
+    "id": "tax-road-scout",
+    "version": 1,
+    "legacyCardId": "rumin-tax-road-scout",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "tax-road-scout",
+    "parameters": {}
+  },
+  {
+    "id": "marble-phalanx",
+    "version": 1,
+    "legacyCardId": "rumin-marble-phalanx",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "marble-phalanx",
+    "parameters": {}
+  },
+  {
+    "id": "counting-house-aegis",
+    "version": 1,
+    "legacyCardId": "rumin-counting-house-aegis",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "counting-house-aegis",
+    "parameters": {}
+  },
+  {
+    "id": "triumphal-ram",
+    "version": 1,
+    "legacyCardId": "rumin-triumphal-ram",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "triumphal-ram",
+    "parameters": {}
+  },
+  {
+    "id": "edict-of-the-vault",
+    "version": 1,
+    "legacyCardId": "rumin-edict-of-the-vault",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "edict-of-the-vault",
+    "parameters": {}
+  },
+  {
+    "id": "kaisers-gold-claw",
+    "version": 1,
+    "legacyCardId": "rumin-kaisers-gold-claw",
+    "factionId": "rumin",
+    "cardType": "armament",
+    "handler": "kaisers-gold-claw",
+    "parameters": {}
+  },
+  {
+    "id": "rumie-market-colossus",
+    "version": 1,
+    "legacyCardId": "rumin-rumie-market-colossus",
+    "factionId": "rumin",
+    "cardType": "servitor",
+    "handler": "rumie-market-colossus",
+    "parameters": {}
+  },
+  {
+    "id": "rootwatch-initiate",
+    "version": 1,
+    "legacyCardId": "sheen-rootwatch-initiate",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "rootwatch-initiate",
+    "parameters": {}
+  },
+  {
+    "id": "quiet-grove-sentinel",
+    "version": 1,
+    "legacyCardId": "sheen-quiet-grove-sentinel",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "quiet-grove-sentinel",
+    "parameters": {}
+  },
+  {
+    "id": "mossbound-staff",
+    "version": 1,
+    "legacyCardId": "sheen-mossbound-staff",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "mossbound-staff",
+    "parameters": {}
+  },
+  {
+    "id": "living-bark-guard",
+    "version": 1,
+    "legacyCardId": "sheen-living-bark-guard",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "living-bark-guard",
+    "parameters": {}
+  },
+  {
+    "id": "beli-vinebinder",
+    "version": 1,
+    "legacyCardId": "sheen-beli-vinebinder",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "beli-vinebinder",
+    "parameters": {}
+  },
+  {
+    "id": "harmony-ward",
+    "version": 1,
+    "legacyCardId": "sheen-harmony-ward",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "harmony-ward",
+    "parameters": {}
+  },
+  {
+    "id": "thornroot-counterstroke",
+    "version": 1,
+    "legacyCardId": "sheen-thornroot-counterstroke",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "thornroot-counterstroke",
+    "parameters": {}
+  },
+  {
+    "id": "beli-canopy-shield",
+    "version": 1,
+    "legacyCardId": "sheen-beli-canopy-shield",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "beli-canopy-shield",
+    "parameters": {}
+  },
+  {
+    "id": "nus-verdant-edict",
+    "version": 1,
+    "legacyCardId": "sheen-nus-verdant-edict",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "nus-verdant-edict",
+    "parameters": {}
+  },
+  {
+    "id": "roots-that-remember",
+    "version": 1,
+    "legacyCardId": "sheen-roots-that-remember",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "roots-that-remember",
+    "parameters": {}
+  },
+  {
+    "id": "tangs-patient-hand",
+    "version": 1,
+    "legacyCardId": "sheen-tangs-patient-hand",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "tangs-patient-hand",
+    "parameters": {}
+  },
+  {
+    "id": "seedwall-acolyte",
+    "version": 1,
+    "legacyCardId": "sheen-seedwall-acolyte",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "seedwall-acolyte",
+    "parameters": {}
+  },
+  {
+    "id": "raincall-mender",
+    "version": 1,
+    "legacyCardId": "sheen-raincall-mender",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "raincall-mender",
+    "parameters": {}
+  },
+  {
+    "id": "ringroot-bastion",
+    "version": 1,
+    "legacyCardId": "sheen-ringroot-bastion",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "ringroot-bastion",
+    "parameters": {}
+  },
+  {
+    "id": "sapling-chorus",
+    "version": 1,
+    "legacyCardId": "sheen-sapling-chorus",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "sapling-chorus",
+    "parameters": {}
+  },
+  {
+    "id": "nus-calm-command",
+    "version": 1,
+    "legacyCardId": "sheen-nus-calm-command",
+    "factionId": "sheen",
+    "cardType": "servitor",
+    "handler": "nus-calm-command",
+    "parameters": {}
+  },
+  {
+    "id": "emperors-heartwood",
+    "version": 1,
+    "legacyCardId": "sheen-emperors-heartwood",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "emperors-heartwood",
+    "parameters": {}
+  },
+  {
+    "id": "beli-awakened",
+    "version": 1,
+    "legacyCardId": "sheen-beli-awakened",
+    "factionId": "sheen",
+    "cardType": "shelter",
+    "handler": "beli-awakened",
+    "parameters": {}
+  },
+  {
+    "id": "deckhand-diver",
+    "version": 1,
+    "legacyCardId": "frumo-deckhand-diver",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "deckhand-diver",
+    "parameters": {}
+  },
+  {
+    "id": "tideglass-cutlass",
+    "version": 1,
+    "legacyCardId": "frumo-tideglass-cutlass",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "tideglass-cutlass",
+    "parameters": {}
+  },
+  {
+    "id": "sunken-coin",
+    "version": 1,
+    "legacyCardId": "frumo-sunken-coin",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "sunken-coin",
+    "parameters": {}
+  },
+  {
+    "id": "coral-hull-guard",
+    "version": 1,
+    "legacyCardId": "frumo-coral-hull-guard",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "coral-hull-guard",
+    "parameters": {}
+  },
+  {
+    "id": "riptide-smuggler",
+    "version": 1,
+    "legacyCardId": "frumo-riptide-smuggler",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "riptide-smuggler",
+    "parameters": {}
+  },
+  {
+    "id": "lafayettes-chart",
+    "version": 1,
+    "legacyCardId": "frumo-lafayettes-chart",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "lafayettes-chart",
+    "parameters": {}
+  },
+  {
+    "id": "pressure-lock-pistol",
+    "version": 1,
+    "legacyCardId": "frumo-pressure-lock-pistol",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "pressure-lock-pistol",
+    "parameters": {}
+  },
+  {
+    "id": "ristus-blackwake",
+    "version": 1,
+    "legacyCardId": "frumo-ristus-blackwake",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "ristus-blackwake",
+    "parameters": {}
+  },
+  {
+    "id": "captains-bad-wager",
+    "version": 1,
+    "legacyCardId": "frumo-captains-bad-wager",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "captains-bad-wager",
+    "parameters": {}
+  },
+  {
+    "id": "poleas-sunken-order",
+    "version": 1,
+    "legacyCardId": "frumo-poleas-sunken-order",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "poleas-sunken-order",
+    "parameters": {}
+  },
+  {
+    "id": "leviathan-salvage",
+    "version": 1,
+    "legacyCardId": "frumo-leviathan-salvage",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "leviathan-salvage",
+    "parameters": {}
+  },
+  {
+    "id": "kelpcloak-trickster",
+    "version": 1,
+    "legacyCardId": "frumo-kelpcloak-trickster",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "kelpcloak-trickster",
+    "parameters": {}
+  },
+  {
+    "id": "ballast-hook",
+    "version": 1,
+    "legacyCardId": "frumo-ballast-hook",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "ballast-hook",
+    "parameters": {}
+  },
+  {
+    "id": "tide-debt-ledger",
+    "version": 1,
+    "legacyCardId": "frumo-tide-debt-ledger",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "tide-debt-ledger",
+    "parameters": {}
+  },
+  {
+    "id": "abyssal-switchboard",
+    "version": 1,
+    "legacyCardId": "frumo-abyssal-switchboard",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "abyssal-switchboard",
+    "parameters": {}
+  },
+  {
+    "id": "poleas-moonlit-map",
+    "version": 1,
+    "legacyCardId": "frumo-poleas-moonlit-map",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "poleas-moonlit-map",
+    "parameters": {}
+  },
+  {
+    "id": "the-last-gamble",
+    "version": 1,
+    "legacyCardId": "frumo-the-last-gamble",
+    "factionId": "frumo",
+    "cardType": "ambush",
+    "handler": "the-last-gamble",
+    "parameters": {}
+  },
+  {
+    "id": "ristus-rises",
+    "version": 1,
+    "legacyCardId": "frumo-ristus-rises",
+    "factionId": "frumo",
+    "cardType": "servitor",
+    "handler": "ristus-rises",
+    "parameters": {}
+  },
+  {
+    "id": "copperline-technician",
+    "version": 1,
+    "legacyCardId": "bizi-copperline-technician",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "copperline-technician",
+    "parameters": {}
+  },
+  {
+    "id": "voltage-ration",
+    "version": 1,
+    "legacyCardId": "bizi-voltage-ration",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "voltage-ration",
+    "parameters": {}
+  },
+  {
+    "id": "dune-circuit-runner",
+    "version": 1,
+    "legacyCardId": "bizi-dune-circuit-runner",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "dune-circuit-runner",
+    "parameters": {}
+  },
+  {
+    "id": "gearplate-shield",
+    "version": 1,
+    "legacyCardId": "bizi-gearplate-shield",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "gearplate-shield",
+    "parameters": {}
+  },
+  {
+    "id": "heras-calibration",
+    "version": 1,
+    "legacyCardId": "bizi-heras-calibration",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "heras-calibration",
+    "parameters": {}
+  },
+  {
+    "id": "solar-array-adept",
+    "version": 1,
+    "legacyCardId": "bizi-solar-array-adept",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "solar-array-adept",
+    "parameters": {}
+  },
+  {
+    "id": "constanti-conduit",
+    "version": 1,
+    "legacyCardId": "bizi-constanti-conduit",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "constanti-conduit",
+    "parameters": {}
+  },
+  {
+    "id": "sandstorm-processor",
+    "version": 1,
+    "legacyCardId": "bizi-sandstorm-processor",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "sandstorm-processor",
+    "parameters": {}
+  },
+  {
+    "id": "focus-overclock",
+    "version": 1,
+    "legacyCardId": "bizi-focus-overclock",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "focus-overclock",
+    "parameters": {}
+  },
+  {
+    "id": "regnum-voltage-bank",
+    "version": 1,
+    "legacyCardId": "bizi-regnum-voltage-bank",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "regnum-voltage-bank",
+    "parameters": {}
+  },
+  {
+    "id": "desert-logic-engine",
+    "version": 1,
+    "legacyCardId": "bizi-desert-logic-engine",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "desert-logic-engine",
+    "parameters": {}
+  },
+  {
+    "id": "brass-spark",
+    "version": 1,
+    "legacyCardId": "bizi-brass-spark",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "brass-spark",
+    "parameters": {}
+  },
+  {
+    "id": "railspike-marshal",
+    "version": 1,
+    "legacyCardId": "bizi-railspike-marshal",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "railspike-marshal",
+    "parameters": {}
+  },
+  {
+    "id": "heat-sink-matrix",
+    "version": 1,
+    "legacyCardId": "bizi-heat-sink-matrix",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "heat-sink-matrix",
+    "parameters": {}
+  },
+  {
+    "id": "clockwork-caravan",
+    "version": 1,
+    "legacyCardId": "bizi-clockwork-caravan",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "clockwork-caravan",
+    "parameters": {}
+  },
+  {
+    "id": "voltaric-ultimatum",
+    "version": 1,
+    "legacyCardId": "bizi-voltaric-ultimatum",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "voltaric-ultimatum",
+    "parameters": {}
+  },
+  {
+    "id": "focus-prime-signal",
+    "version": 1,
+    "legacyCardId": "bizi-focus-prime-signal",
+    "factionId": "bizi",
+    "cardType": "contraption",
+    "handler": "focus-prime-signal",
+    "parameters": {}
+  },
+  {
+    "id": "constanti-sunforge",
+    "version": 1,
+    "legacyCardId": "bizi-constanti-sunforge",
+    "factionId": "bizi",
+    "cardType": "servitor",
+    "handler": "constanti-sunforge",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-spore-runner",
+    "version": 1,
+    "legacyCardId": "zynarth-spore-runner",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-spore-runner",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-nutrient-tender",
+    "version": 1,
+    "legacyCardId": "zynarth-nutrient-tender",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-nutrient-tender",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-brood-shepherd",
+    "version": 1,
+    "legacyCardId": "zynarth-brood-shepherd",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-brood-shepherd",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-carapace-keeper",
+    "version": 1,
+    "legacyCardId": "zynarth-carapace-keeper",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-carapace-keeper",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-adaptive-stalker",
+    "version": 1,
+    "legacyCardId": "zynarth-adaptive-stalker",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-adaptive-stalker",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-hunting-cluster",
+    "version": 1,
+    "legacyCardId": "zynarth-hunting-cluster",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-hunting-cluster",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-biomass-reclaimer",
+    "version": 1,
+    "legacyCardId": "zynarth-biomass-reclaimer",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-biomass-reclaimer",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-hive-warden",
+    "version": 1,
+    "legacyCardId": "zynarth-hive-warden",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-hive-warden",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-brood-titan",
+    "version": 1,
+    "legacyCardId": "zynarth-brood-titan",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-brood-titan",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-ancient-devourer",
+    "version": 1,
+    "legacyCardId": "zynarth-ancient-devourer",
+    "factionId": "zynarth",
+    "cardType": "servitor",
+    "handler": "zynarth-ancient-devourer",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-spawning-pool",
+    "version": 1,
+    "legacyCardId": "zynarth-spawning-pool",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-spawning-pool",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-pheromone-route",
+    "version": 1,
+    "legacyCardId": "zynarth-pheromone-route",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-pheromone-route",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-hardened-nursery",
+    "version": 1,
+    "legacyCardId": "zynarth-hardened-nursery",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-hardened-nursery",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-metabolic-web",
+    "version": 1,
+    "legacyCardId": "zynarth-metabolic-web",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-metabolic-web",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-adaptive-carapace",
+    "version": 1,
+    "legacyCardId": "zynarth-adaptive-carapace",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-adaptive-carapace",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-carrion-vat",
+    "version": 1,
+    "legacyCardId": "zynarth-carrion-vat",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-carrion-vat",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-ravenous-cycle",
+    "version": 1,
+    "legacyCardId": "zynarth-ravenous-cycle",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-ravenous-cycle",
+    "parameters": {}
+  },
+  {
+    "id": "zynarth-broodmind-synapse",
+    "version": 1,
+    "legacyCardId": "zynarth-broodmind-synapse",
+    "factionId": "zynarth",
+    "cardType": "biomorph",
+    "handler": "zynarth-broodmind-synapse",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-orbital-pathfinder",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-orbital-pathfinder",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-orbital-pathfinder",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-breach-team",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-breach-team",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-breach-team",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-shock-trooper",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-shock-trooper",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-shock-trooper",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-electronic-warfare-specialist",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-electronic-warfare-specialist",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-electronic-warfare-specialist",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-incendiary-trooper",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-incendiary-trooper",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-incendiary-trooper",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-combat-medic",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-combat-medic",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-combat-medic",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-jump-trooper",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-jump-trooper",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-jump-trooper",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-powered-breacher",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-powered-breacher",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-powered-breacher",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-emp-grenadier",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-emp-grenadier",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-emp-grenadier",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-aegis-shock-company",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-aegis-shock-company",
+    "factionId": "astral-vanguard",
+    "cardType": "servitor",
+    "handler": "astral-vanguard-aegis-shock-company",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-drop-pod-beacon",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-drop-pod-beacon",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-drop-pod-beacon",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-forward-supply-cache",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-forward-supply-cache",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-forward-supply-cache",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-field-triage",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-field-triage",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-field-triage",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-suppression-order",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-suppression-order",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-suppression-order",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-breach-charge",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-breach-charge",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-breach-charge",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-tactical-relay",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-tactical-relay",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-tactical-relay",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-orbital-interdiction",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-orbital-interdiction",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-orbital-interdiction",
+    "parameters": {}
+  },
+  {
+    "id": "astral-vanguard-fleet-command",
+    "version": 1,
+    "legacyCardId": "astral-vanguard-fleet-command",
+    "factionId": "astral-vanguard",
+    "cardType": "operation",
+    "handler": "astral-vanguard-fleet-command",
+    "parameters": {}
+  },
+  {
+    "id": "indela-student-of-flame",
+    "version": 1,
+    "legacyCardId": "indela-student-of-flame",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-student-of-flame",
+    "parameters": {}
+  },
+  {
+    "id": "indela-frost-apprentice",
+    "version": 1,
+    "legacyCardId": "indela-frost-apprentice",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-frost-apprentice",
+    "parameters": {}
+  },
+  {
+    "id": "indela-blazing-initiate",
+    "version": 1,
+    "legacyCardId": "indela-blazing-initiate",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-blazing-initiate",
+    "parameters": {}
+  },
+  {
+    "id": "indela-glacier-initiate",
+    "version": 1,
+    "legacyCardId": "indela-glacier-initiate",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-glacier-initiate",
+    "parameters": {}
+  },
+  {
+    "id": "indela-flameweaver",
+    "version": 1,
+    "legacyCardId": "indela-flameweaver",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-flameweaver",
+    "parameters": {}
+  },
+  {
+    "id": "indela-blizzard-caller",
+    "version": 1,
+    "legacyCardId": "indela-blizzard-caller",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-blizzard-caller",
+    "parameters": {}
+  },
+  {
+    "id": "indela-mystic-of-embers",
+    "version": 1,
+    "legacyCardId": "indela-mystic-of-embers",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-mystic-of-embers",
+    "parameters": {}
+  },
+  {
+    "id": "indela-arctic-channeler",
+    "version": 1,
+    "legacyCardId": "indela-arctic-channeler",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-arctic-channeler",
+    "parameters": {}
+  },
+  {
+    "id": "indela-fire-enchanter",
+    "version": 1,
+    "legacyCardId": "indela-fire-enchanter",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-fire-enchanter",
+    "parameters": {}
+  },
+  {
+    "id": "indela-headmaster",
+    "version": 1,
+    "legacyCardId": "indela-headmaster",
+    "factionId": "indela",
+    "cardType": "servitor",
+    "handler": "indela-headmaster",
+    "parameters": {}
+  },
+  {
+    "id": "indela-arcane-amplification",
+    "version": 1,
+    "legacyCardId": "indela-arcane-amplification",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-arcane-amplification",
+    "parameters": {}
+  },
+  {
+    "id": "indela-elemental-infusion",
+    "version": 1,
+    "legacyCardId": "indela-elemental-infusion",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-elemental-infusion",
+    "parameters": {}
+  },
+  {
+    "id": "indela-scorched-earth-ritual",
+    "version": 1,
+    "legacyCardId": "indela-scorched-earth-ritual",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-scorched-earth-ritual",
+    "parameters": {}
+  },
+  {
+    "id": "indela-frostbite-gale",
+    "version": 1,
+    "legacyCardId": "indela-frostbite-gale",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-frostbite-gale",
+    "parameters": {}
+  },
+  {
+    "id": "indela-glacial-insight",
+    "version": 1,
+    "legacyCardId": "indela-glacial-insight",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-glacial-insight",
+    "parameters": {}
+  },
+  {
+    "id": "indela-ring-of-fire",
+    "version": 1,
+    "legacyCardId": "indela-ring-of-fire",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-ring-of-fire",
+    "parameters": {}
+  },
+  {
+    "id": "indela-frost-nova",
+    "version": 1,
+    "legacyCardId": "indela-frost-nova",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-frost-nova",
+    "parameters": {}
+  },
+  {
+    "id": "indela-elemental-array",
+    "version": 1,
+    "legacyCardId": "indela-elemental-array",
+    "factionId": "indela",
+    "cardType": "arcana",
+    "handler": "indela-elemental-array",
+    "parameters": {}
+  }
+]

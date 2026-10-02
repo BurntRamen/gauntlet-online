@@ -59,7 +59,7 @@ function loadMatchesHub() {
 
 function loadStudio() {
   if (studioModule) return Promise.resolve(studioModule);
-  if (!studioPromise) studioPromise = import("./Studio").then((module) => {
+  if (!studioPromise) studioPromise = import(/* webpackChunkName: "gauntlet-admin" */ "./Studio").then((module) => {
     studioModule = module;
     return module;
   });
@@ -142,7 +142,7 @@ const INITIAL_JOIN_ROOM_CODE =
     ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
     : "";
 const INITIAL_HOME_AREA =
-  typeof window !== "undefined" && new URLSearchParams(window.location.search).get("studio") === "1"
+  typeof window !== "undefined" && (/^\/admin\/gauntlet(?:\/|$)/.test(window.location.pathname) || new URLSearchParams(window.location.search).get("studio") === "1" || new URLSearchParams(window.location.search).get("admin") === "1")
     ? "studio"
     : INITIAL_JOIN_ROOM_CODE ? "play" : "journey";
 
@@ -3167,7 +3167,7 @@ function RulebookPanel() {
     {
       title: "Setup",
       rules: [
-        "Each player starts at 42 life and draws 8 cards.",
+        "Each player starts at 42 life and draws their opening hand.",
         "A random player starts with priority.",
         "Aces count as value 14."
       ]
@@ -3201,7 +3201,7 @@ function RulebookPanel() {
       rules: [
         "After damage resolves, priority returns to the defender of the most recent attack.",
         "When both players pass with no pending attacks, players place face-down cards lane by lane.",
-        "After all lanes are handled, both players draw back up to 8 and priority changes players.",
+        "After all lanes are handled, both players draw back to their starting hand size and priority changes players.",
         "Life totals are checked only at the end of the turn, after lane placement and draw-up are complete."
       ]
     },
@@ -3266,7 +3266,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
     },
     {
       title: "6. End the Turn",
-      text: "When both players pass with no pending attacks, the game enters end phase. Players place face-down lane cards lane by lane, then draw back up to 8."
+      text: "When both players pass with no pending attacks, the game enters end phase. Players place face-down lane cards lane by lane, then draw back to their starting hand size."
     },
     {
       title: "7. Pick a Learning Mode",
@@ -3566,6 +3566,7 @@ export default function App() {
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useState(false);
+  const adminSignInRequested = useRef(false);
   const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
   const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
   const [identityView, setIdentityView] = useState("profile");
@@ -3682,7 +3683,7 @@ export default function App() {
       && !lobby?.players?.[2]?.isAI
       && !game.players?.[1]?.isAI
       && !game.players?.[2]?.isAI
-      && game.players?.[2]?.accountName !== "Training AI"
+      && game.players?.[2]?.opponentKind !== "training-ai"
       && rematchStatus.available !== false
     )
   }), [activeSeason, game, lobby, rematchStatus]);
@@ -4158,7 +4159,7 @@ export default function App() {
         currentIdentityKey &&
         newGame?.phase === "gameOver" &&
         newGame?.gameMode === "basic" &&
-        newGame?.players?.[2]?.accountName === "Training AI"
+        newGame?.players?.[2]?.opponentKind === "training-ai"
       ) {
         setTutorialCompletions((previous) => {
           if (previous[currentIdentityKey]) return previous;
@@ -4429,7 +4430,10 @@ export default function App() {
       setAuthToken(data.token);
       setAccount(data.account);
       setAuthForm({ name: "", password: "" });
-      if (returnToDraftAfterAuth) {
+      if (adminSignInRequested.current) {
+        adminSignInRequested.current = false;
+        navigateHomeArea("studio");
+      } else if (returnToDraftAfterAuth) {
         setReturnToDraftAfterAuth(false);
         setPlayView("draft");
         navigateHomeArea("play");
@@ -5171,6 +5175,24 @@ export default function App() {
     );
   }
 
+  if (homeArea === "studio" && !game && !lobby) {
+    return (
+      <main className="admin-page">
+        <button className="admin-back" onClick={() => navigateHomeArea("journey")}>Back to Gauntlet</button>
+        <Suspense fallback={<SurfaceLoading label="Gauntlet Admin" />}>
+          <Studio
+            serverUrl={SOCKET_URL}
+            authToken={authToken}
+            onSignIn={() => { adminSignInRequested.current = true; setIdentityView("profile"); navigateHomeArea("identity"); }}
+            onAuthorizedChange={setOwnerAuthorized}
+            onOpenMatch={(matchId) => openPublicView("match", matchId)}
+            onOpenReplay={openReplay}
+          />
+        </Suspense>
+      </main>
+    );
+  }
+
   if (!gameContent) {
     return (
       <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath("/assets/gauntlet/kaiser-gauntlet.webp")})` }}>
@@ -5317,13 +5339,13 @@ export default function App() {
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
                   <div className="play-format-heading">
-                    <div><strong>Practice privately</strong><span>Choose core rules or the complete faction game.</span></div>
+                    <div><strong>{gameContent.modeMetadata?.practice?.name || "Practice privately"}</strong><span>{gameContent.modeMetadata?.practice?.description || "Choose core rules or the complete faction game."}</span></div>
                     {!account && <small>Play immediately as a guest. Sign in to keep progression and rewards.</small>}
                   </div>
                   {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
                   <div className="play-choice-grid">
-                    <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>Basic vs AI</strong><small>Practice priority, payment, blocking, and lanes.</small></button>
-                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>Factions vs AI</strong><small>Commanders, cities, generals, and faction powers.</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>{gameContent.modeMetadata?.basic?.name || "Basic vs AI"}</strong><small>{gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."}</small></button>
+                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>{gameContent.modeMetadata?.factions?.name || "Factions"} vs AI</strong><small>{gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."}</small></button>
                   </div>
                 </MenuCard>
               )}
@@ -5421,8 +5443,8 @@ export default function App() {
                     status={draftLeagueStatus}
                     onJoin={() => joinDraftLeague("player", 1)}
                     onLeave={leaveDraftLeague}
-                    title="Draft League"
-                    description="Play a human opponent using a saved draft deck. Live-draft and bot-draft decks use separate queues."
+                    title={gameContent.modeMetadata?.draftLeague?.name || "Draft League"}
+                    description={gameContent.modeMetadata?.draftLeague?.description || "Queue with a saved one-faction draft deck. Player and bot draft decks use separate queues."}
                     joinLabel="Play saved live-draft deck"
                     cancelLabel="Leave Draft Queue"
                     signedOutText="Sign in and save a draft deck to enter Draft League."
@@ -5475,7 +5497,8 @@ export default function App() {
                   </div>
                   <div className="journey-panel-copy">
                     <span>Phase Two / Choose a Faction</span>
-                    <h3>Enter the commander archives</h3>
+                    <h3>{gameContent.modeMetadata?.campaign?.name || "Enter the commander archives"}</h3>
+                    <p>{gameContent.modeMetadata?.campaign?.description}</p>
                     <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Four factions, four commanders, and four twelve-chapter campaigns await."}</p>
                   </div>
                   <div className="journey-campaign-progress">
@@ -5672,16 +5695,6 @@ export default function App() {
               />
               </div>}
             </div>
-          )}
-          {homeArea === "studio" && (
-            <Suspense fallback={<SurfaceLoading label="Studio" />}>
-              <Studio
-                serverUrl={SOCKET_URL}
-                onAuthorizedChange={setOwnerAuthorized}
-                onOpenMatch={(matchId) => openPublicView("match", matchId)}
-                onOpenReplay={openReplay}
-              />
-            </Suspense>
           )}
         </HomeNavigation>
         </div>
@@ -5893,7 +5906,7 @@ export default function App() {
       && !lobby?.players?.[2]?.isAI
       && !game.players?.[1]?.isAI
       && !game.players?.[2]?.isAI
-      && game.players?.[2]?.accountName !== "Training AI";
+      && game.players?.[2]?.opponentKind !== "training-ai";
     const rematchRequestedByMe = rematchStatus.requestedBy === player;
     const rematchRequestedByOpponent = !!rematchStatus.requestedBy && rematchStatus.requestedBy !== player;
 

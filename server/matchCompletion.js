@@ -153,7 +153,8 @@ function createFinalizeCompletedMatch({
           account: applied?.account || consequence.account,
           factionId: campaign.factionId,
           chapterId: campaign.chapterId,
-          result: consequence.result
+          result: consequence.result,
+          ...(record.campaign?.setup ? { setup: clone(record.campaign.setup) } : {})
         }) : null;
         appliedConsequences.push({
           accountId: consequence.accountId,

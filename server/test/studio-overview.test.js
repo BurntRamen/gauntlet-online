@@ -10,6 +10,7 @@ process.env.MATCH_DATA_FILE = path.join(tempRoot, "matches.json");
 process.env.FACTION_STATS_DATA_FILE = path.join(tempRoot, "factions.json");
 process.env.ROOM_STATE_RECOVERY_ENABLED = "false";
 process.env.OWNER_STATS_TOKEN = "studio-owner-token";
+process.env.GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 const accountId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const matchId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -60,7 +61,7 @@ async function request(port, pathname, options = {}) {
   return fetch(`http://127.0.0.1:${port}${pathname}`, options);
 }
 
-test("Studio requires a short-lived owner session and returns only safe operational projections", async () => {
+test("Studio requires an allowlisted account session and returns only safe operational projections", async () => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const { port } = server.address();
   __test.rooms.set("STUDIO", {
@@ -80,24 +81,17 @@ test("Studio requires a short-lived owner session and returns only safe operatio
     }
   });
 
-  assert.equal((await request(port, "/api/admin/overview")).status, 403);
+  assert.equal((await request(port, "/api/admin/overview")).status, 401);
   const denied = await request(port, "/api/admin/session", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ ownerToken: "wrong" })
   });
-  assert.equal(denied.status, 403);
+  assert.equal(denied.status, 401);
 
-  const authorized = await request(port, "/api/admin/session", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ownerToken: process.env.OWNER_STATS_TOKEN })
-  });
-  const session = await authorized.json();
-  assert.equal(authorized.status, 200);
-  assert.ok(session.sessionToken);
+  const session = __test.issueAccountSession({ id: accountId, name: "Studio Alpha", stats: {} });
 
-  const response = await request(port, "/api/admin/overview", { headers: { "x-owner-session": session.sessionToken } });
+  const response = await request(port, "/api/admin/overview", { headers: { Authorization: `Bearer ${session.token}` } });
   const overview = await response.json();
   assert.equal(response.status, 200);
   assert.equal(overview.system.backendReachable, true);
@@ -107,8 +101,8 @@ test("Studio requires a short-lived owner session and returns only safe operatio
   assert.equal(overview.collector.redeemedCount, 1);
 
   const serialized = JSON.stringify(overview);
-  for (const forbidden of ["private-hand-card", "private-deck-card", "private-reconnect", "private-socket", process.env.OWNER_STATS_TOKEN, session.sessionToken]) {
+  for (const forbidden of ["private-hand-card", "private-deck-card", "private-reconnect", "private-socket", process.env.OWNER_STATS_TOKEN, session.token]) {
     assert.equal(serialized.includes(forbidden), false, forbidden);
   }
-  assert.equal((await request(port, "/api/admin/overview", { headers: { "x-owner-session": `${session.sessionToken}tampered` } })).status, 403);
+  assert.equal((await request(port, "/api/admin/overview", { headers: { Authorization: `Bearer ${session.token}tampered` } })).status, 401);
 });

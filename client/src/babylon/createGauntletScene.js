@@ -1,3 +1,4 @@
+import { paintPublishedCardFace } from "./composedCardFace";
 import { Camera } from "@babylonjs/core/Cameras/camera.js";
 import { TargetCamera } from "@babylonjs/core/Cameras/targetCamera.pure.js";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color.js";
@@ -2066,7 +2067,19 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     return texture;
   }
 
-  function getFaceMaterial(path, label, id) {
+  function getFaceMaterial(path, label, id, card) {
+    if (card?.presentation?.composed) {
+      const texture = new DynamicTexture(`published-${id}`, { width: 384, height: 536 }, babylonScene, true);
+      const context = texture.getContext();
+      paintPublishedCardFace(context, card, null); texture.update(true);
+      if (path) {
+        const illustration = new Image();
+        illustration.onload = () => { paintPublishedCardFace(context, card, illustration); texture.update(true); };
+        texture.onDisposeObservable.add(() => { illustration.onload = null; });
+        illustration.src = path;
+      }
+      return materialFromTexture(babylonScene, `face-${id}`, texture, CARD_FACE_COLOR);
+    }
     if (!path) {
       return materialFromTexture(
         babylonScene,
@@ -2102,16 +2115,17 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function releaseOwnedFaceMaterial(record) {
     if (!record?.ownedFaceMaterial) return;
-    record.ownedFaceMaterial.dispose(false, !record.faceTexturePath);
+    record.ownedFaceMaterial.dispose(false, record.composed || !record.faceTexturePath);
     record.ownedFaceMaterial = null;
-    releaseFaceTexture(record.faceTexturePath);
+    if (!record.composed) releaseFaceTexture(record.faceTexturePath);
     record.faceTexturePath = null;
   }
 
   function syncCardFace(record, id, label, options) {
     const faceDown = Boolean(options.faceDown);
     const artPath = faceDown ? null : options.artPath || null;
-    const labelChanged = !faceDown && !artPath && record.faceLabel !== label;
+    const composed = Boolean(options.publishedCard?.presentation?.composed);
+    const labelChanged = !faceDown && ((!artPath && record.faceLabel !== label) || record.composed !== composed);
     if (
       record.faceDown === faceDown
       && record.faceTexturePath === artPath
@@ -2120,11 +2134,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     releaseOwnedFaceMaterial(record);
     const material = faceDown
       ? materials.cardBack
-      : getFaceMaterial(artPath, label, id);
+      : getFaceMaterial(artPath, label, id, options.publishedCard);
     record.mesh.gauntletFace.material = material;
     record.mesh.material = faceDown ? materials.cardBackEdge : materials.cardBody;
     record.ownedFaceMaterial = faceDown ? null : material;
     record.faceTexturePath = artPath;
+    record.composed = composed;
     record.faceDown = faceDown;
     record.faceLabel = label;
   }
@@ -2265,7 +2280,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       const ownsFaceMaterial = !options.faceDown;
       const faceMaterial = options.faceDown
         ? materials.cardBack
-        : getFaceMaterial(options.artPath, stableLabel, id);
+        : getFaceMaterial(options.artPath, stableLabel, id, options.publishedCard);
       const mesh = createCard(babylonScene, materials, shadowGenerator, id, {
         ...options,
         material: faceMaterial,
@@ -2289,6 +2304,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         faceDown: Boolean(options.faceDown),
         faceLabel: stableLabel,
         ownedFaceMaterial: ownsFaceMaterial ? faceMaterial : null,
+        composed: Boolean(options.publishedCard?.presentation?.composed),
         faceTexturePath: ownsFaceMaterial ? options.artPath || null : null
       };
       if (options.initialPosition) {
@@ -2477,6 +2493,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
     const record = updateCardRecord(actor.actorId, actor.label, position, {
       artPath: actor.artPath,
+      publishedCard: actor.card?.raw || actor.card,
       faceDown: actor.faceDown,
       initialPosition: initial ? new Vector3(initial.x, initial.y, initial.z) : undefined,
       initialRotation: initial ? new Vector3(

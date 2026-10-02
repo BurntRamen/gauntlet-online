@@ -46,6 +46,7 @@ export default function CampaignChapterBriefing({
   completed,
   current,
   canPlayAsPlayer,
+  previewOnly = false,
   audioEnabled = true,
   musicEnabled = true,
   musicVolume = 0.18,
@@ -128,9 +129,10 @@ export default function CampaignChapterBriefing({
             <strong>Encounter notes</strong>
             {complexity.length > 0 ? complexity.map((note) => <p key={note}>{note}</p>) : <p>Core campaign rules; no additional advanced modifier is previewed for this chapter.</p>}
           </div>
+          {chapter.deckTemplate && <div className="campaign-briefing-notes"><strong>{chapter.deckTemplate.name}</strong><p>{chapter.deckTemplate.description}</p></div>}
           {!unlocked && <p className="campaign-briefing-lock-note">Clear Chapter {chapterIndex} to unlock this battle.</p>}
-          {!canPlayAsPlayer && <p className="campaign-briefing-lock-note">Sign in or enable guest play to begin.</p>}
-          <button type="button" className="campaign-briefing-start" onClick={() => onStartChapter(factionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{battleLabel}</button>
+          {!canPlayAsPlayer && <p className="campaign-briefing-lock-note">{previewOnly ? "Admin preview: battle launch is disabled." : "Sign in or enable guest play to begin."}</p>}
+          <button type="button" className="campaign-briefing-start" onClick={() => onStartChapter(factionId, chapter.id)} disabled={previewOnly || !canPlayAsPlayer || !unlocked}>{battleLabel}</button>
         </aside>
       </div>
 

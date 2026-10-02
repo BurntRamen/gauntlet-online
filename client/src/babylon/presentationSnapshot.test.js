@@ -277,3 +277,27 @@ test("combat state does not retain payment cards after their event frame", () =>
   expect(snapshot.actorById.has("card:attacker")).toBe(true);
   expect(snapshot.actorById.has("card:blocker")).toBe(true);
 });
+
+test("basic face-art metrics retain published immutable assets and legacy faces", () => {
+  const published = { ...card("published-basic"), artPath: "/assets/gauntlet/releases/" + "a".repeat(64) + ".webp" };
+  const legacy = { ...card("legacy-basic"), artPath: "/assets/gauntlet/playing-cards/basic-7-clubs.webp" };
+  const missing = { ...card("missing-basic"), artPath: "" };
+  const snapshot = createPresentationSnapshot(viewModel({
+    hand: [published, legacy, missing],
+    bottom: { id: 1, handCount: 3, deckCount: 49, discardCount: 0 }
+  }));
+  expect(presentationSnapshotMetrics(snapshot)).toEqual(expect.objectContaining({
+    basicFaceArtActorCount: 2, faceArtActorCount: 2, missingFaceArtCount: 1
+  }));
+});
+
+test("basic face-art metrics do not infer faction identity from a filename", () => {
+  const factionCard = { ...card("faction-card"), factionId: "rumin", artPath: "/assets/gauntlet/playing-cards/basic-7-clubs.webp" };
+  const snapshot = createPresentationSnapshot(viewModel({
+    hand: [factionCard],
+    bottom: { id: 1, handCount: 1, deckCount: 51, discardCount: 0 }
+  }));
+  expect(presentationSnapshotMetrics(snapshot)).toEqual(expect.objectContaining({
+    basicFaceArtActorCount: 0, faceArtActorCount: 1
+  }));
+});

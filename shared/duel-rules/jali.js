@@ -1,7 +1,8 @@
+const { factionMechanicId } = require("./effectRegistry");
 "use strict";
 const { addTemporaryEffect } = require("./effects");
 
-const isJali = (player) => player?.faction?.id === "jali";
+const isJali = (player) => factionMechanicId(player) === "jali";
 const cardValue = (card) => ({ A: 14, K: 13, Q: 12, J: 11 }[card?.rank] || Number(card?.value) || 0);
 const cardLabel = (card) => `${card?.rank || card?.value}${card?.suit || ""}`;
 

@@ -1,10 +1,11 @@
+const { hasCardEffect, factionMechanicId } = require("./effectRegistry");
 "use strict";
 
 const { addTemporaryEffect } = require("./effects");
 
-const isAstral = (player) => player?.faction?.id === "astral-vanguard";
+const isAstral = (player) => factionMechanicId(player) === "astral-vanguard";
 const cardValue = (card) => ({ A: 14, K: 13, Q: 12, J: 11 }[card?.rank] || Number(card?.value) || 0);
-const controls = (game, playerNumber, definitionId) => game.lanes.some((lane) => lane.support?.[playerNumber]?.definitionId === definitionId);
+const controls = (game, playerNumber, definitionId) => game.lanes.some((lane) => hasCardEffect(lane.support?.[playerNumber], definitionId));
 
 function actions(game, playerNumber) {
   const player = game.players[playerNumber];

@@ -64,6 +64,9 @@ jobs:
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
 
+      - name: Test private Admin and controlled authoring
+        run: npm run test:e2e:admin
+
       - name: Upload Babylon performance report
         if: always()
         uses: actions/upload-artifact@v4

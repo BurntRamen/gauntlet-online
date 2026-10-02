@@ -1,7 +1,8 @@
+const { factionMechanicId } = require("./effectRegistry");
 "use strict";
 const { addTemporaryEffect } = require("./effects");
 
-const isMekan = (player) => player?.faction?.id === "mekan";
+const isMekan = (player) => factionMechanicId(player) === "mekan";
 const general = (player) => player?.faction?.general?.id || player?.faction?.generalId || "monti";
 const value = (card) => ({ A: 14, K: 13, Q: 12, J: 11 }[card?.rank] || Number(card?.value) || 0);
 const label = (card) => `${card.rank || card.value}${card.suit}`;

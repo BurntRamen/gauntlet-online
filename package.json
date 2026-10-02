@@ -30,7 +30,9 @@
     "test:elevenlabs-assets": "node --test scripts/elevenlabs-assets.test.js",
     "prepare:experience-gate": "node scripts/prepare-babylon-qualification.js",
     "check:experience-gate": "node scripts/babylon-experience-gate.js",
-    "check": "npm run check:server && npm run test:qualification && npm run test:server && npm run test:client && npm run build:client && npm run check:bundle"
+    "check": "npm run check:server && npm run test:qualification && npm run test:server && npm run test:client && npm run build:client && npm run check:bundle",
+    "test:e2e:admin": "playwright test --config=playwright.admin.config.js",
+    "check:content-release": "node scripts/validate-content-release.js"
   },
   "engines": {
     "node": ">=22 <25"

@@ -31,7 +31,7 @@ function publicCard(card) {
   if (!card || card.hidden) return null;
   const allowed = [
     "id", "definitionId", "gameplayCardId", "name", "rank", "value", "suit",
-    "factionId", "variantId", "type", "text"
+    "factionId", "variantId", "type", "text", "rulesText", "effect", "presentation", "collector"
   ];
   return Object.fromEntries(allowed.filter((key) => card[key] != null).map((key) => [key, clonePlain(card[key])]));
 }
@@ -75,6 +75,7 @@ function publicPlayer(player = {}, playerNum) {
   return {
     id: Number(player.id || playerNum),
     accountName: player.accountName || `Player ${playerNum}`,
+    ...(["training-ai", "campaign-boss"].includes(player.opponentKind) ? { opponentKind: player.opponentKind } : {}),
     life: Number(player.life || 0),
     eliminated: !!player.eliminated,
     connected: player.connected !== false,
@@ -121,6 +122,7 @@ function buildPublicReplaySnapshot(game) {
     eventSchemaVersion: Number(game?.eventSchemaVersion || 0),
     rulesVersion: game?.rulesVersion || null,
     cardContentVersion: game?.cardContentVersion || null,
+    ...(game?.contentBinding ? { contentBinding: clonePlain(game.contentBinding), contentVersion: game.contentVersion, config: clonePlain(game.config) } : {}),
     matchId: game?.matchId || null,
     gameMode: game?.gameMode || "basic",
     revision: Number(game?.revision || 0),
@@ -260,6 +262,13 @@ function participantName(participants, playerNum) {
 
 function resolveReplayCard(card) {
   if (!card || card.hidden) return null;
+  if (card.presentation) return {
+    runtimeId: card.id || null, gameplayCardId: card.gameplayCardId || card.definitionId || null,
+    variantId: card.variantId || null, name: card.name || null, rank: card.rank || null,
+    value: Number(card.value || 0), suit: card.suit || null, factionId: card.factionId || null,
+    type: card.type || null, rulesText: card.rulesText || card.text || null,
+    effect: clonePlain(card.effect || null), presentation: clonePlain(card.presentation), collector: clonePlain(card.collector || null)
+  };
   const gameplayCardId = card.gameplayCardId || card.definitionId || null;
   const gameplay = gameplayCardId ? cardResolvers.getGameplayCardById(gameplayCardId) : null;
   const variant = card.variantId ? cardResolvers.getCollectorVariantById(card.variantId) : null;

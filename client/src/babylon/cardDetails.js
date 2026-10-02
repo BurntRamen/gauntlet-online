@@ -1,4 +1,4 @@
-const ACCELERATION_BLOCKERS = new Set(["bizi-heat-sink-matrix", "bizi-gearplate-shield"]);
+import { hasCardEffect } from "@gauntlet/duel-rules/effectRegistry";
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
 export function selectedCardPreview(viewModel) {
@@ -23,7 +23,7 @@ export function cardDetails(preview, viewModel, snapshot) {
   // Resolve the current hand entry so a hover cannot retain stale selection data.
   const handCard = viewModel?.hand?.find((entry) => entry.id === preview.id);
   const card = handCard?.raw || preview.raw || preview;
-  const definitionId = card.definitionId || card.gameplayCardId || card.id;
+
   const rules = card.rulesText || card.text || card.description || "";
   const name = card.name || preview.label || "Card";
   const suit = SUIT_SYMBOLS[card.suit] || card.suit;
@@ -33,7 +33,7 @@ export function cardDetails(preview, viewModel, snapshot) {
   const isOwnCard = !viewModel?.perspective?.spectator && (handCard || ownLaneCard);
   let abilityStatus = "";
 
-  if (ACCELERATION_BLOCKERS.has(definitionId) && isOwnCard) {
+  if ((hasCardEffect(card, "heat-sink-matrix") || hasCardEffect(card, "gearplate-shield")) && isOwnCard) {
     const counters = snapshot?.players?.[player]?.accelerationCounters;
     const choice = viewModel?.interactions?.abilities?.find((ability) => (
       ability.id === `constructed:block-acceleration:${card.id}`

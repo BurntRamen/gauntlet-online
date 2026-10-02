@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/admin/gauntlet", "destination": "/index.html" },
+    { "source": "/admin/gauntlet/:path*", "destination": "/index.html" }
+  ]
+}

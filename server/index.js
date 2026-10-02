@@ -1,3 +1,7 @@
+const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALUES } = require("../shared/duel-rules/gameConfig");
+const encounterDefaults = require("./encounterDefinitions.json");
+const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
+const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const CLIENT_URLS = (process.env.CLIENT_URLS || "")
@@ -26,20 +30,19 @@ const DEVELOPMENT_AUTH_SECRETS = new Set([
 ]);
 const ACCOUNT_AUTH_SECRET = process.env.ACCOUNT_AUTH_SECRET || DEFAULT_ACCOUNT_AUTH_SECRET;
 const ACCOUNT_SESSION_TTL_MS = Math.max(60 * 1000, Number(process.env.ACCOUNT_SESSION_TTL_MS) || 7 * 24 * 60 * 60 * 1000);
-const OWNER_STATS_TOKEN = process.env.OWNER_STATS_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const MATCH_ARCHIVE_REQUIRED = process.env.MATCH_ARCHIVE_REQUIRED === "true" || !(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const PACK_PURCHASE_URL = process.env.PACK_PURCHASE_URL || "";
 const FRIEND_CHALLENGE_TTL_MS = 15 * 60 * 1000;
-const RUMIN_ARMABLE_DEFINITION_IDS = new Set([
-  "rumin-gilded-scale-legionary",
-  "rumin-coin-scale-spear",
-  "rumin-rumie-vault-shield",
-  "rumin-imperial-scale-pike",
-  "rumin-aurelian-clawblade",
-  "rumin-triumphal-ram",
-  "rumin-kaisers-gold-claw"
+const RUMIN_ARMABLE_EFFECT_IDS = new Set([
+  "gilded-scale-legionary",
+  "coin-scale-spear",
+  "rumie-vault-shield",
+  "imperial-scale-pike",
+  "aurelian-clawblade",
+  "triumphal-ram",
+  "kaisers-gold-claw"
 ]);
 
 function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = ACCOUNT_AUTH_SECRET) {
@@ -147,7 +150,7 @@ const {
   getCollectorVariantById,
   getFactionById,
   getGameplayCardById,
-  getPublicGameContent,
+  getPublicGameContent: getSourceGameContent,
   listFactions
 } = require("./gameContent");
 const {
@@ -158,6 +161,11 @@ const {
   resolveCollectorEntitlementProduct,
   verifyCollectorEntitlement
 } = require("./collectorEntitlements");
+
+let contentPublication = null;
+function getPublicGameContent() { return contentPublication ? contentPublication.active().manifest : getSourceGameContent(); }
+const { createAuthoredBaseline, pinGameContent } = require("./authoredContent");
+const { createContentPublication, registerContentPublicationRoutes } = require("./contentPublication");
 
 const COLLECTOR_ENTITLEMENT_SECRET = process.env.COLLECTOR_ENTITLEMENT_SECRET
   || crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update("gauntlet.collector-entitlement.v1 signing key").digest("hex");
@@ -206,7 +214,20 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
+const { createGauntletAdminAuthorization } = require("./adminAuthorization");
+const gauntletAdminAuthorization = createGauntletAdminAuthorization({
+  requireAccount: requireAccountRecord,
+  simplyId: process.env.GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID,
+  burntRamenId: process.env.GAUNTLET_ADMIN_BURNT_RAMEN_ACCOUNT_ID
+});
+// Protect the entire namespace, including existing operations, future routes,
+// and direct route requests. Owner credentials alone cannot bypass this gate.
+app.use(["/api/admin", "/admin/gauntlet"], gauntletAdminAuthorization.middleware);
+app.get(["/api/admin/access", "/admin/gauntlet", "/admin/gauntlet/{*section}"], (req, res) => {
+  res.json({ authorized: true, accountId: req.gauntletAdminAccount.id });
+});
 app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
+app.use("/api/admin/authoring", express.json({ limit: "160kb" }));
 app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
 app.use(express.json({ limit: "20kb" }));
 
@@ -421,12 +442,12 @@ const PROGRESSION_COSMETICS = {
   }
 };
 
-function getPlayableCollectionCard(card, overrides = {}) {
-  const factionName = getFactionById(card.factionId)?.name || card.factionId;
+function getPlayableCollectionCard(card, overrides = {}, manifest = null) {
+  const published = (manifest || contentPublication?.active().manifest)?.cards.find((entry) => entry.id === card.id);
+  card = { ...card, ...published, ...overrides };
   return {
     ...card,
-    ...overrides,
-    rulesText: card.rulesText || card.text || `Draft ${card.type}. Value ${card.value}.`,
+    rulesText: published?.text || card.rulesText || card.text || `Draft ${card.type}. Value ${card.value}.`,
     text: card.text || `Draft ${card.type}. Value ${card.value}.`
   };
 }
@@ -720,9 +741,10 @@ function publicCollectorVariant(variant) {
 }
 
 function collectionSummary(stats = {}) {
+  const manifest = getPublicGameContent();
   const catalog = Object.fromEntries([...new Set(COLLECTION_CARDS.map((card) => card.factionId))].map((factionId) => [
     factionId,
-    COLLECTION_CARDS.filter((card) => card.factionId === factionId).map(getPlayableCollectionCard)
+    COLLECTION_CARDS.filter((card) => card.factionId === factionId).map((card) => getPlayableCollectionCard(card, {}, manifest))
   ]));
   return {
     ...normalizeCollection(stats),
@@ -2112,8 +2134,9 @@ function publicMatchStorageStatus() {
   };
 }
 
-function getNextCampaignMission(account, factionId, chapterId, result) {
+function getNextCampaignMission(account, factionId, chapterId, result, setup = encounterDefaults[chapterId]) {
   if (result !== "win" || !factionId || !chapterId) return null;
+  if (setup && setup.winRoute !== "first-uncompleted") throw new Error("Unsupported encounter routing policy.");
   const chapters = campaignChapters[factionId] || [];
   const completed = account?.progression?.campaign?.[factionId]
     || normalizeProgression(account?.stats || {}).campaign[factionId]
@@ -2156,7 +2179,7 @@ const finalizeCompletedMatch = createFinalizeCompletedMatch({
     for (const consequence of consequences) await commitAccountConsequence(consequence);
   },
   buildEnvelope: buildCompletionEnvelope,
-  buildNextMission: async ({ account, factionId, chapterId, result }) => getNextCampaignMission(account, factionId, chapterId, result)
+  buildNextMission: async ({ account, factionId, chapterId, result, setup }) => getNextCampaignMission(account, factionId, chapterId, result, setup)
 });
 
 async function loadFactionStatsStore() {
@@ -3065,15 +3088,10 @@ function buildCompetitiveCapabilitySnapshot(stats = {}) {
   };
 }
 
-function ownerArchiveRequestAuthorized(req) {
-  const sessionToken = String(req.get("x-owner-session") || "");
-  return !!sessionToken && verifyOwnerSession(sessionToken);
-}
-
 async function requireArchiveAccess(req, res, record) {
-  if (ownerArchiveRequestAuthorized(req)) return { owner: true, account: null };
   const context = await requireAccountRecord(req, res);
   if (!context) return null;
+  if (gauntletAdminAuthorization.isAllowed(context.account)) return { owner: true, account: context.account };
   if (!(record.participants || []).some((participant) => participant.accountId === context.account.id)) {
     res.status(403).json({ error: "This match does not belong to your account." });
     return null;
@@ -3224,7 +3242,9 @@ app.get("/api/game-content", (_req, res) => {
   res.set("X-Gauntlet-Rules-Version", DUEL_RULES_VERSION);
   const deployedCommit = process.env.RENDER_GIT_COMMIT || "";
   if (/^[a-f0-9]{40}$/i.test(deployedCommit)) res.set("X-Gauntlet-Commit", deployedCommit);
-  res.json({ content: getPublicGameContent() });
+  res.set("Cache-Control", "no-store");
+  try { res.json({ content: getPublicGameContent() }); }
+  catch { res.status(503).json({ error: "Published content is unavailable." }); }
 });
 
 app.get("/api/matches/:matchId/export/para", async (req, res) => {
@@ -3593,69 +3613,17 @@ app.post("/api/collection/collector-pack-purchase-link", sendCollectorPackPurcha
 app.post("/api/collection/pack-purchase-link", sendCollectorPackPurchaseLink);
 
 const collectorRedemptionQueues = new Map();
-const OWNER_SESSION_VERSION = "gauntlet.owner-session.v1";
-const OWNER_SESSION_TTL_MS = 60 * 60 * 1000;
-
-function safeSecretEqual(left, right) {
-  const leftBuffer = Buffer.from(String(left || ""));
-  const rightBuffer = Buffer.from(String(right || ""));
-  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
-}
-
-function ownerSessionSignature(payload) {
-  return crypto.createHmac("sha256", OWNER_STATS_TOKEN).update(payload).digest("base64url");
-}
-
-function issueOwnerSession(now = Date.now()) {
-  const payload = Buffer.from(JSON.stringify({
-    version: OWNER_SESSION_VERSION,
-    issuedAt: new Date(now).toISOString(),
-    expiresAt: new Date(now + OWNER_SESSION_TTL_MS).toISOString()
-  })).toString("base64url");
-  return `${payload}.${ownerSessionSignature(payload)}`;
-}
-
-function verifyOwnerSession(token, now = Date.now()) {
-  const [payload, signature, extra] = String(token || "").split(".");
-  if (!payload || !signature || extra || !OWNER_STATS_TOKEN || !safeSecretEqual(signature, ownerSessionSignature(payload))) return false;
-  try {
-    const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    return parsed.version === OWNER_SESSION_VERSION && Date.parse(parsed.expiresAt) > now;
-  } catch {
-    return false;
-  }
-}
-
-function ownerTokenFromRequest(req) {
-  const authHeader = req.get("authorization") || "";
-  return authHeader.startsWith("Bearer ") ? authHeader.slice(7) : req.get("x-owner-token");
-}
-
 function requireOwnerAuthorization(req, res) {
-  const rawOwnerToken = ownerTokenFromRequest(req);
-  const sessionToken = req.get("x-owner-session") || "";
-  if (!OWNER_STATS_TOKEN || (!safeSecretEqual(rawOwnerToken, OWNER_STATS_TOKEN) && !verifyOwnerSession(sessionToken))) {
-    res.status(403).json({ error: "Owner authorization required." });
-    return false;
-  }
-  return true;
+  if (req.gauntletAdminAccount) return true;
+  res.status(403).json({ error: "Gauntlet Admin authorization required." });
+  return false;
 }
 
-const ownerSessionRateLimit = createAuthRateLimiter({ event: "owner_session_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 8 });
-
-app.post("/api/admin/session", ownerSessionRateLimit, (req, res) => {
+app.route("/api/admin/session").get(adminSessionStatus).post(adminSessionStatus);
+function adminSessionStatus(req, res) {
   res.set("Cache-Control", "no-store");
-  if (!OWNER_STATS_TOKEN || !safeSecretEqual(req.body?.ownerToken, OWNER_STATS_TOKEN)) {
-    res.status(403).json({ error: "Owner authorization required." });
-    return;
-  }
-  res.json({ sessionToken: issueOwnerSession(), expiresInMs: OWNER_SESSION_TTL_MS });
-});
-
-app.get("/api/admin/session", (req, res) => {
-  res.set("Cache-Control", "no-store");
-  res.json({ authorized: verifyOwnerSession(req.get("x-owner-session") || "") });
-});
+  res.json({ authorized: true, accountId: req.gauntletAdminAccount.id });
+}
 
 async function findCollectorFulfillmentAccount(input = {}) {
   const accountId = String(input.accountId || "").trim();
@@ -4134,7 +4102,9 @@ function getCampaignNarration(chapterId) {
   return CAMPAIGN_NARRATION[chapterId] || {};
 }
 
-function getCampaignChapter(factionId, chapterId) {
+function getCampaignChapter(factionId, chapterId, resolved = null) {
+  const published = resolved || contentPublication?.active();
+  if (published) return published.manifest.campaigns[factionId]?.chapters.find((entry) => entry.id === chapterId) || null;
   const chapter = (campaignChapters[factionId] || []).find((entry) => entry.id === chapterId) || null;
   return chapter ? { ...chapter, ...getCampaignNarration(chapter.id) } : null;
 }
@@ -4165,120 +4135,20 @@ function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
   return completed.includes(chapters[chapterIndex - 1]?.id);
 }
 
-function getCampaignDifficulty(factionId, chapterId) {
-  const chapterIndex = Math.max(0, (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId));
-  if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi") {
-    return {
-      bossLife: Math.min(58, 18 + chapterIndex * 3),
-      attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 5),
-      maxAttackValue: 5 + Math.floor(chapterIndex / 4),
-      chapterNumber: chapterIndex + 1
-    };
-  }
-  if (factionId === "xendra") {
-    return {
-      bossLife: Math.min(48, 16 + chapterIndex * 4),
-      attacksPerTurn: Math.min(4, 1 + Math.floor((chapterIndex + 1) / 2)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 3),
-      maxAttackValue: 4 + Math.floor(chapterIndex / 2),
-      chapterNumber: chapterIndex + 1
-    };
-  }
-  return {
-    bossLife: [18, 24, 32][chapterIndex] || 32,
-    attacksPerTurn: Math.min(4, 2 + chapterIndex),
-    minAttackValue: 2 + chapterIndex,
-    maxAttackValue: 5 + chapterIndex,
-    chapterNumber: chapterIndex + 1
-  };
+function getCampaignDifficulty(factionId, chapterId, setup = encounterDefaults[chapterId]) {
+  if (!setup) throw new Error("Unknown encounter setup.");
+  return campaignDifficulty(setup);
 }
 
-const CAMPAIGN_CARD_PLAN = {
-  rumin: {
-    player: ["rumin-gilded-scale-legionary", "rumin-forum-ledger-runner", "rumin-tax-road-scout", "rumin-coin-scale-spear", "rumin-vault-shield-bearer", "rumin-marble-phalanx", "rumin-senate-vault-guard", "rumin-marble-market-tribune", "rumin-counting-house-aegis", "rumin-rumie-vault-shield", "rumin-imperial-scale-pike", "rumin-triumphal-ram"],
-    boss: ["rumin-vault-shield-bearer", "rumin-marble-phalanx", "rumin-coin-scale-spear", "rumin-senate-vault-guard", "rumin-imperial-scale-pike", "rumin-marble-market-tribune", "rumin-edict-of-the-vault"]
-  },
-  sheen: {
-    player: ["sheen-rootwatch-initiate", "sheen-seedwall-acolyte", "sheen-living-bark-guard", "sheen-mossbound-staff", "sheen-quiet-grove-sentinel", "sheen-raincall-mender", "sheen-beli-vinebinder", "sheen-harmony-ward", "sheen-ringroot-bastion", "sheen-thornroot-counterstroke", "sheen-beli-canopy-shield", "sheen-sapling-chorus"],
-    boss: ["sheen-rootwatch-initiate", "sheen-seedwall-acolyte", "sheen-living-bark-guard", "sheen-harmony-ward", "sheen-ringroot-bastion", "sheen-beli-canopy-shield", "sheen-roots-that-remember"]
-  },
-  frumo: {
-    player: ["frumo-deckhand-diver", "frumo-kelpcloak-trickster", "frumo-sunken-coin", "frumo-tideglass-cutlass", "frumo-ballast-hook", "frumo-coral-hull-guard", "frumo-riptide-smuggler", "frumo-lafayettes-chart", "frumo-tide-debt-ledger", "frumo-pressure-lock-pistol", "frumo-ristus-blackwake", "frumo-abyssal-switchboard"],
-    boss: ["frumo-sunken-coin", "frumo-ballast-hook", "frumo-coral-hull-guard", "frumo-riptide-smuggler", "frumo-pressure-lock-pistol", "frumo-captains-bad-wager", "frumo-poleas-moonlit-map"]
-  },
-  bizi: {
-    player: ["bizi-copperline-technician", "bizi-brass-spark", "bizi-voltage-ration", "bizi-dune-circuit-runner", "bizi-railspike-marshal", "bizi-gearplate-shield", "bizi-heat-sink-matrix", "bizi-heras-calibration", "bizi-solar-array-adept", "bizi-constanti-conduit", "bizi-sandstorm-processor", "bizi-clockwork-caravan"],
-    boss: ["bizi-copperline-technician", "bizi-dune-circuit-runner", "bizi-railspike-marshal", "bizi-gearplate-shield", "bizi-heat-sink-matrix", "bizi-heras-calibration", "bizi-solar-array-adept"]
-  }
-};
-
-function getCampaignAddedCardCount(chapterIndex, side = "player") {
-  if (side === "player") {
-    if (chapterIndex < 2) return 0;
-    if (chapterIndex < 5) return 2;
-    if (chapterIndex < 8) return 4;
-    return 6;
-  }
-  if (chapterIndex < 4) return 0;
-  if (chapterIndex < 8) return 2;
-  return 4;
-}
-
-function getCampaignDeckAdditions(factionId, chapterIndex, side = "player") {
-  const plan = CAMPAIGN_CARD_PLAN[factionId]?.[side] || [];
-  const count = Math.min(plan.length, getCampaignAddedCardCount(chapterIndex, side));
-  return plan.slice(0, count)
-    .map((cardId) => getCollectionCatalogCard(cardId))
-    .filter(Boolean)
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup = encounterDefaults[campaignChapters[factionId]?.[chapterIndex]?.id]) {
+  return (setup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
+    .map((cardId) => getCollectionCatalogCard(cardId)).filter(Boolean)
     .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }));
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
-  const opponentName = chapter.opponentName || "Campaign Boss";
-  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 6 ? 2 : 1;
-  const earlyBonus = tier >= 3 ? 2 : 1;
-  const profileByFaction = {
-    rumin: [
-      { id: "first-strike", title: "Fortified Claim", text: "The boss's first scripted attack each turn gets +1 value." },
-      { id: "final-push", title: "Senate Pressure", text: `The boss's final scripted attack each turn gets +${earlyBonus} value.` },
-      { id: "late-pressure", title: "Imperial Doctrine", text: tier >= 3 ? "The boss's last two scripted attacks each turn get +1 value." : "The boss's final scripted attack each turn gets +1 value." }
-    ],
-    sheen: [
-      { id: "odd-pressure", title: "Ironroot Pressure", text: "Odd-numbered boss attacks get +1 value." },
-      { id: "first-strike", title: "Thorned Advance", text: "The boss's first scripted attack each turn gets +1 value." },
-      { id: "odd-pressure", title: "Living Siege", text: tier >= 3 ? "Odd-numbered boss attacks get +1 value, and the boss restores 1 life at the start of each turn." : "Odd-numbered boss attacks get +1 value.", healAtTurnStart: tier >= 3 ? 1 : 0 }
-    ],
-    frumo: [
-      { id: "even-feint", title: "Tide Feint", text: "Even-numbered boss attacks get +1 value." },
-      { id: "final-push", title: "Boarding Rush", text: `The boss's final scripted attack each turn gets +${earlyBonus} value.` },
-      { id: "even-feint", title: "Admiral's Ruse", text: tier >= 3 ? "Even-numbered boss attacks get +2 value." : "Even-numbered boss attacks get +1 value.", evenBonus: tier >= 3 ? 2 : 1 }
-    ],
-    bizi: [
-      { id: "final-push", title: "Prototype Surge", text: "The boss's final scripted attack each turn gets +1 value." },
-      { id: "late-pressure", title: "Overclock Directive", text: "The boss's last two scripted attacks each turn get +1 value." },
-      {
-        id: tier >= 3 ? "first-and-final" : "final-push",
-        title: "Machine Logic",
-        text: tier >= 3
-          ? "The boss's first and final scripted attacks each turn get +1 value."
-          : "The boss's final scripted attack each turn gets +1 value."
-      }
-    ],
-    xendra: [
-      { id: "first-strike", title: "Unreliable Perception", text: "The boss's first scripted attack each turn gets +1 value." },
-      { id: "even-feint", title: "Hallucination Loop", text: "Even-numbered boss attacks get +1 value." },
-      { id: "first-and-final", title: "Ritual Completion", text: "The boss's first and final scripted attacks each turn get +1 value." }
-    ]
-  };
-  const options = profileByFaction[factionId] || profileByFaction.rumin;
-  const selected = options[Math.min(options.length - 1, Math.floor(chapterIndex / 4))];
-  return {
-    ...selected,
-    tier,
-    name: `${opponentName}: ${selected.title}`,
-    text: selected.text
-  };
+  const setup = chapter.setup || encounterDefaults[chapter.id || campaignChapters[factionId]?.[chapterIndex]?.id];
+  return setup ? clonePlain(setup.bossAbility) : null;
 }
 
 function getCampaignBossPowerProfile(faction, chapter = {}, bossAbility = null) {
@@ -4299,30 +4169,9 @@ function getCampaignBossPowerProfile(faction, chapter = {}, bossAbility = null) 
     general: {
       name: `${opponentName} Tactics`,
       image: faction?.general?.image || faction?.cardImage || null,
-      text: `Each boss turn, ${opponentName} has up to ${getCampaignDifficulty(faction?.id, chapter.id).attacksPerTurn} scripted actions shared between attacks and blocks.`
+      text: `Each boss turn, ${opponentName} has up to ${getCampaignDifficulty(faction?.id, chapter.id, chapter.setup).attacksPerTurn} scripted actions shared between attacks and blocks.`
     }
   };
-}
-
-function applyCampaignBossAbilityToAttack(campaign, attackNumber, value, notes) {
-  const ability = campaign?.bossAbility;
-  if (!ability) return value;
-  let bonus = 0;
-  if (ability.id === "first-strike") {
-    bonus = attackNumber === 1 ? 1 : 0;
-  } else if (ability.id === "odd-pressure") {
-    bonus = attackNumber % 2 === 1 ? 1 : 0;
-  } else if (ability.id === "even-feint") {
-    bonus = attackNumber % 2 === 0 ? (ability.evenBonus || 1) : 0;
-  } else if (ability.id === "final-push") {
-    bonus = attackNumber === campaign.attacksPerTurn ? (ability.tier >= 3 ? 2 : 1) : 0;
-  } else if (ability.id === "late-pressure") {
-    bonus = attackNumber >= Math.max(1, campaign.attacksPerTurn - 1) ? 1 : 0;
-  } else if (ability.id === "first-and-final") {
-    bonus = attackNumber === 1 || attackNumber === campaign.attacksPerTurn ? 1 : 0;
-  }
-  if (bonus > 0) notes.push(`${ability.name} +${bonus}`);
-  return value + bonus;
 }
 
 const basicGameProfile = {
@@ -4495,6 +4344,70 @@ function studioCollectorState(accounts) {
     redemptions: redemptions.sort((left, right) => Date.parse(right.redeemedAt || 0) - Date.parse(left.redeemedAt || 0)).slice(0, 50)
   };
 }
+
+const { buildCatalog, createAdminData, registerAdminRoutes } = require("./adminData");
+const adminRuntime = {
+      progression: normalizeProgression,
+      collection: normalizeCollection,
+      decks: normalizeDeckLibrary,
+      season: () => publicSeasonDefinition(getActiveSeason() || ACTIVE_SEASON),
+      encounter: (factionId, chapter, index) => ({
+        difficulty: getCampaignDifficulty(factionId, chapter.id, chapter.setup),
+        bossAbility: getCampaignBossAbility(factionId, index, chapter),
+        deckPlan: Object.fromEntries(["player", "boss"].map((side) => [side, {
+          additions: (chapter.setup || encounterDefaults[chapter.id])[side === "player" ? "playerAdditions" : "bossAdditions"],
+          suitAssignment: "Randomized at match creation"
+        }]))
+      })
+    };
+const publicationBaseline = createAuthoredBaseline(buildCatalog(adminRuntime));
+contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((process.env.NODE_ENV === "production" || process.env.RENDER === "true") && process.env.GAUNTLET_CONTENT_PROVIDER !== "file"))
+  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline })
+  : createContentPublication({
+  baseline: publicationBaseline,
+  directory: process.env.GAUNTLET_CONTENT_DATA_DIR || `${ACCOUNT_DATA_FILE}.content`,
+  writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR
+});
+registerContentPublicationRoutes(app, contentPublication);
+const { createAdminPlaytests, registerAdminPlaytestRoutes } = require("./adminPlaytest");
+const adminPlaytests = createAdminPlaytests({ publication: contentPublication, chooseAi: chooseSemanticTrainingAiCommand,
+  createGame(resolved, selection, id) {
+    const factionId = selection.factionId || "rumin";
+    if (!resolved.factions[factionId]) throw Object.assign(new Error("Unknown faction."), { status: 422 });
+    const room = { roomCode: id, lobby: { gameMode: "factions", players: {
+      1: { factionId, accountName: "Admin playtest", connected: true },
+      2: { factionId, accountName: resolved.manifest.trainingOpponent.name, opponentKind: "training-ai", connected: true, isAI: true }
+    } } };
+    if (selection.encounterId) {
+      prepareCampaignRoom(room, resolved, factionId, selection.encounterId);
+      room.lobby.players[2].accountName = room.lobby.campaign.opponentName;
+    } else {
+      // Populate both decks from the selected draft faction to exercise its effects.
+      for (const player of [1, 2]) room.lobby.players[player].savedConstructedDeck = { cards: resolved.manifest.cards.filter((card) => card.factionId === factionId).map((card, index) => ({ ...card, suit: DRAFT_CARD_SUITS[index % 4] })) };
+    }
+    createGameFromLobby(room, { contentRelease: resolved, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
+    return room.game;
+  }
+});
+registerAdminPlaytestRoutes(app, adminPlaytests);
+registerAdminRoutes(app, {
+  authorize: requireOwnerAuthorization,
+  data: createAdminData({
+    useSupabase: useSupabaseStore,
+    request: supabaseRequest,
+    accountFile: ACCOUNT_DATA_FILE,
+    matchFile: MATCH_DATA_FILE,
+    persistence: matchPersistence,
+    archive: matchArchive,
+    environment: process.env.NODE_ENV,
+    backendCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || null,
+    roomRecovery: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED),
+    deckSchemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
+    adminAccountCount: gauntletAdminAuthorization.configuredAccounts,
+    runtime: adminRuntime,
+    publication: contentPublication
+  })
+});
 
 app.get("/api/admin/overview", async (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -5133,7 +5046,7 @@ function emitLobbyState(roomState) {
     gameMode: getLobbyGameMode(roomState),
     players,
     ranked: Boolean(roomState.ranked),
-    factions: listFactions().filter((faction) => !faction.draftRules || !isFreeForAllRoom(roomState)),
+    factions: getPublicGameContent().factions.filter((faction) => !faction.draftRules || !isFreeForAllRoom(roomState)),
     spectatorCount: roomState.lobby.spectators.length
   });
 }
@@ -5802,13 +5715,13 @@ function applyPlayedCardBonuses(player, card) {
   const value = getBaseCardValue(card);
 
   if (
-    player.faction?.id === "frumo" &&
+    factionMechanicId(player) === "frumo" &&
     !player.turnData.ristusConsecutiveBuffUsed &&
     player.turnData.previousPlayedValue != null &&
     Math.abs(value - player.turnData.previousPlayedValue) === 1
   ) {
     card.tempBuff = (card.tempBuff || 0) + 2;
-    if (cardIs(card, "frumo-poleas-moonlit-map")) {
+    if (hasCardEffect(card, "poleas-moonlit-map")) {
       card.tempBuff += 1;
       notes.push("X Marks the Spot +1");
     }
@@ -5824,9 +5737,7 @@ function getCardCurrentValue(card) {
   return getBaseCardValue(card) + (card?.tempBuff || 0);
 }
 
-function cardIs(card, id) {
-  return card?.definitionId === id || card?.id === id;
-}
+
 
 function cardHasType(card, type) {
   return String(card?.type || "").toLowerCase() === type;
@@ -5849,8 +5760,8 @@ function getPlayerVisibleCards(game, playerNum) {
   ].filter(Boolean);
 }
 
-function playerHasVisibleCard(game, playerNum, id) {
-  return getPlayerVisibleCards(game, playerNum).some((card) => cardIs(card, id));
+function playerHasVisibleEffect(game, playerNum, id) {
+  return getPlayerVisibleCards(game, playerNum).some((card) => hasCardEffect(card, id));
 }
 
 function getPlayerSupportCards(game, playerNum) {
@@ -5861,8 +5772,8 @@ function getPlayerSupportCards(game, playerNum) {
   ].filter(Boolean);
 }
 
-function playerControlsCard(game, playerNum, id) {
-  return getPlayerSupportCards(game, playerNum).some((card) => cardIs(card, id));
+function playerControlsEffect(game, playerNum, id) {
+  return getPlayerSupportCards(game, playerNum).some((card) => hasCardEffect(card, id));
 }
 
 function addPaymentSuits(player, paymentCards) {
@@ -5886,7 +5797,7 @@ function drawCards(player, count) {
 function gainLifeFromBlocking(game, playerNum, amount, notes = []) {
   const player = game.players[playerNum];
   player.life += amount;
-  if (playerControlsCard(game, playerNum, "sheen-roots-that-remember")) {
+  if (playerControlsEffect(game, playerNum, "roots-that-remember")) {
     player.turnData.sheenNextBlockBonus = (player.turnData.sheenNextBlockBonus || 0) + 1;
     notes.push("Eternal Archive next block +1");
   }
@@ -5917,17 +5828,17 @@ function clearEndTurnBuffs(game) {
 
 function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, source, notes) {
   const player = game.players[playerNum];
-  if (player.faction?.id !== "rumin" || source !== "hand") return { value: 0, armedCards: [] };
+  if (factionMechanicId(player) !== "rumin" || source !== "hand") return { value: 0, armedCards: [] };
 
   const weaponEntries = getPlayerControlledLaneCards(game, playerNum)
     .filter((entry) => (
       entry.card.factionId === "rumin"
       && cardHasType(entry.card, "armament")
-      && RUMIN_ARMABLE_DEFINITION_IDS.has(entry.card.definitionId)
+      && RUMIN_ARMABLE_EFFECT_IDS.has(cardEffect(entry.card)?.id)
     ));
   if (weaponEntries.length === 0) return { value: 0, armedCards: [] };
 
-  const shouldArmAll = cardIs(attackCard, "rumin-rumie-market-colossus");
+  const shouldArmAll = hasCardEffect(attackCard, "rumie-market-colossus");
   const entriesToArm = shouldArmAll ? weaponEntries : weaponEntries.slice(0, 1);
   let value = 0;
   const armedCards = [];
@@ -5935,14 +5846,14 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
   for (const entry of entriesToArm) {
     const weapon = entry.card;
     let bonus = 0;
-    if (cardIs(weapon, "rumin-gilded-scale-legionary")) {
+    if (hasCardEffect(weapon, "gilded-scale-legionary")) {
       bonus = player.turnData.paymentSuitsThisTurn?.includes("♦") ? 2 : 0;
-    } else if (cardIs(weapon, "rumin-coin-scale-spear")) bonus = 2;
-    else if (cardIs(weapon, "rumin-rumie-vault-shield")) bonus = 3;
-    else if (cardIs(weapon, "rumin-imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
-    else if (cardIs(weapon, "rumin-aurelian-clawblade")) bonus = 4;
-    else if (cardIs(weapon, "rumin-triumphal-ram")) bonus = getBaseCardValue(attackCard) >= 8 ? 5 : 4;
-    else if (cardIs(weapon, "rumin-kaisers-gold-claw")) bonus = attackNumber === 4 ? 6 : 5;
+    } else if (hasCardEffect(weapon, "coin-scale-spear")) bonus = cardParameter(weapon, "armBonus");
+    else if (hasCardEffect(weapon, "rumie-vault-shield")) bonus = cardParameter(weapon, "armBonus");
+    else if (hasCardEffect(weapon, "imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
+    else if (hasCardEffect(weapon, "aurelian-clawblade")) bonus = cardParameter(weapon, "armBonus");
+    else if (hasCardEffect(weapon, "triumphal-ram")) bonus = getBaseCardValue(attackCard) >= 8 ? 5 : 4;
+    else if (hasCardEffect(weapon, "kaisers-gold-claw")) bonus = attackNumber === 4 ? 6 : 5;
     else bonus = Math.max(1, Math.floor(getBaseCardValue(weapon) / 2));
 
     if (player.turnData.ruminNextWeaponArmBonus) {
@@ -5951,7 +5862,7 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
       player.turnData.ruminNextWeaponArmBonus = 0;
     }
     if (shouldArmAll) bonus += 1;
-    if (attackNumber === 4 && playerControlsCard(game, playerNum, "rumin-basilisk-standard")) {
+    if (attackNumber === 4 && playerControlsEffect(game, playerNum, "basilisk-standard")) {
       bonus += 2;
       notes.push("Market Rally Drum +2");
     }
@@ -5972,10 +5883,10 @@ function calculateAttackBonuses(game, playerNum, card, source) {
   const attackNumber = player.turnData.attacksDeclaredThisTurn + 1;
   const cardBaseValue = getBaseCardValue(card);
 
-  if (player.faction?.id === "rumin") {
+  if (factionMechanicId(player) === "rumin") {
     if (attackNumber === 4) {
-      value += 3;
-      notes.push("Kaiser fourth attack +3");
+      value += factionParameter(player, "fourthAttackBonus");
+      notes.push(`Kaiser fourth attack +${factionParameter(player, "fourthAttackBonus")}`);
     }
     if (
       attackNumber > 1 &&
@@ -5988,32 +5899,32 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     }
   }
 
-  if (player.faction?.id === "sheen" && player.turnData.beliHighCostAttackBuffAvailable && cardBaseValue >= 10) {
-    value += 2;
+  if (factionMechanicId(player) === "sheen" && player.turnData.beliHighCostAttackBuffAvailable && cardBaseValue >= 10) {
+    value += factionParameter(player, "largeAttackBonus");
     player.turnData.beliHighCostAttackBuffAvailable = false;
-    notes.push("Beli high-cost attack +2");
+    notes.push(`Beli high-cost attack +${factionParameter(player, "largeAttackBonus")}`);
   }
   if (player.turnData.sheenNextAttackBonus) {
     value += player.turnData.sheenNextAttackBonus;
     notes.push(`Sheen next attack +${player.turnData.sheenNextAttackBonus}`);
     player.turnData.sheenNextAttackBonus = 0;
   }
-  if (cardIs(card, "sheen-thornroot-counterstroke") && (player.turnData.damageTakenThisTurn || 0) === 0) {
+  if (hasCardEffect(card, "thornroot-counterstroke") && (player.turnData.damageTakenThisTurn || 0) === 0) {
     value += 2;
     notes.push("Thorned Refuge no damage +2");
   }
-  if (cardIs(card, "sheen-nus-calm-command") && player.turnData.blocksDeclaredThisTurn >= 3) {
+  if (hasCardEffect(card, "nus-calm-command") && player.turnData.blocksDeclaredThisTurn >= 3) {
     value += 3;
     notes.push("Tranquility Chamber +3");
   }
-  if (cardIs(card, "sheen-beli-awakened") && player.turnData.beliAwakenedReady) {
+  if (hasCardEffect(card, "beli-awakened") && player.turnData.beliAwakenedReady) {
     value += 3;
     notes.push("Vital Grove +3");
     player.turnData.beliAwakenedReady = false;
   }
 
   if (
-    player.faction?.id === "bizi" &&
+    factionMechanicId(player) === "bizi" &&
     attackNumber > 1 &&
     player.turnData.biziDifferentSuitBuffsUsed < 2 &&
     player.turnData.previousAttackSuit &&
@@ -6022,62 +5933,62 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     value += 1;
     player.turnData.biziDifferentSuitBuffsUsed += 1;
     notes.push("Constanti different suit +1");
-    if (playerControlsCard(game, playerNum, "bizi-constanti-conduit")) {
+    if (playerControlsEffect(game, playerNum, "constanti-conduit")) {
       value += 1;
       notes.push("Signal Line +1");
     }
-    if (cardIs(card, "bizi-dune-circuit-runner")) {
+    if (hasCardEffect(card, "dune-circuit-runner")) {
       value += 1;
       notes.push("Hovercraft +1");
     }
-    if (cardIs(card, "bizi-railspike-marshal")) {
+    if (hasCardEffect(card, "railspike-marshal")) {
       value += 1;
       notes.push("Iron Express +1");
     }
-    if (playerControlsCard(game, playerNum, "bizi-desert-logic-engine")) {
+    if (playerControlsEffect(game, playerNum, "desert-logic-engine")) {
       value += 2;
       notes.push("Battle Alarm +2");
     }
   }
-  if (player.faction?.id === "bizi" && cardIs(card, "bizi-sandstorm-processor") && (player.accelerationCounters || 0) >= 2) {
+  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "sandstorm-processor") && (player.accelerationCounters || 0) >= 2) {
     value += 2;
     notes.push("Searchlight Beacon +2");
   }
-  if (player.faction?.id === "bizi" && cardIs(card, "bizi-constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
+  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
     const spent = Math.min(3, player.accelerationCounters || 0);
     player.accelerationCounters = Math.max(0, (player.accelerationCounters || 0) - spent);
     value += spent * 2;
     notes.push(`Armored Battleship spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
   }
-  if (player.faction?.id === "bizi" && cardIs(card, "bizi-voltaric-ultimatum") && (player.accelerationCounters || 0) >= 2) {
+  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "voltaric-ultimatum") && (player.accelerationCounters || 0) >= 2) {
     player.accelerationCounters -= 2;
     value += 5;
     notes.push("Incinerator Turret spent 2 acceleration +5");
   }
-  if (player.faction?.id === "bizi" && player.turnData.biziPrimeSignalBonus) {
+  if (factionMechanicId(player) === "bizi" && player.turnData.biziPrimeSignalBonus) {
     value += player.turnData.biziPrimeSignalBonus;
     notes.push(`Interference Matrix +${player.turnData.biziPrimeSignalBonus}`);
     player.turnData.biziPrimeSignalBonus = 0;
   }
 
   if (player.faction?.id === "frumo") {
-    if (source === "lane" && cardIs(card, "frumo-tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
+    if (source === "lane" && hasCardEffect(card, "tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
       value += 2;
       notes.push("Turning of the Tides swapped lane +2");
     }
-    if (cardIs(card, "frumo-pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
+    if (hasCardEffect(card, "pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
       value += 2;
       notes.push("Opening Salvo consecutive +2");
     }
-    if (source === "lane" && cardIs(card, "frumo-ristus-blackwake") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
+    if (source === "lane" && hasCardEffect(card, "ristus-blackwake") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
       value += 1;
       notes.push("Coastal Raid empty lane +1");
     }
-    if (source === "lane" && cardIs(card, "frumo-ballast-hook") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
+    if (source === "lane" && hasCardEffect(card, "ballast-hook") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
       value += 1;
       notes.push("Anchor's Hold empty lane +1");
     }
-    if (source === "lane" && cardIs(card, "frumo-captains-bad-wager") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue % 2 === 0) {
+    if (source === "lane" && hasCardEffect(card, "captains-bad-wager") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue % 2 === 0) {
       value += 3;
       notes.push("Sink or Swim previous even value +3");
     }
@@ -6098,14 +6009,14 @@ function getAttackPaymentRequirement(player, card) {
   const required = getBaseCardValue(card);
 
   if (
-    player.faction?.id === "rumin" &&
+    factionMechanicId(player) === "rumin" &&
     attackNumber === 3 &&
     player.turnData.meerusFreeAttackAvailable &&
     required <= 3
   ) {
     return { required: 0, freeAttackUsed: true };
   }
-  if (player.faction?.id === "rumin" && attackNumber === 1 && cardIs(card, "rumin-tax-road-scout")) {
+  if (factionMechanicId(player) === "rumin" && attackNumber === 1 && hasCardEffect(card, "tax-road-scout")) {
     return { required: Math.max(0, required - 1), freeAttackUsed: false };
   }
 
@@ -6125,24 +6036,24 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
     biziVoltageBonus: false
   };
 
-  if (context.action === "attack" && cardIs(context.card, "rumin-forum-ledger-runner") && player.turnData.attacksDeclaredThisTurn === 0 && paymentCards.length > 0) {
+  if (context.action === "attack" && hasCardEffect(context.card, "forum-ledger-runner") && player.turnData.attacksDeclaredThisTurn === 0 && paymentCards.length > 0) {
     total += 1;
     notes.push("Stockbroker's Gloves payment +1");
   }
-  if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => cardIs(card, "rumin-jewel-bank-contract"))) {
+  if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => hasCardEffect(card, "jewel-bank-contract"))) {
     total += 2;
     consume.ruminJewelBank = true;
     notes.push("Board of Directors' Insignia payment +2");
   }
-  if (context.action === "attack" && player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn === 3 && paymentCards.some((card) => cardIs(card, "rumin-edict-of-the-vault"))) {
+  if (context.action === "attack" && factionMechanicId(player) === "rumin" && player.turnData.attacksDeclaredThisTurn === 3 && paymentCards.some((card) => hasCardEffect(card, "edict-of-the-vault"))) {
     total += 3;
     notes.push("Battle Cry Horn payment +3");
   }
-  if (context.action === "block" && player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-harmony-ward"))) {
+  if (context.action === "block" && player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => hasCardEffect(card, "harmony-ward"))) {
     total += 1;
     notes.push("Harmony Lab payment +1");
   }
-  if (paymentCards.some((card) => cardIs(card, "frumo-sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
+  if (paymentCards.some((card) => hasCardEffect(card, "sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
     total += 1;
     notes.push("Collect Tribute payment +1");
   }
@@ -6151,17 +6062,17 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
     notes.push(`Hit & Run payment +${player.turnData.frumoNextPaymentBonus}`);
     consume.frumoNextPaymentBonus = true;
   }
-  if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-voltage-ration"))) {
+  if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "voltage-ration"))) {
     total += 1;
     consume.biziVoltageBonus = true;
     notes.push("Ammo Depot payment +1");
   }
-  if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-brass-spark"))) {
+  if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "brass-spark"))) {
     total += 1;
     consume.biziVoltageBonus = true;
     notes.push("Spare Part Scrapyard payment +1");
   }
-  if (context.card?.factionId === "bizi" && paymentCards.some((card) => cardIs(card, "bizi-heras-calibration"))) {
+  if (context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "heras-calibration"))) {
     total += 2;
     notes.push("Signal Relay payment +2");
   }
@@ -6170,7 +6081,7 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
   const hasHeraPaymentCard = paymentCards.some((card) => player.turnData.suitsPlayedThisTurn.includes(card.suit));
   if (
     useHeraBonus &&
-    player.faction?.id === "bizi" &&
+    factionMechanicId(player) === "bizi" &&
     !player.turnData.heraUsed &&
     player.turnData.suitsPlayedThisTurn.length > 0 &&
     hasHeraPaymentCard
@@ -6195,10 +6106,10 @@ function finalizeAttackDeclaration(player, card, attackBonus, freeUsed) {
   if (freeUsed) notes.push("Meerus free attack");
   player.turnData.attacksDeclaredThisTurn++;
   player.turnData.previousAttackSuit = card?.suit;
-  if (player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn === 2) {
+  if (factionMechanicId(player) === "rumin" && player.turnData.attacksDeclaredThisTurn === 2) {
     player.turnData.meerusFreeAttackAvailable = true;
   }
-  if (player.faction?.id === "rumin" && player.turnData.attacksDeclaredThisTurn >= 3) {
+  if (factionMechanicId(player) === "rumin" && player.turnData.attacksDeclaredThisTurn >= 3) {
     player.turnData.meerusFreeAttackAvailable = false;
   }
   return { effectiveValue, notes };
@@ -6223,45 +6134,45 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
     notes.push(`Sheen next block +${player.turnData.sheenNextBlockBonus}`);
     player.turnData.sheenNextBlockBonus = 0;
   }
-  if (cardIs(card, "sheen-rootwatch-initiate") && player.turnData.blocksDeclaredThisTurn > 0) {
+  if (hasCardEffect(card, "rootwatch-initiate") && player.turnData.blocksDeclaredThisTurn > 0) {
     effectiveValue += 1;
     notes.push("Root Haven +1");
   }
-  if (cardIs(card, "sheen-living-bark-guard") && context.attack?.source === "hand") {
+  if (hasCardEffect(card, "living-bark-guard") && context.attack?.source === "hand") {
     effectiveValue += 1;
     notes.push("Barkskin Bastion +1");
   }
-  if (cardIs(card, "sheen-seedwall-acolyte") && player.turnData.blocksDeclaredThisTurn === 0) {
+  if (hasCardEffect(card, "seedwall-acolyte") && player.turnData.blocksDeclaredThisTurn === 0) {
     effectiveValue += 1;
     notes.push("Sapling Sanctuary first block +1");
   }
-  if (cardIs(card, "sheen-ringroot-bastion") && context.isLaneBlock) {
+  if (hasCardEffect(card, "ringroot-bastion") && context.isLaneBlock) {
     effectiveValue += 2;
     notes.push("Rootbind Refuge lane block +2");
   }
-  if (cardIs(card, "rumin-marble-phalanx") && context.isLaneBlock) {
+  if (hasCardEffect(card, "marble-phalanx") && context.isLaneBlock) {
     effectiveValue += 2;
     notes.push("Ballistic Shield +2");
   }
-  if (cardIs(card, "sheen-nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
+  if (hasCardEffect(card, "nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
     effectiveValue += 1;
     notes.push("Verdant Dome third block upgrade +1");
   }
-  if (playerControlsCard(game, playerNum, "sheen-emperors-heartwood")) {
+  if (playerControlsEffect(game, playerNum, "emperors-heartwood")) {
     effectiveValue += 1;
     notes.push("Evergreen Arbor +1");
   }
-  if (cardIs(card, "bizi-gearplate-shield") && (player.accelerationCounters || 0) > 0) {
+  if (hasCardEffect(card, "gearplate-shield") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
     effectiveValue += 2;
     notes.push("Bunker Defenses spent 1 acceleration +2");
   }
-  if (cardIs(card, "bizi-heat-sink-matrix") && (player.accelerationCounters || 0) > 0) {
+  if (hasCardEffect(card, "heat-sink-matrix") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
     effectiveValue += 2;
     notes.push("Smoke Screen spent 1 acceleration +2");
   }
-  if (context.isLaneBlock && cardIs(card, "frumo-coral-hull-guard")) {
+  if (context.isLaneBlock && hasCardEffect(card, "coral-hull-guard")) {
     effectiveValue += 1;
     player.turnData.frumoLaneSwappedThisTurn = true;
     notes.push("Frozen Barrier lane feint +1");
@@ -6276,11 +6187,11 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
 
 function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCards = []) {
   if (!blockEntries.length) return;
-  if (paymentCards.some((card) => cardIs(card, "sheen-mossbound-staff"))) {
+  if (paymentCards.some((card) => hasCardEffect(card, "mossbound-staff"))) {
     blockEntries[0].effectiveValue += 1;
     blockEntries[0].notes.push("Negotiation Grounds block +1");
   }
-  if (player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => cardIs(card, "sheen-sapling-chorus"))) {
+  if (player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => hasCardEffect(card, "sapling-chorus"))) {
     blockEntries[0].effectiveValue += 1;
     blockEntries[0].notes.push("Floral Canopy block +1");
   }
@@ -6289,7 +6200,7 @@ function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCard
 function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
   const player = game.players[playerNum];
   player.turnData.blocksDeclaredThisTurn++;
-  if (player.faction?.id === "sheen" && player.turnData.blocksDeclaredThisTurn === 2) {
+  if (factionMechanicId(player) === "sheen" && player.turnData.blocksDeclaredThisTurn === 2) {
     if (!player.turnData.tangLifeGainUsed) {
       const notes = blockEntries[0]?.notes || [];
       gainLifeFromBlocking(game, playerNum, 2, notes);
@@ -6297,16 +6208,16 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
     }
     player.turnData.beliHighCostAttackBuffAvailable = true;
   }
-  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-beli-vinebinder")) && player.turnData.blocksDeclaredThisTurn >= 2) {
+  if (blockEntries.some((entry) => hasCardEffect(entry.card, "beli-vinebinder")) && player.turnData.blocksDeclaredThisTurn >= 2) {
     player.turnData.sheenNextAttackBonus = (player.turnData.sheenNextAttackBonus || 0) + 1;
     blockEntries[0]?.notes.push("Entwined Thicket next attack +1");
   }
-  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
+  if (blockEntries.some((entry) => hasCardEffect(entry.card, "tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
     gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
     player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
     blockEntries[0]?.notes.push("Meditation Retreat draw at end of turn");
   }
-  if (blockEntries.some((entry) => cardIs(entry.card, "sheen-emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
+  if (blockEntries.some((entry) => hasCardEffect(entry.card, "emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
     gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
     blockEntries[0]?.notes.push("Evergreen Arbor +1 life");
   }
@@ -6314,10 +6225,10 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
 
 function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null, notes = []) {
   const player = game.players[playerNum];
-  if (player.faction?.id === "bizi" && paid - required >= 2) {
+  if (factionMechanicId(player) === "bizi" && paid - required >= 2) {
     let gained = 1;
-    if (cardIs(card, "bizi-copperline-technician")) gained += 1;
-    if (playerControlsCard(game, playerNum, "bizi-regnum-voltage-bank") && !player.turnData.biziFirstOverpayRewardUsed) {
+    if (hasCardEffect(card, "copperline-technician")) gained += 1;
+    if (playerControlsEffect(game, playerNum, "regnum-voltage-bank") && !player.turnData.biziFirstOverpayRewardUsed) {
       gained += 1;
       player.life += 1;
       player.turnData.biziFirstOverpayRewardUsed = true;
@@ -6326,7 +6237,7 @@ function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null,
     player.accelerationCounters = (player.accelerationCounters || 0) + gained;
     notes.push(`Bizi overpay +${gained} acceleration`);
     for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
-      if (cardIs(visibleCard, "bizi-solar-array-adept")) {
+      if (hasCardEffect(visibleCard, "solar-array-adept")) {
         visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
         notes.push("Electrostatic Field +1");
       }
@@ -6337,17 +6248,17 @@ function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null,
 function applyOverpayCardRewards(game, playerNum, paid, required, card = null, notes = []) {
   const player = game.players[playerNum];
   if (paid - required < 2) return;
-  if (cardIs(card, "rumin-senate-vault-guard") && !player.turnData.ruminSenateVaultGuardUsed) {
+  if (hasCardEffect(card, "senate-vault-guard") && !player.turnData.ruminSenateVaultGuardUsed) {
     player.life += 1;
     player.turnData.ruminSenateVaultGuardUsed = true;
     notes.push("Hedge Fund Vest overpay +1 life");
   }
-  if (card?.factionId === "rumin" && playerControlsCard(game, playerNum, "rumin-counting-house-aegis") && !player.turnData.ruminCountingHouseAegisUsed) {
+  if (card?.factionId === "rumin" && playerControlsEffect(game, playerNum, "counting-house-aegis") && !player.turnData.ruminCountingHouseAegisUsed) {
     player.life += 1;
     player.turnData.ruminCountingHouseAegisUsed = true;
     notes.push("Diversified Portfolio overpay +1 life");
   }
-  if (cardIs(card, "bizi-clockwork-caravan") && !player.turnData.biziClockworkCaravanUsed) {
+  if (hasCardEffect(card, "clockwork-caravan") && !player.turnData.biziClockworkCaravanUsed) {
     player.turnData.biziEndTurnDraws = (player.turnData.biziEndTurnDraws || 0) + 1;
     player.turnData.biziClockworkCaravanUsed = true;
     notes.push("Energy Transporter draw at end of turn");
@@ -6359,20 +6270,20 @@ function applyAfterAttackDeclared(game, playerNum, attack, payment) {
   const card = attack.card;
   const notes = attack.notes || [];
 
-  if (cardIs(card, "rumin-marble-market-tribune")) {
+  if (hasCardEffect(card, "marble-market-tribune")) {
     player.turnData.ruminNextWeaponArmBonus = (player.turnData.ruminNextWeaponArmBonus || 0) + 1;
     notes.push("Corporate Banner next armed weapon +1");
   }
-  if ((attack.attachedCards || []).some((weapon) => cardIs(weapon, "rumin-aurelian-clawblade")) && (payment.total || 0) - (payment.required || 0) >= 2) {
+  if ((attack.attachedCards || []).some((weapon) => hasCardEffect(weapon, "aurelian-clawblade")) && (payment.total || 0) - (payment.required || 0) >= 2) {
     player.life += 1;
     notes.push("Executive Authority Blade overpay +1 life");
   }
-  if (cardIs(card, "bizi-focus-prime-signal")) {
+  if (hasCardEffect(card, "focus-prime-signal")) {
     player.accelerationCounters = (player.accelerationCounters || 0) + 2;
     player.turnData.biziPrimeSignalBonus = Math.min(4, player.accelerationCounters || 0);
     notes.push(`Interference Matrix +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
   }
-  if (cardIs(card, "frumo-leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
+  if (hasCardEffect(card, "leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
     player.life += 1;
     notes.push("Loot the Hold +1 life");
   }
@@ -6381,25 +6292,25 @@ function applyAfterAttackDeclared(game, playerNum, attack, payment) {
 function applyLaneEntryTriggers(game, playerNum, card, laneIndex, socket = null) {
   const player = game.players[playerNum];
   const notes = [];
-  if (cardIs(card, "frumo-deckhand-diver")) {
+  if (hasCardEffect(card, "deckhand-diver")) {
     const top = player.deck[player.deck.length - 1];
     if (socket) socket.emit("peekResult", top ? `Top deck card: ${top.name}` : "Your deck is empty.");
     notes.push("Deep Dive peeked at top deck card");
   }
-  if (cardIs(card, "frumo-ristus-rises")) {
+  if (hasCardEffect(card, "ristus-rises")) {
     card.tempBuff = (card.tempBuff || 0) + 1;
     player.turnData.frumoLaneSwappedThisTurn = true;
     notes.push("Tidal Surge +1");
   }
-  if (cardIs(card, "frumo-kelpcloak-trickster")) {
+  if (hasCardEffect(card, "kelpcloak-trickster")) {
     player.turnData.frumoLaneSwappedThisTurn = true;
     notes.push("Sudden Scheme enabled lane-swap bonuses");
   }
-  if (cardIs(card, "frumo-abyssal-switchboard")) {
+  if (hasCardEffect(card, "abyssal-switchboard")) {
     player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + 1;
     notes.push("Coordinated Strike next action +1");
   }
-  if (cardIs(card, "frumo-riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
+  if (hasCardEffect(card, "riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
     card.tempBuff = (card.tempBuff || 0) + 1;
     player.turnData.frumoRiptideSmugglerUsed = true;
     notes.push("Hauntling Lure +1");
@@ -6725,9 +6636,9 @@ function resolveDamage(game, roomState) {
     } else {
       damageMessages.push(`${laneLabel}${describeCardValue(attack.card, attack.effectiveValue, attack.notes)} was fully blocked by ${totalBlock}${totalPrevent ? ` with ${totalPrevent} prevention` : ""}`);
       for (const block of attack.block || []) {
-        if (cardIs(block.card, "sheen-quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (cardIs(block.card, "sheen-raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (cardIs(block.card, "sheen-beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
+        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
       }
     }
 
@@ -6786,9 +6697,9 @@ function resolveFreeForAllDamage(game, roomState) {
     } else {
       damageMessages.push(`Player ${defender} fully blocked Player ${attack.player}'s attack.`);
       for (const block of attack.block || []) {
-        if (cardIs(block.card, "sheen-quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (cardIs(block.card, "sheen-raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (cardIs(block.card, "sheen-beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
+        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
       }
     }
     game.players[attack.player].discard.push(attack.card);
@@ -6853,7 +6764,7 @@ async function advanceEndPlacement(roomState) {
         const drawn = drawCards(player, player.turnData.biziEndTurnDraws);
         if (drawn > 0) endTurnMessages.push(`Player ${p} drew ${drawn} extra card${drawn === 1 ? "" : "s"} from Bizi draft cards.`);
       }
-      while (player.hand.length < BASIC_HAND_SIZE && player.deck.length > 0) {
+      while (player.hand.length < configuredHandSize(game) && player.deck.length > 0) {
         player.hand.push(player.deck.pop());
       }
     }
@@ -6895,117 +6806,6 @@ function getCurrentEndPlacementPlayer(game) {
     return rotated.find((p) => !game.players[p]?.eliminated && !game.endPlaced?.[p]?.[game.endPlacementLaneIndex]) ?? null;
   }
   return game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : getOtherPlayer(game.endPlacementFirstPlayer);
-}
-
-function findAiPaymentIndexes(hand, required, excludedIndexes = []) {
-  const excluded = new Set(excludedIndexes);
-  const candidates = hand
-    .map((card, index) => ({ card, index, value: getBaseCardValue(card) }))
-    .filter((entry) => !excluded.has(entry.index))
-    .sort((a, b) => a.value - b.value);
-  const indexes = [];
-  let total = 0;
-  for (const candidate of candidates) {
-    indexes.push(candidate.index);
-    total += candidate.value;
-    if (total >= required) return indexes;
-  }
-  return null;
-}
-
-function legacyDeclareAiHandAttack(roomState) {
-  const game = roomState.game;
-  const ai = game.players[2];
-  const options = ai.hand
-    .map((card, index) => ({ card, index, value: getBaseCardValue(card) }))
-    .sort((a, b) => a.value - b.value);
-
-  for (const option of options) {
-    const paymentIndexes = findAiPaymentIndexes(ai.hand, option.value, [option.index]);
-    if (!paymentIndexes) continue;
-
-    const attackCard = ai.hand[option.index];
-    const payment = getPaymentTotal(ai, paymentIndexes, false, { game, playerNum: 2, action: "attack", card: option.card });
-    const paymentCards = getHandCardsByIndexes(ai, paymentIndexes);
-    consumePaymentBonuses(ai, payment);
-    removeSelectedCardAndPayments(ai, option.index, paymentIndexes);
-    addPaymentSuits(ai, paymentCards);
-    const attackBonus = calculateAttackBonuses(game, 2, attackCard, "hand");
-    attackBonus.notes.push(...(payment.notes || []));
-    addAccelerationIfOverpaid(game, 2, payment.total, option.value, attackCard, attackBonus.notes);
-    applyOverpayCardRewards(game, 2, payment.total, option.value, attackCard, attackBonus.notes);
-    const attackInfo = finalizeAttackDeclaration(ai, attackCard, attackBonus, false);
-    const attack = {
-      id: `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      player: 2,
-      card: attackCard,
-      source: "hand",
-      effectiveValue: attackInfo.effectiveValue,
-      block: [],
-      attachedCards: attackBonus.armedCards || [],
-      notes: attackInfo.notes
-    };
-    attack.payment = { player: 2, cards: paymentCards, total: payment.total, required: option.value };
-    applyAfterAttackDeclared(game, 2, attack, attack.payment);
-
-    game.handAttacks.push(attack);
-    resetPriorityPassed(game);
-    game.priority = 1;
-    game.mostRecentAttackDefender = 1;
-    game.message = `Training AI attacked with ${describeCardValue(attackCard, attackInfo.effectiveValue, attackInfo.notes)} from hand. Player 1 can block or pass.`;
-    return true;
-  }
-
-  return false;
-}
-
-function legacyDeclareCampaignBossAttack(roomState) {
-  const game = roomState.game;
-  const ai = game.players[2];
-  const campaign = game.campaign;
-  if (!campaign) return false;
-  if (!campaignBossHasAction(game, 2)) return false;
-
-  const attackNumber = (campaign.bossAttacksThisTurn || 0) + 1;
-  const minValue = campaign.minAttackValue || 5;
-  const maxValue = campaign.maxAttackValue || 8;
-  const valueRange = Math.max(1, maxValue - minValue + 1);
-  const baseValue = minValue + ((game.turn + attackNumber + (campaign.chapterNumber || 1)) % valueRange);
-  const notes = [`Boss strike ${attackNumber}/${campaign.attacksPerTurn}`];
-  const value = applyCampaignBossAbilityToAttack(campaign, attackNumber, baseValue, notes);
-  const suits = DRAFT_CARD_SUITS;
-  const suit = suits[(game.turn + attackNumber + (campaign.chapterNumber || 1)) % suits.length];
-  const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
-  const rank = rankNames[value] || String(value);
-  const attackCard = {
-    id: `campaign-${campaign.chapterId}-${game.turn}-${attackNumber}-${Date.now()}`,
-    value,
-    suit,
-    rank,
-    name: `${campaign.opponentName} Strike ${attackNumber}`,
-    faction: ai.faction.name,
-    factionId: ai.faction.id,
-    image: ai.faction.cardImage,
-    campaignBossCard: true
-  };
-  const attack = {
-    id: `attack-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    player: 2,
-    card: attackCard,
-    source: "campaignBoss",
-    effectiveValue: value,
-    block: [],
-    notes,
-    payment: { player: 2, cards: [], total: 0, required: 0, campaignBoss: true }
-  };
-
-  spendCampaignBossAction(game, 2, "attack");
-  game.handAttacks.push(attack);
-  resetPriorityPassed(game);
-  game.priority = 1;
-  game.mostRecentAttackDefender = 1;
-  game.message = `${campaign.opponentName} launched scripted attack ${attackNumber}/${campaign.attacksPerTurn}: ${describeCardValue(attackCard, value, attack.notes)}. Player 1 can block or pass.`;
-  return true;
 }
 
 function findSemanticAiPaymentCardIds(hand, required, excludedCardIds = []) {
@@ -7192,26 +6992,6 @@ async function aiResolveDamageIfReady(roomState) {
   return true;
 }
 
-async function legacyAiPassPriority(roomState) {
-  const game = roomState.game;
-  const aiName = game.campaign?.opponentName || "Training AI";
-  game.priorityPassed[2] = true;
-  game.message = `${aiName} passed priority.`;
-
-    if (game.priorityPassed[1] && game.priorityPassed[2]) {
-      if (hasPendingAttacks(game)) {
-        await resolveCombatAndResumePriority(roomState);
-      } else if (await finishGameIfLifeCheckFails(roomState)) {
-        return true;
-      } else {
-        startEndPhase(game);
-      }
-    resetPriorityPassed(game);
-  } else {
-    game.priority = 1;
-  }
-}
-
 function getPendingAttackList(game) {
   return [
     ...(game.handAttacks || []),
@@ -7222,27 +7002,6 @@ function getPendingAttackList(game) {
 function aiNeedsLaneSetup(game) {
   const ai = game.players[2];
   return ai.hand.length > 0 && game.lanes.some((lane) => !lane.facedown[2]);
-}
-
-async function legacyAiEndPlacement(roomState) {
-  const game = roomState.game;
-  const ai = game.players[2];
-  const aiName = game.campaign?.opponentName || "Training AI";
-  const lane = game.endPlacementLaneIndex;
-  if (game.phase !== "end" || getCurrentEndPlacementPlayer(game) !== 2) return false;
-
-  if (!game.lanes[lane].facedown[2] && ai.hand.length > 0) {
-    const card = ai.hand.splice(0, 1)[0];
-    game.lanes[lane].facedown[2] = card;
-    game.endPlaced[2][lane] = true;
-    game.message = `${aiName} placed a face-down card in lane ${lane + 1}.`;
-  } else {
-    game.endPlaced[2][lane] = true;
-    game.message = `${aiName} skipped lane ${lane + 1}.`;
-  }
-
-  await advanceEndPlacement(roomState);
-  return true;
 }
 
 async function runTrainingAi(roomState) {
@@ -7469,9 +7228,52 @@ async function executeLegacySemanticDuelCommand(roomState, socket, playerNum, co
   return result;
 }
 
+function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
+  const faction = resolvedContent.factions[factionId];
+  const chapter = getCampaignChapter(factionId, chapterId, resolvedContent);
+  if (!faction || !chapter?.setup) throw new Error("Unknown encounter.");
+  const difficulty = getCampaignDifficulty(factionId, chapterId, chapter.setup);
+  const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
+  const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup);
+  const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss", chapter.setup);
+  const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
+  const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
+  roomState.lobby.gameMode = "factions";
+  roomState.lobby.campaign = {
+    setup: clonePlain(chapter.setup),
+    factionId,
+    chapterId,
+    title: chapter.title,
+    image: chapter.image || null,
+    story: chapter.story,
+    beforeBattle: chapter.beforeBattle || chapter.story,
+    afterBattle: chapter.afterBattle || "",
+    opponentName: chapter.opponentName,
+    playableName: chapter.playableName || faction.commander?.name || faction.name,
+    dialogue: chapter.dialogue || [],
+    startDialogue: chapter.dialogue || [],
+    dialogueAudio: chapter.dialogueAudio || [],
+    startDialogueAudio: chapter.dialogueAudio || [],
+    endDialogue: buildCampaignEndDialogue(chapter, faction),
+    endDialogueAudio: chapter.endDialogueAudio || [],
+    playerCampaignCardCount: playerCampaignCards.length,
+    bossCampaignCardCount: bossCampaignCards.length,
+    bossAbility,
+    bossPowerProfile,
+    ...difficulty,
+    bossAttacksThisTurn: 0,
+    bossActionsThisTurn: 0
+  };
+
+  roomState.lobby.players[1].campaignDeckAdditions = playerCampaignCards;
+  roomState.lobby.players[2].campaignDeckAdditions = bossCampaignCards;
+  return { difficulty, bossAbility, bossPowerProfile };
+}
+
 function createGameFromLobby(roomState, options = {}) {
+  const resolvedContent = options.contentRelease || contentPublication.active();
   if (isFreeForAllRoom(roomState)) {
-    createFreeForAllGameFromLobby(roomState);
+    createFreeForAllGameFromLobby(roomState, resolvedContent);
     return;
   }
   roomState.matchMetadata = options.matchMetadata
@@ -7488,8 +7290,8 @@ function createGameFromLobby(roomState, options = {}) {
   const random = createSharedSeededRandom(seed);
   const startingPriority = random() < 0.5 ? 1 : 2;
   
-  const suits = DRAFT_CARD_SUITS;
-  const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+  const suits = PLAYING_SUITS;
+  const values = PLAYING_VALUES;
   const rankNames = { 11: "J", 12: "Q", 13: "K", 14: "A" };
   
   function createDraftCardForDeck(card, faction, playerNum, replacementIndex) {
@@ -7604,6 +7406,7 @@ function createGameFromLobby(roomState, options = {}) {
         id: 2,
         accountId: roomState.lobby.players[2].accountId || null,
         accountName: roomState.lobby.players[2].accountName || null,
+        opponentKind: roomState.lobby.players[2].opponentKind || (roomState.lobby.campaign ? "campaign-boss" : null),
         profile: clonePlain(roomState.lobby.players[2].profile || null),
         faction: faction2,
         life: BASIC_STARTING_LIFE,
@@ -7635,20 +7438,29 @@ function createGameFromLobby(roomState, options = {}) {
   };
   
   for (const p of [1, 2]) {
-    for (let i = 0; i < BASIC_HAND_SIZE; i++) {
+    for (let i = 0; i < resolvedContent.manifest.gameConfig.handSize; i++) {
       if (game.players[p].deck.length > 0) {
         game.players[p].hand.push(game.players[p].deck.pop());
       }
     }
   }
   
+  pinGameContent(game, resolvedContent);
+  if (roomState.lobby.campaign) {
+    game.campaign = clonePlain(roomState.lobby.campaign);
+    const profile = game.campaign.bossPowerProfile;
+    Object.assign(game.players[2].faction, { commander: profile.commander, city: profile.city, general: profile.general });
+    game.players[2].life = game.campaign.bossLife;
+    game.players[2].opponentKind = "campaign-boss";
+  }
+  if (game.players[2]?.opponentKind === "training-ai") game.players[2].accountName = resolvedContent.manifest.trainingOpponent.name;
   roomState.game = game;
   captureLeagueEvidence(game, {
     command: { type: "matchStarted" },
     events: [
       { id: `${matchId}:match-started`, type: "match.started" },
-      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: BASIC_HAND_SIZE },
-      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: BASIC_HAND_SIZE },
+      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: resolvedContent.manifest.gameConfig.handSize },
+      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: resolvedContent.manifest.gameConfig.handSize },
       { id: `${matchId}:initial-priority`, type: "priority.granted", player: startingPriority }
     ],
     timestamp: roomState.matchMetadata?.startedAt || new Date().toISOString()
@@ -7656,7 +7468,7 @@ function createGameFromLobby(roomState, options = {}) {
   roomState.damageConfirmed = { 1: false, 2: false };
 }
 
-function createFreeForAllGameFromLobby(roomState) {
+function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPublication.active()) {
   roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
@@ -7724,7 +7536,7 @@ function createFreeForAllGameFromLobby(roomState) {
       accountName: roomState.lobby.players[playerNum].accountName || null,
       profile: clonePlain(roomState.lobby.players[playerNum].profile || null),
       faction,
-      life: 42,
+      life: BASIC_STARTING_LIFE,
       hand: [],
       deck: createDeck(faction, addedCards),
       discard: [],
@@ -7772,11 +7584,12 @@ function createFreeForAllGameFromLobby(roomState) {
   };
 
   seatedPlayers.forEach((playerNum) => {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < resolvedContent.manifest.gameConfig.handSize; i++) {
       if (players[playerNum].deck.length > 0) players[playerNum].hand.push(players[playerNum].deck.pop());
     }
   });
 
+  pinGameContent(game, resolvedContent);
   roomState.game = game;
   roomState.damageConfirmed = damageConfirmed;
 }
@@ -8129,7 +7942,8 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
-    roomState.lobby.players[2].accountName = "Training AI";
+    roomState.lobby.players[2].accountName = contentPublication.active().manifest.trainingOpponent.name;
+    roomState.lobby.players[2].opponentKind = "training-ai";
     roomState.lobby.players[2].factionId = aiMode === "factions" ? aiFaction.id : null;
     roomState.lobby.players[2].isGuest = false;
     roomState.lobby.players[2].isAI = true;
@@ -8143,7 +7957,7 @@ io.on("connection", (socket) => {
 
     createGameFromLobby(roomState);
     roomState.game.players[2].connected = true;
-    roomState.game.players[2].accountName = "Training AI";
+    roomState.game.players[2].opponentKind = "training-ai";
     roomState.game.message = `Tutorial game started. Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
@@ -8156,8 +7970,9 @@ io.on("connection", (socket) => {
     const identity = await requirePlayerIdentity(socket, authToken, guestName);
     if (!identity) return;
 
-    const faction = getFactionById(factionId);
-    const chapter = getCampaignChapter(factionId, chapterId);
+    const resolvedContent = contentPublication.active();
+    const faction = resolvedContent.factions[factionId];
+    const chapter = getCampaignChapter(factionId, chapterId, resolvedContent);
     if (!faction || !chapter) {
       socket.emit("errorMessage", "Choose a valid campaign chapter.");
       return;
@@ -8172,38 +7987,8 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const difficulty = getCampaignDifficulty(factionId, chapterId);
-    const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
-    const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player");
-    const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss");
-    const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
-    const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
     const roomState = createRoom();
-    roomState.lobby.gameMode = "factions";
-    roomState.lobby.campaign = {
-      factionId,
-      chapterId,
-      title: chapter.title,
-      image: chapter.image || null,
-      story: chapter.story,
-      beforeBattle: chapter.beforeBattle || chapter.story,
-      afterBattle: chapter.afterBattle || "",
-      opponentName: chapter.opponentName,
-      playableName: chapter.playableName || faction.commander?.name || faction.name,
-      dialogue: chapter.dialogue || [],
-      startDialogue: chapter.dialogue || [],
-      dialogueAudio: chapter.dialogueAudio || [],
-      startDialogueAudio: chapter.dialogueAudio || [],
-      endDialogue: buildCampaignEndDialogue(chapter, faction),
-      endDialogueAudio: chapter.endDialogueAudio || [],
-      playerCampaignCardCount: playerCampaignCards.length,
-      bossCampaignCardCount: bossCampaignCards.length,
-      bossAbility,
-      bossPowerProfile,
-      ...difficulty,
-      bossAttacksThisTurn: 0,
-      bossActionsThisTurn: 0
-    };
+    const { difficulty, bossAbility } = prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId);
     roomState.lobby.players[1].socket = socket.id;
     roomState.lobby.players[1].connected = true;
     roomState.lobby.players[1].reconnectToken = makeReconnectToken();
@@ -8214,28 +7999,16 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].isGuest = identity.type === "guest";
     const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
     roomState.lobby.players[1].savedConstructedDeck = campaignConstructedDeck?.factionId === factionId ? campaignConstructedDeck : null;
-    roomState.lobby.players[1].campaignDeckAdditions = playerCampaignCards;
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
     roomState.lobby.players[2].accountName = chapter.opponentName;
     roomState.lobby.players[2].factionId = factionId;
     roomState.lobby.players[2].isGuest = false;
     roomState.lobby.players[2].isAI = true;
-    roomState.lobby.players[2].campaignDeckAdditions = bossCampaignCards;
     await touchAccountStats(identity.id, "gamesCreated");
     attachPlayerSocket(roomState, socket, 1);
 
-    createGameFromLobby(roomState);
-    roomState.game.campaign = roomState.lobby.campaign;
-    roomState.game.players[2].connected = true;
-    roomState.game.players[2].accountName = chapter.opponentName;
-    roomState.game.players[2].faction = {
-      ...roomState.game.players[2].faction,
-      commander: bossPowerProfile.commander,
-      city: bossPowerProfile.city,
-      general: bossPowerProfile.general
-    };
-    roomState.game.players[2].life = difficulty.bossLife;
+    createGameFromLobby(roomState, { contentRelease: resolvedContent });
     roomState.game.message = `${chapter.title}: ${chapter.beforeBattle || chapter.story} ${chapter.opponentName} starts at ${difficulty.bossLife} life and has ${difficulty.attacksPerTurn} scripted actions per turn shared between attacks and blocks.${bossAbility ? ` Boss ability: ${bossAbility.text}` : ""} Player ${roomState.game.priority} has priority.`;
     emitState(roomState);
     scheduleTrainingAi(roomState);
@@ -9417,11 +9190,11 @@ io.on("connection", (socket) => {
     const blockEntries = blockCards.map((blockCard) => {
       const blockInfo = applyBlockBonuses(game, playerNum, blockCard, { attack, isLaneBlock });
       let preventDamage = 0;
-      if (cardIs(blockCard, "rumin-vault-shield-bearer") && payment.total - blockCardValue >= 1) {
+      if (hasCardEffect(blockCard, "vault-shield-bearer") && payment.total - blockCardValue >= 1) {
         preventDamage += 1;
         blockInfo.notes.push("Insurance Policy Plate prevents 1");
       }
-      if (cardIs(blockCard, "sheen-beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
+      if (hasCardEffect(blockCard, "beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
         preventDamage += 1;
         player.turnData.beliCanopyShieldUsed = true;
         blockInfo.notes.push("Verdant Canopy prevents 1");
@@ -9531,7 +9304,7 @@ io.on("connection", (socket) => {
 
     if (!canUsePriorityAbility(socket, game, playerNum, "frumo")) return;
     if (player.turnData.poleaUsed) {
-      const canUseSunkenOrder = playerControlsCard(game, playerNum, "frumo-poleas-sunken-order") && !player.turnData.poleaSunkenOrderUsed;
+      const canUseSunkenOrder = playerControlsEffect(game, playerNum, "poleas-sunken-order") && !player.turnData.poleaSunkenOrderUsed;
       if (canUseSunkenOrder) {
         player.turnData.poleaSunkenOrderUsed = true;
       } else {
@@ -9591,7 +9364,7 @@ io.on("connection", (socket) => {
       saveUndoSnapshot(roomState, playerNum, `used Polea to switch lanes ${firstLane + 1} and ${secondLane + 1}`);
       [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
       player.turnData.frumoLaneSwappedThisTurn = true;
-      if (playerControlsCard(game, playerNum, "frumo-tide-debt-ledger")) {
+      if (playerControlsEffect(game, playerNum, "tide-debt-ledger")) {
         player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
       }
       player.turnData.poleaUsed = true;
@@ -9621,11 +9394,11 @@ io.on("connection", (socket) => {
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
       socket.emit("peekResult", `Player ${peekPlayer} lane ${laneIndex + 1}: ${card.name}`);
-      if (playerControlsCard(game, playerNum, "frumo-the-last-gamble")) {
+      if (playerControlsEffect(game, playerNum, "the-last-gamble")) {
         player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + 4;
       }
       for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
-        if (cardIs(visibleCard, "frumo-riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
+        if (hasCardEffect(visibleCard, "riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
           visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
           player.turnData.frumoRiptideSmugglerUsed = true;
         }
@@ -9715,10 +9488,10 @@ io.on("connection", (socket) => {
     player.hand[selectedHandIndex] = game.lanes[laneIndex].facedown[playerNum];
     game.lanes[laneIndex].facedown[playerNum] = handCard;
     player.turnData.frumoLaneSwappedThisTurn = true;
-    if (playerControlsCard(game, playerNum, "frumo-lafayettes-chart")) {
+    if (playerControlsEffect(game, playerNum, "lafayettes-chart")) {
       player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
     }
-    if (playerControlsCard(game, playerNum, "frumo-tide-debt-ledger")) {
+    if (playerControlsEffect(game, playerNum, "tide-debt-ledger")) {
       player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
     }
     applyLaneEntryTriggers(game, playerNum, handCard, laneIndex, socket);
@@ -9783,7 +9556,7 @@ io.on("connection", (socket) => {
     saveUndoSnapshot(roomState, playerNum, "used Focus Buff");
     player.accelerationCounters -= 1;
     player.turnData.focusBuffUsed = true;
-    const focusBonus = playerControlsCard(game, playerNum, "bizi-focus-overclock") ? 3 : 1;
+    const focusBonus = playerControlsEffect(game, playerNum, "focus-overclock") ? 3 : 1;
     target.tempBuff = (target.tempBuff || 0) + focusBonus;
     resetPriorityPassed(game);
     recordPaymentLog(game, {
@@ -9968,11 +9741,14 @@ module.exports = {
     abandonActiveRoom,
     createFreeForAllGameFromLobby,
     createGameFromLobby,
+    contentPublication,
     createMatchedRoom,
     createDraftLeagueRoom,
     continueBestOf3Series,
     createRoom,
     createTurnData,
+    adminPlaytests,
+    prepareCampaignRoom,
     chooseSemanticTrainingAiCommand,
     applySemanticAutomatedCommand,
     executeSemanticDuelCommand,

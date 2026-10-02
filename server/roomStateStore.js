@@ -30,6 +30,7 @@ function cloneRoomForStorage(roomState) {
   }
   for (const [playerNum, player] of Object.entries(storedRoom.game?.players || {})) {
     player.connected = !!storedRoom.lobby.players?.[playerNum]?.isAI;
+    if (player.connected && !player.opponentKind) player.opponentKind = storedRoom.game.campaign ? "campaign-boss" : "training-ai";
   }
   delete storedRoom.aiMoveTimer;
   return storedRoom;
