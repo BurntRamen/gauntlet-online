@@ -215,7 +215,7 @@
 }
 .collection-view-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
   border: 1px solid rgba(101,168,126,0.36);
@@ -297,5 +297,83 @@
   margin: 0;
   color: #bfdbfe;
   font-size: 12px;
+}
+.collection-search-field {
+  display: grid;
+  gap: 4px;
+  min-width: min(310px, 100%);
+  color: #9db8aa;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.collection-search-field input {
+  width: 100%;
+  border: 1px solid rgba(125, 211, 252, .36);
+  border-radius: 6px;
+  padding: 9px 11px;
+  background: rgba(2, 8, 23, .78);
+  color: #f8fafc;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.collection-search-field input:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
+}
+.collector-library {
+  display: grid;
+  gap: 12px;
+}
+.collector-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.collector-library-card {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(125, 211, 252, .24);
+  border-radius: 8px;
+  background: rgba(2, 8, 23, .62);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+}
+.collector-library-card:hover,
+.collector-library-card[aria-pressed="true"] {
+  border-color: rgba(250, 204, 21, .8);
+  background: rgba(30, 41, 59, .8);
+  box-shadow: 0 0 22px rgba(250, 204, 21, .12);
+}
+.collector-library-card .special-card-presentation {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+}
+.collector-library-card > span,
+.collector-library-card > small {
+  color: #bfdbfe;
+  font-size: 10px;
+}
+.collector-library-card > strong {
+  color: #fde68a;
+  font-family: Georgia, serif;
+}
+.collector-library-empty {
+  grid-column: 1 / -1;
+  padding: 24px;
+  border: 1px dashed rgba(125, 211, 252, .3);
+  color: #bfdbfe;
+  text-align: center;
+}
+@media (max-width: 620px) {
+  .collection-view-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .collection-search-field { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .booster-pack-tile.opening { animation: none; } }

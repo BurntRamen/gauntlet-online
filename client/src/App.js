@@ -1794,6 +1794,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogOwnedOnly, setCatalogOwnedOnly] = useState(false);
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
+  const [collectorSearch, setCollectorSearch] = useState("");
+  const [inspectedCollectorVariantId, setInspectedCollectorVariantId] = useState("");
   const [collectionView, setCollectionView] = useState("packs");
   const loadedConstructedVersion = useRef("");
 
@@ -1858,6 +1860,28 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     }
     return true;
   });
+  const normalizedCollectorSearch = collectorSearch.trim().toLowerCase();
+  const ownedCollectorVariants = collectorCatalog
+    .filter((variant) => variant.paid && Number(collectorOwnership[variant.variantId] || 0) > 0)
+    .map((variant) => ({
+      variant,
+      card: allCatalogCards.find((card) => card.id === variant.gameplayCardId) || {
+        id: variant.gameplayCardId,
+        name: variant.gameplay?.name || variant.name,
+        factionId: variant.gameplay?.factionId || "basic",
+        rarity: variant.rarity || "common",
+        type: "Faction card",
+        text: "Collector presentation"
+      }
+    }))
+    .filter(({ variant, card }) => {
+      if (!normalizedCollectorSearch) return true;
+      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId} ${variant.name || ""} ${variant.finish || ""}`.toLowerCase();
+      return searchText.includes(normalizedCollectorSearch);
+    });
+  const inspectedCollectorEntry = ownedCollectorVariants.find(({ variant }) => variant.variantId === inspectedCollectorVariantId)
+    || ownedCollectorVariants[0]
+    || null;
   const availableVariantsByGameplayCard = collectorCatalog.reduce((byCard, variant) => {
     if (!variant?.gameplayCardId) return byCard;
     if (variant.paid && Number(collectorOwnership[variant.variantId] || 0) <= 0) return byCard;
@@ -1965,7 +1989,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-summary-note"><span>Fair-play split</span>Every account starts with three free animated collector styles. Campaign credits unlock gameplay; collector styles never change cards, copies, values, or abilities.</div>
         </div>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
-          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Catalog"]].map(([viewId, label]) => (
+          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
@@ -2090,6 +2114,48 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           </div>
         </div>
         }
+        {collectionView === "collector" && <div className="collector-library">
+          <div className="collection-view-heading">
+            <div>
+              <h3>Collector Styles</h3>
+              <p>Animated presentations you own. Styles are visible here even when their gameplay card has not been earned.</p>
+            </div>
+            <label className="collection-search-field">
+              <span>Search collection</span>
+              <input
+                type="search"
+                value={collectorSearch}
+                onChange={(event) => setCollectorSearch(event.target.value)}
+                placeholder="Name, faction, type, or finish"
+              />
+            </label>
+          </div>
+          {inspectedCollectorEntry && <CardArtInspector
+            card={inspectedCollectorEntry.card}
+            collectorCatalog={collectorCatalog}
+            selectedVariantId={inspectedCollectorEntry.variant.variantId}
+            owned={Number(cardsOwned[inspectedCollectorEntry.card.id] || 0)}
+            compact
+          />}
+          <div className="collector-library-grid">
+            {ownedCollectorVariants.length === 0 && <div className="collector-library-empty">No collector styles match that search.</div>}
+            {ownedCollectorVariants.map(({ variant, card }) => {
+              const gameplayCopies = Number(cardsOwned[card.id] || 0);
+              return <button
+                type="button"
+                className="collector-library-card"
+                aria-pressed={inspectedCollectorEntry?.variant.variantId === variant.variantId}
+                onClick={() => setInspectedCollectorVariantId(variant.variantId)}
+                key={variant.variantId}
+              >
+                <SpecialCardFace card={card} art={variant.art} presentation={variant} />
+                <span>{PACK_THEMES[card.factionId]?.name || card.factionId}</span>
+                <strong>{card.name}</strong>
+                <small>{variant.finish || "collector"} · {gameplayCopies > 0 ? `${gameplayCopies} gameplay cop${gameplayCopies === 1 ? "y" : "ies"}` : "style owned · gameplay card locked"}</small>
+              </button>;
+            })}
+          </div>
+        </div>}
       </div>
     </MenuCard>
   );
