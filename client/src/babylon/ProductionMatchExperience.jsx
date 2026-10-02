@@ -741,7 +741,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
 }
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
-  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter }) {
+  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onCommanderClick }) {
   const [abilitySearch, setAbilitySearch] = useState("");
   useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
@@ -892,7 +892,16 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                   ["General", factionProfile(player.faction?.general, "General")],
                   ["City", factionProfile(player.faction?.city, "City")]
                 ].map(([role, profile]) => profile && (
-                  <article className="production-faction-profile" key={role}>
+                  <article className={`production-faction-profile${role === "Commander" && onCommanderClick ? " is-interactive" : ""}`} key={role}
+                    role={role === "Commander" && onCommanderClick ? "button" : undefined}
+                    tabIndex={role === "Commander" && onCommanderClick ? 0 : undefined}
+                    onClick={role === "Commander" ? onCommanderClick : undefined}
+                    onKeyDown={role === "Commander" && onCommanderClick ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onCommanderClick();
+                      }
+                    } : undefined}>
                     {profile.image && <img src={resolveMatchAssetPath(profile.image)} alt="" />}
                     <div>
                       <span>{role}</span>
@@ -1949,11 +1958,19 @@ export default function ProductionMatchExperience({
             <FactionBoardCards key={`${viewModel.matchId}:${visualViewModel.bottom?.id}`}
               faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}
               viewModel={presentedViewModel} commands={gameplayCommands}
-              layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked} />
+              layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked}
+              onFactionCardClick={(role) => { if (role === "commander") options.onCommanderClick?.(); }} />
           )}
         </div>
 
         <div className="production-table-vignette" aria-hidden="true" />
+        {options.commanderAnnouncement && (
+          <div className={`production-commander-announcement is-${options.commanderAnnouncement.kind || "spoken"}`} role="status" aria-live="polite">
+            <span>{options.commanderAnnouncement.speaker || "Commander"}</span>
+            <strong>“{options.commanderAnnouncement.quote}”</strong>
+            {options.commanderAnnouncement.detail && <small>{options.commanderAnnouncement.detail}</small>}
+          </div>
+        )}
         {phoneHandActive && (
           <PhoneHandRail viewModel={gameplayInputLocked ? canvasViewModel : presentedViewModel}
             commands={gameplayCommands} presentationRef={handRailRef} interactionLocked={gameplayInputLocked} />
@@ -2074,6 +2091,7 @@ export default function ProductionMatchExperience({
           recentEvents={feedEntries}
           abilitiesOnly={abilityLogOnly}
           onAbilityFilter={setAbilityLogOnly}
+          onCommanderClick={options.onCommanderClick}
           onClose={closeReference}
         />
       )}

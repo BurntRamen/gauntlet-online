@@ -430,44 +430,6 @@ const BOARD_BACKGROUNDS = {
     "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)"
 };
 
-const FACTION_VOICE_LINES = {
-  rumin: [
-    "The treasury will not underwrite this assault.",
-    "The empire requires proper payment.",
-    "Discipline first. Then conquest."
-  ],
-  sheen: [
-    "The roots have not gathered enough strength.",
-    "Patience. Growth must be nourished.",
-    "Harmony rejects an unfed strike."
-  ],
-  bizi: [
-    "Insufficient power allocation.",
-    "Payment circuit below threshold.",
-    "System error: attack budget invalid."
-  ],
-  frumo: [
-    "A poor wager, captain.",
-    "The tide demands more coin.",
-    "No sail catches wind without proper pay."
-  ],
-  mekan: [
-    "The celebration remembers every payment.",
-    "Invite another Guest before the next dance.",
-    "Nothing spent is forgotten."
-  ],
-  jali: [
-    "The formation has not yet answered.",
-    "A Revenant must rise before this counterattack.",
-    "Hold the line. The bested return."
-  ],
-  xendra: [
-    "The pattern refuses that shape.",
-    "Your payment echoes incomplete.",
-    "The sky has not agreed."
-  ]
-};
-
 function buildCampaignEndDialogue(campaign = {}) {
   if (Array.isArray(campaign.endDialogue) && campaign.endDialogue.length > 0) return campaign.endDialogue;
   const lines = [];
@@ -479,64 +441,12 @@ function buildCampaignEndDialogue(campaign = {}) {
   return lines;
 }
 
-const FACTION_VOICE_AUDIO = {
-  rumin: [
-    "/assets/gauntlet/voices/kaiser-1.mp3",
-    "/assets/gauntlet/voices/kaiser-2.mp3",
-    "/assets/gauntlet/voices/kaiser-3.mp3"
-  ],
-  sheen: [
-    "/assets/gauntlet/voices/leafen-gao-1.mp3",
-    "/assets/gauntlet/voices/leafen-gao-2.mp3",
-    "/assets/gauntlet/voices/leafen-gao-3.mp3"
-  ],
-  bizi: [
-    "/assets/gauntlet/voices/focus-1.mp3",
-    "/assets/gauntlet/voices/focus-2.mp3",
-    "/assets/gauntlet/voices/focus-3.mp3"
-  ],
-  frumo: [
-    "/assets/gauntlet/voices/polea-1.mp3",
-    "/assets/gauntlet/voices/polea-2.mp3",
-    "/assets/gauntlet/voices/polea-3.mp3"
-  ],
-  zalara: [
-    "/assets/gauntlet/voices/zalara-1.mp3",
-    "/assets/gauntlet/voices/zalara-2.mp3",
-    "/assets/gauntlet/voices/zalara-3.mp3"
-  ]
-};
-
-const FACTION_VOICE_PROFILES = {
-  rumin: { rate: 0.82, pitch: 0.55, volume: 1 },
-  sheen: { rate: 0.72, pitch: 0.72, volume: 0.9 },
-  frumo: { rate: 1.08, pitch: 0.95, volume: 1 },
-  bizi: { rate: 0.9, pitch: 1.18, volume: 0.95 },
-  mekan: { rate: 1.06, pitch: 1.08, volume: 0.96 },
-  jali: { rate: 0.78, pitch: 0.72, volume: 0.98 },
-  basic: { rate: 0.95, pitch: 0.9, volume: 0.9 },
-  default: { rate: 0.96, pitch: 0.95, volume: 1 }
-};
-
 function getFactionTheme(factionId) {
   return FACTION_COLORS[factionId] || FACTION_COLORS.default;
 }
 
 function getBoardBackground(factionId) {
   return BOARD_BACKGROUNDS[factionId] || BOARD_BACKGROUNDS.default;
-}
-
-function getFactionVoiceLine(factionId, seedText = "") {
-  const lines = FACTION_VOICE_LINES[factionId] || ["That action is not ready."];
-  const seed = String(seedText).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return lines[seed % lines.length];
-}
-
-function getFactionVoiceAudio(factionId, quote) {
-  const lines = FACTION_VOICE_LINES[factionId] || [];
-  const clips = FACTION_VOICE_AUDIO[factionId] || [];
-  const quoteIndex = lines.indexOf(quote);
-  return quoteIndex >= 0 ? clips[quoteIndex] : null;
 }
 
 function getCampaignDifficulty(factionId, chapterIndex) {
@@ -3593,6 +3503,8 @@ export default function App() {
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
+  const commanderHealthRef = useRef({ matchId: "", previousLife: null, wounded: false, critical: false });
+  const commanderClickRef = useRef(0);
   const homeAreaNavigationRef = useRef(0);
   const homeAreaTransitionRef = useRef(null);
   const hotkeyActionsRef = useRef({});
@@ -4286,7 +4198,7 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((factionId, quote) => {
+  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95]) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
@@ -4300,14 +4212,10 @@ export default function App() {
       if (typeof window === "undefined" || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
       window.speechSynthesis.cancel();
       const utterance = new window.SpeechSynthesisUtterance(quote);
-      const profile = FACTION_VOICE_PROFILES[factionId] || FACTION_VOICE_PROFILES.default;
-      utterance.rate = profile.rate;
-      utterance.pitch = profile.pitch;
-      utterance.volume = profile.volume;
+      [utterance.rate, utterance.pitch] = profile;
       window.speechSynthesis.speak(utterance);
     };
 
-    const voiceClip = getFactionVoiceAudio(factionId, quote);
     if (voiceClip && typeof window !== "undefined" && window.Audio) {
       window.speechSynthesis?.cancel();
       const audio = new window.Audio(resolveAssetPath(voiceClip));
@@ -4319,6 +4227,66 @@ export default function App() {
 
     speakWithBrowserVoice();
   }, [accountSoundMuted]);
+
+  const announceCommander = useCallback((factionInput, event, commanderName = "Commander", detail = "") => {
+    const factionId = typeof factionInput === "string" ? factionInput : factionInput?.id;
+    if (!factionId || factionId === "basic") return;
+    const faction = typeof factionInput === "object"
+      ? factionInput
+      : gameContent?.factions?.find((entry) => entry.id === factionId);
+    const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
+    setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
+    speakFactionQuote(quote, faction?.commander?.announcementAudio?.[event], faction?.commander?.voiceProfile);
+  }, [gameContent?.factions, speakFactionQuote]);
+
+  const announceCommanderClick = useCallback(() => {
+    if (!game || role === "spectator" || !player) return;
+    const currentPlayer = game.players?.[player];
+    if (!currentPlayer?.faction || currentPlayer.faction.id === "basic") return;
+    const now = Date.now();
+    if (now - commanderClickRef.current < 650) return;
+    commanderClickRef.current = now;
+    announceCommander(
+      currentPlayer.faction,
+      "clicked",
+      currentPlayer.faction.commander?.name || currentPlayer.faction.name,
+      "Commander selected"
+    );
+  }, [announceCommander, game, player, role]);
+
+  useEffect(() => {
+    const matchId = game?.matchId || "";
+    const currentPlayer = role !== "spectator" && player ? game?.players?.[player] : null;
+    const currentLife = Number(currentPlayer?.life);
+    const tracker = commanderHealthRef.current;
+    if (!matchId || !currentPlayer || currentPlayer.faction?.id === "basic") {
+      commanderHealthRef.current = { matchId: "", previousLife: null, wounded: false, critical: false };
+      return;
+    }
+    if (tracker.matchId !== matchId) {
+      commanderHealthRef.current = { matchId, previousLife: currentLife, wounded: false, critical: false };
+      return;
+    }
+    const event = currentLife <= 10 && !tracker.critical && tracker.previousLife > 10
+      ? "critical"
+      : currentLife <= 21 && currentLife > 10 && !tracker.wounded && tracker.previousLife > 21
+        ? "wounded"
+        : null;
+    tracker.previousLife = currentLife;
+    if (!event) return;
+    if (event === "critical") {
+      tracker.critical = true;
+      tracker.wounded = true;
+    } else {
+      tracker.wounded = true;
+    }
+    announceCommander(
+      currentPlayer.faction,
+      event,
+      currentPlayer.faction.commander?.name || currentPlayer.faction.name,
+      event === "critical" ? `${currentLife} life · critical` : `${currentLife} life · wounded`
+    );
+  }, [announceCommander, game?.matchId, game?.players, player, role]);
 
   useEffect(() => {
     if (babylonGameplayActive) return;
@@ -4811,6 +4779,8 @@ export default function App() {
   }
 
   function chooseFaction(factionId, generalId) {
+    const faction = gameContent?.factions?.find((entry) => entry.id === factionId);
+    announceCommander(faction || factionId, "selected", faction?.commander?.name || faction?.name || "Commander", "Faction chosen");
     socket.emit("selectFaction", { factionId, generalId });
   }
 
@@ -5387,7 +5357,12 @@ export default function App() {
                     </fieldset>
                     {rankedGameMode === "factions" && <>
                       <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
-                        onChange={(factionId, generalId) => { setRankedFactionId(factionId); setRankedGeneralId(generalId); }} />
+                        onChange={(factionId, generalId) => {
+                          const faction = gameContent.factions.find((entry) => entry.id === factionId);
+                          setRankedFactionId(factionId);
+                          setRankedGeneralId(generalId);
+                          announceCommander(faction || factionId, "selected", faction?.commander?.name || faction?.name || "Commander", "Ranked faction chosen");
+                        }} />
                       <p>Choose your faction and General, find an opponent, then confirm in the lobby. An active constructed deck matching both choices supplies your card replacements; otherwise you use the standard 52-card faction deck.</p>
                     </>}
                     {rankedGameMode === "basic" && <p>Classic Ranked uses the original standard 52-card deck. Factions, Generals, and constructed faction replacements are disabled.</p>}
@@ -5870,7 +5845,9 @@ export default function App() {
                 if (account?.id) setSignedInSoundMuted(!enabled);
                 else setAccountSoundMuted(!enabled);
               },
-              onRejectedAction: factionVoiceFor
+              onRejectedAction: factionVoiceFor,
+              commanderAnnouncement: factionVoice,
+              onCommanderClick: announceCommanderClick
             }}
             onLeaveMatch={returnToMainMenu}
           />
@@ -6809,18 +6786,13 @@ export default function App() {
 
   function factionVoiceFor(message) {
     if (!message || isSpectator || !me) return;
-    const quote = getFactionVoiceLine(me.faction.id, message);
-    setFactionVoice({ quote, detail: message });
-    speakFactionQuote(me.faction.id, quote);
+    announceCommander(me.faction, "denied", me.faction.commander?.name || me.faction.name, message);
   }
 
   function handlePowerClick(power) {
     setExpandedPower(power.id);
     if (power.id !== "commander" || isSpectator || !me) return;
-
-    const quote = getFactionVoiceLine(me.faction.id, `${power.feature?.name || "commander"}-${Date.now()}`);
-    setFactionVoice({ quote, detail: `${power.feature?.name || me.faction.name} speaks` });
-    speakFactionQuote(me.faction.id, quote);
+    announceCommanderClick();
   }
 
   const undoRequest = game.undoRequest;
@@ -9098,6 +9070,7 @@ export default function App() {
       )}
       {factionVoice && (
         <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
+          <div style={{ color: myTheme.primary, fontSize: 10, fontWeight: 900, letterSpacing: ".1em", textTransform: "uppercase" }}>{factionVoice.speaker || me?.faction?.commander?.name || "Commander"}</div>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
           <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>{factionVoice.detail}</div>
         </div>

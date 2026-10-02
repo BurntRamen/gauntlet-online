@@ -32,12 +32,14 @@ afterAll(() => {
 
 test("only ready source cards glow and only legal choices submit their existing ability ID", () => {
   const activateAbility = jest.fn();
+  const onFactionCardClick = jest.fn();
   render(<FactionBoardCards faction={faction} viewModel={viewModel}
-    layoutProfile="desktop" commands={{ activateAbility }} />);
+    layoutProfile="desktop" commands={{ activateAbility }} onFactionCardClick={onFactionCardClick} />);
   const commander = screen.getByRole("button", { name: "commander: Polea · Ready" });
   expect(commander).toHaveClass("is-ready");
   expect(screen.getByRole("button", { name: "general: Lafayette · Unavailable" })).not.toHaveClass("is-ready");
   fireEvent.click(commander);
+  expect(onFactionCardClick).toHaveBeenCalledWith("commander", expect.objectContaining({ name: "Polea" }));
   const dialog = screen.getByRole("dialog", { name: "Polea abilities" });
   expect(within(dialog).getByRole("button", { name: /Inspect a lane/ })).toBeDisabled();
   expect(within(dialog).queryByText("The Last Gamble")).not.toBeInTheDocument();

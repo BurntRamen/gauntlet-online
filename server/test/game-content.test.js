@@ -41,6 +41,10 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.deckRules.basePlayingDeckSize, 52);
   assert.equal(content.deckRules.basePlayingDeckSize, DECK_RULES.replacementSuits.length * DECK_RULES.playingDeckValues.length);
   assert.equal(content.deckRules.fixedReplacementSlots, true);
+  for (const faction of content.factions) {
+    assert.deepEqual(Object.keys(faction.commander.announcements).sort(), ["clicked", "critical", "denied", "selected", "wounded"]);
+    assert.equal(Object.values(faction.commander.announcements).every((line) => typeof line === "string" && line.length > 10), true, faction.id);
+  }
 });
 
 test("gives every playable faction a complete standard 52-card deck", () => {

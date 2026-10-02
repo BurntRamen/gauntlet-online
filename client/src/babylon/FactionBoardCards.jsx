@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { factionBoardCards, factionBoardScreenLayout } from "./factionBoard";
 import "./FactionBoardCards.css";
 
-export default function FactionBoardCards({ faction, viewModel, commands, layoutProfile, locked = false }) {
+export default function FactionBoardCards({ faction, viewModel, commands, layoutProfile, locked = false, onFactionCardClick }) {
   const rootRef = useRef(null);
   const dialogRef = useRef(null);
   const openerRef = useRef(null);
@@ -57,7 +57,11 @@ export default function FactionBoardCards({ faction, viewModel, commands, layout
             style={layout[index]} data-match-zone="abilities" data-faction-role={card.role}
             aria-label={`${card.role}: ${card.name} · ${status}`} aria-expanded={selectedRole === card.role}
             aria-haspopup="dialog"
-            onClick={(event) => { openerRef.current = event.currentTarget; setSelectedRole(card.role); }}>
+            onClick={(event) => {
+              openerRef.current = event.currentTarget;
+              setSelectedRole(card.role);
+              onFactionCardClick?.(card.role, card);
+            }}>
             {card.image && <img src={card.image.startsWith("/") ? `${process.env.PUBLIC_URL || ""}${card.image}` : card.image} alt="" draggable="false" />}
             <span className="faction-board-role">{card.role}</span>
             <span className="faction-board-caption"><strong>{card.name}</strong><small>{status}</small></span>
