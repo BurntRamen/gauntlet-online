@@ -39,7 +39,8 @@ test("deck names can be typed during creation and renamed without creating card 
   await page.getByRole("button", { name: "Swap " + rank + " of " + card.suit + " for " + card.name, exact: true }).click();
   await typeName(name, "The Copper Guard");
   await page.getByRole("button", { name: "Save name", exact: true }).click();
-  await expect.poll(() => savedDeck().name).toBe("The Copper Guard");
+  // The local account file can be between truncate/write while the rename saves.
+  await expect(() => expect(savedDeck().name).toBe("The Copper Guard")).toPass({ timeout: 10000 });
   expect(savedDeck().currentVersionId).toBe(versionId);
   expect(savedDeck().versions).toHaveLength(1);
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(1);
@@ -54,7 +55,7 @@ test("deck names can be typed during creation and renamed without creating card 
   const rename = page.getByRole("textbox", { name: "New deck name", exact: true });
   await typeName(rename, "Pocket Guard");
   await page.locator(".deck-library-row").getByRole("button", { name: "Save name", exact: true }).click();
-  await expect.poll(() => savedDeck().name).toBe("Pocket Guard");
+  await expect(() => expect(savedDeck().name).toBe("Pocket Guard")).toPass({ timeout: 10000 });
   expect(savedDeck().currentVersionId).toBe(versionId);
   await openWorkshop();
   await expect(name).toHaveValue("Pocket Guard");

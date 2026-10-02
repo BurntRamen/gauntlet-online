@@ -1,0 +1,203 @@
+{
+  "contract": "eggs.execution-packet@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "workshop-card-gallery-20261002-execution",
+  "createdAt": "2026-10-02T05:33:10.211Z",
+  "expiresAt": "2026-10-02T13:33:10.211Z",
+  "project": {
+    "id": "gauntlet",
+    "manifestVersion": "1.1.0",
+    "manifestSource": "repo-local",
+    "mode": "repository-backed"
+  },
+  "task": {
+    "id": "workshop-card-gallery-20261002",
+    "requestSummary": "Add independent List/Icon matching-card views and a large accessible card zoom overlay to Build / Decks, preserve exact rank/suit swaps and collector finishes, verify responsive presentation and publish live.",
+    "contractRequired": true,
+    "contractResolved": true,
+    "unresolvedComments": []
+  },
+  "authority": {
+    "account": "timetwisterbrand@gmail.com",
+    "resolutionPacketId": "workshop-card-gallery-20261002-authority",
+    "mode": "live",
+    "complete": true,
+    "current": true,
+    "conflictFree": true,
+    "writebackDisabled": true
+  },
+  "classification": {
+    "modality": "mixed",
+    "identityBearing": true,
+    "visualAuthorityMaterial": true,
+    "visualSkillRequired": true
+  },
+  "repositoryState": {
+    "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
+    "branch": "codex/workshop-card-gallery",
+    "base": "688387df62b00d755b5f39581982cba3bb88f823",
+    "canonicalBranch": "main",
+    "worktreeCount": 9,
+    "overlappingDirtyPaths": [],
+    "unrelatedDirtyPaths": [
+      "prior local release evidence and pack preview screenshots"
+    ],
+    "matchesManifest": true
+  },
+  "workspaceState": {
+    "strategy": "dedicated-worktree",
+    "bindingResolved": true,
+    "policySatisfied": true
+  },
+  "skills": [
+    "eggs-project-preflight@1.0.0",
+    "eggs-safe-project-execution@1.0.0",
+    "eggs-governed-visual-production@1.0.0",
+    "eggs-review-handoff@1.0.0"
+  ],
+  "permissions": [
+    {
+      "action": "codeEdit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "createBranch",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "commit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "push",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "merge",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "deploy",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "publication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "productionDatabase",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "driveWriteback",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "canonApproval",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "manufacturing",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "spending",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "externalCommunication",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    }
+  ],
+  "commands": [
+    {
+      "id": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "asset-report",
+      "argv": [
+        "npm",
+        "run",
+        "report:match-assets",
+        "--",
+        "--strict"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-entry",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-usability",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:usability"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-performance",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:performance"
+      ],
+      "cwd": ".",
+      "required": true
+    }
+  ],
+  "preview": {
+    "required": true,
+    "routes": [
+      "/"
+    ],
+    "readinessChecks": [
+      "http://127.0.0.1:3104/; List/Icon persistence, selected and matching card zoom, keyboard focus/close, desktop and mobile."
+    ]
+  },
+  "blockers": [],
+  "determination": "ready"
+}

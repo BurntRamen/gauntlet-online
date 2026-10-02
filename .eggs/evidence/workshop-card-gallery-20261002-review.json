@@ -1,0 +1,218 @@
+{
+  "contract": "eggs.review-handoff@1.0.0",
+  "schemaVersion": "1.0.0",
+  "handoffId": "workshop-card-gallery-20261002-review",
+  "projectId": "gauntlet",
+  "taskId": "workshop-card-gallery-20261002",
+  "outcome": {
+    "summary": "Implemented compact matching-card List/Icons views and a large accessible card zoom overlay; verified locally and ready for the user-authorized live release.",
+    "delivered": [
+      "Remembered independent matching-card display preference, compact artwork tiles and separate preview/zoom/swap actions.",
+      "Large responsive standard/faction card overlay preserving art, rules and collector finishes, including animated and reduced-motion presentation.",
+      "Close, Escape and backdrop dismissal; keyboard focus containment/return; background scroll lock.",
+      "Existing name editing, exact 52-slot rank/suit swaps, boxes and pack reveals verified."
+    ],
+    "notDone": [
+      "Production deployment and live verification follow the authorized merge. Full aggregate GitHub CI is separate from the affected local checks."
+    ]
+  },
+  "authority": [
+    {
+      "id": "task-contract",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-gallery-20261002-contract.json",
+      "exact": true
+    },
+    {
+      "id": "live-authority",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-gallery-20261002-authority.json",
+      "exact": true
+    },
+    {
+      "id": "dossier",
+      "kind": "drive",
+      "location": "https://docs.google.com/document/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/edit",
+      "exact": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "source-branch",
+      "kind": "repository",
+      "location": "https://github.com/BurntRamen/gauntlet-online/tree/codex/workshop-card-gallery",
+      "exact": true
+    },
+    {
+      "id": "checks",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-check.log",
+      "exact": true
+    },
+    {
+      "id": "client",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-client.log",
+      "exact": true
+    },
+    {
+      "id": "build",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-build.log",
+      "exact": true
+    },
+    {
+      "id": "assets",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-assets.log",
+      "exact": true
+    },
+    {
+      "id": "browser",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-browser.log",
+      "exact": true
+    },
+    {
+      "id": "visual-admission",
+      "kind": "artifact",
+      "location": ".eggs/evidence/workshop-card-gallery-20261002-visual.json",
+      "exact": true
+    },
+    {
+      "id": "icons-desktop",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-gallery-review/icons-desktop.png",
+      "exact": true
+    },
+    {
+      "id": "list-desktop",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-gallery-review/list-desktop.png",
+      "exact": true
+    },
+    {
+      "id": "icons-mobile",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-gallery-review/icons-mobile.png",
+      "exact": true
+    },
+    {
+      "id": "zoom-desktop",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-gallery-review/zoom-desktop.png",
+      "exact": true
+    },
+    {
+      "id": "zoom-mobile",
+      "kind": "preview",
+      "location": ".eggs/evidence/workshop-gallery-review/zoom-mobile.png",
+      "exact": true
+    },
+    {
+      "id": "navigation",
+      "kind": "command",
+      "location": ".eggs/evidence/workshop-gallery-navigation.log",
+      "exact": true
+    }
+  ],
+  "provenance": [
+    {
+      "from": "task-contract",
+      "to": "source-branch",
+      "relationship": "constrains"
+    },
+    {
+      "from": "dossier",
+      "to": "source-branch",
+      "relationship": "governs"
+    },
+    {
+      "from": "browser",
+      "to": "source-branch",
+      "relationship": "validated"
+    },
+    {
+      "from": "source-branch",
+      "to": "zoom-mobile",
+      "relationship": "produced"
+    }
+  ],
+  "deviations": [
+    "Reused existing isolated checkout and preserved nine worktrees; unrelated prior evidence excluded.",
+    "551 client, 218 server and 37 qualification checks passed. Affected workshop entry/usability checks passed in Chromium at desktop and mobile sizes; native modal axe audit reports no violations.",
+    "The aggregate JavaScript allowance increased by 2 KiB for the gallery/dialog (731.2/732 KiB); initial-load cap remains 175 KiB (174.1 measured).",
+    "Updated stale pack-size fixture to actual response count after Initiative packs; bounded name-save polling now tolerates a local JSON file mid-write without weakening saved-name/version checks.",
+    "Reused existing card assets exactly. Visually inspected compact list/icons and desktop/mobile overlays; no new illustration, lore or logo changes.",
+    "Merged current main 901a436 (vault reward minimization) without conflict; combined build, seven navigation tests and all three desktop/mobile workshop regressions passed."
+  ],
+  "automatedDetermination": "mechanically-complete",
+  "humanDecisions": [
+    {
+      "id": "requested-live-release",
+      "question": "Implement matching List/Icons and card zoom; continue the user's explicit live-publish authorization.",
+      "owner": "Giuseppe",
+      "state": "answered",
+      "doesNotGrant": [
+        "canon",
+        "manufacturing",
+        "rights"
+      ]
+    }
+  ],
+  "statuses": {
+    "generated": {
+      "state": "yes",
+      "evidence": [
+        "source-branch"
+      ]
+    },
+    "mechanicallyValidated": {
+      "state": "yes",
+      "evidence": [
+        "checks",
+        "client",
+        "build",
+        "assets",
+        "browser",
+        "navigation"
+      ]
+    },
+    "humanReviewed": {
+      "state": "no",
+      "evidence": []
+    },
+    "approved": {
+      "state": "yes",
+      "evidence": [
+        "task-contract"
+      ],
+      "actor": "Giuseppe"
+    },
+    "canonApproved": {
+      "state": "not-applicable",
+      "evidence": []
+    },
+    "releaseApproved": {
+      "state": "yes",
+      "evidence": [
+        "task-contract"
+      ],
+      "actor": "Giuseppe"
+    },
+    "published": {
+      "state": "no",
+      "evidence": []
+    },
+    "deployed": {
+      "state": "no",
+      "evidence": []
+    },
+    "manufactured": {
+      "state": "not-applicable",
+      "evidence": []
+    }
+  },
+  "feedbackRouting": [],
+  "nextSafeAction": "Publish through the authorized GitHub PR workflow, verify the production deployment and repeat gallery/zoom checks using isolated local account data."
+}

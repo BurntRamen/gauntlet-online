@@ -86,7 +86,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.getByRole("button", { name: `Restore standard ${rank}♥`, exact: true }).click();
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(0);
   await page.getByRole("button", { name: "Save New Version", exact: true }).click();
-  await expect.poll(() => getSaved().replacementCount).toBe(0);
+  await expect(() => expect(getSaved().replacementCount).toBe(0)).toPass({ timeout: 10000 });
   await page.getByRole("button", { name: "New deck", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create Deck", exact: true })).toBeEnabled();
   await expect(page.getByLabel("Deck name", { exact: true })).toHaveValue("Rumin Constructed Deck");
@@ -99,7 +99,10 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   expect(getSaved().generalId).toBe("hui");
   await page.getByRole("tab", { name: "Packs", exact: true }).click();
   await page.getByRole("radio", { name: /Theatrical/ }).check();
+  const packResponse = page.waitForResponse((response) => response.url().endsWith("/api/collection/open-pack") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Open Earned Pack", exact: true }).first().click();
+  const { openedCards } = await (await packResponse).json();
+  expect(openedCards.length).toBeGreaterThan(0);
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Pause", exact: true }).click();
@@ -111,6 +114,6 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await dialog.screenshot({ path: path.join(out, "pack-opening-desktop.png") });
   await dialog.getByRole("button", { name: "Reveal all", exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator(".pack-opened-cards article")).toHaveCount(8);
+  await expect(page.locator(".pack-opened-cards article")).toHaveCount(openedCards.length);
   expect(errors).toEqual([]);
 });

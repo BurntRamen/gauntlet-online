@@ -1,0 +1,65 @@
+{
+  "contract": "eggs.visual-admission@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "workshop-card-gallery-20261002-visual",
+  "projectId": "gauntlet",
+  "taskId": "workshop-card-gallery-20261002",
+  "scope": {
+    "outputId": "workshop-card-gallery",
+    "surface": "Gauntlet Online Build / Decks matching cards and card inspection",
+    "format": "Responsive React/CSS art gallery and native modal dialog",
+    "exact": true
+  },
+  "modality": "deterministic-layout",
+  "directive": {
+    "required": true,
+    "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+    "status": "controlling",
+    "scopeMatches": true
+  },
+  "gate0": {
+    "required": false,
+    "passed": true,
+    "evidence": [
+      "Direct user request defines the standard 52-card layout and live publication scope; existing live card artwork reused, no image generation."
+    ]
+  },
+  "sourcePermissions": [
+    {
+      "sourceId": "origin/main@7369d1fdc683b2559099d6b4576c0e103ab49cc6",
+      "use": "Preserve current code, artwork, card wording, and faction/general functionality",
+      "status": "allowed"
+    },
+    {
+      "sourceId": "active-user-task",
+      "use": "Add independent List/Icon matching-card views and a large accessible card zoom overlay to Build / Decks, preserve exact rank/suit swaps and collector finishes, verify responsive presentation and publish live.",
+      "status": "allowed"
+    }
+  ],
+  "rejectedLineage": [],
+  "promptConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "independent-view-controls",
+    "accessible-card-zoom",
+    "responsive-accessible"
+  ],
+  "qaConstraintIds": [
+    "exact-workshop-scope",
+    "preserve-current-art",
+    "fifty-two-unique-slots",
+    "matching-rank-suit",
+    "independent-view-controls",
+    "accessible-card-zoom",
+    "responsive-accessible"
+  ],
+  "genericFallback": false,
+  "neighborCollision": false,
+  "layoutSeparation": "not-applicable",
+  "decision": "admit",
+  "reasons": [
+    "User requests artwork-forward matching icons and deliberate large card inspection while retaining compact workshop and existing art. User screenshot inspected; green/navy surfaces, small gold selection accents and existing card art inform layout. No new artwork, lore or logo changes."
+  ]
+}
