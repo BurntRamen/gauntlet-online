@@ -11,7 +11,7 @@ const AREAS = [
 ];
 
 export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea = () => {}, nextStep, showStudio = false, onSound = () => {}, children }) {
-  const areas = showStudio ? [...AREAS, { id: "studio", label: "Studio", detail: "Owner operations", sigil: "◆" }] : AREAS;
+  const areas = showStudio ? [...AREAS, { id: "studio", label: "Admin", detail: "Content and operations", sigil: "◆" }] : AREAS;
   const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
   return (

@@ -1,0 +1,31 @@
+import { useState } from "react";
+
+export function focusWorkshop(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  for (let node = target; node; node = node.parentElement) if (node.tagName === "DETAILS") node.open = true;
+  target.scrollIntoView({ block: "start" });
+  (target.querySelector(":invalid") || target.querySelector("input, textarea, select") || target).focus();
+}
+
+export default function EncounterWorkshop({ row, state, unsaved, session, list, search, field, preview, playtest, onInspect, onReview, onSelectList }) {
+  const guide = state.guide || {};
+  const [showList, setShowList] = useState(false);
+  const snapshot = state.draft?.snapshot || state.live;
+  const campaign = snapshot.domains.campaigns.find((entry) => entry.id === row?.campaignId);
+  const opponent = snapshot.domains.characters.find((entry) => entry.id === row?.opponentId);
+  const faction = snapshot.domains.factions.find((entry) => entry.id === row?.factionId);
+  const portrait = snapshot.domains.characters.find((entry) => entry.factionId === row?.factionId && entry.role === "commander");
+  const source = (value) => (state.assetLibrary || []).find((asset) => asset.id === value)?.path || value;
+  const sections = { story: "Identity / Story", setup: "Opponent / Setup", mechanics: "Mechanics", deck: "Deck / Cards", assets: "Presentation / Assets", validation: "Validation", preview: "Preview", test: "Playtest" };
+  return <section className={`encounter-workshop ${row && !showList ? "has-selection" : ""}`} aria-label="Encounter Workshop">
+    <header className="workshop-context" tabIndex={-1} id="workshop-context"><span className="admin-eyebrow">Encounter Workshop</span><h4>{row ? `${campaign?.commanderName} › Chapter ${(campaign?.encounterIds.indexOf(row.id) ?? -1) + 1} › ${row.title}` : "Choose an encounter"}</h4>{row && <><p>{opponent?.name} · {faction?.name}</p><div className="admin-tags"><span>{unsaved ? "Unsaved local values" : state.draft ? "Shared draft" : "Live content"}</span><span>{state.validation.valid ? "Saved values valid" : "Validation errors"}</span><span>{state.draft?.previewedHash ? `Previewed revision ${state.draft.previewedRevision ?? "not recorded"}` : "Preview needed"}</span><span>{session ? session.expired || Date.parse(session.expiresAt) <= Date.now() ? "Expired playtest" : session.draftHash === state.draft?.hash ? "Current playtest" : "Stale playtest" : "No active playtest"}</span></div></>}<p className="admin-note">{guide.steps}</p>{row && <nav className="admin-actions" aria-label="Workshop sections"><label className="workshop-jump">Jump to section<select value="" onChange={(event) => { const id = event.target.value; setShowList(false); requestAnimationFrame(() => focusWorkshop(`workshop-${id}`)); }}><option value="" disabled>Choose section</option>{Object.entries(sections).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><div className="workshop-section-buttons">{Object.entries(sections).map(([id, label]) => <button key={id} onClick={() => { setShowList(false); requestAnimationFrame(() => focusWorkshop(`workshop-${id}`)); }}>{label}</button>)}</div><button onClick={onReview}>Review release</button><button className="workshop-list-toggle" onClick={() => { if (onSelectList()) setShowList(true); }}>Encounter list</button></nav>}</header>
+    <section className="workshop-list" aria-label="Encounter selection">{search}<div onClick={(event) => { if (event.target.closest("button[aria-pressed]")) setShowList(false); }}>{list}</div></section>
+    {row && <><div className="workshop-editor">
+      <section id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map(field)}</section>
+      <section id="workshop-setup" tabIndex={-1}><h4>Opponent / Setup</h4><p>Opponent: <button onClick={() => onInspect("characters", opponent.id)}>{opponent?.name}</button><br />Effective player faction: <button onClick={() => onInspect("factions", faction.id)}>{faction?.name}</button></p>{field("setup")}<details><summary>Technical · identity and routing</summary><pre className="admin-protected">{JSON.stringify({ encounter: row.id, campaign: row.campaignId, opponent: row.opponentId, deck: row.deckId, nextEncounter: row.nextEncounterId, branches: row.branches }, null, 2)}</pre></details></section>
+      <section id="workshop-assets" tabIndex={-1}><h4>Presentation / Assets</h4>{field("image")}{row.image && <img className="admin-art-preview" src={source(row.image)} alt="Saved encounter scene" />}<p className="admin-note">The opponent has no separate portrait field. {portrait ? "Faction commander portrait:" : "No faction commander portrait recorded."}</p>{portrait && <><img className="workshop-portrait" src={source(portrait.image)} alt={portrait.name} /><button onClick={() => onInspect("characters", portrait.id)}>Open {portrait.name} portrait definition</button></>}{["dialogueAudio", "endDialogueAudio"].map((key) => <div key={key}>{field(key)}{row[key].map((audio, index) => audio && <label className="workshop-audio" key={index}>{key === "dialogueAudio" ? "Opening" : "Closing"} voice {index + 1}<audio controls preload="none" src={source(audio)} /></label>)}</div>)}</section>
+      <section id="workshop-validation" tabIndex={-1}><h4>Validation</h4><p>Saved revision {state.revision} validated · {state.validation.valid ? "Passed" : "Errors"}. {unsaved && guide.unsavedReadiness}</p>{[["Errors", state.validation.errors], ["Warnings", state.validation.warnings]].map(([label, entries]) => <div key={label}><h5>{label} · {entries.length}</h5>{entries.map((entry, index) => <p key={index}>{entry.message} {entry.domain === "encounters" && entry.id === row.id && <button onClick={() => focusWorkshop(`admin-field-${entry.field}`)}>Go to {entry.field}</button>}</p>)}</div>)}</section>
+    </div><section className="workshop-testing" aria-label="Encounter preview and playtest"><section id="workshop-preview" tabIndex={-1}><h4>Presentation preview</h4>{preview ? <details><summary>Open presentation preview</summary>{preview}</details> : <p className="admin-note">{guide.previewHelp}</p>}</section>{playtest}</section></>}
+  </section>;
+}

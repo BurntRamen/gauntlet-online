@@ -1,10 +1,14 @@
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
+const loginSessions = new Map();
 async function signIn(page, request, name) {
-  const response = await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name, password: "test-password" } });
-  expect(response.ok()).toBeTruthy();
-  const { token } = await response.json();
+  if (!loginSessions.has(name)) {
+    const response = await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name, password: "test-password" } });
+    expect(response.ok()).toBeTruthy();
+    loginSessions.set(name, (await response.json()).token);
+  }
+  const token = loginSessions.get(name);
   await page.evaluate((value) => localStorage.setItem("gauntlet_auth_token", value), token);
   return token;
 }
@@ -26,14 +30,18 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await signIn(page, request, "simply");
   await page.reload();
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
+  await page.getByText("Advanced / Technical · content and rules versions", { exact: true }).click();
   await expect(page.locator(".admin-facts").getByText(/^gauntlet-content-[a-f0-9]{64}$/)).toBeVisible();
+  await page.getByText("Advanced / Technical · content and rules versions", { exact: true }).click();
   await page.screenshot({ path: "artifacts/admin-overview-desktop.png", fullPage: true });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Content", { exact: true }).click();
   await page.getByRole("button", { name: /^Cards 126/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
+  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
   await expect(page.getByLabel("Selected content")).toContainText("server/gameContent.js");
+  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
   await page.screenshot({ path: "artifacts/admin-content-desktop.png", fullPage: true });
   await nav.getByText("Game", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Starting state" })).toBeVisible();
@@ -41,7 +49,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.locator(".admin-player summary").filter({ hasText: "simply" }).click();
   await expect(page.locator(".admin-player[open]").getByText("Canonical match references")).toBeVisible();
   await nav.getByText("Matches", { exact: true }).click();
-  await page.getByRole("button", { name: /^Inspect match/ }).click();
+  await page.getByRole("button", { name: "Inspect match dddddddd-dddd-4ddd-8ddd-dddddddddddd", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Authoritative audit history/ })).toBeVisible();
   await nav.getByText("Publishing", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Release history and rollback" })).toBeVisible();
@@ -95,6 +103,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await expect(page.getByRole("status")).toHaveText("Draft validation completed.");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const preview = page.getByRole("region", { name: "Isolated draft preview" });
+  await page.getByText("Open presentation preview", { exact: true }).click();
   await expect(preview.getByRole("heading", { name: "Brothers of Destiny · preview", exact: true })).toBeVisible();
   await expect(preview.getByRole("button", { name: "Begin Battle", exact: true })).toBeDisabled();
   await preview.screenshot({ path: "artifacts/admin-authoring-preview.png" });
@@ -140,11 +149,11 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
-  await expect(playtest.getByRole("heading", { name: /Remex · 31 life/ })).toBeVisible();
+  await expect(playtest.locator(".admin-facts").getByText("31", { exact: true })).toBeVisible();
   const action = playtest.getByRole("button", { name: "Pass priority", exact: true });
   await action.click();
-  await expect(playtest.getByText("The current saved draft has a recorded engine playtest.", { exact: true })).toBeVisible();
-  const a11y = await new AxeBuilder({ page }).include(".admin-editor").analyze();
+  await expect(playtest.getByText(/Engine action checked for this saved draft/)).toBeVisible();
+  const a11y = await new AxeBuilder({ page }).include(".workshop-editor").analyze();
   expect(a11y.violations).toEqual([]);
   await page.screenshot({ path: "artifacts/admin-v2-mechanical-playtest.png", fullPage: true });
   await nav.getByText("Publishing", { exact: true }).click();
@@ -187,4 +196,239 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const current = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
   expect(current.activeReleaseId).toBe(original.activeReleaseId);
   expect((await request.post("http://127.0.0.1:4117/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+});
+
+test("Admin is discoverable only after access approval and review controls retain keyboard context", async ({ page, request }) => {
+  await page.goto("/");
+  const adminLink = page.getByRole("button", { name: /^Admin Content and operations/ });
+  await expect(adminLink).toHaveCount(0);
+  await signIn(page, request, "Visitor"); await page.reload();
+  await expect(page.getByRole("heading", { name: "Journey", exact: true })).toBeVisible();
+  await expect(adminLink).toHaveCount(0);
+  await signIn(page, request, "simply"); await page.reload();
+  await expect(adminLink).toBeVisible();
+  await page.getByRole("navigation", { name: "Gauntlet areas" }).screenshot({ path: "artifacts/admin-ux-navigation.png" });
+  await adminLink.click();
+  await page.getByRole("button", { name: "Close admin", exact: true }).click();
+  await expect(adminLink).toBeVisible();
+  await adminLink.click();
+  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await expect(page.getByRole("button", { name: /^Encounters 56/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeDisabled();
+  await page.getByLabel("Search encounters").fill("nothing matches this encounter");
+  await expect(page.getByRole("status")).toContainText("No encounters match this search");
+  await page.getByLabel("Search encounters").fill("Verdant");
+  await page.getByRole("button", { name: "Inspect The Verdant Uprising", exact: true }).click();
+  await expect(page.getByLabel("Test faction", { exact: true })).toHaveValue("sheen");
+  await expect(page.getByLabel("Test faction", { exact: true })).toBeDisabled();
+  await page.getByRole("region", { name: "Real engine playtest" }).screenshot({ path: "artifacts/admin-ux-playtest.png" });
+  await page.getByLabel("Draft title", { exact: true }).fill("The Verdant Uprising · UX review");
+  await page.getByRole("button", { name: "Save title to draft", exact: true }).click();
+  await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Administration sections" });
+  await nav.getByRole("button", { name: "Publishing", exact: true }).click();
+  const discard = page.getByRole("button", { name: "Discard shared draft", exact: true });
+  await discard.focus();
+  await page.keyboard.press("Enter");
+  const confirmation = page.getByRole("region", { name: "Confirm content operation" });
+  await expect(confirmation).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Confirm discard", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(confirmation.getByRole("button", { name: "Cancel", exact: true })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(discard).toBeFocused();
+  await page.keyboard.press("Enter");
+  await confirmation.screenshot({ path: "artifacts/admin-ux-confirmation.png" });
+  await page.getByRole("button", { name: "Confirm discard", exact: true }).click();
+  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await nav.getByRole("button", { name: "Players", exact: true }).click();
+  await page.getByLabel("Filter this page").fill("not a registered name");
+  await expect(page.getByRole("status")).toContainText("No players match this filter on the loaded page");
+  await page.getByRole("button", { name: "Back to Gauntlet", exact: true }).click();
+  await page.getByRole("button", { name: /^Identity Profile/ }).click();
+  await page.getByRole("button", { name: "Sign Out", exact: true }).click();
+  await expect(adminLink).toHaveCount(0);
+});
+
+test("disconnected authoring explains the blocker and preserves readable technical details on mobile", async ({ page, request }) => {
+  // Explicitly simulated outage: production remains untouched.
+  await page.route("**/api/admin/authoring", async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    await route.fulfill({ response, json: { ...body, writable: false, connectionRequired: true } });
+  });
+  await page.goto("/admin/gauntlet");
+  await signIn(page, request, "simply"); await page.reload();
+  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Browsing live content");
+  await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeDisabled();
+  await page.getByLabel("Search cards").fill("Capital Investment Spear");
+  await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
+  await expect(page.getByLabel("Draft name", { exact: true })).toBeDisabled();
+  await page.screenshot({ path: "artifacts/admin-ux-disconnected-desktop.png" });
+  await page.getByText("Connection setup details", { exact: true }).click();
+  await expect(page.getByText(/The backend needs GAUNTLET_GITHUB_TOKEN/)).toBeVisible();
+  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
+  await expect(page.getByLabel("Selected content").getByText(/Source boundary:/)).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.getByRole("heading", { name: "Gauntlet Admin", exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "artifacts/admin-ux-disconnected-mobile.png" });
+});
+
+test("Encounter Workshop keeps editing and engine evidence tied to the correct saved draft", async ({ page, request }) => {
+  test.setTimeout(180000);
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply"); await page.reload();
+  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const saved = async () => (await request.get(base, { headers })).json();
+  const initial = await saved();
+  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByLabel("Search encounters").fill("Brothers");
+  await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
+  const story = page.getByLabel("Draft story", { exact: true });
+  await story.fill("Workshop acceptance story.");
+  for (const name of ["Back to Gauntlet", "Close admin", "Refresh admin", "Review release"]) {
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(story).toHaveValue("Workshop acceptance story.");
+  }
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await expect(story).toHaveValue("Workshop acceptance story.");
+  // Browser refresh/close has the native unload guard, without navigating away.
+  expect(await page.evaluate(() => !window.dispatchEvent(new Event("beforeunload", { cancelable: true })))).toBeTruthy();
+  await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
+  await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
+  await page.getByLabel("Boss Life", { exact: true }).fill("101");
+  await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
+  expect(await page.getByLabel("Boss Life", { exact: true }).evaluate((input) => input.validity.rangeOverflow)).toBeTruthy();
+  expect((await saved()).changes.length).toBe(1);
+  await page.getByLabel("Boss Life", { exact: true }).fill("30");
+  await page.getByLabel("Boss Ability Id", { exact: true }).selectOption("even-feint");
+  await page.getByLabel("Boss Ability Even Bonus", { exact: true }).fill("2");
+  await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
+  await expect(page.getByText("2 saved field changes", { exact: true })).toBeVisible();
+  const artwork = initial.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
+  await page.getByLabel("Draft scene artwork", { exact: true }).fill(artwork.id);
+  await page.getByRole("button", { name: "Save scene artwork to draft", exact: true }).click();
+  await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Validate draft", exact: true }).click();
+  await expect(page.getByText("Draft validation completed.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await page.getByText("Open presentation preview", { exact: true }).click();
+  await expect(page.getByRole("region", { name: "Isolated draft preview" }).getByRole("heading", { name: "Brothers of Destiny", exact: true })).toBeVisible();
+  await page.getByText("Open presentation preview", { exact: true }).click();
+  await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
+  await page.screenshot({ path: "artifacts/workshop-desktop-editor.png" });
+  const playtest = page.getByRole("region", { name: "Real engine playtest" });
+  let pending = page.waitForResponse((response) => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
+  let session = (await (await pending).json()).playtest;
+  expect(session.context.encounterId).toBe("brothers-of-destiny");
+  expect(session.context.chapter).toBe(1);
+  expect(session.draftHash).toBe((await saved()).draft.hash);
+  await expect(playtest.getByText("Current saved draft · at last refresh", { exact: true })).toBeVisible();
+  await playtest.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "artifacts/workshop-active-playtest.png" });
+  let attacked = false;
+  for (let step = 0; step < 35 && (session.game.turn < 2 || !session.evidence.events.some((event) => event.type === "damage.calculated")); step++) {
+    const game = session.game;
+    const actor = game.phase === "end" ? game.endPlacementStep === 0 ? game.endPlacementFirstPlayer : 3 - game.endPlacementFirstPlayer : game.priority;
+    const automated = actor === 2;
+    const action = session.actions.find((action) => action.command.type === "declineBlock")
+      || (!attacked && session.actions.find((action) => action.command.type === "declareHandAttack"))
+      || session.actions.find((action) => ["passPriority", "skipPlacement"].includes(action.command.type));
+    if (!automated && action?.command.type === "declareHandAttack") attacked = true;
+    pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
+    await playtest.getByRole("button", { name: automated ? "Run opponent action" : action.label, exact: true }).click();
+    const response = await pending;
+    expect(response.ok()).toBeTruthy();
+    session = (await response.json()).playtest;
+    if (step === 1) {
+      await playtest.getByRole("status").evaluate((element) => element.scrollIntoView({ block: "start" }));
+      await page.screenshot({ path: "artifacts/workshop-active-playtest.png" });
+    }
+  }
+  expect(session.game.turn).toBeGreaterThanOrEqual(2);
+  expect(session.evidence.events.some((event) => event.type === "damage.calculated")).toBeTruthy();
+  await expect(playtest.getByText(/Engine action checked for this saved draft/)).toBeVisible();
+  pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
+  await playtest.getByRole("button", { name: "Concede", exact: true }).click();
+  session = (await (await pending).json()).playtest;
+  expect(session.evidence.status).toBe("Conceded");
+  await playtest.getByRole("heading", { name: /Conceded/ }).evaluate((element) => element.scrollIntoView({ block: "start" }));
+  await page.screenshot({ path: "artifacts/workshop-post-test.png" });
+  // Links open actual definitions and keep a route back to this same encounter/session.
+  await playtest.getByRole("button", { name: "Rumin", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Selected content" })).toContainText("Rumin");
+  await page.getByRole("button", { name: "Return to Brothers of Destiny · Encounter Workshop", exact: true }).click();
+  await expect(playtest.getByRole("heading", { name: /Conceded/ })).toBeVisible();
+  await story.fill("Revised after the first engine session.");
+  await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
+  await expect(playtest.getByText("Stale playtest · saved draft changed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Preview needed", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Validate draft", exact: true }).click();
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  pending = page.waitForResponse((response) => response.url().endsWith("/authoring/playtest"));
+  await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
+  const replacement = (await (await pending).json()).playtest;
+  expect(replacement.draftHash).not.toBe(session.draftHash);
+  await expect(playtest.getByText("Current saved draft · at last refresh", { exact: true })).toBeVisible();
+  pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
+  await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
+  expect((await pending).ok()).toBeTruthy();
+  await page.getByRole("button", { name: "Review release", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Review draft changes", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Return to Brothers of Destiny · Encounter Workshop", exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
+  await page.screenshot({ path: "artifacts/workshop-mobile-editor.png" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  expect((await new AxeBuilder({ page }).include(".encounter-workshop").analyze()).violations).toEqual([]);
+  await page.getByText("Open presentation preview", { exact: true }).click();
+  expect((await new AxeBuilder({ page }).include(".encounter-workshop").analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.getByText("Open presentation preview", { exact: true }).click();
+  await page.getByRole("combobox", { name: "Jump to section", exact: true }).focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByLabel("Draft title", { exact: true })).toBeFocused();
+  await page.setViewportSize({ width: 1024, height: 600 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  // Simulated server expiration; actual TTL is covered by the server clock test.
+  await page.route("**/playtest/command", (route) => route.fulfill({ status: 404, json: { error: "Playtest expired or is not yours. Start a new playtest." } }));
+  await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
+  await expect(playtest.getByText("Expired session · start again", { exact: true })).toBeVisible();
+  await expect(playtest.getByRole("button", { name: "Run opponent action", exact: true })).toBeDisabled();
+  const final = await saved();
+  expect(final.activeReleaseId).toBe(initial.activeReleaseId);
+  expect((await request.post(`${base}/discard`, { headers, data: { expectedRevision: final.revision } })).ok()).toBeTruthy();
+});
+
+test("a second operator's revision conflict preserves local typing and requires an explicit retry", async ({ page, request }) => {
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply"); await page.reload();
+  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
+  await page.getByLabel("Draft story", { exact: true }).fill("Local operator story.");
+  const login = await (await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name: "Burnt Ramen", password: "test-password" } })).json();
+  const before = await (await request.get(base, { headers })).json();
+  expect((await request.patch(`${base}/draft`, { headers: { Authorization: `Bearer ${login.token}` }, data: { expectedRevision: before.revision, domain: "encounters", id: "brothers-of-destiny", field: "story", value: "Other operator story." } })).ok()).toBeTruthy();
+  await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
+  await expect(page.getByLabel("Draft story", { exact: true })).toHaveValue("Local operator story.");
+  await expect(page.getByText(/The shared draft changed. Your local values were kept/)).toBeVisible();
+  const changed = await (await request.get(base, { headers })).json();
+  expect(changed.draft.snapshot.domains.encounters.find((row) => row.id === "brothers-of-destiny").story).toBe("Other operator story.");
+  await page.locator("#admin-field-story").getByText("Saved shared draft value", { exact: true }).click();
+  await expect(page.locator("#admin-field-story").getByText("Other operator story.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Use latest revision for retry", exact: true }).click();
+  await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
+  await expect(page.getByText("Field saved to the shared draft. Live content is unchanged.", { exact: true })).toBeVisible();
+  const final = await (await request.get(base, { headers })).json();
+  expect(final.draft.snapshot.domains.encounters.find((row) => row.id === "brothers-of-destiny").story).toBe("Local operator story.");
+  await request.post(`${base}/discard`, { headers, data: { expectedRevision: final.revision } });
 });

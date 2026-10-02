@@ -27,7 +27,9 @@ function select(area) { fireEvent.click(within(screen.getByRole("navigation", { 
 
 test("provides all seven sections, searchable sourced content, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
-  expect(await screen.findByText("content-v1")).toBeVisible();
+  await screen.findByText("content-v1");
+  fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
+  expect(screen.getByText("content-v1")).toBeVisible();
   for (const area of ["Overview", "Content", "Game", "Players", "Matches", "Publishing", "System"]) expect(within(screen.getByRole("navigation")).getByText(area)).toBeVisible();
   select("Content");
   expect(await screen.findByText("Authoring area: Content")).toBeVisible();
@@ -38,7 +40,9 @@ test("provides all seven sections, searchable sourced content, player state and 
   expect(screen.getByText("Next players")).toBeDisabled();
   select("Matches");
   fireEvent.click(await screen.findByRole("button", { name: `Inspect match ${id}` }));
-  expect(await screen.findByText("canonical archive")).toBeVisible();
+  await screen.findByText("canonical archive");
+  fireEvent.click(screen.getByText("Advanced / Technical · match identity and provenance"));
+  expect(screen.getByText("canonical archive")).toBeVisible();
   expect(screen.getByText(/#1 · turn 1 · game_completed/)).toBeVisible();
   select("Publishing");
   expect(await screen.findByText("Authoring area: Publishing")).toBeVisible();
@@ -55,5 +59,7 @@ test("data failure is visible and can be retried without claiming zero counts", 
   failing = false;
   fireEvent.click(screen.getByText("Refresh admin"));
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-  expect(await screen.findByText("content-v1")).toBeVisible();
+  await screen.findByText("content-v1");
+  fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
+  expect(screen.getByText("content-v1")).toBeVisible();
 });
