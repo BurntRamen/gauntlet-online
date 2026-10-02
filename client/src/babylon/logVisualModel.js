@@ -19,7 +19,7 @@ export function logCardToken(card, factionId, faceDown = false) {
   const art = getPlayingCardArtPath(ordinary ? { ...card, type: undefined } : card, faction);
   return { kind: "card", rank, suit, label,
     art: ordinary && !card.presentation && !card.definitionId && (!faction || faction === "basic") ? "" : art,
-    faction: faction || "basic" };
+    faction: faction || "basic", factionId: faction || "basic", collector: card.collector };
 }
 
 export function logSourceToken(source, players = {}, owner) {

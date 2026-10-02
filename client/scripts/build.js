@@ -41,6 +41,15 @@ require.cache[configPath].exports = (environment) => {
         minChunks: 2,
         enforce: true,
         priority: 20
+      },
+      webglShaders: {
+        // The card foil uses the standard material's WebGL shaders. Group the
+        // small shader modules for shared compression and fewer table requests.
+        test: /[\\/]node_modules[\\/]@babylonjs[\\/]core[\\/]Shaders[\\/]/,
+        name: "babylon-webgl-shaders",
+        chunks: "all",
+        enforce: true,
+        priority: 25
       }
     }
   };

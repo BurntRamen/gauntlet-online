@@ -58,6 +58,9 @@ jobs:
       - name: Test deck workshop and pack reveals
         run: npm run test:e2e:workshop
 
+      - name: Test collector version selection and table foil
+        run: npx playwright test --config=playwright.collector.config.js
+
       - name: Check browser usability
         run: npm run test:e2e:usability
 

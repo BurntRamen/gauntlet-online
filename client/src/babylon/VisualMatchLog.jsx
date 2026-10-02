@@ -1,4 +1,5 @@
 import GameIcon from "./GameIcon";
+import CollectorCardPresentation from "../CollectorCardPresentation";
 import { formatMatchLogEntry, matchLogSequence } from "./matchLog";
 import { visualMatchLog } from "./logVisualModel";
 
@@ -11,7 +12,7 @@ function LogToken({ token }) {
   if (kind === "card") return (
     <span className={`visual-log-card${token.hidden ? " is-hidden" : ""}${art ? " has-art" : ""}`}
       title={label} data-card-kind={token.hidden ? "hidden" : art ? "faction" : "playing"}>
-      {art && <img src={imagePath(art)} alt="" loading="lazy" onError={event => { event.currentTarget.hidden = true; }} />}
+      {art && <CollectorCardPresentation card={token}><img src={imagePath(art)} alt="" loading="lazy" onError={event => { event.currentTarget.hidden = true; }} /></CollectorCardPresentation>}
       {token.hidden ? <GameIcon name="draw" size={24} /> : (
         <span className={`visual-log-rank${["♥", "♦"].includes(token.suit) ? " is-red" : ""}`}>{token.rank}<span>{token.suit}</span></span>
       )}

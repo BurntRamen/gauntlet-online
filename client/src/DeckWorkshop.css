@@ -106,7 +106,7 @@
 .view-icons .deck-candidate > .deck-candidate-select { width: 100%; padding: 10px 10px 7px; text-align: center; }
 .deck-candidate-art { display: block; width: 100%; max-width: 120px; margin: 0 auto 9px; filter: drop-shadow(0 5px 7px #0006); transition: transform 160ms ease; }
 .deck-candidate-select:hover .deck-candidate-art { transform: translateY(-3px); }
-.view-icons .deck-candidate-actions { align-self: stretch; justify-content: center; padding: 0 8px 9px; }
+.view-icons .deck-candidate-actions { order: -1; align-self: stretch; justify-content: center; padding: 9px 8px 0; }
 .view-icons .deck-candidate-actions > button { flex: 1; }
 .deck-workshop :is(.deck-candidate-select, .deck-zoom-button, .deck-swap-button, .deck-match-views button):focus-visible { outline: 2px solid #f2d497; outline-offset: -3px; }
 .deck-card-zoom { box-sizing: border-box; width: min(840px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 0; overflow: auto; border: 1px solid #63766e; border-radius: 14px; background: #0e1e28; color: #e3ebe6; box-shadow: 0 25px 100px #000b; }
@@ -204,3 +204,4 @@
   .deck-settings-content { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .deck-settings > summary > span { font-size: 9px; }
 }
+.deck-card-version { clear: both; display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid #71859b44; } .deck-card-version small { color: #c0cbd5; font-size: 11px; line-height: 1.4; }

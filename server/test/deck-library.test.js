@@ -26,6 +26,40 @@ test("Mekan saves a standard 52-card deck with exactly one General and restores 
   assert.throws(() => saveConstructedDeckToLibrary(stats, { factionId: "mekan", generalId: "forged" }, "mekan-owner"), /General/);
 });
 
+test("saved collector choices survive reload and can be replaced by standard without changing gameplay", () => {
+  const id = "rumin-gilded-scale-legionary";
+  let stats = makeConstructedStats();
+  stats.collection.collectorVariants = { [id + ":collector-foil"]: 1 };
+  const first = saveConstructedDeckToLibrary(stats, constructedPayload({
+    collectorVariantSelections: { [id]: id + ":collector-foil" }
+  }), "collector-owner");
+  stats = JSON.parse(JSON.stringify(stats));
+  const foil = getSavedConstructedDeck(stats).cards[0];
+  assert.equal(foil.variantId, id + ":collector-foil");
+  assert.equal(foil.collector.animated, true);
+  assert.equal(foil.collector.animationStyle, "gilded-march");
+  const room = { roomCode: "FOIL", lobby: { gameMode: "factions", players: {
+    1: { factionId: "rumin", accountName: "Collector", savedConstructedDeck: getSavedConstructedDeck(stats) },
+    2: { factionId: "sheen", accountName: "Opponent" }
+  } } };
+  __test.createGameFromLobby(room, { seed: "saved-collector-choice" });
+  const inGame = [...room.game.players[1].hand, ...room.game.players[1].deck].find(card => card.gameplayCardId === id);
+  assert.equal(inGame.variantId, foil.variantId);
+  for (const field of ["finish", "animated", "animationStyle", "motionProfile"]) {
+    assert.equal(inGame.collector[field], foil.collector[field]);
+  }
+  const next = saveConstructedDeckToLibrary(stats, constructedPayload({
+    deckId: first.record.id, collectorVariantSelections: { [id]: id + ":standard" }
+  }), "collector-owner");
+  const standard = getSavedConstructedDeck(stats).cards[0];
+  assert.equal(standard.collector.finish, "standard");
+  assert.equal(standard.collector.animated, false);
+  assert.equal(standard.value, foil.value);
+  assert.equal(standard.suit, foil.suit);
+  assert.equal(standard.text, foil.text);
+  assert.equal(next.record.versions[0].collectorVariantSelections[id], id + ":collector-foil");
+});
+
 function makeConstructedStats() {
   return { collection: { cards: { "rumin-gilded-scale-legionary": 2 } } };
 }

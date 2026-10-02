@@ -1,5 +1,14 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MatchLogRow } from "./VisualMatchLog";
+import { logCardToken } from "./logVisualModel";
+
+test("public log cards keep their collector style while concealed cards omit it", () => {
+  const card = { rank: "3", suit: "hearts", factionId: "sheen", presentation: { face: "/face.webp" },
+    collector: { finish: "foil", animationStyle: "living-canopy" } };
+  const { container } = render(<ol><MatchLogRow index={0} entry={{ type: "attack.declared", player: 1, card, attackValue: 3 }} /></ol>);
+  expect(container.querySelector(".is-animated-collector")).toHaveAttribute("data-collector-style", "living-canopy");
+  expect(logCardToken(card, "sheen", true)).toEqual({ kind: "card", hidden: true, label: "Face-down card" });
+});
 
 test("shows icon shorthand first and exposes the original explanation through an accessible disclosure", () => {
   const { container } = render(<ol><MatchLogRow index={0} entry={{ sequence: 8, type: "damage.calculated", turn: 2,

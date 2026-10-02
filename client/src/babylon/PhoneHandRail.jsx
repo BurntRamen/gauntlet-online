@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { visibleCardIdentity } from "./presentationSnapshot";
+import CollectorCardPresentation from "../CollectorCardPresentation";
 import "./PhoneHandRail.css";
 
 export function usesPhoneHandRail(width, height) {
@@ -103,8 +104,8 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
               }}
               onContextMenu={(event) => { event.preventDefault(); if (visible) commands.inspectCard?.(card.raw); }}>
               {visible && card.artPath && !failedArt[card.artPath] && (
-                <img src={card.artPath} alt="" draggable="false"
-                  onError={() => setFailedArt((current) => ({ ...current, [card.artPath]: true }))} />
+                <CollectorCardPresentation card={card}><img src={card.artPath} alt="" draggable="false"
+                  onError={() => setFailedArt((current) => ({ ...current, [card.artPath]: true }))} /></CollectorCardPresentation>
               )}
               <span className="phone-hand-rank" aria-hidden="true">{visible
                 ? (card.rank || card.label) + ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" }[card.suit] || (card.rank ? card.suit : ""))

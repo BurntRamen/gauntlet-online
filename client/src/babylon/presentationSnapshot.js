@@ -1,4 +1,6 @@
 import { laneTargetEnabled, laneTargetSelected } from "./abilityTargets";
+import { collectorPresentation } from "../collectorPresentation";
+
 export const PRESENTATION_SNAPSHOT_VERSION = "gauntlet.presentation-snapshot.v1";
 
 const ZONE_PRIORITY = Object.freeze({
@@ -63,7 +65,8 @@ function actorFromCard(card, actorId, zone, options = {}) {
     card: card || null,
     label: card?.label || card?.name || (options.faceDown ? "Face-down card" : "Card"),
     artPath: faceDown ? "" : (card?.artPath || card?.collector?.art || ""),
-    collectorAnimated: !faceDown && Boolean(card?.collector?.animated || card?.collector?.finish === "foil"),
+    collectorAnimated: !faceDown && collectorPresentation(card).animated,
+    collectorStyle: faceDown ? null : collectorPresentation(card).style,
     factionId: faceDown ? "" : (card?.factionId || card?.raw?.factionId || ""),
     expectsFaceArt: !faceDown && Boolean(card?.expectsFaceArt),
     faceDown,

@@ -2798,3 +2798,4 @@
 @media (prefers-reduced-motion: reduce) {
   .production-commander-announcement { animation: none; }
 }
+.production-discard-grid .special-card-presentation { width: 80px; } .production-card-preview-art > .special-card-presentation, .production-inspection-card > .special-card-presentation { height: 100%; }

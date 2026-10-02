@@ -288,6 +288,8 @@ function resolveReplayCard(card) {
       name: validVariant.name,
       edition: validVariant.edition,
       finish: validVariant.finish,
+      animated: validVariant.animated === true,
+      animationStyle: validVariant.animationStyle || null,
       frame: validVariant.frame,
       art: validVariant.art || null
     } : null
