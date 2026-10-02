@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { io } = require("socket.io-client");
 
+const VOICE_ASSET_PATHS = require("../server/contentAssetManifest.json").entries.filter((entry) => entry.source.includes("/voices/")).map((entry) => entry.path);
+
 const SERVER_URL = "http://127.0.0.1:4100";
 const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
   || (process.env.CI === "true" && process.platform === "linux");
@@ -888,7 +890,8 @@ test("later Bizi missions keep the new interface through boss actions", async ({
 });
 
 test("encounter dossiers play exchanges with faction accompaniment and independent line previews", async ({ page, baseURL }) => {
-  await page.addInitScript(() => {
+  await page.addInitScript((voicePaths) => {
+    window.__voiceAssetPaths = voicePaths;
     const BrowserAudio = window.Audio;
     window.__previewMedia = [];
     window.Audio = function Audio(source) {
@@ -896,7 +899,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
       window.__previewMedia.push(clip);
       return clip;
     };
-  });
+  }, VOICE_ASSET_PATHS);
   await page.goto(baseURL);
   await page.locator('button[data-area="journey"]').click();
   await page.getByRole("button", { name: "Choose a Faction" }).click();
@@ -904,7 +907,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   const dialogue = page.getByRole("region", { name: "Voices before the battle" });
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(2);
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu|menu_room_ambience/.test(clip.src)).length)).toBe(0);
   const bed = await page.evaluate(() => {
     const music = window.__previewMedia.find((clip) => clip.src.includes("rumin-reverie"));
@@ -912,12 +915,12 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   });
   expect(bed).toEqual({ duration: 48, volume: 0.09, loop: true });
   await dialogue.getByRole("button", { name: "Pause", exact: true }).click();
-  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(0);
+  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(0);
   await dialogue.getByRole("button", { name: "Resume", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(2);
   // Seek near the real clip's end to exercise the browser's actual ended event.
   await page.evaluate(() => {
-    const voice = window.__previewMedia.find((clip) => !clip.paused && clip.src.includes("/voices/"));
+    const voice = window.__previewMedia.find((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)));
     voice.currentTime = voice.duration - 0.1;
   });
   await expect(dialogue.getByRole("button", { name: "Stop Rolmus voice" }).first()).toBeVisible();
@@ -926,7 +929,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   await expect(dialogue.getByRole("button", { name: "Play exchange" })).toBeEnabled();
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await page.getByRole("button", { name: "Next Chapter →" }).click();
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /voices|dossiers/.test(clip.src)).length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(0);
 
   const review = path.join(__dirname, "../artifacts/dialogue-review");
   fs.mkdirSync(review, { recursive: true });
@@ -948,14 +951,15 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
   test.setTimeout(60000);
-  await page.addInitScript(() => {
+  await page.addInitScript((voicePaths) => {
+    window.__voiceAssetPaths = voicePaths;
     window.__campaignDialogueSources = [];
     const BrowserAudio = window.Audio;
     window.Audio = function Audio(source) {
-      if (source?.includes("/voices/")) window.__campaignDialogueSources.push(source);
+      if (source && voicePaths.some((path) => source.endsWith(path))) window.__campaignDialogueSources.push(source);
       return new BrowserAudio(source);
     };
-  });
+  }, VOICE_ASSET_PATHS);
   await page.goto(baseURL);
   await page.locator('button[data-area="identity"]').click();
   await page.getByLabel("Play as guest").check();
@@ -1021,7 +1025,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await openingDialogue.getByRole("button", { name: /Play .* voice/i }).first().click();
   await expect(openingDialogue).toContainText(/Playing .*\./i);
   await expect.poll(() => page.evaluate(() => window.__campaignDialogueSources?.[0] || ""))
-    .toContain("/assets/gauntlet/voices/");
+    .toMatch(/\/assets\/gauntlet\/releases\/[a-f0-9]{64}\.mp3$/);
 
   await expect.poll(async () => Number(
     await page.getByTestId("production-babylon-match").getAttribute("data-revision")
