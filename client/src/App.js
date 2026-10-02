@@ -4980,6 +4980,8 @@ export default function App() {
   } else if (packCredits > 0) {
     journeyNextStep = {
       eyebrow: "Vault Reward",
+      minimizeKey: "gauntlet:vault-reward-minimized:" + (account?.id || "guest"),
+      compactTitle: packCredits + " unused pack credit" + (packCredits === 1 ? "" : "s"),
       factionId: buildDeckFactionId,
       image: "/assets/gauntlet/ui/vault-pack-credits-v1.webp",
       progress: `${packCredits} credit${packCredits === 1 ? "" : "s"} ready to claim`,
