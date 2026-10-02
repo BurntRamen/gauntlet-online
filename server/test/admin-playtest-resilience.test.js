@@ -90,3 +90,48 @@ test("editing or discarding a draft invalidates prior playtest actions without p
   assert.equal(publication.status().draft, null);
   assert.deepEqual(publication.active(), initial);
 });
+
+test("playtest pins the saved hash and revision and never invents unobserved combat totals", (t) => {
+  const { publication, start, act } = fixture(t);
+  const saved = publication.status(), session = start();
+  assert.equal(session.draftHash, saved.draft.hash);
+  assert.equal(session.draftRevision, saved.revision);
+  assert.equal(session.context.factionId, "rumin");
+  assert.equal(session.evidence.status, "In progress");
+  assert.equal(session.evidence.facts["Combat damage dealt"], null);
+  assert.equal(session.evidence.facts["Largest player attack (declared)"], null);
+  const passed = act(session).playtest;
+  assert.equal(passed.draftRevision, saved.revision);
+  assert.equal(passed.draftHash, publication.status().draft.hash);
+  assert.ok(passed.evidence.events.some((entry) => entry.type === "priority.passed"));
+  const conceded = act(passed, { command: { type: "concede", player: 1 } }).playtest;
+  assert.equal(conceded.evidence.status, "Conceded");
+  assert.equal(conceded.game.winner, 2);
+  assert.equal(conceded.evidence.facts["Combat damage dealt"], null);
+});
+
+test("evidence keeps attack separate from damage, preserves mitigation and totals beyond the event window", () => {
+  const { createEvidence, recordEvidence, projectEvidence } = require("../adminPlaytestEvidence");
+  const evidence = createEvidence();
+  const game = { phase: "priority", turn: 2, players: { 1: { life: 42 }, 2: { life: 42 } } };
+  const events = [
+    { id: "a", type: "attack.declared", player: 1, effectiveValue: 12, card: { definitionId: "known" } },
+    { id: "b", type: "damage.calculated", attacker: 1, targetPlayer: 2, attackValue: 12, blockValue: 10, prevented: 2, damage: 0 },
+    { id: "c", type: "damage.calculated", attacker: 2, targetPlayer: 1, attackValue: 8, blockValue: 3, prevented: 1, damage: 4 }
+  ];
+  recordEvidence(evidence, { animationEvents: events }, { type: "declineBlock" }, [{ id: "known", name: "Known card" }]);
+  let projected = projectEvidence(evidence, game);
+  assert.equal(projected.facts["Largest player attack (declared)"], 12);
+  assert.equal(projected.facts["Combat damage dealt"], 0);
+  assert.equal(projected.facts["Combat damage taken"], 4);
+  assert.equal(projected.facts["Largest opponent attack (declared)"], null);
+  assert.equal(projected.events[1].prevented, 2);
+  assert.match(projected.events[1].detail, /10/);
+  assert.deepEqual(projected.references, [{ domain: "cards", id: "known", label: "Known card" }]);
+  recordEvidence(evidence, { animationEvents: Array.from({ length: 2001 }, (_, id) => ({ id, type: "priority.passed", player: 1 })) }, {}, []);
+  projected = projectEvidence(evidence, game);
+  assert.equal(projected.omitted, 4);
+  assert.equal(projected.events.length, 2000);
+  assert.equal(projected.facts["Combat damage taken"], 4);
+  assert.equal(projected.facts["Largest player attack (declared)"], 12);
+});

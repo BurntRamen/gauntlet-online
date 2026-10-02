@@ -131,8 +131,10 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const validation = validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline);
     if (state.draft && state.draft.baseReleaseId !== live.id) { validation.valid = false; validation.errors.push({ message: "Draft base differs from the active release. Discard and recreate this draft." }); }
     return { revision: state.revision, writable, storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
+      guide: require("./adminAuthoringGuide"),
+      encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
       assetLibrary: require("./contentAssets").assetManifest.entries,
-      live: clone(live.snapshot), draft: clone(state.draft), changes: changes(state), validation,
+      live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: hash(state.draft.snapshot) } : null, changes: changes(state), validation,
       fields: Object.fromEntries(Object.entries(baseline.domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, fieldsFor(domain, row)]))])),
       releases: Object.values(state.releases).map(({ snapshot, ...release }) => ({ ...release, compatible: compatible({ snapshot }) })),
       activations: clone(state.activations).reverse() };
@@ -149,7 +151,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null };
       const row = state.draft.snapshot.domains[domain].find((entry) => entry.id === id);
       row[field] = clone(revert ? state.releases[state.activeReleaseId].snapshot.domains[domain].find((entry) => entry.id === id)[field] : value);
-      state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.playtestedHash = null;
+      state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
     });
   }
   function discard({ expectedRevision }) { return transaction(expectedRevision, (state) => { state.draft = null; }); }
@@ -158,6 +160,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (!state.draft) fail(400, "Save a draft before previewing.");
       if (!project(state).validation.valid) fail(422, "Draft validation failed. Correct the reported fields before previewing.");
       state.draft.previewedHash = hash(state.draft.snapshot);
+      state.draft.previewedRevision = state.revision + 1;
     });
     return { ...result, preview: resolveEngineContent(result.draft.snapshot, `draft:${result.draft.previewedHash}`) };
   }
@@ -190,7 +193,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (state.revision !== expectedRevision) fail(409, "Content changed. Refresh before starting a playtest.");
     if (!state.draft || !project(state).validation.valid) fail(422, "Save a valid draft before playtesting.");
     const draftHash = hash(state.draft.snapshot);
-    return { draftHash, resolved: resolveEngineContent(state.draft.snapshot, `draft:${draftHash}`) };
+    return { draftHash, draftRevision: state.revision, resolved: resolveEngineContent(state.draft.snapshot, `draft:${draftHash}`) };
   }
   function recordPlaytest(draftHash, actorId) {
     return transaction(read().revision, (state) => {

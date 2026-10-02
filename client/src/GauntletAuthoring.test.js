@@ -1,12 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import GauntletAuthoring from "./GauntletAuthoring";
 
+const guide = require("../../server/adminAuthoringGuide");
 const clone = (value) => JSON.parse(JSON.stringify(value));
 let state, request;
-const props = () => ({ request, area: "Content", revision: 0, onPublished: jest.fn(), onUnsavedChange: jest.fn() });
+const props = () => ({ request, area: "Content", revision: 0, onPublished: jest.fn(), onNavigate: jest.fn() });
 beforeEach(() => {
   const domains = { campaigns: [{ id: "rumin", commanderName: "Campaign", pitch: "Live story" }], encounters: [], factions: [], cards: [{ id: "card-one", name: "First card", text: "Engine effect wording", value: 3 }], decks: [], characters: [], assets: [], game: [{ id: "practice", name: "Practice", description: "Practice description" }] };
-  state = { revision: 0, writable: true, activeReleaseId: "release-one", live: { domains, engine: { startingLife: 42 } }, draft: null, changes: [], validation: { valid: true, errors: [], warnings: [] }, releases: [{ id: "release-one", label: "Original release", sha256: "hash", compatible: true, createdAt: "2026-10-02" }], activations: [], fields: {
+  state = { guide, revision: 0, writable: true, activeReleaseId: "release-one", live: { domains, engine: { startingLife: 42 } }, draft: null, changes: [], validation: { valid: true, errors: [], warnings: [] }, releases: [{ id: "release-one", label: "Original release", sha256: "hash", compatible: true, createdAt: "2026-10-02" }], activations: [], fields: {
     campaigns: { rumin: { pitch: { label: "Introduction", type: "text", maxLength: 4000 } } },
     cards: { "card-one": { name: { label: "Name", type: "text", maxLength: 160 }, text: { label: "Displayed rules text", type: "text", maxLength: 2000 } } },
     game: { practice: { name: { label: "Mode name", type: "text", maxLength: 80 } } }
@@ -127,4 +128,22 @@ test.each([
   fireEvent.click(screen.getByRole("button", { name: "Preview saved draft" }));
   const preview = await screen.findByRole("region", { name: "Isolated draft preview" });
   expect(within(preview).getByRole("img", { name })).toHaveAttribute("src", resolvedArtwork);
+});
+
+test("leaving protects unsaved typing and an accepted discard clears only local values", async () => {
+  const guard = { current: () => true };
+  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
+  render(<GauntletAuthoring {...props()} guard={guard} />);
+  await selectCard();
+  fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Local only" } });
+  fireEvent.click(screen.getByRole("button", { name: /^Campaigns/ }));
+  expect(confirm).toHaveBeenCalledWith(guide.unsavedPrompt);
+  expect(screen.getByLabelText("Draft name")).toHaveValue("Local only");
+  expect(state.draft).toBeNull();
+  confirm.mockReturnValue(true);
+  fireEvent.click(screen.getByRole("button", { name: /^Campaigns/ }));
+  fireEvent.click(screen.getByRole("button", { name: /^Cards/ }));
+  expect(screen.getByLabelText("Draft name")).toHaveValue("First card");
+  expect(state.draft).toBeNull();
+  confirm.mockRestore();
 });

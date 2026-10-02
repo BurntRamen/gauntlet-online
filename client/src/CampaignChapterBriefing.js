@@ -56,6 +56,7 @@ export default function CampaignChapterBriefing({
   onNext
 }) {
   if (!campaign || !chapter) return null;
+  const Narrative = previewOnly ? "section" : "main", Dossier = previewOnly ? "section" : "aside";
   const chapterNumber = chapterIndex + 1;
   const stateLabel = completed ? "Cleared" : current ? "Next Battle" : unlocked ? "Available" : "Locked";
   const art = resolveVisualAsset(chapter.image || campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`);
@@ -78,7 +79,7 @@ export default function CampaignChapterBriefing({
       </header>
 
       <div className="campaign-briefing-body">
-        <main className="campaign-briefing-main">
+        <Narrative className="campaign-briefing-main">
           <section className="campaign-briefing-section">
             <div className="campaign-briefing-section-heading">
               <span>Situation report</span>
@@ -110,9 +111,9 @@ export default function CampaignChapterBriefing({
               <p>Clear this chapter to unlock its outcome and closing dialogue.</p>
             </section>
           )}
-        </main>
+        </Narrative>
 
-        <aside className="campaign-briefing-dossier" aria-label="Encounter dossier">
+        <Dossier className="campaign-briefing-dossier" aria-label="Encounter dossier">
           <div className="campaign-briefing-section-heading">
             <span>Battle intelligence</span>
             <h3>Encounter dossier</h3>
@@ -133,7 +134,7 @@ export default function CampaignChapterBriefing({
           {!unlocked && <p className="campaign-briefing-lock-note">Clear Chapter {chapterIndex} to unlock this battle.</p>}
           {!canPlayAsPlayer && <p className="campaign-briefing-lock-note">{previewOnly ? "Admin preview: battle launch is disabled." : "Sign in or enable guest play to begin."}</p>}
           <button type="button" className="campaign-briefing-start" onClick={() => onStartChapter(factionId, chapter.id)} disabled={previewOnly || !canPlayAsPlayer || !unlocked}>{battleLabel}</button>
-        </aside>
+        </Dossier>
       </div>
 
       <nav className="campaign-briefing-pagination" aria-label="Chapter briefing navigation">

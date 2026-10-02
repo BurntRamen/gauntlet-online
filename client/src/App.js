@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
+import useAdminAccess from "./useAdminAccess";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import DeckWorkshop from "./DeckWorkshop";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
@@ -3486,8 +3487,9 @@ export default function App() {
   const [showCampaign, setShowCampaign] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
-  const [ownerAuthorized, setOwnerAuthorized] = useState(false);
+  const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
+  const adminExitGuard = useRef(() => true);
   const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
   const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
   const [identityView, setIdentityView] = useState("profile");
@@ -5026,7 +5028,7 @@ export default function App() {
       factionId: nextCampaignStep?.factionId || buildDeckFactionId,
       image: nextCampaignStep?.chapter?.image,
       title: "Choose a faction",
-      description: "Meet the four factions and begin your first campaign chapter.",
+      description: "Choose a faction campaign and begin your first chapter.",
       actionLabel: "Choose Campaign",
       onClick: () => setShowCampaign(true)
     };
@@ -5160,13 +5162,15 @@ export default function App() {
   if (homeArea === "studio" && !game && !lobby) {
     return (
       <main className="admin-page">
-        <button className="admin-back" onClick={() => navigateHomeArea("journey")}>Back to Gauntlet</button>
+        <button className="admin-back" onClick={() => { if (adminExitGuard.current()) navigateHomeArea("journey"); }}>Back to Gauntlet</button>
         <Suspense fallback={<SurfaceLoading label="Gauntlet Admin" />}>
           <Studio
             serverUrl={SOCKET_URL}
+            exitGuard={adminExitGuard}
             authToken={authToken}
             onSignIn={() => { adminSignInRequested.current = true; setIdentityView("profile"); navigateHomeArea("identity"); }}
             onAuthorizedChange={setOwnerAuthorized}
+            onClose={() => navigateHomeArea("journey")}
             onOpenMatch={(matchId) => openPublicView("match", matchId)}
             onOpenReplay={openReplay}
           />
@@ -5480,7 +5484,7 @@ export default function App() {
                   </div>
                 </section>
                 <section className="journey-campaign-panel">
-                  <div className="journey-faction-strip" role="group" aria-label="Choose from four faction campaigns">
+                  <div className="journey-faction-strip" role="group" aria-label="Choose a faction campaign">
                     {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
                       <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
                     ))}
@@ -5489,7 +5493,7 @@ export default function App() {
                     <span>Phase Two / Choose a Faction</span>
                     <h3>{gameContent.modeMetadata?.campaign?.name || "Enter the commander archives"}</h3>
                     <p>{gameContent.modeMetadata?.campaign?.description}</p>
-                    <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Four factions, four commanders, and four twelve-chapter campaigns await."}</p>
+                    <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Choose a faction's story, meet its commanders, and clear chapters in order."}</p>
                   </div>
                   <div className="journey-campaign-progress">
                     <span>Campaign progress</span>

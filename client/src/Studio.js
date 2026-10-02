@@ -14,7 +14,7 @@ function Status({ good, children }) {
   return <span className={`studio-status ${good ? "is-good" : "is-warning"}`}>{children}</span>;
 }
 
-export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthorizedChange, onOpenMatch, onOpenReplay }) {
+export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthorizedChange, onClose, exitGuard, onOpenMatch, onOpenReplay }) {
   const sessionRef = useRef("");
   const [authorizedToken, setAuthorizedToken] = useState("");
   const [overview, setOverview] = useState(null);
@@ -67,7 +67,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
     const body = await response.json();
     if (sessionRef.current !== token) throw new Error("Admin session closed.");
     if (response.status === 401 || response.status === 403) closeAdmin();
-    if (!response.ok) throw new Error(body.error || "Admin data is unavailable.");
+    if (!response.ok) throw Object.assign(new Error(body.error || "Admin data is unavailable."), { status: response.status });
     return body;
   }, [authToken, closeAdmin, serverUrl]);
 
@@ -241,5 +241,5 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
       <p className="studio-generated">Generated {formatDate(overview?.generatedAt)} · account storage {system.accountStorage || "unknown"} · Supabase {system.supabaseConfigured ? "configured" : "not configured"}</p>
     </div>
   ) : <p role={error ? "alert" : "status"}>{error || "Loading existing operations…"}</p>;
-  return <GauntletAdmin request={ownerRequest} onClose={closeAdmin} operations={operations} />;
+  return <GauntletAdmin exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} operations={operations} />;
 }

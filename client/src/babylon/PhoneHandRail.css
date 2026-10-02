@@ -96,6 +96,9 @@
 .has-phone-hand .production-action-buttons button { min-height: 44px; }
 
 @media (max-height: 520px) and (orientation: landscape) {
+  /* Keep the larger cards while returning rail chrome space to the board. */
+  .phone-hand-panel { padding: 0; }
+  .phone-hand-rail { padding: 2px 8px 4px; }
   .has-phone-hand .production-context-panel {
     display: flex;
     align-items: center;

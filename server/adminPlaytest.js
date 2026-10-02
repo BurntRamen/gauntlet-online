@@ -1,6 +1,7 @@
 "use strict";
 const crypto = require("node:crypto");
 const engine = require("../shared/duel-rules");
+const { createEvidence, recordEvidence, projectEvidence } = require("./adminPlaytestEvidence");
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -13,7 +14,7 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
   function options(game) {
     const player = game.phase === "end" ? engine.currentPlacementPlayer(game) : game.priority;
     const hand = game.players[player]?.hand || [];
-    return engine.getLegalActions(game, player).filter((action) => action.available !== false).flatMap((action) => {
+    const actions = engine.getLegalActions(game, player).filter((action) => action.available !== false).flatMap((action) => {
       const command = { ...action.confirmationPayload?.fixed, type: action.type, player };
       if (action.type === "declareHandAttack") command.attackerCardId = action.cardId;
       if (action.type === "declareHandBlock") command.blockerCardIds = [action.cardId];
@@ -37,14 +38,29 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
       }
       return candidates.filter((candidate) => engine.applyCommand(game, candidate.command).accepted);
     });
+    // Concession is the same global engine command used by the player UI; it is
+    // not part of turn-action discovery. The operator always concedes player 1.
+    const concede = { type: "concede", player: 1 };
+    return engine.applyCommand(game, concede).accepted ? [...actions, { label: "Concede", command: concede }] : actions;
   }
-  function project(id, session) { return { id, draftHash: session.draftHash, game: clone(session.game), actions: options(session.game), acceptedCommands: session.acceptedCommands }; }
+  function project(id, session) { return { id, draftHash: session.draftHash, draftRevision: session.draftRevision, context: session.context,
+    expiresAt: new Date(session.touchedAt + 30 * 60 * 1000).toISOString(), evidence: projectEvidence(session.evidence, session.game),
+    opponentCanAct: session.game.phase !== "gameOver" && (session.game.priority === 2 || engine.currentPlacementPlayer(session.game) === 2),
+    game: clone(session.game), actions: options(session.game), acceptedCommands: session.acceptedCommands }; }
   function start(body, actorId) {
     prune();
     const prepared = publication.playtestContent(body.expectedRevision);
-    const finish = ({ draftHash, resolved }) => {
+    const finish = ({ draftHash, draftRevision, resolved }) => {
     const id = `admin-playtest-${crypto.randomUUID()}`;
-    const session = { actorId, draftHash, game: createGame(resolved, body, id), touchedAt: Date.now(), acceptedCommands: 0 };
+    const game = createGame(resolved, body, id), factionId = body.factionId || "rumin";
+    const campaign = resolved.manifest.campaigns[factionId];
+    const chapterIndex = campaign?.chapters.findIndex((entry) => entry.id === body.encounterId) ?? -1;
+    const chapter = campaign?.chapters[chapterIndex];
+    const session = { actorId, draftHash, draftRevision, game, touchedAt: Date.now(), acceptedCommands: 0,
+      evidence: createEvidence(), cards: resolved.manifest.cards,
+      context: { encounterId: chapter?.id || null, encounter: chapter?.title || "Draft duel", campaign: chapter ? campaign.commanderName : null,
+        chapter: chapter ? chapterIndex + 1 : null, factionId, faction: resolved.factions[factionId]?.name,
+        opponent: game.players[2]?.accountName, setup: chapter?.setup || null } };
     const result = { playtest: project(id, session) };
     // Keep a usable session if validation, creation or projection of its replacement fails.
     for (const [previousId, previous] of sessions) if (previous.actorId === actorId) sessions.delete(previousId);
@@ -73,7 +89,7 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
     const result = engine.applyCommand(session.game, command);
     if (!result.accepted) fail(422, result.error || "The engine rejected this command.");
     session.busy = true;
-    const finish = (authoring) => { session.game = result.state; session.touchedAt = Date.now(); session.acceptedCommands += 1; return { playtest: project(body.id, session), authoring }; };
+    const finish = (authoring) => { recordEvidence(session.evidence, result, command, session.cards); session.game = result.state; session.touchedAt = Date.now(); session.acceptedCommands += 1; return { playtest: project(body.id, session), authoring }; };
     try {
       const receipt = publication.recordPlaytest(session.draftHash, actorId);
       if (receipt?.then) return receipt.then(finish).finally(() => { session.busy = false; });

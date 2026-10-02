@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./GauntletAdmin.css";
 
-const GauntletAuthoring = lazy(() => import(/* webpackChunkName: "gauntlet-admin-authoring" */ "./GauntletAuthoring"));
+import GauntletAuthoring from "./GauntletAuthoring";
 const AREAS = ["Overview", "Content", "Game", "Players", "Matches", "Publishing", "System"];
 const DOMAINS = { campaigns: "Campaigns", encounters: "Encounters", factions: "Factions", cards: "Cards", decks: "Decks", characters: "Characters / opponents" };
 const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
@@ -43,8 +43,8 @@ function Overview({ catalog, request, revision, onSelect }) {
   return <>
     <p className="admin-lede">A current view of the product, its content and its evidence.</p>
     <State state={catalog}>{(data) => <>
-      <Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} />
-      <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content")}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
+      <details className="admin-json"><summary>Advanced / Technical · content and rules versions</summary><Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} /></details>
+      <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content", key)}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
       <p className="admin-note">Counts describe the loaded registry and derived definitions. Decks count templates/plans; player-owned decks are under Players.</p>
       <h4>Available game entry points</h4><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
       <p className="admin-note">Availability is defined in code; there are no global operator mode switches.</p>
@@ -61,6 +61,7 @@ function Players({ request, revision }) {
   return <><p className="admin-lede">Account identity, campaign gates, unlocks and saved decks. Read-only.</p><label className="admin-search">Filter this page<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Account name or ID" /></label><State state={state}>{(data) => <>
     <p className="admin-note">Source: {data.source} · accounts {data.players.length ? offset + 1 : 0}–{offset + data.players.length}. This filter applies to the loaded page.</p>
     {!data.players.length && <p>No accounts in this page.</p>}
+    {data.players.length > 0 && !data.players.some((player) => `${player.name} ${player.id}`.toLowerCase().includes(query.toLowerCase())) && <p role="status">No players match this filter on the loaded page. Clear the filter or try another page.</p>}
     {data.players.filter((player) => `${player.name} ${player.id}`.toLowerCase().includes(query.toLowerCase())).map((player) => <details className="admin-player" key={player.id}><summary><strong>{player.name}</strong> <span>{player.id}</span></summary><Facts values={{ accountId: player.id, created: date(player.createdAt), lastSeen: date(player.lastSeenAt), ...player.results }} />
       <h5>Campaign progression</h5>{player.campaigns.map((campaign) => <div key={campaign.factionId}><strong>{label(campaign.factionId)}</strong><p>{campaign.completedChapterIds.length} recorded clears / {campaign.totalChapters} chapters</p><p className="admin-note">Completed: {campaign.completedChapterIds.join(", ") || "None"}<br />Unlocked: {campaign.unlockedChapterIds.join(", ") || "None"}</p></div>)}
       <Json value={player.unlocks} title="Gameplay entitlements, credits and cosmetic unlocks" />
@@ -81,7 +82,8 @@ function MatchDetail({ request, id, revision }) {
   const detailRef = useRef(null);
   useEffect(() => { detailRef.current?.scrollIntoView?.({ block: "start" }); }, [id]);
   return <section ref={detailRef} className="admin-detail"><h4>Match evidence</h4><State state={state}>{({ match, provenance }) => <>
-    <Facts values={{ matchId: match.matchId, started: date(match.startedAt), completed: date(match.completedAt), mode: match.mode, result: match.completionReason, recordVersion: match.recordVersion, contentVersion: match.contentVersion, rulesVersion: match.rulesVersion, evidenceCoverage: match.leagueEvidenceCoverage, ...provenance }} />
+    <Facts values={{ started: date(match.startedAt), completed: date(match.completedAt), mode: match.mode, result: match.completionReason, evidenceCoverage: match.leagueEvidenceCoverage, integrity: provenance.integrity }} />
+    <details className="admin-json"><summary>Advanced / Technical · match identity and provenance</summary><Facts values={{ matchId: match.matchId, recordVersion: match.recordVersion, contentVersion: match.contentVersion, rulesVersion: match.rulesVersion, ...provenance }} /></details>
     <h5>Participants and deck snapshots</h5>{(match.participants || []).map((player) => <div key={player.playerNum}><Facts values={{ player: player.displayName, faction: player.faction?.name, result: player.result, finalLife: player.finalLife }} /><Json value={player.deck} title={`Deck evidence for ${player.displayName}`} /></div>)}
     {match.campaign && <><h5>Campaign / encounter</h5><Facts values={match.campaign} /></>}
     <h5>Authoritative audit history · {match.auditEvents?.length || 0} events</h5>
@@ -113,25 +115,27 @@ function System({ request, revision, operations }) {
   </>;
 }
 
-export default function GauntletAdmin({ request, onClose, operations }) {
+export default function GauntletAdmin({ request, onClose, operations, exitGuard }) {
   const [area, setArea] = useState("Overview");
   const [revision, setRevision] = useState(0);
-  const [unsaved, setUnsaved] = useState(false);
+  const guard = useRef(() => true);
+  const [authoringArea, setAuthoringArea] = useState(null);
+  useEffect(() => { if (exitGuard) exitGuard.current = () => guard.current(); return () => { if (exitGuard) exitGuard.current = () => true; }; }, [exitGuard]);
+  const [contentDomain, setContentDomain] = useState({ name: "campaigns" });
   const authoring = ["Content", "Game", "Publishing"].includes(area);
-  const selectArea = (name) => {
-    if (unsaved && !["Content", "Game", "Publishing"].includes(name)) {
-      if (!window.confirm("Leave without saving your form values? Saved shared drafts remain available.")) return;
-      setUnsaved(false);
-    }
+  const selectArea = (name, domain) => {
+    if (!guard.current()) return;
+    if (["Content", "Game", "Publishing"].includes(name)) setAuthoringArea(name);
+    if (domain) setContentDomain({ name: domain });
     setArea(name);
   };
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
   return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
-    <header className="admin-header"><div><span className="admin-eyebrow">EGGS · operator workspace</span><h3>Gauntlet Admin</h3><p>Content, gameplay, players and authoritative history.</p></div><div className="admin-actions"><button onClick={() => setRevision(revision + 1)}>Refresh admin</button><button onClick={onClose}>Close admin</button></div></header>
+    <header className="admin-header"><div><span className="admin-eyebrow">EGGS · operator workspace</span><h3>Gauntlet Admin</h3><p>Content, gameplay, players and authoritative history.</p></div><div className="admin-actions"><button onClick={() => { if (guard.current()) setRevision(revision + 1); }}>Refresh admin</button><button onClick={() => { if (guard.current()) onClose(); }}>Close admin</button></div></header>
     <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}>{name}</button>)}</nav>
-    <div className="admin-body"><div className="admin-title-row"><h3>{area}</h3><span className="admin-badge">{authoring ? "Controlled authoring" : "Read-only inspection"}</span></div>
+    <div className="admin-body"><div className="admin-title-row"><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
       {area === "Overview" && <Overview catalog={catalog} request={request} revision={revision} onSelect={selectArea} />}
-      {authoring && <Suspense fallback={<p>Loading authoring tools…</p>}><GauntletAuthoring request={request} area={area} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} onUnsavedChange={setUnsaved} /></Suspense>}
+      {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} /></div>}
       {area === "Players" && <Players request={request} revision={revision} />}
       {area === "Matches" && <Matches request={request} revision={revision} />}
       {area === "System" && <System request={request} revision={revision} operations={operations} />}

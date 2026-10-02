@@ -44,3 +44,62 @@
 .admin-playtest-hand > div { width:100px; min-width:0; }
 .admin-playtest-hand .special-card-face, .admin-playtest-hand img.custom-playing-card-face { width:100%; height:140px; object-fit:contain; }
 .admin-playtest-hand small { display:block; overflow-wrap:anywhere; }
+.gauntlet-admin button { min-height: 44px; }
+.gauntlet-admin summary { min-height: 44px; padding: 10px 0; cursor: pointer; overflow-wrap: anywhere; }
+.admin-confirm:focus { outline: 3px solid #f1bf65; outline-offset: 3px; }
+/* Encounter Workshop: a document workspace with one page scroll. */
+.encounter-workshop { display:grid; grid-template-columns:190px minmax(0,1.35fr) minmax(0,1fr); gap:22px; align-items:start; margin-top:20px; }
+.encounter-workshop > *, .workshop-editor > section, .workshop-testing > section { min-width:0; }
+.workshop-context { grid-column:1/-1; border-block:1px solid #73613e; padding:20px 0; scroll-margin-top:12px; }
+.workshop-context h4 { font-size:23px; line-height:1.4; color:#f4d49d; margin:8px 0; }
+.workshop-context p { margin:8px 0; }
+.workshop-context .admin-tags span { background:#26313a; }
+.workshop-list .admin-object-list { max-height:none; overflow:visible; grid-template-columns:1fr; }
+.workshop-list .admin-object-list small { font-size:11px; }
+.workshop-editor { padding:0 20px; border-inline:1px solid var(--admin-line); }
+.workshop-editor > section { padding-bottom:24px; scroll-margin-top:16px; }
+.workshop-editor h4 { color:#efc06e; }
+.workshop-editor .admin-field-columns { display:flex; flex-direction:column-reverse; gap:8px; }
+.workshop-editor .admin-field { padding-block:14px; }
+.workshop-editor .admin-live-value { max-height:none; overflow:visible; padding-block:10px; }
+.workshop-editor .admin-comparison summary { background:transparent; border:0; color:var(--admin-muted); }
+.workshop-editor .admin-field textarea { font-size:14px; }
+.workshop-editor .admin-contract-fields { gap:16px; }
+.workshop-editor .admin-contract-fields fieldset { margin:10px 0; }
+.workshop-editor legend { color:#efc06e; font-size:14px; }
+.workshop-portrait { display:block; max-width:150px; max-height:220px; object-fit:contain; }
+.workshop-audio { display:grid; gap:8px; margin-block:12px; }
+.workshop-audio audio { width:100%; max-width:100%; }
+.admin-card-slot { border-bottom:1px solid var(--admin-line); margin-bottom:14px; }
+.workshop-testing .admin-playtest { margin-top:20px; border-inline:0; padding:16px 0; border-radius:0; }
+.workshop-testing .admin-preview { padding:10px; }
+.workshop-testing .admin-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.workshop-testing .campaign-briefing-body { display:block; }
+.workshop-testing .campaign-briefing-hero { display:block; padding:18px; min-height:0; }
+.workshop-testing .campaign-briefing-hero-copy { max-width:100%; }
+.workshop-testing .campaign-briefing-hero h2 { font-size:26px; }
+.workshop-testing .campaign-briefing-main,.workshop-testing .campaign-briefing-dossier { padding:14px; }
+.workshop-testing .campaign-briefing-pagination { flex-wrap:wrap; }
+.workshop-testing .campaign-dialogue-line { grid-template-columns:1fr; padding:10px; }
+.admin-evidence { padding-left:22px; }
+.admin-evidence li { padding-block:10px; border-bottom:1px solid var(--admin-line); }
+.admin-evidence p { margin:6px 0; }.admin-evidence small { color:#efc06e; }
+.workshop-list-toggle { display:none; }
+.workshop-section-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+.workshop-jump { display:none; }
+@media (max-width:750px) {
+ .workshop-section-buttons { display:none; }
+ .workshop-jump { display:grid; gap:8px; flex-basis:100%; color:var(--admin-muted); font-size:12px; }
+ .workshop-jump select { width:100%; min-height:44px; padding:8px; background:#101b23; color:#edf4f7; border:1px solid #648092; }
+}
+@media (max-width:1150px) {
+ .encounter-workshop { grid-template-columns:170px minmax(0,1fr); }
+ .workshop-testing { grid-column:2; }.workshop-editor { border-right:0; padding-right:0; }
+}
+@media (max-width:750px) {
+ .encounter-workshop { display:block; }.workshop-editor { border:0; padding:0; }
+ .workshop-list-toggle { display:block; }.encounter-workshop.has-selection .workshop-list { display:none; }
+ .encounter-workshop:not(.has-selection) .workshop-editor,.encounter-workshop:not(.has-selection) .workshop-testing { display:none; }
+ .workshop-context h4 { font-size:20px; }.workshop-context .admin-actions button { flex:1 1 40%; }
+ .workshop-context .admin-tags span { font-size:12px; }.gauntlet-admin input,.gauntlet-admin textarea,.gauntlet-admin select { font-size:16px; }
+}

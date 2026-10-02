@@ -8,6 +8,7 @@ const duel = require("../shared/duel-rules");
 const { canonicalJson } = require("./matchArchive");
 const effects = require("../shared/duel-rules/effectRegistry");
 const encounterContract = require("../shared/duel-rules/encounterContract");
+const encounterAuthoring = require("./encounterAuthoring");
 const encounterDefaults = require("./encounterDefinitions.json");
 const assets = require("./contentAssets");
 const config = require("../shared/duel-rules/gameConfig");
@@ -28,7 +29,7 @@ const FIELDS = {
   game: { name: text("Mode name", 80), description: text("Mode description", 600) }
 };
 
-FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechanical: true, abilityIds: encounterContract.bossAbilityIds, note: "Versioned boss life, attack bounds, ability and deck additions. Timing and routing use the supported policies only." };
+FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechanical: true, abilityIds: encounterContract.bossAbilityIds, rules: encounterAuthoring.rules, abilityLabels: encounterAuthoring.abilityLabels, note: "Save setup, ability and card additions together. Displayed ability text does not change the selected rule. Timing and routing are read-only." };
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Only declared integer parameters are supported." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row) {
