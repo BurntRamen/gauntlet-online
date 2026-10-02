@@ -238,6 +238,13 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
       };
     case "combat.resolutionCompleted":
       return { icon: "damage", title: "Combat resolution completed", detail: "Attack and block cleared" };
+    case "life.gained":
+      return {
+        icon: "life",
+        title: `${actor} gained ${numeric(entry.amount) ?? 0} life`,
+        detail: [entry.source?.name || entry.source,
+          entry.from != null && entry.to != null ? `Life ${entry.from} → ${entry.to}` : ""].filter(Boolean).join(" · ")
+      };
     case "campaign.bossHealed":
       return {
         icon: "priority",

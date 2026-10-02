@@ -36,11 +36,11 @@
 
 .phone-hand-card {
   position: relative;
-  flex: 0 0 80px;
-  width: 80px;
-  height: 112px;
-  min-width: 80px;
-  min-height: 112px;
+  flex: 0 0 92px;
+  width: 92px;
+  height: 129px;
+  min-width: 92px;
+  min-height: 129px;
   box-sizing: border-box;
   overflow: hidden;
   padding: 0;
@@ -69,7 +69,7 @@
   border-radius: 3px;
   color: #171b20;
   background: #fff5df;
-  font: 800 14px/18px "Segoe UI", Arial, sans-serif;
+  font: 800 16px/20px "Segoe UI", Arial, sans-serif;
   pointer-events: none;
 }
 
@@ -90,7 +90,7 @@
 .phone-hand-card:disabled { cursor: default; filter: saturate(.55); }
 
 .production-match-experience.has-phone-hand {
-  --battlefield-bottom-reserve: calc(var(--phone-hud-reserve, 142px) + var(--phone-hand-reserve, 148px));
+  --battlefield-bottom-reserve: calc(var(--phone-hud-reserve, 142px) + var(--phone-hand-reserve, 165px));
 }
 
 .has-phone-hand .production-action-buttons button { min-height: 44px; }

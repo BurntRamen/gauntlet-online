@@ -2050,8 +2050,7 @@
   text-align: left;
 }
 
-.production-discard-grid button span,
-.production-match-log span {
+.production-discard-grid button span {
   color: #9dabb7;
   font-size: 10px;
 }

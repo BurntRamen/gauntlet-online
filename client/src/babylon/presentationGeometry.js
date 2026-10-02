@@ -17,11 +17,11 @@ function handPosition(actor, profile) {
   const scale = local ? hand.localScale : hand.opponentScale;
   const availableWidth = profile.id === "portrait" ? 14.4 : profile.id === "short-landscape" ? 22.2 : 24.5;
   const maximumSpread = local
-    ? (profile.id === "portrait" ? 1.5 : profile.id === "short-landscape" ? 1.62 : profile.id === "ultrawide" ? 1.85 : 2.1)
+    ? (profile.id === "portrait" ? 1.65 : profile.id === "short-landscape" ? 1.62 : profile.id === "ultrawide" ? 2.06 : 2.4)
     : (profile.id === "portrait" ? 1.02 : 1.34);
   const spread = count <= 1
     ? 0
-    : Math.min(maximumSpread, Math.max(CARD_WIDTH * scale * 0.9, (availableWidth - CARD_WIDTH * scale) / (count - 1)));
+    : Math.min(maximumSpread, (availableWidth - CARD_WIDTH * scale) / (count - 1));
   return {
     x: (local ? hand.localX : hand.opponentX) + centered * spread,
     y: local ? 0.62 : 0.88,
