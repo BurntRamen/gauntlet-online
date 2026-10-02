@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "workshop-card-rows-20261002-authority",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-10-02T21:32:25.802Z",
+  "expiresAt": "2026-10-03T05:32:25.803Z",
+  "resolver": "Codex; connected Google Drive profile verified",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://drive.google.com/file/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/view",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "00-00 Creative OS Governance Directive — Operational; live revision ANLCKQkzh2jMpQkq0-GqI5zNK41dzE5_u3NXNwHpEio6O_NvKEr4FJ5c8KkvuU4V4dbxSr6bLzlgB3T8dioYthNJkuSO7QVTn_BNehzUyxhc",
+      "resolvedAt": "2026-10-02T21:32:25.802Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Preserve existing art, card wording, exact rank/suit swaps, collector finishes and deck controls; presentation change only.",
+          "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live."
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://drive.google.com/file/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/view",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "00-00 Master System Index; live revision ANLCKQmSKOSWGzJpXhlMmkvxoIKG4M76eScG7U1gl-HRkPJA4LmfrDXXOvms7IsaZWodpE8N0XacFU0XqFKWcfHRTq4Neyu8vYy5zWmUYeQP",
+      "resolvedAt": "2026-10-02T21:32:25.802Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Preserve existing art, card wording, exact rank/suit swaps, collector finishes and deck controls; presentation change only.",
+          "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live."
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://drive.google.com/file/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/view",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Gauntlet — Project Dossier & Generation Contract — Operational v1; live revision ANLCKQmmpIiDBcaBvv8-05C6LrJsffe15f0_x7uGfgvESfQ_O-MSqU-Nm08_d5Zw4pfFc8QYufqQFNdCwM4xvz5JmfuYs3JKImPcRpQ2kT-Z",
+      "resolvedAt": "2026-10-02T21:32:25.802Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Preserve existing art, card wording, exact rank/suit swaps, collector finishes and deck controls; presentation change only.",
+          "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live."
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://drive.google.com/file/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/view",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Gauntlet Rules — Operational v1; live revision ANLCKQngUYdIjbPZkShgPUXT0uRuz0Ke54vzDLLZZL5cv0QDYb_3RCp8iDdk9plePOBY9FPANxaycfQeLlwgm3c",
+      "resolvedAt": "2026-10-02T21:32:25.802Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Preserve existing art, card wording, exact rank/suit swaps, collector finishes and deck controls; presentation change only.",
+          "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live."
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://drive.google.com/file/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/view",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Live registry header: CardType, Name, Text, faction, Image",
+      "resolvedAt": "2026-10-02T21:32:25.802Z",
+      "constraints": [
+        {
+          "id": "preserve-current-gameplay",
+          "statement": "Preserve existing art, card wording, exact rank/suit swaps, collector finishes and deck controls; presentation change only.",
+          "scope": "Restructure the deck Cards view with left-aligned card images and larger names/rules to their right, remove unused horizontal spacing, verify responsive layout and publish live."
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}
