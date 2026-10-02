@@ -4,6 +4,7 @@ import { getCustomCardArtDefinition, getCustomCardFacePath, getPlayingCardRankSl
 import "./SpecialCardFace.css";
 
 export function getCardIllustration(card, art = "") {
+  if (card?.presentation) return card.presentation.illustration || card.presentation.face || "";
   return art || card?.collector?.art || getCustomCardArtDefinition(card)?.illustration || card?.image
     || FACTION_VISUALS[card?.factionId]?.art || "/assets/gauntlet/rumin-card.webp";
 }

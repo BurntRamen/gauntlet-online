@@ -583,7 +583,7 @@ export function presentationSnapshotMetrics(snapshot) {
     knownActorCount: (snapshot?.actors || []).filter((actor) => !actor.anonymous).length,
     faceArtActorCount: (snapshot?.actors || []).filter((actor) => !actor.faceDown && actor.artPath).length,
     basicFaceArtActorCount: (snapshot?.actors || []).filter((actor) => (
-      !actor.faceDown && actor.artPath?.includes("/playing-cards/basic-")
+      !actor.faceDown && actor.artPath && actor.factionId === "basic"
     )).length,
     missingFaceArtCount: (snapshot?.actors || []).filter((actor) => (
       actor.expectsFaceArt && !actor.faceDown && !actor.artPath

@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { COLLECTION_CARDS } = require("../server/gameContent");
+const DRONE_ART = require("../server/contentAssetManifest.json").entries.find((entry) => entry.source === "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-hearts.webp").path;
 
 test("matching cards switch views and zoom without changing the deck, on desktop and mobile", async ({ page, request, baseURL }) => {
   const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Gallery QA ${Date.now()}`, password: "Local-Gallery-Review-42" } });
@@ -36,13 +37,13 @@ test("matching cards switch views and zoom without changing the deck, on desktop
   const out = path.resolve(__dirname, "../.eggs/evidence/workshop-gallery-review");
   fs.mkdirSync(out, { recursive: true });
   await expect(icons).toHaveAttribute("aria-pressed", "true");
-  await expect(matching.locator(".deck-candidate-art img")).toHaveAttribute("src", /bizi-dune-circuit-runner-hearts\.webp/);
+  await expect(matching.locator(".deck-candidate-art img")).toHaveAttribute("src", DRONE_ART);
   await expect(page.getByRole("button", { name: "Compact", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.locator(".deck-slot-preview")).toHaveCount(0);
   await zoom.click();
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".deck-card-zoom-art img")).toHaveAttribute("src", /bizi-dune-circuit-runner-hearts\.webp/);
+  await expect(dialog.locator(".deck-card-zoom-art img")).toHaveAttribute("src", DRONE_ART);
   await expect(dialog).toContainText(card.displayText);
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");

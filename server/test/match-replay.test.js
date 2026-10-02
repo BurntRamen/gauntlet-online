@@ -84,6 +84,7 @@ function recordFixture(options = {}) {
   ]);
 
   const attacker = card("public-attacker", 12);
+  Object.assign(attacker, options.publishedAttacker || {});
   const attackPayment = card("public-attack-payment", 3, "clubs");
   game.players[1].hand = [];
   game.handAttacks = [{
@@ -455,4 +456,32 @@ test("replay availability reports the account-only durability gate honestly", ()
     survivesProcessReplacement: false,
     unavailableReason: null
   });
+});
+
+
+test("new replay evidence retains its published card definition instead of today's registry", () => {
+  const presentation = { releaseId: "historical-release", composed: true, illustration: "/assets/gauntlet/releases/historical.webp", assetManifestVersion: "historical-assets" };
+  const record = recordFixture({ publishedAttacker: { definitionId: "rumin-coin-scale-spear", gameplayCardId: "rumin-coin-scale-spear", name: "Historical spear", text: "Historical rules", effect: { id: "coin-scale-spear", version: 1, parameters: { armBonus: 6 } }, presentation } });
+  const before = JSON.stringify(record);
+  const action = buildReplayTimeline(record).actions.find((row) => row.kind === "attack");
+  assert.equal(action.cards.primary.name, "Historical spear");
+  assert.equal(action.cards.primary.rulesText, "Historical rules");
+  assert.equal(action.cards.primary.effect.parameters.armBonus, 6);
+  assert.deepEqual(action.cards.primary.presentation, presentation);
+  assert.equal(JSON.stringify(record), before);
+});
+
+test("new replay frames preserve explicit opponent identity without rewriting legacy frames", () => {
+  const historical = recordFixture(), bytes = JSON.stringify(historical);
+  buildReplayTimeline(historical);
+  assert.equal(JSON.stringify(historical), bytes);
+  const game = gameFixture();
+  game.players[1].accountName = "Training AI";
+  game.players[2].accountName = "Renamed practice opponent";
+  game.players[2].opponentKind = "training-ai";
+  capture(game, { type: "matchStarted" }, [{ id: MATCH_ID + ":identity-start", type: "match.started" }]);
+  const replay = buildReplayTimeline(presentationRecord(game));
+  assert.equal(replay.frames[0].publicState.players[2].opponentKind, "training-ai");
+  assert.equal(replay.frames[0].publicState.players[2].accountName, "Renamed practice opponent");
+  assert.equal(replay.frames[0].publicState.players[1].opponentKind, undefined);
 });

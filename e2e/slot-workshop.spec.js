@@ -2,6 +2,7 @@ const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
+const MENDER_ART = require("../server/contentAssetManifest.json").entries.find((entry) => entry.source === "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp").path;
 
 test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on desktop and mobile", async ({ page, request, baseURL }) => {
   test.setTimeout(120000);
@@ -32,7 +33,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[card.value] || String(card.value);
   await page.getByRole("button", { name: `${rank} of hearts — Standard playing card`, exact: true }).click();
   await page.getByRole("button", { name: `Swap ${rank} of hearts for ${card.name}`, exact: true }).click();
-  await expect(page.locator(".deck-slot-preview img")).toHaveAttribute("src", /sheen-raincall-mender-hearts\.webp\?v=2$/);
+  await expect(page.locator(".deck-slot-preview img")).toHaveAttribute("src", MENDER_ART);
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(1);
   await expect(page.locator(".deck-preview-copy")).toContainText("Clean block: Heal 1.");
   await page.locator(".deck-inspection-rail").getByText("Full rules & keywords", { exact: true }).click();
@@ -65,7 +66,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.mouse.up();
   await expect(resizer).toHaveAttribute("aria-valuenow", "340");
   await page.getByRole("button", { name: "Cards", exact: true }).click();
-  await expect(page.locator(".deck-slot.is-replaced img")).toHaveAttribute("src", /sheen-raincall-mender-hearts\.webp\?v=2$/);
+  await expect(page.locator(".deck-slot.is-replaced img")).toHaveAttribute("src", MENDER_ART);
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.locator(".deck-slot-preview")).toHaveCount(0);
   await expect(page.getByRole("button", { name: `Restore standard ${rank}♥`, exact: true })).toBeVisible();

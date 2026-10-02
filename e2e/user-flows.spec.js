@@ -61,15 +61,15 @@ test("draft explains saving before picks and returns to Draft after sign-in", as
   await page.goto(baseURL);
   await page.locator('button[data-area="play"]').click();
   await page.getByRole("tab", { name: "Draft", exact: true }).click();
-  await expect(page.getByText(/Guest drafts are practice only/)).toBeVisible();
+  await expect(page.getByText(/Guest limited play is practice only/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Draft against bots/ })).toBeEnabled();
-  await page.getByRole("button", { name: "Sign in to save your draft", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in to save your deck", exact: true }).click();
   await page.getByPlaceholder("Account name").fill(credentials.account.name);
   await page.getByPlaceholder("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Draft", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("button", { name: "Play saved bot-draft deck", exact: true })).toBeEnabled();
-  await expect(page.getByText(/Guest drafts are practice only/)).toHaveCount(0);
+  await expect(page.getByText(/Guest limited play is practice only/)).toHaveCount(0);
 });
 
 test("direct practice preserves a saved account while its profile is unavailable", async ({ page, request, baseURL }) => {

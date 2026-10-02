@@ -116,8 +116,8 @@ test("maps every catalog constructed card into the shared deterministic rules", 
     .map((file) => fs.readFileSync(path.join(__dirname, "..", "..", "shared", "duel-rules", file), "utf8"))
     .join("\n");
   const missing = COLLECTION_CARDS
-    .map((card) => card.id)
-    .filter((cardId) => !sharedRulesSource.includes(`"${cardId}"`));
+    .map((card) => require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id)
+    .filter((effectId) => !effectId || !sharedRulesSource.includes(`"${effectId}"`));
 
   assert.equal(COLLECTION_CARDS.length, 126);
   assert.deepEqual(missing, []);
@@ -193,7 +193,7 @@ test("serves the validated public content manifest", async () => {
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assert.equal(body.content.contentVersion, CONTENT_VERSION);
+  assert.match(body.content.contentVersion, /^gauntlet-content-[a-f0-9]{64}$/);
   assert.equal(body.content.rulesVersion, RULES_VERSION);
   assert.equal(body.content.campaigns.rumin.chapters.length, 12);
 });

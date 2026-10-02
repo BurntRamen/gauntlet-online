@@ -10,6 +10,7 @@ process.env.MATCH_DATA_FILE = path.join(tempRoot, "matches.json");
 process.env.MATCH_ARCHIVE_DATA_DIR = path.join(tempRoot, "archives");
 process.env.ACCOUNT_AUTH_SECRET = "match-archive-route-test-secret";
 process.env.OWNER_STATS_TOKEN = "match-archive-owner-secret";
+process.env.GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 delete process.env.SUPABASE_URL;
 delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -146,11 +147,11 @@ test("Match Record, Replay, Para, JSON export, verify, and import use the same a
     __test.matchArchive.findById = findArchived;
   }
 
-  const ownerSession = await jsonRequest("/api/admin/session", {
-    method: "POST",
-    body: JSON.stringify({ ownerToken: process.env.OWNER_STATS_TOKEN })
-  });
-  const ownerHeaders = { "x-owner-session": ownerSession.body.sessionToken };
+  const adminAccount = { id: process.env.GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID, name: "Archive Operator", stats: {} };
+  const store = JSON.parse(fs.readFileSync(process.env.ACCOUNT_DATA_FILE, "utf8"));
+  store.accounts.push(adminAccount);
+  fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify(store));
+  const ownerHeaders = { Authorization: `Bearer ${__test.issueAccountSession(adminAccount).token}` };
   const preview = await jsonRequest("/api/admin/match-archive/import/preview", {
     method: "POST",
     headers: ownerHeaders,

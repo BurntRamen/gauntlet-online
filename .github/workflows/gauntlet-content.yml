@@ -1,0 +1,29 @@
+name: Gauntlet Content Checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'server/**'
+      - 'shared/**'
+      - 'scripts/validate-content-release.js'
+      - '.github/workflows/gauntlet-content.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  content:
+    name: Validate Gauntlet content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm --prefix server ci
+      - run: node scripts/validate-content-release.js
+      - run: node --test server/test/content-contracts-v2.test.js server/test/github-content-publication.test.js server/test/content-publication-routes.test.js

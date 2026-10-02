@@ -3,6 +3,7 @@ const CUSTOM_CARD_ID = /^(?:rumin|sheen|frumo|bizi|zynarth|astral-vanguard|indel
 export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
 
 export function getCustomCardArtDefinition(card) {
+  if (card?.presentation) return card.presentation.illustration ? { id: card.gameplayCardId || card.definitionId || card.id, factionId: card.factionId, illustration: card.presentation.illustration } : null;
   const id = [card?.gameplayCardId, card?.definitionId, card?.id]
     .find((candidate) => CUSTOM_CARD_ID.test(String(candidate || "")));
   if (!id) return null;
@@ -11,6 +12,10 @@ export function getCustomCardArtDefinition(card) {
 }
 
 export function getCustomCardFacePath(card) {
+  if (card?.presentation) {
+    const suit = SUIT_NAMES[normalizeCardDisplayText(card.suit).trim().toLowerCase()] || "spades";
+    return card.presentation.composed ? "" : card.presentation.faces?.[suit] || card.presentation.face || "";
+  }
   const definition = getCustomCardArtDefinition(card);
   if (!definition) return "";
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "spades";
@@ -72,6 +77,7 @@ export function isOrdinaryPlayingCard(card) {
 }
 
 export function expectsPlayingCardArt(card) {
+  if (card?.presentation) return Boolean(getCustomCardFacePath(card) || card.presentation.illustration);
   if (getCustomCardArtDefinition(card)) return true;
   if (!isOrdinaryPlayingCard(card)) return false;
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "";
@@ -79,6 +85,7 @@ export function expectsPlayingCardArt(card) {
 }
 
 export function getPlayingCardArtPath(card, factionId) {
+  if (card?.presentation) return getCustomCardFacePath(card) || card.presentation.illustration || "";
   const customFace = getCustomCardFacePath(card);
   if (customFace) return customFace;
   const requestedFaction = String(factionId || card?.factionId || "basic").toLowerCase();

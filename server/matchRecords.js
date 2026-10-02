@@ -281,7 +281,9 @@ function getDeckSnapshot(lobbyPlayer, gamePlayer) {
 
 function getParticipantIdentity(lobbyPlayer, gamePlayer, game, playerNum) {
   const campaignAi = game?.campaign && Number(playerNum) === 2;
-  const isAi = !!lobbyPlayer?.isAI || campaignAi || gamePlayer?.accountName === "Training AI";
+  const isAi = !!lobbyPlayer?.isAI || !!gamePlayer?.isAI || campaignAi
+    || ["training-ai", "campaign-boss"].includes(gamePlayer?.opponentKind)
+    || ["training-ai", "campaign-boss"].includes(lobbyPlayer?.opponentKind);
   return {
     identityType: lobbyPlayer?.accountId ? "account" : isAi ? "ai" : "guest",
     accountId: lobbyPlayer?.accountId || null,
@@ -360,7 +362,8 @@ function buildMatchRecord(roomState, options = {}) {
     seriesId: metadata.seriesId || null,
     mode,
     rulesVersion: RULES_VERSION,
-    contentVersion: CONTENT_VERSION,
+    contentVersion: game.contentVersion || CONTENT_VERSION,
+    ...(game.contentBinding ? { contentBinding: clonePlain(game.contentBinding), contentDefinitions: clonePlain(game.contentDefinitions), gameConfig: clonePlain(game.config) } : {}),
     ranked: !!roomState.ranked,
     season: roomState.season ? clonePlain(roomState.season) : null,
     startedAt: metadata.startedAt,
@@ -375,6 +378,7 @@ function buildMatchRecord(roomState, options = {}) {
     campaign: game.campaign ? {
       factionId: game.campaign.factionId,
       chapterId: game.campaign.chapterId,
+      ...(game.campaign.setup ? { setup: clonePlain(game.campaign.setup) } : {}),
       title: game.campaign.title,
       image: game.campaign.image || null,
       opponentName: game.campaign.opponentName

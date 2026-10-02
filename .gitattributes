@@ -1,0 +1,3 @@
+# Release paths are addressed by the exact bytes in their SHA-256 manifest.
+# Preserve those bytes across Windows and Linux, including SVG line endings.
+client/public/assets/gauntlet/releases/** -text

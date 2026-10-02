@@ -1,6 +1,7 @@
+const { factionMechanicId } = require("./effectRegistry");
 "use strict";
 
-const isIndela = (player) => player?.faction?.id === "indela";
+const isIndela = (player) => factionMechanicId(player) === "indela";
 const general = (player) => player?.faction?.general?.id;
 const cardValue = (card) => {
   if (card?.rank === "A" || card?.value === "A") return 14;

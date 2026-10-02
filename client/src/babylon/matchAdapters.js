@@ -147,12 +147,14 @@ function createLocalState({
   gameMode = "basic",
   factions,
   playerNames,
-  matchId
+  matchId,
+  config
 }) {
   return createMatch({
     seed,
     gameMode,
     factions,
+    config,
     matchId,
     playerNames: playerNames || { 1: "Player 1", 2: "Player 2" }
   }).state;
@@ -168,6 +170,7 @@ export class LocalDuelAdapter {
       1: { id: "rumin", name: "Rumin" },
       2: { id: "sheen", name: "Sheen" }
     };
+    this.config = options.config || options.content?.gameConfig;
     this.playerNames = options.playerNames || { 1: "Player 1", 2: "Player 2" };
     this.autoSaveLocalHistory = options.autoSaveLocalHistory !== false;
     this.onCompletedMatchArtifact = options.onCompletedMatchArtifact || ((artifact) => (

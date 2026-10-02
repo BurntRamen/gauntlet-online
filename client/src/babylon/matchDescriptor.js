@@ -51,8 +51,8 @@ export function createMatchDescriptor(game, controlState = {}) {
     controlState?.trainingAi
     || lobby?.players?.[2]?.isAI
     || game?.players?.[2]?.isAI
-    || lobby?.players?.[2]?.accountName === "Training AI"
-    || game?.players?.[2]?.accountName === "Training AI"
+    || lobby?.players?.[2]?.opponentKind === "training-ai"
+    || game?.players?.[2]?.opponentKind === "training-ai"
   );
 
   return {

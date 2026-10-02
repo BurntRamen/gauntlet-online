@@ -406,3 +406,21 @@ test("serves a privacy-filtered public match record without leaking server-only 
   const unsupported = await fetch(`http://127.0.0.1:${address.port}/api/matches/${record.matchId}/export/para?version=99`);
   assert.equal(unsupported.status, 400);
 });
+
+test("match identities use explicit AI identity rather than presentation names", () => {
+  const human = makeRoom();
+  delete human.lobby.players[2].accountId;
+  human.lobby.players[2].accountName = "Training AI";
+  human.game.players[2].accountName = "Training AI";
+  assert.equal(buildMatchRecord(human).participants[1].identityType, "guest");
+
+  const renamed = makeRoom();
+  delete renamed.lobby.players[2].accountId;
+  renamed.lobby.players[2].accountName = "Practice partner";
+  renamed.game.players[2].accountName = "Practice partner";
+  renamed.game.players[2].opponentKind = "training-ai";
+  const record = buildMatchRecord(renamed);
+  assert.equal(record.participants[1].identityType, "ai");
+  assert.equal(record.participants[1].displayName, "Practice partner");
+  assert.equal(record.participants[1].accountId, null);
+});

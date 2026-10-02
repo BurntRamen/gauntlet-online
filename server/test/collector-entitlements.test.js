@@ -6,6 +6,7 @@ const originalFetch = global.fetch;
 process.env.SUPABASE_URL = "https://gauntlet-collector-test.supabase.co";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "collector-test-service-role";
 process.env.OWNER_STATS_TOKEN = "collector-owner-test-token";
+process.env.GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 process.env.COLLECTOR_ENTITLEMENT_SECRET = "collector-entitlement-test-secret-at-least-thirty-two-characters";
 
 const accounts = [
@@ -125,11 +126,13 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   };
 
   const forbiddenIssue = await post(port, "/api/admin/collector-entitlements/issue", issueBody);
-  assert.equal(forbiddenIssue.status, 403);
+  assert.equal(forbiddenIssue.status, 401);
+  assert.equal((await post(port, "/api/admin/collector-entitlements/issue", issueBody, process.env.OWNER_STATS_TOKEN)).status, 401);
+  assert.equal((await post(port, "/api/admin/collector-entitlements/issue", issueBody, accountSession(accounts[1]))).status, 403);
 
-  const issueResponse = await post(port, "/api/admin/collector-entitlements/issue", issueBody, process.env.OWNER_STATS_TOKEN);
+  const issueResponse = await post(port, "/api/admin/collector-entitlements/issue", issueBody, accountSession(accounts[0]));
   const issued = await issueResponse.json();
-  const duplicateIssueResponse = await post(port, "/api/admin/collector-entitlements/issue", issueBody, process.env.OWNER_STATS_TOKEN);
+  const duplicateIssueResponse = await post(port, "/api/admin/collector-entitlements/issue", issueBody, accountSession(accounts[0]));
   const duplicateIssued = await duplicateIssueResponse.json();
   assert.equal(issueResponse.status, 200);
   assert.equal(issued.entitlement.entitlementId, duplicateIssued.entitlement.entitlementId);

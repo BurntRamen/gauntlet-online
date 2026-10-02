@@ -43,7 +43,7 @@ test("describes constructed, AI, campaign, draft, and series axes independently"
   expect(createMatchDescriptor(game({
     players: {
       1: { hand: [], deck: [], discard: [] },
-      2: { accountName: "Training AI", hand: [], deck: [], discard: [] }
+      2: { accountName: "Renamed practice opponent", opponentKind: "training-ai", hand: [], deck: [], discard: [] }
     }
   })).opponentKind).toBe("trainingAi");
 
@@ -69,4 +69,15 @@ test("describes constructed, AI, campaign, draft, and series axes independently"
     gameNumber: 2,
     playerWins: { 1: 1, 2: 0 }
   });
+});
+
+test("opponent display names never classify humans as Training AI", () => {
+  const descriptor = createMatchDescriptor(game({
+    players: { 1: { hand: [] }, 2: { accountName: "Training AI", hand: [] } }
+  }), { lobby: { players: { 2: { accountName: "Training AI" } } } });
+  expect(descriptor.opponentKind).toBe("human");
+  expect(matchDescriptorLabel(descriptor)).toBe("Basic match");
+  expect(createMatchDescriptor(game(), {
+    lobby: { players: { 2: { accountName: "Renamed opponent", opponentKind: "training-ai" } } }
+  }).opponentKind).toBe("trainingAi");
 });

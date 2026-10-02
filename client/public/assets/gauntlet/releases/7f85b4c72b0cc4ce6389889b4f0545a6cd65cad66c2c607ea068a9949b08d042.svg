@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Indela emblem</title><desc id="desc">A violet oracle eye divided into odd and even paths.</desc>
+  <defs><radialGradient id="g"><stop stop-color="#fef3c7"/><stop offset=".45" stop-color="#c084fc"/><stop offset="1" stop-color="#4c1d95"/></radialGradient></defs>
+  <rect width="512" height="512" rx="72" fill="#120b2e"/>
+  <circle cx="256" cy="256" r="198" fill="#25134d" stroke="#a78bfa" stroke-width="14"/>
+  <path d="M82 256c50-91 108-137 174-137s124 46 174 137c-50 91-108 137-174 137S132 347 82 256z" fill="url(#g)" stroke="#ddd6fe" stroke-width="9"/>
+  <circle cx="256" cy="256" r="72" fill="#170d32" stroke="#fef3c7" stroke-width="10"/>
+  <path d="M256 198v116M198 256h116" stroke="#fbbf24" stroke-width="15" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="22" fill="#fef3c7"/>
+  <path d="M138 112l30 36m206-36-30 36M138 400l30-36m206 36-30-36" stroke="#7dd3fc" stroke-width="12" stroke-linecap="round"/>
+</svg>
