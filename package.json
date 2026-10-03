@@ -13,7 +13,7 @@
     "test:e2e:install": "playwright install chromium",
     "test:e2e:usability": "playwright test --config=playwright.usability.config.js",
     "test:e2e:performance": "playwright test --config=playwright.performance.config.js",
-    "test:qualification": "node --test scripts/card-wording.test.js scripts/babylon-experience-gate.test.js scripts/build-babylon-visual-comparison.test.js scripts/elevenlabs-assets.test.js scripts/prune-webgpu-build.test.js scripts/report-constructed-card-art.test.js scripts/report-match-assets.test.js scripts/report-match-audio.test.js",
+    "test:qualification": "node --test scripts/card-wording.test.js scripts/babylon-experience-gate.test.js scripts/build-babylon-visual-comparison.test.js scripts/elevenlabs-assets.test.js scripts/prune-webgpu-build.test.js scripts/report-constructed-card-art.test.js scripts/report-match-assets.test.js scripts/report-match-audio.test.js scripts/check-build-budgets.test.js",
     "capture:babylon-review": "playwright test --config=playwright.visual-review.config.js",
     "compare:babylon-review": "node scripts/build-babylon-visual-comparison.js",
     "build:client": "npm --prefix client run build",

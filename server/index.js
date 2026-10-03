@@ -4383,21 +4383,23 @@ contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((pr
   writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR
 });
 registerContentPublicationRoutes(app, contentPublication);
+require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
 const { createAdminPlaytests, registerAdminPlaytestRoutes } = require("./adminPlaytest");
 const adminPlaytests = createAdminPlaytests({ publication: contentPublication, chooseAi: chooseSemanticTrainingAiCommand,
   createGame(resolved, selection, id) {
     const factionId = selection.factionId || "rumin";
+    const opponentFactionId = selection.opponentFactionId || factionId;
     if (!resolved.factions[factionId]) throw Object.assign(new Error("Unknown faction."), { status: 422 });
     const room = { roomCode: id, lobby: { gameMode: "factions", players: {
       1: { factionId, accountName: "Admin playtest", connected: true },
-      2: { factionId, accountName: resolved.manifest.trainingOpponent.name, opponentKind: "training-ai", connected: true, isAI: true }
+      2: { factionId: opponentFactionId, accountName: resolved.manifest.trainingOpponent.name, opponentKind: "training-ai", connected: true, isAI: true }
     } } };
     if (selection.encounterId) {
       prepareCampaignRoom(room, resolved, factionId, selection.encounterId);
       room.lobby.players[2].accountName = room.lobby.campaign.opponentName;
     } else {
       // Populate both decks from the selected draft faction to exercise its effects.
-      for (const player of [1, 2]) room.lobby.players[player].savedConstructedDeck = { cards: resolved.manifest.cards.filter((card) => card.factionId === factionId).map((card, index) => ({ ...card, suit: DRAFT_CARD_SUITS[index % 4] })) };
+      for (const player of [1, 2]) room.lobby.players[player].savedConstructedDeck = { cards: resolved.manifest.cards.filter((card) => card.factionId === room.lobby.players[player].factionId).map((card, index) => ({ ...card, suit: DRAFT_CARD_SUITS[index % 4] })) };
     }
     createGameFromLobby(room, { contentRelease: resolved, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
     return room.game;

@@ -2,86 +2,62 @@ const fs = require("node:fs");
 const path = require("node:path");
 const zlib = require("node:zlib");
 
-const buildDirectory = path.resolve(__dirname, "../client/build/static/js");
 const KIB = 1024;
-const budgets = {
-  // Typed content presentation adds about 1 KiB to the production entry point.
+const budgets = Object.freeze({
   mainGzip: 177 * KIB,
-  // Focused player profiles and guarded metadata editing add ~1.7 KiB.
-  // This chunk loads only in Admin; the player and initial-load limits stay fixed.
-  adminGzip: 20 * KIB,
+  adminEntryGzip: 20 * KIB,
+  // Every named lazy workshop shares this total; splitting grants no extra allowance.
+  adminGzip: 48 * KIB,
   largestAsyncGzip: 350 * KIB,
-  // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
-  // The 72-card guide stays in static HTML, outside the application bundle.
-  // The projected faction-card row, support-slot actors, and accessible ability chooser.
-  // Saved light/dark controls, reversible board materials, and CSS-pixel framing.
-  // Native, theme-aware board inscriptions replace the screen-space overlay.
-  // Readable card rules, campaign applicability, and blocker eligibility previews.
-  // Source-by-source effect receipts and persistent inspection/history.
-  // Zynarth and Astral Vanguard add two complete deterministic faction engines.
-  // Artwork gallery controls and the accessible card zoom dialog add ~2 KiB.
-  // Keep the initial-load and largest-chunk ceilings unchanged.
-  // Per-player persistent minimization for unused vault pack credits.
-  // Admin is lazy-loaded and measured separately; player contracts add ~3 KiB.
-  // Includes the set-specific Sealed controls from the current player release.
-  // Card/source thumbnails, recorded-value shorthand, and accessible log disclosures.
   totalJavaScriptGzip: 740 * KIB
-};
+});
+const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
+const adminSource = source => /(?:^|\/)src\/(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
 
-if (!fs.existsSync(buildDirectory)) {
-  throw new Error("Client build output is missing. Run npm run build:client first.");
-}
-
-const assets = fs.readdirSync(buildDirectory)
-  .filter((name) => name.endsWith(".js"))
-  .map((name) => {
-    const content = fs.readFileSync(path.join(buildDirectory, name));
-    return {
-      name,
-      rawBytes: content.length,
-      gzipBytes: zlib.gzipSync(content, { level: 9 }).length
-    };
+function readAssets(directory) {
+  if (!fs.existsSync(directory)) throw new Error("Client build output is missing. Run npm run build:client first.");
+  return fs.readdirSync(directory).filter(name => name.endsWith(".js")).map(name => {
+    const content = fs.readFileSync(path.join(directory, name));
+    const mapFile = path.join(directory, `${name}.map`);
+    // CRA source maps expose accidental unnamed Admin splits or player imports.
+    const sources = fs.existsSync(mapFile) ? JSON.parse(fs.readFileSync(mapFile, "utf8")).sources || [] : [];
+    return { name, rawBytes: content.length, gzipBytes: zlib.gzipSync(content, { level: 9 }).length, sources };
   });
-
-const main = assets.find((asset) => asset.name.startsWith("main."));
-const asynchronous = assets.filter((asset) => asset !== main);
-const largestAsync = asynchronous.reduce(
-  (largest, asset) => (!largest || asset.gzipBytes > largest.gzipBytes ? asset : largest),
-  null
-);
-const adminAssets = assets.filter((asset) => /^gauntlet-admin(?:-authoring)?\./.test(asset.name));
-const adminGzipBytes = adminAssets.reduce((total, asset) => total + asset.gzipBytes, 0);
-const totalGzipBytes = assets.reduce((total, asset) => total + asset.gzipBytes, 0) - adminGzipBytes;
-
-const failures = [];
-if (adminGzipBytes > budgets.adminGzip) failures.push(`Admin JavaScript is ${adminGzipBytes} bytes gzip; budget is ${budgets.adminGzip}.`);
-if (!main) failures.push("Could not identify the main client bundle.");
-if (main && main.gzipBytes > budgets.mainGzip) {
-  failures.push(`Main bundle is ${main.gzipBytes} bytes gzip; budget is ${budgets.mainGzip}.`);
-}
-if (largestAsync && largestAsync.gzipBytes > budgets.largestAsyncGzip) {
-  failures.push(
-    `Largest async chunk ${largestAsync.name} is ${largestAsync.gzipBytes} bytes gzip; `
-    + `budget is ${budgets.largestAsyncGzip}.`
-  );
-}
-if (totalGzipBytes > budgets.totalJavaScriptGzip) {
-  failures.push(
-    `Total client JavaScript is ${totalGzipBytes} bytes gzip; `
-    + `budget is ${budgets.totalJavaScriptGzip}.`
-  );
 }
 
-const toKib = (bytes) => `${(bytes / KIB).toFixed(1)} KiB`;
-console.log("Client build budgets");
-console.log(`  main: ${main ? toKib(main.gzipBytes) : "missing"} / ${toKib(budgets.mainGzip)}`);
-console.log(
-  `  largest async: ${largestAsync ? `${largestAsync.name} ${toKib(largestAsync.gzipBytes)}` : "none"}`
-  + ` / ${toKib(budgets.largestAsyncGzip)}`
-);
-console.log(`  player JavaScript: ${toKib(totalGzipBytes)} / ${toKib(budgets.totalJavaScriptGzip)}`);
-console.log(`  lazy Admin JavaScript: ${toKib(adminGzipBytes)} / ${toKib(budgets.adminGzip)}`);
-
-if (failures.length > 0) {
-  throw new Error(failures.join("\n"));
+function evaluateBudgets(assets, limits = budgets) {
+  const mains = assets.filter(asset => /^main\./.test(asset.name)), main = mains[0];
+  const asynchronous = assets.filter(asset => !mains.includes(asset));
+  const largestAsync = asynchronous.reduce((largest, asset) => !largest || asset.gzipBytes > largest.gzipBytes ? asset : largest, null);
+  const adminAssets = assets.filter(asset => adminName(asset.name) || (asset.sources || []).some(adminSource));
+  const adminEntries = assets.filter(asset => /^gauntlet-admin\./i.test(asset.name));
+  const sum = rows => rows.reduce((total, asset) => total + asset.gzipBytes, 0);
+  const adminGzipBytes = sum(adminAssets), adminEntryGzipBytes = sum(adminEntries);
+  const totalGzipBytes = sum(assets.filter(asset => !adminAssets.includes(asset)));
+  const failures = [];
+  if (mains.length !== 1) failures.push("Expected exactly one main client bundle.");
+  if (adminEntries.length !== 1) failures.push("Expected exactly one named gauntlet-admin entry bundle.");
+  for (const asset of adminAssets) if (!adminName(asset.name)) failures.push(`Admin modules appeared in ${asset.name}. Keep them outside the player bundle and name lazy chunks gauntlet-admin-*.`);
+  if (main && main.gzipBytes > limits.mainGzip) failures.push(`Main bundle is ${main.gzipBytes} bytes gzip; budget is ${limits.mainGzip}.`);
+  if (adminEntryGzipBytes > limits.adminEntryGzip) failures.push(`Initial Admin entry is ${adminEntryGzipBytes} bytes gzip; budget is ${limits.adminEntryGzip}.`);
+  if (adminGzipBytes > limits.adminGzip) failures.push(`All Admin JavaScript is ${adminGzipBytes} bytes gzip; budget is ${limits.adminGzip}.`);
+  if (largestAsync && largestAsync.gzipBytes > limits.largestAsyncGzip) failures.push(`Largest async chunk ${largestAsync.name} is ${largestAsync.gzipBytes} bytes gzip; budget is ${limits.largestAsyncGzip}.`);
+  if (totalGzipBytes > limits.totalJavaScriptGzip) failures.push(`Player JavaScript is ${totalGzipBytes} bytes gzip; budget is ${limits.totalJavaScriptGzip}.`);
+  return { main, largestAsync, adminAssets, adminGzipBytes, adminEntryGzipBytes, totalGzipBytes, failures };
 }
+
+function checkBuildBudgets(directory = path.resolve(__dirname, "../client/build/static/js")) {
+  const result = evaluateBudgets(readAssets(directory));
+  const toKib = bytes => `${(bytes / KIB).toFixed(1)} KiB`;
+  console.log("Client build budgets");
+  console.log(`  main: ${result.main ? toKib(result.main.gzipBytes) : "missing"} / ${toKib(budgets.mainGzip)}`);
+  console.log(`  largest async: ${result.largestAsync ? `${result.largestAsync.name} ${toKib(result.largestAsync.gzipBytes)}` : "none"} / ${toKib(budgets.largestAsyncGzip)}`);
+  console.log(`  player JavaScript: ${toKib(result.totalGzipBytes)} / ${toKib(budgets.totalJavaScriptGzip)}`);
+  console.log(`  initial Admin entry: ${toKib(result.adminEntryGzipBytes)} / ${toKib(budgets.adminEntryGzip)}`);
+  console.log(`  all lazy Admin JavaScript: ${toKib(result.adminGzipBytes)} / ${toKib(budgets.adminGzip)}`);
+  if (result.failures.length) throw new Error(result.failures.join("\n"));
+  return result;
+}
+
+if (require.main === module) checkBuildBudgets();
+module.exports = { budgets, adminName, readAssets, evaluateBudgets, checkBuildBudgets };

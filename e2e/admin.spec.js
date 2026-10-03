@@ -2,6 +2,15 @@ const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
 const loginSessions = new Map();
+const workshops = page => page.getByRole("navigation", { name: "Design workshops" });
+async function otherContent(page, name) {
+  await workshops(page).getByRole("button", { name: "Other content", exact: true }).click();
+  if (name) await page.getByRole("navigation", { name: "Other content types" }).getByRole("button", { name, exact: true }).click();
+}
+async function quickActions(playtest) {
+  const summary = playtest.getByText("Quick actions", { exact: true });
+  if (!(await summary.locator("..").evaluate(node => node.open))) await summary.click();
+}
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
     const response = await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name, password: "test-password" } });
@@ -23,7 +32,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
   const visitor = await signIn(page, request, "Visitor");
-  await page.reload();
+  await page.goto("/admin/gauntlet");
   await expect(page.getByRole("alert")).toContainText("does not have access");
   expect((await request.get("http://127.0.0.1:4117/api/admin/catalog", { headers: { Authorization: `Bearer ${visitor}` } })).status()).toBe(403);
 
@@ -35,22 +44,37 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.getByText("Advanced / Technical · content and rules versions", { exact: true }).click();
   await page.screenshot({ path: "artifacts/admin-overview-desktop.png", fullPage: true });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Content", { exact: true }).click();
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await nav.getByText("Design", { exact: true }).click();
+  await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
-  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
-  await expect(page.getByLabel("Selected content")).toContainText("server/gameContent.js");
-  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
+  await page.getByText("Technical · card and contract identity", { exact: true }).click();
+  await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toContainText("gilded-scale-legionary");
+  await page.getByText("Technical · card and contract identity", { exact: true }).click();
   await page.screenshot({ path: "artifacts/admin-content-desktop.png", fullPage: true });
-  await nav.getByText("Game", { exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Starting state" })).toBeVisible();
+  await workshops(page).getByRole("button", { name: "Engine / Rules", exact: true }).click();
+  await page.getByRole("navigation", { name: "Engine rule categories" }).getByRole("button", { name: "Shared configuration", exact: true }).click();
+  await expect(page.getByText("Starting life · fixed", { exact: true })).toBeVisible();
   await nav.getByText("Players", { exact: true }).click();
   await page.getByRole("button", { name: "View player simply", exact: true }).click();
   await expect(page.getByRole("region", { name: "Selected player" }).getByText("At a glance", { exact: true })).toBeVisible();
   await nav.getByText("Matches", { exact: true }).click();
   await page.getByRole("button", { name: "Inspect match dddddddd-dddd-4ddd-8ddd-dddddddddddd", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Authoritative audit history/ })).toBeVisible();
+  const match = page.getByRole("region", { name: "Match design inspection", exact: true });
+  await match.getByLabel("Filter match events").fill("game_completed");
+  const event = match.getByRole("group", { name: "Audit event 1", exact: true });
+  await event.getByText(/Audit #1/).click();
+  await expect(event).toHaveAttribute("open", "");
+  await expect(match.getByRole("link", { name: "Open recorded replay" })).toHaveAttribute("href", "/?match=dddddddd-dddd-4ddd-8ddd-dddddddddddd&replay=1");
+  await expect(match.getByRole("link", { name: "Open recorded replay" })).toHaveAttribute("target", "_blank");
+  await match.getByRole("button", { name: "Open current live definition · Rumin", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Selected content" })).toContainText("Rumin");
+  await page.getByRole("button", { name: "Return to match inspection", exact: true }).click();
+  await expect(match.getByLabel("Filter match events")).toHaveValue("game_completed");
+  await expect(event).toHaveAttribute("open", "");
+  await expect(match.getByText("Recorded in this match", { exact: true }).first()).toBeVisible();
+  await page.screenshot({ path: "artifacts/admin-match-design-navigation.png", fullPage: true });
   await nav.getByText("Publishing", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Release history and rollback" })).toBeVisible();
   await nav.getByText("System", { exact: true }).click();
@@ -113,8 +137,8 @@ test("only admins can save player metadata, with unsaved-change protection and p
   const admin = await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   // Keep the content editor mounted to exercise both independent exit guards.
-  await nav.getByRole("button", { name: "Content", exact: true }).click();
-  await expect(page.getByLabel("Search campaigns")).toBeVisible();
+  await nav.getByRole("button", { name: "Design", exact: true }).click();
+  await expect(page.getByLabel("Search encounters")).toBeVisible();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
   const profile = page.getByRole("region", { name: "Selected player" });
@@ -150,29 +174,30 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   const original = await live();
   const historyBefore = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Content", { exact: true }).click();
+  await nav.getByText("Design", { exact: true }).click();
+  await otherContent(page, "Campaigns");
   await page.getByRole("button", { name: "Inspect The Jewel of Rumie", exact: true }).click();
   await page.getByLabel("Draft campaign introduction").fill("A saved draft introduction for browser verification.");
   await page.getByRole("button", { name: "Save campaign introduction to draft" }).click();
   await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
   expect((await live()).campaigns.rumin.pitch).toBe(original.campaigns.rumin.pitch);
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   await page.getByLabel("Draft name", { exact: true }).fill("Capital Investment Spear · review");
   await page.getByRole("button", { name: "Save name to draft", exact: true }).click();
   await expect(page.getByText("2 saved field changes", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /^Encounters 56/ }).click();
+  await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Draft title", { exact: true }).fill("Brothers of Destiny · preview");
   await page.getByRole("button", { name: "Save title to draft", exact: true }).click();
   await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
-  await nav.getByText("Game", { exact: true }).click();
+  await otherContent(page, "Mode copy");
   await page.getByRole("button", { name: "Inspect Practice privately", exact: true }).click();
   await page.getByLabel("Draft mode description").fill("Practice with a reviewed content release.");
   await page.getByRole("button", { name: "Save mode description to draft" }).click();
   await expect(page.getByText("4 saved field changes", { exact: true })).toBeVisible();
-  await nav.getByText("Content", { exact: true }).click();
+  await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny · preview", exact: true }).click();
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Draft validation completed.");
@@ -195,12 +220,12 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.screenshot({ path: "artifacts/admin-publication-desktop.png", fullPage: true });
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Previous release restored for future games.");
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await live()).contentVersion).toBe(original.contentVersion);
   const historyAfter = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
   expect(historyAfter).toEqual(historyBefore);
-  await nav.getByText("Content", { exact: true }).click();
-  await page.getByRole("button", { name: /^Factions 11/ }).click();
+  await nav.getByText("Design", { exact: true }).click();
+  await otherContent(page, "Factions");
   await page.getByRole("button", { name: "Inspect Rumin", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   const accessibility = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();
@@ -215,16 +240,18 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   const headers = { Authorization: `Bearer ${token}` };
   const before = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Content", { exact: true }).click();
-  await page.getByRole("button", { name: /^Encounters 56/ }).click();
+  await nav.getByText("Design", { exact: true }).click();
+  await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Boss Life", { exact: true }).fill("31");
   await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
   await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await page.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
   await expect(playtest.locator(".admin-facts").getByText("31", { exact: true })).toBeVisible();
+  await quickActions(playtest);
   const action = playtest.getByRole("button", { name: "Pass priority", exact: true });
   await action.click();
   await expect(playtest.getByText(/Engine action checked for this saved draft/)).toBeVisible();
@@ -240,7 +267,7 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   expect(content.content.campaigns.rumin.chapters[0].setup.bossLife).toBe(31);
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Previous release restored for future games.");
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   const after = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
   expect(after.activeReleaseId).toBe(before.activeReleaseId);
 });
@@ -253,11 +280,12 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const artwork = original.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
   expect(artwork).toBeTruthy();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Content", { exact: true }).click();
+  await nav.getByText("Design", { exact: true }).click();
   const role = original.live.domains.characters.find((entry) => entry.factionId === "rumin" && entry.role === "commander");
-  for (const [tab, name, field] of [[/^Factions 11/, "Rumin", "faction artwork"], [new RegExp("^Characters / opponents"), role.name, "portrait"]]) {
-    await page.getByRole("button", { name: tab }).click();
+  for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
+    await otherContent(page, tab);
     await page.getByRole("button", { name: "Inspect " + name, exact: true }).click();
+    await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
     await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
     await page.getByRole("button", { name: "Save " + field + " to draft", exact: true }).click();
     await expect(page.getByRole("status")).toHaveText("Field saved to the shared draft. Live content is unchanged.");
@@ -288,7 +316,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await expect(adminLink).toBeVisible();
   await adminLink.click();
   await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
-  await expect(page.getByRole("button", { name: /^Encounters 56/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(workshops(page).getByRole("button", { name: "Encounters", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeDisabled();
   await page.getByLabel("Search encounters").fill("nothing matches this encounter");
   await expect(page.getByRole("status")).toContainText("No encounters match this search");
@@ -344,13 +372,50 @@ test("disconnected authoring explains the blocker and preserves readable technic
   await page.screenshot({ path: "artifacts/admin-ux-disconnected-desktop.png" });
   await page.getByText("Connection setup details", { exact: true }).click();
   await expect(page.getByText(/The backend needs GAUNTLET_GITHUB_TOKEN/)).toBeVisible();
-  await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
-  await expect(page.getByLabel("Selected content").getByText(/Source boundary:/)).toBeVisible();
+  await page.getByText("Technical · card and contract identity", { exact: true }).click();
+  await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toContainText("gilded-scale-legionary");
+  const playtest = page.getByRole("region", { name: "Real engine playtest" });
+  await expect(playtest.getByRole("button", { name: "Start live duel playtest", exact: true })).toBeEnabled();
+  const started = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
+  expect((await (await started).json()).playtest.source).toBe("live");
   await page.setViewportSize({ width: 390, height: 844 });
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.getByRole("heading", { name: "Gauntlet Admin", exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: "artifacts/admin-ux-disconnected-mobile.png" });
+});
+
+test("a reported authoring outage keeps real live testing available without publication writes", async ({ page, request }) => {
+  // Simulate only the server's read-only outage projection. Metadata, session
+  // creation and engine commands still use the real isolated fixture backend.
+  await page.route("**/api/admin/authoring", async route => {
+    const response = await route.fetch(), body = await response.json();
+    await route.fulfill({ response, json: { ...body, liveOnly: true, revision: null, writable: false, draft: null, changes: [], releases: [], activations: [], connectionRequired: false,
+      sourceAvailability: { live: true, draft: false, history: false }, authoringError: "Shared draft and publication history are unavailable. Live content and isolated live tests remain available. Refresh Admin to reconnect." } });
+  });
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply"); await page.reload();
+  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const before = await (await request.get(base, { headers })).json();
+  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await expect(page.getByText(/Shared draft and publication history are unavailable/)).toBeVisible();
+  await expect(page.getByText("Connection setup details", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Search cards").fill("Capital Investment Spear");
+  await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
+  await expect(page.getByLabel("Draft name", { exact: true })).toBeDisabled();
+  const playtest = page.getByRole("region", { name: "Real engine playtest" });
+  await expect(playtest.getByRole("option", { name: "Saved draft", exact: true })).toHaveJSProperty("disabled", true);
+  let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
+  expect((await (await pending).json()).playtest.source).toBe("live");
+  await quickActions(playtest);
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+  await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
+  expect((await (await pending).json()).playtest.acceptedCommands).toBe(1);
+  const after = await (await request.get(base, { headers })).json();
+  expect(after.revision).toBe(before.revision);
+  expect(after.draft).toEqual(before.draft);
 });
 
 test("Encounter Workshop keeps editing and engine evidence tied to the correct saved draft", async ({ page, request }) => {
@@ -366,13 +431,17 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   const story = page.getByLabel("Draft story", { exact: true });
   await story.fill("Workshop acceptance story.");
   for (const name of ["Back to Gauntlet", "Close admin", "Refresh admin", "Review release"]) {
-    page.once("dialog", (dialog) => dialog.dismiss());
     await page.getByRole("button", { name, exact: true }).click();
+    await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
     await expect(story).toHaveValue("Workshop acceptance story.");
   }
-  page.once("dialog", (dialog) => dialog.dismiss());
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
+  await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(story).toHaveValue("Workshop acceptance story.");
+  await page.goBack();
+  await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(story).toHaveValue("Workshop acceptance story.");
+  await expect(page).toHaveURL(/object=brothers-of-destiny/);
   // Browser refresh/close has the native unload guard, without navigating away.
   expect(await page.evaluate(() => !window.dispatchEvent(new Event("beforeunload", { cancelable: true })))).toBeTruthy();
   await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
@@ -387,6 +456,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
   await expect(page.getByText("2 saved field changes", { exact: true })).toBeVisible();
   const artwork = initial.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
+  await page.getByLabel("Draft scene artwork", { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
   await page.getByLabel("Draft scene artwork", { exact: true }).fill(artwork.id);
   await page.getByRole("button", { name: "Save scene artwork to draft", exact: true }).click();
   await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
@@ -399,6 +469,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: "artifacts/workshop-desktop-editor.png" });
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
+  await playtest.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   let pending = page.waitForResponse((response) => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
   let session = (await (await pending).json()).playtest;
@@ -406,6 +477,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect(session.context.chapter).toBe(1);
   expect(session.draftHash).toBe((await saved()).draft.hash);
   await expect(playtest.getByText("Current saved draft · at last refresh", { exact: true })).toBeVisible();
+  await quickActions(playtest);
   await playtest.scrollIntoViewIfNeeded();
   await page.screenshot({ path: "artifacts/workshop-active-playtest.png" });
   let attacked = false;
@@ -453,11 +525,12 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   const replacement = (await (await pending).json()).playtest;
   expect(replacement.draftHash).not.toBe(session.draftHash);
   await expect(playtest.getByText("Current saved draft · at last refresh", { exact: true })).toBeVisible();
+  await quickActions(playtest);
   pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
   await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
   expect((await pending).ok()).toBeTruthy();
   await page.getByRole("button", { name: "Review release", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Review draft changes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "One release, across all workshops", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Return to Brothers of Destiny · Encounter Workshop", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
@@ -469,11 +542,12 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.getByText("Open presentation preview", { exact: true }).click();
   await page.getByRole("combobox", { name: "Jump to section", exact: true }).focus();
-  await page.keyboard.press("ArrowDown");
+  await page.getByRole("combobox", { name: "Jump to section", exact: true }).selectOption("story");
   await expect(page.getByLabel("Draft title", { exact: true })).toBeFocused();
   await page.setViewportSize({ width: 1024, height: 600 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   // Simulated server expiration; actual TTL is covered by the server clock test.
+  await quickActions(playtest);
   await page.route("**/playtest/command", (route) => route.fulfill({ status: 404, json: { error: "Playtest expired or is not yours. Start a new playtest." } }));
   await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
   await expect(playtest.getByText("Expired session · start again", { exact: true })).toBeVisible();
@@ -506,4 +580,191 @@ test("a second operator's revision conflict preserves local typing and requires 
   const final = await (await request.get(base, { headers })).json();
   expect(final.draft.snapshot.domains.encounters.find((row) => row.id === "brothers-of-destiny").story).toBe("Local operator story.");
   await request.post(`${base}/discard`, { headers, data: { expectedRevision: final.revision } });
+});
+
+test("card workshop previews and executes a custom live scenario without creating a draft", async ({ page, request }) => {
+  test.setTimeout(120000);
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply"); await page.reload();
+  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const before = await (await request.get(base, { headers })).json();
+  expect(before.draft).toBeFalsy();
+  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByLabel("Search cards").fill("Capital Investment Spear");
+  await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
+  const card = page.getByRole("region", { name: "Card Workshop", exact: true });
+  await expect(card.getByRole("heading", { name: "Displayed wording", exact: true })).toBeVisible();
+  await expect(card.getByRole("heading", { name: "Mechanics", exact: true })).toBeVisible();
+  await card.getByLabel("Preview suit").selectOption("hearts");
+  await expect(card.getByLabel("Preview suit")).toHaveValue("hearts");
+  await expect.poll(() => card.locator(".admin-card-preview img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBeTruthy();
+  const playtest = page.getByRole("region", { name: "Real engine playtest" });
+  await expect(playtest.getByRole("combobox", { name: "Test content", exact: true })).toHaveValue("live");
+  await playtest.getByRole("button", { name: "Configure custom starting state", exact: true }).click();
+  const scenario = playtest.getByRole("region", { name: "Custom starting state", exact: true });
+  await scenario.getByLabel("Starting turn", { exact: true }).fill("3");
+  await scenario.getByLabel("Player 1 life", { exact: true }).fill("37");
+  await scenario.getByRole("button", { name: "Add to player 1 hand", exact: true }).click();
+  await scenario.getByLabel("Player 1 hand 2 suit", { exact: true }).selectOption("clubs");
+  let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
+  let session = (await (await pending).json()).playtest;
+  expect(session.source).toBe("live");
+  expect(session.subject.kind).toBe("card");
+  expect(session.subject.label).toBe("Capital Investment Spear");
+  expect(session.game.turn).toBe(3);
+  expect(session.game.players[1].life).toBe(37);
+  expect(session.game.players[1].hand).toHaveLength(2);
+  expect(session.scenarioHash).toBeTruthy();
+  expect(session.acceptedCommands).toBe(0);
+  await expect(playtest.getByText("Captured live release · at last refresh", { exact: true })).toBeVisible();
+  const attacker = session.game.players[1].hand.find(card => card.value === 2 && card.suit === "♣");
+  const attack = session.legalActions.find(action => action.type === "declareHandAttack" && (action.cardId || action.confirmationPayload?.fixed?.cardId) === attacker.id);
+  expect(attack).toBeTruthy();
+  await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(attack.id);
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+  const unpaid = await (await pending).json();
+  expect(unpaid.preview.accepted).toBeFalsy();
+  expect(unpaid.gameRevision).toBe(session.game.revision);
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+  await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
+  expect((await pending).status()).toBe(422);
+  await expect(playtest.getByRole("alert")).toContainText(unpaid.preview.error);
+  await expect(playtest.getByRole("combobox", { name: "Action", exact: true })).toHaveValue(attack.id);
+  await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Capital Investment Spear/ }).check();
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+  const paid = await (await pending).json();
+  expect(paid.preview.accepted).toBeTruthy();
+  expect(paid.gameRevision).toBe(session.game.revision);
+  await expect(playtest.getByRole("region", { name: "Calculated command preview" })).toContainText("Payment cards: Capital Investment Spear");
+  await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption({ label: "Pass priority" });
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+  const preview = await (await pending).json();
+  expect(preview.preview.accepted).toBeTruthy();
+  expect(preview.gameRevision).toBe(session.game.revision);
+  await expect(playtest.getByRole("region", { name: "Calculated command preview" })).toContainText("no state changes applied");
+  pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+  await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
+  session = (await (await pending).json()).playtest;
+  expect(session.acceptedCommands).toBe(1);
+  await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
+  const after = await (await request.get(base, { headers })).json();
+  expect(after.draft).toBeFalsy();
+  expect(after.revision).toBe(before.revision);
+  await card.getByRole("button", { name: "Inspect effect and its uses", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Engine / Rules Workshop", exact: true })).toBeVisible();
+  await page.screenshot({ path: "artifacts/admin-engine-workshop-desktop.png", fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await page.screenshot({ path: "artifacts/admin-engine-workshop-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByLabel("Search rules").fill("coin");
+  await page.getByRole("button", { name: "Back to previous workspace", exact: true }).click();
+  await expect(page.getByLabel("Search cards")).toHaveValue("Capital Investment Spear");
+  await expect(page.getByRole("region", { name: "Real engine playtest" }).getByText("Capital Investment Spear", { exact: true }).first()).toBeVisible();
+  await page.screenshot({ path: "artifacts/admin-card-workshop-desktop.png", fullPage: true });
+  await card.getByRole("button", { name: "Inspect effect and its uses", exact: true }).click();
+  await expect(page.getByLabel("Search rules")).toHaveValue("coin");
+  await page.getByRole("button", { name: "Back to previous workspace", exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await page.screenshot({ path: "artifacts/admin-card-workshop-mobile.png", fullPage: true });
+});
+
+test("asset picker protects local selection, saves collector artwork, and shows release image differences", async ({ page, request }) => {
+  test.setTimeout(90000);
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply"); await page.reload();
+  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const original = await (await request.get(base, { headers })).json();
+  const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
+  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByLabel("Search cards").fill("Capital Investment Spear");
+  await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
+  const art = page.locator("#admin-field-art"), browse = art.getByRole("button", { name: "Browse images", exact: true });
+  const originalValue = await art.getByLabel("Draft artwork reference", { exact: true }).inputValue();
+  await browse.click();
+  let picker = page.getByRole("dialog", { name: "Choose artwork", exact: true });
+  await expect(picker.getByLabel("Search assets")).toBeFocused();
+  await picker.getByLabel("Search assets").fill("sheen-card.webp");
+  await picker.getByRole("button", { name: "sheen-card.webp", exact: true }).click();
+  await expect(picker.getByRole("region", { name: "Selected asset" }).getByRole("img", { name: "sheen-card.webp", exact: true })).toHaveAttribute("src", asset.path);
+  await page.keyboard.press("Escape");
+  await expect(picker).toHaveCount(0);
+  await expect(browse).toBeFocused();
+  await expect(art.getByLabel("Draft artwork reference", { exact: true })).toHaveValue(originalValue);
+  await browse.click();
+  picker = page.getByRole("dialog", { name: "Choose artwork", exact: true });
+  await picker.getByLabel("Search assets").fill("sheen-card.webp");
+  await picker.getByRole("button", { name: "sheen-card.webp", exact: true }).click();
+  await page.screenshot({ path: "artifacts/admin-asset-picker-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await page.screenshot({ path: "artifacts/admin-asset-picker-mobile.png" });
+  await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click();
+  await expect(art.getByLabel("Draft artwork reference", { exact: true })).toHaveValue(asset.id);
+  expect((await (await request.get(base, { headers })).json()).draft).toBeFalsy();
+  await expect(page.getByLabel("Collector version")).toBeDisabled();
+  await workshops(page).getByRole("button", { name: "Engine / Rules", exact: true }).click();
+  await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
+  await art.getByRole("button", { name: "Save artwork reference to draft", exact: true }).click();
+  await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Review release", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Presentation · 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Saved draft artwork", exact: true })).toHaveAttribute("src", asset.path);
+  const final = await (await request.get(base, { headers })).json();
+  expect(final.activeReleaseId).toBe(original.activeReleaseId);
+  expect(final.changes[0].domain).toBe("assets");
+  expect((await request.post(base + "/discard", { headers, data: { expectedRevision: final.revision } })).ok()).toBeTruthy();
+});
+
+test("workshop metadata, relationships, review and test APIs keep the stable-ID allowlist", async ({ page, request }) => {
+  await page.goto("/admin/gauntlet");
+  const visitor = await signIn(page, request, "Visitor");
+  const headers = { Authorization: "Bearer " + visitor };
+  for (const path of ["/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
+    expect((await request.get("http://127.0.0.1:4117" + path)).status()).toBe(401);
+    expect((await request.get("http://127.0.0.1:4117" + path, { headers })).status()).toBe(403);
+  }
+  for (const path of ["/api/admin/authoring/playtest", "/api/admin/authoring/playtest/preview-command"]) {
+    expect((await request.post("http://127.0.0.1:4117" + path, { data: {} })).status()).toBe(401);
+    expect((await request.post("http://127.0.0.1:4117" + path, { headers, data: {} })).status()).toBe(403);
+  }
+});
+
+test("direct workshop sections and browser forward navigation resolve local edits before leaving", async ({ page, request }) => {
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "simply");
+  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const before = await (await request.get(base, { headers })).json();
+  await page.goto("/admin/gauntlet?workshop=cards&object=rumin-gilded-scale-legionary&section=mechanics");
+  const card = page.getByRole("region", { name: "Card Workshop", exact: true });
+  await expect(card.getByRole("heading", { name: "Capital Investment Spear", exact: true, level: 3 })).toBeVisible();
+  await expect(page.locator("#card-mechanics")).toBeFocused();
+  await card.getByRole("button", { name: "Inspect effect and its uses", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Engine / Rules Workshop", exact: true })).toBeVisible();
+  await page.goBack();
+  const name = page.getByLabel("Draft name", { exact: true });
+  await expect(name).toHaveValue("Capital Investment Spear");
+  await name.fill("Unsaved navigation name");
+  await page.goForward();
+  let dialog = page.getByRole("dialog", { name: "Unsaved local changes" });
+  await expect(dialog.getByRole("button", { name: "Keep editing", exact: true })).toBeFocused();
+  await dialog.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(name).toHaveValue("Unsaved navigation name");
+  await expect(page).toHaveURL(/workshop=cards/);
+  await page.goForward();
+  dialog = page.getByRole("dialog", { name: "Unsaved local changes" });
+  await dialog.getByRole("button", { name: "Discard local edits and continue", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Engine / Rules Workshop", exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(name).toHaveValue("Capital Investment Spear");
+  const after = await (await request.get(base, { headers })).json();
+  expect(after.revision).toBe(before.revision);
+  expect(after.draft).toEqual(before.draft);
 });

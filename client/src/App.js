@@ -3489,7 +3489,7 @@ export default function App() {
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
-  const adminExitGuard = useRef(() => true);
+  const adminExitGuard = useRef(action => { action?.(); return true; });
   const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
   const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
   const [identityView, setIdentityView] = useState("profile");
@@ -5162,7 +5162,7 @@ export default function App() {
   if (homeArea === "studio" && !game && !lobby) {
     return (
       <main className="admin-page">
-        <button className="admin-back" onClick={() => { if (adminExitGuard.current()) navigateHomeArea("journey"); }}>Back to Gauntlet</button>
+        <button className="admin-back" onClick={() => adminExitGuard.current(() => navigateHomeArea("journey"))}>Back to Gauntlet</button>
         <Suspense fallback={<SurfaceLoading label="Gauntlet Admin" />}>
           <Studio
             serverUrl={SOCKET_URL}

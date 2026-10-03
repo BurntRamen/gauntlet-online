@@ -179,6 +179,8 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     return project(state);
   }
   return { active, status: async () => project((await load()).state),
+    deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
+    releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),
     patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),
     publish, rollback: (args, actor) => publish(args, actor, "rollback"), playtestContent, recordPlaytest, reconcile, cancelPublication };
 }
