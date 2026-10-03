@@ -7,7 +7,9 @@ const KIB = 1024;
 const budgets = {
   // Typed content presentation adds about 1 KiB to the production entry point.
   mainGzip: 177 * KIB,
-  adminGzip: 18 * KIB,
+  // Focused player profiles and guarded metadata editing add ~1.7 KiB.
+  // This chunk loads only in Admin; the player and initial-load limits stay fixed.
+  adminGzip: 20 * KIB,
   largestAsyncGzip: 350 * KIB,
   // Legacies, ranked loadouts, and the full-rules/keyword-guide controls.
   // The 72-card guide stays in static HTML, outside the application bundle.

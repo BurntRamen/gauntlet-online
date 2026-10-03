@@ -46,8 +46,8 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await nav.getByText("Game", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Starting state" })).toBeVisible();
   await nav.getByText("Players", { exact: true }).click();
-  await page.locator(".admin-player summary").filter({ hasText: "simply" }).click();
-  await expect(page.locator(".admin-player[open]").getByText("Canonical match references")).toBeVisible();
+  await page.getByRole("button", { name: "View player simply", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Selected player" }).getByText("At a glance", { exact: true })).toBeVisible();
   await nav.getByText("Matches", { exact: true }).click();
   await page.getByRole("button", { name: "Inspect match dddddddd-dddd-4ddd-8ddd-dddddddddddd", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Authoritative audit history/ })).toBeVisible();
@@ -65,6 +65,81 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await expect(nav.getByText("System", { exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/admin-overview-mobile.png", fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+});
+
+test("player profiles keep records out of the summary and support focused browsing on desktop and phone", async ({ page, request }) => {
+  await page.goto("/admin/gauntlet");
+  await signIn(page, request, "simply"); await page.reload();
+  await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Players", exact: true }).click();
+  await page.getByRole("button", { name: "View player simply", exact: true }).click();
+  const profile = page.getByRole("region", { name: "Selected player" });
+  await expect(profile.getByRole("heading", { name: "simply", exact: true })).toBeFocused();
+  await expect(profile.getByText("Account ID", { exact: true })).toHaveCount(0);
+  await expect(profile.locator("pre")).toHaveCount(0);
+  await page.screenshot({ path: "artifacts/admin-players-desktop.png", fullPage: true });
+  const details = page.getByRole("navigation", { name: "Player details" });
+  await details.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await profile.locator("summary").filter({ hasText: "Rumin" }).click();
+  await expect(profile.getByText("Brothers of Destiny", { exact: true })).toBeVisible();
+  await expect(profile.getByText("Cleared", { exact: true })).toBeVisible();
+  await details.getByRole("button", { name: "Collection", exact: true }).click();
+  await expect(profile.getByRole("heading", { name: "Collection & unlocks" })).toBeVisible();
+  await details.getByRole("button", { name: "Decks", exact: true }).click();
+  await expect(profile.getByRole("heading", { name: "Saved decks" })).toBeVisible();
+  await details.getByRole("button", { name: "Technical", exact: true }).click();
+  await expect(profile.getByText("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", { exact: true })).toBeVisible();
+  await profile.getByText("Complete player record", { exact: true }).click();
+  await expect(profile.locator("pre")).toContainText("matchReferences");
+  await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
+  await expect(profile.getByText("At a glance", { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByLabel("Filter this page")).toBeHidden();
+  await page.screenshot({ path: "artifacts/admin-players-mobile.png", fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
+  await profile.getByRole("button", { name: "Back to player list" }).click();
+  await expect(page.getByLabel("Filter this page")).toBeFocused();
+  await page.getByLabel("Filter this page").fill("simply");
+  await expect(page.getByRole("button", { name: "View player Visitor", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "View player simply", exact: true })).toBeVisible();
+});
+
+test("only admins can save player metadata, with unsaved-change protection and persistent name updates", async ({ page, request }) => {
+  await page.goto("/admin/gauntlet");
+  const visitor = await signIn(page, request, "Visitor");
+  const path = "/api/admin/players/cccccccc-cccc-4ccc-8ccc-cccccccccccc/metadata";
+  const denied = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${visitor}` }, data: { expectedName: "Visitor", metadata: { name: "Changed by visitor" } } });
+  expect(denied.status()).toBe(403);
+  const admin = await signIn(page, request, "simply"); await page.reload();
+  const nav = page.getByRole("navigation", { name: "Administration sections" });
+  // Keep the content editor mounted to exercise both independent exit guards.
+  await nav.getByRole("button", { name: "Content", exact: true }).click();
+  await expect(page.getByLabel("Search campaigns")).toBeVisible();
+  await nav.getByRole("button", { name: "Players", exact: true }).click();
+  await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
+  const profile = page.getByRole("region", { name: "Selected player" });
+  await profile.getByRole("button", { name: "Edit metadata" }).click();
+  await expect(page.getByLabel("Player name", { exact: true })).toBeFocused();
+  await page.getByLabel("Player name", { exact: true }).fill("Visitor Updated");
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await nav.getByRole("button", { name: "Matches", exact: true }).click();
+  await expect(page.getByLabel("Player name", { exact: true })).toHaveValue("Visitor Updated");
+  await page.route(`**${path}`, (route) => route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "This player's name changed elsewhere. Refresh the profile before saving again." }) }));
+  await profile.getByRole("button", { name: "Save metadata" }).click();
+  await expect(profile.getByRole("alert")).toContainText("changed elsewhere");
+  await expect(page.getByLabel("Player name", { exact: true })).toHaveValue("Visitor Updated");
+  await page.unroute(`**${path}`);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "artifacts/admin-players-edit-mobile.png", fullPage: true });
+  expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
+  await profile.getByRole("button", { name: "Save metadata" }).click();
+  await expect(profile.getByRole("heading", { name: "Visitor Updated" })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("Player metadata saved.");
+  await page.reload();
+  await nav.getByRole("button", { name: "Players", exact: true }).click();
+  await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
+  const restored = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
+  expect(restored.ok()).toBeTruthy();
 });
 
 test("operator edits, validates, previews, publishes and restores a shared content release", async ({ page, request }) => {
