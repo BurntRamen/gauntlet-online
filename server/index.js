@@ -4404,6 +4404,12 @@ const adminPlaytests = createAdminPlaytests({ publication: contentPublication, c
   }
 });
 registerAdminPlaytestRoutes(app, adminPlaytests);
+const { createPlayerMetadataEditor, registerPlayerMetadataRoutes } = require("./adminPlayerMetadata");
+registerPlayerMetadataRoutes(app, {
+  authorize: requireOwnerAuthorization,
+  edit: createPlayerMetadataEditor({ useSupabase: useSupabaseStore, request: supabaseRequest,
+    accountFile: ACCOUNT_DATA_FILE, normalizeName: normalizeAccountName, validName: isValidAccountName })
+});
 registerAdminRoutes(app, {
   authorize: requireOwnerAuthorization,
   data: createAdminData({

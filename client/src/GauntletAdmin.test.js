@@ -63,3 +63,44 @@ test("data failure is visible and can be retried without claiming zero counts", 
   fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
   expect(screen.getByText("content-v1")).toBeVisible();
 });
+
+test("player edits retain typed metadata on failure and protect section navigation and Admin exit", async () => {
+  let playerName = "Player A";
+  let failSave = true;
+  const editorRequest = jest.fn(async (path, options) => {
+    if (path.endsWith("/metadata")) {
+      expect(options.method).toBe("PATCH");
+      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" } });
+      if (failSave) throw new Error("This player's name changed elsewhere.");
+      playerName = "Player B";
+      return { player: { id, name: playerName } };
+    }
+    const data = await respond(path);
+    return data.players ? { ...data, players: data.players.map((player) => ({ ...player, name: playerName })) } : data;
+  });
+  const exitGuard = { current: () => true };
+  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
+  try {
+    render(<GauntletAdmin request={editorRequest} exitGuard={exitGuard} onClose={() => {}} />);
+    select("Players");
+    fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
+    expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Edit metadata" }));
+    expect(screen.getByRole("button", { name: "Save metadata" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    select("Matches");
+    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+    expect(exitGuard.current()).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Refresh admin" }));
+    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+    fireEvent.click(screen.getByRole("button", { name: "Save metadata" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("changed elsewhere");
+    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+    failSave = false;
+    fireEvent.click(screen.getByRole("button", { name: "Save metadata" }));
+    await screen.findByRole("heading", { name: "Player B" });
+    expect(screen.getByRole("status")).toHaveTextContent("Player metadata saved");
+    expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
+    expect(exitGuard.current()).toBe(true);
+  } finally { confirm.mockRestore(); }
+});
