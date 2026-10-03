@@ -22,28 +22,34 @@ const respond = async (path) => {
   throw new Error("Unexpected route");
 };
 const request = jest.fn();
-beforeEach(() => request.mockImplementation(respond));
+beforeEach(() => { window.history.replaceState({}, "", "/"); request.mockReset().mockImplementation(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
+afterEach(() => jest.restoreAllMocks());
 function select(area) { fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(area)); }
 
-test("provides all seven sections, searchable sourced content, player state and original match evidence", async () => {
+test("provides six operational sections with Design, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
   await screen.findByText("content-v1");
   fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
   expect(screen.getByText("content-v1")).toBeVisible();
-  for (const area of ["Overview", "Content", "Game", "Players", "Matches", "Publishing", "System"]) expect(within(screen.getByRole("navigation")).getByText(area)).toBeVisible();
-  select("Content");
-  expect(await screen.findByText("Authoring area: Content")).toBeVisible();
-  select("Game");
-  expect(await screen.findByText("Authoring area: Game")).toBeVisible();
+  const navigation = within(screen.getByRole("navigation", { name: "Administration sections" }));
+  for (const area of ["Overview", "Design", "Players", "Matches", "Publishing", "System"]) expect(navigation.getByText(area)).toBeVisible();
+  expect(navigation.queryByText("Content")).not.toBeInTheDocument();
+  expect(navigation.queryByText("Game")).not.toBeInTheDocument();
+  select("Design");
+  expect(await screen.findByText("Authoring area: Design")).toBeVisible();
   select("Players");
   await screen.findByText("Player A");
   expect(screen.getByText("Next players")).toBeDisabled();
   select("Matches");
   fireEvent.click(await screen.findByRole("button", { name: `Inspect match ${id}` }));
-  await screen.findByText("canonical archive");
+  const inspection = await screen.findByRole("region", { name: "Match design inspection" });
+  expect(within(inspection).getByText("canonical archive")).toBeVisible();
   fireEvent.click(screen.getByText("Advanced / Technical · match identity and provenance"));
   expect(screen.getByText("canonical archive")).toBeVisible();
   expect(screen.getByText(/#1 · turn 1 · game_completed/)).toBeVisible();
+  const replay = screen.getByRole("link", { name: "Open recorded replay" });
+  expect(replay).toHaveAttribute("target", "_blank");
+  expect(replay).toHaveAttribute("href", `/?match=${id}&replay=1`);
   select("Publishing");
   expect(await screen.findByText("Authoring area: Publishing")).toBeVisible();
   expect(screen.queryByRole("button", { name: "Publish" })).not.toBeInTheDocument();
@@ -103,4 +109,50 @@ test("player edits retain typed metadata on failure and protect section navigati
     expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
     expect(exitGuard.current()).toBe(true);
   } finally { confirm.mockRestore(); }
+});
+
+test("Players protects browser Back before a workshop has mounted and resolves discard once", async () => {
+  const go = jest.spyOn(window.history, "go").mockImplementation(() => {});
+  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
+  const downstream = jest.fn(), onClose = jest.fn();
+  window.addEventListener("popstate", downstream);
+  try {
+    render(<GauntletAdmin request={request} onClose={onClose} />);
+    select("Players");
+    fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit metadata" }));
+    fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    fireEvent(window, new PopStateEvent("popstate", { state: null }));
+    expect(go).toHaveBeenLastCalledWith(1);
+    expect(downstream).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+    fireEvent(window, new PopStateEvent("popstate", { state: {} }));
+    expect(downstream).not.toHaveBeenCalled();
+    expect(confirm).toHaveBeenCalledTimes(1);
+    confirm.mockReturnValue(true);
+    fireEvent(window, new PopStateEvent("popstate", { state: null }));
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(downstream).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
+  } finally {
+    window.removeEventListener("popstate", downstream);
+    go.mockRestore(); confirm.mockRestore();
+  }
+});
+
+test("returning from Design preserves the match filter and page scroll", async () => {
+  const scrollDescriptor = Object.getOwnPropertyDescriptor(window, "scrollY");
+  try {
+    render(<GauntletAdmin request={request} onClose={() => {}} />);
+    select("Matches");
+    fireEvent.change(await screen.findByLabelText("Search recent records"), { target: { value: "Player A" } });
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 720 });
+    select("Design");
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 140 });
+    fireEvent.click(screen.getByRole("button", { name: "Return to match inspection" }));
+    expect(screen.getByLabelText("Search recent records")).toHaveValue("Player A");
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, 720);
+  } finally { Object.defineProperty(window, "scrollY", scrollDescriptor); }
 });

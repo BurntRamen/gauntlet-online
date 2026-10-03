@@ -16,6 +16,16 @@ require.cache[configPath].exports = (environment) => {
     ...config.optimization.splitChunks,
     cacheGroups: {
       ...config.optimization.splitChunks?.cacheGroups,
+      adminShared: {
+        // Workshop panels share these small modules; count the named split in
+        // the aggregate Admin budget rather than duplicating it in each panel.
+        test: /[\\/]src[\\/]admin[\\/](?:WorkshopShell|RelatedContent)\.js$/,
+        name: "gauntlet-admin-shared",
+        chunks: "async",
+        minChunks: 2,
+        enforce: true,
+        priority: 35
+      },
       runtimeHelpers: {
         // Reuse helpers repeated across match/replay chunks to retain the
         // existing JavaScript budget as the full-art card UI is added.
