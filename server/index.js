@@ -458,6 +458,9 @@ const BOOSTER_PRODUCTS = {
     name: "Initiative All-Faction Pack",
     displayName: "Initiative",
     subtitle: "Every Faction. One Pack.",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     productType: "earned-gameplay-pack",
     pool: "all-factions",
     cardCount: 12,
@@ -470,6 +473,9 @@ const BOOSTER_PRODUCTS = {
     id: "rumin-foundation",
     name: "Rumin Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "rumin",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -479,6 +485,9 @@ const BOOSTER_PRODUCTS = {
     id: "sheen-foundation",
     name: "Sheen Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "sheen",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -488,6 +497,9 @@ const BOOSTER_PRODUCTS = {
     id: "frumo-foundation",
     name: "Frumo Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "frumo",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -497,6 +509,9 @@ const BOOSTER_PRODUCTS = {
     id: "bizi-foundation",
     name: "Bizi Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "bizi",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -506,6 +521,9 @@ const BOOSTER_PRODUCTS = {
     id: "zynarth-foundation",
     name: "Zynarth Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "reath-beyond",
+    setNumber: 4,
+    setName: "Reath Beyond",
     factionId: "zynarth",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -515,6 +533,9 @@ const BOOSTER_PRODUCTS = {
     id: "astral-vanguard-foundation",
     name: "Astral Vanguard Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "reath-beyond",
+    setNumber: 4,
+    setName: "Reath Beyond",
     factionId: "astral-vanguard",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -524,6 +545,9 @@ const BOOSTER_PRODUCTS = {
     id: "indela-foundation",
     name: "Indela Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "legacies",
+    setNumber: 2,
+    setName: "Legacies",
     factionId: "indela",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -531,19 +555,85 @@ const BOOSTER_PRODUCTS = {
   }
 };
 
-const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
+const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
   const id = `${pack.factionId}-collector`;
   return [id, {
     id,
     legacyPackId: pack.id,
     name: `${getFactionById(pack.factionId)?.name || pack.factionId} Collector Pack`,
     productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "faction",
+    setId: pack.setId,
+    setNumber: pack.setNumber,
+    setName: pack.setName,
     factionId: pack.factionId,
+    factionIds: [pack.factionId],
     variantCount: pack.cardCount,
     priceUsd: 1,
     description: "Animated collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
   }];
 }));
+
+const SET_COLLECTOR_PACK_PRODUCTS = {
+  "initiative-set-collector": {
+    id: "initiative-set-collector",
+    name: "Initiative Collector Pack",
+    displayName: "Initiative",
+    subtitle: "Four founding factions",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
+    factionIds: ["rumin", "sheen", "frumo", "bizi"],
+    variantCount: 8,
+    priceUsd: 1,
+    artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
+    available: true,
+    description: "Eight animated collector variants drawn from Rumin, Sheen, Frumo, and Bizi. Cosmetic only."
+  },
+  "legacies-set-collector": {
+    id: "legacies-set-collector",
+    name: "Legacies Collector Pack",
+    displayName: "Legacies",
+    subtitle: "The second age of Reath",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "legacies",
+    setNumber: 2,
+    setName: "Legacies",
+    factionIds: ["indela"],
+    plannedFactionIds: ["mekan", "jali", "gracus", "indela"],
+    variantCount: 8,
+    priceUsd: 1,
+    available: true,
+    description: "Eight animated Indela collector variants. Mekan, Jali, and Gracus will enter this pool when their card catalogs are released. Cosmetic only."
+  },
+  "fractured-realms-set-collector": {
+    id: "fractured-realms-set-collector",
+    name: "Fractured Realms Collector Pack",
+    displayName: "Fractured Realms",
+    subtitle: "Set 3 catalog in development",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "fractured-realms",
+    setNumber: 3,
+    setName: "Fractured Realms",
+    factionIds: [],
+    plannedFactionIds: ["mtano", "mercaw", "engles", "russo"],
+    variantCount: 8,
+    priceUsd: 1,
+    artPath: "/assets/gauntlet/packs/fractured-realms-set-3.png",
+    available: false,
+    unavailableReason: "Fractured Realms cards are not in the playable catalog yet, so purchases are paused until every paid pack can be fulfilled.",
+    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Engles, and Russo."
+  }
+};
+
+const COLLECTOR_PACK_PRODUCTS = {
+  ...SET_COLLECTOR_PACK_PRODUCTS,
+  ...FACTION_COLLECTOR_PACK_PRODUCTS
+};
 
 const WELCOME_COLLECTOR_GRANT_VERSION = 1;
 const WELCOME_COLLECTOR_VARIANT_IDS = Object.freeze([
@@ -754,7 +844,12 @@ function collectionSummary(stats = {}) {
     catalog,
     collectorCatalog: manifest.collectorVariants.map((variant) => publicCollectorVariant(variant, manifest)),
     boosters: BOOSTER_PRODUCTS,
-    collectorPacks: COLLECTOR_PACK_PRODUCTS
+    collectorPacks: COLLECTOR_PACK_PRODUCTS,
+    packStore: {
+      checkoutConfigured: Boolean(PACK_PURCHASE_URL),
+      currency: "USD",
+      purchasesGrantCompetitivePower: false
+    }
   };
 }
 
@@ -2970,17 +3065,22 @@ function openCollectionBooster(stats, packId) {
 function resolveCollectorPackProduct(productId) {
   if (COLLECTOR_PACK_PRODUCTS[productId]) return COLLECTOR_PACK_PRODUCTS[productId];
   const legacyPack = BOOSTER_PRODUCTS[productId];
-  return legacyPack ? COLLECTOR_PACK_PRODUCTS[`${legacyPack.factionId}-collector`] : null;
+  if (!legacyPack) return null;
+  if (legacyPack.factionId) return COLLECTOR_PACK_PRODUCTS[`${legacyPack.factionId}-collector`] || null;
+  return Object.values(SET_COLLECTOR_PACK_PRODUCTS).find((product) => product.setId === legacyPack.setId) || null;
 }
 
 function grantPurchasedCollectorPack(stats, productId, options = {}) {
   const product = resolveCollectorPackProduct(productId);
   if (!product) throw new Error("Unknown collector pack.");
+  if (product.available === false) throw new Error(product.unavailableReason || `${product.name} is not available yet.`);
+  const eligibleFactionIds = new Set(product.factionIds || (product.factionId ? [product.factionId] : []));
   const eligibleVariants = COLLECTOR_VARIANTS.filter((variant) => (
     variant.paid
     && variant.acquisition === PAID_COLLECTOR_ACQUISITION
-    && getGameplayCardById(variant.gameplayCardId)?.factionId === product.factionId
+    && eligibleFactionIds.has(getGameplayCardById(variant.gameplayCardId)?.factionId)
   ));
+  if (eligibleVariants.length === 0) throw new Error(`${product.name} has no released collector variants to grant.`);
   const requestedVariantIds = Array.isArray(options.variantIds) ? options.variantIds.map(String) : null;
   if (requestedVariantIds && requestedVariantIds.length !== product.variantCount) {
     throw new Error(`${product.name} must grant exactly ${product.variantCount} collector variants.`);
@@ -3608,6 +3708,10 @@ async function sendCollectorPackPurchaseLink(req, res) {
   const product = resolveCollectorPackProduct(requestedProductId);
   if (!product) {
     res.status(400).json({ error: "Unknown collector pack." });
+    return;
+  }
+  if (product.available === false) {
+    res.status(409).json({ error: product.unavailableReason || `${product.name} is not available yet.` });
     return;
   }
   if (!PACK_PURCHASE_URL) {

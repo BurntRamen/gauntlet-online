@@ -41,6 +41,7 @@ import MenuBackdrop from "./MenuBackdrop";
 import { fetchGameContent } from "./loadGameContent";
 
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
+const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
 const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 let matchesHubModule;
@@ -1750,6 +1751,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const collectorOwnership = collection.collectorVariants || {};
   const collectorCatalog = collection.collectorCatalog || [];
   const collectorPacks = Object.values(collection.collectorPacks || {});
+  const collectorSetPacks = collectorPacks.filter((pack) => pack.scope === "set");
+  const checkoutConfigured = !!collection.packStore?.checkoutConfigured;
   const catalog = collection.catalog || {};
   const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
@@ -1909,7 +1912,14 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div>
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
-          <div><h3>Gameplay & Collector Packs</h3><p>Open an Initiative pack for every catalog faction, or choose a seeded faction pack. Collector variants remain cosmetic.</p></div>
+          <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
+          <strong style={{ color: checkoutConfigured ? "#86efac" : "#fca5a5" }}>{checkoutConfigured ? "Checkout connected" : "Checkout pending"}</strong>
+        </div>
+        {collectorSetPacks.length > 0 && <Suspense fallback={null}><div className="booster-pack-grid">
+          {collectorSetPacks.map((product) => <CollectorSetPackTile key={product.id} product={product} checkoutConfigured={checkoutConfigured} onBuyPack={onBuyPack} />)}
+        </div></Suspense>}
+        <div className="collection-view-heading">
+          <div><h3>Earned Gameplay Packs</h3><p>Spend campaign credits on all-faction or seeded faction packs. These are the packs that unlock playable cards.</p></div>
           <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         <PackPacingPicker value={packPacing} onChange={setPackPacing} />

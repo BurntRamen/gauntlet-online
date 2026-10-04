@@ -233,6 +233,23 @@ test("paid collector ownership cannot change authoritative competitive capabilit
   assert.equal(afterPurchase.startingLife, beforePurchase.startingLife);
 });
 
+test("set collector packs grant only released cosmetic variants from that set", () => {
+  const initiativeStats = makeStats();
+  const initiativeGranted = grantPurchasedCollectorPack(initiativeStats, "initiative-set-collector");
+  assert.equal(initiativeGranted.length, 8);
+  assert.equal(initiativeGranted.every((variant) => ["rumin", "sheen", "frumo", "bizi"].includes(variant.gameplay?.factionId)), true);
+
+  const legaciesStats = makeStats();
+  const legaciesGranted = grantPurchasedCollectorPack(legaciesStats, "legacies-set-collector");
+  assert.equal(legaciesGranted.length, 8);
+  assert.equal(legaciesGranted.every((variant) => variant.gameplay?.factionId === "indela"), true);
+
+  assert.throws(
+    () => grantPurchasedCollectorPack(makeStats(), "fractured-realms-set-collector"),
+    /not in the playable catalog yet/
+  );
+});
+
 test("constructed presentation selection requires an owned variant for the same gameplay definition", () => {
   const stats = makeStats();
   assert.throws(

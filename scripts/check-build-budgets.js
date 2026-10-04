@@ -25,7 +25,8 @@ const budgets = {
   // Admin is lazy-loaded and measured separately; player contracts add ~3 KiB.
   // Includes the set-specific Sealed controls from the current player release.
   // Card/source thumbnails, recorded-value shorthand, and accessible log disclosures.
-  totalJavaScriptGzip: 740 * KIB
+  // The set collector storefront is isolated in a 1.3 KiB on-demand chunk.
+  totalJavaScriptGzip: 742 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {
