@@ -44,6 +44,16 @@ test("validates the authoritative versioned game content registry", () => {
   for (const faction of content.factions) {
     assert.deepEqual(Object.keys(faction.commander.announcements).sort(), ["clicked", "critical", "denied", "selected", "wounded"]);
     assert.equal(Object.values(faction.commander.announcements).every((line) => typeof line === "string" && line.length > 10), true, faction.id);
+    assert.equal(Array.isArray(faction.commander.voiceHints) && faction.commander.voiceHints.length >= 4, true, faction.id);
+  }
+
+  const rumin = content.factions.find((faction) => faction.id === "rumin");
+  const sheen = content.factions.find((faction) => faction.id === "sheen");
+  assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
+  assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
+  for (const faction of [rumin, sheen]) {
+    assert.match(faction.commander.announcementAudio.selected, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio.selected)), true);
   }
 });
 

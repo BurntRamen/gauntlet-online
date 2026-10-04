@@ -4221,7 +4221,7 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95]) => {
+  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95], voiceHints = []) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
@@ -4236,6 +4236,13 @@ export default function App() {
       window.speechSynthesis.cancel();
       const utterance = new window.SpeechSynthesisUtterance(quote);
       [utterance.rate, utterance.pitch] = profile;
+      const availableVoices = window.speechSynthesis.getVoices();
+      utterance.voice = voiceHints
+        .map((hint) => availableVoices.find((voice) => voice.lang?.startsWith("en") && voice.name.toLowerCase().includes(hint)))
+        .find(Boolean)
+        || availableVoices.find((voice) => voice.lang?.startsWith("en") && /natural|neural|online/i.test(voice.name))
+        || availableVoices.find((voice) => voice.lang?.startsWith("en"))
+        || null;
       window.speechSynthesis.speak(utterance);
     };
 
@@ -4259,7 +4266,12 @@ export default function App() {
       : gameContent?.factions?.find((entry) => entry.id === factionId);
     const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(quote, faction?.commander?.announcementAudio?.[event], faction?.commander?.voiceProfile);
+    speakFactionQuote(
+      quote,
+      faction?.commander?.announcementAudio?.[event],
+      faction?.commander?.voiceProfile,
+      faction?.commander?.voiceHints
+    );
   }, [gameContent?.factions, speakFactionQuote]);
 
   const announceCommanderClick = useCallback(() => {

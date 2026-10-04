@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v18";
+const CONTENT_VERSION = "gauntlet-content-v19";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -936,8 +936,8 @@ const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 
 const COMMANDER_ANNOUNCEMENTS = Object.freeze({
-  rumin: { selected: "The Jewel answers. Let the empire witness our victory.", clicked: "Discipline, tribute, triumph. In that order.", wounded: "Our line bends at twenty-one. It does not break.", critical: "Ten life remains. Spend everything. Yield nothing.", denied: "The treasury will not underwrite this assault." },
-  sheen: { selected: "The roots remember us. We grow toward victory.", clicked: "Be still. Even the smallest root can split stone.", wounded: "At twenty-one, the canopy thins. Guard the living heart.", critical: "Ten life remains. Take root and endure.", denied: "The roots have not gathered enough strength." },
+  rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline, tribute, triumph. In that order.", wounded: "Our line bends at twenty-one. It does not break.", critical: "Ten life remains. Spend everything. Yield nothing.", denied: "The treasury will not underwrite this assault." },
+  sheen: { selected: "We won a forest. Now we must make it a home.", clicked: "Be still. Even the smallest root can split stone.", wounded: "At twenty-one, the canopy thins. Guard the living heart.", critical: "Ten life remains. Take root and endure.", denied: "The roots have not gathered enough strength." },
   frumo: { selected: "All sails answer the Lord Commander. Make ready.", clicked: "The tide favors the captain who gives it orders.", wounded: "Twenty-one life. Reef the sails and hold the line.", critical: "Ten life. One last broadside decides the sea.", denied: "A poor wager, captain." },
   bizi: { selected: "Conductor online. Progress is now inevitable.", clicked: "Every mechanism has a purpose. Including you.", wounded: "Life reserve at twenty-one. Redirecting power to defense.", critical: "Critical threshold: ten. Release every safeguard.", denied: "Insufficient power allocation." },
   mekan: { selected: "The guests have arrived. Let the eternal festival begin.", clicked: "Every ending is only another invitation.", wounded: "Twenty-one life, and still the procession dances.", critical: "Ten life remains. Celebrate as if dawn depends on it.", denied: "The celebration remembers every payment." },
@@ -949,17 +949,36 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
-  rumin: "/assets/gauntlet/voices/kaiser-1.mp3",
-  sheen: "/assets/gauntlet/voices/leafen-gao-1.mp3",
-  frumo: "/assets/gauntlet/voices/polea-1.mp3",
-  bizi: "/assets/gauntlet/voices/focus-1.mp3",
-  zynarth: "/assets/gauntlet/voices/zalara-1.mp3"
+  rumin: {
+    selected: "/assets/gauntlet/voices/rumin-ch04-before-03-kaiser.mp3",
+    denied: "/assets/gauntlet/voices/kaiser-1.mp3"
+  },
+  sheen: {
+    selected: "/assets/gauntlet/voices/sheen-ch04-before-02-leafen-gao.mp3",
+    denied: "/assets/gauntlet/voices/leafen-gao-1.mp3"
+  },
+  frumo: { denied: "/assets/gauntlet/voices/polea-1.mp3" },
+  bizi: { denied: "/assets/gauntlet/voices/focus-1.mp3" },
+  zynarth: { denied: "/assets/gauntlet/voices/zalara-1.mp3" }
 });
 
 const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
   mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
   zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82]
+});
+
+const COMMANDER_VOICE_HINTS = Object.freeze({
+  rumin: ["guy", "davis", "christopher", "mark"],
+  sheen: ["aria", "jenny", "zira", "susan"],
+  frumo: ["ryan", "liam", "george", "david"],
+  bizi: ["andrew", "eric", "brian", "daniel"],
+  mekan: ["sonia", "aria", "jenny", "samantha"],
+  jali: ["roger", "davis", "guy", "mark"],
+  gracus: ["tony", "guy", "davis", "mark"],
+  indela: ["prabhat", "neerja", "ravi", "heera"],
+  zynarth: ["william", "guy", "davis", "mark"],
+  "astral-vanguard": ["christopher", "andrew", "brian", "david"]
 });
 
 // ============ FACTION DATA ============
@@ -1072,8 +1091,9 @@ factionsData.indela.general = factionsData.indela.generals[0];
 for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)) {
   factionsData[factionId].commander.announcements = announcements;
   factionsData[factionId].commander.voiceProfile = COMMANDER_VOICE_PROFILES[factionId];
-  const deniedClip = COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
-  if (deniedClip) factionsData[factionId].commander.announcementAudio = { denied: deniedClip };
+  factionsData[factionId].commander.voiceHints = COMMANDER_VOICE_HINTS[factionId];
+  const announcementAudio = COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
+  if (announcementAudio) factionsData[factionId].commander.announcementAudio = announcementAudio;
 }
 
 function listFactions() {
