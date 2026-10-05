@@ -1523,7 +1523,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
         <SpecialCardFace card={card} art={art} presentation={variant} />
       </button>
       <div className="card-art-inspector-copy">
-        <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
+        <span>{factionName(card.factionId)} · {rarity.label} {card.type}</span>
         <h4>{card.name}</h4>
         <p>{card.displayText || card.text}</p>
         <CardRulesDetails card={card} />
@@ -1548,6 +1548,8 @@ const PACK_THEMES = {
   zynarth: { name: "Zynarth", subtitle: "Adaptive Brood", accent: "#a3e635", glow: "rgba(163,230,53,.3)", background: "linear-gradient(145deg, #1a2e05, #3f6212 44%, #3b0764 90%)", art: "radial-gradient(circle at 32% 30%, rgba(190,242,100,.5), transparent 20%), repeating-radial-gradient(circle at 60% 60%, rgba(217,249,157,.12) 0 3px, transparent 3px 26px)" },
   "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" }
 };
+
+const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
 
 function getBattlefieldTexture(factionId) {
   const textures = {
@@ -1770,7 +1772,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     if (catalogRarityFilter !== "all" && card.rarity !== catalogRarityFilter) return false;
     if (catalogOwnedOnly && ownedCount <= 0) return false;
     if (normalizedCatalogSearch) {
-      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId}`.toLowerCase();
+      const searchText = `${card.name} ${card.type} ${card.text} ${factionName(card.factionId)}`.toLowerCase();
       if (!searchText.includes(normalizedCatalogSearch)) return false;
     }
     return true;
@@ -1791,7 +1793,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     }))
     .filter(({ variant, card }) => {
       if (!normalizedCollectorSearch) return true;
-      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId} ${variant.name || ""} ${variant.finish || ""}`.toLowerCase();
+      const searchText = `${card.name} ${card.type} ${card.text} ${factionName(card.factionId)} ${variant.name || ""} ${variant.finish || ""}`.toLowerCase();
       return searchText.includes(normalizedCollectorSearch);
     });
   const inspectedCollectorEntry = ownedCollectorVariants.find(({ variant }) => variant.variantId === inspectedCollectorVariantId)
@@ -1804,7 +1806,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     byCard[variant.gameplayCardId].push(variant);
     return byCard;
   }, {});
-  const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
+  const constructedCatalogCards = [...(catalog[constructedFactionId] || []), ...(catalog.neutral || [])];
+  const constructedCardsById = Object.fromEntries(constructedCatalogCards.map((card) => [card.id, card]));
   const inspectedCatalogCard = allCatalogCards.find((card) => card.id === inspectedCatalogCardId) || filteredCatalogCards[0] || null;
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
     const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
@@ -1961,7 +1964,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
           renderRules={(card) => <CardRulesDetails card={card} />}
           loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}
-          cards={catalog[constructedFactionId] || []} owned={cardsOwned}
+          cards={constructedCatalogCards} owned={cardsOwned}
           quantities={constructedQuantities} suitChoices={constructedSuitChoices}
           variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
           boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
@@ -2028,7 +2031,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{factionName(card.factionId)} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
                   </div>
@@ -2073,7 +2076,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 key={variant.variantId}
               >
                 <SpecialCardFace card={card} art={variant.art} presentation={variant} />
-                <span>{PACK_THEMES[card.factionId]?.name || card.factionId}</span>
+                <span>{factionName(card.factionId)}</span>
                 <strong>{card.name}</strong>
                 <small>{variant.finish || "collector"} · {gameplayCopies > 0 ? `${gameplayCopies} gameplay cop${gameplayCopies === 1 ? "y" : "ies"}` : "style owned · gameplay card locked"}</small>
               </button>;
@@ -2148,7 +2151,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
   const myPool = draft?.myPool || [];
   const myDeckAdditions = draft?.myDeckAdditions || [];
   const selectedIds = new Set(myDeckAdditions.map((card) => card.draftCopyId));
-  const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter(Boolean))];
+  const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter((id) => id && id !== "neutral"))];
   const selectedFactionId = selectedFactionIds[0] || "";
   const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
   const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
@@ -2244,7 +2247,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
 
         {draft?.status === "building" && !isSpectator && (
           <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck (${myDeckAdditions.length} swaps)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Every card has a fixed rank and suit and replaces that exact slot in your 52-card base deck.</p>
+            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose one faction plus Reath cards. Cards replace matching slots.</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
               <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
                 <strong>Deck size</strong>
@@ -2275,8 +2278,8 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
                     <DraftCardTile
                       card={card}
                       selected={selected}
-                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || slotOccupied)}
-                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
+                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral") || slotOccupied)}
+                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral" ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
                       onClick={() => onToggleDeckCard(card.draftCopyId)}
                     />
                     {selected && <div style={{ color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>Replaces {getCardRank(card)}{getSuitSymbol(card.suit)}</div>}
@@ -4674,9 +4677,9 @@ export default function App() {
     if (!draftState?.myPool) return;
     const currentIds = new Set((draftState.myDeckAdditions || []).map((card) => card.draftCopyId));
     const chosenCard = draftState.myPool.find((card) => card.draftCopyId === cardCopyId);
-    const currentFactionIds = [...new Set((draftState.myDeckAdditions || []).map((card) => card.factionId).filter(Boolean))];
-    if (chosenCard && !currentIds.has(cardCopyId) && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
-      setError("Draft decks can only include cards from one faction. Remove the current faction cards first to switch.");
+    const currentFactionIds = [...new Set((draftState.myDeckAdditions || []).map((card) => card.factionId).filter((id) => id && id !== "neutral"))];
+    if (chosenCard && !currentIds.has(cardCopyId) && chosenCard.factionId !== "neutral" && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
+      setError("Choose one faction. Reath cards work with all factions.");
       return;
     }
     if (chosenCard && !currentIds.has(cardCopyId)) {

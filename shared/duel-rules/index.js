@@ -25,7 +25,7 @@ const RUMIN_ARMABLE_EFFECT_IDS = new Set([
   "triumphal-ram",
   "kaisers-gold-claw"
 ]);
-const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
+const SUPPORT_TYPES = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
 const SUIT_KEYS = Object.freeze({
   "♠": "spades", spade: "spades", spades: "spades",
   "♥": "hearts", heart: "hearts", hearts: "hearts",
@@ -606,6 +606,23 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
   const paymentIds = paymentCards.map((card) => card.id);
   const selectedForumCardId = command.forumLedgerPaymentCardId || null;
 
+  if (paymentCards.some((card) => hasCardEffect(card, "neutral-think"))) {
+    bonus += 1;
+    notes.push("Think payment +1");
+  }
+  if (
+    context.action === "attack"
+    && cardHasType(context.card, "servitor")
+    && Number(player.turnData.attacksDeclaredThisTurn || 0) === 0
+    && !player.turnData.neutralAssemblyUsed
+    && playerControlsEffect(game, playerNumber, "neutral-assembly-station")
+    && paymentCards.length
+  ) {
+    bonus += 1;
+    player.turnData.neutralAssemblyUsed = true;
+    notes.push("Assembly Station payment +1");
+  }
+
   if (selectedForumCardId) {
     if (
       context.action !== "attack"
@@ -835,6 +852,31 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   let bonus = 0;
   const attackNumber = Number(player.turnData.attacksDeclaredThisTurn || 0) + 1;
   const baseValue = cardValue(card);
+
+  if (hasCardEffect(card, "neutral-soldier") && attackNumber === 1) { bonus += 1; notes.push("Soldier +1"); }
+  if (hasCardEffect(card, "neutral-lieutenant") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue < baseValue) { bonus += 1; notes.push("Lieutenant +1"); }
+  if (hasCardEffect(card, "neutral-officer")) { bonus += 1; notes.push("Officer +1"); }
+  if (hasCardEffect(card, "neutral-saboteur") && controlledSupportEntries(game, playerNumber).length) { bonus += 1; notes.push("Saboteur +1"); }
+  if (hasCardEffect(card, "neutral-strategist") && !player.turnData.neutralStrategistUsed) {
+    player.turnData.neutralStrategistUsed = true;
+    player.turnData.neutralEndTurnDraws = Number(player.turnData.neutralEndTurnDraws || 0) + 1;
+    notes.push("Strategist end-turn draw");
+  }
+  if (hasCardEffect(card, "neutral-field-marshal")) {
+    const amount = Math.min(2, controlledLaneEntries(game, playerNumber).filter((entry) => entry.card.id !== card.id && cardHasType(entry.card, "servitor")).length);
+    bonus += amount;
+    if (amount) notes.push(`Field Marshal +${amount}`);
+  }
+  if (source === "lane" && attackNumber === 1 && !player.turnData.neutralLongswordUsed) {
+    const longsword = controlledSupportEntries(game, playerNumber).find((entry) => hasCardEffect(entry.card, "neutral-longsword"));
+    if (longsword) {
+      game.lanes[longsword.laneIndex][longsword.zone || "support"][playerNumber] = null;
+      attachedCards.push(longsword.card);
+      player.turnData.neutralLongswordUsed = true;
+      bonus += 2;
+      notes.push("Longsword +2");
+    }
+  }
   const selectedWeaponIds = Array.isArray(command.armWeaponCardIds)
     ? command.armWeaponCardIds
     : [];
@@ -1180,6 +1222,24 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   let bonus = 0;
   let preventDamage = 0;
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0) + 1;
+  if (hasCardEffect(card, "neutral-sergeant") && blockNumber === 1) { bonus += 1; notes.push("Sergeant +1"); }
+  if (hasCardEffect(card, "neutral-bodyguard") && context.laneBlock) { bonus += 2; notes.push("Bodyguard +2"); }
+  if (hasCardEffect(card, "neutral-wrestler") && cardValue(context.attack?.card) > cardValue(card)) { bonus += 2; notes.push("Wrestler +2"); }
+  if (hasCardEffect(card, "neutral-security-guard") && context.laneBlock && blockNumber === 1) { bonus += 2; notes.push("Security Guard +2"); }
+  if (playerControlsEffect(game, playerNumber, "neutral-holy-ground")) { preventDamage += 1; notes.push("Holy Ground prevents 1"); }
+  const consumeNeutralDefense = (effectId, flag, label) => {
+    if (player.turnData[flag] || blockNumber !== 1) return;
+    const entry = controlledSupportEntries(game, playerNumber).find((candidate) => hasCardEffect(candidate.card, effectId));
+    if (!entry) return;
+    game.lanes[entry.laneIndex][entry.zone || "support"][playerNumber] = null;
+    entry.card.revealed = true;
+    player.discard.push(entry.card);
+    player.turnData[flag] = true;
+    preventDamage += 2;
+    notes.push(`${label} prevents 2`);
+  };
+  consumeNeutralDefense("neutral-smoke-bomb", "neutralSmokeBombUsed", "Smoke Bomb");
+  consumeNeutralDefense("neutral-tower-shield", "neutralTowerShieldUsed", "Tower Shield");
   if (hasCardEffect(card, "rootwatch-initiate") && blockNumber > 1) {
     bonus += 1;
     notes.push("Root Haven +1");
@@ -1521,6 +1581,17 @@ function resolveAttack(game, attack, laneIndex, events) {
         gainLifeFromBlocking(game, defender, 1, "Combat Medic", block.notes, events);
       }
     }
+    if (playerControlsEffect(game, defender, "neutral-hospital") && !game.players[defender].turnData.neutralHospitalUsed) {
+      game.players[defender].turnData.neutralHospitalUsed = true;
+      gainLifeFromBlocking(game, defender, 1, "Hospital", attack.block[0].notes, events);
+    }
+    if (playerControlsEffect(game, defender, "neutral-library") && !game.players[defender].turnData.neutralLibraryUsed) {
+      game.players[defender].turnData.neutralLibraryUsed = true;
+        game.players[defender].turnData.neutralEndTurnDraws = Number(
+          game.players[defender].turnData.neutralEndTurnDraws || 0
+        ) + 1;
+      attack.block[0].notes.push("Library end-turn draw");
+    }
     if (playerControlsEffect(game, defender, "astral-vanguard-field-triage") && !game.players[defender].turnData.astralCleanBlockUsed) {
       game.players[defender].turnData.astralCleanBlockUsed = true;
       gainLifeFromBlocking(game, defender, 1, "Field Triage", attack.block[0].notes, events);
@@ -1669,6 +1740,13 @@ function startNextTurn(game, events) {
       playerNumber,
       Number(turnData.indelaEndTurnDraws || 0),
       "Glacial Insight",
+      events
+    );
+    drawExtraCards(
+      game,
+      playerNumber,
+      Number(turnData.neutralEndTurnDraws || 0),
+      "Reath cards",
       events
     );
   }

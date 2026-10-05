@@ -1,7 +1,8 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v19";
+const CONTENT_VERSION = "gauntlet-content-v20";
+const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
@@ -744,7 +745,30 @@ const INDELA_COLLECTION_CARDS = [
   { id: "indela-elemental-array", factionId: "indela", name: "Elemental Array", type: "arcana", rarity: "mythic", value: 10, text: "While this occupies a support slot, your first attack or block each turn matching your omen's parity gets +1 value." }
 ];
 
-const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS];
+// Reath cards adapt the neutral Timetwister catalog to Gauntlet's fixed-slot deck.
+// They may accompany any one faction and cover the full range of support types.
+const NEUTRAL_COLLECTION_CARDS = [
+  { id: "neutral-soldier", factionId: NEUTRAL_FACTION_ID, name: "Soldier", type: "servitor", rarity: "common", value: 2, text: "On your first attack each turn, this gets +1 value." },
+  { id: "neutral-sergeant", factionId: NEUTRAL_FACTION_ID, name: "Sergeant", type: "servitor", rarity: "common", value: 2, text: "On your first block each turn, this gets +1 value." },
+  { id: "neutral-lieutenant", factionId: NEUTRAL_FACTION_ID, name: "Lieutenant", type: "servitor", rarity: "common", value: 3, text: "If the last card you played had lower value, this gets +1 value when it attacks." },
+  { id: "neutral-bodyguard", factionId: NEUTRAL_FACTION_ID, name: "Bodyguard", type: "servitor", rarity: "common", value: 4, text: "When this blocks from a lane, it gets +2 value." },
+  { id: "neutral-officer", factionId: NEUTRAL_FACTION_ID, name: "Officer", type: "servitor", rarity: "uncommon", value: 4, text: "When this attacks, it gets +1 value." },
+  { id: "neutral-wrestler", factionId: NEUTRAL_FACTION_ID, name: "Wrestler", type: "servitor", rarity: "uncommon", value: 5, text: "When this blocks a higher-value attacker, it gets +2 value." },
+  { id: "neutral-saboteur", factionId: NEUTRAL_FACTION_ID, name: "Saboteur", type: "servitor", rarity: "uncommon", value: 5, text: "If you control a support card, this gets +1 value when it attacks." },
+  { id: "neutral-strategist", factionId: NEUTRAL_FACTION_ID, name: "Strategist", type: "servitor", rarity: "rare", value: 6, text: "The first time this attacks each turn, draw 1 extra card at turn end." },
+  { id: "neutral-security-guard", factionId: NEUTRAL_FACTION_ID, name: "Security Guard", type: "servitor", rarity: "rare", value: 7, text: "On your first lane block each turn, this gets +2 value." },
+  { id: "neutral-field-marshal", factionId: NEUTRAL_FACTION_ID, name: "Field Marshal", type: "servitor", rarity: "mythic", value: 8, text: "When this attacks, it gets +1 value for each other Servitor you control, up to +2." },
+  { id: "neutral-think", factionId: NEUTRAL_FACTION_ID, name: "Think", type: "spell", rarity: "common", value: 3, text: "When you use this as a payment card, it pays +1 additional value." },
+  { id: "neutral-hospital", factionId: NEUTRAL_FACTION_ID, name: "Hospital", type: "shelter", rarity: "common", value: 6, text: "After your first clean block each turn, gain 1 life." },
+  { id: "neutral-library", factionId: NEUTRAL_FACTION_ID, name: "Library", type: "shelter", rarity: "uncommon", value: 6, text: "After your first clean block each turn, draw 1 extra card at turn end." },
+  { id: "neutral-assembly-station", factionId: NEUTRAL_FACTION_ID, name: "Assembly Station", type: "contraption", rarity: "uncommon", value: 7, text: "Your first Servitor attack each turn may treat one payment card as +1 value." },
+  { id: "neutral-smoke-bomb", factionId: NEUTRAL_FACTION_ID, name: "Smoke Bomb", type: "ambush", rarity: "uncommon", value: 7, text: "Reveal on your first block to prevent 2 damage from that attack. Then discard this." },
+  { id: "neutral-longsword", factionId: NEUTRAL_FACTION_ID, name: "Longsword", type: "weaponry", rarity: "rare", value: 8, text: "Reveal on your first lane attack to give it +2 value. Then discard this." },
+  { id: "neutral-tower-shield", factionId: NEUTRAL_FACTION_ID, name: "Tower Shield", type: "weaponry", rarity: "rare", value: 9, text: "Reveal on your first block to prevent 2 damage from that attack. Then discard this." },
+  { id: "neutral-holy-ground", factionId: NEUTRAL_FACTION_ID, name: "Holy Ground", type: "shelter", rarity: "mythic", value: 10, text: "While this occupies a support slot, prevent 1 damage from each blocked attack." }
+];
+
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
   "rumin-forum-ledger-runner": "hearts",
@@ -833,6 +857,11 @@ const FIXED_CARD_SUITS = Object.freeze({
   "indela-fire-enchanter": "hearts", "indela-headmaster": "spades", "indela-arcane-amplification": "clubs", "indela-elemental-infusion": "diamonds",
   "indela-scorched-earth-ritual": "clubs", "indela-frostbite-gale": "spades", "indela-glacial-insight": "diamonds", "indela-ring-of-fire": "hearts",
   "indela-frost-nova": "clubs", "indela-elemental-array": "diamonds"
+  ,"neutral-soldier": "spades", "neutral-sergeant": "hearts", "neutral-lieutenant": "diamonds", "neutral-bodyguard": "clubs",
+  "neutral-officer": "spades", "neutral-wrestler": "hearts", "neutral-saboteur": "diamonds", "neutral-strategist": "clubs",
+  "neutral-security-guard": "hearts", "neutral-field-marshal": "spades", "neutral-think": "clubs", "neutral-hospital": "spades",
+  "neutral-library": "hearts", "neutral-assembly-station": "clubs", "neutral-smoke-bomb": "diamonds", "neutral-longsword": "diamonds",
+  "neutral-tower-shield": "spades", "neutral-holy-ground": "hearts"
 });
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
@@ -877,6 +906,7 @@ const COLLECTOR_ANIMATION_STYLES = Object.freeze({
   zynarth: "brood-pulse",
   "astral-vanguard": "orbital-sweep",
   indela: "elemental-omen"
+  ,neutral: "reath-prism"
 });
 
 const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
@@ -1660,7 +1690,7 @@ function validateGameContent() {
     requireText(card.type, `cards.${card.id}.type`);
     requireText(card.text, `cards.${card.id}.text`);
     if (cardIds.has(card.id)) throw new Error(`Invalid game content: duplicate card ID ${card.id}.`);
-    if (!factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
+    if (card.factionId !== NEUTRAL_FACTION_ID && !factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);
     if (!PLAYING_DECK_VALUES.includes(card.value)) throw new Error(`Invalid game content: card ${card.id} has an invalid value.`);
     if (!DRAFT_CARD_SUITS.includes(card.suit) || card.replacementSuit !== card.suit) {
@@ -1669,7 +1699,10 @@ function validateGameContent() {
     const slotKey = `${card.factionId}:${card.value}:${card.suit}`;
     if (factionSlots.has(slotKey)) throw new Error(`Invalid game content: duplicate faction replacement slot ${slotKey}.`);
     factionSlots.add(slotKey);
-    if (!["servitor", signatureTypes.get(card.factionId)].includes(card.type)) {
+    const allowedTypes = card.factionId === NEUTRAL_FACTION_ID
+      ? ["servitor", "spell", "shelter", "ambush", "contraption", "weaponry"]
+      : ["servitor", signatureTypes.get(card.factionId)];
+    if (!allowedTypes.includes(card.type)) {
       throw new Error(`Invalid game content: card ${card.id} must be a Servitor or use the ${signatureTypes.get(card.factionId)} signature type.`);
     }
     if (card.gameplayCardId !== card.id) throw new Error(`Invalid game content: card ${card.id} has an unstable gameplay identity.`);
@@ -1760,6 +1793,8 @@ module.exports = {
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
   MAX_REPLACEMENTS_PER_VALUE,
+  NEUTRAL_COLLECTION_CARDS,
+  NEUTRAL_FACTION_ID,
   PLAYING_DECK_VALUES,
   PAID_COLLECTOR_ACQUISITION,
   RUMIN_CAMPAIGN_ART,

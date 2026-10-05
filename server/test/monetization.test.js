@@ -7,6 +7,7 @@ const {
   COLLECTOR_VARIANTS,
   COLLECTION_CARDS,
   FREE_GAMEPLAY_ACQUISITION,
+  NEUTRAL_COLLECTION_CARDS,
   PAID_COLLECTOR_ACQUISITION,
   getCollectorVariantById,
   validateCollectorVariant
@@ -32,6 +33,7 @@ test.after(() => server.close());
 const GAMEPLAY_CARD_ID = "rumin-gilded-scale-legionary";
 const PAID_VARIANT_ID = `${GAMEPLAY_CARD_ID}:collector-foil`;
 const OTHER_CARD_VARIANT_ID = "sheen-rootwatch-initiate:collector-foil";
+const NEUTRAL_ENTITLEMENTS = Object.fromEntries(NEUTRAL_COLLECTION_CARDS.map((card) => [card.id, 1]));
 
 function makeStats() {
   return {
@@ -95,7 +97,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 126);
+  assert.equal(COLLECTION_CARDS.length, 144);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);
@@ -129,9 +131,9 @@ test("collector variants cannot contain mechanical overrides or unknown gameplay
 
 test("every account receives three idempotent free collector styles without gameplay power", () => {
   const stats = {};
-  const before = buildCompetitiveCapabilitySnapshot(stats);
   const first = normalizeCollection(stats);
   stats.collection = first;
+  const before = buildCompetitiveCapabilitySnapshot(stats);
   const second = normalizeCollection(stats);
   const welcomeIds = [
     "sheen-rootwatch-initiate:collector-foil",
@@ -144,7 +146,7 @@ test("every account receives three idempotent free collector styles without game
   assert.deepEqual(second, first);
   assert.equal(welcomeIds.every((variantId) => first.collectorVariants[variantId] === 1), true);
   assert.equal(welcomeIds.every((variantId) => first.collectorVariantProvenance[variantId][0].acquisition === "free-welcome-grant"), true);
-  assert.deepEqual(first.gameplayEntitlements, {});
+  assert.deepEqual(first.gameplayEntitlements, NEUTRAL_ENTITLEMENTS);
   assert.deepEqual(buildCompetitiveCapabilitySnapshot(stats), before);
 });
 
@@ -154,7 +156,7 @@ test("legacy account collections and constructed decks normalize deterministical
   stats.collection = firstCollection;
   const secondCollection = normalizeCollection(stats);
   assert.deepEqual(secondCollection, firstCollection);
-  assert.deepEqual(firstCollection.gameplayEntitlements, { [GAMEPLAY_CARD_ID]: 2 });
+  assert.deepEqual(firstCollection.gameplayEntitlements, { ...NEUTRAL_ENTITLEMENTS, [GAMEPLAY_CARD_ID]: 2 });
   assert.equal(firstCollection.collectorVariants[`${GAMEPLAY_CARD_ID}:standard`], 2);
 
   stats.savedConstructedDeck = {
@@ -194,7 +196,7 @@ test("paid collector ownership cannot change authoritative competitive capabilit
   assert.deepEqual(afterPurchase, beforePurchase);
   assert.deepEqual(afterPurchase, buildCompetitiveCapabilitySnapshot(unpaidStats));
   assert.equal(paidStats.collection.collectorVariants[PAID_VARIANT_ID], 8);
-  assert.deepEqual(paidStats.collection.gameplayEntitlements, { [GAMEPLAY_CARD_ID]: 2 });
+  assert.deepEqual(paidStats.collection.gameplayEntitlements, { ...NEUTRAL_ENTITLEMENTS, [GAMEPLAY_CARD_ID]: 2 });
   assert.equal(paidStats.collection.purchasedCollectorPacks, 1);
   assert.equal(paidStats.collection.openedGameplayPacks, 0);
 
@@ -271,7 +273,7 @@ test("earned gameplay packs change free entitlement while collector grants do no
   const opened = openCollectionBooster(earnedStats, "rumin-foundation");
   const earnedCollection = normalizeCollection(earnedStats);
   assert.equal(opened.length, 8);
-  assert.equal(Object.values(earnedCollection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 8);
+  assert.equal(Object.values(earnedCollection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 8 + NEUTRAL_COLLECTION_CARDS.length);
   assert.equal(opened.every((card) => card.acquisition === FREE_GAMEPLAY_ACQUISITION), true);
   assert.equal(earnedCollection.packCredits, 0);
   assert.equal(earnedCollection.openedGameplayPacks, 1);
@@ -282,7 +284,7 @@ test("earned gameplay packs change free entitlement while collector grants do no
     variantIds: Array.from({ length: 8 }, () => PAID_VARIANT_ID)
   });
   assert.deepEqual(buildCompetitiveCapabilitySnapshot(collectorStats), before);
-  assert.deepEqual(collectorStats.collection.gameplayEntitlements, {});
+  assert.deepEqual(collectorStats.collection.gameplayEntitlements, NEUTRAL_ENTITLEMENTS);
   assert.equal(collectorStats.collection.packCredits, 1);
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
 });

@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { NEUTRAL_COLLECTION_CARDS } = require("../gameContent");
 
 const originalFetch = global.fetch;
 
@@ -164,8 +165,14 @@ test("trusted issuance and account JSONB redemption remain exactly once across s
   assert.deepEqual([first.alreadyRedeemed, concurrentRetry.alreadyRedeemed].sort(), [false, true]);
   assert.equal(patchCount, 2);
   assert.equal(first.grantedVariants.length, 8);
-  assert.equal(Object.values(accounts[0].stats.collection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 2);
-  assert.equal(Object.values(accounts[0].stats.collection.collectorVariants).reduce((sum, count) => sum + count, 0), 13);
+  assert.equal(
+    Object.values(accounts[0].stats.collection.gameplayEntitlements).reduce((sum, count) => sum + count, 0),
+    2 + NEUTRAL_COLLECTION_CARDS.length
+  );
+  assert.equal(
+    Object.values(accounts[0].stats.collection.collectorVariants).reduce((sum, count) => sum + count, 0),
+    13 + NEUTRAL_COLLECTION_CARDS.length
+  );
   assert.equal(Object.keys(accounts[0].stats.collection.collectorRedemptionReceipts).length, 1);
 
   const refreshedSession = accountSession(accounts[0]);

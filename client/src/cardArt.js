@@ -1,4 +1,4 @@
-const CUSTOM_CARD_ID = /^(?:rumin|sheen|frumo|bizi|zynarth|astral-vanguard|indela)-/;
+const CUSTOM_CARD_ID = /^(?:rumin|sheen|frumo|bizi|zynarth|astral-vanguard|indela|neutral)-/;
 
 export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
 

@@ -5206,6 +5206,1014 @@
       "bytes": 33182
     },
     {
+      "id": "asset:constructed/faces/neutral-assembly-station-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-assembly-station-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-assembly-station",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/02391e7238bf069609a88ec40b51e3f97ca13b8c1742ba8ceae073b9a3fe2c2b.webp",
+      "mediaType": "image/webp",
+      "sha256": "02391e7238bf069609a88ec40b51e3f97ca13b8c1742ba8ceae073b9a3fe2c2b",
+      "bytes": 28054
+    },
+    {
+      "id": "asset:constructed/faces/neutral-assembly-station-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-assembly-station-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-assembly-station",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e497e2c67deb899261bcd4747cb81f5a8adda6bc176b794d50e0ad66521356f6.webp",
+      "mediaType": "image/webp",
+      "sha256": "e497e2c67deb899261bcd4747cb81f5a8adda6bc176b794d50e0ad66521356f6",
+      "bytes": 28564
+    },
+    {
+      "id": "asset:constructed/faces/neutral-assembly-station-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-assembly-station-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-assembly-station",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5aa2e990442f8791fd1028ba3abd2572cef2daf417735594471f4bbe1acea43e.webp",
+      "mediaType": "image/webp",
+      "sha256": "5aa2e990442f8791fd1028ba3abd2572cef2daf417735594471f4bbe1acea43e",
+      "bytes": 28594
+    },
+    {
+      "id": "asset:constructed/faces/neutral-assembly-station-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-assembly-station-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-assembly-station",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/449cf59d65770b2ed798f52b8a20cd17cac9bb743f083b8f9bb10dec975fdd49.webp",
+      "mediaType": "image/webp",
+      "sha256": "449cf59d65770b2ed798f52b8a20cd17cac9bb743f083b8f9bb10dec975fdd49",
+      "bytes": 28448
+    },
+    {
+      "id": "asset:constructed/faces/neutral-bodyguard-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-bodyguard-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-bodyguard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/df32f8a4a356ddb838ce74580e8001684dcf6802cb135cb788e09cbfa43ae4e5.webp",
+      "mediaType": "image/webp",
+      "sha256": "df32f8a4a356ddb838ce74580e8001684dcf6802cb135cb788e09cbfa43ae4e5",
+      "bytes": 24896
+    },
+    {
+      "id": "asset:constructed/faces/neutral-bodyguard-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-bodyguard-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-bodyguard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/53a575941c282796b38716f9cb95be2257e003223f7104a7bbe2a309054e6513.webp",
+      "mediaType": "image/webp",
+      "sha256": "53a575941c282796b38716f9cb95be2257e003223f7104a7bbe2a309054e6513",
+      "bytes": 24906
+    },
+    {
+      "id": "asset:constructed/faces/neutral-bodyguard-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-bodyguard-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-bodyguard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fdf61868e8ec4050ec9f35953b664a913b0e2e08782540c2efc9d8329af7d18c.webp",
+      "mediaType": "image/webp",
+      "sha256": "fdf61868e8ec4050ec9f35953b664a913b0e2e08782540c2efc9d8329af7d18c",
+      "bytes": 24958
+    },
+    {
+      "id": "asset:constructed/faces/neutral-bodyguard-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-bodyguard-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-bodyguard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4c9a354c35288ddc426fdd6ad6ede729b614e7abb387c27ef676739c00797352.webp",
+      "mediaType": "image/webp",
+      "sha256": "4c9a354c35288ddc426fdd6ad6ede729b614e7abb387c27ef676739c00797352",
+      "bytes": 24610
+    },
+    {
+      "id": "asset:constructed/faces/neutral-field-marshal-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-field-marshal-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-field-marshal",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0bc732e53cb392edb80d2915bf096f1b5efbfcd19181a48070d6ed8614fc1540.webp",
+      "mediaType": "image/webp",
+      "sha256": "0bc732e53cb392edb80d2915bf096f1b5efbfcd19181a48070d6ed8614fc1540",
+      "bytes": 27722
+    },
+    {
+      "id": "asset:constructed/faces/neutral-field-marshal-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-field-marshal-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-field-marshal",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/22fd48aff3b7f05e08710a3aca621c7c38848e5f1f1a0c990b88f9c9b4ec8c27.webp",
+      "mediaType": "image/webp",
+      "sha256": "22fd48aff3b7f05e08710a3aca621c7c38848e5f1f1a0c990b88f9c9b4ec8c27",
+      "bytes": 27924
+    },
+    {
+      "id": "asset:constructed/faces/neutral-field-marshal-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-field-marshal-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-field-marshal",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0e04776dba170c85b23c63c6dbc728c59eeb38ae08565290717e1056a0ad816b.webp",
+      "mediaType": "image/webp",
+      "sha256": "0e04776dba170c85b23c63c6dbc728c59eeb38ae08565290717e1056a0ad816b",
+      "bytes": 28176
+    },
+    {
+      "id": "asset:constructed/faces/neutral-field-marshal-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-field-marshal-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-field-marshal",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1f874b78c35b0f3648e79f193e1ad02e91cf2d7e57c172971d1c035112100721.webp",
+      "mediaType": "image/webp",
+      "sha256": "1f874b78c35b0f3648e79f193e1ad02e91cf2d7e57c172971d1c035112100721",
+      "bytes": 27276
+    },
+    {
+      "id": "asset:constructed/faces/neutral-holy-ground-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-holy-ground-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-holy-ground",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9a239b1d9c40a894f1e3222148a4bf63815467a7bf32826cc264f413486b936f.webp",
+      "mediaType": "image/webp",
+      "sha256": "9a239b1d9c40a894f1e3222148a4bf63815467a7bf32826cc264f413486b936f",
+      "bytes": 26400
+    },
+    {
+      "id": "asset:constructed/faces/neutral-holy-ground-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-holy-ground-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-holy-ground",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c78e1df6ea7d5fcc2dfe52b1480c2d94861970fe3c8bfe9b58024a9a022c41cf.webp",
+      "mediaType": "image/webp",
+      "sha256": "c78e1df6ea7d5fcc2dfe52b1480c2d94861970fe3c8bfe9b58024a9a022c41cf",
+      "bytes": 26666
+    },
+    {
+      "id": "asset:constructed/faces/neutral-holy-ground-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-holy-ground-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-holy-ground",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4345c7ae5dd9fc02254618712348226d8dccca8eeed93cf1bf5e2124a1c40d35.webp",
+      "mediaType": "image/webp",
+      "sha256": "4345c7ae5dd9fc02254618712348226d8dccca8eeed93cf1bf5e2124a1c40d35",
+      "bytes": 26948
+    },
+    {
+      "id": "asset:constructed/faces/neutral-holy-ground-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-holy-ground-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-holy-ground",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e01fe415ee63dca3d1a9a93943f291be32e9becc840cd9ae348583add207da64.webp",
+      "mediaType": "image/webp",
+      "sha256": "e01fe415ee63dca3d1a9a93943f291be32e9becc840cd9ae348583add207da64",
+      "bytes": 26148
+    },
+    {
+      "id": "asset:constructed/faces/neutral-hospital-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-hospital-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-hospital",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/00c0b3c9f6e7ebfaad5caa83d26a23a436cbb1c8032df540b3575a58a1e66e28.webp",
+      "mediaType": "image/webp",
+      "sha256": "00c0b3c9f6e7ebfaad5caa83d26a23a436cbb1c8032df540b3575a58a1e66e28",
+      "bytes": 25190
+    },
+    {
+      "id": "asset:constructed/faces/neutral-hospital-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-hospital-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-hospital",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/96e21e8ad3b7dca9c0df3031272c2a04ad946f9231613aea7c16277f9dc45906.webp",
+      "mediaType": "image/webp",
+      "sha256": "96e21e8ad3b7dca9c0df3031272c2a04ad946f9231613aea7c16277f9dc45906",
+      "bytes": 25074
+    },
+    {
+      "id": "asset:constructed/faces/neutral-hospital-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-hospital-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-hospital",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/084e3e84fbace8d8ac36d5019b0cae9bf7498b4aa5deafe0bcf2ae7a5a8802fd.webp",
+      "mediaType": "image/webp",
+      "sha256": "084e3e84fbace8d8ac36d5019b0cae9bf7498b4aa5deafe0bcf2ae7a5a8802fd",
+      "bytes": 25414
+    },
+    {
+      "id": "asset:constructed/faces/neutral-hospital-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-hospital-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-hospital",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1fce79fab034df3b664df8a5374ce220308d5dfd2eec24e9794d46daf8d5fc62.webp",
+      "mediaType": "image/webp",
+      "sha256": "1fce79fab034df3b664df8a5374ce220308d5dfd2eec24e9794d46daf8d5fc62",
+      "bytes": 24934
+    },
+    {
+      "id": "asset:constructed/faces/neutral-library-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-library-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-library",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2a3716f8654e8ca2977b057e1cdf5d74bddf5212c91539570437c7a2d9789ec7.webp",
+      "mediaType": "image/webp",
+      "sha256": "2a3716f8654e8ca2977b057e1cdf5d74bddf5212c91539570437c7a2d9789ec7",
+      "bytes": 26852
+    },
+    {
+      "id": "asset:constructed/faces/neutral-library-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-library-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-library",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8866fb898846bc1f3837db5035c98b93c7b8efe7acc16eabf4d02e8dc4407351.webp",
+      "mediaType": "image/webp",
+      "sha256": "8866fb898846bc1f3837db5035c98b93c7b8efe7acc16eabf4d02e8dc4407351",
+      "bytes": 26556
+    },
+    {
+      "id": "asset:constructed/faces/neutral-library-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-library-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-library",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/28d0cb9bc85f73b7bc430ff0134b4d49d28e5f0e1e0e53959ebf91b72ac5e85b.webp",
+      "mediaType": "image/webp",
+      "sha256": "28d0cb9bc85f73b7bc430ff0134b4d49d28e5f0e1e0e53959ebf91b72ac5e85b",
+      "bytes": 27284
+    },
+    {
+      "id": "asset:constructed/faces/neutral-library-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-library-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-library",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/178055aaf5dd3c7a8418fdc72bc1d23cdc23c129d627f35aa5144fcc9189e70a.webp",
+      "mediaType": "image/webp",
+      "sha256": "178055aaf5dd3c7a8418fdc72bc1d23cdc23c129d627f35aa5144fcc9189e70a",
+      "bytes": 27044
+    },
+    {
+      "id": "asset:constructed/faces/neutral-lieutenant-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-lieutenant-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-lieutenant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/714224d46e620c884613df46c62355614f9410f3d77abafb31befcf91d14dce8.webp",
+      "mediaType": "image/webp",
+      "sha256": "714224d46e620c884613df46c62355614f9410f3d77abafb31befcf91d14dce8",
+      "bytes": 27476
+    },
+    {
+      "id": "asset:constructed/faces/neutral-lieutenant-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-lieutenant-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-lieutenant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f53f72868b1bf1695d4452db1dec5da454a512479283b51c66d04792c7d4325c.webp",
+      "mediaType": "image/webp",
+      "sha256": "f53f72868b1bf1695d4452db1dec5da454a512479283b51c66d04792c7d4325c",
+      "bytes": 27760
+    },
+    {
+      "id": "asset:constructed/faces/neutral-lieutenant-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-lieutenant-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-lieutenant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1a54363e93065312f68236fc2ad94a38e2d020fc3896cf39e119d5f60fc2a8f0.webp",
+      "mediaType": "image/webp",
+      "sha256": "1a54363e93065312f68236fc2ad94a38e2d020fc3896cf39e119d5f60fc2a8f0",
+      "bytes": 28104
+    },
+    {
+      "id": "asset:constructed/faces/neutral-lieutenant-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-lieutenant-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-lieutenant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/54e7da09b8b4809df623b04a3ca24c2692ff69c5a7264bf42cc710bb95744186.webp",
+      "mediaType": "image/webp",
+      "sha256": "54e7da09b8b4809df623b04a3ca24c2692ff69c5a7264bf42cc710bb95744186",
+      "bytes": 27738
+    },
+    {
+      "id": "asset:constructed/faces/neutral-longsword-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-longsword-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-longsword",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f9b0a18053c3368b12d778b949d51d8318906a5f0c04253b9473fca73d0c118b.webp",
+      "mediaType": "image/webp",
+      "sha256": "f9b0a18053c3368b12d778b949d51d8318906a5f0c04253b9473fca73d0c118b",
+      "bytes": 28668
+    },
+    {
+      "id": "asset:constructed/faces/neutral-longsword-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-longsword-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-longsword",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1107101a126e6301bcf50ba875f5dcaa7c4fdaf5b0fd0d289746f68311b5b56e.webp",
+      "mediaType": "image/webp",
+      "sha256": "1107101a126e6301bcf50ba875f5dcaa7c4fdaf5b0fd0d289746f68311b5b56e",
+      "bytes": 29134
+    },
+    {
+      "id": "asset:constructed/faces/neutral-longsword-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-longsword-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-longsword",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cb7547f1c6685c0d5c8680371ee72edcd23924c720e1d51fa24c5fe2198bb80a.webp",
+      "mediaType": "image/webp",
+      "sha256": "cb7547f1c6685c0d5c8680371ee72edcd23924c720e1d51fa24c5fe2198bb80a",
+      "bytes": 29380
+    },
+    {
+      "id": "asset:constructed/faces/neutral-longsword-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-longsword-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-longsword",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ee2e38682a51341dac8fcd5eaa07fe562d7b661d3b70d68935886eb7fb6b373d.webp",
+      "mediaType": "image/webp",
+      "sha256": "ee2e38682a51341dac8fcd5eaa07fe562d7b661d3b70d68935886eb7fb6b373d",
+      "bytes": 29162
+    },
+    {
+      "id": "asset:constructed/faces/neutral-officer-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-officer-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-officer",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ae11aa222755ebbb153b38695f6441a57f42991aed0fd92ca9c2f4143bc91d4e.webp",
+      "mediaType": "image/webp",
+      "sha256": "ae11aa222755ebbb153b38695f6441a57f42991aed0fd92ca9c2f4143bc91d4e",
+      "bytes": 23864
+    },
+    {
+      "id": "asset:constructed/faces/neutral-officer-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-officer-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-officer",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d580093bccc33df3efb0bb911b08ebd92b49e0c5fd12629205a87ba10e1717d4.webp",
+      "mediaType": "image/webp",
+      "sha256": "d580093bccc33df3efb0bb911b08ebd92b49e0c5fd12629205a87ba10e1717d4",
+      "bytes": 23868
+    },
+    {
+      "id": "asset:constructed/faces/neutral-officer-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-officer-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-officer",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d4ee87b006f7eb6a3c4f5564cf2e60a527fdc9fa86cd071060278912f199c405.webp",
+      "mediaType": "image/webp",
+      "sha256": "d4ee87b006f7eb6a3c4f5564cf2e60a527fdc9fa86cd071060278912f199c405",
+      "bytes": 23890
+    },
+    {
+      "id": "asset:constructed/faces/neutral-officer-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-officer-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-officer",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c6d54b488ebb4d36d3ef726bf90932441ca2e2379ba51134897587bc5d52d784.webp",
+      "mediaType": "image/webp",
+      "sha256": "c6d54b488ebb4d36d3ef726bf90932441ca2e2379ba51134897587bc5d52d784",
+      "bytes": 23534
+    },
+    {
+      "id": "asset:constructed/faces/neutral-saboteur-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-saboteur-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-saboteur",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6385dcad3096fa427b49c394791fbec1c55f7b5ca0731b2d004d63a29aebbf58.webp",
+      "mediaType": "image/webp",
+      "sha256": "6385dcad3096fa427b49c394791fbec1c55f7b5ca0731b2d004d63a29aebbf58",
+      "bytes": 26810
+    },
+    {
+      "id": "asset:constructed/faces/neutral-saboteur-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-saboteur-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-saboteur",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fac82efc649fa86e325381e6e494f19079aa8058ae65c4a839d5e4cddcb33b06.webp",
+      "mediaType": "image/webp",
+      "sha256": "fac82efc649fa86e325381e6e494f19079aa8058ae65c4a839d5e4cddcb33b06",
+      "bytes": 26736
+    },
+    {
+      "id": "asset:constructed/faces/neutral-saboteur-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-saboteur-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-saboteur",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/41e89d947efdc2533e466f93c952054b72b6ea67a61bfcf1e2eb13e5b7615c35.webp",
+      "mediaType": "image/webp",
+      "sha256": "41e89d947efdc2533e466f93c952054b72b6ea67a61bfcf1e2eb13e5b7615c35",
+      "bytes": 27310
+    },
+    {
+      "id": "asset:constructed/faces/neutral-saboteur-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-saboteur-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-saboteur",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9102858bd14e395fc8b6985d58862997534234a8027c0b65d351e400597cd8f0.webp",
+      "mediaType": "image/webp",
+      "sha256": "9102858bd14e395fc8b6985d58862997534234a8027c0b65d351e400597cd8f0",
+      "bytes": 26456
+    },
+    {
+      "id": "asset:constructed/faces/neutral-security-guard-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-security-guard-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-security-guard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a140bb8a670dc6e1dc25f60fcd75adc043270e1f7f48447d4376b7cade97350c.webp",
+      "mediaType": "image/webp",
+      "sha256": "a140bb8a670dc6e1dc25f60fcd75adc043270e1f7f48447d4376b7cade97350c",
+      "bytes": 26116
+    },
+    {
+      "id": "asset:constructed/faces/neutral-security-guard-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-security-guard-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-security-guard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b9f4b96ec70fcfe8e0c0a9f90a6f3f0fd6d164057bd308c816b5cc515c3a6bd2.webp",
+      "mediaType": "image/webp",
+      "sha256": "b9f4b96ec70fcfe8e0c0a9f90a6f3f0fd6d164057bd308c816b5cc515c3a6bd2",
+      "bytes": 25650
+    },
+    {
+      "id": "asset:constructed/faces/neutral-security-guard-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-security-guard-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-security-guard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cca8b5f313204530f0f132c623b6e7362963de17a905b421ef94088f9bb32250.webp",
+      "mediaType": "image/webp",
+      "sha256": "cca8b5f313204530f0f132c623b6e7362963de17a905b421ef94088f9bb32250",
+      "bytes": 25796
+    },
+    {
+      "id": "asset:constructed/faces/neutral-security-guard-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-security-guard-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-security-guard",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/981afaba6145c3d1e2946753e855b7c105ff3509f63c5a7eafb7b90708571374.webp",
+      "mediaType": "image/webp",
+      "sha256": "981afaba6145c3d1e2946753e855b7c105ff3509f63c5a7eafb7b90708571374",
+      "bytes": 25748
+    },
+    {
+      "id": "asset:constructed/faces/neutral-sergeant-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-sergeant-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-sergeant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1dab893df1c78a11b79ec7ea1a056f1169919560d85cf6ebadc5eb8955878b3c.webp",
+      "mediaType": "image/webp",
+      "sha256": "1dab893df1c78a11b79ec7ea1a056f1169919560d85cf6ebadc5eb8955878b3c",
+      "bytes": 24684
+    },
+    {
+      "id": "asset:constructed/faces/neutral-sergeant-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-sergeant-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-sergeant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/85c48f8d7fe019016c48509a08f83d428f4031f26be163e3d96378cfbba0a042.webp",
+      "mediaType": "image/webp",
+      "sha256": "85c48f8d7fe019016c48509a08f83d428f4031f26be163e3d96378cfbba0a042",
+      "bytes": 24508
+    },
+    {
+      "id": "asset:constructed/faces/neutral-sergeant-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-sergeant-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-sergeant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ba90f3b60bd4252c02033820f9fe2b6e6fb17b5d92d465962277477d6f4f326d.webp",
+      "mediaType": "image/webp",
+      "sha256": "ba90f3b60bd4252c02033820f9fe2b6e6fb17b5d92d465962277477d6f4f326d",
+      "bytes": 24816
+    },
+    {
+      "id": "asset:constructed/faces/neutral-sergeant-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-sergeant-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-sergeant",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/22cc1b212f7b4a1016b07e93c3e2af240e9209bdfee3a43a29c8428d4b9db7c9.webp",
+      "mediaType": "image/webp",
+      "sha256": "22cc1b212f7b4a1016b07e93c3e2af240e9209bdfee3a43a29c8428d4b9db7c9",
+      "bytes": 24358
+    },
+    {
+      "id": "asset:constructed/faces/neutral-smoke-bomb-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-smoke-bomb",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/da34bb5ac1a96c1d1a1fb8d0eb3158f9c2953d4ce737c7ae5d249cc086e2ace5.webp",
+      "mediaType": "image/webp",
+      "sha256": "da34bb5ac1a96c1d1a1fb8d0eb3158f9c2953d4ce737c7ae5d249cc086e2ace5",
+      "bytes": 27102
+    },
+    {
+      "id": "asset:constructed/faces/neutral-smoke-bomb-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-smoke-bomb",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1786c1f06584952eb34b1bff2aceab97ddff5f8af5fc0532136a465b059c3c48.webp",
+      "mediaType": "image/webp",
+      "sha256": "1786c1f06584952eb34b1bff2aceab97ddff5f8af5fc0532136a465b059c3c48",
+      "bytes": 26866
+    },
+    {
+      "id": "asset:constructed/faces/neutral-smoke-bomb-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-smoke-bomb",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/94cf70ac05d145d9238844ecfdca11be5c7026ac3c9044ba5120d0606491a45e.webp",
+      "mediaType": "image/webp",
+      "sha256": "94cf70ac05d145d9238844ecfdca11be5c7026ac3c9044ba5120d0606491a45e",
+      "bytes": 27522
+    },
+    {
+      "id": "asset:constructed/faces/neutral-smoke-bomb-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-smoke-bomb",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3fc8f63e4141d894885c985a8568d942889f3240884bb413dbea1dc9c9cc387c.webp",
+      "mediaType": "image/webp",
+      "sha256": "3fc8f63e4141d894885c985a8568d942889f3240884bb413dbea1dc9c9cc387c",
+      "bytes": 26684
+    },
+    {
+      "id": "asset:constructed/faces/neutral-soldier-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-soldier-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-soldier",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e10488883e79344a7884d1db759e0f7bf15fbe204bb4bc638cfe6e9fb66f03da.webp",
+      "mediaType": "image/webp",
+      "sha256": "e10488883e79344a7884d1db759e0f7bf15fbe204bb4bc638cfe6e9fb66f03da",
+      "bytes": 24614
+    },
+    {
+      "id": "asset:constructed/faces/neutral-soldier-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-soldier-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-soldier",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6ae9deb4888a585409a50217f351d2cc5cf69714016831e9f6a716b0fc74bc78.webp",
+      "mediaType": "image/webp",
+      "sha256": "6ae9deb4888a585409a50217f351d2cc5cf69714016831e9f6a716b0fc74bc78",
+      "bytes": 24576
+    },
+    {
+      "id": "asset:constructed/faces/neutral-soldier-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-soldier-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-soldier",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c907ea08d933961ea444c60f4e3bbfb13ac04007e8098d3ab246bb172e184764.webp",
+      "mediaType": "image/webp",
+      "sha256": "c907ea08d933961ea444c60f4e3bbfb13ac04007e8098d3ab246bb172e184764",
+      "bytes": 24850
+    },
+    {
+      "id": "asset:constructed/faces/neutral-soldier-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-soldier-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-soldier",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cdee4e3fefac72ba79c6e9c7e36cf85b65674f7f7a922a867cfa3cfc0ed94c5c.webp",
+      "mediaType": "image/webp",
+      "sha256": "cdee4e3fefac72ba79c6e9c7e36cf85b65674f7f7a922a867cfa3cfc0ed94c5c",
+      "bytes": 24342
+    },
+    {
+      "id": "asset:constructed/faces/neutral-strategist-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-strategist-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-strategist",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ea57f47eb3d26508b8c51480a135686a7b256611615bf988c5170818119e21c9.webp",
+      "mediaType": "image/webp",
+      "sha256": "ea57f47eb3d26508b8c51480a135686a7b256611615bf988c5170818119e21c9",
+      "bytes": 26904
+    },
+    {
+      "id": "asset:constructed/faces/neutral-strategist-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-strategist-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-strategist",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1a1a3282e794f855a83e20189fd147b6ddbc7c4bc911c244a1cb0f1e32e5a967.webp",
+      "mediaType": "image/webp",
+      "sha256": "1a1a3282e794f855a83e20189fd147b6ddbc7c4bc911c244a1cb0f1e32e5a967",
+      "bytes": 26746
+    },
+    {
+      "id": "asset:constructed/faces/neutral-strategist-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-strategist-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-strategist",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/36185b6736ae57027661cb5c37c9564394f1be2b16115caf31a2aad3fba7e9d1.webp",
+      "mediaType": "image/webp",
+      "sha256": "36185b6736ae57027661cb5c37c9564394f1be2b16115caf31a2aad3fba7e9d1",
+      "bytes": 27588
+    },
+    {
+      "id": "asset:constructed/faces/neutral-strategist-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-strategist-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-strategist",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b3d3213fed0bef7b44ed2c4f3accd0ca7baa154cbf21185215ea9802633af5d2.webp",
+      "mediaType": "image/webp",
+      "sha256": "b3d3213fed0bef7b44ed2c4f3accd0ca7baa154cbf21185215ea9802633af5d2",
+      "bytes": 27280
+    },
+    {
+      "id": "asset:constructed/faces/neutral-think-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-think-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-think",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fed718f9ce01cbe27454f65d8d7e69a9f5c869eb6fd5ba66b6de033fe683a7db.webp",
+      "mediaType": "image/webp",
+      "sha256": "fed718f9ce01cbe27454f65d8d7e69a9f5c869eb6fd5ba66b6de033fe683a7db",
+      "bytes": 23892
+    },
+    {
+      "id": "asset:constructed/faces/neutral-think-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-think-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-think",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ff443b92c5abbda3293c2a208fc32ba498c35ab86523bec6b045eb464dad19e0.webp",
+      "mediaType": "image/webp",
+      "sha256": "ff443b92c5abbda3293c2a208fc32ba498c35ab86523bec6b045eb464dad19e0",
+      "bytes": 23768
+    },
+    {
+      "id": "asset:constructed/faces/neutral-think-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-think-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-think",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f03381dd3b11410f188e27691718e8872506d5d61b0c9341ecc42b589b95f02a.webp",
+      "mediaType": "image/webp",
+      "sha256": "f03381dd3b11410f188e27691718e8872506d5d61b0c9341ecc42b589b95f02a",
+      "bytes": 23866
+    },
+    {
+      "id": "asset:constructed/faces/neutral-think-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-think-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-think",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/bae3a3f9fe29c222508b7b11fcff37ea774e3f73f9dbe57b615c360673c03c4e.webp",
+      "mediaType": "image/webp",
+      "sha256": "bae3a3f9fe29c222508b7b11fcff37ea774e3f73f9dbe57b615c360673c03c4e",
+      "bytes": 23498
+    },
+    {
+      "id": "asset:constructed/faces/neutral-tower-shield-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-tower-shield-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-tower-shield",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/04ca0983c0fd47a1bc1068b048e75377f4ad0fa67bd3eb50d6ce05c688e0e1e2.webp",
+      "mediaType": "image/webp",
+      "sha256": "04ca0983c0fd47a1bc1068b048e75377f4ad0fa67bd3eb50d6ce05c688e0e1e2",
+      "bytes": 27968
+    },
+    {
+      "id": "asset:constructed/faces/neutral-tower-shield-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-tower-shield-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-tower-shield",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5e57af93e6fd9cda00af324bf5b8fdb6f8ebfb0f146db45a89d69b877b14f298.webp",
+      "mediaType": "image/webp",
+      "sha256": "5e57af93e6fd9cda00af324bf5b8fdb6f8ebfb0f146db45a89d69b877b14f298",
+      "bytes": 27814
+    },
+    {
+      "id": "asset:constructed/faces/neutral-tower-shield-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-tower-shield-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-tower-shield",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4cfa5d1daa44308a04343c0f478c3d494f9447226ce4b323a8e1039a8a561573.webp",
+      "mediaType": "image/webp",
+      "sha256": "4cfa5d1daa44308a04343c0f478c3d494f9447226ce4b323a8e1039a8a561573",
+      "bytes": 28028
+    },
+    {
+      "id": "asset:constructed/faces/neutral-tower-shield-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-tower-shield-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-tower-shield",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a33e9273de78e4bfd1d4970ab71730eda8475ea7afdcd3811e69cc67dc9c4925.webp",
+      "mediaType": "image/webp",
+      "sha256": "a33e9273de78e4bfd1d4970ab71730eda8475ea7afdcd3811e69cc67dc9c4925",
+      "bytes": 27534
+    },
+    {
+      "id": "asset:constructed/faces/neutral-wrestler-clubs.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-wrestler-clubs.webp",
+      "associations": [
+        {
+          "object": "neutral-wrestler",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2d51c4bd640fbfc9635e65228284656d9d3c7564bb0b2f7eb37617152e5f556d.webp",
+      "mediaType": "image/webp",
+      "sha256": "2d51c4bd640fbfc9635e65228284656d9d3c7564bb0b2f7eb37617152e5f556d",
+      "bytes": 26334
+    },
+    {
+      "id": "asset:constructed/faces/neutral-wrestler-diamonds.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-wrestler-diamonds.webp",
+      "associations": [
+        {
+          "object": "neutral-wrestler",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/852988e779d8b4f922ecafa00f46590b7ab1bb2e4fc2dd587dc41af82344b926.webp",
+      "mediaType": "image/webp",
+      "sha256": "852988e779d8b4f922ecafa00f46590b7ab1bb2e4fc2dd587dc41af82344b926",
+      "bytes": 26176
+    },
+    {
+      "id": "asset:constructed/faces/neutral-wrestler-hearts.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-wrestler-hearts.webp",
+      "associations": [
+        {
+          "object": "neutral-wrestler",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c07b6e685caf9f5e273bd2933fe1b6b1e3ca610ece118456065301da1062fcc3.webp",
+      "mediaType": "image/webp",
+      "sha256": "c07b6e685caf9f5e273bd2933fe1b6b1e3ca610ece118456065301da1062fcc3",
+      "bytes": 26352
+    },
+    {
+      "id": "asset:constructed/faces/neutral-wrestler-spades.webp",
+      "source": "/assets/gauntlet/constructed/faces/neutral-wrestler-spades.webp",
+      "associations": [
+        {
+          "object": "neutral-wrestler",
+          "usage": "card-face"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/02d816d2bc282ea4e8d1524f4312c61fcb2aecbf415b07faf8ea44efd3ae6c86.webp",
+      "mediaType": "image/webp",
+      "sha256": "02d816d2bc282ea4e8d1524f4312c61fcb2aecbf415b07faf8ea44efd3ae6c86",
+      "bytes": 26212
+    },
+    {
       "id": "asset:constructed/faces/rumin-aurelian-clawblade-clubs.webp",
       "source": "/assets/gauntlet/constructed/faces/rumin-aurelian-clawblade-clubs.webp",
       "associations": [
@@ -9020,6 +10028,402 @@
       "mediaType": "image/webp",
       "sha256": "f6577fcc5f2fd9a6819a015f9eb48c9b37aa8c9ff6a3815b5269fc175f09cc62",
       "bytes": 56804
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-assembly-station.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-assembly-station.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.278.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.279.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-assembly-station",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/45a2a6d30eb3cd6084f53b342d04580f9b590f8b23fb4c90e518f95b3d03ecdc.webp",
+      "mediaType": "image/webp",
+      "sha256": "45a2a6d30eb3cd6084f53b342d04580f9b590f8b23fb4c90e518f95b3d03ecdc",
+      "bytes": 42220
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-bodyguard.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-bodyguard.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.258.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.259.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-bodyguard",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/90fb1d0abf087bc78d37ffb58f2fcfdcca16ab80b67c6271efd71489ca80f94b.webp",
+      "mediaType": "image/webp",
+      "sha256": "90fb1d0abf087bc78d37ffb58f2fcfdcca16ab80b67c6271efd71489ca80f94b",
+      "bytes": 42320
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-field-marshal.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-field-marshal.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.270.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.271.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-field-marshal",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5e60e7762ca0e615875eedee960e8dfd8838651ab0f77e04bd3f0a47f05fc0e8.webp",
+      "mediaType": "image/webp",
+      "sha256": "5e60e7762ca0e615875eedee960e8dfd8838651ab0f77e04bd3f0a47f05fc0e8",
+      "bytes": 40770
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-holy-ground.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.286.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.287.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-holy-ground",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a9819b218f8c050b2f400a8bc82c11eafc040de75580ffa0cd3cf6ebb2e0c584.webp",
+      "mediaType": "image/webp",
+      "sha256": "a9819b218f8c050b2f400a8bc82c11eafc040de75580ffa0cd3cf6ebb2e0c584",
+      "bytes": 42242
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-hospital.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-hospital.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.274.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.275.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-hospital",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f55b92183d596e8044645ec02570830f4ee9272c03cff54a95759197486f7361.webp",
+      "mediaType": "image/webp",
+      "sha256": "f55b92183d596e8044645ec02570830f4ee9272c03cff54a95759197486f7361",
+      "bytes": 39632
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-library.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-library.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.276.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.277.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-library",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9f69e0e9eed9a28695fa9f265bdeb5525cc0e4162b0a57c9b19edc28294a9fb0.webp",
+      "mediaType": "image/webp",
+      "sha256": "9f69e0e9eed9a28695fa9f265bdeb5525cc0e4162b0a57c9b19edc28294a9fb0",
+      "bytes": 40068
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-lieutenant.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-lieutenant.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.256.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.257.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-lieutenant",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/aad67759051a014c7c77e7fb428fbb43df0c07d844cc12cc44dba51287f51b17.webp",
+      "mediaType": "image/webp",
+      "sha256": "aad67759051a014c7c77e7fb428fbb43df0c07d844cc12cc44dba51287f51b17",
+      "bytes": 39754
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-longsword.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-longsword.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.282.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.283.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-longsword",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eb8284d6e111fc80fdea182472e658d03e62ea9842488c5c6dc0c7778a44ff1e.webp",
+      "mediaType": "image/webp",
+      "sha256": "eb8284d6e111fc80fdea182472e658d03e62ea9842488c5c6dc0c7778a44ff1e",
+      "bytes": 41968
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-officer.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-officer.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.260.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.261.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-officer",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/49b5ec0b6f93de7e464f81a9ea60a502bccf994f00700e9626cddfa781b6baa2.webp",
+      "mediaType": "image/webp",
+      "sha256": "49b5ec0b6f93de7e464f81a9ea60a502bccf994f00700e9626cddfa781b6baa2",
+      "bytes": 40264
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-saboteur.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-saboteur.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.264.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.265.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-saboteur",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4950957e18e4498cae356dfa47c1a341f35f096a074eb0360dde8f75b4732adc.webp",
+      "mediaType": "image/webp",
+      "sha256": "4950957e18e4498cae356dfa47c1a341f35f096a074eb0360dde8f75b4732adc",
+      "bytes": 39930
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-security-guard.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-security-guard.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.268.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.269.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-security-guard",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/633f01b31b8aa738679cb6620ae7b718cae5115056b73aa2cdbd7a4dd264d21d.webp",
+      "mediaType": "image/webp",
+      "sha256": "633f01b31b8aa738679cb6620ae7b718cae5115056b73aa2cdbd7a4dd264d21d",
+      "bytes": 43574
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-sergeant.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-sergeant.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.254.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.255.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-sergeant",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/090e9fa800c88e53fab84d941e3b6f0624080b1a2e706cad502b7b8614e4114f.webp",
+      "mediaType": "image/webp",
+      "sha256": "090e9fa800c88e53fab84d941e3b6f0624080b1a2e706cad502b7b8614e4114f",
+      "bytes": 39420
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-smoke-bomb.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-smoke-bomb.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.280.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.281.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-smoke-bomb",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d7cb63f39a22757c6755124716f8b3ed98eb624328424e099d60446b89574317.webp",
+      "mediaType": "image/webp",
+      "sha256": "d7cb63f39a22757c6755124716f8b3ed98eb624328424e099d60446b89574317",
+      "bytes": 40176
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-soldier.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-soldier.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.252.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.253.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-soldier",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f40e1b732e6feac75eb141e3bfb5ccdf09330807ca380f24e167cf20b62e415b.webp",
+      "mediaType": "image/webp",
+      "sha256": "f40e1b732e6feac75eb141e3bfb5ccdf09330807ca380f24e167cf20b62e415b",
+      "bytes": 39706
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-strategist.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-strategist.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.266.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.267.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-strategist",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c095272932dde7083ccf328d0919633cd03c1e797aec8e9baad5797738dca2d8.webp",
+      "mediaType": "image/webp",
+      "sha256": "c095272932dde7083ccf328d0919633cd03c1e797aec8e9baad5797738dca2d8",
+      "bytes": 39188
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-think.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-think.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.272.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.273.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-think",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/29f7f1b058c402e84e014cbfd9fc007819a184fd280462b53fae352b2dded1f3.webp",
+      "mediaType": "image/webp",
+      "sha256": "29f7f1b058c402e84e014cbfd9fc007819a184fd280462b53fae352b2dded1f3",
+      "bytes": 39454
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-tower-shield.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.284.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.285.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-tower-shield",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4bb813c83752920483e25e3446ac5b6a0e68b50f90f993e0f88ac03fd7b3c2a8.webp",
+      "mediaType": "image/webp",
+      "sha256": "4bb813c83752920483e25e3446ac5b6a0e68b50f90f993e0f88ac03fd7b3c2a8",
+      "bytes": 42468
+    },
+    {
+      "id": "asset:constructed/neutral/neutral-wrestler.webp",
+      "source": "/assets/gauntlet/constructed/neutral/neutral-wrestler.webp",
+      "associations": [
+        {
+          "object": "content.collectorVariants.262.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.263.art",
+          "usage": "art"
+        },
+        {
+          "object": "neutral-wrestler",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4fb7dea70f60a587b65a7c6cbe47659f3f1843444827c54585a2c48705432ebe.webp",
+      "mediaType": "image/webp",
+      "sha256": "4fb7dea70f60a587b65a7c6cbe47659f3f1843444827c54585a2c48705432ebe",
+      "bytes": 40164
     },
     {
       "id": "asset:constructed/rumin/rumin-aurelian-clawblade.webp",
@@ -15340,8 +16744,20 @@
       "source": "/assets/gauntlet/voices/rumin-ch04-before-03-kaiser.mp3",
       "associations": [
         {
+          "object": "content.factions.0.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
           "object": "content.campaigns.rumin.chapters.3.dialogueAudio.2",
           "usage": "2"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.selected",
+          "usage": "selected"
         }
       ],
       "path": "/assets/gauntlet/releases/77274201b3335df16e1f4bd9329add1fd88dbafc43f8f16fbdb9e80110807856.mp3",
@@ -17090,8 +18506,20 @@
       "source": "/assets/gauntlet/voices/sheen-ch04-before-02-leafen-gao.mp3",
       "associations": [
         {
+          "object": "content.factions.1.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
           "object": "content.campaigns.sheen.chapters.3.dialogueAudio.1",
           "usage": "1"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.selected",
+          "usage": "selected"
         }
       ],
       "path": "/assets/gauntlet/releases/b3a22e8470f9432a65fdb86c946077aa0001f3a0fbe4c954db40bf16be995d74.mp3",
@@ -18789,6 +20217,78 @@
     "indela-elemental-array:hearts": "/assets/gauntlet/constructed/faces/indela-elemental-array-hearts.webp",
     "indela-elemental-array:diamonds": "/assets/gauntlet/constructed/faces/indela-elemental-array-diamonds.webp",
     "indela-elemental-array:clubs": "/assets/gauntlet/constructed/faces/indela-elemental-array-clubs.webp",
+    "neutral-soldier:spades": "/assets/gauntlet/constructed/faces/neutral-soldier-spades.webp",
+    "neutral-soldier:hearts": "/assets/gauntlet/constructed/faces/neutral-soldier-hearts.webp",
+    "neutral-soldier:diamonds": "/assets/gauntlet/constructed/faces/neutral-soldier-diamonds.webp",
+    "neutral-soldier:clubs": "/assets/gauntlet/constructed/faces/neutral-soldier-clubs.webp",
+    "neutral-sergeant:spades": "/assets/gauntlet/constructed/faces/neutral-sergeant-spades.webp",
+    "neutral-sergeant:hearts": "/assets/gauntlet/constructed/faces/neutral-sergeant-hearts.webp",
+    "neutral-sergeant:diamonds": "/assets/gauntlet/constructed/faces/neutral-sergeant-diamonds.webp",
+    "neutral-sergeant:clubs": "/assets/gauntlet/constructed/faces/neutral-sergeant-clubs.webp",
+    "neutral-lieutenant:spades": "/assets/gauntlet/constructed/faces/neutral-lieutenant-spades.webp",
+    "neutral-lieutenant:hearts": "/assets/gauntlet/constructed/faces/neutral-lieutenant-hearts.webp",
+    "neutral-lieutenant:diamonds": "/assets/gauntlet/constructed/faces/neutral-lieutenant-diamonds.webp",
+    "neutral-lieutenant:clubs": "/assets/gauntlet/constructed/faces/neutral-lieutenant-clubs.webp",
+    "neutral-bodyguard:spades": "/assets/gauntlet/constructed/faces/neutral-bodyguard-spades.webp",
+    "neutral-bodyguard:hearts": "/assets/gauntlet/constructed/faces/neutral-bodyguard-hearts.webp",
+    "neutral-bodyguard:diamonds": "/assets/gauntlet/constructed/faces/neutral-bodyguard-diamonds.webp",
+    "neutral-bodyguard:clubs": "/assets/gauntlet/constructed/faces/neutral-bodyguard-clubs.webp",
+    "neutral-officer:spades": "/assets/gauntlet/constructed/faces/neutral-officer-spades.webp",
+    "neutral-officer:hearts": "/assets/gauntlet/constructed/faces/neutral-officer-hearts.webp",
+    "neutral-officer:diamonds": "/assets/gauntlet/constructed/faces/neutral-officer-diamonds.webp",
+    "neutral-officer:clubs": "/assets/gauntlet/constructed/faces/neutral-officer-clubs.webp",
+    "neutral-wrestler:spades": "/assets/gauntlet/constructed/faces/neutral-wrestler-spades.webp",
+    "neutral-wrestler:hearts": "/assets/gauntlet/constructed/faces/neutral-wrestler-hearts.webp",
+    "neutral-wrestler:diamonds": "/assets/gauntlet/constructed/faces/neutral-wrestler-diamonds.webp",
+    "neutral-wrestler:clubs": "/assets/gauntlet/constructed/faces/neutral-wrestler-clubs.webp",
+    "neutral-saboteur:spades": "/assets/gauntlet/constructed/faces/neutral-saboteur-spades.webp",
+    "neutral-saboteur:hearts": "/assets/gauntlet/constructed/faces/neutral-saboteur-hearts.webp",
+    "neutral-saboteur:diamonds": "/assets/gauntlet/constructed/faces/neutral-saboteur-diamonds.webp",
+    "neutral-saboteur:clubs": "/assets/gauntlet/constructed/faces/neutral-saboteur-clubs.webp",
+    "neutral-strategist:spades": "/assets/gauntlet/constructed/faces/neutral-strategist-spades.webp",
+    "neutral-strategist:hearts": "/assets/gauntlet/constructed/faces/neutral-strategist-hearts.webp",
+    "neutral-strategist:diamonds": "/assets/gauntlet/constructed/faces/neutral-strategist-diamonds.webp",
+    "neutral-strategist:clubs": "/assets/gauntlet/constructed/faces/neutral-strategist-clubs.webp",
+    "neutral-security-guard:spades": "/assets/gauntlet/constructed/faces/neutral-security-guard-spades.webp",
+    "neutral-security-guard:hearts": "/assets/gauntlet/constructed/faces/neutral-security-guard-hearts.webp",
+    "neutral-security-guard:diamonds": "/assets/gauntlet/constructed/faces/neutral-security-guard-diamonds.webp",
+    "neutral-security-guard:clubs": "/assets/gauntlet/constructed/faces/neutral-security-guard-clubs.webp",
+    "neutral-field-marshal:spades": "/assets/gauntlet/constructed/faces/neutral-field-marshal-spades.webp",
+    "neutral-field-marshal:hearts": "/assets/gauntlet/constructed/faces/neutral-field-marshal-hearts.webp",
+    "neutral-field-marshal:diamonds": "/assets/gauntlet/constructed/faces/neutral-field-marshal-diamonds.webp",
+    "neutral-field-marshal:clubs": "/assets/gauntlet/constructed/faces/neutral-field-marshal-clubs.webp",
+    "neutral-think:spades": "/assets/gauntlet/constructed/faces/neutral-think-spades.webp",
+    "neutral-think:hearts": "/assets/gauntlet/constructed/faces/neutral-think-hearts.webp",
+    "neutral-think:diamonds": "/assets/gauntlet/constructed/faces/neutral-think-diamonds.webp",
+    "neutral-think:clubs": "/assets/gauntlet/constructed/faces/neutral-think-clubs.webp",
+    "neutral-hospital:spades": "/assets/gauntlet/constructed/faces/neutral-hospital-spades.webp",
+    "neutral-hospital:hearts": "/assets/gauntlet/constructed/faces/neutral-hospital-hearts.webp",
+    "neutral-hospital:diamonds": "/assets/gauntlet/constructed/faces/neutral-hospital-diamonds.webp",
+    "neutral-hospital:clubs": "/assets/gauntlet/constructed/faces/neutral-hospital-clubs.webp",
+    "neutral-library:spades": "/assets/gauntlet/constructed/faces/neutral-library-spades.webp",
+    "neutral-library:hearts": "/assets/gauntlet/constructed/faces/neutral-library-hearts.webp",
+    "neutral-library:diamonds": "/assets/gauntlet/constructed/faces/neutral-library-diamonds.webp",
+    "neutral-library:clubs": "/assets/gauntlet/constructed/faces/neutral-library-clubs.webp",
+    "neutral-assembly-station:spades": "/assets/gauntlet/constructed/faces/neutral-assembly-station-spades.webp",
+    "neutral-assembly-station:hearts": "/assets/gauntlet/constructed/faces/neutral-assembly-station-hearts.webp",
+    "neutral-assembly-station:diamonds": "/assets/gauntlet/constructed/faces/neutral-assembly-station-diamonds.webp",
+    "neutral-assembly-station:clubs": "/assets/gauntlet/constructed/faces/neutral-assembly-station-clubs.webp",
+    "neutral-smoke-bomb:spades": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-spades.webp",
+    "neutral-smoke-bomb:hearts": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-hearts.webp",
+    "neutral-smoke-bomb:diamonds": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-diamonds.webp",
+    "neutral-smoke-bomb:clubs": "/assets/gauntlet/constructed/faces/neutral-smoke-bomb-clubs.webp",
+    "neutral-longsword:spades": "/assets/gauntlet/constructed/faces/neutral-longsword-spades.webp",
+    "neutral-longsword:hearts": "/assets/gauntlet/constructed/faces/neutral-longsword-hearts.webp",
+    "neutral-longsword:diamonds": "/assets/gauntlet/constructed/faces/neutral-longsword-diamonds.webp",
+    "neutral-longsword:clubs": "/assets/gauntlet/constructed/faces/neutral-longsword-clubs.webp",
+    "neutral-tower-shield:spades": "/assets/gauntlet/constructed/faces/neutral-tower-shield-spades.webp",
+    "neutral-tower-shield:hearts": "/assets/gauntlet/constructed/faces/neutral-tower-shield-hearts.webp",
+    "neutral-tower-shield:diamonds": "/assets/gauntlet/constructed/faces/neutral-tower-shield-diamonds.webp",
+    "neutral-tower-shield:clubs": "/assets/gauntlet/constructed/faces/neutral-tower-shield-clubs.webp",
+    "neutral-holy-ground:spades": "/assets/gauntlet/constructed/faces/neutral-holy-ground-spades.webp",
+    "neutral-holy-ground:hearts": "/assets/gauntlet/constructed/faces/neutral-holy-ground-hearts.webp",
+    "neutral-holy-ground:diamonds": "/assets/gauntlet/constructed/faces/neutral-holy-ground-diamonds.webp",
+    "neutral-holy-ground:clubs": "/assets/gauntlet/constructed/faces/neutral-holy-ground-clubs.webp",
     "ordinary:basic-10-clubs": "/assets/gauntlet/playing-cards/basic-10-clubs.webp",
     "ordinary:basic-10-diamonds": "/assets/gauntlet/playing-cards/basic-10-diamonds.webp",
     "ordinary:basic-10-hearts": "/assets/gauntlet/playing-cards/basic-10-hearts.webp",
@@ -19176,7 +20676,25 @@
     "indela-glacial-insight": "/assets/gauntlet/constructed/indela/indela-glacial-insight.webp",
     "indela-ring-of-fire": "/assets/gauntlet/constructed/indela/indela-ring-of-fire.webp",
     "indela-frost-nova": "/assets/gauntlet/constructed/indela/indela-frost-nova.webp",
-    "indela-elemental-array": "/assets/gauntlet/constructed/indela/indela-elemental-array.webp"
+    "indela-elemental-array": "/assets/gauntlet/constructed/indela/indela-elemental-array.webp",
+    "neutral-soldier": "/assets/gauntlet/constructed/neutral/neutral-soldier.webp",
+    "neutral-sergeant": "/assets/gauntlet/constructed/neutral/neutral-sergeant.webp",
+    "neutral-lieutenant": "/assets/gauntlet/constructed/neutral/neutral-lieutenant.webp",
+    "neutral-bodyguard": "/assets/gauntlet/constructed/neutral/neutral-bodyguard.webp",
+    "neutral-officer": "/assets/gauntlet/constructed/neutral/neutral-officer.webp",
+    "neutral-wrestler": "/assets/gauntlet/constructed/neutral/neutral-wrestler.webp",
+    "neutral-saboteur": "/assets/gauntlet/constructed/neutral/neutral-saboteur.webp",
+    "neutral-strategist": "/assets/gauntlet/constructed/neutral/neutral-strategist.webp",
+    "neutral-security-guard": "/assets/gauntlet/constructed/neutral/neutral-security-guard.webp",
+    "neutral-field-marshal": "/assets/gauntlet/constructed/neutral/neutral-field-marshal.webp",
+    "neutral-think": "/assets/gauntlet/constructed/neutral/neutral-think.webp",
+    "neutral-hospital": "/assets/gauntlet/constructed/neutral/neutral-hospital.webp",
+    "neutral-library": "/assets/gauntlet/constructed/neutral/neutral-library.webp",
+    "neutral-assembly-station": "/assets/gauntlet/constructed/neutral/neutral-assembly-station.webp",
+    "neutral-smoke-bomb": "/assets/gauntlet/constructed/neutral/neutral-smoke-bomb.webp",
+    "neutral-longsword": "/assets/gauntlet/constructed/neutral/neutral-longsword.webp",
+    "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
+    "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-5d1a896cb78cd20f1a44c3dc7a27b9a621eeda04e72dd26c1a1e6b1496ec5d17"
+  "version": "gauntlet-assets-eb630c4ba3079a762cabb3477c12b83cee6150ebbd0ca2ba053c7237ee28b1fc"
 }

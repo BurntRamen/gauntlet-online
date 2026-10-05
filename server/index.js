@@ -141,6 +141,8 @@ const {
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
   MAX_REPLACEMENTS_PER_VALUE,
+  NEUTRAL_COLLECTION_CARDS,
+  NEUTRAL_FACTION_ID,
   PLAYING_DECK_VALUES,
   PAID_COLLECTOR_ACQUISITION,
   RUMIN_COLLECTION_CARDS,
@@ -465,7 +467,7 @@ const BOOSTER_PRODUCTS = {
     pool: "all-factions",
     cardCount: 12,
     artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
-    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.map((card) => card.factionId))],
+    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID).map((card) => card.factionId))],
     slots: ["common", "common", "common", "common", "common", "common", "uncommon", "uncommon", "uncommon", "rare", "rare", "wild"],
     description: "A 12-card free-play reward with at least one gameplay card from every faction that has a constructed catalog."
   },
@@ -761,6 +763,7 @@ function normalizeCollection(stats = {}) {
   const collection = stats.collection || {};
   const legacyCards = normalizeOwnershipCounts(collection.cards);
   const gameplayEntitlements = normalizeOwnershipCounts(collection.gameplayEntitlements);
+  for (const card of NEUTRAL_COLLECTION_CARDS) gameplayEntitlements[card.id] = Math.max(gameplayEntitlements[card.id] || 0, 1);
   for (const [gameplayCardId, count] of Object.entries(legacyCards)) {
     gameplayEntitlements[gameplayCardId] = Math.max(gameplayEntitlements[gameplayCardId] || 0, count);
   }
@@ -889,6 +892,7 @@ function normalizeDraftType(draftType) {
 function createDraftPack(ownerPlayer, factionIds) {
   const availableFactionIds = (factionIds || [])
     .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
+  if (NEUTRAL_COLLECTION_CARDS.length) availableFactionIds.push(NEUTRAL_FACTION_ID);
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   return {
     id: crypto.randomUUID(),
@@ -969,7 +973,7 @@ function filterValidReplacementCards(cards = [], factionId = null) {
   const occupiedSlots = new Set();
   return (Array.isArray(cards) ? cards : []).filter((card) => {
     if (!card) return false;
-    if (factionId && card.factionId !== factionId) return false;
+    if (factionId && card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) return false;
     const value = getReplacementCardValue(card);
     const suit = normalizeReplacementSuit(card);
     if (value == null || !suit) return false;
@@ -984,7 +988,7 @@ function filterValidReplacementCards(cards = [], factionId = null) {
 
 function validateReplacementCardSet(cards = [], { factionId = null, requireOneFaction = true } = {}) {
   const selectedCards = Array.isArray(cards) ? cards.filter(Boolean) : [];
-  const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+  const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter((id) => id && id !== NEUTRAL_FACTION_ID))];
   if (requireOneFaction && factionIds.length > 1) {
     throw new Error("Decks can only include cards from one faction.");
   }
@@ -1214,7 +1218,7 @@ function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
   } : stats.savedDraftDeck;
   if (!deck || !Array.isArray(deck.cards) || deck.cards.length === 0 || !deck.factionId) return null;
   const cards = filterValidReplacementCards(deck.cards, deck.factionId)
-    .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
+    .filter((card) => card && (card.factionId === deck.factionId || card.factionId === NEUTRAL_FACTION_ID) && Number.isFinite(Number(card.value)))
     .map((card) => getPlayableCollectionCard(card, {
       suit: normalizeReplacementSuit(card),
       replacementSuit: normalizeReplacementSuit(card)
@@ -1268,7 +1272,7 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
     .flatMap(([cardId, quantity]) => {
       const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
-      if (!card || card.factionId !== factionId || count <= 0) return [];
+      if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) || count <= 0) return [];
       const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
       return Array.from({ length: count }, () => {
         const suit = card.suit;
@@ -1380,7 +1384,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
     if (quantity <= 0) continue;
     const card = getCollectionCatalogCard(cardId);
-    if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
+    if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID)) throw new Error("Constructed decks can include one faction plus neutral Reath cards.");
     const value = getReplacementCardValue(card);
     if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
     if (quantity > 1) throw new Error(`${card.name} occupies only the ${value} of ${card.suit}; a deck can include it once.`);
@@ -2997,7 +3001,7 @@ function pickCollectionCard(factionId, rarity) {
 }
 
 function pickCollectionCardFromPool(rarity) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.rarity === rarity);
+  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID && card.rarity === rarity);
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
 }
@@ -7454,9 +7458,9 @@ function createGameFromLobby(roomState, options = {}) {
       suit: normalizeReplacementSuit(card),
       name: card.name,
       rank: String(card.value),
-      faction: faction.name,
-      factionId: faction.id,
-      image: card.image || faction.cardImage,
+      faction: card.factionId === NEUTRAL_FACTION_ID ? "Reath" : faction.name,
+      factionId: card.factionId || faction.id,
+      image: card.image || (card.factionId === NEUTRAL_FACTION_ID ? `/assets/gauntlet/constructed/neutral/${definitionId}.webp` : faction.cardImage),
       rarity: card.rarity || "common",
       type: card.type || "draft",
       text: card.text || "",

@@ -32,14 +32,14 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   const selected = slots.find((slot) => slot.key === selectedKey) || slots[0];
   const candidates = cards.filter((card) => Number(card.value) === selected.value && card.suit === selected.suit && Number(owned[card.id] || 0) > 0);
   const candidate = candidates.find((card) => card.id === candidateId) || selected.card;
-  const preview = candidate ? { ...candidate, factionId } : null;
+  const preview = candidate ? { ...candidate, factionId: candidate.factionId || factionId } : null;
   const variants = preview ? variantsByCard[preview.id] || [] : [];
   const presentationFor = (card) => {
     const finishes = variantsByCard[card?.id] || [];
     return finishes.find((variant) => variant.variantId === variantSelections[card?.id]) || finishes.find((variant) => variant.variantId === card?.defaultVariantId) || finishes[0];
   };
   const selectedVariant = presentationFor(preview);
-  const openZoom = (card) => setZoom({ card: { ...card, factionId }, presentation: presentationFor(card) });
+  const openZoom = (card) => setZoom({ card: { ...card, factionId: card?.factionId || factionId }, presentation: presentationFor(card) });
   const swaps = slots.filter((slot) => slot.card).length;
   const canUse = (card) => selected.card?.id === card.id || Number(quantities[card.id] || 0) === 0;
   const replace = (card) => {
@@ -82,7 +82,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
                 onClick={() => { setSelectedKey(slot.key); setCandidateId(""); }}>
                 {layout.cards ? <>
                   <span className="deck-slot-art">
-                    {slot.card ? <SpecialCardFace card={{ ...slot.card, factionId, suit: slot.suit }} presentation={presentationFor(slot.card)} /> : <>
+                    {slot.card ? <SpecialCardFace card={{ ...slot.card, factionId: slot.card.factionId || factionId, suit: slot.suit }} presentation={presentationFor(slot.card)} /> : <>
                       <b>{rankLabel(value)}<small>{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</small></b>
                       <span className="deck-slot-pip" aria-hidden="true">{DECK_SUITS.find((suit) => suit.id === slot.suit).symbol}</span>
                     </>}
@@ -136,13 +136,13 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
                   <button type="button" aria-pressed={layout.matches === "icons"} onClick={() => setLayout((current) => ({ ...current, matches: "icons" }))}><span aria-hidden="true">▦</span> Icons</button>
                 </div>
               </div>
-              {candidates.length === 0 && <p className="deck-no-candidates">No owned {faction.name} card is assigned to this exact rank and suit.</p>}
+              {candidates.length === 0 && <p className="deck-no-candidates">No owned card matches this rank and suit.</p>}
               <div className={"deck-matches view-" + layout.matches}>
                 {candidates.map((card) => {
                   const presentation = presentationFor(card);
                   return <div className={"deck-candidate rarity-" + card.rarity + (preview?.id === card.id ? " is-selected" : "")} key={card.id}>
                     <button type="button" className="deck-candidate-select" aria-label={"Preview " + card.name} aria-pressed={preview?.id === card.id} onClick={() => setCandidateId(card.id)}>
-                      {layout.matches === "icons" && <span className="deck-candidate-art"><SpecialCardFace card={{ ...card, factionId }} art={presentation?.art} presentation={presentation} /></span>}
+                      {layout.matches === "icons" && <span className="deck-candidate-art"><SpecialCardFace card={{ ...card, factionId: card.factionId || factionId }} art={presentation?.art} presentation={presentation} /></span>}
                       <span className="deck-candidate-label"><strong>{card.name}</strong><small>{rankLabel(card.value)}{DECK_SUITS.find((suit) => suit.id === card.suit)?.symbol} · {card.rarity}</small></span>
                     </button>
                     <div className="deck-candidate-actions">
