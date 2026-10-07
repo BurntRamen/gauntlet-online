@@ -333,6 +333,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 10px;
+  align-items: start;
 }
 .collector-library-card {
   display: grid;
@@ -355,6 +356,21 @@
 .collector-library-card .special-card-presentation {
   width: 100%;
   aspect-ratio: 5 / 7;
+  align-self: start;
+}
+
+/* Keep every catalog face on the same 5:7 baseline. The rules copy can make a
+   tile taller, but it must not stretch the neighboring card artwork with it. */
+.catalog-card-tile {
+  align-items: start;
+}
+
+.catalog-card-tile > .special-card-presentation {
+  width: 74px;
+  height: auto;
+  aspect-ratio: 5 / 7;
+  align-self: start;
+  margin: 0;
 }
 .collector-library-card > span,
 .collector-library-card > small {

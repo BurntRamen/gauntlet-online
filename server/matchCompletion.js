@@ -65,9 +65,11 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
       record: clone(consequence?.season?.record || null),
       rank: consequence?.season?.rank || null
     } : null,
+    event: consequence?.event ? clone(consequence.event) : null,
     rewards: {
       boosterCreditDelta: Number(consequence?.boosterCreditDelta || 0),
       reason: consequence?.boosterCreditReason || null,
+      cardStylesUnlocked: clone(consequence?.cardStylesUnlocked || []),
       achievementsUnlocked: clone(consequence?.achievementsUnlocked || []),
       cosmeticsUnlocked: clone(consequence?.cosmeticsUnlocked || [])
     },
