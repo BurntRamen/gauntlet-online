@@ -6,7 +6,9 @@ const buildDirectory = path.resolve(__dirname, "../client/build/static/js");
 const KIB = 1024;
 const budgets = {
   // Typed content presentation adds about 1 KiB to the production entry point.
-  mainGzip: 177 * KIB,
+  // The Events navigation and completion receipt add under 1 KiB; the full
+  // event hub remains in its own on-demand chunk.
+  mainGzip: 178 * KIB,
   // Focused player profiles and guarded metadata editing add ~1.7 KiB.
   // This chunk loads only in Admin; the player and initial-load limits stay fixed.
   adminGzip: 20 * KIB,

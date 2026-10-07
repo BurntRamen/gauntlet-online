@@ -54,6 +54,14 @@ function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = 
 validateAuthConfiguration();
 
 const { createSocketBoundary } = require("./socketBoundary");
+const {
+  EVENT_DEFINITIONS,
+  applyEventResult,
+  eventById,
+  normalizeEventProgress,
+  resignEventRun,
+  startEventRun
+} = require("./events");
 const express = require("express");
 const http = require("http");
 const fs = require("fs");
@@ -653,6 +661,13 @@ const WELCOME_COLLECTOR_PROVENANCE = Object.freeze({
 
 for (const variantId of WELCOME_COLLECTOR_VARIANT_IDS) {
   if (!getCollectorVariantById(variantId)?.paid) throw new Error(`Invalid welcome collector variant ${variantId}.`);
+}
+for (const event of EVENT_DEFINITIONS) {
+  for (const tier of event.rewardTiers) {
+    if (tier.cardStyleId && !getCollectorVariantById(tier.cardStyleId)?.paid) {
+      throw new Error(`Invalid event collector variant ${tier.cardStyleId}.`);
+    }
+  }
 }
 
 function emptyProgression() {
@@ -1713,7 +1728,8 @@ function publicAccount(account) {
     profile: publicAccountProfile(account),
     stats: publicAccountStats(stats),
     progression: progressionSummary(stats),
-    collection: collectionSummary(stats)
+    collection: collectionSummary(stats),
+    events: normalizeEventProgress(stats)
   };
 }
 
@@ -2414,6 +2430,18 @@ async function requireAccountRecord(req, res) {
   return { source: "local", store, account };
 }
 
+async function persistAccountContext(context, stats) {
+  const now = new Date().toISOString();
+  if (context.source === "supabase") {
+    await patchSupabaseAccount(context.account.id, { stats, last_seen_at: now });
+    return findSupabaseAccountById(context.account.id);
+  }
+  context.account.stats = stats;
+  context.account.lastSeenAt = now;
+  saveAccountStore(context.store);
+  return context.account;
+}
+
 function getLocalFriendPayload(store, account) {
   const friendIds = new Set(Array.isArray(account.friends) ? account.friends : []);
   const friends = store.accounts
@@ -2624,6 +2652,23 @@ function applyProgressionForResult(stats, result, context = {}) {
     unlockProgressionItem(progression, "cardBacks", "campaignMap");
   }
 
+  if (context.event?.eventId && context.event?.runId) {
+    const applied = applyEventResult(stats, context.event.eventId, context.event.runId, result, { now });
+    stats.events = applied.progress;
+    if (applied.rewards.length) {
+      const collection = normalizeCollection(stats);
+      for (const reward of applied.rewards) {
+        const credits = Math.max(0, Number(reward.boosterCredits || 0));
+        collection.packCredits += credits;
+        collection.earnedPackCredits += credits;
+        if (reward.cardStyleId && getCollectorVariantById(reward.cardStyleId)) {
+          collection.collectorVariants[reward.cardStyleId] = Math.max(1, Number(collection.collectorVariants[reward.cardStyleId] || 0));
+        }
+      }
+      stats.collection = collection;
+    }
+  }
+
   stats.progression = progression;
 }
 
@@ -2650,10 +2695,16 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
   const seasonMatch = context.matchId
     ? afterSeason?.recentMatches?.find((entry) => entry.matchId === context.matchId) || null
     : null;
+  const beforeEventRun = context.event ? normalizeEventProgress(beforeStats).runs[context.event.eventId] : null;
+  const afterEventRun = context.event ? normalizeEventProgress(afterStats).runs[context.event.eventId] : null;
+  const cardStylesUnlocked = Object.keys(afterCollection.collectorVariants || {})
+    .filter((id) => !beforeCollection.collectorVariants?.[id]);
+  const boosterCreditDelta = afterCollection.packCredits - beforeCollection.packCredits;
   return {
     result,
-    boosterCreditDelta: afterCollection.packCredits - beforeCollection.packCredits,
-    boosterCreditReason: firstClear ? "campaign_first_clear" : null,
+    boosterCreditDelta,
+    boosterCreditReason: firstClear ? "campaign_first_clear" : (context.event && boosterCreditDelta > 0 ? "event_win_milestone" : null),
+    cardStylesUnlocked,
     achievementsUnlocked,
     cosmeticsUnlocked,
     campaign: context.campaign ? {
@@ -2671,6 +2722,16 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
       pointsDelta: Number(afterSeason?.points || 0) - Number(beforeSeason?.points || 0),
       record: buildSeasonProfile(afterStats, null, context.season).record
     } : null,
+    event: context.event ? {
+      eventId: context.event.eventId,
+      runId: context.event.runId,
+      result,
+      winsBefore: Number(beforeEventRun?.wins || 0),
+      wins: Number(afterEventRun?.wins || 0),
+      losses: Number(afterEventRun?.losses || 0),
+      status: afterEventRun?.status || null,
+      cardStylesUnlocked
+    } : null,
     progression: { campaign: afterProgression.campaign }
   };
 }
@@ -2683,7 +2744,8 @@ function publicAccountProjection(account) {
     profile: publicAccountProfile(account),
     stats: publicAccountStats(account.stats || {}),
     progression: progressionSummary(account.stats || {}),
-    collection: collectionSummary(account.stats || {})
+    collection: collectionSummary(account.stats || {}),
+    events: normalizeEventProgress(account.stats || {})
   };
 }
 
@@ -3603,6 +3665,54 @@ app.get("/api/auth/me", async (req, res) => {
   res.json({ account });
 });
 
+app.get("/api/events", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ events: EVENT_DEFINITIONS });
+});
+
+app.post("/api/events/:eventId/join", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const event = eventById(String(req.params.eventId || ""));
+  if (!event) {
+    res.status(404).json({ error: "Event not found." });
+    return;
+  }
+  try {
+    const stats = context.account.stats || {};
+    const started = startEventRun(stats, event.id);
+    if (started.created) {
+      const collection = normalizeCollection(stats);
+      const entryCost = Math.max(0, Number(event.entryCost?.amount || 0));
+      if (collection.packCredits < entryCost) {
+        res.status(409).json({ error: `This event costs ${entryCost} booster credit${entryCost === 1 ? "" : "s"}.` });
+        return;
+      }
+      collection.packCredits -= entryCost;
+      stats.collection = collection;
+    }
+    stats.events = started.progress;
+    const updated = await persistAccountContext(context, stats);
+    res.json({ account: publicAccount(updated), event, run: started.run, created: started.created });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not join the event." });
+  }
+});
+
+app.post("/api/events/:eventId/resign", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const stats = context.account.stats || {};
+    const resigned = resignEventRun(stats, String(req.params.eventId || ""));
+    stats.events = resigned.progress;
+    const updated = await persistAccountContext(context, stats);
+    res.json({ account: publicAccount(updated), run: resigned.run });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not resign the event run." });
+  }
+});
+
 app.put("/api/account/avatar", async (req, res) => {
   const context = await requireAccountRecord(req, res);
   if (!context) return;
@@ -4323,6 +4433,7 @@ const rooms = new Map();
 let roomStatePersistTimer = null;
 let roomRecoveryInitialized = false;
 const matchmakingQueue = [];
+const eventMatchmakingQueues = new Map();
 const draftLeagueQueues = {
   player: [],
   bot: [],
@@ -4861,6 +4972,15 @@ function isDraftRoom(roomState) {
 function removeFromMatchmaking(socketId) {
   const index = matchmakingQueue.findIndex((entry) => entry.socketId === socketId);
   if (index >= 0) matchmakingQueue.splice(index, 1);
+  removeFromEventMatchmaking(socketId);
+}
+
+function removeFromEventMatchmaking(socketId) {
+  for (const [eventId, queue] of eventMatchmakingQueues) {
+    const index = queue.findIndex((entry) => entry.socketId === socketId);
+    if (index >= 0) queue.splice(index, 1);
+    if (!queue.length) eventMatchmakingQueues.delete(eventId);
+  }
 }
 
 function removeFromDraftLeague(socketId) {
@@ -4907,11 +5027,15 @@ function findDraftLeagueMatchForEntry(entry) {
   return findMatchForEntryInQueue(entry, queue.filter((candidate) => candidate.bestOf === entry.bestOf));
 }
 
-function createMatchedRoom(entryA, entryB) {
+function findEventMatchForEntry(entry) {
+  return findMatchForEntryInQueue(entry, eventMatchmakingQueues.get(entry.eventId) || []);
+}
+
+function createMatchedRoom(entryA, entryB, options = {}) {
   const roomState = createRoom();
-  roomState.ranked = true;
+  roomState.ranked = options.ranked !== false;
   roomState.lobby.gameMode = entryA.gameMode === "basic" ? "basic" : "factions";
-  roomState.season = buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1);
+  roomState.season = roomState.ranked ? buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1) : null;
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
@@ -4927,6 +5051,17 @@ function createMatchedRoom(entryA, entryB) {
     { playerNum: 1, entry: firstEntry },
     { playerNum: 2, entry: secondEntry }
   ];
+
+  if (options.event) {
+    roomState.event = {
+      eventId: options.event.id,
+      name: options.event.name,
+      entries: Object.fromEntries(assignments.map(({ playerNum, entry }) => [playerNum, {
+        accountId: entry.accountId,
+        runId: entry.runId
+      }]))
+    };
+  }
 
   for (const assignment of assignments) {
     const lobbyPlayer = roomState.lobby.players[assignment.playerNum];
@@ -4944,11 +5079,13 @@ function createMatchedRoom(entryA, entryB) {
     const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
     if (playerSocket) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
-      playerSocket.emit("matchmakingStatus", {
+      const statusEvent = options.event ? "eventMatchmakingStatus" : "matchmakingStatus";
+      playerSocket.emit(statusEvent, {
         inQueue: false,
-        message: `${roomState.season?.displayName || "Ranked"} ${entryA.bestOf === 3 ? "best-of-3 m" : "m"}atch found. Room ${roomState.roomCode}.`,
+        message: `${options.event?.name || roomState.season?.displayName || "Ranked"} ${entryA.bestOf === 3 ? "best-of-3 m" : "m"}atch found. Room ${roomState.roomCode}.`,
         bestOf: entryA.bestOf || 1,
-        season: clonePlain(roomState.season)
+        season: clonePlain(roomState.season),
+        eventId: options.event?.id || null
       });
     }
   }
@@ -5047,6 +5184,7 @@ function canOfferRematch(roomState) {
   return !!roomState?.game
     && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
     && !roomState.draft
+    && !roomState.event
     && !roomState.lobby.campaign
     && roomState.lobby.gameMode !== "freeForAll"
     && !players[1]?.isAI
@@ -6682,6 +6820,7 @@ function continueBestOf3Series(roomState) {
 
 function buildAccountResultContext(roomState, matchRecord, playerNum) {
   const perspective = projectMatchPerspective(matchRecord, { playerNum });
+  const eventEntry = roomState.event?.entries?.[playerNum] || roomState.event?.entries?.[String(playerNum)] || null;
   return {
     ranked: matchRecord.ranked,
     draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
@@ -6697,6 +6836,10 @@ function buildAccountResultContext(roomState, matchRecord, playerNum) {
     campaign: matchRecord.campaign ? clonePlain(matchRecord.campaign) : null,
     season: matchRecord.season ? clonePlain(matchRecord.season) : null,
     series: matchRecord.series ? clonePlain(matchRecord.series) : null,
+    event: roomState.event && eventEntry ? {
+      eventId: roomState.event.eventId,
+      runId: eventEntry.runId
+    } : null,
     playerNum,
     matchIndex: buildAccountMatchIndexEntry(matchRecord, { playerNum })
   };
@@ -7843,6 +7986,71 @@ io.on("connection", (socket) => {
   onClientEvent("leaveMatchmaking", () => {
     removeFromMatchmaking(socket.id);
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
+  });
+
+  onClientEvent("joinEventMatchmaking", async ({ authToken, eventId, factionId, generalId } = {}) => {
+    const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
+    const event = eventById(String(eventId || ""));
+    if (!account || !event) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: account ? "Choose a valid event." : "Sign in to play events." });
+      return;
+    }
+    if (socket.data.roomCode) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Leave your current room before entering an event queue." });
+      return;
+    }
+    const run = normalizeEventProgress(account.stats || {}).runs[event.id];
+    if (!run || run.status !== "active") {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Enter this event before searching for a match." });
+      return;
+    }
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const selectedFaction = event.format === "factions" && factionId ? getFactionById(factionId, generalId) : null;
+    if (event.format === "factions" && (!selectedFaction || selectedFaction.campaignOnly)) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Choose a valid faction and General for this event." });
+      return;
+    }
+    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const profile = getAccountMatchProfile(account);
+    const entry = {
+      socketId: socket.id,
+      accountId: account.id,
+      accountName: account.name,
+      profile: publicAccountProfile(account),
+      eventId: event.id,
+      runId: run.id,
+      bestOf: 1,
+      gameMode: event.format,
+      factionId: selectedFaction?.id || null,
+      generalId: selectedFaction?.general?.id || null,
+      savedConstructedDeck: savedDeck?.factionId === selectedFaction?.id
+        && (savedDeck?.generalId || null) === (selectedFaction?.general?.id || null) ? savedDeck : null,
+      winRatio: profile.winRatio,
+      gamesPlayed: profile.gamesPlayed,
+      joinedAt: Date.now()
+    };
+    const match = findEventMatchForEntry(entry);
+    if (match) {
+      removeFromEventMatchmaking(match.socketId);
+      createMatchedRoom(entry, match, { ranked: false, event });
+      return;
+    }
+    const queue = eventMatchmakingQueues.get(event.id) || [];
+    queue.push(entry);
+    eventMatchmakingQueues.set(event.id, queue);
+    socket.data.authToken = authToken || socket.data.authToken;
+    socket.emit("eventMatchmakingStatus", {
+      inQueue: true,
+      eventId: event.id,
+      queueSize: queue.length,
+      message: `Searching ${event.name}... ${queue.length} player${queue.length === 1 ? "" : "s"} in this queue.`
+    });
+  });
+
+  onClientEvent("leaveEventMatchmaking", () => {
+    removeFromEventMatchmaking(socket.id);
+    socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Left event queue." });
   });
 
   onClientEvent("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {

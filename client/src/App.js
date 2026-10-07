@@ -43,6 +43,7 @@ import { fetchGameContent } from "./loadGameContent";
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
 const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
+const EventHub = lazy(() => import("./EventHub"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 let matchesHubModule;
 let matchesHubPromise;
@@ -5342,7 +5343,7 @@ export default function App() {
           {homeArea === "play" && (
             <div className="play-hub">
               <div className="play-view-tabs" role="tablist" aria-label="Play formats">
-                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["draft", "Draft"]].map(([viewId, label]) => (
+                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["events", "Events"], ["draft", "Draft"]].map(([viewId, label]) => (
                   <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => { if (playView !== viewId) playMenuCue("tab"); setPlayView(viewId); }}>{label}</button>
                 ))}
               </div>
@@ -5430,6 +5431,20 @@ export default function App() {
                     onSpectate={spectateSeasonMatch}
                   />
                 </div>
+              )}
+
+              {playView === "events" && (
+                <Suspense fallback={<div className="play-focus-panel">Loading events…</div>}>
+                  <EventHub
+                    serverUrl={SOCKET_URL}
+                    socket={socket}
+                    authToken={authToken}
+                    account={account}
+                    factions={gameContent.factions}
+                    onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
+                    onError={(message) => { setError(message); playMenuCue("denied"); }}
+                  />
+                </Suspense>
               )}
 
               {playView === "draft" && (
@@ -5916,6 +5931,8 @@ export default function App() {
       : null;
     const campaignClearType = completionEnvelope?.campaign?.firstClear ? "First clear" : completionEnvelope?.campaign?.repeatClear ? "Repeat clear" : null;
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
+    const eventReward = completionEnvelope?.event || null;
+    const unlockedCardStyles = completionEnvelope?.rewards?.cardStylesUnlocked || [];
     const unlockedAchievements = completionEnvelope?.rewards?.achievementsUnlocked || [];
     const unlockedCosmetics = completionEnvelope?.rewards?.cosmeticsUnlocked || [];
     const campaignEndDialogue = didWin && game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
@@ -5974,6 +5991,8 @@ export default function App() {
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {eventReward && <div><strong>Event run:</strong> {eventReward.wins} win{eventReward.wins === 1 ? "" : "s"} · {eventReward.losses} loss{eventReward.losses === 1 ? "" : "es"}{eventReward.status === "complete" ? " · run complete" : ""}</div>}
+            {unlockedCardStyles.map((styleId) => <div key={styleId}><strong>Card style earned:</strong> {styleId.split(":")[0].replaceAll("-", " ")}</div>)}
             {completionEnvelope?.season && <div><strong>{completionEnvelope.season.displayName}:</strong> {String(completionEnvelope.season.seriesResult || completionEnvelope.season.result).toUpperCase()} · {completionEnvelope.season.pointsDelta > 0 ? "+" : ""}{completionEnvelope.season.pointsDelta} points · {completionEnvelope.season.record?.points || 0} total{completionEnvelope.season.rank ? ` · rank #${completionEnvelope.season.rank}` : ""}</div>}
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
             {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}
