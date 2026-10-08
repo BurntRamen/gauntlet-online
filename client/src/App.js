@@ -2277,13 +2277,14 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
                 const selected = selectedIds.has(card.draftCopyId);
                 const slotKey = `${getReplacementValue(card, PLAYING_DECK_VALUES)}:${normalizeReplacementSuitId(card.suit)}`;
                 const slotOccupied = !selected && Number(selectedSlotCounts[slotKey] || 0) > 0;
+                const needsFactionFirst = !selected && !selectedFactionId && card.factionId === "neutral";
                 return (
                   <div key={card.draftCopyId} style={{ display: "grid", gap: 6 }}>
                     <DraftCardTile
                       card={card}
                       selected={selected}
-                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral") || slotOccupied)}
-                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral" ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
+                      disabled={!selected && (needsFactionFirst || (selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral") || slotOccupied)}
+                      actionLabel={selected ? "Remove" : needsFactionFirst ? "Choose faction first" : selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral" ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
                       onClick={() => onToggleDeckCard(card.draftCopyId)}
                     />
                     {selected && <div style={{ color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>Replaces {getCardRank(card)}{getSuitSymbol(card.suit)}</div>}
