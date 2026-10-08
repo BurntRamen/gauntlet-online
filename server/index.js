@@ -135,6 +135,15 @@ const {
   publicSeasonDefinition
 } = require("./seasons");
 const {
+  GAMEPLAY_PACK_PRICES,
+  TIMETWISTER_PRODUCTS,
+  applyDailyQuestProgress,
+  buyGameplayPackCredit,
+  grantTimetwisters,
+  normalizeEconomy,
+  resolveTimetwisterProduct
+} = require("./economy");
+const {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   CAMPAIGN_NARRATION,
@@ -1710,11 +1719,24 @@ function publicAccountProfile(account) {
 function publicAccountStats(stats = {}) {
   if (!stats || typeof stats !== "object") return {};
   const profile = stats.profile && typeof stats.profile === "object" ? { ...stats.profile } : null;
+  const economy = normalizeEconomy(stats);
+  delete economy.purchaseReceipts;
   if (profile?.avatar && typeof profile.avatar === "object") {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  return profile ? { ...stats, profile } : { ...stats };
+  return profile ? { ...stats, profile, economy } : { ...stats, economy };
+}
+
+function economySummary(stats = {}) {
+  const economy = normalizeEconomy(stats);
+  delete economy.purchaseReceipts;
+  return {
+    ...economy,
+    gameplayPackPrices: GAMEPLAY_PACK_PRICES,
+    timetwisterProducts: TIMETWISTER_PRODUCTS,
+    checkoutConfigured: Boolean(PACK_PURCHASE_URL)
+  };
 }
 
 function publicAccount(account) {
@@ -1727,6 +1749,7 @@ function publicAccount(account) {
     lastLoginAt: account.lastLoginAt || null,
     profile: publicAccountProfile(account),
     stats: publicAccountStats(stats),
+    economy: economySummary(stats),
     progression: progressionSummary(stats),
     collection: collectionSummary(stats),
     events: normalizeEventProgress(stats)
@@ -2677,6 +2700,8 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
   const afterProgression = normalizeProgression(afterStats);
   const beforeCollection = normalizeCollection(beforeStats);
   const afterCollection = normalizeCollection(afterStats);
+  const beforeEconomy = normalizeEconomy(beforeStats, { now: context.completedAt });
+  const afterEconomy = normalizeEconomy(afterStats, { now: context.completedAt });
   const achievementsUnlocked = Object.keys(afterProgression.achievements)
     .filter((id) => !beforeProgression.achievements[id])
     .map((id) => afterProgression.achievements[id]);
@@ -2705,6 +2730,10 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
     boosterCreditDelta,
     boosterCreditReason: firstClear ? "campaign_first_clear" : (context.event && boosterCreditDelta > 0 ? "event_win_milestone" : null),
     cardStylesUnlocked,
+    goldDelta: afterEconomy.gold - beforeEconomy.gold,
+    dailyQuestsCompleted: afterEconomy.daily.quests
+      .filter((quest) => quest.rewardClaimedAt && !beforeEconomy.daily.quests.find((entry) => entry.id === quest.id)?.rewardClaimedAt)
+      .map((quest) => ({ id: quest.id, name: quest.name, gold: quest.gold })),
     achievementsUnlocked,
     cosmeticsUnlocked,
     campaign: context.campaign ? {
@@ -2743,6 +2772,7 @@ function publicAccountProjection(account) {
     name: account.name,
     profile: publicAccountProfile(account),
     stats: publicAccountStats(account.stats || {}),
+    economy: economySummary(account.stats || {}),
     progression: progressionSummary(account.stats || {}),
     collection: collectionSummary(account.stats || {}),
     events: normalizeEventProgress(account.stats || {})
@@ -2779,6 +2809,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     applySeasonResult(stats, result, context);
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
+    applyDailyQuestProgress(stats, result, context);
     const facts = accountConsequenceFacts(beforeStats, stats, result, context);
     if (key && context.compatibilityPersistence) {
       stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
@@ -2839,6 +2870,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   applySeasonResult(account.stats, result, context);
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
+  applyDailyQuestProgress(account.stats, result, context);
   const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
   if (context.deferPersistence) {
     return { alreadyApplied: false, account: publicAccountProjection(account), nextStats: clonePlain(account.stats), ...facts };
@@ -3814,6 +3846,50 @@ app.post("/api/collection/open-pack", async (req, res) => {
   }
 });
 
+app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const stats = context.account.stats || {};
+    const purchase = buyGameplayPackCredit(stats, String(req.body?.currency || "gold"));
+    const collection = normalizeCollection(stats);
+    collection.packCredits += 1;
+    stats.collection = collection;
+    const updatedAt = new Date().toISOString();
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: updatedAt });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated), purchase: { currency: purchase.currency, price: purchase.price } });
+      return;
+    }
+    context.account.stats = stats;
+    context.account.lastSeenAt = updatedAt;
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account), purchase: { currency: purchase.currency, price: purchase.price } });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not buy a gameplay pack." });
+  }
+});
+
+app.post("/api/economy/timetwister-purchase-link", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const product = resolveTimetwisterProduct(String(req.body?.productId || ""));
+  if (!product) {
+    res.status(400).json({ error: "Unknown Timetwister bundle." });
+    return;
+  }
+  if (!PACK_PURCHASE_URL) {
+    res.status(400).json({ error: "Timetwister checkout is not configured yet." });
+    return;
+  }
+  const separator = PACK_PURCHASE_URL.includes("?") ? "&" : "?";
+  res.json({
+    product,
+    checkoutUrl: `${PACK_PURCHASE_URL}${separator}product=${encodeURIComponent(product.id)}&productType=timetwisters&account=${encodeURIComponent(context.account.id)}`
+  });
+});
+
 async function sendCollectorPackPurchaseLink(req, res) {
   const context = await requireAccountRecord(req, res);
   if (!context) return;
@@ -3868,6 +3944,34 @@ async function findCollectorFulfillmentAccount(input = {}) {
   if (accountId) return store.accounts.find((account) => account.id === accountId) || null;
   return accountName ? findAccountByName(store, accountName) : null;
 }
+
+app.post("/api/admin/economy/fulfill-timetwisters", async (req, res) => {
+  if (!requireOwnerAuthorization(req, res)) return;
+  const account = await findCollectorFulfillmentAccount(req.body || {});
+  if (!account) {
+    res.status(404).json({ error: "Gauntlet account was not found." });
+    return;
+  }
+  try {
+    const stats = account.stats || {};
+    const result = grantTimetwisters(stats, String(req.body?.productId || ""), String(req.body?.transactionId || ""));
+    if (!result.alreadyGranted) {
+      if (useSupabaseStore()) await patchSupabaseAccount(account.id, { stats, last_seen_at: new Date().toISOString() });
+      else {
+        const store = loadAccountStore();
+        const stored = store.accounts.find((entry) => entry.id === account.id);
+        if (!stored) throw new Error("Gauntlet account was not found.");
+        stored.stats = stats;
+        stored.lastSeenAt = new Date().toISOString();
+        saveAccountStore(store);
+      }
+    }
+    const updated = useSupabaseStore() && !result.alreadyGranted ? await findSupabaseAccountById(account.id) : { ...account, stats };
+    res.json({ account: publicAccount(updated), product: result.product, alreadyGranted: result.alreadyGranted });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not fulfill Timetwisters." });
+  }
+});
 
 function verifyCollectorClaimToken(token, res) {
   const verification = verifyCollectorEntitlement(token, COLLECTOR_ENTITLEMENT_SECRET);

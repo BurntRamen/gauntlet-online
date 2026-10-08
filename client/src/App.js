@@ -1678,7 +1678,49 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+function CurrencyWallet({ economy, compact = false }) {
+  if (!economy) return null;
+  return <div className={`currency-wallet ${compact ? "is-compact" : ""}`} aria-label="Currency balances">
+    <span><i className="currency-gold" aria-hidden="true">●</i><small>Gold</small><strong>{Number(economy.gold || 0).toLocaleString()}</strong></span>
+    <span><i className="currency-timetwister" aria-hidden="true">✦</i><small>Timetwisters</small><strong>{Number(economy.timetwisters || 0).toLocaleString()}</strong></span>
+  </div>;
+}
+
+function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters }) {
+  if (!economy) return <p className="economy-sign-in">Sign in to earn gold, complete daily quests, and use the shop.</p>;
+  const quests = economy.daily?.quests || [];
+  const prices = economy.gameplayPackPrices || { gold: 1000, timetwisters: 200 };
+  return <div className="economy-shop">
+    <CurrencyWallet economy={economy} />
+    <section className="daily-quests" aria-labelledby="daily-quests-title">
+      <div className="collection-view-heading"><div><h3 id="daily-quests-title">Daily Quests</h3><p>Quests refresh each UTC day. Gold is awarded as soon as a quest is completed.</p></div><strong>{economy.daily?.date || "Today"}</strong></div>
+      <div className="daily-quest-grid">
+        {quests.map((quest) => <article key={quest.id} className={quest.rewardClaimedAt ? "is-complete" : ""}>
+          <span>{quest.rewardClaimedAt ? "Complete" : "Daily"}</span>
+          <h4>{quest.name}</h4>
+          <p>{quest.description}</p>
+          <div className="quest-progress"><i style={{ width: `${Math.min(100, (quest.progress / quest.target) * 100)}%` }} /></div>
+          <footer><strong>{quest.progress}/{quest.target}</strong><b>● {quest.gold} gold</b></footer>
+        </article>)}
+      </div>
+    </section>
+    <section className="currency-store" aria-labelledby="gameplay-pack-shop-title">
+      <div className="collection-view-heading"><div><h3 id="gameplay-pack-shop-title">Gameplay Packs</h3><p>Buy one pack credit, then choose any available set or faction pack under Packs.</p></div></div>
+      <div className="currency-product-grid">
+        <article><span>Pack Credit</span><strong>1 Gameplay Pack</strong><p>Playable cards from the pack you choose.</p><button type="button" disabled={pending || economy.gold < prices.gold} onClick={() => onBuyGameplayPack("gold")}>● {Number(prices.gold).toLocaleString()} Gold</button></article>
+        <article><span>Pack Credit</span><strong>1 Gameplay Pack</strong><p>Playable cards from the pack you choose.</p><button type="button" disabled={pending || economy.timetwisters < prices.timetwisters} onClick={() => onBuyGameplayPack("timetwisters")}>✦ {Number(prices.timetwisters).toLocaleString()} Timetwisters</button></article>
+      </div>
+    </section>
+    <section className="currency-store" aria-labelledby="timetwister-shop-title">
+      <div className="collection-view-heading"><div><h3 id="timetwister-shop-title">Buy Timetwisters</h3><p>Premium currency for packs and future shop items.</p></div><strong>{economy.checkoutConfigured ? "Checkout connected" : "Checkout pending"}</strong></div>
+      <div className="currency-product-grid">
+        {(economy.timetwisterProducts || []).map((product) => <article key={product.id} className="timetwister-product"><span>Premium Currency</span><strong>✦ {product.amount.toLocaleString()}</strong><p>{product.name}</p><button type="button" disabled={pending || !economy.checkoutConfigured} onClick={() => onBuyTimetwisters(product.id)}>${product.priceUsd.toFixed(2)}</button></article>)}
+      </div>
+    </section>
+  </div>;
+}
+
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1712,7 +1754,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectorSearch, setCollectorSearch] = useState("");
   const [inspectedCollectorVariantId, setInspectedCollectorVariantId] = useState("");
-  const [collectionView, setCollectionView] = useState("packs");
+  const [collectionView, setCollectionView] = useState("shop");
   const loadedConstructedVersion = useRef("");
 
   useEffect(() => {
@@ -1910,10 +1952,11 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-summary-note"><span>Fair-play split</span>Every account starts with three free animated collector styles. Campaign credits unlock gameplay; collector styles never change cards, copies, values, or abilities.</div>
         </div>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
-          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
+          {[["shop", "Shop"], ["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
+        {collectionView === "shop" && <EconomyShop economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} />}
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
           <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
@@ -2089,7 +2132,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
   return (
     <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
@@ -2101,7 +2144,7 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
       </div>
     </div>
   );
@@ -3476,6 +3519,7 @@ export default function App() {
   const [collectorClaimToken, setCollectorClaimToken] = useState(getCollectorClaimFromLocation);
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
+  const [economyPending, setEconomyPending] = useState(false);
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [rankedGameMode, setRankedGameMode] = useState("factions");
   const [rankedFactionId, setRankedFactionId] = useState("rumin");
@@ -4519,6 +4563,49 @@ export default function App() {
     }
   }
 
+  async function buyGameplayPack(currency) {
+    if (!authToken || economyPending) return;
+    setEconomyPending(true);
+    playMenuCue("commit");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/economy/buy-gameplay-pack`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ currency })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not buy a gameplay pack.");
+      setAccount(data.account);
+      playMenuCue("success");
+    } catch (purchaseError) {
+      setError(purchaseError.message);
+      playMenuCue("denied");
+    } finally {
+      setEconomyPending(false);
+    }
+  }
+
+  async function buyTimetwisters(productId) {
+    if (!authToken || economyPending) return;
+    setEconomyPending(true);
+    playMenuCue("commit");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/economy/timetwister-purchase-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ productId })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Timetwister checkout is not configured yet.");
+      window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+    } catch (purchaseError) {
+      setError(purchaseError.message);
+      playMenuCue("denied");
+    } finally {
+      setEconomyPending(false);
+    }
+  }
+
   async function saveConstructedDeck(deckPayload) {
     if (!authToken) {
       playMenuCue("denied");
@@ -5252,6 +5339,9 @@ export default function App() {
         openingPackId={openingPackId}
         onOpenPack={openBoosterPack}
         onBuyPack={buyBoosterPack}
+        onBuyGameplayPack={buyGameplayPack}
+        onBuyTimetwisters={buyTimetwisters}
+        economyPending={economyPending}
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
         onOpenMatch={(matchId) => openPublicView("match", matchId)}
@@ -5315,6 +5405,7 @@ export default function App() {
             <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
             <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
           </div>
+          {account?.economy && <CurrencyWallet economy={account.economy} compact />}
           <div className="home-command-utilities">
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
@@ -5933,6 +6024,8 @@ export default function App() {
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
     const eventReward = completionEnvelope?.event || null;
     const unlockedCardStyles = completionEnvelope?.rewards?.cardStylesUnlocked || [];
+    const goldDelta = Number(completionEnvelope?.rewards?.goldDelta || 0);
+    const dailyQuestsCompleted = completionEnvelope?.rewards?.dailyQuestsCompleted || [];
     const unlockedAchievements = completionEnvelope?.rewards?.achievementsUnlocked || [];
     const unlockedCosmetics = completionEnvelope?.rewards?.cosmeticsUnlocked || [];
     const campaignEndDialogue = didWin && game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
@@ -5993,6 +6086,8 @@ export default function App() {
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
             {eventReward && <div><strong>Event run:</strong> {eventReward.wins} win{eventReward.wins === 1 ? "" : "s"} · {eventReward.losses} loss{eventReward.losses === 1 ? "" : "es"}{eventReward.status === "complete" ? " · run complete" : ""}</div>}
             {unlockedCardStyles.map((styleId) => <div key={styleId}><strong>Card style earned:</strong> {styleId.split(":")[0].replaceAll("-", " ")}</div>)}
+            {goldDelta > 0 && <div><strong>Daily quest gold:</strong> +{goldDelta.toLocaleString()}</div>}
+            {dailyQuestsCompleted.length > 0 && <div><strong>Quests completed:</strong> {dailyQuestsCompleted.map((quest) => `${quest.name} (+${quest.gold} gold)`).join(", ")}</div>}
             {completionEnvelope?.season && <div><strong>{completionEnvelope.season.displayName}:</strong> {String(completionEnvelope.season.seriesResult || completionEnvelope.season.result).toUpperCase()} · {completionEnvelope.season.pointsDelta > 0 ? "+" : ""}{completionEnvelope.season.pointsDelta} points · {completionEnvelope.season.record?.points || 0} total{completionEnvelope.season.rank ? ` · rank #${completionEnvelope.season.rank}` : ""}</div>}
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
             {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}

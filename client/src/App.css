@@ -2315,8 +2315,8 @@ textarea:focus-visible {
 
 .home-command-header {
   display: grid;
-  grid-template-columns: minmax(270px, 1fr) minmax(340px, 1.15fr) minmax(360px, 1fr);
-  gap: 22px;
+  grid-template-columns: minmax(220px, .8fr) minmax(310px, 1.15fr) auto minmax(330px, 1fr);
+  gap: 14px;
   align-items: center;
   margin-bottom: 16px;
   padding: 0 0 16px;
@@ -3011,6 +3011,7 @@ textarea:focus-visible {
 @media (max-width: 1100px) {
   .home-command-header { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); }
   .home-current-context { display: grid; }
+  .home-command-header > .currency-wallet { justify-self: start; }
   .home-command-utilities { grid-column: 1 / -1; }
   .active-deck-header { grid-template-columns: 190px minmax(260px, 1fr); }
   .active-deck-readouts { grid-column: 2; }
@@ -3036,6 +3037,7 @@ textarea:focus-visible {
   }
   .home-command-header { grid-template-columns: 1fr; gap: 18px; }
   .home-current-context { min-height: 124px; width: 100%; }
+  .home-command-header > .currency-wallet { width: 100%; }
   .home-command-utilities { justify-items: start; }
   .home-command-tools { position: relative; justify-content: flex-start; }
   .menu-audio-control { position: static; }
