@@ -212,6 +212,35 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   expect(screen.queryByText("Developer tools")).not.toBeInTheDocument();
 });
 
+test("presents faction atmosphere, phase focus, and readable life danger states", async () => {
+  const viewModel = {
+    ...createViewModel(),
+    phase: "combat",
+    phaseLabel: "Combat Response",
+    top: {
+      ...createViewModel().top,
+      life: 10,
+      factionId: "indela",
+      factionName: "Indela"
+    },
+    bottom: {
+      ...createViewModel().bottom,
+      life: 21,
+      factionId: "indela",
+      factionName: "Indela"
+    }
+  };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false, reducedMotion: true }} />);
+
+  const match = await screen.findByTestId("production-babylon-match");
+  expect(match).toHaveAttribute("data-battlefield-faction", "indela");
+  expect(match.querySelector('.production-battlefield-atmosphere[data-faction="indela"]')).toBeInTheDocument();
+  expect(screen.getByLabelText("Turn 3, Combat Response")).toHaveAttribute("data-phase", "combat");
+  expect(screen.getByLabelText(/Opponent, 10 life/)).toHaveClass("is-critical");
+  expect(screen.getByLabelText(/Local, 21 life/)).toHaveClass("is-wounded");
+  expect(screen.getByLabelText("10 life")).toHaveAttribute("data-life-state", "critical");
+});
+
 test("player discard controls show the selected public pile and switch without revealing hands", async () => {
   const inspectCard = jest.fn();
   render(<ProductionMatchExperience options={{ audioEnabled: false }} adapter={adapterFor({

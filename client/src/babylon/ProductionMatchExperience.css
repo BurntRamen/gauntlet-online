@@ -151,6 +151,144 @@
   --battlefield-plate-deep: rgba(2, 5, 15, 0.97);
 }
 
+/* Faction atmosphere is deliberately code-native so every arena retains its
+   identity while art loads and across lower graphics settings. */
+.production-battlefield-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: var(--battlefield-top-reserve) var(--battlefield-side-reserve) var(--battlefield-bottom-reserve);
+  overflow: hidden;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+.production-battlefield-atmosphere::before,
+.production-battlefield-atmosphere::after,
+.production-atmosphere-orbit,
+.production-atmosphere-mote,
+.production-atmosphere-sweep {
+  content: "";
+  position: absolute;
+  display: block;
+}
+
+.production-battlefield-atmosphere::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 76%, var(--battlefield-glow), transparent 22%),
+    radial-gradient(circle at 78% 24%, var(--battlefield-glow), transparent 25%),
+    linear-gradient(110deg, transparent 20%, color-mix(in srgb, var(--battlefield-accent) 9%, transparent) 50%, transparent 78%);
+  animation: production-atmosphere-breathe 8s ease-in-out infinite alternate;
+}
+
+.production-battlefield-atmosphere::after {
+  inset: -20%;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--battlefield-accent) 50%, white) 0 1px, transparent 1.8px);
+  background-size: 64px 64px;
+  opacity: 0.16;
+  transform: rotate(-8deg);
+  animation: production-atmosphere-drift 22s linear infinite;
+}
+
+.production-atmosphere-orbit {
+  width: clamp(180px, 24vw, 390px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--battlefield-accent) 32%, transparent);
+  border-radius: 50%;
+  opacity: 0.36;
+  animation: production-atmosphere-spin 28s linear infinite;
+}
+
+.production-atmosphere-orbit::before,
+.production-atmosphere-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border: 1px dashed color-mix(in srgb, var(--battlefield-accent) 44%, transparent);
+  border-radius: inherit;
+}
+
+.production-atmosphere-orbit::after { inset: 34%; }
+.production-atmosphere-orbit-a { top: -20%; right: -5%; }
+.production-atmosphere-orbit-b { bottom: -28%; left: -4%; animation-direction: reverse; animation-duration: 34s; }
+
+.production-atmosphere-mote {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--battlefield-accent);
+  box-shadow: 0 0 14px 4px var(--battlefield-glow);
+  animation: production-atmosphere-mote 7s ease-in-out infinite;
+}
+
+.production-atmosphere-mote-a { left: 17%; bottom: 16%; }
+.production-atmosphere-mote-b { left: 72%; top: 24%; animation-delay: -2.4s; animation-duration: 9s; }
+.production-atmosphere-mote-c { right: 12%; bottom: 28%; animation-delay: -4.8s; animation-duration: 11s; }
+
+.production-atmosphere-sweep {
+  inset: -40% auto -40% -12%;
+  width: 11%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--battlefield-accent) 20%, transparent), transparent);
+  filter: blur(10px);
+  transform: rotate(16deg);
+  animation: production-atmosphere-sweep 12s ease-in-out infinite;
+}
+
+.production-battlefield-atmosphere[data-faction="rumin"] .production-atmosphere-orbit {
+  border-radius: 8% 92% 14% 86%;
+  filter: blur(2px);
+}
+
+.production-battlefield-atmosphere[data-faction="sheen"]::after {
+  background-image:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 0 16%, transparent 20%),
+    radial-gradient(circle, rgba(129, 190, 122, 0.42) 0 1px, transparent 2px);
+  background-size: 170px 90px, 58px 58px;
+  mix-blend-mode: multiply;
+  opacity: 0.24;
+}
+
+.production-battlefield-atmosphere[data-faction="frumo"]::before {
+  background:
+    repeating-radial-gradient(ellipse at 50% 110%, transparent 0 42px, rgba(90, 166, 207, 0.11) 44px 46px, transparent 48px 72px),
+    linear-gradient(110deg, transparent, rgba(90, 166, 207, 0.12), transparent);
+  animation-duration: 5s;
+}
+
+.production-battlefield-atmosphere[data-faction="bizi"] .production-atmosphere-orbit,
+.production-battlefield-atmosphere[data-faction="mekan"] .production-atmosphere-orbit {
+  border-radius: 12%;
+  border-style: dashed;
+  filter: drop-shadow(0 0 7px var(--battlefield-glow));
+}
+
+.production-battlefield-atmosphere[data-faction="jali"] .production-atmosphere-mote,
+.production-battlefield-atmosphere[data-faction="gracus"] .production-atmosphere-mote {
+  width: 3px;
+  height: 18px;
+  border-radius: 50%;
+  transform: rotate(35deg);
+}
+
+.production-battlefield-atmosphere[data-faction="indela"] .production-atmosphere-sweep,
+.production-battlefield-atmosphere[data-faction="astral-vanguard"] .production-atmosphere-sweep {
+  width: 4px;
+  filter: drop-shadow(0 0 12px var(--battlefield-accent));
+}
+
+.production-battlefield-atmosphere[data-faction="zynarth"] .production-atmosphere-orbit {
+  border-radius: 42% 58% 36% 64%;
+  animation-duration: 13s;
+}
+
+.production-match-experience[data-cadence-tier="clash"] .production-battlefield-atmosphere,
+.production-match-experience[data-cadence-tier="impact"] .production-battlefield-atmosphere {
+  opacity: 0.96;
+  filter: saturate(1.25) brightness(1.08);
+}
+
 .production-battlefield-safe-frame {
   position: absolute;
   z-index: 1;
@@ -235,6 +373,33 @@
     0 0 0 1px rgba(30, 107, 255, 0.22),
     0 0 14px rgba(30, 107, 255, 0.16),
     0 14px 32px rgba(0, 0, 0, 0.52);
+}
+
+.production-player-plate.has-priority::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border: 1px solid color-mix(in srgb, var(--gauntlet-sapphire) 78%, white);
+  border-radius: 9px;
+  opacity: 0.7;
+  pointer-events: none;
+  animation: production-priority-ring 1.8s ease-in-out infinite;
+}
+
+.production-player-plate.is-wounded {
+  border-color: rgba(242, 166, 69, 0.72);
+}
+
+.production-player-plate.is-critical {
+  border-color: rgba(255, 91, 101, 0.92);
+  box-shadow: 0 0 22px rgba(201, 52, 62, 0.24), 0 14px 32px rgba(0, 0, 0, 0.52);
+}
+
+.production-player-plate.is-critical .production-life {
+  color: #fff1f1;
+  text-shadow: 0 0 12px rgba(255, 75, 87, 0.86);
+  animation: production-critical-life 1.35s ease-in-out infinite;
 }
 
 .production-player-crest {
@@ -542,19 +707,65 @@
 
 .production-turn-marker {
   position: absolute;
-  z-index: 4;
-  top: max(10px, env(safe-area-inset-top));
+  z-index: 7;
+  top: max(8px, env(safe-area-inset-top));
   left: 50%;
   display: grid;
+  grid-template-columns: 28px auto;
   justify-items: center;
-  padding: 5px 16px;
-  color: #aab6c1;
-  background: linear-gradient(90deg, transparent, rgba(5, 11, 18, 0.84) 20%, rgba(5, 11, 18, 0.84) 80%, transparent);
-  font-size: 14px;
+  min-width: clamp(220px, 24vw, 330px);
+  padding: 7px 22px 8px;
+  border: 1px solid color-mix(in srgb, var(--battlefield-accent) 58%, rgba(181, 137, 79, 0.58));
+  border-radius: 4px 4px 13px 13px;
+  color: #b9c5cf;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--battlefield-plate) 94%, #22354a), var(--battlefield-plate-deep));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.46), 0 0 18px var(--battlefield-glow), inset 0 1px rgba(255, 255, 255, 0.08);
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transform: translateX(-50%);
   pointer-events: none;
+  animation: production-phase-banner 320ms cubic-bezier(0.22, 0.9, 0.28, 1) both;
+}
+
+.production-turn-marker::before,
+.production-turn-marker::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: clamp(22px, 5vw, 78px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--battlefield-accent));
+}
+
+.production-turn-marker::before { right: 100%; }
+.production-turn-marker::after { left: 100%; transform: rotate(180deg); }
+
+.production-turn-marker > i {
+  grid-row: 1 / 4;
+  align-self: center;
+  color: color-mix(in srgb, var(--battlefield-accent) 74%, #ffe6ae);
+  font: normal 22px/1 Georgia, serif;
+  filter: drop-shadow(0 0 8px var(--battlefield-glow));
+}
+
+.production-turn-marker > span,
+.production-turn-marker > strong,
+.production-turn-marker > small {
+  grid-column: 2;
+}
+
+.production-turn-marker > small {
+  color: #93a8b8;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.production-turn-marker[data-phase="combat"] {
+  border-color: rgba(229, 155, 58, 0.82);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 24px rgba(229, 155, 58, 0.2);
 }
 
 .production-mode-marker {
@@ -769,8 +980,9 @@
 }
 
 .production-turn-marker strong {
-  color: #e0ba76;
-  font-size: 11px;
+  color: #f1d49d;
+  font: 700 14px/1.15 Georgia, serif;
+  letter-spacing: 0.11em;
 }
 
 .production-connection-banner {
@@ -1196,6 +1408,60 @@
   backdrop-filter: blur(6px) saturate(0.78);
 }
 
+.production-match-result.is-win {
+  background: radial-gradient(circle, color-mix(in srgb, var(--battlefield-accent) 38%, rgba(181, 137, 79, 0.38)), rgba(3, 6, 10, 0.9) 66%);
+}
+
+.production-match-result.is-loss {
+  background: radial-gradient(circle, rgba(132, 34, 42, 0.4), rgba(3, 6, 10, 0.94) 66%);
+}
+
+.production-result-radiance {
+  position: absolute;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+  animation: production-result-spin 40s linear infinite;
+}
+
+.production-result-radiance i {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 20deg, transparent 0 8%, color-mix(in srgb, var(--battlefield-accent) 13%, transparent) 10% 12%, transparent 14% 28%);
+}
+
+.production-result-radiance i:nth-child(2) { transform: rotate(117deg); }
+.production-result-radiance i:nth-child(3) { transform: rotate(239deg); }
+
+.production-result-crest {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  margin-bottom: 8px;
+  border: 1px solid color-mix(in srgb, var(--battlefield-accent) 68%, #f0d49c);
+  border-radius: 50%;
+  color: #f6dca9;
+  background: radial-gradient(circle, var(--battlefield-glow), rgba(5, 11, 18, 0.9) 72%);
+  box-shadow: 0 0 34px var(--battlefield-glow), inset 0 0 18px rgba(255, 255, 255, 0.08);
+  font: 38px/1 Georgia, serif;
+  animation: production-result-crest-arrive 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.production-match-result h1 {
+  margin: 7px 0;
+  color: #fff3d6;
+  font: 700 clamp(42px, 7vw, 82px)/0.98 Georgia, serif;
+  letter-spacing: 0.025em;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.7), 0 0 22px var(--battlefield-glow);
+}
+
+.production-match-result > p {
+  max-width: 58ch;
+  color: #c8d3dd;
+  line-height: 1.5;
+}
+
 .production-match-result > .production-campaign-dialogue {
   width: min(680px, calc(100vw - 40px));
   max-height: min(42vh, 390px);
@@ -1478,6 +1744,51 @@
 
 @keyframes production-crest-pulse {
   50% { opacity: 0.55; transform: scale(0.92); }
+}
+
+@keyframes production-priority-ring {
+  50% { opacity: 0.22; transform: scale(1.035); }
+}
+
+@keyframes production-critical-life {
+  50% { opacity: 0.7; transform: scale(0.94); }
+}
+
+@keyframes production-phase-banner {
+  from { opacity: 0; transform: translate(-50%, -14px) scale(0.94); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes production-atmosphere-breathe {
+  from { opacity: 0.46; transform: scale(1); }
+  to { opacity: 0.82; transform: scale(1.035); }
+}
+
+@keyframes production-atmosphere-drift {
+  to { transform: translate3d(64px, -64px, 0) rotate(-8deg); }
+}
+
+@keyframes production-atmosphere-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes production-atmosphere-mote {
+  0%, 100% { opacity: 0; transform: translate3d(0, 30px, 0) scale(0.5); }
+  30%, 70% { opacity: 0.8; }
+  50% { transform: translate3d(20px, -36px, 0) scale(1.2); }
+}
+
+@keyframes production-atmosphere-sweep {
+  0%, 15% { opacity: 0; transform: translateX(0) rotate(16deg); }
+  45% { opacity: 0.75; }
+  75%, 100% { opacity: 0; transform: translateX(1100%) rotate(16deg); }
+}
+
+@keyframes production-result-spin { to { transform: rotate(360deg); } }
+
+@keyframes production-result-crest-arrive {
+  from { opacity: 0; transform: translateY(22px) scale(0.5) rotate(-20deg); }
+  to { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
 }
 
 @keyframes production-event-arrive {
