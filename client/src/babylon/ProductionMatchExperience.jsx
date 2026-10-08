@@ -324,6 +324,10 @@ function PlayerPlate({
 }) {
   if (!player) return null;
   const hasPriority = priority === player.id;
+  const life = Number(player.life);
+  const lifeState = Number.isFinite(life)
+    ? life <= 10 ? " is-critical" : life <= 21 ? " is-wounded" : ""
+    : "";
   const activeAria = hasPriority
     ? activeLabel === "Priority"
       ? ", has priority"
@@ -346,7 +350,7 @@ function PlayerPlate({
   const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
   return (
     <section
-      className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}`}
+      className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}${lifeState}`}
       data-player-color={Number(player.id) === 1 ? "blue" : "red"}
       aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
@@ -367,7 +371,7 @@ function PlayerPlate({
           </button>
         </span>
       </div>
-      <div className="production-life" aria-label={`${player.life} life`}>
+      <div className="production-life" data-life-state={lifeState.trim().replace("is-", "") || "healthy"} aria-label={`${player.life} life`}>
         <span aria-hidden="true">♥</span>
         <strong>{player.life}</strong>
       </div>
@@ -990,7 +994,11 @@ function MatchResult({
     ? completion.campaign.nextMission
     : null;
   return (
-    <section className="production-match-result" role="dialog" aria-modal="true">
+    <section className={`production-match-result is-${outcome}`} role="dialog" aria-modal="true" data-outcome={outcome}>
+      <div className="production-result-radiance" aria-hidden="true">
+        <i /><i /><i />
+      </div>
+      <div className="production-result-crest" aria-hidden="true">{outcome === "win" ? "✦" : outcome === "draw" ? "◇" : "◆"}</div>
       <span>Gauntlet Match Complete</span>
       <h1>{title}</h1>
       <p>{resultProjection.finalMessage || viewModel.message}</p>
@@ -1362,13 +1370,55 @@ function MatchFeed({ entries, statusNotice, catchingUp }) {
   );
 }
 
+function BattlefieldAtmosphere({ factionId }) {
+  return (
+    <div className="production-battlefield-atmosphere" data-faction={factionId} aria-hidden="true">
+      <i className="production-atmosphere-orbit production-atmosphere-orbit-a" />
+      <i className="production-atmosphere-orbit production-atmosphere-orbit-b" />
+      <i className="production-atmosphere-mote production-atmosphere-mote-a" />
+      <i className="production-atmosphere-mote production-atmosphere-mote-b" />
+      <i className="production-atmosphere-mote production-atmosphere-mote-c" />
+      <i className="production-atmosphere-sweep" />
+    </div>
+  );
+}
+
+function ArenaPhaseBanner({ viewModel, activeEventType = "" }) {
+  const priorityPlayer = viewModel.priority == null
+    ? null
+    : [viewModel.top, viewModel.bottom].find((player) => player?.id === viewModel.priority);
+  const phase = viewModel.phaseLabel === "Combat Response" ? "combat" : viewModel.phase;
+  const phaseGlyph = phase === "combat" ? "⚔" : phase === "end" ? "◆" : phase === "gameOver" ? "✦" : "◇";
+  const detail = viewModel.priority == null
+    ? "No active player"
+    : `${Number(viewModel.priority) === 1 ? "Blue" : "Red"} · ${priorityPlayer?.name || `Player ${viewModel.priority}`} · ${viewModel.phase === "end" ? "Placing" : "Priority"}`;
+  return (
+    <div
+      key={`${viewModel.currentTurnLabel}:${viewModel.phaseLabel}:${viewModel.priority}:${activeEventType}`}
+      className="production-turn-marker"
+      data-phase={phase}
+      data-player-color={viewModel.priority == null ? "neutral" : Number(viewModel.priority) === 1 ? "blue" : "red"}
+      aria-label={`${viewModel.currentTurnLabel}, ${viewModel.phaseLabel}`}
+      aria-live="polite"
+    >
+      <i aria-hidden="true">{phaseGlyph}</i>
+      <span>{viewModel.currentTurnLabel}</span>
+      <strong>{viewModel.phaseLabel}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
 function normalizeBattlefieldFactionId(viewModel) {
   const localPlayer = viewModel?.perspective?.player;
   const localFaction = localPlayer ? viewModel?.players?.[localPlayer]?.factionId : "";
   const bottomFaction = viewModel?.bottom?.factionId;
   const topFaction = viewModel?.top?.factionId;
   const resolved = String(localFaction || bottomFaction || topFaction || "basic").toLowerCase();
-  return ["rumin", "sheen", "frumo", "bizi", "zynarth", "astral-vanguard"].includes(resolved) ? resolved : "basic";
+  return [
+    "rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela",
+    "zynarth", "astral-vanguard"
+  ].includes(resolved) ? resolved : "basic";
 }
 
 export default function ProductionMatchExperience({
@@ -1930,6 +1980,7 @@ export default function ProductionMatchExperience({
         aria-hidden={transportUpdate?.privacy?.required ? true : undefined}
         inert={transportUpdate?.privacy?.required ? true : undefined}
       >
+        <BattlefieldAtmosphere factionId={battlefieldFactionId} />
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <RecoverableMatchCanvas
             key={viewModel.matchId}
@@ -2014,19 +2065,10 @@ export default function ProductionMatchExperience({
           />
         )}
 
-        <div
-          className="production-turn-marker"
-          data-phase={visualViewModel.phaseLabel === "Combat Response" ? "combat" : visualViewModel.phase}
-          data-player-color={visualViewModel.priority == null ? "neutral" : Number(visualViewModel.priority) === 1 ? "blue" : "red"}
-          aria-label={`${visualViewModel.currentTurnLabel}, ${visualViewModel.phaseLabel}`}
-          aria-live="polite"
-        >
-          <span>{visualViewModel.currentTurnLabel}</span>
-          <strong>{visualViewModel.phaseLabel}</strong>
-          <small>{visualViewModel.priority == null
-            ? "No active player"
-            : `${Number(visualViewModel.priority) === 1 ? "Blue" : "Red"} · ${[visualViewModel.top, visualViewModel.bottom].find((player) => player?.id === visualViewModel.priority)?.name || `Player ${visualViewModel.priority}`} · ${visualViewModel.phase === "end" ? "Placing" : "Priority"}`}</small>
-        </div>
+        <ArenaPhaseBanner
+          viewModel={visualViewModel}
+          activeEventType={canvasViewModel?.presentationPlayback?.activeEventType || ""}
+        />
         <MatchModeMarker descriptor={update?.descriptor} />
         <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
