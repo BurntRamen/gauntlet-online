@@ -52,20 +52,20 @@ function freezeRecipe(recipe) {
 }
 
 const EFFECTS = Object.freeze({
-  attention: Object.freeze({ materialRole: "sapphire", intensity: 0.26, maxAlpha: 0, spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.26, maxScale: 0.36 }),
-  draw: Object.freeze({ materialRole: "sapphire", intensity: 0.18, maxAlpha: 0, spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.18, maxScale: 0.42 }),
-  turn: Object.freeze({ materialRole: "bronze", intensity: 0.32, maxAlpha: 0.06, spriteAlpha: 0.06, ringAlpha: 0, boardResponse: 0.32, maxScale: 0.46 }),
-  payment: Object.freeze({ materialRole: "bronze", intensity: 0.48, maxAlpha: 0.08, spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48, maxScale: 0.5 }),
-  placement: Object.freeze({ materialRole: "bronze", intensity: 0.54, maxAlpha: 0.1, spriteAlpha: 0.1, ringAlpha: 0, boardResponse: 0.54, maxScale: 0.5 }),
-  attack: Object.freeze({ materialRole: "sapphire", intensity: 0.64, maxAlpha: 0.18, spriteAlpha: 0.18, ringAlpha: 0, boardResponse: 0.64, maxScale: 0.66 }),
-  block: Object.freeze({ materialRole: "steel", intensity: 0.68, maxAlpha: 0.16, spriteAlpha: 0.16, ringAlpha: 0, boardResponse: 0.68, maxScale: 0.66 }),
-  ability: Object.freeze({ materialRole: "violet", intensity: 0.58, maxAlpha: 0, spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.58, maxScale: 0.62 }),
-  blocked: Object.freeze({ materialRole: "steel", accentMaterialRole: "violet", intensity: 0.82, maxAlpha: 0.22, spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82, maxScale: 0.76 }),
-  damage: Object.freeze({ materialRole: "danger", intensity: 0.86, maxAlpha: 0.28, spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86, maxScale: 0.8 }),
-  major: Object.freeze({ materialRole: "danger", intensity: 1, maxAlpha: 0.4, spriteAlpha: 0.4, ringAlpha: 0.22, boardResponse: 1, maxScale: 0.94 }),
-  victory: Object.freeze({ materialRole: "bronze", accentMaterialRole: "sapphire", intensity: 0.88, maxAlpha: 0.3, spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88, maxScale: 0.94 }),
-  defeat: Object.freeze({ materialRole: "danger", intensity: 0.88, maxAlpha: 0.3, spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88, maxScale: 0.82 }),
-  drawResult: Object.freeze({ materialRole: "steel", accentMaterialRole: "bronze", intensity: 0.72, maxAlpha: 0.18, spriteAlpha: 0.18, ringAlpha: 0.1, boardResponse: 0.72, maxScale: 0.74 })
+  attention: Object.freeze({ materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.26 }),
+  draw: Object.freeze({ materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.18 }),
+  turn: Object.freeze({ materialRole: "bronze", spriteAlpha: 0.06, ringAlpha: 0, boardResponse: 0.32 }),
+  payment: Object.freeze({ materialRole: "bronze", spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48 }),
+  placement: Object.freeze({ materialRole: "bronze", spriteAlpha: 0.22, ringAlpha: 0.16, boardResponse: 0.66 }),
+  attack: Object.freeze({ materialRole: "sapphire", spriteAlpha: 0.26, ringAlpha: 0.12, boardResponse: 0.72 }),
+  block: Object.freeze({ materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.72 }),
+  ability: Object.freeze({ materialRole: "violet", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.58 }),
+  blocked: Object.freeze({ materialRole: "steel", accentMaterialRole: "violet", spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82 }),
+  damage: Object.freeze({ materialRole: "danger", spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86 }),
+  major: Object.freeze({ materialRole: "danger", spriteAlpha: 0.4, ringAlpha: 0.22, boardResponse: 1 }),
+  victory: Object.freeze({ materialRole: "bronze", accentMaterialRole: "sapphire", spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88 }),
+  defeat: Object.freeze({ materialRole: "danger", spriteAlpha: 0.3, ringAlpha: 0.16, boardResponse: 0.88 }),
+  drawResult: Object.freeze({ materialRole: "steel", accentMaterialRole: "bronze", spriteAlpha: 0.18, ringAlpha: 0.1, boardResponse: 0.72 })
 });
 
 export const PRESENTATION_BEAT_RECIPES = Object.freeze({
