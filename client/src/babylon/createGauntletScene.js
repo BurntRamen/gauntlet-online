@@ -174,7 +174,7 @@ const EVENT_EFFECT_ASSETS = {
 const EVENT_VISUAL_FALLBACKS = Object.freeze({
   "payment.release": { grammar: "contract", materialRole: "bronze", spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48 },
   "attack.declare": { grammar: "thrust", materialRole: "sapphire", spriteAlpha: 0.26, ringAlpha: 0.12, boardResponse: 0.72 },
-  "block.commit": { grammar: "brace", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.72 },
+  "block.commit": { grammar: "brace", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.68 },
   "combat.blocked": { grammar: "resist", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82 },
   "damage.impact": { grammar: "impact", materialRole: "danger", spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86 },
   "damage.major": { grammar: "major-impact", materialRole: "danger", spriteAlpha: 0.4, ringAlpha: 0.22, boardResponse: 1 },

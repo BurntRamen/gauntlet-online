@@ -58,7 +58,7 @@ const EFFECTS = Object.freeze({
   payment: Object.freeze({ materialRole: "bronze", spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48 }),
   placement: Object.freeze({ materialRole: "bronze", spriteAlpha: 0.22, ringAlpha: 0.16, boardResponse: 0.66 }),
   attack: Object.freeze({ materialRole: "sapphire", spriteAlpha: 0.26, ringAlpha: 0.12, boardResponse: 0.72 }),
-  block: Object.freeze({ materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.72 }),
+  block: Object.freeze({ materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.68 }),
   ability: Object.freeze({ materialRole: "violet", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.58 }),
   blocked: Object.freeze({ materialRole: "steel", accentMaterialRole: "violet", spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82 }),
   damage: Object.freeze({ materialRole: "danger", spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86 }),
