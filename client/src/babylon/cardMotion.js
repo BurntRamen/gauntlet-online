@@ -10,6 +10,13 @@ export const CARD_PATH_CLEARANCE = 0.16;
 export const CARD_PATH_FOOTPRINT = Object.freeze({ width: 2.3, height: 3.22 });
 export const CARD_MOTION_CONTRACT_VERSION = "gauntlet.card-motion.collision-safe.v1";
 
+const PLAYED_CARD_MOTION_ROLES = new Set([
+  "placement-enter",
+  "attack-enter",
+  "block-enter",
+  "replay-stage"
+]);
+
 export function shouldAllowElevatedSourceEgress({
   destinationZone = null,
   obstacleZone = null,
@@ -398,6 +405,13 @@ export function sampleCardMotion(motion, nowMs) {
     sampled.y += Math.sin(Math.PI * linearProgress) * motion.lift;
   }
   const travelEnvelope = Math.sin(Math.PI * linearProgress);
+  // A committed card briefly presents its face above the table before it
+  // settles. The emphasis finishes before contact so the established landing
+  // squash remains readable instead of making cards look rubbery.
+  const presentationProgress = Math.min(1, linearProgress / 0.74);
+  const presentationEnvelope = PLAYED_CARD_MOTION_ROLES.has(motion.role) && linearProgress < 0.74
+    ? Math.sin(Math.PI * presentationProgress)
+    : 0;
   const directionZ = Math.sign(Number(motion.destination?.z || 0) - Number(motion.start?.z || 0)) || 1;
   if (motion.role === "attack-enter" && Number.isFinite(sampled.rotationX)) {
     sampled.rotationX -= directionZ * travelEnvelope * 0.14;
@@ -412,6 +426,19 @@ export function sampleCardMotion(motion, nowMs) {
   } else if (["lane-shift", "swap-return"].includes(motion.role) && Number.isFinite(sampled.rotationY)) {
     const shiftDirection = Number(motion.destination?.x || 0) < Number(motion.start?.x || 0) ? -1 : 1;
     sampled.rotationY += shiftDirection * travelEnvelope * 0.045;
+  }
+  if (PLAYED_CARD_MOTION_ROLES.has(motion.role)) {
+    const horizontalDirection = Math.sign(Number(motion.destination?.x || 0) - Number(motion.start?.x || 0)) || 1;
+    if (Number.isFinite(sampled.scale)) {
+      const emphasis = motion.role === "placement-enter" ? 0.12 : motion.role === "block-enter" ? 0.075 : 0.09;
+      sampled.scale *= 1 + presentationEnvelope * emphasis;
+    }
+    if (Number.isFinite(sampled.rotationZ)) {
+      sampled.rotationZ += horizontalDirection * presentationEnvelope * 0.065;
+    }
+    if (motion.role === "placement-enter" && Number.isFinite(sampled.rotationY)) {
+      sampled.rotationY += horizontalDirection * presentationEnvelope * 0.085;
+    }
   }
   return { ...sampled, progress: linearProgress, complete: linearProgress >= 1 };
 }

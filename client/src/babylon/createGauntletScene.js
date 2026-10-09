@@ -173,12 +173,12 @@ const EVENT_EFFECT_ASSETS = {
 
 const EVENT_VISUAL_FALLBACKS = Object.freeze({
   "payment.release": { grammar: "contract", materialRole: "bronze", spriteAlpha: 0.08, ringAlpha: 0, boardResponse: 0.48 },
-  "attack.declare": { grammar: "thrust", materialRole: "sapphire", spriteAlpha: 0.18, ringAlpha: 0, boardResponse: 0.64 },
-  "block.commit": { grammar: "brace", materialRole: "steel", spriteAlpha: 0.16, ringAlpha: 0, boardResponse: 0.68 },
+  "attack.declare": { grammar: "thrust", materialRole: "sapphire", spriteAlpha: 0.26, ringAlpha: 0.12, boardResponse: 0.72 },
+  "block.commit": { grammar: "brace", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0.1, boardResponse: 0.68 },
   "combat.blocked": { grammar: "resist", materialRole: "steel", spriteAlpha: 0.22, ringAlpha: 0, boardResponse: 0.82 },
   "damage.impact": { grammar: "impact", materialRole: "danger", spriteAlpha: 0.28, ringAlpha: 0, boardResponse: 0.86 },
   "damage.major": { grammar: "major-impact", materialRole: "danger", spriteAlpha: 0.4, ringAlpha: 0.22, boardResponse: 1 },
-  "card.place": { grammar: "seat", materialRole: "bronze", spriteAlpha: 0.1, ringAlpha: 0, boardResponse: 0.54 },
+  "card.place": { grammar: "seat", materialRole: "bronze", spriteAlpha: 0.22, ringAlpha: 0.16, boardResponse: 0.66 },
   "card.draw": { grammar: "draw", materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.18 },
   "priority.transfer": { grammar: "handoff", materialRole: "sapphire", spriteAlpha: 0, ringAlpha: 0, boardResponse: 0.26 },
   "turn.start": { grammar: "sweep", materialRole: "bronze", spriteAlpha: 0.06, ringAlpha: 0, boardResponse: 0.32 },
@@ -196,6 +196,13 @@ const LANE_STATE_LIGHTS = Object.freeze({
   blocked: { assetId: "lane.blocked", tint: "#c7d0d7", alpha: 0.62 },
   resolving: { assetId: "lane.resolving", tint: "#f0bd68", alpha: 0.78 }
 });
+
+const CARD_PLAY_MOTION_ROLES = new Set([
+  "placement-enter",
+  "attack-enter",
+  "block-enter",
+  "replay-stage"
+]);
 
 function color(hex) {
   return Color3.FromHexString(hex);
@@ -556,6 +563,7 @@ function setCardTarget(record, position, options = {}, nowMs = 0, reducedMotion 
   record.target.alpha = destination.alpha;
   record.target.selected = !!options.selected;
   record.target.hovered = !!options.hovered;
+  record.target.legal = !!options.legal;
   if (!changed) return;
   if (options.snap === true) {
     record.mesh.position.copyFrom(record.target.position);
@@ -3138,6 +3146,26 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         record.mesh.rotation.set(sampled.rotationX, sampled.rotationY, sampled.rotationZ);
         record.mesh.scaling.setAll(sampled.scale);
         record.mesh.visibility = sampled.alpha;
+        const playEmphasis = !currentViewModel?.reducedMotion
+          && CARD_PLAY_MOTION_ROLES.has(record.motion?.role)
+          && !sampled.complete;
+        if (playEmphasis) {
+          const pulse = Math.sin(Math.PI * Number(sampled.progress || 0));
+          record.mesh.gauntletHalo.isVisible = true;
+          record.mesh.gauntletHalo.visibility = 0.16 + pulse * 0.34;
+          record.mesh.gauntletHalo.scaling.setAll(1 + pulse * 0.1);
+        } else if (sampled.complete) {
+          record.mesh.gauntletHalo.isVisible = Boolean(
+            record.target.selected || record.target.hovered || record.target.legal
+          );
+          record.mesh.gauntletHalo.visibility = record.target.legal
+            && !record.target.selected && !record.target.hovered
+            ? 0.2
+            : record.target.hovered
+              ? 0.46
+              : 0.58;
+          record.mesh.gauntletHalo.scaling.setAll(1);
+        }
         if (sampled.complete) record.motion = null;
       }
       if (departureComplete) {
@@ -3156,7 +3184,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         contactShadow.scaling.setAll(record.mesh.scaling.x * (0.96 + Math.min(0.22, lift * 0.07)));
         contactShadow.visibility = record.mesh.visibility * Math.max(0.08, 0.42 - lift * 0.14);
       }
-      if (record.mesh.gauntletHalo.isVisible) {
+      if (record.mesh.gauntletHalo.isVisible && !CARD_PLAY_MOTION_ROLES.has(record.motion?.role)) {
         record.mesh.gauntletHalo.scaling.set(1, 1, 1);
       }
     }

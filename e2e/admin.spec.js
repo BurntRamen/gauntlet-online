@@ -36,7 +36,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.screenshot({ path: "artifacts/admin-overview-desktop.png", fullPage: true });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Content", { exact: true }).click();
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await page.getByRole("button", { name: /^Cards \d+\b/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   await page.getByText("Advanced / Technical · identity and source", { exact: true }).click();
@@ -156,7 +156,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByRole("button", { name: "Save campaign introduction to draft" }).click();
   await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
   expect((await live()).campaigns.rumin.pitch).toBe(original.campaigns.rumin.pitch);
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await page.getByRole("button", { name: /^Cards \d+\b/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   await page.getByLabel("Draft name", { exact: true }).fill("Capital Investment Spear · review");
@@ -335,7 +335,7 @@ test("disconnected authoring explains the blocker and preserves readable technic
   });
   await page.goto("/admin/gauntlet");
   await signIn(page, request, "simply"); await page.reload();
-  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await expect(page.getByRole("alert")).toContainText("Browsing live content");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeDisabled();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -371,7 +371,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
     await expect(story).toHaveValue("Workshop acceptance story.");
   }
   page.once("dialog", (dialog) => dialog.dismiss());
-  await page.getByRole("button", { name: /^Cards 126/ }).click();
+  await page.getByRole("button", { name: /^Cards \d+\b/ }).click();
   await expect(story).toHaveValue("Workshop acceptance story.");
   // Browser refresh/close has the native unload guard, without navigating away.
   expect(await page.evaluate(() => !window.dispatchEvent(new Event("beforeunload", { cancelable: true })))).toBeTruthy();

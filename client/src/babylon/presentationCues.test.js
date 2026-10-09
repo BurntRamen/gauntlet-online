@@ -30,8 +30,8 @@ test("projects stable visual and audio cue records from accepted event IDs", () 
     level: 2,
     grammar: "brace",
     materialRole: "steel",
-    spriteAlpha: 0.16,
-    ringAlpha: 0,
+    spriteAlpha: 0.22,
+    ringAlpha: 0.1,
     boardResponse: 0.68
   }));
 });

@@ -219,4 +219,22 @@ describe("tiered presentation cadence", () => {
       return projectPresentationCueMetadata(beat, { perspectivePlayer: 1 })[0].cadence.grammar;
     })).toEqual(cases.map(([, grammar]) => grammar));
   });
+
+  test("gives committed card plays a visible landing response", () => {
+    const [placement] = projectPresentationBeats([
+      { id: "placed", type: "card.placedFacedown", player: 1, laneIndex: 1 }
+    ]);
+    const [attack] = projectPresentationBeats([
+      { id: "attacked", type: "attack.declared", player: 1, laneIndex: 1, cardId: "card-1" }
+    ]);
+    const placementCue = projectPresentationCueMetadata(placement)[0];
+    const attackCue = projectPresentationCueMetadata(attack)[0];
+
+    expect(placementCue.cadence).toMatchObject({ grammar: "seat", zoneResponse: "zone-commit" });
+    expect(placementCue.cadence.spriteAlpha).toBeGreaterThanOrEqual(0.2);
+    expect(placementCue.cadence.ringAlpha).toBeGreaterThan(0);
+    expect(attackCue.cadence).toMatchObject({ grammar: "thrust", zoneResponse: "lane-commit" });
+    expect(attackCue.cadence.spriteAlpha).toBeGreaterThanOrEqual(0.25);
+    expect(attackCue.cadence.ringAlpha).toBeGreaterThan(0);
+  });
 });
