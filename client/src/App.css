@@ -3146,9 +3146,9 @@ textarea:focus-visible {
 .home-current-context > strong { max-width: 100%; overflow-wrap: anywhere; }
 .home-command-balances { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; max-width: 100%; }
 .home-command-balances .currency-wallet.is-compact { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; }
-.home-command-balances .currency-wallet.is-compact > span { min-width: 0; padding: 7px 10px; }
+.home-command-balances .currency-wallet.is-compact > span { flex: 0 1 auto; min-width: 0; max-width: 100%; padding: 7px 10px; }
 .home-command-balances .currency-wallet small { font-size: 11px; }
-.home-command-balances .currency-wallet strong { overflow-wrap: anywhere; }
+.home-command-balances .currency-wallet strong { white-space: nowrap; }
 @media (max-width: 760px) {
   .home-command-balances { justify-content: flex-start; }
 }
