@@ -2315,7 +2315,7 @@ textarea:focus-visible {
 
 .home-command-header {
   display: grid;
-  grid-template-columns: minmax(220px, .8fr) minmax(310px, 1.15fr) auto minmax(330px, 1fr);
+  grid-template-columns: minmax(280px, .85fr) minmax(0, 1fr) minmax(330px, 1fr);
   gap: 14px;
   align-items: center;
   margin-bottom: 16px;
@@ -3009,9 +3009,9 @@ textarea:focus-visible {
 .campaign-story-details { padding: 7px; border-radius: 4px; background: rgba(3, 9, 15, .38); }
 
 @media (max-width: 1100px) {
-  .home-command-header { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); }
+  .home-command-header { grid-template-columns: minmax(280px, .85fr) minmax(0, 1.15fr); }
   .home-current-context { display: grid; }
-  .home-command-header > .currency-wallet { justify-self: start; }
+
   .home-command-utilities { grid-column: 1 / -1; }
   .active-deck-header { grid-template-columns: 190px minmax(260px, 1fr); }
   .active-deck-readouts { grid-column: 2; }
@@ -3037,7 +3037,7 @@ textarea:focus-visible {
   }
   .home-command-header { grid-template-columns: 1fr; gap: 18px; }
   .home-current-context { min-height: 124px; width: 100%; }
-  .home-command-header > .currency-wallet { width: 100%; }
+
   .home-command-utilities { justify-items: start; }
   .home-command-tools { position: relative; justify-content: flex-start; }
   .menu-audio-control { position: static; }
@@ -3136,4 +3136,19 @@ textarea:focus-visible {
   .menu-audio-mixer > label { grid-template-columns: minmax(0, 1fr) 54px; }
   .menu-audio-mixer input[type="range"] { grid-column: 1 / -1; min-height: 28px; }
   .menu-audio-heading { flex-wrap: wrap; gap: 6px; }
+}
+
+/* Optional account balances stay within Utilities; header columns never shift. */
+.home-command-header > * { min-width: 0; }
+.home-context-player { min-width: 0; max-width: 100%; line-height: 1.4; }
+.home-context-player .player-avatar { flex-shrink: 0; }
+.home-context-name { min-width: 0; overflow-wrap: anywhere; }
+.home-current-context > strong { max-width: 100%; overflow-wrap: anywhere; }
+.home-command-balances { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; max-width: 100%; }
+.home-command-balances .currency-wallet.is-compact { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; }
+.home-command-balances .currency-wallet.is-compact > span { flex: 0 1 auto; min-width: 0; max-width: 100%; padding: 7px 10px; }
+.home-command-balances .currency-wallet small { font-size: 11px; }
+.home-command-balances .currency-wallet strong { white-space: nowrap; }
+@media (max-width: 760px) {
+  .home-command-balances { justify-content: flex-start; }
 }
