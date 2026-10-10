@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import SpecialCardFace from "./SpecialCardFace";
 import { collectorVersionLabel } from "./collectorPresentation";
 import DeckBox, { DECK_BOXES } from "./DeckBox";
+import DeckShowcase, { getDeckFrontSlot } from "./DeckShowcase";
 import DeckNameEditor from "./DeckNameEditor";
 import CardZoom from "./CardZoom";
 import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
@@ -16,8 +17,8 @@ function readLayout() {
     return { cards: saved.cards === true, preview: saved.preview !== false, matches: saved.matches === "list" ? "list" : "icons", width: Math.max(250, Math.min(420, Number(saved.width) || 290)) };
   } catch { return { cards: false, preview: true, matches: "icons", width: 290 }; }
 }
-export default function DeckWorkshop({ name, factionId, factions, loadoutPicker, renderRules, cards, owned, quantities, suitChoices, variantsByCard, variantSelections, boxId,
-  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid }) {
+export default function DeckWorkshop({ name, factionId, factions, loadoutPicker, renderRules, cards, owned, quantities, suitChoices, variantsByCard, variantSelections, boxId, frontCardSlot,
+  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onFrontCardChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid }) {
   const faction = factions.find((entry) => entry.id === factionId) || {};
   const cardFactionName = (card) => {
     const id = card.factionId || factionId;
@@ -46,6 +47,8 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   const selectedVariant = presentationFor(preview);
   const openZoom = (card) => setZoom({ card: { ...card, factionId: card?.factionId || factionId }, presentation: presentationFor(card) });
   const swaps = slots.filter((slot) => slot.card).length;
+  const showcaseDeck = { name, factionId, factionName: faction.name, deckBoxId: boxId, frontCardSlot, gameplayCardQuantities: quantities, cardSuitChoices: suitChoices, collectorVariantSelections: variantSelections };
+  const front = getDeckFrontSlot(showcaseDeck, cards);
   const canUse = (card) => selected.card?.id === card.id || Number(quantities[card.id] || 0) === 0;
   const replace = (card) => {
     const result = replaceDeckSlot(slots, selected.key, card, owned);
@@ -56,7 +59,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
     <section className={"constructed-workbench deck-workshop " + (layout.cards ? "view-cards" : "view-compact")}
       style={{ "--faction-accent": faction.accent || FACTION_VISUALS[factionId]?.accent, "--inspector-width": layout.width + "px" }} aria-label="52-card deck workshop">
       <header className="deck-workshop-toolbar">
-        <label className="deck-faction-label"><span>Faction</span><select aria-label="Deck faction" value={factionId}
+        <label className="deck-faction-label"><span>Faction</span><select aria-label="Deck faction" value={factionId} disabled={saving}
           onChange={(event) => { onFactionChange(event.target.value); setCandidateId(""); }}>
           {factions.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
         </select></label>
@@ -118,7 +121,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
           onPointerMove={(event) => { if (dragRef.current) resize(dragRef.current.width + dragRef.current.x - event.clientX); }}
           onPointerUp={(event) => { dragRef.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }}
           onPointerCancel={() => { dragRef.current = null; }} onLostPointerCapture={() => { dragRef.current = null; }} />
-        <aside className="deck-inspection-rail" aria-label="Deck name and selected card">
+        <aside className="deck-inspection-rail" aria-label="Deck name and selected card" inert={saving}>
           <DeckNameEditor name={name} onChange={onNameChange} savedName={savedName} onSave={saved ? onRename : undefined} />
           <div className="deck-inspector-scroll">
             <div className="deck-preview-heading"><div><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
@@ -165,11 +168,13 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
           </div>
         </aside>
       </div>
-      <details className="deck-settings">
+      <details className="deck-settings" inert={saving}>
         <summary>Deck settings <span>General · {DECK_BOXES.find((box) => box.id === boxId)?.name || "Classic"} box · reset</span></summary>
         <div className="deck-settings-content">
           <div>{loadoutPicker}<small className="deck-faction-hint">Changing faction resets your swaps.</small></div>
           <section className="deck-box-selector" aria-label="Deck box cosmetic">
+            <DeckShowcase deck={showcaseDeck} cards={cards} collectorCatalog={Object.values(variantsByCard).flat()} />
+            <label className="deck-finish-label">Front card<select aria-label="Front card" value={front.key} onChange={(event) => onFrontCardChange(event.target.value)}>{slots.map((slot) => <option key={slot.key} value={slot.key}>{slotLabel(slot)}{slot.card ? " · " + slot.card.name : " · Standard"}</option>)}</select></label>
             <span className="deck-eyebrow">Deck box</span>
             <div className="deck-box-options">{DECK_BOXES.map((box) => <button type="button" key={box.id} aria-pressed={boxId === box.id} aria-label={box.name + " deck box"} onClick={() => onBoxChange(box.id)}>
               <DeckBox boxId={box.id} factionId={factionId} name={faction.name} compact /><strong>{box.name}</strong>
