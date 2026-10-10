@@ -1056,7 +1056,27 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     const menuBox = await page.locator(".production-match-utilities > summary").boundingBox();
     expect(bannerBox.x).toBeGreaterThan(opponentBox.x + opponentBox.width);
     expect(bannerBox.x + bannerBox.width).toBeLessThan(menuBox.x);
+    const ledgerBox = await ledger.boundingBox();
+    expect(ledgerBox.y - Math.max(bannerBox.y + bannerBox.height, menuBox.y + menuBox.height)).toBeGreaterThanOrEqual(3);
+    expect(ledgerBox.y - Math.max(bannerBox.y + bannerBox.height, menuBox.y + menuBox.height)).toBeLessThanOrEqual(5);
+    const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(ledger.locator("ol")).toBeHidden();
+    await toggle.press("Space");
+    await expect(ledger.locator("ol")).toBeVisible();
     await page.screenshot({ path: test.info().outputPath(`campaign-priority-${viewport.width}.png`) });
+  }
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1280, height: 450 }]) {
+    await page.setViewportSize(viewport);
+    const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(encounter.locator("summary")).toBeVisible();
+    expect(await encounter.evaluate(element => element.open)).toBe(false);
+    await toggle.click();
+    await expect(ledger.locator("ol")).toBeVisible();
+    await toggle.click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
 });
 

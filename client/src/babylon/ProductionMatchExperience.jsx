@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDialoguePlayback } from "../dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "../DialoguePlaybackControls";
 import RecoverableMatchCanvas from "./RecoverableMatchCanvas";
@@ -685,7 +685,21 @@ function factionProfile(value, fallbackName) {
   };
 }
 
-function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
+function useCompactMatchPanels() {
+  const read = () => window.innerWidth <= 600 || window.innerHeight <= 520;
+  const [compact, setCompact] = useState(read);
+  useEffect(() => {
+    const resize = () => setCompact(read());
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+  return compact;
+}
+
+function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
+  const [expanded, setExpanded] = useState(!compact);
+  const contentId = useId();
+  useEffect(() => setExpanded(!compact), [compact]);
   const players = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
   const source = entries.length > 0 ? entries : history;
@@ -704,11 +718,18 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
   return (
     <aside className="production-match-ledger" aria-label="Recent play order">
       <header>
-        <span>Play order</span>
-        <button type="button" onClick={onOpen}>
-          Full log · {Math.max(history.length, entries.length)}
+        <button type="button" className="production-ledger-toggle"
+          aria-label="Play order"
+          aria-expanded={expanded} aria-controls={contentId}
+          onClick={() => setExpanded(value => !value)}>
+          <span>{compact ? "Plays" : "Play order"}</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+        </button>
+        <button type="button" onClick={onOpen} aria-label={`Full log · ${Math.max(history.length, entries.length)}`}>
+          {compact ? "Full log" : `Full log · ${Math.max(history.length, entries.length)}`}
         </button>
       </header>
+      <div id={contentId} className="production-ledger-content" hidden={!expanded}>
       {abilityContent && <button type="button" className="production-ability-recall"
         aria-label="Recall last ability" onClick={onOpenAbilities}>
         <span>Last ability{lastAbility.turn != null ? ` · Turn ${lastAbility.turn}` : ''} · View history</span>
@@ -728,6 +749,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
           />
         ))}
       </ol>
+      </div>
     </aside>
   );
 }
@@ -1118,12 +1140,12 @@ function BroadcastMarker({ broadcast, viewModel }) {
   );
 }
 
-function CampaignEncounter({ campaign, audioEnabled }) {
+function CampaignEncounter({ campaign, audioEnabled, compact }) {
   if (!campaign) return null;
   const ability = campaign.bossAbility;
   const dialogue = campaign.startDialogue || campaign.dialogue || [];
   return (
-    <details className="production-campaign-encounter" open>
+    <details className="production-campaign-encounter" open={!compact}>
       <summary>
         <span>{campaign.opponentName || "Campaign boss"}</span>
         <strong>{ability?.name || campaign.title || "Scripted encounter"}</strong>
@@ -1465,6 +1487,7 @@ export default function ProductionMatchExperience({
   const handRailRef = useRef({ enabled: false, anchors: new Map(), version: 0 });
   const handRailMatchRef = useRef(null);
   const phoneHandLayout = usePhoneHandLayout();
+  const compactMatchPanels = useCompactMatchPanels();
   adapterRef.current = adapter;
 
   useEffect(() => {
@@ -1764,10 +1787,19 @@ export default function ProductionMatchExperience({
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",
           Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
+        // The log follows the turn bar, independently of the taller opponent plate.
+        // Layout offsets exclude the banner's entrance animation.
+        const marker = root.querySelector(".production-turn-marker");
+        const menu = root.querySelector(".production-match-utilities");
+        const logTop = marker?.offsetHeight
+          ? Math.max(marker.offsetTop + marker.offsetHeight,
+            (menu?.offsetTop || 0) + (menu?.querySelector("summary")?.offsetHeight || 0))
+          : Math.max(0, ...top.map(rect => rect.bottom - bounds.top));
+        root.style.setProperty("--match-log-top", Math.ceil(logTop + 4) + "px");
       }
     };
     const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
-    [root, ...root.querySelectorAll(".production-match-surface, .phone-hand-panel, .production-player-plate-bottom, .production-context-panel")]
+    [root, ...root.querySelectorAll(".production-match-surface, .phone-hand-panel, .production-player-plate-bottom, .production-context-panel, .production-turn-marker, .production-player-plate-top")]
       .forEach((element) => observer?.observe(element));
     window.addEventListener("resize", measure);
     measure();
@@ -1778,6 +1810,7 @@ export default function ProductionMatchExperience({
       root.style.removeProperty("--phone-hand-reserve");
       root.style.removeProperty("--battlefield-bottom-reserve");
       root.style.removeProperty("--battlefield-top-reserve");
+      root.style.removeProperty("--match-log-top");
     };
   }, [phoneHandActive, referenceDockActive, update?.source]);
 
@@ -2075,7 +2108,7 @@ export default function ProductionMatchExperience({
         />
         <MatchModeMarker descriptor={update?.descriptor} />
         <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />
-        <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} />
+        <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} compact={compactMatchPanels} />
 
         {transportUpdate?.connected === false && (
           <div className="production-connection-banner" role="status">
@@ -2093,6 +2126,7 @@ export default function ProductionMatchExperience({
         <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}`}>
           {update?.source !== "replay" && !referencePanel && (
             <MatchLedger
+              compact={compactMatchPanels}
               entries={feedEntries}
               snapshot={transportUpdate?.snapshot || update?.snapshot}
               onOpen={() => { setAbilityLogOnly(false); setReferencePanel("log"); }}
