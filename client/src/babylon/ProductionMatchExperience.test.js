@@ -110,6 +110,29 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("play order stays retracted through new actions and keeps full history accessible", async () => {
+  let publish;
+  const update = { source: "local", connected: true, viewModel: createViewModel(), commands: {},
+    snapshot: { actionHistory: [{ id: "pass-1", type: "priority.passed", player: 1 }] } };
+  render(<ProductionMatchExperience adapter={{ connect: jest.fn(), subscribe: listener => {
+    publish = listener;
+    listener(update);
+    return () => {};
+  } }} options={{ audioEnabled: false, reducedMotion: true }} />);
+  const ledger = await screen.findByRole("complementary", { name: "Recent play order" });
+  const toggle = within(ledger).getByRole("button", { name: "Play order", exact: true });
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(ledger.querySelector("ol")).not.toBeVisible();
+  act(() => publish({ ...update, snapshot: { actionHistory: [...update.snapshot.actionHistory,
+    { id: "pass-2", type: "priority.passed", player: 2 }] } }));
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(ledger.querySelector("ol")).not.toBeVisible();
+  fireEvent.click(within(ledger).getByRole("button", { name: /Full log · 2/ }));
+  expect(screen.getByRole("dialog", { name: "Match log" })).toBeVisible();
+});
+
 test("last ability survives routine actions and opens searchable ability history with calculations retained", async () => {
   const effect = { id: 'watane', sequence: 1, revision: 2, turn: 2, type: 'effect.applied', player: 1,
     source: { name: 'Watane' }, target: { name: '5♥' }, amount: 2, before: 5, after: 7,
