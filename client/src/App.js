@@ -5360,13 +5360,13 @@ export default function App() {
           <div className="home-current-context">
             <span className="home-context-notch" aria-hidden="true" />
             <span className="home-context-player">
-              <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />
-              {account?.name || (playAsGuest ? guestName || "Guest" : "No player selected")}
+              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />}
+              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
             </span>
             <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
             <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
           </div>
-          {account?.economy && <CurrencyWallet economy={account.economy} compact />}
+
           <div className="home-command-utilities">
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
@@ -5386,7 +5386,10 @@ export default function App() {
               />
               <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
             </div>
-            {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
+            {(account?.economy || (vaultRewardMinimized && packCredits > 0)) && <div className="home-command-balances">
+              {account?.economy && <CurrencyWallet economy={account.economy} compact />}
+              {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
+            </div>}
           </div>
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
