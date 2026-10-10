@@ -1,0 +1,98 @@
+.home-navigation-journey .home-area-heading { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.journey-introduction { position: relative; isolation: isolate; display: flex; align-items: center; min-height: 258px; padding: 32px; overflow: hidden; border: 1px solid #d3b37d45; border-radius: 9px; background: #111b1e; }
+.journey-introduction::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, #081318f0, #081318b8 37%, #08131810 76%), var(--journey-art) center 59% / cover; }
+.journey-introduction::after { content: ""; position: absolute; inset: 10px; border: 1px solid #d3b37d20; border-radius: 4px; pointer-events: none; }
+.journey-introduction-copy { max-width: 500px; }
+.journey-eyebrow { color: #e4c48c; font-size: 10px; font-weight: 650; letter-spacing: .15em; text-transform: uppercase; }
+.journey-introduction h3 { margin: 10px 0 12px; color: #fff2d6; font: 400 clamp(34px, 3.6vw, 48px)/1.08 var(--font-display); letter-spacing: -.03em; }
+.journey-introduction p { max-width: 405px; margin: 0; color: #d0d9d4; font-size: 13px; line-height: 1.65; }
+.journey-introduction-stats { display: flex; gap: 0; margin: 22px 0 0; }
+.journey-introduction-stats > div { display: flex; align-items: baseline; gap: 8px; padding: 0 18px; border-left: 1px solid #d3b37d50; }
+.journey-introduction-stats > div:first-child { padding-left: 0; border-left: 0; }
+.journey-introduction-stats dt { order: 1; color: #b9c8c5; font-size: 10px; }
+.journey-introduction-stats dd { margin: 0; color: #f1d9b0; font: 400 25px var(--font-display); }
+.journey-hub { gap: 20px; }
+.journey-hub .journey-route { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.journey-hub .journey-learning-panel, .journey-hub .journey-campaign-panel { display: flex; flex-direction: column; align-items: stretch; gap: 16px; padding: 0 24px 24px; border: 1px solid #c9b48e3d; border-radius: 8px; background: #101c22b8; }
+.journey-learning-art { position: relative; height: 158px; margin: 0 -24px; overflow: hidden; }
+.journey-learning-art img { width: 100%; height: 100%; object-fit: cover; object-position: center 51%; }
+.journey-learning-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, #101c22, transparent 65%); }
+.journey-hub .journey-faction-strip { grid-template-columns: repeat(var(--faction-count, 4), minmax(0, 1fr)); height: 158px; flex-shrink: 0; gap: 3px; margin: 0 -24px; border: 0; }
+.journey-hub .journey-faction-strip > span { position: relative; background-position: center 24%; box-shadow: inset 0 -48px 35px #101c22; }
+.journey-faction-strip small { position: absolute; bottom: 14px; left: 0; right: 0; color: #e7dbbd; font-size: 10px; font-weight: 650; letter-spacing: .08em; text-align: center; }
+.journey-hub .journey-panel-copy > span { color: #d7b77c; font-weight: 650; letter-spacing: .13em; }
+.journey-hub .journey-panel-copy h3 { margin: 8px 0 12px; font-weight: 400; font-size: 29px; letter-spacing: -.02em; }
+.journey-hub .journey-panel-copy p { color: #b8c9c9; font-size: 12px; line-height: 1.65; }
+.journey-hub .journey-panel-copy p + p { margin-top: 6px; }
+.journey-hub .journey-turn-flow { margin-top: auto; border: 1px solid #c9b48e26; border-radius: 4px; background: #09141980; }
+.journey-hub .journey-turn-flow > span { gap: 7px; padding: 12px 4px; border-color: #c9b48e26; font-size: 10px; font-weight: 500; }
+.journey-hub .journey-turn-flow small { color: #d7b77c; font-size: 10px; font-weight: 650; }
+.journey-hub .journey-campaign-progress { display: flex; align-items: baseline; gap: 10px; width: 100%; margin-top: auto; padding: 12px 0 0; border: 0; border-top: 1px solid #c9b48e26; text-align: left; }
+.journey-hub .journey-campaign-progress > span { margin-right: auto; color: #aabdb7; font-size: 10px; font-weight: 500; text-transform: none; }
+.journey-hub .journey-campaign-progress strong { font-size: 25px; font-weight: 400; }
+.journey-hub .journey-campaign-progress small { font-size: 9px; font-weight: 500; text-transform: none; }
+.journey-hub .journey-panel-actions { gap: 8px; }
+.journey-hub .menu-button, .tutorial-page .menu-button, .campaign-page .menu-button { min-height: 42px; border-color: #d3b17b99 !important; background: linear-gradient(180deg, #b58a4c, #806039) !important; color: #fff6e5 !important; font-size: 12px; }
+.journey-hub .menu-button-secondary, .tutorial-page .menu-button-secondary, .campaign-page .menu-button-secondary { border-color: #b4c9cb4d !important; background: #24343e !important; color: #dbe6e7 !important; }
+.journey-hub .menu-button:hover:not(:disabled), .tutorial-page .menu-button:hover:not(:disabled), .campaign-page .menu-button:hover:not(:disabled) { filter: brightness(1.12); }
+.journey-hub .journey-rulebook { border: 1px solid #c9b48e26; border-radius: 6px; background: #101c2250; }
+.journey-hub .journey-rulebook > summary { min-height: 60px; padding: 14px 20px; }
+.journey-hub .journey-rulebook > summary > span { font: 400 20px var(--font-display); }
+
+/* Tutorial and campaign entrances use the same illustrated hierarchy. */
+.tutorial-page .tutorial-header, .campaign-page .campaign-header { position: relative; isolation: isolate; overflow: hidden; gap: 20px; min-height: 186px; margin-bottom: 24px; padding: 28px 32px; border: 1px solid #d3b37d45; border-radius: 8px; background: #111b1e; box-shadow: none; }
+.tutorial-page .tutorial-header::before, .campaign-page .campaign-header::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, #081318ed, #081318b8 50%, #08131820), var(--journey-art) center 54% / cover; }
+.tutorial-page .tutorial-kicker, .campaign-page .campaign-kicker { color: #e4c48c; font-size: 10px; font-weight: 650; letter-spacing: .15em; }
+.tutorial-page .tutorial-header h1, .campaign-page .campaign-heading h1 { margin: 10px 0; font-weight: 400; font-size: clamp(32px, 3.5vw, 46px); letter-spacing: -.03em; }
+.tutorial-page .tutorial-header p, .campaign-heading p { max-width: 480px; margin: 8px 0 0; color: #c5d3cf; font-size: 13px; line-height: 1.6; }
+.tutorial-page .tutorial-step { border-color: #c9b48e26; border-radius: 6px; padding: 18px; background: #101c2280; }
+.tutorial-page .tutorial-step-number { color: #d4b178; background: transparent; border-color: #d4b1784d; }
+.tutorial-page .tutorial-step h3 { font-weight: 400; font-size: 21px; }
+.tutorial-page .tutorial-step p { color: #b8c9c9; line-height: 1.6; }
+.tutorial-page .tutorial-practice-panel { border-color: #c9b48e3d; background: #101c22b8; }
+.campaign-page .campaign-faction-tabs { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.campaign-page .campaign-faction-tab { min-height: 128px; padding: 18px; border-radius: 6px; cursor: pointer; background-position: center 30%; transition: box-shadow 160ms, filter 160ms; }
+.campaign-page .campaign-faction-tab > span { font: 400 24px var(--font-display); text-shadow: 0 2px 6px #000; }
+.campaign-page .campaign-faction-tab > strong { padding: 5px 8px; border: 1px solid #c9b48e3d; border-radius: 3px; background: #081318b8; font-size: 10px; }
+.campaign-page .campaign-faction-tab:hover { filter: brightness(1.15); }
+.campaign-page .campaign-faction-tab:focus-visible { outline: 2px solid #f1c779; outline-offset: 3px; }
+.campaign-page .campaign-archive-hero { min-height: 244px; padding: 30px; border-bottom-width: 2px; }
+.campaign-page .campaign-archive-hero h2 { font-weight: 400; font-size: clamp(28px, 3vw, 40px); letter-spacing: -.025em; }
+.campaign-page .campaign-archive-copy { max-width: 58%; }
+.campaign-page .campaign-archive-copy p { max-width: 580px; line-height: 1.6; }
+.campaign-page .campaign-next-battle { padding: 18px; border-left-width: 2px; border-radius: 4px; background: #081318e8; gap: 7px; }
+.campaign-page .campaign-map-heading { padding: 24px 20px 6px; }
+.campaign-page .campaign-map-heading h3 { margin-top: 6px; font-size: 25px; font-weight: 400; }
+.campaign-page .campaign-chapter-grid { padding: 18px; gap: 20px; }
+.campaign-page .campaign-chapter h3 { font-weight: 400; font-size: 26px; }
+.campaign-page .campaign-chapter-art { height: 200px; }
+@media (max-width: 900px) {
+  .journey-hub .journey-route { gap: 14px; }
+  .journey-hub .journey-learning-panel, .journey-hub .journey-campaign-panel { padding: 0 18px 18px; }
+  .journey-learning-art, .journey-hub .journey-faction-strip { margin: 0 -18px; }
+  .journey-hub .journey-turn-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .journey-hub .journey-turn-flow > span:nth-child(-n+3) { border-bottom: 1px solid #c9b48e26; }
+  .journey-hub .journey-turn-flow > span:nth-child(3) { border-right: 0; }
+  .campaign-page .campaign-archive-copy { max-width: none; }
+  .campaign-page .campaign-archive-hero { flex-direction: column; align-items: stretch; }
+  .campaign-page .campaign-next-battle { width: auto; }
+}
+@media (max-width: 640px) {
+  .journey-introduction { min-height: 286px; padding: 24px; }
+  .journey-introduction::before { background-image: linear-gradient(90deg, #081318e8, #08131875), var(--journey-art); background-position: center, 65% center; }
+  .journey-introduction h3 { font-size: 35px; }
+  .journey-introduction-stats { gap: 16px; }
+  .journey-introduction-stats > div { flex-direction: column; gap: 3px; padding: 0; border: 0; }
+  .journey-introduction-stats dd { order: -1; }
+  .journey-hub .journey-route { grid-template-columns: 1fr; }
+  .journey-hub .journey-panel-copy h3 { font-size: 27px; }
+  .tutorial-page .tutorial-header, .campaign-page .campaign-header { flex-direction: column; align-items: flex-start; padding: 24px; }
+  .campaign-page .campaign-faction-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .campaign-page .campaign-faction-tab { min-height: 112px; padding: 12px; }
+  .campaign-page .campaign-faction-tab > span { font-size: 21px; }
+  .campaign-page .campaign-archive-hero { padding: 22px; }
+  .campaign-page .campaign-chapter-grid { grid-template-columns: 1fr; padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .campaign-page .campaign-faction-tab { transition: none; }
+}
