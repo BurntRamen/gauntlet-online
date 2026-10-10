@@ -3,6 +3,9 @@ const assert = require("node:assert/strict");
 const {
   applyEventResult,
   createEventDefinitions,
+  eventAvailability,
+  eventById,
+  listEventDefinitions,
   normalizeEventProgress,
   resignEventRun,
   startEventRun
@@ -11,6 +14,27 @@ const {
 test("events are free now and can be priced later", () => {
   assert.ok(createEventDefinitions({ entryCredits: 0 }).every((event) => event.entryCost.amount === 0));
   assert.ok(createEventDefinitions({ entryCredits: 2 }).every((event) => event.entryCost.amount === 2));
+});
+
+test("major events publish their calendar and enforce entry windows", () => {
+  const event = eventById("fall-grand-gauntlet-2026");
+  assert.equal(event.scale, "major");
+  assert.equal(eventAvailability(event, "2026-10-09T12:00:00.000Z").state, "upcoming");
+  assert.equal(eventAvailability(event, "2026-10-24T12:00:00.000Z").state, "live");
+  assert.equal(eventAvailability(event, "2026-10-26T02:00:00.000Z").state, "entry-closed");
+  assert.equal(eventAvailability(event, "2026-10-27T12:00:00.000Z").state, "ended");
+  assert.throws(() => startEventRun({}, event.id, { now: "2026-10-09T12:00:00.000Z" }), /not open yet/);
+  assert.equal(startEventRun({}, event.id, { now: "2026-10-24T12:00:00.000Z", runId: "major-run" }).run.id, "major-run");
+  const published = listEventDefinitions({ now: "2026-10-24T12:00:00.000Z" }).find((entry) => entry.id === event.id);
+  assert.deepEqual(published.availability, {
+    state: "live", label: "Entry open", canEnter: true, canPlay: true, nextTransitionAt: event.schedule.entryClosesAt
+  });
+});
+
+test("major event rewards include gold, boosters and collector styles", () => {
+  const started = startEventRun({}, "fall-grand-gauntlet-2026", { runId: "major-rewards", now: "2026-10-24T12:00:00.000Z" });
+  const result = applyEventResult({ events: started.progress }, started.event.id, started.run.id, "win");
+  assert.deepEqual(result.rewards, [{ wins: 1, gold: 500, boosterCredits: 1 }]);
 });
 
 test("event runs award each win tier once and end at the loss cap", () => {

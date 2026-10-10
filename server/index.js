@@ -57,7 +57,9 @@ const { createSocketBoundary } = require("./socketBoundary");
 const {
   EVENT_DEFINITIONS,
   applyEventResult,
+  eventAvailability,
   eventById,
+  listEventDefinitions,
   normalizeEventProgress,
   resignEventRun,
   startEventRun
@@ -2684,6 +2686,13 @@ function applyProgressionForResult(stats, result, context = {}) {
         const credits = Math.max(0, Number(reward.boosterCredits || 0));
         collection.packCredits += credits;
         collection.earnedPackCredits += credits;
+        const gold = Math.max(0, Number(reward.gold || 0));
+        if (gold) {
+          const economy = normalizeEconomy(stats, { now });
+          economy.gold += gold;
+          economy.totals.goldEarned += gold;
+          stats.economy = economy;
+        }
         if (reward.cardStyleId && getCollectorVariantById(reward.cardStyleId)) {
           collection.collectorVariants[reward.cardStyleId] = Math.max(1, Number(collection.collectorVariants[reward.cardStyleId] || 0));
         }
@@ -3699,7 +3708,7 @@ app.get("/api/auth/me", async (req, res) => {
 
 app.get("/api/events", (_req, res) => {
   res.set("Cache-Control", "no-store");
-  res.json({ events: EVENT_DEFINITIONS });
+  res.json({ events: listEventDefinitions() });
 });
 
 app.post("/api/events/:eventId/join", async (req, res) => {
@@ -8106,6 +8115,10 @@ io.on("connection", (socket) => {
     const run = normalizeEventProgress(account.stats || {}).runs[event.id];
     if (!run || run.status !== "active") {
       socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Enter this event before searching for a match." });
+      return;
+    }
+    if (!eventAvailability(event).canPlay) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, eventId: event.id, message: "This scheduled event is not currently live." });
       return;
     }
     removeFromMatchmaking(socket.id);
