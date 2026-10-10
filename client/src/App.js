@@ -9,6 +9,7 @@ import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import DeckWorkshop from "./DeckWorkshop";
+import DeckShowcase from "./DeckShowcase";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
@@ -19,7 +20,7 @@ import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
-import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
+import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
@@ -1683,7 +1684,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1707,6 +1708,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
   const [constructedBoxId, setConstructedBoxId] = useState(savedConstructedDeck?.deckBoxId || "classic");
+  const [constructedFrontCardSlot, setConstructedFrontCardSlot] = useState(savedConstructedDeck?.frontCardSlot || null);
   const [packPacing, setPackPacing] = useState(readPackPacing);
   const initialOpenedPack = useRef(lastOpenedPack);
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
@@ -1717,7 +1719,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectorSearch, setCollectorSearch] = useState("");
   const [inspectedCollectorVariantId, setInspectedCollectorVariantId] = useState("");
-  const [collectionView, setCollectionView] = useState("shop");
+  const [collectionView, setCollectionView] = useState(initialView);
   const loadedConstructedVersion = useRef("");
 
   useEffect(() => {
@@ -1733,13 +1735,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     loadedConstructedVersion.current = versionKey;
     setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
+    setConstructedFrontCardSlot(savedConstructedDeck?.frontCardSlot || null);
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
-    setConstructedSaveMessage("");
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot]);
 
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
@@ -1847,7 +1849,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         collectorVariantSelections: Object.fromEntries(Object.keys(constructedQuantities)
           .filter((cardId) => constructedQuantities[cardId] > 0)
           .map((cardId) => [cardId, findCollectorVariant(cardId, availableVariantsByGameplayCard[cardId] || [], constructedVariantSelections[cardId])?.variantId || constructedCardsById[cardId]?.defaultVariantId])),
-        deckBoxId: constructedBoxId
+        deckBoxId: constructedBoxId,
+        frontCardSlot: constructedFrontCardSlot
       });
       if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
@@ -1861,6 +1864,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedDeckName(savedConstructedDeck.name || "Rumin Constructed Deck");
     setConstructedGeneralId(savedConstructedDeck.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck.deckBoxId || "classic");
+    setConstructedFrontCardSlot(savedConstructedDeck.frontCardSlot || null);
     setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck.gameplayCardQuantities || savedConstructedDeck.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
@@ -1880,6 +1884,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedDeckName("Rumin Constructed Deck");
     setConstructedGeneralId("monti");
     setConstructedBoxId("classic");
+    setConstructedFrontCardSlot(null);
     setConstructedFactionId("rumin");
     setConstructedQuantities({});
     setConstructedSuitChoices({});
@@ -1960,7 +1965,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <button type="button" onClick={startNewConstructedDeck}>New deck</button>
         </div>
         <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
-          <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog}
+          <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog} catalog={catalog}
             onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
@@ -1975,13 +1980,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           quantities={constructedQuantities} suitChoices={constructedSuitChoices}
           variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
           boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
+          frontCardSlot={constructedFrontCardSlot}
           versionCount={selectedConstructedRecord?.versions?.length || 0}
           message={constructedSaveMessage} invalid={!!constructedCurveWarning || !!constructedSlotWarning}
           onNameChange={(name) => { setConstructedDeckName(name); setConstructedSaveMessage(""); }}
-          onFactionChange={(factionId) => { setConstructedFactionId(factionId); setConstructedGeneralId(deckRules.factions?.find((entry) => entry.id === factionId)?.general?.id || null); setConstructedQuantities({}); setConstructedSuitChoices({}); setConstructedVariantSelections({}); setConstructedSaveMessage(""); }}
+          onFactionChange={(factionId) => { setConstructedFactionId(factionId); setConstructedGeneralId(deckRules.factions?.find((entry) => entry.id === factionId)?.general?.id || null); setConstructedQuantities({}); setConstructedSuitChoices({}); setConstructedVariantSelections({}); setConstructedFrontCardSlot(null); setConstructedSaveMessage(""); }}
           onReplacementChange={({ quantities, suitChoices }) => { setConstructedQuantities(quantities); setConstructedSuitChoices(suitChoices); setConstructedSaveMessage(""); }}
           onVariantChange={(cardId, variantId) => { setConstructedVariantSelections((current) => ({ ...current, [cardId]: variantId })); setConstructedSaveMessage(""); }}
           onBoxChange={(boxId) => { setConstructedBoxId(boxId); setConstructedSaveMessage(""); }}
+          onFrontCardChange={(slot) => { setConstructedFrontCardSlot(slot); setConstructedSaveMessage(""); }}
           onSave={saveConstructedDeck} onReset={clearConstructedDeck} onRestore={loadSavedConstructedDeck}
         />
         </>}
@@ -2095,7 +2102,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
   return (
     <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
@@ -2107,7 +2114,7 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
       </div>
     </div>
   );
@@ -4876,6 +4883,7 @@ export default function App() {
     || account?.stats?.savedConstructedDeck
     || null;
   const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
+  const activeConstructedVersion = getCurrentDeckVersion(activeConstructedDeck);
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const enrichedFeaturedDecks = featuredDecks.map((deck) => ({
     ...deck,
@@ -5115,6 +5123,7 @@ export default function App() {
     return (
       <CollectionScreen
         account={account}
+        initialView={showCollection === "decks" ? "decks" : "shop"}
         deckRules={gameContent.deckRules}
         lastOpenedPack={lastOpenedPack}
         openingPackId={openingPackId}
@@ -5484,12 +5493,12 @@ export default function App() {
               </section>
               <div className="build-deck-stack">
                 <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
-                  <span className="build-deck-cover" aria-hidden="true" style={{ backgroundImage: `linear-gradient(rgba(3,8,13,0.08), rgba(3,8,13,0.72)), url(${resolveAssetPath(`/assets/gauntlet/${buildDeckFactionId}-card.webp`)})` }} />
+                  <DeckShowcase deck={activeConstructedDeck || { factionId: buildDeckFactionId }} cards={[...(account?.collection?.catalog?.[buildDeckFactionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} />
                   <div>
                     <span>Constructed / {constructedDecks.length} saved</span>
                     <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
                     <p>{activeConstructedDeck
-                      ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} gameplay-card replacements.`
+                      ? `${activeConstructedVersion?.replacementCount || activeConstructedVersion?.additionCount || 0} gameplay-card replacements.`
                       : canCustomizeConstructedDeck
                         ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
                         : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
@@ -5498,7 +5507,7 @@ export default function App() {
                       onClick={() => {
                         if (activeConstructedDeck || canCustomizeConstructedDeck) {
                           playMenuCue("panelOpen");
-                          setShowCollection(true);
+                          setShowCollection("decks");
                         } else {
                           navigateHomeArea("journey");
                           playMenuCue("area");
@@ -5583,11 +5592,11 @@ export default function App() {
               <section className="identity-featured-decks" aria-labelledby="identity-featured-title">
                 <header className="identity-section-heading">
                   <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
-                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Manage Decks</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection("decks"); }} disabled={!account}>Manage Decks</MenuButton>
                 </header>
                 {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
                   <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
-                    <DeckVisual deck={deck} decorative />
+                    {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(account?.collection?.catalog?.[deck.factionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} compact /> : <DeckVisual deck={deck} decorative />}
                     <div><span>{deck.factionName} · {deck.format === "draft" ? limitedDeckSourceLabel(deck.draftType) : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
                   </article>
                 ))}</div> : <p className="identity-empty-copy">Feature up to three decks from Build to make them part of your identity.</p>}

@@ -8,9 +8,9 @@ const budgets = {
   // Typed content presentation adds about 1 KiB to the production entry point.
   // The Events navigation and completion receipt add under 1 KiB; the full
   // event hub remains in its own on-demand chunk.
-  // Leave 128 bytes for content-hash compression variance when lazy Babylon
-  // chunks change; the entry-point code itself remains at the 178 KiB target.
-  mainGzip: 178 * KIB + 128,
+  // Saved deck boxes/front cards and their picker add ~1.1 KiB to the entry
+  // point.
+  mainGzip: 180 * KIB,
   // Focused player profiles and guarded metadata editing add ~1.7 KiB.
   // This chunk loads only in Admin; the player and initial-load limits stay fixed.
   adminGzip: 20 * KIB,
@@ -30,9 +30,11 @@ const budgets = {
   // Includes the set-specific Sealed controls from the current player release.
   // Card/source thumbnails, recorded-value shorthand, and accessible log disclosures.
   // The set collector storefront is isolated in a 1.3 KiB on-demand chunk.
-  // Draft request recovery and its on-demand loading/progress screen add ~2 KiB
-  // overall; the initial-load and largest-chunk ceilings remain unchanged.
-  totalJavaScriptGzip: 744 * KIB
+  // Deck showcases plus the current full-art campaign card release measure
+  // 742.5 KiB together; allow less than 1 KiB of compression variance.
+  // Draft request recovery and its separately compressed, on-demand screen
+  // add approximately 3 KiB; keep the initial-load ceiling unchanged.
+  totalJavaScriptGzip: 746 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

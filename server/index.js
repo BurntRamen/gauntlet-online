@@ -1085,6 +1085,10 @@ function normalizeDeckBoxId(value) {
   return ["classic", "faction", "obsidian"].includes(value) ? value : "classic";
 }
 
+function normalizeFrontCardSlot(value) {
+  return typeof value === "string" && /^(?:[2-9]|1[0-4]):(?:spades|hearts|diamonds|clubs)$/.test(value) ? value : null;
+}
+
 function normalizeDeckVersion(version = {}) {
   const gameplayCardQuantities = normalizeOwnershipCounts(version.gameplayCardQuantities || version.cardQuantities);
   const collectorVariantSelections = Object.fromEntries(Object.entries(version.collectorVariantSelections || {})
@@ -1093,6 +1097,7 @@ function normalizeDeckVersion(version = {}) {
   const normalized = {
     ...version,
     deckBoxId: normalizeDeckBoxId(version.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(version.frontCardSlot),
     cardQuantities: gameplayCardQuantities,
     gameplayCardQuantities,
     collectorVariantSelections
@@ -1104,7 +1109,7 @@ function normalizeDeckVersion(version = {}) {
     gameplayCardQuantities,
     cardSuitChoices: clonePlain(version.cardSuitChoices || {})
   };
-  const presentationConfiguration = version.presentationConfiguration || { collectorVariantSelections, deckBoxId: normalized.deckBoxId };
+  const presentationConfiguration = version.presentationConfiguration || { collectorVariantSelections, deckBoxId: normalized.deckBoxId, frontCardSlot: normalized.frontCardSlot };
   return {
     ...normalized,
     mechanicalConfiguration,
@@ -1376,6 +1381,7 @@ function getSavedConstructedDeck(stats = {}) {
     gameplayCardQuantities: canonicalQuantities,
     cardSuitChoices: canonicalSuitChoices,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(deck.frontCardSlot),
     collectorVariantSelections,
     gameplayConfigurationHash: deck.gameplayConfigurationHash || null,
     collectorConfigurationHash: deck.collectorConfigurationHash || null,
@@ -1387,6 +1393,9 @@ function getSavedConstructedDeck(stats = {}) {
 }
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  if (payload.frontCardSlot != null && !normalizeFrontCardSlot(payload.frontCardSlot)) {
+    throw new Error("Choose a valid front card from the 52-card deck.");
+  }
   if (payload.generalId && !getFactionById(payload.factionId, payload.generalId)) throw new Error("Choose a General belonging to this faction.");
   if (payload.deckBoxId != null && !["classic", "faction", "obsidian"].includes(payload.deckBoxId)) {
     throw new Error("Choose a valid deck box.");
@@ -1465,6 +1474,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
     deckBoxId: normalizeDeckBoxId(payload.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(payload.frontCardSlot),
     collectorVariantSelections,
     savedAt: new Date().toISOString()
   };
@@ -2015,6 +2025,24 @@ async function readAccountAvatar(accountId, avatar, stats = {}) {
   return fs.existsSync(target) ? fs.readFileSync(target) : null;
 }
 
+function getPublicDeckShowcase(deck) {
+  if (deck.format !== "constructed") return {};
+  const version = getDeckRecordVersion(deck) || {};
+  const cards = expandConstructedCardQuantities(version.gameplayCardQuantities || version.cardQuantities || {}, deck.factionId, version.cardSuitChoices, version.collectorVariantSelections);
+  const frontCardSlot = normalizeFrontCardSlot(version.frontCardSlot)
+    || cards.map((card) => `${card.value}:${card.suit}`).sort((left, right) => {
+      const [leftValue, leftSuit] = left.split(":");
+      const [rightValue, rightSuit] = right.split(":");
+      return Number(leftValue) - Number(rightValue) || DRAFT_CARD_SUITS.indexOf(leftSuit) - DRAFT_CARD_SUITS.indexOf(rightSuit);
+    })[0] || "14:spades";
+  const [value, suit] = frontCardSlot.split(":");
+  return {
+    deckBoxId: normalizeDeckBoxId(version.deckBoxId),
+    frontCardSlot,
+    frontCard: cards.find((card) => Number(card.value) === Number(value) && card.suit === suit) || { value: Number(value), suit }
+  };
+}
+
 function getPublicDeckFeaturedArt(deck, limit = 3) {
   const versions = Array.isArray(deck?.versions) ? deck.versions : [];
   const version = versions.find((entry) => entry.id === deck.currentVersionId) || versions[versions.length - 1] || deck || {};
@@ -2140,6 +2168,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       coverId: deck.coverId,
       currentVersionId: deck.currentVersionId,
       featuredArt: getPublicDeckFeaturedArt(deck),
+      ...getPublicDeckShowcase(deck),
       updatedAt: deck.updatedAt,
       record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
     })),

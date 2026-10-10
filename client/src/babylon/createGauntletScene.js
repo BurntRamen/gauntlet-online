@@ -1,4 +1,4 @@
-import { paintPublishedCardFace } from "./composedCardFace";
+import { COMPOSED_CARD_SIZE, paintPublishedCardFace } from "./composedCardFace";
 import { createCollectorFoilMaterial } from "./collectorFoilMaterial";
 import { Camera } from "@babylonjs/core/Cameras/camera.js";
 import { TargetCamera } from "@babylonjs/core/Cameras/targetCamera.pure.js";
@@ -2082,7 +2082,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function getFaceMaterial(path, label, id, card) {
     if (card?.presentation?.composed) {
-      const texture = new DynamicTexture(`published-${id}`, { width: 384, height: 536 }, babylonScene, true);
+      const texture = new DynamicTexture(`published-${id}`, COMPOSED_CARD_SIZE, babylonScene, true);
       const context = texture.getContext();
       paintPublishedCardFace(context, card, null); texture.update(true);
       if (path) {
