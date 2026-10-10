@@ -895,7 +895,7 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
+      aria-disabled={disabled}
       style={{
         ...base,
         opacity: disabled ? 0.48 : 1,
@@ -2110,36 +2110,56 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
   );
 }
 
-function DraftCardTile({ card, selected = false, disabled = false, onClick, actionLabel = "Pick" }) {
+export function DraftCardTile({ card, selected = false, disabled = false, onClick, onInspect, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
   return (
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => onInspect?.(card)}
+      onFocus={() => onInspect?.(card)}
       disabled={disabled}
+      aria-pressed={selected}
+      aria-label={`${selected ? "Remove" : actionLabel} ${card.name}`}
+      className={`limited-card-tile${selected ? " is-in-deck" : ""}`}
       style={{
-        border: `1px solid ${selected ? theme.accent : rarity.border}`,
-        borderRadius: 8,
-        padding: 9,
-        background: selected ? "rgba(250,204,21,0.18)" : "rgba(2,6,23,0.58)",
-        color: "#e5e7eb",
-        textAlign: "left",
-        display: "grid",
-        gap: 5,
-        minHeight: 310,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.48 : 1
+        "--limited-accent": theme.accent,
+        "--limited-glow": theme.glow,
+        "--limited-rarity": rarity.border
       }}
     >
-      <span style={{ display: "block", width: "100%", maxWidth: 180, aspectRatio: "5 / 7", justifySelf: "center", overflow: "hidden", borderRadius: 7, boxShadow: `0 8px 22px ${theme.glow}` }}>
+      <span className="limited-card-art">
         <SpecialCardFace card={card} />
       </span>
-      <strong style={{ color: rarity.color }}>{card.name}</strong>
-      <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
-      <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
-      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Swapped" : actionLabel}</span>
+      <span className="limited-card-copy">
+        <strong style={{ color: rarity.color }}>{card.name}</strong>
+        <span>{theme.name} · {rarity.label} · {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
+      </span>
+      <span className="limited-card-action">{selected ? "✓ In deck" : actionLabel === "Swap In" ? "⇄ Swap in" : actionLabel}</span>
     </button>
+  );
+}
+
+function LimitedCardInspector({ card, selected, playingDeckValues }) {
+  if (!card) return <aside className="limited-card-inspector is-empty"><p>Hover or focus a card to inspect it.</p></aside>;
+  const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
+  return (
+    <aside className="limited-card-inspector" style={{ "--limited-accent": theme.accent, "--limited-glow": theme.glow }} aria-live="polite">
+      <div className="limited-inspector-kicker">Card inspection</div>
+      <div className="limited-inspector-art"><SpecialCardFace card={card} /></div>
+      <div className="limited-inspector-heading">
+        <div>
+          <h3>{card.name}</h3>
+          <p>{theme.name} · {card.rarity || "common"} {card.type}</p>
+        </div>
+        <strong>{getCardRank(card)}{getSuitSymbol(card.suit)}</strong>
+      </div>
+      <p className="limited-inspector-rules">{card.text || card.rulesText || "No additional rules text."}</p>
+      <div className={`limited-inspector-state${selected ? " is-selected" : ""}`}>
+        {selected ? "✓ In your deck" : `Replaces ${getReplacementValue(card, playingDeckValues) ?? getCardRank(card)}${getSuitSymbol(card.suit)}`}
+      </div>
+    </aside>
   );
 }
 
@@ -2149,6 +2169,8 @@ function limitedDeckSourceLabel(draftType) {
 }
 
 function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
+  const [inspectedLimitedCardId, setInspectedLimitedCardId] = useState("");
+  const [limitedPoolView, setLimitedPoolView] = useState("all");
   const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const myPack = draft?.myCurrentPack?.cards || [];
@@ -2167,6 +2189,12 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
     return counts;
   }, {});
   const selectedSlotWarning = Object.entries(selectedSlotCounts).find(([, count]) => count > 1);
+  const inspectedLimitedCard = myPool.find((card) => card.draftCopyId === inspectedLimitedCardId) || myPool[0] || null;
+  const selectedValueCounts = myDeckAdditions.reduce((counts, card) => {
+    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
+    if (value != null) counts[value] = (counts[value] || 0) + 1;
+    return counts;
+  }, {});
   const savedDraftDeck = account?.stats?.savedDraftDeck || null;
   const players = draft?.players || lobby?.players || {};
   const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
@@ -2250,52 +2278,76 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
         )}
 
         {draft?.status === "building" && !isSpectator && (
-          <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck (${myDeckAdditions.length} swaps)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose one faction plus Reath cards. Cards replace matching slots.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Deck size</strong>
-                <div>{draft?.baseDeck?.cardCount || BASE_PLAYING_DECK_SIZE} cards - {myDeckAdditions.length} swap{myDeckAdditions.length === 1 ? "" : "s"}</div>
+          <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck`}>
+            <div className="limited-builder-intro">
+              <div>
+                <span className="limited-builder-eyebrow">Your deck</span>
+                <p>Choose one faction plus Reath cards. Each choice replaces its matching playing-card slot.</p>
               </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
+              <strong>{myDeckAdditions.length} <span>swap{myDeckAdditions.length === 1 ? "" : "s"}</span></strong>
+            </div>
+            <div className="limited-builder-summary">
+              <div>
+                <strong>Deck size</strong>
+                <div>{draft?.baseDeck?.cardCount || BASE_PLAYING_DECK_SIZE} cards</div>
+              </div>
+              <div>
                 <strong>Faction</strong>
                 <div>{selectedFactionName || "Choose your first card"}</div>
               </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
+              <div>
                 <strong>Limited League</strong>
                 <div>{savedDraftDeck ? `Saved: ${savedDraftDeck.factionName || savedDraftDeck.factionId}` : "No saved deck yet"}</div>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+            <div className="limited-curve" aria-label="Deck value distribution">
+              <span>Value curve</span>
+              {PLAYING_DECK_VALUES.map((value) => <i key={value} className={selectedValueCounts[value] ? "has-cards" : ""}><b>{value}</b><small>{selectedValueCounts[value] || 0}</small></i>)}
+            </div>
+            <div className="limited-builder-actions">
               <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for {isSealed ? "Sealed" : "Draft"} League</MenuButton>
               {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
               {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
               {selectedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: "bold" }}>Two cards are replacing the same {selectedSlotWarning[0].replace(":", " of ")}.</span>}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-              {myPool.map((card) => {
+            <div className="limited-pool-toolbar">
+              <div><span className="limited-builder-eyebrow">{isSealed ? "Sealed" : "Draft"} pool</span><strong>{myPool.length} cards</strong></div>
+              <div role="group" aria-label="Filter card pool">
+                {[['all', 'All'], ['available', 'Available'], ['deck', 'In deck']].map(([value, label]) => <button key={value} type="button" className={limitedPoolView === value ? "is-active" : ""} aria-pressed={limitedPoolView === value} onClick={() => setLimitedPoolView(value)}>{label}</button>)}
+              </div>
+            </div>
+            <div className="limited-builder-workspace">
+              <div className="limited-card-grid">
+              {myPool.filter((card) => {
+                if (limitedPoolView === "deck") return selectedIds.has(card.draftCopyId);
+                if (limitedPoolView !== "available") return true;
+                if (selectedIds.has(card.draftCopyId)) return false;
+                const slotKey = `${getReplacementValue(card, PLAYING_DECK_VALUES)}:${normalizeReplacementSuitId(card.suit)}`;
+                return !(Number(selectedSlotCounts[slotKey] || 0) > 0 || (!selectedFactionId && card.factionId === "neutral") || (selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral"));
+              }).map((card) => {
                 const selected = selectedIds.has(card.draftCopyId);
                 const slotKey = `${getReplacementValue(card, PLAYING_DECK_VALUES)}:${normalizeReplacementSuitId(card.suit)}`;
                 const slotOccupied = !selected && Number(selectedSlotCounts[slotKey] || 0) > 0;
                 const needsFactionFirst = !selected && !selectedFactionId && card.factionId === "neutral";
                 return (
-                  <div key={card.draftCopyId} style={{ display: "grid", gap: 6 }}>
-                    <DraftCardTile
+                  <DraftCardTile
+                      key={card.draftCopyId}
                       card={card}
                       selected={selected}
                       disabled={!selected && (needsFactionFirst || (selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral") || slotOccupied)}
                       actionLabel={selected ? "Remove" : needsFactionFirst ? "Choose faction first" : selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral" ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
+                      onInspect={(inspectedCard) => setInspectedLimitedCardId(inspectedCard.draftCopyId)}
                       onClick={() => onToggleDeckCard(card.draftCopyId)}
                     />
-                    {selected && <div style={{ color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>Replaces {getCardRank(card)}{getSuitSymbol(card.suit)}</div>}
-                  </div>
                 );
               })}
+              </div>
+              <LimitedCardInspector card={inspectedLimitedCard} selected={inspectedLimitedCard ? selectedIds.has(inspectedLimitedCard.draftCopyId) : false} playingDeckValues={PLAYING_DECK_VALUES} />
             </div>
           </MenuCard>
         )}
 
-        <MenuCard title={`Your ${isSealed ? "Sealed" : "Draft"} Pool (${myPool.length})`}>
+        {draft?.status !== "building" && <MenuCard title={`Your ${isSealed ? "Sealed" : "Draft"} Pool (${myPool.length})`}>
           {isSpectator ? (
             <p style={{ color: "#bfdbfe", margin: 0 }}>Spectators can watch seat and pick counts, but not hidden packs.</p>
           ) : myPool.length === 0 ? (
@@ -2305,7 +2357,7 @@ function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, dr
               {myPool.map((card) => <DraftCardTile key={card.draftCopyId} card={card} actionLabel={selectedIds.has(card.draftCopyId) ? "Deck" : "Pool"} />)}
             </div>
           )}
-        </MenuCard>
+        </MenuCard>}
       </div>
     </div>
   );
