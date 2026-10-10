@@ -135,6 +135,8 @@ test("neutral cards keep their own faction in every workshop view and keyword de
   await matching.getByRole("button", { name: `Preview ${card.name}`, exact: true }).click();
   await expect(page.locator(".deck-preview-copy .deck-card-faction")).toHaveText("Neutral");
   await expect(page.locator(".deck-preview-copy")).toContainText("Usable in any faction");
+  await expect(page.getByLabel(`${card.name} card version`, { exact: true })).toHaveCount(0);
+  await expect(page.locator(".deck-card-version")).toHaveCount(0);
   await page.getByRole("button", { name: "List", exact: true }).click();
   await expect(matching.locator(".deck-card-faction")).toHaveText("Neutral");
   await matching.getByRole("button", { name: `Swap ${slot} for ${card.name}`, exact: true }).click();

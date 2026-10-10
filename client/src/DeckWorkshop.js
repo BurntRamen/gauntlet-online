@@ -124,7 +124,7 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
             <div className="deck-preview-heading"><div><strong>{slotLabel(selected)}</strong><small>{preview?.rarity || "Standard"}</small></div>
               <button type="button" className="deck-zoom-button" aria-label={"Zoom " + (preview?.name || slotLabel(selected))} aria-haspopup="dialog" onClick={() => openZoom(preview || selected)}>⤢ <span>Zoom</span></button>
             </div>
-            {preview && variants.length > 0 && <div className="deck-card-version">
+            {preview && variants.length > 1 && <div className="deck-card-version">
               <label className="deck-finish-label">Card version
                 <select disabled={saving} aria-label={preview.name + " card version"} value={selectedVariant?.variantId || ""} onChange={(event) => onVariantChange(preview.id, event.target.value)}>
                   {variants.map((variant) => <option key={variant.variantId} value={variant.variantId}>{collectorVersionLabel(variant)}</option>)}
