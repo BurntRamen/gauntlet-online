@@ -30,7 +30,9 @@ const budgets = {
   // Includes the set-specific Sealed controls from the current player release.
   // Card/source thumbnails, recorded-value shorthand, and accessible log disclosures.
   // The set collector storefront is isolated in a 1.3 KiB on-demand chunk.
-  totalJavaScriptGzip: 742 * KIB
+  // Draft request recovery and its on-demand loading/progress screen add ~1 KiB
+  // overall; the initial-load and largest-chunk ceilings remain unchanged.
+  totalJavaScriptGzip: 743 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {
