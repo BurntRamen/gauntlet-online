@@ -37,6 +37,14 @@
 .deck-slot > b { display: inline-flex; gap: 2px; align-items: center; font: 700 13px Georgia, serif; flex-shrink: 0; }
 .deck-slot > b small { font-size: 13px; }
 .deck-slot-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.deck-card-faction { display: inline-block; justify-self: start; max-width: 100%; padding: 3px 6px; border: 1px solid #6e8684; border-radius: 4px; background: #0b1b23; color: #e0eee8; font-size: 11px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.deck-slot-compact-copy { display: grid; min-width: 0; gap: 2px; }
+.view-compact .deck-slot.is-replaced { height: auto; min-height: 44px; padding-top: 5px; padding-bottom: 5px; }
+.view-compact .deck-slot .deck-card-faction { padding: 0; border: 0; background: transparent; font-size: 10px; font-weight: 600; }
+.deck-candidate-label .deck-card-faction { margin-bottom: 5px; }
+.deck-neutral-hint { display: block; margin: 4px 0; color: #bdd0ca; font-size: 11px; line-height: 1.4; }
+.deck-card-zoom-copy > .deck-card-faction { margin-bottom: 8px; }
+.deck-card-zoom-copy > .deck-card-zoom-rarity { display: block; }
 .deck-slot.is-standard .deck-slot-card-name { opacity: .62; font-size: 9px; }
 .deck-slot-footer { display: flex; gap: 14px; margin-top: 9px; font-size: 10px; color: #aebfb0; }
 .deck-slot-footer > span:last-child { margin-left: auto; }
