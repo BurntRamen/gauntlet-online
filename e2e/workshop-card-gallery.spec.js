@@ -112,3 +112,60 @@ test("matching cards switch views and zoom without changing the deck, on desktop
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
   expect(errors).toEqual([]);
 });
+
+test("neutral cards keep their own faction in every workshop view and keyword deep link", async ({ page, request, baseURL }) => {
+  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Faction QA ${Date.now()}`, password: "Local-Faction-Review-42" } });
+  expect(response.ok()).toBeTruthy();
+  const session = await response.json();
+  const card = COLLECTION_CARDS.find((entry) => entry.factionId === "neutral");
+  const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
+  const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
+  store.accounts.find((entry) => entry.id === session.account.id).stats.collection.gameplayEntitlements = { [card.id]: 1 };
+  fs.writeFileSync(storePath, JSON.stringify(store));
+  await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), session.token);
+  await page.goto(baseURL);
+  await page.locator('button[data-area="build"]').click();
+  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+  await page.getByRole("tab", { name: "Decks", exact: true }).click();
+  const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[card.value] || String(card.value);
+  const slot = `${rank} of ${card.suit}`;
+  await page.getByRole("button", { name: `${slot} — Standard playing card`, exact: true }).click();
+  const matching = page.locator(".deck-candidate");
+  await expect(matching.locator(".deck-card-faction")).toHaveText("Neutral");
+  await matching.getByRole("button", { name: `Preview ${card.name}`, exact: true }).click();
+  await expect(page.locator(".deck-preview-copy .deck-card-faction")).toHaveText("Neutral");
+  await expect(page.locator(".deck-preview-copy")).toContainText("Usable in any faction");
+  await page.getByRole("button", { name: "List", exact: true }).click();
+  await expect(matching.locator(".deck-card-faction")).toHaveText("Neutral");
+  await matching.getByRole("button", { name: `Swap ${slot} for ${card.name}`, exact: true }).click();
+  const replacement = page.locator(".deck-slot.is-replaced");
+  await expect(replacement.locator(".deck-card-faction")).toHaveText("Neutral");
+  await expect(replacement).toHaveAccessibleDescription("Neutral");
+  await page.getByRole("button", { name: "Cards", exact: true }).click();
+  await expect(replacement.locator(".deck-card-faction")).toHaveText("Neutral");
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  await expect(page.locator(".deck-slot-preview")).toHaveCount(0);
+  await expect(page.locator(".deck-preview-copy .deck-card-faction")).toBeVisible();
+  const out = path.resolve(__dirname, "../.eggs/evidence/card-faction-labels");
+  fs.mkdirSync(out, { recursive: true });
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.getByRole("button", { name: `Zoom ${card.name}`, exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: card.name, exact: true });
+    await expect(dialog.locator(".deck-card-faction")).toHaveText("Neutral");
+    await expect(dialog).toContainText("Usable in any faction");
+    await dialog.screenshot({ path: path.join(out, `neutral-zoom-${width}.png`) });
+    await page.getByRole("button", { name: "Close card zoom" }).click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`${baseURL}/card-keywords.html#${card.id}`);
+    const entry = page.locator(`article[id="${card.id}"]`);
+    await expect(entry.locator(".card-faction")).toHaveText("Faction: Neutral · Usable in any faction");
+    await expect(entry.locator(".card-faction")).toBeInViewport();
+    await expect(page.locator("article .card-faction")).toHaveCount(COLLECTION_CARDS.length);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await entry.screenshot({ path: path.join(out, `keyword-${width}.png`) });
+  }
+});
