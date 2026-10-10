@@ -58,6 +58,17 @@ test("free entries match only inside their event and carry durable run ids", asy
   assert.equal(room.event.entries[seatB.playerNum].runId, b.entry.run.id);
 });
 
+test("public events include the major calendar and server-computed availability", async () => {
+  const response = await fetch(`${url}/api/events`);
+  assert.equal(response.ok, true);
+  const payload = await response.json();
+  const major = payload.events.find((event) => event.id === "fall-grand-gauntlet-2026");
+  assert.equal(major.scale, "major");
+  assert.equal(major.schedule.startsAt, "2026-10-23T17:00:00.000Z");
+  assert.equal(typeof major.availability.canEnter, "boolean");
+  assert.match(major.availability.state, /^(upcoming|live|entry-closed|ended)$/);
+});
+
 after(async () => {
   sockets.forEach((socket) => socket.disconnect());
   __test.rooms.clear();

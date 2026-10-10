@@ -5,9 +5,75 @@ function safeEntryCredits(value) {
   return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
 }
 
+const MAJOR_EVENT_SCHEDULE = Object.freeze([
+  {
+    id: "fall-grand-gauntlet-2026",
+    name: "Fall Grand Gauntlet",
+    description: "The first major faction championship. Build a faction deck and chase twelve wins across one long weekend.",
+    format: "factions",
+    startsAt: "2026-10-23T17:00:00.000Z",
+    entryClosesAt: "2026-10-26T00:00:00.000Z",
+    endsAt: "2026-10-26T04:00:00.000Z",
+    maxWins: 12,
+    maxLosses: 3,
+    rewardTiers: [
+      { wins: 1, gold: 500, boosterCredits: 1 },
+      { wins: 4, gold: 1000, boosterCredits: 2 },
+      { wins: 8, gold: 1500, boosterCredits: 3, cardStyleId: "rumin-vault-shield-bearer:collector-foil" },
+      { wins: 12, gold: 3000, boosterCredits: 5, cardStyleId: "bizi-gearplate-shield:collector-foil" }
+    ]
+  },
+  {
+    id: "classic-crown-2026",
+    name: "Classic Crown",
+    description: "A large original-rules tournament using the standard 52-card Gauntlet deck.",
+    format: "basic",
+    startsAt: "2026-11-13T17:00:00.000Z",
+    entryClosesAt: "2026-11-16T00:00:00.000Z",
+    endsAt: "2026-11-16T04:00:00.000Z",
+    maxWins: 10,
+    maxLosses: 3,
+    rewardTiers: [
+      { wins: 1, gold: 500, boosterCredits: 1 },
+      { wins: 3, gold: 1000, boosterCredits: 2 },
+      { wins: 7, gold: 1500, boosterCredits: 3 },
+      { wins: 10, gold: 3000, boosterCredits: 5, cardStyleId: "frumo-coral-hull-guard:collector-foil" }
+    ]
+  },
+  {
+    id: "new-year-open-2027",
+    name: "New Year Open",
+    description: "All playable factions meet in the first major of 2027, with the largest free prize track yet.",
+    format: "factions",
+    startsAt: "2027-01-15T17:00:00.000Z",
+    entryClosesAt: "2027-01-18T00:00:00.000Z",
+    endsAt: "2027-01-18T04:00:00.000Z",
+    maxWins: 12,
+    maxLosses: 3,
+    rewardTiers: [
+      { wins: 1, gold: 750, boosterCredits: 1 },
+      { wins: 4, gold: 1250, boosterCredits: 2 },
+      { wins: 8, gold: 2000, boosterCredits: 4, cardStyleId: "frumo-coral-hull-guard:collector-foil" },
+      { wins: 12, gold: 4000, boosterCredits: 6, cardStyleId: "bizi-gearplate-shield:collector-foil" }
+    ]
+  }
+]);
+
+function eventAvailability(event, now = new Date()) {
+  if (!event?.schedule) return { state: "open", label: "Open now", canEnter: true, canPlay: true, nextTransitionAt: null };
+  const nowMs = new Date(now).getTime();
+  const startsAt = new Date(event.schedule.startsAt).getTime();
+  const entryClosesAt = new Date(event.schedule.entryClosesAt).getTime();
+  const endsAt = new Date(event.schedule.endsAt).getTime();
+  if (nowMs < startsAt) return { state: "upcoming", label: "Upcoming", canEnter: false, canPlay: false, nextTransitionAt: event.schedule.startsAt };
+  if (nowMs < entryClosesAt) return { state: "live", label: "Entry open", canEnter: true, canPlay: true, nextTransitionAt: event.schedule.entryClosesAt };
+  if (nowMs < endsAt) return { state: "entry-closed", label: "Entry closed", canEnter: false, canPlay: true, nextTransitionAt: event.schedule.endsAt };
+  return { state: "ended", label: "Event ended", canEnter: false, canPlay: false, nextTransitionAt: null };
+}
+
 function createEventDefinitions(options = {}) {
   const entryCredits = safeEntryCredits(options.entryCredits);
-  return [
+  const evergreen = [
     {
       id: "open-gauntlet",
       name: "Open Gauntlet",
@@ -38,12 +104,23 @@ function createEventDefinitions(options = {}) {
       ]
     }
   ];
+  const majors = MAJOR_EVENT_SCHEDULE.map(({ startsAt, entryClosesAt, endsAt, ...event }) => ({
+    ...event,
+    scale: "major",
+    entryCost: { currency: "boosterCredits", amount: entryCredits },
+    schedule: { startsAt, entryClosesAt, endsAt }
+  }));
+  return [...majors, ...evergreen];
 }
 
 const EVENT_DEFINITIONS = createEventDefinitions({ entryCredits: process.env.GAUNTLET_EVENT_ENTRY_CREDITS || 0 });
 
 function eventById(eventId) {
   return EVENT_DEFINITIONS.find((event) => event.id === eventId) || null;
+}
+
+function listEventDefinitions(options = {}) {
+  return EVENT_DEFINITIONS.map((event) => ({ ...event, availability: eventAvailability(event, options.now) }));
 }
 
 function normalizeRun(run, eventId) {
@@ -80,6 +157,12 @@ function normalizeEventProgress(stats = {}) {
 function startEventRun(stats, eventId, options = {}) {
   const event = eventById(eventId);
   if (!event) throw new Error("Unknown event.");
+  const availability = eventAvailability(event, options.now);
+  if (!availability.canEnter) {
+    if (availability.state === "upcoming") throw new Error("Registration for this event is not open yet.");
+    if (availability.state === "entry-closed") throw new Error("Registration for this event has closed.");
+    throw new Error("This event has ended.");
+  }
   const progress = normalizeEventProgress(stats);
   const current = progress.runs[eventId];
   if (current?.status === "active") return { progress, run: current, created: false, event };
@@ -138,9 +221,12 @@ function resignEventRun(stats, eventId, options = {}) {
 
 module.exports = {
   EVENT_DEFINITIONS,
+  MAJOR_EVENT_SCHEDULE,
   applyEventResult,
   createEventDefinitions,
+  eventAvailability,
   eventById,
+  listEventDefinitions,
   normalizeEventProgress,
   resignEventRun,
   startEventRun
