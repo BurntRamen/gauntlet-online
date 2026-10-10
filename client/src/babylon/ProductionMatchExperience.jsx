@@ -9,7 +9,7 @@ import GameIcon from "./GameIcon";
 import { MatchLogRow, VisualLogSummary, MatchLogLegend } from "./VisualMatchLog";
 import { cardDetails, selectedCardPreview } from "./cardDetails";
 import CollectorCardPresentation from "../CollectorCardPresentation";
-import SpecialCardFace from "../SpecialCardFace";
+import MatchCardFace from "./MatchCardFace";
 import { matchDescriptorLabel } from "./matchDescriptor";
 import { BattlefieldPlaybackQueue } from "./battlefieldPlayback";
 import {
@@ -1195,7 +1195,11 @@ function CardInspection({ inspection, commands, viewModel, snapshot }) {
 
 function MatchCardArt({ card, artPath, alt = "", loading }) {
   const raw = card?.raw || card;
-  if (raw?.presentation?.composed) return <SpecialCardFace card={raw} />;
+  if (raw?.presentation?.composed) return (
+    <CollectorCardPresentation card={card} alwaysWrap>
+      <MatchCardFace card={{ raw, artPath }} alt={alt} />
+    </CollectorCardPresentation>
+  );
   return <CollectorCardPresentation card={card}><img src={artPath} alt={alt} loading={loading} /></CollectorCardPresentation>;
 }
 

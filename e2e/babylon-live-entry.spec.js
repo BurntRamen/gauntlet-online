@@ -1036,6 +1036,28 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(currentAction)
     .toContainText(/launched scripted attack/i);
   await expect(currentAction.getByRole("button", { name: "Take Damage" })).toBeVisible();
+  await waitForPlaybackSettled(page);
+  for (const viewport of [
+    { width: 1900, height: 970 },
+    { width: 1366, height: 768 },
+    { width: 1100, height: 768 },
+    { width: 820, height: 1180 }
+  ]) {
+    await page.setViewportSize(viewport);
+    const banner = page.locator(".production-turn-marker");
+    await expect(banner).toContainText("Combat Response");
+    // Include the retained entrance animation, which previously shifted the
+    // desktop banner halfway over the opponent even after its CSS transform reset.
+    await banner.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    });
+    const opponentBox = await page.locator(".production-player-plate-top").boundingBox();
+    const bannerBox = await banner.boundingBox();
+    const menuBox = await page.locator(".production-match-utilities > summary").boundingBox();
+    expect(bannerBox.x).toBeGreaterThan(opponentBox.x + opponentBox.width);
+    expect(bannerBox.x + bannerBox.width).toBeLessThan(menuBox.x);
+    await page.screenshot({ path: test.info().outputPath(`campaign-priority-${viewport.width}.png`) });
+  }
 });
 
 test("signed-in campaign victory refreshes account state, continues, persists, and does not duplicate rewards", async ({ page, request, baseURL }) => {
