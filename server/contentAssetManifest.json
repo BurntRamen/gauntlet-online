@@ -5270,10 +5270,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/df32f8a4a356ddb838ce74580e8001684dcf6802cb135cb788e09cbfa43ae4e5.webp",
+      "path": "/assets/gauntlet/releases/401d48a3f0a2b227b8e4c870103e71bfc00853121d17117ad91152ca4a2cc337.webp",
       "mediaType": "image/webp",
-      "sha256": "df32f8a4a356ddb838ce74580e8001684dcf6802cb135cb788e09cbfa43ae4e5",
-      "bytes": 24896
+      "sha256": "401d48a3f0a2b227b8e4c870103e71bfc00853121d17117ad91152ca4a2cc337",
+      "bytes": 74780
     },
     {
       "id": "asset:constructed/faces/neutral-bodyguard-diamonds.webp",
@@ -5284,10 +5284,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/53a575941c282796b38716f9cb95be2257e003223f7104a7bbe2a309054e6513.webp",
+      "path": "/assets/gauntlet/releases/c1f499a9293b8bc0ae5bd86a554c5ca8a891610ea0b3ac573cbea2224359d192.webp",
       "mediaType": "image/webp",
-      "sha256": "53a575941c282796b38716f9cb95be2257e003223f7104a7bbe2a309054e6513",
-      "bytes": 24906
+      "sha256": "c1f499a9293b8bc0ae5bd86a554c5ca8a891610ea0b3ac573cbea2224359d192",
+      "bytes": 74440
     },
     {
       "id": "asset:constructed/faces/neutral-bodyguard-hearts.webp",
@@ -5298,10 +5298,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/fdf61868e8ec4050ec9f35953b664a913b0e2e08782540c2efc9d8329af7d18c.webp",
+      "path": "/assets/gauntlet/releases/73a24ea4b7d6f0fce173ea683b80b71bc535a50fa0e77730a7606c51467bf135.webp",
       "mediaType": "image/webp",
-      "sha256": "fdf61868e8ec4050ec9f35953b664a913b0e2e08782540c2efc9d8329af7d18c",
-      "bytes": 24958
+      "sha256": "73a24ea4b7d6f0fce173ea683b80b71bc535a50fa0e77730a7606c51467bf135",
+      "bytes": 75146
     },
     {
       "id": "asset:constructed/faces/neutral-bodyguard-spades.webp",
@@ -5312,10 +5312,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/4c9a354c35288ddc426fdd6ad6ede729b614e7abb387c27ef676739c00797352.webp",
+      "path": "/assets/gauntlet/releases/cbb9c288b1edbf3dcb0d6b7d46a648e529c63c60319529c0315937cf86f954b7.webp",
       "mediaType": "image/webp",
-      "sha256": "4c9a354c35288ddc426fdd6ad6ede729b614e7abb387c27ef676739c00797352",
-      "bytes": 24610
+      "sha256": "cbb9c288b1edbf3dcb0d6b7d46a648e529c63c60319529c0315937cf86f954b7",
+      "bytes": 74804
     },
     {
       "id": "asset:constructed/faces/neutral-field-marshal-clubs.webp",
@@ -5438,10 +5438,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/00c0b3c9f6e7ebfaad5caa83d26a23a436cbb1c8032df540b3575a58a1e66e28.webp",
+      "path": "/assets/gauntlet/releases/3f2f982e6dda8b217b553e794334e389ebc5299569c041434dbf43996c1cb5ac.webp",
       "mediaType": "image/webp",
-      "sha256": "00c0b3c9f6e7ebfaad5caa83d26a23a436cbb1c8032df540b3575a58a1e66e28",
-      "bytes": 25190
+      "sha256": "3f2f982e6dda8b217b553e794334e389ebc5299569c041434dbf43996c1cb5ac",
+      "bytes": 82926
     },
     {
       "id": "asset:constructed/faces/neutral-hospital-diamonds.webp",
@@ -5452,10 +5452,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/96e21e8ad3b7dca9c0df3031272c2a04ad946f9231613aea7c16277f9dc45906.webp",
+      "path": "/assets/gauntlet/releases/8030a0016a7ac7ae27da08994e639c3d2e4de43df4f9e3055925aaa76b55550d.webp",
       "mediaType": "image/webp",
-      "sha256": "96e21e8ad3b7dca9c0df3031272c2a04ad946f9231613aea7c16277f9dc45906",
-      "bytes": 25074
+      "sha256": "8030a0016a7ac7ae27da08994e639c3d2e4de43df4f9e3055925aaa76b55550d",
+      "bytes": 82462
     },
     {
       "id": "asset:constructed/faces/neutral-hospital-hearts.webp",
@@ -5466,10 +5466,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/084e3e84fbace8d8ac36d5019b0cae9bf7498b4aa5deafe0bcf2ae7a5a8802fd.webp",
+      "path": "/assets/gauntlet/releases/aec0110b1e98aa0b47db33099f788d1bc6928fd7bc1cf5a9abe279f9128bf6eb.webp",
       "mediaType": "image/webp",
-      "sha256": "084e3e84fbace8d8ac36d5019b0cae9bf7498b4aa5deafe0bcf2ae7a5a8802fd",
-      "bytes": 25414
+      "sha256": "aec0110b1e98aa0b47db33099f788d1bc6928fd7bc1cf5a9abe279f9128bf6eb",
+      "bytes": 82750
     },
     {
       "id": "asset:constructed/faces/neutral-hospital-spades.webp",
@@ -5480,10 +5480,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/1fce79fab034df3b664df8a5374ce220308d5dfd2eec24e9794d46daf8d5fc62.webp",
+      "path": "/assets/gauntlet/releases/5bb8302a972c95396274f7f4cf18c22ccc3c47f23f74e77fc20a6aee7692180b.webp",
       "mediaType": "image/webp",
-      "sha256": "1fce79fab034df3b664df8a5374ce220308d5dfd2eec24e9794d46daf8d5fc62",
-      "bytes": 24934
+      "sha256": "5bb8302a972c95396274f7f4cf18c22ccc3c47f23f74e77fc20a6aee7692180b",
+      "bytes": 82556
     },
     {
       "id": "asset:constructed/faces/neutral-library-clubs.webp",
@@ -5998,10 +5998,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/ea57f47eb3d26508b8c51480a135686a7b256611615bf988c5170818119e21c9.webp",
+      "path": "/assets/gauntlet/releases/7fdba237e4569777815dcba706c7c5d8108501458dd983473ac50b58ce9ecd80.webp",
       "mediaType": "image/webp",
-      "sha256": "ea57f47eb3d26508b8c51480a135686a7b256611615bf988c5170818119e21c9",
-      "bytes": 26904
+      "sha256": "7fdba237e4569777815dcba706c7c5d8108501458dd983473ac50b58ce9ecd80",
+      "bytes": 86710
     },
     {
       "id": "asset:constructed/faces/neutral-strategist-diamonds.webp",
@@ -6012,10 +6012,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/1a1a3282e794f855a83e20189fd147b6ddbc7c4bc911c244a1cb0f1e32e5a967.webp",
+      "path": "/assets/gauntlet/releases/72e8f4b29ceb862470953bbe187b12ea16fc7146ab58e6b26ada0eb0401eb6c6.webp",
       "mediaType": "image/webp",
-      "sha256": "1a1a3282e794f855a83e20189fd147b6ddbc7c4bc911c244a1cb0f1e32e5a967",
-      "bytes": 26746
+      "sha256": "72e8f4b29ceb862470953bbe187b12ea16fc7146ab58e6b26ada0eb0401eb6c6",
+      "bytes": 86856
     },
     {
       "id": "asset:constructed/faces/neutral-strategist-hearts.webp",
@@ -6026,10 +6026,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/36185b6736ae57027661cb5c37c9564394f1be2b16115caf31a2aad3fba7e9d1.webp",
+      "path": "/assets/gauntlet/releases/b7065e22aaea7efddcdd349bec57eabea9d14dc052e57d4392a605e77861f281.webp",
       "mediaType": "image/webp",
-      "sha256": "36185b6736ae57027661cb5c37c9564394f1be2b16115caf31a2aad3fba7e9d1",
-      "bytes": 27588
+      "sha256": "b7065e22aaea7efddcdd349bec57eabea9d14dc052e57d4392a605e77861f281",
+      "bytes": 86696
     },
     {
       "id": "asset:constructed/faces/neutral-strategist-spades.webp",
@@ -6040,10 +6040,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/b3d3213fed0bef7b44ed2c4f3accd0ca7baa154cbf21185215ea9802633af5d2.webp",
+      "path": "/assets/gauntlet/releases/1a4f9cc31cf42a2fee273d6be84c71c2629df39fd4df93801d45e234ac1f886a.webp",
       "mediaType": "image/webp",
-      "sha256": "b3d3213fed0bef7b44ed2c4f3accd0ca7baa154cbf21185215ea9802633af5d2",
-      "bytes": 27280
+      "sha256": "1a4f9cc31cf42a2fee273d6be84c71c2629df39fd4df93801d45e234ac1f886a",
+      "bytes": 86540
     },
     {
       "id": "asset:constructed/faces/neutral-think-clubs.webp",
@@ -6054,10 +6054,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/fed718f9ce01cbe27454f65d8d7e69a9f5c869eb6fd5ba66b6de033fe683a7db.webp",
+      "path": "/assets/gauntlet/releases/a717806b86636746f7c25ab5bc00575deed0a4d2d5a7a8632dc36939087055e4.webp",
       "mediaType": "image/webp",
-      "sha256": "fed718f9ce01cbe27454f65d8d7e69a9f5c869eb6fd5ba66b6de033fe683a7db",
-      "bytes": 23892
+      "sha256": "a717806b86636746f7c25ab5bc00575deed0a4d2d5a7a8632dc36939087055e4",
+      "bytes": 73808
     },
     {
       "id": "asset:constructed/faces/neutral-think-diamonds.webp",
@@ -6068,10 +6068,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/ff443b92c5abbda3293c2a208fc32ba498c35ab86523bec6b045eb464dad19e0.webp",
+      "path": "/assets/gauntlet/releases/0f736743ab72bb5ea76aea9b1433a5a1e7f19c9df2f3e70328c5017f88fb0310.webp",
       "mediaType": "image/webp",
-      "sha256": "ff443b92c5abbda3293c2a208fc32ba498c35ab86523bec6b045eb464dad19e0",
-      "bytes": 23768
+      "sha256": "0f736743ab72bb5ea76aea9b1433a5a1e7f19c9df2f3e70328c5017f88fb0310",
+      "bytes": 74186
     },
     {
       "id": "asset:constructed/faces/neutral-think-hearts.webp",
@@ -6082,10 +6082,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/f03381dd3b11410f188e27691718e8872506d5d61b0c9341ecc42b589b95f02a.webp",
+      "path": "/assets/gauntlet/releases/4fa88398cd620ec5830a555fb76cfb3d4c263f50375d8a3208a0d5ed95658563.webp",
       "mediaType": "image/webp",
-      "sha256": "f03381dd3b11410f188e27691718e8872506d5d61b0c9341ecc42b589b95f02a",
-      "bytes": 23866
+      "sha256": "4fa88398cd620ec5830a555fb76cfb3d4c263f50375d8a3208a0d5ed95658563",
+      "bytes": 74362
     },
     {
       "id": "asset:constructed/faces/neutral-think-spades.webp",
@@ -6096,10 +6096,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/bae3a3f9fe29c222508b7b11fcff37ea774e3f73f9dbe57b615c360673c03c4e.webp",
+      "path": "/assets/gauntlet/releases/33c1b42049d22eb1544ce7af1f948155935aff92b72b64375370a78d3dd1d9d5.webp",
       "mediaType": "image/webp",
-      "sha256": "bae3a3f9fe29c222508b7b11fcff37ea774e3f73f9dbe57b615c360673c03c4e",
-      "bytes": 23498
+      "sha256": "33c1b42049d22eb1544ce7af1f948155935aff92b72b64375370a78d3dd1d9d5",
+      "bytes": 74258
     },
     {
       "id": "asset:constructed/faces/neutral-tower-shield-clubs.webp",
@@ -6110,10 +6110,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/04ca0983c0fd47a1bc1068b048e75377f4ad0fa67bd3eb50d6ce05c688e0e1e2.webp",
+      "path": "/assets/gauntlet/releases/e1aeeebe238c104ec3c33daef7b98f3dcdc063223f125d5d92f1934da1cf27ac.webp",
       "mediaType": "image/webp",
-      "sha256": "04ca0983c0fd47a1bc1068b048e75377f4ad0fa67bd3eb50d6ce05c688e0e1e2",
-      "bytes": 27968
+      "sha256": "e1aeeebe238c104ec3c33daef7b98f3dcdc063223f125d5d92f1934da1cf27ac",
+      "bytes": 92052
     },
     {
       "id": "asset:constructed/faces/neutral-tower-shield-diamonds.webp",
@@ -6124,10 +6124,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/5e57af93e6fd9cda00af324bf5b8fdb6f8ebfb0f146db45a89d69b877b14f298.webp",
+      "path": "/assets/gauntlet/releases/e4ea2f2a39bdd9eac1618ce1892b2c5aeedb2d689783baaebea818efe19cd6b8.webp",
       "mediaType": "image/webp",
-      "sha256": "5e57af93e6fd9cda00af324bf5b8fdb6f8ebfb0f146db45a89d69b877b14f298",
-      "bytes": 27814
+      "sha256": "e4ea2f2a39bdd9eac1618ce1892b2c5aeedb2d689783baaebea818efe19cd6b8",
+      "bytes": 91084
     },
     {
       "id": "asset:constructed/faces/neutral-tower-shield-hearts.webp",
@@ -6138,10 +6138,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/4cfa5d1daa44308a04343c0f478c3d494f9447226ce4b323a8e1039a8a561573.webp",
+      "path": "/assets/gauntlet/releases/b314e20b610692b1121f7e882cc98dc1452590db13b4cdbaed50a4383442326c.webp",
       "mediaType": "image/webp",
-      "sha256": "4cfa5d1daa44308a04343c0f478c3d494f9447226ce4b323a8e1039a8a561573",
-      "bytes": 28028
+      "sha256": "b314e20b610692b1121f7e882cc98dc1452590db13b4cdbaed50a4383442326c",
+      "bytes": 91864
     },
     {
       "id": "asset:constructed/faces/neutral-tower-shield-spades.webp",
@@ -6152,10 +6152,10 @@
           "usage": "card-face"
         }
       ],
-      "path": "/assets/gauntlet/releases/a33e9273de78e4bfd1d4970ab71730eda8475ea7afdcd3811e69cc67dc9c4925.webp",
+      "path": "/assets/gauntlet/releases/885456c9c509f37d3c6b71a52e96f8c1c3563901cf5856bf89d093e777a9c6c6.webp",
       "mediaType": "image/webp",
-      "sha256": "a33e9273de78e4bfd1d4970ab71730eda8475ea7afdcd3811e69cc67dc9c4925",
-      "bytes": 27534
+      "sha256": "885456c9c509f37d3c6b71a52e96f8c1c3563901cf5856bf89d093e777a9c6c6",
+      "bytes": 91330
     },
     {
       "id": "asset:constructed/faces/neutral-wrestler-clubs.webp",
@@ -10068,10 +10068,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/90fb1d0abf087bc78d37ffb58f2fcfdcca16ab80b67c6271efd71489ca80f94b.webp",
+      "path": "/assets/gauntlet/releases/e120e6de8cfa2dce628c82facbbf9562ff79a7fb916327d955115f2fefb67e13.webp",
       "mediaType": "image/webp",
-      "sha256": "90fb1d0abf087bc78d37ffb58f2fcfdcca16ab80b67c6271efd71489ca80f94b",
-      "bytes": 42320
+      "sha256": "e120e6de8cfa2dce628c82facbbf9562ff79a7fb916327d955115f2fefb67e13",
+      "bytes": 329562
     },
     {
       "id": "asset:constructed/neutral/neutral-field-marshal.webp",
@@ -10134,10 +10134,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/f55b92183d596e8044645ec02570830f4ee9272c03cff54a95759197486f7361.webp",
+      "path": "/assets/gauntlet/releases/b87d1e7c628d97d4d1931a6790c7122c19d0d7ee24b4cb98e82c8260f4f569a9.webp",
       "mediaType": "image/webp",
-      "sha256": "f55b92183d596e8044645ec02570830f4ee9272c03cff54a95759197486f7361",
-      "bytes": 39632
+      "sha256": "b87d1e7c628d97d4d1931a6790c7122c19d0d7ee24b4cb98e82c8260f4f569a9",
+      "bytes": 358372
     },
     {
       "id": "asset:constructed/neutral/neutral-library.webp",
@@ -10354,10 +10354,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/c095272932dde7083ccf328d0919633cd03c1e797aec8e9baad5797738dca2d8.webp",
+      "path": "/assets/gauntlet/releases/5055b9129f7985711e05627f9c8e5dd1a9685c9e9d032a8cc21f8dba40dfce83.webp",
       "mediaType": "image/webp",
-      "sha256": "c095272932dde7083ccf328d0919633cd03c1e797aec8e9baad5797738dca2d8",
-      "bytes": 39188
+      "sha256": "5055b9129f7985711e05627f9c8e5dd1a9685c9e9d032a8cc21f8dba40dfce83",
+      "bytes": 419010
     },
     {
       "id": "asset:constructed/neutral/neutral-think.webp",
@@ -10376,10 +10376,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/29f7f1b058c402e84e014cbfd9fc007819a184fd280462b53fae352b2dded1f3.webp",
+      "path": "/assets/gauntlet/releases/33c6b9b37f455eba1ba01a7932003576f951e842668180cbbc6b8a06082c5a4e.webp",
       "mediaType": "image/webp",
-      "sha256": "29f7f1b058c402e84e014cbfd9fc007819a184fd280462b53fae352b2dded1f3",
-      "bytes": 39454
+      "sha256": "33c6b9b37f455eba1ba01a7932003576f951e842668180cbbc6b8a06082c5a4e",
+      "bytes": 322554
     },
     {
       "id": "asset:constructed/neutral/neutral-tower-shield.webp",
@@ -10398,10 +10398,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/4bb813c83752920483e25e3446ac5b6a0e68b50f90f993e0f88ac03fd7b3c2a8.webp",
+      "path": "/assets/gauntlet/releases/4532b0cf950fd3e11106aaffb289712f410c3d4d6743a85865e6e8b07de6d5b2.webp",
       "mediaType": "image/webp",
-      "sha256": "4bb813c83752920483e25e3446ac5b6a0e68b50f90f993e0f88ac03fd7b3c2a8",
-      "bytes": 42468
+      "sha256": "4532b0cf950fd3e11106aaffb289712f410c3d4d6743a85865e6e8b07de6d5b2",
+      "bytes": 433146
     },
     {
       "id": "asset:constructed/neutral/neutral-wrestler.webp",
@@ -20696,5 +20696,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-eb630c4ba3079a762cabb3477c12b83cee6150ebbd0ca2ba053c7237ee28b1fc"
+  "version": "gauntlet-assets-fd1a206b862ca5e28823f03b5b6993e74a017bf0f8e6a8961bd310eb38d2a31e"
 }
