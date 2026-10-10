@@ -32,7 +32,9 @@ const budgets = {
   // The set collector storefront is isolated in a 1.3 KiB on-demand chunk.
   // Deck showcases plus the current full-art campaign card release measure
   // 742.5 KiB together; allow less than 1 KiB of compression variance.
-  totalJavaScriptGzip: 743 * KIB
+  // Draft request recovery and its separately compressed, on-demand screen
+  // add approximately 3 KiB; keep the initial-load ceiling unchanged.
+  totalJavaScriptGzip: 746 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

@@ -8589,8 +8589,8 @@ io.on("connection", (socket) => {
       attachPlayerSocket(roomState, socket, reconnectSeat);
       if (roomState.draft) {
         emitLobbyState(roomState);
-        emitDraftState(roomState);
         if (roomState.draft.botDraft) runBotDraftPicks(roomState);
+        emitDraftState(roomState);
         return;
       }
       if (roomState.game) {
@@ -8654,8 +8654,8 @@ io.on("connection", (socket) => {
       attachPlayerSocket(roomState, socket, playerNum);
       if (roomState.draft) {
         emitLobbyState(roomState);
-        emitDraftState(roomState);
         if (roomState.draft.botDraft) runBotDraftPicks(roomState);
+        emitDraftState(roomState);
         return;
       }
       if (roomState.game) {
@@ -8775,18 +8775,34 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  onClientEvent("startDraft", () => {
+  // Draft mutations acknowledge success and every rejected request so clients
+  // can release loading controls without guessing from unrelated broadcasts.
+  function onDraftAction(event, handler) {
+    onClientEvent(event, async (payload = {}, ack) => {
+      if (typeof payload === "function") { ack = payload; payload = {}; }
+      let rejected = false;
+      const reject = (error) => {
+        rejected = true;
+        socket.emit("errorMessage", error);
+        if (typeof ack === "function") ack({ ok: false, error });
+      };
+      await handler(payload, reject);
+      if (!rejected && typeof ack === "function") ack({ ok: true });
+    });
+  }
+
+  onDraftAction("startDraft", (_payload, reject) => {
     console.log("[Socket] startDraft");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "lobby") return;
+    if (!roomState?.draft || roomState.draft.status !== "lobby") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (playerNum !== 1) {
-      socket.emit("errorMessage", "Only Player 1 can start the draft.");
+      reject("Only Player 1 can start the draft.");
       return;
     }
     const seated = getConnectedDraftPlayers(roomState);
     if (seated.length < 2) {
-      socket.emit("errorMessage", "Draft needs at least 2 connected players. It supports up to 8.");
+      reject("Draft needs at least 2 connected players. It supports up to 8.");
       return;
     }
     startDraft(roomState);
@@ -8803,21 +8819,21 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  onClientEvent("draftPick", ({ cardCopyId } = {}) => {
+  onDraftAction("draftPick", ({ cardCopyId } = {}, reject) => {
     console.log("[Socket] draftPick");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "drafting") return;
+    if (!roomState?.draft || roomState.draft.status !== "drafting") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum || !roomState.draft.activePlayers.includes(playerNum)) return;
+    if (!playerNum || !roomState.draft.activePlayers.includes(playerNum)) return reject("Only seated players can pick cards.");
     const key = String(playerNum);
     const currentPack = roomState.draft.currentPacks[key];
     if (!currentPack || currentPack.pickedThisPass) {
-      socket.emit("errorMessage", "You have already picked from this pack.");
+      reject("You have already picked from this pack.");
       return;
     }
     const cardIndex = currentPack.cards.findIndex((card) => card.draftCopyId === cardCopyId);
     if (cardIndex < 0) {
-      socket.emit("errorMessage", "Choose a card from your current pack.");
+      reject("Choose a card from your current pack.");
       return;
     }
     const [card] = currentPack.cards.splice(cardIndex, 1);
@@ -8828,12 +8844,12 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  onClientEvent("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}) => {
+  onDraftAction("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}, reject) => {
     console.log("[Socket] setDraftDeckAdditions");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    if (!roomState?.draft || roomState.draft.status !== "building") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) return reject("Only seated players can build a deck.");
     const key = String(playerNum);
     const normalizedSelections = Array.isArray(selections)
       ? selections.map((selection) => ({
@@ -8851,40 +8867,40 @@ io.on("connection", (socket) => {
     try {
       validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Draft decks must use one faction and one card per fixed rank-and-suit slot.");
+      reject(error.message || "Draft decks must use one faction and one card per fixed rank-and-suit slot.");
       return;
     }
     roomState.draft.deckAdditions[key] = selectedCards;
     emitDraftState(roomState);
   });
 
-  onClientEvent("saveDraftDeck", async () => {
+  onDraftAction("saveDraftDeck", async (_payload, reject) => {
     console.log("[Socket] saveDraftDeck");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    if (!roomState?.draft || roomState.draft.status !== "building") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) return reject("Only seated players can build a deck.");
     const lobbyPlayer = roomState.lobby.players[playerNum];
     if (!lobbyPlayer.accountId || lobbyPlayer.isGuest) {
-      socket.emit("errorMessage", "Sign in with an account to save a draft deck.");
+      reject("Sign in with an account to save a draft deck.");
       return;
     }
     const key = String(playerNum);
     const selectedCards = roomState.draft.deckAdditions[key] || [];
     if (selectedCards.length === 0) {
-      socket.emit("errorMessage", "Choose at least one drafted card before saving.");
+      reject("Choose at least one drafted card before saving.");
       return;
     }
     let validation;
     try {
       validation = validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Save a one-faction deck with one card per fixed rank-and-suit slot.");
+      reject(error.message || "Save a one-faction deck with one card per fixed rank-and-suit slot.");
       return;
     }
     const factionIds = validation.factionIds;
     if (factionIds.length !== 1) {
-      socket.emit("errorMessage", "Save a deck with cards from exactly one faction.");
+      reject("Save a deck with cards from exactly one faction.");
       return;
     }
     const faction = getFactionById(factionIds[0]);
@@ -8898,7 +8914,7 @@ io.on("connection", (socket) => {
       cards: selectedCards
     });
     if (!savedAccount) {
-      socket.emit("errorMessage", "Could not save draft deck.");
+      reject("Could not save draft deck.");
       return;
     }
     socket.emit("accountUpdated", savedAccount);

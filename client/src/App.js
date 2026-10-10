@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
+import useDraftRequest from "./useDraftRequest";
+import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import DeckWorkshop from "./DeckWorkshop";
@@ -42,6 +44,7 @@ import MenuBackdrop from "./MenuBackdrop";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 
+const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
 const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
@@ -2155,168 +2158,6 @@ function limitedDeckSourceLabel(draftType) {
   return draftType === "bot" ? "Bot Draft" : "Live Draft";
 }
 
-function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
-  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
-  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
-  const myPack = draft?.myCurrentPack?.cards || [];
-  const myPool = draft?.myPool || [];
-  const myDeckAdditions = draft?.myDeckAdditions || [];
-  const selectedIds = new Set(myDeckAdditions.map((card) => card.draftCopyId));
-  const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter((id) => id && id !== "neutral"))];
-  const selectedFactionId = selectedFactionIds[0] || "";
-  const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
-  const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
-    if (value == null) return counts;
-    const suit = normalizeReplacementSuitId(card.replacementSuit || card.suit);
-    const key = `${value}:${suit}`;
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {});
-  const selectedSlotWarning = Object.entries(selectedSlotCounts).find(([, count]) => count > 1);
-  const savedDraftDeck = account?.stats?.savedDraftDeck || null;
-  const players = draft?.players || lobby?.players || {};
-  const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
-  const canStart = player === 1 && draft?.status === "lobby";
-  const hasPickedThisPass = !!draft?.myCurrentPack?.pickedThisPass;
-  const isBotDraft = !!draft?.botDraft;
-  const isSealed = !!draft?.sealed;
-
-  return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Limited League Match" : isSealed ? "Six Pack Sealed" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
-            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Limited League" : isSealed ? "Gauntlet Sealed" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
-            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isSealed ? "Open six packs from one set, then build a one-faction 52-card deck from your private pool." : isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
-          </div>
-          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
-            <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
-            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-          {!isSealed && <MenuCard title="Draft Table">
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Seats: {connectedPlayers.length}/8</p>
-            <div style={{ display: "grid", gap: 6 }}>
-              {Array.from({ length: 8 }, (_, index) => index + 1).map((seatNum) => {
-                const seat = players[seatNum] || {};
-                return (
-                  <div key={seatNum} style={{ display: "flex", justifyContent: "space-between", gap: 8, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: 7, color: "#dbeafe" }}>
-                    <strong>P{seatNum}</strong>
-                    <span>{seat.accountName || (seat.connected ? "Connected" : "Open Seat")}</span>
-                    <span style={{ color: seat.connected ? "#86efac" : "#94a3b8" }}>{seat.connected ? "Online" : seat.accountName ? "Disconnected" : "Open"}</span>
-                  </div>
-                );
-              })}
-            </div>
-            {canStart && !isBotDraft && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
-            {draft?.status === "lobby" && !canStart && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Waiting for Player 1 to start the draft.</p>}
-            {draft?.status === "lobby" && isBotDraft && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Preparing bot draft seats...</p>}
-          </MenuCard>}
-
-          <MenuCard title="Draft Status">
-            <div style={{ color: "#dbeafe", display: "grid", gap: 6 }}>
-              <div><strong>Status:</strong> {draft?.status || "lobby"}</div>
-              <div><strong>Set:</strong> {draft?.setName || "Initiative"}</div>
-              <div><strong>Factions:</strong> {(draft?.factionIds || []).map((id) => PACK_THEMES[id]?.name || id).join(", ")}</div>
-              {isSealed ? <div><strong>Pool:</strong> {draft?.packsPerPlayer || 6} packs · {myPool.length} cards</div> : <>
-                <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
-                <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
-                <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
-              </>}
-              <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
-              {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
-              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {limitedDeckSourceLabel(savedDraftDeck.draftType)}</div>}
-            </div>
-          </MenuCard>
-        </div>
-
-        {draft?.status === "cancelled" && <MenuCard title="Draft cancelled"><p>The draft ended before all picks were completed. No deck was saved. Return to the main menu to start another table.</p></MenuCard>}
-        {draft?.status === "drafting" && !isBotDraft && draft.activePlayers?.some((p) => !players[p]?.connected) && (
-          <MenuCard title="Waiting for a player to reconnect">
-            <p>Drafting will resume when they return. If they cannot return, you can cancel this draft for everyone. Incomplete picks will not become a saved deck.</p>
-            {!isSpectator && <MenuButton variant="secondary" onClick={() => { if (window.confirm("Cancel this draft for everyone? Incomplete picks will not be saved as a deck.")) socket.emit("cancelDraft"); }}>Cancel Draft</MenuButton>}
-          </MenuCard>
-        )}
-        {draft?.status === "drafting" && !isSpectator && (
-          <MenuCard title={`Current Pack (${myPack.length} cards)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>{hasPickedThisPass ? "Pick locked in. Waiting for the other players before the next pack." : "Pick exactly one card from this pack."}</p>
-            {myPack.length === 0 ? (
-              <p style={{ color: "#bfdbfe", margin: 0 }}>Waiting for the next pack.</p>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                {myPack.map((card) => (
-                  <DraftCardTile key={card.draftCopyId} card={card} disabled={draftPickPending || hasPickedThisPass} actionLabel={draftPickPending || hasPickedThisPass ? "Waiting" : "Pick"} onClick={() => onPickCard(card.draftCopyId)} />
-                ))}
-              </div>
-            )}
-          </MenuCard>
-        )}
-
-        {draft?.status === "building" && !isSpectator && (
-          <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck (${myDeckAdditions.length} swaps)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose one faction plus Reath cards. Cards replace matching slots.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Deck size</strong>
-                <div>{draft?.baseDeck?.cardCount || BASE_PLAYING_DECK_SIZE} cards - {myDeckAdditions.length} swap{myDeckAdditions.length === 1 ? "" : "s"}</div>
-              </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Faction</strong>
-                <div>{selectedFactionName || "Choose your first card"}</div>
-              </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Limited League</strong>
-                <div>{savedDraftDeck ? `Saved: ${savedDraftDeck.factionName || savedDraftDeck.factionId}` : "No saved deck yet"}</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for {isSealed ? "Sealed" : "Draft"} League</MenuButton>
-              {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
-              {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
-              {selectedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: "bold" }}>Two cards are replacing the same {selectedSlotWarning[0].replace(":", " of ")}.</span>}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-              {myPool.map((card) => {
-                const selected = selectedIds.has(card.draftCopyId);
-                const slotKey = `${getReplacementValue(card, PLAYING_DECK_VALUES)}:${normalizeReplacementSuitId(card.suit)}`;
-                const slotOccupied = !selected && Number(selectedSlotCounts[slotKey] || 0) > 0;
-                const needsFactionFirst = !selected && !selectedFactionId && card.factionId === "neutral";
-                return (
-                  <div key={card.draftCopyId} style={{ display: "grid", gap: 6 }}>
-                    <DraftCardTile
-                      card={card}
-                      selected={selected}
-                      disabled={!selected && (needsFactionFirst || (selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral") || slotOccupied)}
-                      actionLabel={selected ? "Remove" : needsFactionFirst ? "Choose faction first" : selectedFactionId && card.factionId !== selectedFactionId && card.factionId !== "neutral" ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
-                      onClick={() => onToggleDeckCard(card.draftCopyId)}
-                    />
-                    {selected && <div style={{ color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>Replaces {getCardRank(card)}{getSuitSymbol(card.suit)}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </MenuCard>
-        )}
-
-        <MenuCard title={`Your ${isSealed ? "Sealed" : "Draft"} Pool (${myPool.length})`}>
-          {isSpectator ? (
-            <p style={{ color: "#bfdbfe", margin: 0 }}>Spectators can watch seat and pick counts, but not hidden packs.</p>
-          ) : myPool.length === 0 ? (
-            <p style={{ color: "#bfdbfe", margin: 0 }}>No drafted cards yet.</p>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, maxHeight: 320, overflowY: "auto" }}>
-              {myPool.map((card) => <DraftCardTile key={card.draftCopyId} card={card} actionLabel={selectedIds.has(card.draftCopyId) ? "Deck" : "Pool"} />)}
-            </div>
-          )}
-        </MenuCard>
-      </div>
-    </div>
-  );
-}
 
 function MatchmakingPanel({
   account,
@@ -3438,8 +3279,9 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   );
 }
 
+const DRAFT_PRESENTATION = { MENU_THEME, PACK_THEMES, MenuButton, MenuCard, RoomCodeDisplay, DraftCardTile, getReplacementValue, normalizeReplacementSuitId, getCardRank, getSuitSymbol, limitedDeckSourceLabel };
+
 export default function App() {
-  const roomEntryTimerRef = useRef(null);
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
@@ -3495,7 +3337,7 @@ export default function App() {
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
-  const [draftPickPending, setDraftPickPending] = useState(false);
+  const { pending: draftPending, run: runDraftRequest, clear: clearDraftRequest } = useDraftRequest(socket, setError);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -4058,7 +3900,7 @@ export default function App() {
   }, [accountSoundMuted]);
 
   const returnToMainMenu = useCallback(() => {
-    finishRoomEntry();
+    clearDraftRequest();
     socket.emit("leaveRoom");
     clearReconnectInfo();
     resetSelections();
@@ -4076,11 +3918,11 @@ export default function App() {
     setShowTutorial(false);
     setMatchmakingStatus({ inQueue: false, message: "" });
     setDraftLeagueStatus({ inQueue: false, message: "" });
-  }, []);
+  }, [clearDraftRequest]);
 
   useEffect(() => {
     const onAssign = (payload) => {
-      finishRoomEntry();
+      clearDraftRequest();
       if (menuQueuePendingRef.current) menuCueRef.current("matchReady");
       setError("");
       setRole(payload.role);
@@ -4092,7 +3934,7 @@ export default function App() {
     };
 
     const onAssignSpectator = (payload) => {
-      finishRoomEntry();
+      clearDraftRequest();
       setError("");
       setRole("spectator");
       setPlayer(null);
@@ -4121,16 +3963,15 @@ export default function App() {
       }
     };
     const onLobbyState = (newLobby) => {
-      setError("");
+      setMatchReconnectPending(false);
       setLobby(newLobby);
     };
     const onDraftState = (newDraft) => {
-      setError("");
+      setMatchReconnectPending(false);
       setDraftState(newDraft);
-      setDraftPickPending(false);
     };
     const onError = (msg) => {
-      finishRoomEntry();
+      clearDraftRequest();
       if (/room is no longer active|could not reconnect to that player seat/i.test(String(msg || ""))) {
         returnToMainMenu();
         setMatchReconnectPending(false);
@@ -4139,7 +3980,6 @@ export default function App() {
       }
       menuCueRef.current("denied");
       setError(msg);
-      setDraftPickPending(false);
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
@@ -4183,7 +4023,6 @@ export default function App() {
       attemptReconnect();
     };
     const onDisconnect = () => {
-      finishRoomEntry();
       setTransportConnected(false);
       setMatchReconnectPending(true);
       liveMatchSessionRef.current.update({ connected: false });
@@ -4226,7 +4065,7 @@ export default function App() {
       socket.off("rematchStatus", onRematchStatus);
       socket.off("rematchStarted", onRematchStarted);
     };
-  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu, clearDraftRequest]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -4691,26 +4530,8 @@ export default function App() {
     navigateHomeArea("matches");
   }
 
-  function finishRoomEntry() {
-    window.clearTimeout(roomEntryTimerRef.current);
-    roomEntryTimerRef.current = null;
-  }
-
-  useEffect(() => () => window.clearTimeout(roomEntryTimerRef.current), []);
-
   function enterRoom(event, payload) {
-    if (roomEntryTimerRef.current) return;
-    if (!socket.connected) {
-      setError("Connecting to the server. Please try again when the connection returns.");
-      return;
-    }
-    playMenuCue("commit");
-    setError("");
-    roomEntryTimerRef.current = window.setTimeout(() => {
-      finishRoomEntry();
-      setError("The table did not respond. Check your connection and try again.");
-    }, 10000);
-    socket.emit(event, payload);
+    if (runDraftRequest("enter", event, payload)) playMenuCue("commit");
   }
 
   function createRoom() { if (!account) setPlayAsGuest(true); enterRoom("createRoom", playerIdentityPayload()); }
@@ -4720,13 +4541,12 @@ export default function App() {
   function createSealedRoom() { if (!account) setPlayAsGuest(true); enterRoom("createSealedRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
 
   function startDraft() {
-    socket.emit("startDraft");
+    runDraftRequest("start", "startDraft");
   }
 
   function pickDraftCard(cardCopyId) {
-    if (draftPickPending || draftState?.myCurrentPack?.pickedThisPass) return;
-    setDraftPickPending(true);
-    socket.emit("draftPick", { cardCopyId });
+    if (draftState?.myCurrentPack?.pickedThisPass) return;
+    runDraftRequest("pick", "draftPick", { cardCopyId });
   }
 
   function toggleDraftDeckCard(cardCopyId) {
@@ -4756,12 +4576,12 @@ export default function App() {
     const selections = draftState.myPool
       .filter((card) => currentIds.has(card.draftCopyId))
       .map((card) => ({ cardCopyId: card.draftCopyId }));
-    socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds], selections });
+    runDraftRequest("build", "setDraftDeckAdditions", { cardCopyIds: [...currentIds], selections });
   }
 
   function saveDraftDeck() {
     setDraftSaveMessage("");
-    socket.emit("saveDraftDeck");
+    runDraftRequest("save", "saveDraftDeck");
   }
 
   function startTutorialVsAi(mode = "basic") {
@@ -5331,16 +5151,28 @@ export default function App() {
     );
   }
 
+  if (draftPending?.action === "enter") {
+    return <main style={MENU_THEME.page}><div className="draft-entry">
+      <h1>Opening your table</h1>
+      <DraftProgress message={draftPending.connecting ? "Connecting to the server…" : "Preparing your table…"} />
+      {draftPending.connecting && <MenuButton variant="secondary" onClick={returnToMainMenu}>Cancel</MenuButton>}
+    </div></main>;
+  }
+
   if (draftState || lobby?.gameMode === "draft") {
     return (
-      <DraftScreen
+      <Suspense fallback={<DraftProgress message="Loading your draft…" />}><DraftScreen
+        presentation={DRAFT_PRESENTATION}
+        onCancelDraft={() => socket.emit("cancelDraft")}
         draft={draftState}
         lobby={lobby}
         player={player}
         isSpectator={role === "spectator"}
         account={account}
         deckRules={gameContent.deckRules}
-        draftPickPending={draftPickPending}
+        draftPending={draftPending}
+        draftConnected={transportConnected && !matchReconnectPending}
+        error={error}
         draftSaveMessage={draftSaveMessage}
         onBack={returnToMainMenu}
         onCopyRoom={copyRoomCode}
@@ -5348,7 +5180,7 @@ export default function App() {
         onPickCard={pickDraftCard}
         onToggleDeckCard={toggleDraftDeckCard}
         onSaveDraftDeck={saveDraftDeck}
-      />
+      /></Suspense>
     );
   }
 
