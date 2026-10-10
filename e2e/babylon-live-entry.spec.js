@@ -950,7 +950,9 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
-  test.setTimeout(60000);
+  // Ten viewport changes and rendered screenshots exceed a minute on CI's
+  // software GPU. Keep every assertion's timeout unchanged.
+  test.setTimeout(120000);
   await page.addInitScript((voicePaths) => {
     window.__voiceAssetPaths = voicePaths;
     window.__campaignDialogueSources = [];
