@@ -34,7 +34,9 @@ const budgets = {
   // 742.5 KiB together; allow less than 1 KiB of compression variance.
   // Draft request recovery and its separately compressed, on-demand screen
   // add approximately 3 KiB; keep the initial-load ceiling unchanged.
-  totalJavaScriptGzip: 746 * KIB
+  // Illustrated Play/Journey scenes and keyboard tab navigation bring the
+  // player bundle to 746.2 KiB. Keep the entry and async-chunk limits fixed.
+  totalJavaScriptGzip: 747 * KIB
 };
 
 if (!fs.existsSync(buildDirectory)) {

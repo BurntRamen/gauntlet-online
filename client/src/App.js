@@ -41,6 +41,8 @@ import {
   useMenuAudio
 } from "./MenuAudio";
 import MenuBackdrop from "./MenuBackdrop";
+import { PlayMenu, PlayModeCard } from "./PlayMenu";
+import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 
@@ -898,6 +900,7 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
   return (
     <button
       type={type}
+      className={`menu-button menu-button-${variant}`}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -3065,7 +3068,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   return (
     <div className="tutorial-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
-        <header className="tutorial-header">
+        <header className="tutorial-header" style={{ "--journey-art": `url("${resolveVisualAsset(TUTORIAL_ART)}")` }}>
           <div>
             <div className="tutorial-kicker">Training Protocol</div>
             <h1>Learn Gauntlet</h1>
@@ -3170,10 +3173,11 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   return (
     <div className="campaign-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
-        <div className="campaign-header">
+        <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(JOURNEY_ART)}")` }}>
           <div className="campaign-heading">
             <div className="campaign-kicker">Commander Archives</div>
             <h1>Faction Campaigns</h1>
+            <p>Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way.</p>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
@@ -3190,7 +3194,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`)})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || FACTION_VISUALS[factionId]?.art || JOURNEY_ART)})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -5238,12 +5242,7 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {homeArea === "play" && (
-            <div className="play-hub">
-              <div className="play-view-tabs" role="tablist" aria-label="Play formats">
-                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["events", "Events"], ["draft", "Draft"]].map(([viewId, label]) => (
-                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => { if (playView !== viewId) playMenuCue("tab"); setPlayView(viewId); }}>{label}</button>
-                ))}
-              </div>
+            <PlayMenu view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
@@ -5252,9 +5251,9 @@ export default function App() {
                     {!account && <small>Play immediately as a guest. Sign in to keep progression and rewards.</small>}
                   </div>
                   {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
-                  <div className="play-choice-grid">
-                    <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>{gameContent.modeMetadata?.basic?.name || "Basic vs AI"}</strong><small>{gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."}</small></button>
-                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>{gameContent.modeMetadata?.factions?.name || "Factions vs AI"}</strong><small>{gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."}</small></button>
+                  <div className="play-mode-grid">
+                    <PlayModeCard eyebrow="Core Game" title={gameContent.modeMetadata?.basic?.name || "Basic vs AI"} description={gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."} image={TUTORIAL_ART} action="Enter training" onClick={() => startTutorialVsAi("basic")} />
+                    <PlayModeCard eyebrow="Full Game" title={gameContent.modeMetadata?.factions?.name || "Factions vs AI"} description={gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."} image="/assets/gauntlet/frumo-card.webp" accent="ice" action="Choose your faction" onClick={() => startTutorialVsAi("factions")} />
                   </div>
                 </MenuCard>
               )}
@@ -5276,9 +5275,9 @@ export default function App() {
                     </form>
                   </MenuCard>
                   <MenuCard className="play-focus-panel" title="Create Table">
-                    <div className="play-choice-grid">
-                      <button type="button" onClick={createRoom}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
-                      <button type="button" onClick={createFreeForAllRoom}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
+                    <div className="play-mode-grid">
+                      <PlayModeCard eyebrow="Two Players" title="Duel" description="Create a private faction table." image="/assets/gauntlet/rumin-card.webp" action="Create a duel" accent="brass" onClick={createRoom} />
+                      <PlayModeCard eyebrow="Two to Four" title="Free-For-All" description="Open a multiplayer faction table." image="/assets/gauntlet/sheen-card.webp" action="Gather your rivals" accent="sage" onClick={createFreeForAllRoom} />
                     </div>
                     <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
                   </MenuCard>
@@ -5361,10 +5360,10 @@ export default function App() {
                     {(gameContent.draftSets || []).find((set) => set.id === draftSetId)?.factionIds?.length > 0 && (
                       <p style={{ color: "#bfdbfe", fontSize: 13 }}>Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
                     )}
-                    <div className="play-choice-grid">
-                      <button type="button" onClick={createDraftRoom}><span>2–8 Players</span><strong>Draft with friends</strong><small>Live Draft: choose cards together, then build your deck.</small></button>
-                      <button type="button" onClick={createBotDraftRoom}><span>Solo Table</span><strong>Draft against bots</strong><small>Bot Draft: choose cards with seven automated drafters.</small></button>
-                      <button type="button" onClick={createSealedRoom}><span>6 Packs</span><strong>Open a Sealed pool</strong><small>Sealed: open a private pool from this set and build immediately.</small></button>
+                    <div className="play-mode-grid">
+                      <PlayModeCard eyebrow="2–8 Players" title="Draft with friends" description="Live Draft: choose cards together, then build your deck." image="/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg" action="Open a draft table" accent="sage" onClick={createDraftRoom} />
+                      <PlayModeCard eyebrow="Solo Table" title="Draft against bots" description="Bot Draft: choose cards with seven automated drafters." image="/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" action="Start your draft" accent="ice" onClick={createBotDraftRoom} />
+                      <PlayModeCard eyebrow="6 Packs" title="Open a Sealed pool" description="Sealed: open a private pool from this set and build immediately." image="/assets/gauntlet/menus/journey-expedition-v1.webp" action="Build from your pool" accent="brass" onClick={createSealedRoom} />
                     </div>
                   </MenuCard>
                   <MatchmakingPanel
@@ -5389,11 +5388,12 @@ export default function App() {
                   />
                 </div>
               )}
-            </div>
+            </PlayMenu>
           )}
 
           {homeArea === "journey" && (
             <div className="journey-hub">
+              <JourneyIntroduction campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
               {showOnboarding && (
                 <OnboardingPanel
                   canPlayAsPlayer={canPlayAsPlayer}
@@ -5405,6 +5405,7 @@ export default function App() {
               )}
               <div className="journey-route">
                 <section className="journey-learning-panel">
+                  <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
                   <div className="journey-panel-copy">
                     <span>Phase One / The Table</span>
                     <h3>Learn the rhythm of a turn</h3>
@@ -5421,9 +5422,9 @@ export default function App() {
                   </div>
                 </section>
                 <section className="journey-campaign-panel">
-                  <div className="journey-faction-strip" role="group" aria-label="Choose a faction campaign">
-                    {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
-                      <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  <div className="journey-faction-strip" role="group" aria-label="Campaign factions" style={{ "--faction-count": Object.keys(gameContent.campaigns).length }}>
+                    {Object.entries(gameContent.campaigns).map(([factionId, campaign]) => (
+                      <span key={factionId} style={{ backgroundImage: `url(${resolveVisualAsset(FACTION_VISUALS[factionId]?.art || campaign.coverImage || JOURNEY_ART)})` }}><small>{campaign.factionName || factionId}</small></span>
                     ))}
                   </div>
                   <div className="journey-panel-copy">
