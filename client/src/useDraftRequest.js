@@ -17,6 +17,10 @@ export default function useDraftRequest(socket, onError) {
     setPending(null);
   }, [socket]);
 
+  const finishEntry = useCallback(() => {
+    if (active.current?.action === "enter") clear();
+  }, [clear]);
+
   useEffect(() => {
     const disconnected = () => {
       if (!active.current?.sent) return;
@@ -63,5 +67,5 @@ export default function useDraftRequest(socket, onError) {
     return true;
   }, [socket, clear]);
 
-  return { pending, run, clear };
+  return { pending, run, clear, finishEntry };
 }

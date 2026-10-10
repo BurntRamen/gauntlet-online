@@ -3337,7 +3337,7 @@ export default function App() {
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
-  const { pending: draftPending, run: runDraftRequest, clear: clearDraftRequest } = useDraftRequest(socket, setError);
+  const { pending: draftPending, run: runDraftRequest, clear: clearDraftRequest, finishEntry } = useDraftRequest(socket, setError);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -3922,7 +3922,6 @@ export default function App() {
 
   useEffect(() => {
     const onAssign = (payload) => {
-      clearDraftRequest();
       if (menuQueuePendingRef.current) menuCueRef.current("matchReady");
       setError("");
       setRole(payload.role);
@@ -3934,7 +3933,6 @@ export default function App() {
     };
 
     const onAssignSpectator = (payload) => {
-      clearDraftRequest();
       setError("");
       setRole("spectator");
       setPlayer(null);
@@ -3943,6 +3941,7 @@ export default function App() {
     };
 
     const onState = (newGame) => {
+      finishEntry();
       setError("");
       const accepted = liveMatchSessionRef.current.update({ game: newGame });
       setMatchReconnectPending(false);
@@ -3963,10 +3962,12 @@ export default function App() {
       }
     };
     const onLobbyState = (newLobby) => {
+      finishEntry();
       setMatchReconnectPending(false);
       setLobby(newLobby);
     };
     const onDraftState = (newDraft) => {
+      finishEntry();
       setMatchReconnectPending(false);
       setDraftState(newDraft);
     };
@@ -4065,7 +4066,7 @@ export default function App() {
       socket.off("rematchStatus", onRematchStatus);
       socket.off("rematchStarted", onRematchStarted);
     };
-  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu, clearDraftRequest]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu, clearDraftRequest, finishEntry]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -5151,11 +5152,11 @@ export default function App() {
     );
   }
 
-  if (draftPending?.action === "enter") {
+  if (draftPending?.action === "enter" || (role && !lobby && !game && !draftState)) {
     return <main style={MENU_THEME.page}><div className="draft-entry">
       <h1>Opening your table</h1>
-      <DraftProgress message={draftPending.connecting ? "Connecting to the server…" : "Preparing your table…"} />
-      {draftPending.connecting && <MenuButton variant="secondary" onClick={returnToMainMenu}>Cancel</MenuButton>}
+      {error ? <div className="draft-error" role="alert">{error}</div> : <DraftProgress message={draftPending?.connecting ? "Connecting to the server…" : "Preparing your table…"} />}
+      {(error || draftPending?.connecting) && <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>}
     </div></main>;
   }
 

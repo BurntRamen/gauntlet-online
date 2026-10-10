@@ -915,7 +915,7 @@ function normalizeDraftType(draftType) {
   return draftType === "bot" || draftType === "sealed" ? draftType : "player";
 }
 
-function createDraftPack(ownerPlayer, factionIds) {
+function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent()) {
   const availableFactionIds = (factionIds || [])
     .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
   if (NEUTRAL_COLLECTION_CARDS.length) availableFactionIds.push(NEUTRAL_FACTION_ID);
@@ -926,7 +926,7 @@ function createDraftPack(ownerPlayer, factionIds) {
     cards: DRAFT_PACK_SLOTS.map((slot) => {
       const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      const card = pickCollectionCard(factionId, rarity);
+      const card = pickCollectionCard(factionId, rarity, manifest);
       return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
     }).filter(Boolean)
   };
@@ -3126,10 +3126,10 @@ function getDraftLeagueProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
-function pickCollectionCard(factionId, rarity) {
+function pickCollectionCard(factionId, rarity, manifest = null) {
   const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
   if (cardPool.length === 0) return null;
-  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function pickCollectionCardFromPool(rarity) {
@@ -5076,6 +5076,7 @@ function openSealedPool(roomState, playerNum = 1) {
   const draft = roomState.draft;
   if (!draft?.sealed) throw new Error("That room is not a sealed event.");
   const key = String(playerNum);
+  const manifest = getPublicGameContent();
   draft.status = "building";
   draft.activePlayers = [playerNum];
   draft.round = 0;
@@ -5086,7 +5087,7 @@ function openSealedPool(roomState, playerNum = 1) {
   draft.draftedPools = { [key]: [] };
   draft.deckAdditions = { [key]: [] };
   for (let packIndex = 0; packIndex < SEALED_PACKS_PER_PLAYER; packIndex++) {
-    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds).cards);
+    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest).cards);
   }
   draft.completedAt = new Date().toISOString();
 }
@@ -5742,6 +5743,9 @@ function getConnectedDraftPlayers(roomState) {
 
 function startDraft(roomState) {
   const draft = roomState.draft;
+  // Resolve the release once for all 192 cards. Resolving/cloning the full
+  // catalog per card blocks Socket.IO heartbeats on the production instance.
+  const manifest = getPublicGameContent();
   const activePlayers = getConnectedDraftPlayers(roomState);
   draft.status = "drafting";
   draft.activePlayers = activePlayers;
@@ -5760,7 +5764,7 @@ function startDraft(roomState) {
     draft.draftedPools[key] = [];
     draft.deckAdditions[key] = [];
     for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
-      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds));
+      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest));
     }
     draft.currentPacks[key] = draft.unopenedPacks[key].shift();
   });

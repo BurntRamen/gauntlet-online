@@ -35,6 +35,18 @@ test("waits for confirmation and prevents duplicate picks", () => {
   expect(error.mock.calls).toEqual([[""]]);
 });
 
+test("table state finishes entry without releasing an unrelated draft mutation", () => {
+  const socket = mockSocket();
+  const { result } = renderHook(() => useDraftRequest(socket, jest.fn()));
+  act(() => result.current.run("enter", "createBotDraftRoom"));
+  expect(result.current.pending.action).toBe("enter");
+  act(() => result.current.finishEntry());
+  expect(result.current.pending).toBeNull();
+  act(() => result.current.run("pick", "draftPick"));
+  act(() => result.current.finishEntry());
+  expect(result.current.pending.action).toBe("pick");
+});
+
 test("connection wait times out without buffering a room creation for later", () => {
   const socket = mockSocket(false);
   const error = jest.fn();
