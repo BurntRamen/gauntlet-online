@@ -1047,7 +1047,7 @@ textarea:focus-visible {
 .build-deck-entry {
   --deck-accent: #c89b52;
   display: grid;
-  grid-template-columns: 126px minmax(0, 1fr);
+  grid-template-columns: minmax(116px, 196px) minmax(0, 1fr);
   gap: 13px;
   padding: 12px;
   border-bottom: 3px solid var(--deck-accent);
@@ -1904,7 +1904,7 @@ textarea:focus-visible {
   }
 
   .build-deck-entry {
-    grid-template-columns: 94px minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .build-deck-cover {
