@@ -10,6 +10,32 @@ async function enterDraftMenu(page, baseURL, name = "Draft Tester") {
   await page.getByRole("tab", { name: /^Draft\b/ }).click();
 }
 
+test("a fresh visitor sees loading until the draft table is ready after seat assignment", async ({ page, baseURL }) => {
+  let assigned = false;
+  let hold = true;
+  let release;
+  await page.routeWebSocket(/socket\.io/, (client) => {
+    const server = client.connectToServer();
+    const queued = [];
+    server.onMessage(message => {
+      if (String(message).includes('"assign"')) assigned = true;
+      if (hold && (String(message).includes('"lobbyState"') || String(message).includes('"draftState"') || String(message).startsWith("43"))) queued.push(message);
+      else client.send(message);
+    });
+    release = () => { hold = false; queued.forEach(message => client.send(message)); };
+  });
+  await page.goto(baseURL);
+  await page.locator('button[data-area="play"]').click();
+  await page.getByRole("tab", { name: "Draft", exact: true }).click();
+  await page.getByRole("button", { name: /Draft against bots/ }).click();
+  await expect.poll(() => assigned).toBe(true);
+  await expect(page.getByRole("heading", { name: "Opening your table" })).toBeVisible();
+  await expect(page.getByRole("progressbar")).toBeVisible();
+  await expect(page.getByText("Table Command", { exact: true })).toHaveCount(0);
+  release();
+  await expect(page.getByRole("heading", { name: "Gauntlet Bot Draft", exact: true })).toBeVisible();
+});
+
 test("entry failures are visible and Sealed can be retried", async ({ page, baseURL }) => {
   let rejected = false;
   await page.routeWebSocket(/socket\.io/, (client) => {

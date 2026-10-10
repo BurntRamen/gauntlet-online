@@ -51,6 +51,26 @@ after(async () => {
   fs.rmSync(directory, { recursive: true, force: true });
 });
 
+test("all draft and sealed packs share one content snapshot instead of cloning the catalog per card", (t) => {
+  const original = __test.contentPublication.active;
+  let reads = 0;
+  __test.contentPublication.active = () => { reads++; return original(); };
+  t.after(() => { __test.contentPublication.active = original; });
+  const room = __test.createDraftRoom({ botDraft: true });
+  room.lobby.players[1].connected = true;
+  __test.startDraft(room);
+  assert.equal(reads, 1);
+  assert.equal(Object.values(room.draft.currentPacks).flatMap(pack => pack.cards).length, 64);
+  assert.equal(Object.values(room.draft.unopenedPacks).flatMap(packs => packs.flatMap(pack => pack.cards)).length, 128);
+  reads = 0;
+  const sealed = __test.createDraftRoom({ sealed: true });
+  __test.openSealedPool(sealed);
+  assert.equal(reads, 1);
+  assert.equal(sealed.draft.draftedPools[1].length, 48);
+  __test.rooms.delete(room.roomCode);
+  __test.rooms.delete(sealed.roomCode);
+});
+
 test("bot draft completes 24 real picks, restores its pool, preserves fixed slots, saves, and enters its league", async () => {
   const registration = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "DraftAccount", password: "Draft-Test-Password-42" }) });
   assert.equal(registration.status, 200);
