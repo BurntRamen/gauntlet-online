@@ -110,6 +110,29 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("play order stays retracted through new actions and keeps full history accessible", async () => {
+  let publish;
+  const update = { source: "local", connected: true, viewModel: createViewModel(), commands: {},
+    snapshot: { actionHistory: [{ id: "pass-1", type: "priority.passed", player: 1 }] } };
+  render(<ProductionMatchExperience adapter={{ connect: jest.fn(), subscribe: listener => {
+    publish = listener;
+    listener(update);
+    return () => {};
+  } }} options={{ audioEnabled: false, reducedMotion: true }} />);
+  const ledger = await screen.findByRole("complementary", { name: "Recent play order" });
+  const toggle = within(ledger).getByRole("button", { name: "Play order", exact: true });
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(ledger.querySelector("ol")).not.toBeVisible();
+  act(() => publish({ ...update, snapshot: { actionHistory: [...update.snapshot.actionHistory,
+    { id: "pass-2", type: "priority.passed", player: 2 }] } }));
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(ledger.querySelector("ol")).not.toBeVisible();
+  fireEvent.click(within(ledger).getByRole("button", { name: /Full log · 2/ }));
+  expect(screen.getByRole("dialog", { name: "Match log" })).toBeVisible();
+});
+
 test("last ability survives routine actions and opens searchable ability history with calculations retained", async () => {
   const effect = { id: 'watane', sequence: 1, revision: 2, turn: 2, type: 'effect.applied', player: 1,
     source: { name: 'Watane' }, target: { name: '5♥' }, amount: 2, before: 5, after: 7,
@@ -210,6 +233,35 @@ test("renders the player-facing HUD from an adapter without developer chrome", a
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
   expect(screen.getAllByText("G", { exact: true })).toHaveLength(2);
   expect(screen.queryByText("Developer tools")).not.toBeInTheDocument();
+});
+
+test("presents faction atmosphere, phase focus, and readable life danger states", async () => {
+  const viewModel = {
+    ...createViewModel(),
+    phase: "combat",
+    phaseLabel: "Combat Response",
+    top: {
+      ...createViewModel().top,
+      life: 10,
+      factionId: "indela",
+      factionName: "Indela"
+    },
+    bottom: {
+      ...createViewModel().bottom,
+      life: 21,
+      factionId: "indela",
+      factionName: "Indela"
+    }
+  };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel })} options={{ audioEnabled: false, reducedMotion: true }} />);
+
+  const match = await screen.findByTestId("production-babylon-match");
+  expect(match).toHaveAttribute("data-battlefield-faction", "indela");
+  expect(match.querySelector('.production-battlefield-atmosphere[data-faction="indela"]')).toBeInTheDocument();
+  expect(screen.getByLabelText("Turn 3, Combat Response")).toHaveAttribute("data-phase", "combat");
+  expect(screen.getByLabelText(/Opponent, 10 life/)).toHaveClass("is-critical");
+  expect(screen.getByLabelText(/Local, 21 life/)).toHaveClass("is-wounded");
+  expect(screen.getByLabelText("10 life")).toHaveAttribute("data-life-state", "critical");
 });
 
 test("player discard controls show the selected public pile and switch without revealing hands", async () => {

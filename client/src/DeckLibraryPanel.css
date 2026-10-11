@@ -63,10 +63,10 @@
 .deck-library-main > .deck-box { justify-self: center; }
 .deck-library-main .deck-visual { min-height: 90px; }
 .deck-library-copy,
-.deck-library-main strong,
-.deck-library-main small { display: block; min-width: 0; letter-spacing: 0; }
-.deck-library-main strong { margin-top: 3px; overflow: hidden; color: #fffaf0; font: 700 18px Georgia, serif; text-overflow: ellipsis; white-space: nowrap; }
-.deck-library-main small { margin-top: 3px; color: #a9c0cc; font-size: 10px; }
+.deck-library-copy strong,
+.deck-library-copy small { display: block; min-width: 0; letter-spacing: 0; }
+.deck-library-copy strong { margin-top: 3px; overflow: hidden; color: #fffaf0; font: 700 18px Georgia, serif; text-overflow: ellipsis; white-space: nowrap; }
+.deck-library-copy small { margin-top: 3px; color: #a9c0cc; font-size: 10px; }
 .deck-record { display: flex; gap: 7px; margin-top: 8px; color: #91aab6; font-size: 9px; text-transform: uppercase; }
 .deck-record b { color: #fff4d6; }
 .deck-library-badges { justify-content: flex-end; }

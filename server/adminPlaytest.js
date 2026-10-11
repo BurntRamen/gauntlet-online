@@ -25,7 +25,7 @@ function selectionFor(resolved, body) {
   } else if (subject.kind === "card" || subject.kind === "card-effect") {
     const card = cards.find(card => card.id === (subject.kind === "card" ? subject.id : subject.cardId));
     if (!card || subject.kind === "card-effect" && (!cardEffectDefinitions().some(effect => effect.id === subject.id) || card.effect?.id !== subject.id)) fail(422, "Select a card using this published effect.");
-    factionId = card.factionId; label = subject.kind === "card" ? card.name : card.name + " effect"; selection.focusCardId = card.id;
+    factionId = card.factionId === "neutral" ? null : card.factionId; label = subject.kind === "card" ? card.name : card.name + " effect"; selection.focusCardId = card.id;
   } else if (subject.kind === "faction") {
     if (!Object.hasOwn(resolved.factions, subject.id)) fail(422, "Unknown test faction.");
     factionId = subject.id; label = resolved.factions[subject.id].name;

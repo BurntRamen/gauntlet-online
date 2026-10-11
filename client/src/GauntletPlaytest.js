@@ -9,7 +9,7 @@ export default function GauntletPlaytest({ request, state, row, domain, disabled
   const [localSession, setLocalSession] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState(""), [expired, setExpired] = useState(false);
   const session = savedSession === undefined ? localSession : savedSession;
   const [faction, setFaction] = useState("rumin"), [allEvents, setAllEvents] = useState(false);
-  const contentFaction = row?.factionId || (domain === "factions" ? row?.id : null);
+  const contentFaction = (row?.factionId === "neutral" ? null : row?.factionId) || (domain === "factions" ? row?.id : null);
   const effectiveFaction = contentFaction || faction;
   const [source, setSource] = useState(state.draft ? "draft" : "live");
   const draftSource = source === "draft";
@@ -18,7 +18,8 @@ export default function GauntletPlaytest({ request, state, row, domain, disabled
   const effect = subjectTarget?.id || metadata?.cardEffects?.[0]?.id;
   const subject = domain === "encounters" && row ? { kind: "encounter", id: row.id } : domain === "cards" && row ? { kind: "card", id: row.id } : domain === "card-effects" ? { kind: "card-effect", id: effect, cardId: subjectTarget?.cardId } : domain === "faction-effects" && selectedRule ? { kind: "faction", id: selectedRule.factionId } : domain === "factions" && row ? { kind: "faction", id: row.id } : { kind: "game-config", id: "shared-rules" };
   const subjectCard = (snapshot.domains.cards || []).find(card => card.id === (subject.kind === "card" ? subject.id : subject.cardId));
-  const subjectFaction = subjectCard?.factionId || (subject.kind === "faction" ? subject.id : effectiveFaction);
+  const cardFaction = subjectCard?.factionId === "neutral" ? null : subjectCard?.factionId;
+  const subjectFaction = cardFaction || (subject.kind === "faction" ? subject.id : effectiveFaction);
   const needsSubject = (["cards", "encounters"].includes(domain) && !row) || (domain === "card-effects" && !subject.cardId) || domain === "encounter-mechanics" || (domain === "faction-effects" && !selectedRule);
   const stale = !!session && (session.source === "live" ? session.releaseId !== state.activeReleaseId : session.draftHash !== state.draft?.hash);
   const ended = session?.game.phase === "gameOver";
@@ -42,7 +43,7 @@ export default function GauntletPlaytest({ request, state, row, domain, disabled
   }
   const evidence = session?.evidence;
   return <section id="workshop-test" className="admin-playtest" aria-label="Real engine playtest"><h4>Real engine test</h4><p className="admin-note">{guide.testIsolation}</p>
-    <div className="admin-actions"><label>Test content<select value={source} disabled={busy} onChange={event => setSource(event.target.value)}><option value="live">Live</option><option value="draft" disabled={!state.draft}>Saved draft</option></select></label><label>Test faction<select aria-label="Test faction" disabled={!!contentFaction || !!subjectCard || subject.kind === "faction" || busy} value={subjectFaction} onChange={event => setFaction(event.target.value)}>{snapshot.domains.factions.filter(entry => !entry.campaignOnly || entry.id === subjectFaction).map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label><button disabled={busy || disabled || needsSubject || (draftSource && (!state.draft || !state.validation.valid))} onClick={() => run()}>Start {domain === "encounters" && row ? row.title : draftSource ? "draft duel" : "live duel"} playtest</button></div>
+    <div className="admin-actions"><label>Test content<select value={source} disabled={busy} onChange={event => setSource(event.target.value)}><option value="live">Live</option><option value="draft" disabled={!state.draft}>Saved draft</option></select></label><label>Test faction<select aria-label="Test faction" disabled={!!contentFaction || !!cardFaction || subject.kind === "faction" || busy} value={subjectFaction} onChange={event => setFaction(event.target.value)}>{snapshot.domains.factions.filter(entry => !entry.campaignOnly || entry.id === subjectFaction).map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label><button disabled={busy || disabled || needsSubject || (draftSource && (!state.draft || !state.validation.valid))} onClick={() => run()}>Start {domain === "encounters" && row ? row.title : draftSource ? "draft duel" : "live duel"} playtest</button></div>
     {needsSubject && <p>Select a card to test this effect, or open the encounter that owns this mechanic.</p>}
     <p className="admin-note">{draftSource ? "Only a successful action on the current saved draft records a publication receipt." : "Live tests use the deployed release and do not write drafts or publication receipts."}</p>
     {domain !== "encounters" && !scenario && <button disabled={busy || disabled || needsSubject} onClick={() => onScenario?.(initialScenario(subjectFaction, subjectCard))}>Configure custom starting state</button>}

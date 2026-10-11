@@ -1,0 +1,102 @@
+/* Play scenes share the same hierarchy, with artwork carrying each mode. */
+.play-menu { --scene-accent: #e1b879; display: grid; gap: 16px; }
+.play-menu.scene-ranked { --scene-accent: #9fcdd7; }
+.play-menu.scene-draft { --scene-accent: #9cc19b; }
+.play-scene-hero { position: relative; isolation: isolate; display: flex; align-items: center; min-height: 168px; padding: 26px 32px; overflow: hidden; border: 1px solid #c5a46b40; border-radius: 10px; background: #131b1e; }
+.play-scene-hero::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, #10191bf5 0%, #10191bce 37%, #10191b10 80%), var(--scene-art) 70% 43% / cover; }
+.play-scene-hero::after { content: ""; position: absolute; inset: 10px; pointer-events: none; border: 1px solid #e1b87914; border-radius: 4px; }
+.play-scene-copy { max-width: 610px; }
+.play-eyebrow { color: var(--scene-accent); font-size: 10px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+.play-scene-copy h3 { margin: 10px 0 12px; color: #fff4dd; font: 400 clamp(32px, 3.4vw, 48px)/1.05 var(--font-display); letter-spacing: -.035em; }
+.play-scene-copy p { max-width: 480px; margin: 0; color: #c1cbca; font-size: 13px; line-height: 1.65; }
+.play-scene-inscription { position: absolute; bottom: 24px; right: 30px; color: #e1d6bd; font-size: 9px; font-weight: 700; letter-spacing: .22em; }
+.play-scene-inscription span { color: var(--scene-accent); margin: 0 8px; }
+.play-scene-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.play-scene-tabs button { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 66px; padding: 12px 16px; border: 1px solid #9daea626; border-radius: 5px; background: #101d23b8; color: #b6c1c4; text-align: left; cursor: pointer; transition: border-color 160ms, background 160ms; }
+.play-tab-number { color: #8a9b9e; font: 400 18px var(--font-display); }
+.play-scene-tabs strong { display: block; font-size: 14px; font-weight: 650; }
+.play-scene-tabs small { display: block; margin-top: 4px; color: #9daeb2; font-size: 10px; }
+.play-tab-arrow { margin-left: auto; color: #92a5a7; }
+.play-scene-tabs button:hover { border-color: #d6b17980; background: #243030; }
+.play-scene-tabs button[aria-selected="true"] { border-color: #cda45d9e; background: linear-gradient(110deg, #d4ae7629, #d4ae760c); box-shadow: inset 0 -2px var(--scene-accent); }
+.play-scene-tabs button[aria-selected="true"] strong, .play-scene-tabs button[aria-selected="true"] .play-tab-number, .play-scene-tabs button[aria-selected="true"] .play-tab-arrow { color: #f1d7af; }
+.play-scene-tabs button:focus-visible, .play-mode-card:focus-visible { outline: 2px solid #f1c779; outline-offset: 3px; }
+.play-identity-note { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 15px; border-left: 2px solid #cda45d; background: #b18b4b0c; color: #b5c2c5; font-size: 12px; }
+.play-identity-note button { flex-shrink: 0; min-height: 30px; padding: 4px 0; border: 0; background: transparent; color: #f1d7af; font-weight: 650; cursor: pointer; }
+.play-identity-note button span { margin-left: 12px; }
+.play-scene-panel { min-width: 0; }
+.play-scene-panel .play-focus-panel { padding: 0 !important; background: transparent !important; box-shadow: none !important; border-radius: 0 !important; margin-bottom: 0 !important; }
+.play-scene-panel .play-focus-panel::before { display: none; }
+.play-scene-panel .play-focus-panel > h3 { margin-bottom: 12px !important; color: #9badb1 !important; font-size: 10px !important; font-weight: 650; letter-spacing: .15em !important; }
+.play-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.play-mode-card { --card-accent: #ddb578; position: relative; isolation: isolate; display: flex; align-items: flex-end; min-width: 0; min-height: 252px; padding: 25px; overflow: hidden; border: 1px solid #dcc3994d; border-radius: 8px; background: #0c171a; color: #f6edda; text-align: left; cursor: pointer; transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+.play-mode-card.accent-sage { --card-accent: #a0c8a6; border-color: #a0c8a64d; }
+.play-mode-card.accent-ice { --card-accent: #9bc5dc; border-color: #9bc5dc4d; }
+.play-mode-art { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 32%; transition: transform 300ms; }
+.play-mode-shade { position: absolute; z-index: -1; inset: 0; background: linear-gradient(0deg, #071012 0%, #071012e8 28%, #07101250 70%, #07101212); }
+.play-mode-copy { display: grid; width: 100%; gap: 8px; }
+.play-mode-copy > .play-eyebrow { color: var(--card-accent); }
+.play-mode-copy > strong { font: 400 clamp(25px, 2.5vw, 33px)/1.12 var(--font-display); letter-spacing: -.025em; }
+.play-mode-description { max-width: 350px; color: #ced6d5; font-size: 12px; line-height: 1.5; }
+.play-mode-action { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; padding-top: 14px; border-top: 1px solid #c5d1cb38; color: var(--card-accent); font-size: 12px; font-weight: 700; }
+.play-mode-action > span { font-size: 20px; font-weight: 400; line-height: 1; }
+.play-mode-card:hover:not(:disabled) { border-color: var(--card-accent); box-shadow: 0 10px 26px #0005; transform: translateY(-3px); }
+.play-mode-card:hover:not(:disabled) .play-mode-art { transform: scale(1.035); }
+.play-mode-card:disabled { cursor: not-allowed; }
+.play-mode-card:disabled .play-mode-art { filter: saturate(.55); }
+.play-mode-card:disabled .play-mode-action { color: #94a39f; }
+.play-scene-panel .play-table-grid, .play-scene-panel .play-draft-grid { grid-template-columns: minmax(0, 1.65fr) minmax(250px, .85fr); gap: 20px; }
+.play-scene-panel .play-table-grid { grid-template-columns: minmax(250px, .85fr) minmax(0, 1.65fr); }
+.play-scene-panel .play-focus-panel > label { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; color: #b7c5c5; font-size: 12px; }
+.play-scene-panel .play-focus-panel > label > input { max-width: 260px; }
+.play-scene-panel .play-table-grid .play-mode-card, .play-scene-panel .play-draft-grid .play-mode-card { min-height: 295px; padding: 20px; }
+.play-scene-panel .play-table-grid .play-mode-copy > strong, .play-scene-panel .play-draft-grid .play-mode-copy > strong { font-size: 27px; }
+.play-scene-panel .play-join-panel { margin: 0; padding: 24px; border: 1px solid #d4bc8e26 !important; background: #101d24b3 !important; box-shadow: none !important; }
+.play-scene-panel .play-join-panel::before { display: none; }
+.play-join-intro { color: #b5c3c7; font-size: 13px; line-height: 1.6; margin: 0 0 24px; }
+.play-scene-panel .play-join-form { margin-top: 18px; }
+.play-scene-panel .play-join-form label { grid-column: 1 / -1; color: #b7c5c5; font-size: 12px; }
+.play-scene-panel .play-join-form input { min-height: 48px; letter-spacing: .12em; border-color: #b49c704d !important; background: #071217 !important; }
+.play-scene-panel .play-join-form button { min-height: 44px; }
+.play-scene-panel .play-ranked-grid { max-width: none; grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr); align-items: start; gap: 18px; }
+.play-ranked-grid > .season-queue-summary { grid-column: 1 / -1; grid-row: 1; }
+.play-ranked-grid > :first-child { grid-column: 1; grid-row: 2; }
+.play-ranked-grid > :last-child { grid-column: 1 / -1; }
+.play-scene-panel .season-queue-summary { grid-template-columns: 1fr 1.6fr; gap: 6px 24px; margin: 0; padding: 22px; border-color: #c6bd9c40; border-radius: 6px; background: #18262d80; }
+.play-scene-panel .season-queue-summary > span { grid-column: 1; grid-row: 1; color: var(--scene-accent); font-size: 9px; }
+.play-scene-panel .season-queue-summary > strong { grid-column: 1; grid-row: 2; font: 400 26px var(--font-display); }
+.play-scene-panel .season-queue-summary > small { grid-column: 2; color: #bfcfd2; }
+.play-scene-panel .season-queue-summary > small:first-of-type { grid-row: 1; }
+.play-scene-panel .season-queue-summary > p { grid-column: 1 / -1; color: #9fb3b8; line-height: 1.5; }
+.play-scene-panel .season-surface { border-color: #a4bcb52e; border-radius: 6px; background: #101d24b3; }
+.play-scene-panel .season-surface-heading span { color: var(--scene-accent); font-size: 9px; }
+.play-scene-panel .season-surface-heading h3 { font: 400 24px/1.2 var(--font-display); }
+.play-scene-panel .season-empty { color: #adc0c5; font-size: 13px; line-height: 1.6; }
+.play-scene-panel .menu-button { min-height: 42px; padding: 10px 15px !important; border: 1px solid #d3b17b99 !important; border-radius: 4px !important; background: linear-gradient(180deg, #b58a4c, #806039) !important; color: #fff6e5 !important; font-size: 12px; }
+.play-scene-panel .menu-button-secondary { border-color: #b4c9cb4d !important; background: #24343e !important; color: #dbe6e7 !important; }
+.play-scene-panel .menu-button:hover:not(:disabled) { filter: brightness(1.15); }
+.play-share-panel { padding-top: 4px; }
+@media (max-width: 980px) {
+  .play-scene-panel .play-table-grid, .play-scene-panel .play-draft-grid { grid-template-columns: 1fr; }
+  .play-tab-number, .play-tab-arrow { display: none; }
+  .play-scene-inscription { display: none; }
+}
+@media (max-width: 640px) {
+  .play-menu { gap: 14px; }
+  .play-scene-hero { min-height: 200px; padding: 24px; }
+  .play-scene-hero::before { background-image: linear-gradient(90deg, #10191bf0, #10191b90), var(--scene-art); }
+  .play-scene-copy h3 { font-size: 34px; }
+  .play-scene-copy p { font-size: 12px; }
+  .play-scene-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .play-scene-tabs button { min-height: 58px; padding: 10px 14px; }
+  .play-mode-grid, .play-scene-panel .play-ranked-grid { grid-template-columns: 1fr; }
+  .play-ranked-grid > :first-child { grid-row: auto; }
+  .play-scene-panel .season-queue-summary { grid-template-columns: 1fr; }
+  .play-scene-panel .season-queue-summary > small, .play-scene-panel .season-queue-summary > small:first-of-type { grid-column: 1; grid-row: auto; }
+  .play-mode-card, .play-scene-panel .play-table-grid .play-mode-card, .play-scene-panel .play-draft-grid .play-mode-card { min-height: 270px; }
+  .play-identity-note { align-items: flex-start; flex-direction: column; gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-mode-card, .play-mode-art, .play-scene-tabs button { transition: none; }
+  .play-mode-card:hover:not(:disabled), .play-mode-card:hover:not(:disabled) .play-mode-art { transform: none; }
+}

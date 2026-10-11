@@ -135,7 +135,7 @@ function validateAuthoredContent(snapshot, baseline) {
   for (const [domain, rows] of Object.entries(snapshot.domains)) {
     if (!Array.isArray(rows)) continue;
     for (const row of rows.filter((entry) => entry && typeof entry === "object")) {
-      if (row.factionId) ref(domain, row, "factionId", "factions", row.factionId);
+      if (row.factionId && !(domain === "cards" && row.factionId === registry.NEUTRAL_FACTION_ID)) ref(domain, row, "factionId", "factions", row.factionId);
       if (domain === "campaigns") for (const id of Array.isArray(row.encounterIds) ? row.encounterIds : []) {
         ref(domain, row, "encounterIds", "encounters", id);
         if (maps.encounters?.get(id)?.campaignId !== row.id) issue(domain, row.id, "encounterIds", "Encounter belongs to a different campaign.");

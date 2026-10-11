@@ -11,7 +11,7 @@ const scenarioSpec = Object.freeze({ version: 1, suits: SUIT_NAMES, values: VALU
   deckOrder: "draw-first", remainingCards: "Unassigned cards follow the ordered deck cards.",
   counters: ["accelerationCounters", "revenants", "attacksDeclaredThisTurn", "blocksDeclaredThisTurn"],
   zones: ["hand", "deck", "discard", "combat", "support"] });
-const supportTypes = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
+const supportTypes = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
 function object(value, keys, label) {
   if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key))) fail(`${label} contains unsupported fields.`);
 }
@@ -73,7 +73,7 @@ function applyScenario(game, resolved, scenario, id) {
       if (slot.cardId !== undefined) {
         if (typeof slot.cardId !== "string") fail("Choose an existing published card definition.");
         const definition = resolved.manifest.cards.find(card => card.id === slot.cardId);
-        if (!definition || definition.factionId !== factionId || definition.value !== original.value) fail("A replacement must match this faction and printed value.");
+        if (!definition || ![factionId, "neutral"].includes(definition.factionId) || definition.value !== original.value) fail("A replacement must be neutral or match this faction, and match the printed value.");
         card = replacement(original, definition, SUITS[SUIT_NAMES.indexOf(slot.suit)], cardId);
       }
       const support = supportTypes.has(card.type);
@@ -109,7 +109,7 @@ function applyScenario(game, resolved, scenario, id) {
 
 function focusCard(game, resolved, cardId, id) {
   const definition = resolved.manifest.cards.find(card => card.id === cardId);
-  if (!definition || definition.factionId !== game.players[1].faction.id) fail("The selected card must belong to the test faction.");
+  if (!definition || ![game.players[1].faction.id, "neutral"].includes(definition.factionId)) fail("The selected card must be neutral or belong to the test faction.");
   const next = clone(game), owner = next.players[1];
   const all = [...owner.hand, ...owner.deck];
   let card = all.find(entry => (entry.definitionId || entry.gameplayCardId) === cardId);

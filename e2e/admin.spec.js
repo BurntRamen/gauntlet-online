@@ -363,7 +363,7 @@ test("disconnected authoring explains the blocker and preserves readable technic
   });
   await page.goto("/admin/gauntlet");
   await signIn(page, request, "simply"); await page.reload();
-  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await expect(page.getByRole("alert")).toContainText("Browsing live content");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeDisabled();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");

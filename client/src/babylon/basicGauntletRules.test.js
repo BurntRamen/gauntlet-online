@@ -2412,6 +2412,43 @@ const INDELA_CARD_IDS = [
   "indela-frost-nova", "indela-elemental-array"
 ];
 
+const NEUTRAL_CARD_IDS = [
+  "neutral-soldier", "neutral-sergeant", "neutral-lieutenant", "neutral-bodyguard", "neutral-officer",
+  "neutral-wrestler", "neutral-saboteur", "neutral-strategist", "neutral-security-guard", "neutral-field-marshal",
+  "neutral-think", "neutral-hospital", "neutral-library", "neutral-assembly-station", "neutral-smoke-bomb",
+  "neutral-longsword", "neutral-tower-shield", "neutral-holy-ground"
+];
+
+describe("neutral Reath constructed catalog", () => {
+  test("tracks all eighteen fixed-slot identities shared by every faction", () => {
+    expect(NEUTRAL_CARD_IDS).toHaveLength(18);
+    expect(new Set(NEUTRAL_CARD_IDS).size).toBe(18);
+  });
+
+  test("applies neutral attack and payment effects for any chosen faction", () => {
+    const attackState = setupFaction("rumin", "sheen");
+    const soldier = attackState.players[1].hand.find((card) => card.value === 2);
+    const soldierPayment = attackState.players[1].hand.find((card) => card.value >= 2 && card.id !== soldier.id);
+    makeConstructed(soldier, "neutral-soldier", { factionId: "neutral", type: "servitor", name: "Soldier" });
+    const soldierAttack = applyCommand(attackState, {
+      type: "declareHandAttack", player: 1, cardId: soldier.id, paymentCardIds: [soldierPayment.id]
+    });
+    expect(soldierAttack.accepted).toBe(true);
+    expect(soldierAttack.state.handAttacks[0].effectiveValue).toBe(3);
+    expect(soldierAttack.state.handAttacks[0].notes).toContain("Soldier +1");
+
+    const paymentState = setupFaction("sheen", "frumo");
+    const attacker = paymentState.players[1].hand.find((card) => card.value === 3);
+    const think = paymentState.players[1].hand.find((card) => card.value === 2);
+    makeConstructed(think, "neutral-think", { factionId: "neutral", type: "spell", name: "Think" });
+    const paidAttack = applyCommand(paymentState, {
+      type: "declareHandAttack", player: 1, cardId: attacker.id, paymentCardIds: [think.id]
+    });
+    expect(paidAttack.accepted).toBe(true);
+    expect(paidAttack.state.handAttacks[0].notes).toContain("Think payment +1");
+  });
+});
+
 describe("Indela constructed catalog", () => {
   test("tracks all eighteen deterministic fixed-slot identities", () => {
     expect(INDELA_CARD_IDS).toHaveLength(18);

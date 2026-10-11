@@ -1,5 +1,6 @@
 import "./CompetitiveIdentity.css";
 import { DeckVisual } from "./GauntletVisuals";
+import DeckShowcase from "./DeckShowcase";
 import { PlayerAvatar } from "./ProfileAvatar";
 import { CardBackArt, getCardBackDefinition } from "./CardBackArt";
 
@@ -222,7 +223,7 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
           <header className="competitive-section-heading"><div><span>Armory display</span><h2>Featured decks</h2></div></header>
           {profile.featuredDecks?.length ? profile.featuredDecks.map((deck) => (
             <div className="competitive-featured-deck" key={deck.id}>
-              <DeckVisual deck={deck} art={deck.featuredArt} decorative />
+              {deck.format === "constructed" ? <DeckShowcase deck={deck} compact /> : <DeckVisual deck={deck} art={deck.featuredArt} decorative />}
               <span><strong>{deck.name}</strong><small>{deck.factionName} · {deck.format}</small></span>
               <span>{deck.record?.wins || 0}W {deck.record?.losses || 0}L</span>
             </div>

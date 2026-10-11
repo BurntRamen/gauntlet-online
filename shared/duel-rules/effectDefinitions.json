@@ -1150,5 +1150,23 @@
     "cardType": "arcana",
     "handler": "indela-elemental-array",
     "parameters": {}
-  }
+  },
+  { "id": "neutral-soldier", "version": 1, "legacyCardId": "neutral-soldier", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-soldier", "parameters": {} },
+  { "id": "neutral-sergeant", "version": 1, "legacyCardId": "neutral-sergeant", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-sergeant", "parameters": {} },
+  { "id": "neutral-lieutenant", "version": 1, "legacyCardId": "neutral-lieutenant", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-lieutenant", "parameters": {} },
+  { "id": "neutral-bodyguard", "version": 1, "legacyCardId": "neutral-bodyguard", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-bodyguard", "parameters": {} },
+  { "id": "neutral-officer", "version": 1, "legacyCardId": "neutral-officer", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-officer", "parameters": {} },
+  { "id": "neutral-wrestler", "version": 1, "legacyCardId": "neutral-wrestler", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-wrestler", "parameters": {} },
+  { "id": "neutral-saboteur", "version": 1, "legacyCardId": "neutral-saboteur", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-saboteur", "parameters": {} },
+  { "id": "neutral-strategist", "version": 1, "legacyCardId": "neutral-strategist", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-strategist", "parameters": {} },
+  { "id": "neutral-security-guard", "version": 1, "legacyCardId": "neutral-security-guard", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-security-guard", "parameters": {} },
+  { "id": "neutral-field-marshal", "version": 1, "legacyCardId": "neutral-field-marshal", "factionId": "neutral", "cardType": "servitor", "handler": "neutral-field-marshal", "parameters": {} },
+  { "id": "neutral-think", "version": 1, "legacyCardId": "neutral-think", "factionId": "neutral", "cardType": "spell", "handler": "neutral-think", "parameters": {} },
+  { "id": "neutral-hospital", "version": 1, "legacyCardId": "neutral-hospital", "factionId": "neutral", "cardType": "shelter", "handler": "neutral-hospital", "parameters": {} },
+  { "id": "neutral-library", "version": 1, "legacyCardId": "neutral-library", "factionId": "neutral", "cardType": "shelter", "handler": "neutral-library", "parameters": {} },
+  { "id": "neutral-assembly-station", "version": 1, "legacyCardId": "neutral-assembly-station", "factionId": "neutral", "cardType": "contraption", "handler": "neutral-assembly-station", "parameters": {} },
+  { "id": "neutral-smoke-bomb", "version": 1, "legacyCardId": "neutral-smoke-bomb", "factionId": "neutral", "cardType": "ambush", "handler": "neutral-smoke-bomb", "parameters": {} },
+  { "id": "neutral-longsword", "version": 1, "legacyCardId": "neutral-longsword", "factionId": "neutral", "cardType": "weaponry", "handler": "neutral-longsword", "parameters": {} },
+  { "id": "neutral-tower-shield", "version": 1, "legacyCardId": "neutral-tower-shield", "factionId": "neutral", "cardType": "weaponry", "handler": "neutral-tower-shield", "parameters": {} },
+  { "id": "neutral-holy-ground", "version": 1, "legacyCardId": "neutral-holy-ground", "factionId": "neutral", "cardType": "shelter", "handler": "neutral-holy-ground", "parameters": {} }
 ]

@@ -54,6 +54,16 @@ function validateAuthConfiguration(nodeEnv = process.env.NODE_ENV, authSecret = 
 validateAuthConfiguration();
 
 const { createSocketBoundary } = require("./socketBoundary");
+const {
+  EVENT_DEFINITIONS,
+  applyEventResult,
+  eventAvailability,
+  eventById,
+  listEventDefinitions,
+  normalizeEventProgress,
+  resignEventRun,
+  startEventRun
+} = require("./events");
 const express = require("express");
 const http = require("http");
 const fs = require("fs");
@@ -127,6 +137,15 @@ const {
   publicSeasonDefinition
 } = require("./seasons");
 const {
+  GAMEPLAY_PACK_PRICES,
+  TIMETWISTER_PRODUCTS,
+  applyDailyQuestProgress,
+  buyGameplayPackCredit,
+  grantTimetwisters,
+  normalizeEconomy,
+  resolveTimetwisterProduct
+} = require("./economy");
+const {
   BASE_PLAYING_DECK_SIZE,
   BIZI_COLLECTION_CARDS,
   CAMPAIGN_NARRATION,
@@ -141,6 +160,8 @@ const {
   MAX_CONSTRUCTED_DECK_SIZE,
   MAX_CONSTRUCTED_REPLACEMENTS,
   MAX_REPLACEMENTS_PER_VALUE,
+  NEUTRAL_COLLECTION_CARDS,
+  NEUTRAL_FACTION_ID,
   PLAYING_DECK_VALUES,
   PAID_COLLECTOR_ACQUISITION,
   RUMIN_COLLECTION_CARDS,
@@ -458,11 +479,14 @@ const BOOSTER_PRODUCTS = {
     name: "Initiative All-Faction Pack",
     displayName: "Initiative",
     subtitle: "Every Faction. One Pack.",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     productType: "earned-gameplay-pack",
     pool: "all-factions",
     cardCount: 12,
     artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
-    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.map((card) => card.factionId))],
+    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID).map((card) => card.factionId))],
     slots: ["common", "common", "common", "common", "common", "common", "uncommon", "uncommon", "uncommon", "rare", "rare", "wild"],
     description: "A 12-card free-play reward with at least one gameplay card from every faction that has a constructed catalog."
   },
@@ -470,6 +494,9 @@ const BOOSTER_PRODUCTS = {
     id: "rumin-foundation",
     name: "Rumin Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "rumin",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -479,6 +506,9 @@ const BOOSTER_PRODUCTS = {
     id: "sheen-foundation",
     name: "Sheen Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "sheen",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -488,6 +518,9 @@ const BOOSTER_PRODUCTS = {
     id: "frumo-foundation",
     name: "Frumo Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "frumo",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -497,6 +530,9 @@ const BOOSTER_PRODUCTS = {
     id: "bizi-foundation",
     name: "Bizi Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
     factionId: "bizi",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -506,6 +542,9 @@ const BOOSTER_PRODUCTS = {
     id: "zynarth-foundation",
     name: "Zynarth Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "reath-beyond",
+    setNumber: 4,
+    setName: "Reath Beyond",
     factionId: "zynarth",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -515,6 +554,9 @@ const BOOSTER_PRODUCTS = {
     id: "astral-vanguard-foundation",
     name: "Astral Vanguard Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "reath-beyond",
+    setNumber: 4,
+    setName: "Reath Beyond",
     factionId: "astral-vanguard",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -524,6 +566,9 @@ const BOOSTER_PRODUCTS = {
     id: "indela-foundation",
     name: "Indela Foundation Pack",
     productType: "earned-gameplay-pack",
+    setId: "legacies",
+    setNumber: 2,
+    setName: "Legacies",
     factionId: "indela",
     cardCount: 8,
     slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
@@ -531,19 +576,85 @@ const BOOSTER_PRODUCTS = {
   }
 };
 
-const COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
+const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
   const id = `${pack.factionId}-collector`;
   return [id, {
     id,
     legacyPackId: pack.id,
     name: `${getFactionById(pack.factionId)?.name || pack.factionId} Collector Pack`,
     productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "faction",
+    setId: pack.setId,
+    setNumber: pack.setNumber,
+    setName: pack.setName,
     factionId: pack.factionId,
+    factionIds: [pack.factionId],
     variantCount: pack.cardCount,
     priceUsd: 1,
     description: "Animated collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
   }];
 }));
+
+const SET_COLLECTOR_PACK_PRODUCTS = {
+  "initiative-set-collector": {
+    id: "initiative-set-collector",
+    name: "Initiative Collector Pack",
+    displayName: "Initiative",
+    subtitle: "Four founding factions",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "initiative",
+    setNumber: 1,
+    setName: "Initiative",
+    factionIds: ["rumin", "sheen", "frumo", "bizi"],
+    variantCount: 8,
+    priceUsd: 1,
+    artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
+    available: true,
+    description: "Eight animated collector variants drawn from Rumin, Sheen, Frumo, and Bizi. Cosmetic only."
+  },
+  "legacies-set-collector": {
+    id: "legacies-set-collector",
+    name: "Legacies Collector Pack",
+    displayName: "Legacies",
+    subtitle: "The second age of Reath",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "legacies",
+    setNumber: 2,
+    setName: "Legacies",
+    factionIds: ["indela"],
+    plannedFactionIds: ["mekan", "jali", "gracus", "indela"],
+    variantCount: 8,
+    priceUsd: 1,
+    available: true,
+    description: "Eight animated Indela collector variants. Mekan, Jali, and Gracus will enter this pool when their card catalogs are released. Cosmetic only."
+  },
+  "fractured-realms-set-collector": {
+    id: "fractured-realms-set-collector",
+    name: "Fractured Realms Collector Pack",
+    displayName: "Fractured Realms",
+    subtitle: "Set 3 catalog in development",
+    productType: PAID_COLLECTOR_ACQUISITION,
+    scope: "set",
+    setId: "fractured-realms",
+    setNumber: 3,
+    setName: "Fractured Realms",
+    factionIds: [],
+    plannedFactionIds: ["mtano", "mercaw", "engles", "russo"],
+    variantCount: 8,
+    priceUsd: 1,
+    artPath: "/assets/gauntlet/packs/fractured-realms-set-3.png",
+    available: false,
+    unavailableReason: "Fractured Realms cards are not in the playable catalog yet, so purchases are paused until every paid pack can be fulfilled.",
+    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Engles, and Russo."
+  }
+};
+
+const COLLECTOR_PACK_PRODUCTS = {
+  ...SET_COLLECTOR_PACK_PRODUCTS,
+  ...FACTION_COLLECTOR_PACK_PRODUCTS
+};
 
 const WELCOME_COLLECTOR_GRANT_VERSION = 1;
 const WELCOME_COLLECTOR_VARIANT_IDS = Object.freeze([
@@ -561,6 +672,13 @@ const WELCOME_COLLECTOR_PROVENANCE = Object.freeze({
 
 for (const variantId of WELCOME_COLLECTOR_VARIANT_IDS) {
   if (!getCollectorVariantById(variantId)?.paid) throw new Error(`Invalid welcome collector variant ${variantId}.`);
+}
+for (const event of EVENT_DEFINITIONS) {
+  for (const tier of event.rewardTiers) {
+    if (tier.cardStyleId && !getCollectorVariantById(tier.cardStyleId)?.paid) {
+      throw new Error(`Invalid event collector variant ${tier.cardStyleId}.`);
+    }
+  }
 }
 
 function emptyProgression() {
@@ -671,6 +789,7 @@ function normalizeCollection(stats = {}) {
   const collection = stats.collection || {};
   const legacyCards = normalizeOwnershipCounts(collection.cards);
   const gameplayEntitlements = normalizeOwnershipCounts(collection.gameplayEntitlements);
+  for (const card of NEUTRAL_COLLECTION_CARDS) gameplayEntitlements[card.id] = Math.max(gameplayEntitlements[card.id] || 0, 1);
   for (const [gameplayCardId, count] of Object.entries(legacyCards)) {
     gameplayEntitlements[gameplayCardId] = Math.max(gameplayEntitlements[gameplayCardId] || 0, count);
   }
@@ -754,7 +873,12 @@ function collectionSummary(stats = {}) {
     catalog,
     collectorCatalog: manifest.collectorVariants.map((variant) => publicCollectorVariant(variant, manifest)),
     boosters: BOOSTER_PRODUCTS,
-    collectorPacks: COLLECTOR_PACK_PRODUCTS
+    collectorPacks: COLLECTOR_PACK_PRODUCTS,
+    packStore: {
+      checkoutConfigured: Boolean(PACK_PURCHASE_URL),
+      currency: "USD",
+      purchasesGrantCompetitivePower: false
+    }
   };
 }
 
@@ -791,9 +915,10 @@ function normalizeDraftType(draftType) {
   return draftType === "bot" || draftType === "sealed" ? draftType : "player";
 }
 
-function createDraftPack(ownerPlayer, factionIds) {
+function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent()) {
   const availableFactionIds = (factionIds || [])
     .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
+  if (NEUTRAL_COLLECTION_CARDS.length) availableFactionIds.push(NEUTRAL_FACTION_ID);
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   return {
     id: crypto.randomUUID(),
@@ -801,7 +926,7 @@ function createDraftPack(ownerPlayer, factionIds) {
     cards: DRAFT_PACK_SLOTS.map((slot) => {
       const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      const card = pickCollectionCard(factionId, rarity);
+      const card = pickCollectionCard(factionId, rarity, manifest);
       return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
     }).filter(Boolean)
   };
@@ -874,7 +999,7 @@ function filterValidReplacementCards(cards = [], factionId = null) {
   const occupiedSlots = new Set();
   return (Array.isArray(cards) ? cards : []).filter((card) => {
     if (!card) return false;
-    if (factionId && card.factionId !== factionId) return false;
+    if (factionId && card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) return false;
     const value = getReplacementCardValue(card);
     const suit = normalizeReplacementSuit(card);
     if (value == null || !suit) return false;
@@ -889,7 +1014,7 @@ function filterValidReplacementCards(cards = [], factionId = null) {
 
 function validateReplacementCardSet(cards = [], { factionId = null, requireOneFaction = true } = {}) {
   const selectedCards = Array.isArray(cards) ? cards.filter(Boolean) : [];
-  const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter(Boolean))];
+  const factionIds = [...new Set(selectedCards.map((card) => card.factionId).filter((id) => id && id !== NEUTRAL_FACTION_ID))];
   if (requireOneFaction && factionIds.length > 1) {
     throw new Error("Decks can only include cards from one faction.");
   }
@@ -960,6 +1085,10 @@ function normalizeDeckBoxId(value) {
   return ["classic", "faction", "obsidian"].includes(value) ? value : "classic";
 }
 
+function normalizeFrontCardSlot(value) {
+  return typeof value === "string" && /^(?:[2-9]|1[0-4]):(?:spades|hearts|diamonds|clubs)$/.test(value) ? value : null;
+}
+
 function normalizeDeckVersion(version = {}) {
   const gameplayCardQuantities = normalizeOwnershipCounts(version.gameplayCardQuantities || version.cardQuantities);
   const collectorVariantSelections = Object.fromEntries(Object.entries(version.collectorVariantSelections || {})
@@ -968,6 +1097,7 @@ function normalizeDeckVersion(version = {}) {
   const normalized = {
     ...version,
     deckBoxId: normalizeDeckBoxId(version.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(version.frontCardSlot),
     cardQuantities: gameplayCardQuantities,
     gameplayCardQuantities,
     collectorVariantSelections
@@ -979,7 +1109,7 @@ function normalizeDeckVersion(version = {}) {
     gameplayCardQuantities,
     cardSuitChoices: clonePlain(version.cardSuitChoices || {})
   };
-  const presentationConfiguration = version.presentationConfiguration || { collectorVariantSelections, deckBoxId: normalized.deckBoxId };
+  const presentationConfiguration = version.presentationConfiguration || { collectorVariantSelections, deckBoxId: normalized.deckBoxId, frontCardSlot: normalized.frontCardSlot };
   return {
     ...normalized,
     mechanicalConfiguration,
@@ -1119,7 +1249,7 @@ function getSavedDraftDeck(stats = {}, requestedDraftType = null) {
   } : stats.savedDraftDeck;
   if (!deck || !Array.isArray(deck.cards) || deck.cards.length === 0 || !deck.factionId) return null;
   const cards = filterValidReplacementCards(deck.cards, deck.factionId)
-    .filter((card) => card && card.factionId === deck.factionId && Number.isFinite(Number(card.value)))
+    .filter((card) => card && (card.factionId === deck.factionId || card.factionId === NEUTRAL_FACTION_ID) && Number.isFinite(Number(card.value)))
     .map((card) => getPlayableCollectionCard(card, {
       suit: normalizeReplacementSuit(card),
       replacementSuit: normalizeReplacementSuit(card)
@@ -1173,7 +1303,7 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
     .flatMap(([cardId, quantity]) => {
       const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
-      if (!card || card.factionId !== factionId || count <= 0) return [];
+      if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) || count <= 0) return [];
       const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
       return Array.from({ length: count }, () => {
         const suit = card.suit;
@@ -1251,6 +1381,7 @@ function getSavedConstructedDeck(stats = {}) {
     gameplayCardQuantities: canonicalQuantities,
     cardSuitChoices: canonicalSuitChoices,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(deck.frontCardSlot),
     collectorVariantSelections,
     gameplayConfigurationHash: deck.gameplayConfigurationHash || null,
     collectorConfigurationHash: deck.collectorConfigurationHash || null,
@@ -1262,6 +1393,9 @@ function getSavedConstructedDeck(stats = {}) {
 }
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  if (payload.frontCardSlot != null && !normalizeFrontCardSlot(payload.frontCardSlot)) {
+    throw new Error("Choose a valid front card from the 52-card deck.");
+  }
   if (payload.generalId && !getFactionById(payload.factionId, payload.generalId)) throw new Error("Choose a General belonging to this faction.");
   if (payload.deckBoxId != null && !["classic", "faction", "obsidian"].includes(payload.deckBoxId)) {
     throw new Error("Choose a valid deck box.");
@@ -1285,7 +1419,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
     if (quantity <= 0) continue;
     const card = getCollectionCatalogCard(cardId);
-    if (!card || card.factionId !== factionId) throw new Error("Constructed decks can only include cards from one faction.");
+    if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID)) throw new Error("Constructed decks can include one faction plus neutral Reath cards.");
     const value = getReplacementCardValue(card);
     if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
     if (quantity > 1) throw new Error(`${card.name} occupies only the ${value} of ${card.suit}; a deck can include it once.`);
@@ -1340,6 +1474,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
     deckBoxId: normalizeDeckBoxId(payload.deckBoxId),
+    frontCardSlot: normalizeFrontCardSlot(payload.frontCardSlot),
     collectorVariantSelections,
     savedAt: new Date().toISOString()
   };
@@ -1596,11 +1731,24 @@ function publicAccountProfile(account) {
 function publicAccountStats(stats = {}) {
   if (!stats || typeof stats !== "object") return {};
   const profile = stats.profile && typeof stats.profile === "object" ? { ...stats.profile } : null;
+  const economy = normalizeEconomy(stats);
+  delete economy.purchaseReceipts;
   if (profile?.avatar && typeof profile.avatar === "object") {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  return profile ? { ...stats, profile } : { ...stats };
+  return profile ? { ...stats, profile, economy } : { ...stats, economy };
+}
+
+function economySummary(stats = {}) {
+  const economy = normalizeEconomy(stats);
+  delete economy.purchaseReceipts;
+  return {
+    ...economy,
+    gameplayPackPrices: GAMEPLAY_PACK_PRICES,
+    timetwisterProducts: TIMETWISTER_PRODUCTS,
+    checkoutConfigured: Boolean(PACK_PURCHASE_URL)
+  };
 }
 
 function publicAccount(account) {
@@ -1613,8 +1761,10 @@ function publicAccount(account) {
     lastLoginAt: account.lastLoginAt || null,
     profile: publicAccountProfile(account),
     stats: publicAccountStats(stats),
+    economy: economySummary(stats),
     progression: progressionSummary(stats),
-    collection: collectionSummary(stats)
+    collection: collectionSummary(stats),
+    events: normalizeEventProgress(stats)
   };
 }
 
@@ -1875,6 +2025,24 @@ async function readAccountAvatar(accountId, avatar, stats = {}) {
   return fs.existsSync(target) ? fs.readFileSync(target) : null;
 }
 
+function getPublicDeckShowcase(deck) {
+  if (deck.format !== "constructed") return {};
+  const version = getDeckRecordVersion(deck) || {};
+  const cards = expandConstructedCardQuantities(version.gameplayCardQuantities || version.cardQuantities || {}, deck.factionId, version.cardSuitChoices, version.collectorVariantSelections);
+  const frontCardSlot = normalizeFrontCardSlot(version.frontCardSlot)
+    || cards.map((card) => `${card.value}:${card.suit}`).sort((left, right) => {
+      const [leftValue, leftSuit] = left.split(":");
+      const [rightValue, rightSuit] = right.split(":");
+      return Number(leftValue) - Number(rightValue) || DRAFT_CARD_SUITS.indexOf(leftSuit) - DRAFT_CARD_SUITS.indexOf(rightSuit);
+    })[0] || "14:spades";
+  const [value, suit] = frontCardSlot.split(":");
+  return {
+    deckBoxId: normalizeDeckBoxId(version.deckBoxId),
+    frontCardSlot,
+    frontCard: cards.find((card) => Number(card.value) === Number(value) && card.suit === suit) || { value: Number(value), suit }
+  };
+}
+
 function getPublicDeckFeaturedArt(deck, limit = 3) {
   const versions = Array.isArray(deck?.versions) ? deck.versions : [];
   const version = versions.find((entry) => entry.id === deck.currentVersionId) || versions[versions.length - 1] || deck || {};
@@ -2000,6 +2168,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       coverId: deck.coverId,
       currentVersionId: deck.currentVersionId,
       featuredArt: getPublicDeckFeaturedArt(deck),
+      ...getPublicDeckShowcase(deck),
       updatedAt: deck.updatedAt,
       record: clonePlain(deck.record || { wins: 0, losses: 0, draws: 0, recentMatchIds: [] })
     })),
@@ -2315,6 +2484,18 @@ async function requireAccountRecord(req, res) {
   return { source: "local", store, account };
 }
 
+async function persistAccountContext(context, stats) {
+  const now = new Date().toISOString();
+  if (context.source === "supabase") {
+    await patchSupabaseAccount(context.account.id, { stats, last_seen_at: now });
+    return findSupabaseAccountById(context.account.id);
+  }
+  context.account.stats = stats;
+  context.account.lastSeenAt = now;
+  saveAccountStore(context.store);
+  return context.account;
+}
+
 function getLocalFriendPayload(store, account) {
   const friendIds = new Set(Array.isArray(account.friends) ? account.friends : []);
   const friends = store.accounts
@@ -2525,6 +2706,30 @@ function applyProgressionForResult(stats, result, context = {}) {
     unlockProgressionItem(progression, "cardBacks", "campaignMap");
   }
 
+  if (context.event?.eventId && context.event?.runId) {
+    const applied = applyEventResult(stats, context.event.eventId, context.event.runId, result, { now });
+    stats.events = applied.progress;
+    if (applied.rewards.length) {
+      const collection = normalizeCollection(stats);
+      for (const reward of applied.rewards) {
+        const credits = Math.max(0, Number(reward.boosterCredits || 0));
+        collection.packCredits += credits;
+        collection.earnedPackCredits += credits;
+        const gold = Math.max(0, Number(reward.gold || 0));
+        if (gold) {
+          const economy = normalizeEconomy(stats, { now });
+          economy.gold += gold;
+          economy.totals.goldEarned += gold;
+          stats.economy = economy;
+        }
+        if (reward.cardStyleId && getCollectorVariantById(reward.cardStyleId)) {
+          collection.collectorVariants[reward.cardStyleId] = Math.max(1, Number(collection.collectorVariants[reward.cardStyleId] || 0));
+        }
+      }
+      stats.collection = collection;
+    }
+  }
+
   stats.progression = progression;
 }
 
@@ -2533,6 +2738,8 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
   const afterProgression = normalizeProgression(afterStats);
   const beforeCollection = normalizeCollection(beforeStats);
   const afterCollection = normalizeCollection(afterStats);
+  const beforeEconomy = normalizeEconomy(beforeStats, { now: context.completedAt });
+  const afterEconomy = normalizeEconomy(afterStats, { now: context.completedAt });
   const achievementsUnlocked = Object.keys(afterProgression.achievements)
     .filter((id) => !beforeProgression.achievements[id])
     .map((id) => afterProgression.achievements[id]);
@@ -2551,10 +2758,20 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
   const seasonMatch = context.matchId
     ? afterSeason?.recentMatches?.find((entry) => entry.matchId === context.matchId) || null
     : null;
+  const beforeEventRun = context.event ? normalizeEventProgress(beforeStats).runs[context.event.eventId] : null;
+  const afterEventRun = context.event ? normalizeEventProgress(afterStats).runs[context.event.eventId] : null;
+  const cardStylesUnlocked = Object.keys(afterCollection.collectorVariants || {})
+    .filter((id) => !beforeCollection.collectorVariants?.[id]);
+  const boosterCreditDelta = afterCollection.packCredits - beforeCollection.packCredits;
   return {
     result,
-    boosterCreditDelta: afterCollection.packCredits - beforeCollection.packCredits,
-    boosterCreditReason: firstClear ? "campaign_first_clear" : null,
+    boosterCreditDelta,
+    boosterCreditReason: firstClear ? "campaign_first_clear" : (context.event && boosterCreditDelta > 0 ? "event_win_milestone" : null),
+    cardStylesUnlocked,
+    goldDelta: afterEconomy.gold - beforeEconomy.gold,
+    dailyQuestsCompleted: afterEconomy.daily.quests
+      .filter((quest) => quest.rewardClaimedAt && !beforeEconomy.daily.quests.find((entry) => entry.id === quest.id)?.rewardClaimedAt)
+      .map((quest) => ({ id: quest.id, name: quest.name, gold: quest.gold })),
     achievementsUnlocked,
     cosmeticsUnlocked,
     campaign: context.campaign ? {
@@ -2572,6 +2789,16 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
       pointsDelta: Number(afterSeason?.points || 0) - Number(beforeSeason?.points || 0),
       record: buildSeasonProfile(afterStats, null, context.season).record
     } : null,
+    event: context.event ? {
+      eventId: context.event.eventId,
+      runId: context.event.runId,
+      result,
+      winsBefore: Number(beforeEventRun?.wins || 0),
+      wins: Number(afterEventRun?.wins || 0),
+      losses: Number(afterEventRun?.losses || 0),
+      status: afterEventRun?.status || null,
+      cardStylesUnlocked
+    } : null,
     progression: { campaign: afterProgression.campaign }
   };
 }
@@ -2583,8 +2810,10 @@ function publicAccountProjection(account) {
     name: account.name,
     profile: publicAccountProfile(account),
     stats: publicAccountStats(account.stats || {}),
+    economy: economySummary(account.stats || {}),
     progression: progressionSummary(account.stats || {}),
-    collection: collectionSummary(account.stats || {})
+    collection: collectionSummary(account.stats || {}),
+    events: normalizeEventProgress(account.stats || {})
   };
 }
 
@@ -2618,6 +2847,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     applySeasonResult(stats, result, context);
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
+    applyDailyQuestProgress(stats, result, context);
     const facts = accountConsequenceFacts(beforeStats, stats, result, context);
     if (key && context.compatibilityPersistence) {
       stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
@@ -2678,6 +2908,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   applySeasonResult(account.stats, result, context);
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
+  applyDailyQuestProgress(account.stats, result, context);
   const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
   if (context.deferPersistence) {
     return { alreadyApplied: false, account: publicAccountProjection(account), nextStats: clonePlain(account.stats), ...facts };
@@ -2895,14 +3126,14 @@ function getDraftLeagueProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
-function pickCollectionCard(factionId, rarity) {
+function pickCollectionCard(factionId, rarity, manifest = null) {
   const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
   if (cardPool.length === 0) return null;
-  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function pickCollectionCardFromPool(rarity) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.rarity === rarity);
+  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID && card.rarity === rarity);
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
 }
@@ -2970,17 +3201,22 @@ function openCollectionBooster(stats, packId) {
 function resolveCollectorPackProduct(productId) {
   if (COLLECTOR_PACK_PRODUCTS[productId]) return COLLECTOR_PACK_PRODUCTS[productId];
   const legacyPack = BOOSTER_PRODUCTS[productId];
-  return legacyPack ? COLLECTOR_PACK_PRODUCTS[`${legacyPack.factionId}-collector`] : null;
+  if (!legacyPack) return null;
+  if (legacyPack.factionId) return COLLECTOR_PACK_PRODUCTS[`${legacyPack.factionId}-collector`] || null;
+  return Object.values(SET_COLLECTOR_PACK_PRODUCTS).find((product) => product.setId === legacyPack.setId) || null;
 }
 
 function grantPurchasedCollectorPack(stats, productId, options = {}) {
   const product = resolveCollectorPackProduct(productId);
   if (!product) throw new Error("Unknown collector pack.");
+  if (product.available === false) throw new Error(product.unavailableReason || `${product.name} is not available yet.`);
+  const eligibleFactionIds = new Set(product.factionIds || (product.factionId ? [product.factionId] : []));
   const eligibleVariants = COLLECTOR_VARIANTS.filter((variant) => (
     variant.paid
     && variant.acquisition === PAID_COLLECTOR_ACQUISITION
-    && getGameplayCardById(variant.gameplayCardId)?.factionId === product.factionId
+    && eligibleFactionIds.has(getGameplayCardById(variant.gameplayCardId)?.factionId)
   ));
+  if (eligibleVariants.length === 0) throw new Error(`${product.name} has no released collector variants to grant.`);
   const requestedVariantIds = Array.isArray(options.variantIds) ? options.variantIds.map(String) : null;
   if (requestedVariantIds && requestedVariantIds.length !== product.variantCount) {
     throw new Error(`${product.name} must grant exactly ${product.variantCount} collector variants.`);
@@ -3499,6 +3735,54 @@ app.get("/api/auth/me", async (req, res) => {
   res.json({ account });
 });
 
+app.get("/api/events", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ events: listEventDefinitions() });
+});
+
+app.post("/api/events/:eventId/join", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const event = eventById(String(req.params.eventId || ""));
+  if (!event) {
+    res.status(404).json({ error: "Event not found." });
+    return;
+  }
+  try {
+    const stats = context.account.stats || {};
+    const started = startEventRun(stats, event.id);
+    if (started.created) {
+      const collection = normalizeCollection(stats);
+      const entryCost = Math.max(0, Number(event.entryCost?.amount || 0));
+      if (collection.packCredits < entryCost) {
+        res.status(409).json({ error: `This event costs ${entryCost} booster credit${entryCost === 1 ? "" : "s"}.` });
+        return;
+      }
+      collection.packCredits -= entryCost;
+      stats.collection = collection;
+    }
+    stats.events = started.progress;
+    const updated = await persistAccountContext(context, stats);
+    res.json({ account: publicAccount(updated), event, run: started.run, created: started.created });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not join the event." });
+  }
+});
+
+app.post("/api/events/:eventId/resign", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const stats = context.account.stats || {};
+    const resigned = resignEventRun(stats, String(req.params.eventId || ""));
+    stats.events = resigned.progress;
+    const updated = await persistAccountContext(context, stats);
+    res.json({ account: publicAccount(updated), run: resigned.run });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not resign the event run." });
+  }
+});
+
 app.put("/api/account/avatar", async (req, res) => {
   const context = await requireAccountRecord(req, res);
   if (!context) return;
@@ -3600,6 +3884,50 @@ app.post("/api/collection/open-pack", async (req, res) => {
   }
 });
 
+app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  try {
+    const stats = context.account.stats || {};
+    const purchase = buyGameplayPackCredit(stats, String(req.body?.currency || "gold"));
+    const collection = normalizeCollection(stats);
+    collection.packCredits += 1;
+    stats.collection = collection;
+    const updatedAt = new Date().toISOString();
+    if (context.source === "supabase") {
+      await patchSupabaseAccount(context.account.id, { stats, last_seen_at: updatedAt });
+      const updated = await findSupabaseAccountById(context.account.id);
+      res.json({ account: publicAccount(updated), purchase: { currency: purchase.currency, price: purchase.price } });
+      return;
+    }
+    context.account.stats = stats;
+    context.account.lastSeenAt = updatedAt;
+    saveAccountStore(context.store);
+    res.json({ account: publicAccount(context.account), purchase: { currency: purchase.currency, price: purchase.price } });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not buy a gameplay pack." });
+  }
+});
+
+app.post("/api/economy/timetwister-purchase-link", async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const product = resolveTimetwisterProduct(String(req.body?.productId || ""));
+  if (!product) {
+    res.status(400).json({ error: "Unknown Timetwister bundle." });
+    return;
+  }
+  if (!PACK_PURCHASE_URL) {
+    res.status(400).json({ error: "Timetwister checkout is not configured yet." });
+    return;
+  }
+  const separator = PACK_PURCHASE_URL.includes("?") ? "&" : "?";
+  res.json({
+    product,
+    checkoutUrl: `${PACK_PURCHASE_URL}${separator}product=${encodeURIComponent(product.id)}&productType=timetwisters&account=${encodeURIComponent(context.account.id)}`
+  });
+});
+
 async function sendCollectorPackPurchaseLink(req, res) {
   const context = await requireAccountRecord(req, res);
   if (!context) return;
@@ -3608,6 +3936,10 @@ async function sendCollectorPackPurchaseLink(req, res) {
   const product = resolveCollectorPackProduct(requestedProductId);
   if (!product) {
     res.status(400).json({ error: "Unknown collector pack." });
+    return;
+  }
+  if (product.available === false) {
+    res.status(409).json({ error: product.unavailableReason || `${product.name} is not available yet.` });
     return;
   }
   if (!PACK_PURCHASE_URL) {
@@ -3650,6 +3982,34 @@ async function findCollectorFulfillmentAccount(input = {}) {
   if (accountId) return store.accounts.find((account) => account.id === accountId) || null;
   return accountName ? findAccountByName(store, accountName) : null;
 }
+
+app.post("/api/admin/economy/fulfill-timetwisters", async (req, res) => {
+  if (!requireOwnerAuthorization(req, res)) return;
+  const account = await findCollectorFulfillmentAccount(req.body || {});
+  if (!account) {
+    res.status(404).json({ error: "Gauntlet account was not found." });
+    return;
+  }
+  try {
+    const stats = account.stats || {};
+    const result = grantTimetwisters(stats, String(req.body?.productId || ""), String(req.body?.transactionId || ""));
+    if (!result.alreadyGranted) {
+      if (useSupabaseStore()) await patchSupabaseAccount(account.id, { stats, last_seen_at: new Date().toISOString() });
+      else {
+        const store = loadAccountStore();
+        const stored = store.accounts.find((entry) => entry.id === account.id);
+        if (!stored) throw new Error("Gauntlet account was not found.");
+        stored.stats = stats;
+        stored.lastSeenAt = new Date().toISOString();
+        saveAccountStore(store);
+      }
+    }
+    const updated = useSupabaseStore() && !result.alreadyGranted ? await findSupabaseAccountById(account.id) : { ...account, stats };
+    res.json({ account: publicAccount(updated), product: result.product, alreadyGranted: result.alreadyGranted });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not fulfill Timetwisters." });
+  }
+});
 
 function verifyCollectorClaimToken(token, res) {
   const verification = verifyCollectorEntitlement(token, COLLECTOR_ENTITLEMENT_SECRET);
@@ -4215,6 +4575,7 @@ const rooms = new Map();
 let roomStatePersistTimer = null;
 let roomRecoveryInitialized = false;
 const matchmakingQueue = [];
+const eventMatchmakingQueues = new Map();
 const draftLeagueQueues = {
   player: [],
   bot: [],
@@ -4717,6 +5078,7 @@ function openSealedPool(roomState, playerNum = 1) {
   const draft = roomState.draft;
   if (!draft?.sealed) throw new Error("That room is not a sealed event.");
   const key = String(playerNum);
+  const manifest = getPublicGameContent();
   draft.status = "building";
   draft.activePlayers = [playerNum];
   draft.round = 0;
@@ -4727,7 +5089,7 @@ function openSealedPool(roomState, playerNum = 1) {
   draft.draftedPools = { [key]: [] };
   draft.deckAdditions = { [key]: [] };
   for (let packIndex = 0; packIndex < SEALED_PACKS_PER_PLAYER; packIndex++) {
-    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds).cards);
+    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest).cards);
   }
   draft.completedAt = new Date().toISOString();
 }
@@ -4755,6 +5117,15 @@ function isDraftRoom(roomState) {
 function removeFromMatchmaking(socketId) {
   const index = matchmakingQueue.findIndex((entry) => entry.socketId === socketId);
   if (index >= 0) matchmakingQueue.splice(index, 1);
+  removeFromEventMatchmaking(socketId);
+}
+
+function removeFromEventMatchmaking(socketId) {
+  for (const [eventId, queue] of eventMatchmakingQueues) {
+    const index = queue.findIndex((entry) => entry.socketId === socketId);
+    if (index >= 0) queue.splice(index, 1);
+    if (!queue.length) eventMatchmakingQueues.delete(eventId);
+  }
 }
 
 function removeFromDraftLeague(socketId) {
@@ -4801,11 +5172,15 @@ function findDraftLeagueMatchForEntry(entry) {
   return findMatchForEntryInQueue(entry, queue.filter((candidate) => candidate.bestOf === entry.bestOf));
 }
 
-function createMatchedRoom(entryA, entryB) {
+function findEventMatchForEntry(entry) {
+  return findMatchForEntryInQueue(entry, eventMatchmakingQueues.get(entry.eventId) || []);
+}
+
+function createMatchedRoom(entryA, entryB, options = {}) {
   const roomState = createRoom();
-  roomState.ranked = true;
+  roomState.ranked = options.ranked !== false;
   roomState.lobby.gameMode = entryA.gameMode === "basic" ? "basic" : "factions";
-  roomState.season = buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1);
+  roomState.season = roomState.ranked ? buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1) : null;
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
@@ -4821,6 +5196,17 @@ function createMatchedRoom(entryA, entryB) {
     { playerNum: 1, entry: firstEntry },
     { playerNum: 2, entry: secondEntry }
   ];
+
+  if (options.event) {
+    roomState.event = {
+      eventId: options.event.id,
+      name: options.event.name,
+      entries: Object.fromEntries(assignments.map(({ playerNum, entry }) => [playerNum, {
+        accountId: entry.accountId,
+        runId: entry.runId
+      }]))
+    };
+  }
 
   for (const assignment of assignments) {
     const lobbyPlayer = roomState.lobby.players[assignment.playerNum];
@@ -4838,11 +5224,13 @@ function createMatchedRoom(entryA, entryB) {
     const playerSocket = io.sockets.sockets.get(assignment.entry.socketId);
     if (playerSocket) {
       attachPlayerSocket(roomState, playerSocket, assignment.playerNum);
-      playerSocket.emit("matchmakingStatus", {
+      const statusEvent = options.event ? "eventMatchmakingStatus" : "matchmakingStatus";
+      playerSocket.emit(statusEvent, {
         inQueue: false,
-        message: `${roomState.season?.displayName || "Ranked"} ${entryA.bestOf === 3 ? "best-of-3 m" : "m"}atch found. Room ${roomState.roomCode}.`,
+        message: `${options.event?.name || roomState.season?.displayName || "Ranked"} ${entryA.bestOf === 3 ? "best-of-3 m" : "m"}atch found. Room ${roomState.roomCode}.`,
         bestOf: entryA.bestOf || 1,
-        season: clonePlain(roomState.season)
+        season: clonePlain(roomState.season),
+        eventId: options.event?.id || null
       });
     }
   }
@@ -4941,6 +5329,7 @@ function canOfferRematch(roomState) {
   return !!roomState?.game
     && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
     && !roomState.draft
+    && !roomState.event
     && !roomState.lobby.campaign
     && roomState.lobby.gameMode !== "freeForAll"
     && !players[1]?.isAI
@@ -5356,6 +5745,9 @@ function getConnectedDraftPlayers(roomState) {
 
 function startDraft(roomState) {
   const draft = roomState.draft;
+  // Resolve the release once for all 192 cards. Resolving/cloning the full
+  // catalog per card blocks Socket.IO heartbeats on the production instance.
+  const manifest = getPublicGameContent();
   const activePlayers = getConnectedDraftPlayers(roomState);
   draft.status = "drafting";
   draft.activePlayers = activePlayers;
@@ -5374,7 +5766,7 @@ function startDraft(roomState) {
     draft.draftedPools[key] = [];
     draft.deckAdditions[key] = [];
     for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
-      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds));
+      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest));
     }
     draft.currentPacks[key] = draft.unopenedPacks[key].shift();
   });
@@ -6576,6 +6968,7 @@ function continueBestOf3Series(roomState) {
 
 function buildAccountResultContext(roomState, matchRecord, playerNum) {
   const perspective = projectMatchPerspective(matchRecord, { playerNum });
+  const eventEntry = roomState.event?.entries?.[playerNum] || roomState.event?.entries?.[String(playerNum)] || null;
   return {
     ranked: matchRecord.ranked,
     draftLeague: !!roomState.draft?.league || !!roomState.draftLeague,
@@ -6591,6 +6984,10 @@ function buildAccountResultContext(roomState, matchRecord, playerNum) {
     campaign: matchRecord.campaign ? clonePlain(matchRecord.campaign) : null,
     season: matchRecord.season ? clonePlain(matchRecord.season) : null,
     series: matchRecord.series ? clonePlain(matchRecord.series) : null,
+    event: roomState.event && eventEntry ? {
+      eventId: roomState.event.eventId,
+      runId: eventEntry.runId
+    } : null,
     playerNum,
     matchIndex: buildAccountMatchIndexEntry(matchRecord, { playerNum })
   };
@@ -7352,9 +7749,9 @@ function createGameFromLobby(roomState, options = {}) {
       suit: normalizeReplacementSuit(card),
       name: card.name,
       rank: String(card.value),
-      faction: faction.name,
-      factionId: faction.id,
-      image: card.image || faction.cardImage,
+      faction: card.factionId === NEUTRAL_FACTION_ID ? "Reath" : faction.name,
+      factionId: card.factionId || faction.id,
+      image: card.image || (card.factionId === NEUTRAL_FACTION_ID ? `/assets/gauntlet/constructed/neutral/${definitionId}.webp` : faction.cardImage),
       rarity: card.rarity || "common",
       type: card.type || "draft",
       text: card.text || "",
@@ -7737,6 +8134,75 @@ io.on("connection", (socket) => {
   onClientEvent("leaveMatchmaking", () => {
     removeFromMatchmaking(socket.id);
     socket.emit("matchmakingStatus", { inQueue: false, message: "Left matchmaking queue." });
+  });
+
+  onClientEvent("joinEventMatchmaking", async ({ authToken, eventId, factionId, generalId } = {}) => {
+    const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
+    const event = eventById(String(eventId || ""));
+    if (!account || !event) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: account ? "Choose a valid event." : "Sign in to play events." });
+      return;
+    }
+    if (socket.data.roomCode) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Leave your current room before entering an event queue." });
+      return;
+    }
+    const run = normalizeEventProgress(account.stats || {}).runs[event.id];
+    if (!run || run.status !== "active") {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Enter this event before searching for a match." });
+      return;
+    }
+    if (!eventAvailability(event).canPlay) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, eventId: event.id, message: "This scheduled event is not currently live." });
+      return;
+    }
+    removeFromMatchmaking(socket.id);
+    removeFromDraftLeague(socket.id);
+    const selectedFaction = event.format === "factions" && factionId ? getFactionById(factionId, generalId) : null;
+    if (event.format === "factions" && (!selectedFaction || selectedFaction.campaignOnly)) {
+      socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Choose a valid faction and General for this event." });
+      return;
+    }
+    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const profile = getAccountMatchProfile(account);
+    const entry = {
+      socketId: socket.id,
+      accountId: account.id,
+      accountName: account.name,
+      profile: publicAccountProfile(account),
+      eventId: event.id,
+      runId: run.id,
+      bestOf: 1,
+      gameMode: event.format,
+      factionId: selectedFaction?.id || null,
+      generalId: selectedFaction?.general?.id || null,
+      savedConstructedDeck: savedDeck?.factionId === selectedFaction?.id
+        && (savedDeck?.generalId || null) === (selectedFaction?.general?.id || null) ? savedDeck : null,
+      winRatio: profile.winRatio,
+      gamesPlayed: profile.gamesPlayed,
+      joinedAt: Date.now()
+    };
+    const match = findEventMatchForEntry(entry);
+    if (match) {
+      removeFromEventMatchmaking(match.socketId);
+      createMatchedRoom(entry, match, { ranked: false, event });
+      return;
+    }
+    const queue = eventMatchmakingQueues.get(event.id) || [];
+    queue.push(entry);
+    eventMatchmakingQueues.set(event.id, queue);
+    socket.data.authToken = authToken || socket.data.authToken;
+    socket.emit("eventMatchmakingStatus", {
+      inQueue: true,
+      eventId: event.id,
+      queueSize: queue.length,
+      message: `Searching ${event.name}... ${queue.length} player${queue.length === 1 ? "" : "s"} in this queue.`
+    });
+  });
+
+  onClientEvent("leaveEventMatchmaking", () => {
+    removeFromEventMatchmaking(socket.id);
+    socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Left event queue." });
   });
 
   onClientEvent("joinDraftLeague", async ({ authToken, draftType = "player", bestOf = 1 } = {}) => {
@@ -8129,8 +8595,8 @@ io.on("connection", (socket) => {
       attachPlayerSocket(roomState, socket, reconnectSeat);
       if (roomState.draft) {
         emitLobbyState(roomState);
-        emitDraftState(roomState);
         if (roomState.draft.botDraft) runBotDraftPicks(roomState);
+        emitDraftState(roomState);
         return;
       }
       if (roomState.game) {
@@ -8194,8 +8660,8 @@ io.on("connection", (socket) => {
       attachPlayerSocket(roomState, socket, playerNum);
       if (roomState.draft) {
         emitLobbyState(roomState);
-        emitDraftState(roomState);
         if (roomState.draft.botDraft) runBotDraftPicks(roomState);
+        emitDraftState(roomState);
         return;
       }
       if (roomState.game) {
@@ -8315,18 +8781,34 @@ io.on("connection", (socket) => {
     emitLobbyState(roomState);
   });
 
-  onClientEvent("startDraft", () => {
+  // Draft mutations acknowledge success and every rejected request so clients
+  // can release loading controls without guessing from unrelated broadcasts.
+  function onDraftAction(event, handler) {
+    onClientEvent(event, async (payload = {}, ack) => {
+      if (typeof payload === "function") { ack = payload; payload = {}; }
+      let rejected = false;
+      const reject = (error) => {
+        rejected = true;
+        socket.emit("errorMessage", error);
+        if (typeof ack === "function") ack({ ok: false, error });
+      };
+      await handler(payload, reject);
+      if (!rejected && typeof ack === "function") ack({ ok: true });
+    });
+  }
+
+  onDraftAction("startDraft", (_payload, reject) => {
     console.log("[Socket] startDraft");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "lobby") return;
+    if (!roomState?.draft || roomState.draft.status !== "lobby") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
     if (playerNum !== 1) {
-      socket.emit("errorMessage", "Only Player 1 can start the draft.");
+      reject("Only Player 1 can start the draft.");
       return;
     }
     const seated = getConnectedDraftPlayers(roomState);
     if (seated.length < 2) {
-      socket.emit("errorMessage", "Draft needs at least 2 connected players. It supports up to 8.");
+      reject("Draft needs at least 2 connected players. It supports up to 8.");
       return;
     }
     startDraft(roomState);
@@ -8343,21 +8825,21 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  onClientEvent("draftPick", ({ cardCopyId } = {}) => {
+  onDraftAction("draftPick", ({ cardCopyId } = {}, reject) => {
     console.log("[Socket] draftPick");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "drafting") return;
+    if (!roomState?.draft || roomState.draft.status !== "drafting") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum || !roomState.draft.activePlayers.includes(playerNum)) return;
+    if (!playerNum || !roomState.draft.activePlayers.includes(playerNum)) return reject("Only seated players can pick cards.");
     const key = String(playerNum);
     const currentPack = roomState.draft.currentPacks[key];
     if (!currentPack || currentPack.pickedThisPass) {
-      socket.emit("errorMessage", "You have already picked from this pack.");
+      reject("You have already picked from this pack.");
       return;
     }
     const cardIndex = currentPack.cards.findIndex((card) => card.draftCopyId === cardCopyId);
     if (cardIndex < 0) {
-      socket.emit("errorMessage", "Choose a card from your current pack.");
+      reject("Choose a card from your current pack.");
       return;
     }
     const [card] = currentPack.cards.splice(cardIndex, 1);
@@ -8368,12 +8850,12 @@ io.on("connection", (socket) => {
     emitDraftState(roomState);
   });
 
-  onClientEvent("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}) => {
+  onDraftAction("setDraftDeckAdditions", ({ cardCopyIds, selections } = {}, reject) => {
     console.log("[Socket] setDraftDeckAdditions");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    if (!roomState?.draft || roomState.draft.status !== "building") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) return reject("Only seated players can build a deck.");
     const key = String(playerNum);
     const normalizedSelections = Array.isArray(selections)
       ? selections.map((selection) => ({
@@ -8391,40 +8873,40 @@ io.on("connection", (socket) => {
     try {
       validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Draft decks must use one faction and one card per fixed rank-and-suit slot.");
+      reject(error.message || "Draft decks must use one faction and one card per fixed rank-and-suit slot.");
       return;
     }
     roomState.draft.deckAdditions[key] = selectedCards;
     emitDraftState(roomState);
   });
 
-  onClientEvent("saveDraftDeck", async () => {
+  onDraftAction("saveDraftDeck", async (_payload, reject) => {
     console.log("[Socket] saveDraftDeck");
     const roomState = getRoomForSocket(socket);
-    if (!roomState?.draft || roomState.draft.status !== "building") return;
+    if (!roomState?.draft || roomState.draft.status !== "building") return reject("This draft action is no longer available. Reload your draft and try again.");
     const playerNum = getPlayerNumberBySocket(roomState, socket.id);
-    if (!playerNum) return;
+    if (!playerNum) return reject("Only seated players can build a deck.");
     const lobbyPlayer = roomState.lobby.players[playerNum];
     if (!lobbyPlayer.accountId || lobbyPlayer.isGuest) {
-      socket.emit("errorMessage", "Sign in with an account to save a draft deck.");
+      reject("Sign in with an account to save a draft deck.");
       return;
     }
     const key = String(playerNum);
     const selectedCards = roomState.draft.deckAdditions[key] || [];
     if (selectedCards.length === 0) {
-      socket.emit("errorMessage", "Choose at least one drafted card before saving.");
+      reject("Choose at least one drafted card before saving.");
       return;
     }
     let validation;
     try {
       validation = validateReplacementCardSet(selectedCards);
     } catch (error) {
-      socket.emit("errorMessage", error.message || "Save a one-faction deck with one card per fixed rank-and-suit slot.");
+      reject(error.message || "Save a one-faction deck with one card per fixed rank-and-suit slot.");
       return;
     }
     const factionIds = validation.factionIds;
     if (factionIds.length !== 1) {
-      socket.emit("errorMessage", "Save a deck with cards from exactly one faction.");
+      reject("Save a deck with cards from exactly one faction.");
       return;
     }
     const faction = getFactionById(factionIds[0]);
@@ -8438,7 +8920,7 @@ io.on("connection", (socket) => {
       cards: selectedCards
     });
     if (!savedAccount) {
-      socket.emit("errorMessage", "Could not save draft deck.");
+      reject("Could not save draft deck.");
       return;
     }
     socket.emit("accountUpdated", savedAccount);

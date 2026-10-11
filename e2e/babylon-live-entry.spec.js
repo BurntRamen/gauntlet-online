@@ -950,7 +950,9 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
-  test.setTimeout(60000);
+  // Ten viewport changes and rendered screenshots exceed a minute on CI's
+  // software GPU. Keep every assertion's timeout unchanged.
+  test.setTimeout(120000);
   await page.addInitScript((voicePaths) => {
     window.__voiceAssetPaths = voicePaths;
     window.__campaignDialogueSources = [];
@@ -985,8 +987,13 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
   const ledger = page.getByRole("complementary", { name: "Recent play order" });
   await expect(ledger).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
   for (const { width, height } of [{ width: 1366, height: 768 }, { width: 768, height: 768 }, { width: 1024, height: 600 }]) {
     await page.setViewportSize({ width, height });
+    await page.locator(".production-turn-marker").evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
     const dialogueBox = await encounter.boundingBox();
     const logBox = await ledger.boundingBox();
     expect(logBox.x).toBeGreaterThanOrEqual(dialogueBox.x + dialogueBox.width);
@@ -995,8 +1002,11 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     await page.mouse.move(tableBox.x + tableBox.width * 0.5, tableBox.y + tableBox.height * 0.85);
     const preview = page.locator(".production-card-preview");
     await expect(preview).toBeVisible();
-    // Let the existing preview entrance finish before checking painted bounds.
-    await page.waitForTimeout(180);
+    // The entrance lasts 280ms; wait for painted geometry instead of a timer
+    // that can sample different animation frames on CI's software renderer.
+    await preview.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    });
     const previewBox = await preview.boundingBox();
     const artBox = await preview.locator(".production-card-preview-art").boundingBox();
     const imageBox = await preview.locator("img").boundingBox();
@@ -1036,6 +1046,54 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await expect(currentAction)
     .toContainText(/launched scripted attack/i);
   await expect(currentAction.getByRole("button", { name: "Take Damage" })).toBeVisible();
+  await waitForPlaybackSettled(page);
+  for (const viewport of [
+    { width: 1900, height: 970 },
+    { width: 1366, height: 768 },
+    { width: 1100, height: 768 },
+    { width: 820, height: 1180 }
+  ]) {
+    await page.setViewportSize(viewport);
+    const banner = page.locator(".production-turn-marker");
+    await expect(banner).toContainText("Combat Response");
+    // Include the retained entrance animation, which previously shifted the
+    // desktop banner halfway over the opponent even after its CSS transform reset.
+    await banner.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+    const opponentBox = await page.locator(".production-player-plate-top").boundingBox();
+    const bannerBox = await banner.boundingBox();
+    const menuBox = await page.locator(".production-match-utilities > summary").boundingBox();
+    expect(bannerBox.x).toBeGreaterThan(opponentBox.x + opponentBox.width);
+    expect(bannerBox.x + bannerBox.width).toBeLessThan(menuBox.x);
+    // ResizeObserver positions the log after responsive layout. Read all three
+    // rectangles together and wait for the same 4px (+/- 1px) spacing contract.
+    await expect.poll(() => ledger.evaluate((element) => {
+      const marker = document.querySelector(".production-turn-marker").getBoundingClientRect();
+      const menu = document.querySelector(".production-match-utilities > summary").getBoundingClientRect();
+      const gap = element.getBoundingClientRect().top - Math.max(marker.bottom, menu.bottom);
+      return Math.abs(gap - 4);
+    }), { message: `Play order settles below the controls at ${viewport.width}px` }).toBeLessThanOrEqual(1);
+    const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(ledger.locator("ol")).toBeHidden();
+    await toggle.press("Space");
+    await expect(ledger.locator("ol")).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath(`campaign-priority-${viewport.width}.png`) });
+  }
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1280, height: 450 }]) {
+    await page.setViewportSize(viewport);
+    const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(encounter.locator("summary")).toBeVisible();
+    expect(await encounter.evaluate(element => element.open)).toBe(false);
+    await toggle.click();
+    await expect(ledger.locator("ol")).toBeVisible();
+    await toggle.click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
 });
 
 test("signed-in campaign victory refreshes account state, continues, persists, and does not duplicate rewards", async ({ page, request, baseURL }) => {

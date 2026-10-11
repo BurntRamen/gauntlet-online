@@ -137,6 +137,33 @@ describe("shared Babylon card motion", () => {
     });
   });
 
+  test("presents a played card above the table before its landing beat", () => {
+    const motion = createCardMotion({
+      role: "placement-enter",
+      start: { x: -4, y: 0.2, z: -7, rotationX: Math.PI / 2, rotationY: 0, rotationZ: 0, scale: 0.72 },
+      destination: { x: 0, y: 0.2, z: -3, rotationX: Math.PI / 2, rotationY: 0, rotationZ: 0, scale: 0.72 }
+    });
+    const presented = sampleCardMotion(motion, motion.durationMs * 0.37);
+    const contact = sampleCardMotion(motion, motion.durationMs * 0.86);
+    const settled = sampleCardMotion(motion, motion.durationMs);
+
+    expect(presented.y).toBeGreaterThan(0.6);
+    expect(presented.scale).toBeGreaterThan(0.76);
+    expect(Math.abs(presented.rotationY)).toBeGreaterThan(0.04);
+    expect(Math.abs(presented.rotationZ)).toBeGreaterThan(0.03);
+    expect(contact.scale).toBeLessThan(0.72);
+    expect(settled).toMatchObject({
+      x: 0,
+      z: -3,
+      rotationX: Math.PI / 2,
+      rotationY: 0,
+      rotationZ: 0,
+      scale: 0.72,
+      complete: true
+    });
+    expect(settled.y).toBeCloseTo(0.2);
+  });
+
   test("lets payment reach and settle in its tray before discard departure", () => {
     const motion = createCardMotion({
       role: "payment-enter",

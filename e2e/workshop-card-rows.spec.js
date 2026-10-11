@@ -48,6 +48,7 @@ test("deck Cards view places readable names and full rules beside left-aligned i
     expect(await first.locator(".deck-slot-card-rules").evaluate(node => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     await expect(first.locator(".deck-slot-card-rules")).toHaveText(cards.find(card => card.name === "Ammo Depot").text);
+    await expect(first.locator(".deck-card-faction")).toHaveText("Bizi");
     await page.locator(".deck-slot-panel").screenshot({ path: path.join(out, `cards-${label}.png`) });
   }
   await first.focus();
@@ -57,7 +58,8 @@ test("deck Cards view places readable names and full rules beside left-aligned i
   await page.getByRole("button", { name: "Compact", exact: true }).click();
   await expect(page.locator(".deck-slot")).toHaveCount(52);
   await expect(page.locator(".deck-slot-card-rules")).toHaveCount(0);
-  expect((await first.boundingBox()).height).toBeLessThanOrEqual(34);
+  await expect(first.locator(".deck-card-faction")).toHaveText("Bizi");
+  expect((await first.boundingBox()).height).toBeLessThanOrEqual(60);
   await page.getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByRole("button", { name: "Restore standard 2♠", exact: true }).click();
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(cards.length - 1);

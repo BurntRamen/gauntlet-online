@@ -4,9 +4,12 @@ import { io } from "socket.io-client";
 import "./App.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
+import useDraftRequest from "./useDraftRequest";
+import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
 import DeckLibraryPanel from "./DeckLibraryPanel";
 import DeckWorkshop from "./DeckWorkshop";
+import DeckShowcase from "./DeckShowcase";
 import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
@@ -17,7 +20,7 @@ import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
-import { findCollectorVariant, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
+import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
@@ -38,10 +41,17 @@ import {
   useMenuAudio
 } from "./MenuAudio";
 import MenuBackdrop from "./MenuBackdrop";
+import { PlayMenu, PlayModeCard } from "./PlayMenu";
+import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
 import { fetchGameContent } from "./loadGameContent";
+import CurrencyWallet from "./CurrencyWallet";
 
+const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
+const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
 const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
+const EventHub = lazy(() => import("./EventHub"));
+const EconomyShop = lazy(() => import("./EconomyShop"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
 let matchesHubModule;
 let matchesHubPromise;
@@ -890,6 +900,7 @@ function MenuButton({ children, variant = "primary", disabled = false, onClick, 
   return (
     <button
       type={type}
+      className={`menu-button menu-button-${variant}`}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -1522,7 +1533,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
         <SpecialCardFace card={card} art={art} presentation={variant} />
       </button>
       <div className="card-art-inspector-copy">
-        <span>{PACK_THEMES[card.factionId]?.name || card.factionId} · {rarity.label} {card.type}</span>
+        <span>{factionName(card.factionId)} · {rarity.label} {card.type}</span>
         <h4>{card.name}</h4>
         <p>{card.displayText || card.text}</p>
         <CardRulesDetails card={card} />
@@ -1547,6 +1558,8 @@ const PACK_THEMES = {
   zynarth: { name: "Zynarth", subtitle: "Adaptive Brood", accent: "#a3e635", glow: "rgba(163,230,53,.3)", background: "linear-gradient(145deg, #1a2e05, #3f6212 44%, #3b0764 90%)", art: "radial-gradient(circle at 32% 30%, rgba(190,242,100,.5), transparent 20%), repeating-radial-gradient(circle at 60% 60%, rgba(217,249,157,.12) 0 3px, transparent 3px 26px)" },
   "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" }
 };
+
+const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
 
 function getBattlefieldTexture(factionId) {
   const textures = {
@@ -1674,7 +1687,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1698,6 +1711,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
   const [constructedBoxId, setConstructedBoxId] = useState(savedConstructedDeck?.deckBoxId || "classic");
+  const [constructedFrontCardSlot, setConstructedFrontCardSlot] = useState(savedConstructedDeck?.frontCardSlot || null);
   const [packPacing, setPackPacing] = useState(readPackPacing);
   const initialOpenedPack = useRef(lastOpenedPack);
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
@@ -1708,7 +1722,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [inspectedCatalogCardId, setInspectedCatalogCardId] = useState("");
   const [collectorSearch, setCollectorSearch] = useState("");
   const [inspectedCollectorVariantId, setInspectedCollectorVariantId] = useState("");
-  const [collectionView, setCollectionView] = useState("packs");
+  const [collectionView, setCollectionView] = useState(initialView);
   const loadedConstructedVersion = useRef("");
 
   useEffect(() => {
@@ -1724,13 +1738,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     loadedConstructedVersion.current = versionKey;
     setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
+    setConstructedFrontCardSlot(savedConstructedDeck?.frontCardSlot || null);
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
     setConstructedFactionId(savedConstructedDeck?.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
-    setConstructedSaveMessage("");
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot]);
 
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
@@ -1750,6 +1764,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const collectorOwnership = collection.collectorVariants || {};
   const collectorCatalog = collection.collectorCatalog || [];
   const collectorPacks = Object.values(collection.collectorPacks || {});
+  const collectorSetPacks = collectorPacks.filter((pack) => pack.scope === "set");
+  const checkoutConfigured = !!collection.packStore?.checkoutConfigured;
   const catalog = collection.catalog || {};
   const boosters = Object.values(collection.boosters || {});
   const ownedTotal = Object.values(cardsOwned).reduce((sum, count) => sum + Number(count || 0), 0);
@@ -1767,7 +1783,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     if (catalogRarityFilter !== "all" && card.rarity !== catalogRarityFilter) return false;
     if (catalogOwnedOnly && ownedCount <= 0) return false;
     if (normalizedCatalogSearch) {
-      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId}`.toLowerCase();
+      const searchText = `${card.name} ${card.type} ${card.text} ${factionName(card.factionId)}`.toLowerCase();
       if (!searchText.includes(normalizedCatalogSearch)) return false;
     }
     return true;
@@ -1788,7 +1804,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     }))
     .filter(({ variant, card }) => {
       if (!normalizedCollectorSearch) return true;
-      const searchText = `${card.name} ${card.type} ${card.text} ${PACK_THEMES[card.factionId]?.name || card.factionId} ${variant.name || ""} ${variant.finish || ""}`.toLowerCase();
+      const searchText = `${card.name} ${card.type} ${card.text} ${factionName(card.factionId)} ${variant.name || ""} ${variant.finish || ""}`.toLowerCase();
       return searchText.includes(normalizedCollectorSearch);
     });
   const inspectedCollectorEntry = ownedCollectorVariants.find(({ variant }) => variant.variantId === inspectedCollectorVariantId)
@@ -1801,7 +1817,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     byCard[variant.gameplayCardId].push(variant);
     return byCard;
   }, {});
-  const constructedCardsById = Object.fromEntries((catalog[constructedFactionId] || []).map((card) => [card.id, card]));
+  const constructedCatalogCards = [...(catalog[constructedFactionId] || []), ...(catalog.neutral || [])];
+  const constructedCardsById = Object.fromEntries(constructedCatalogCards.map((card) => [card.id, card]));
   const inspectedCatalogCard = allCatalogCards.find((card) => card.id === inspectedCatalogCardId) || filteredCatalogCards[0] || null;
   const constructedValueCounts = Object.entries(constructedQuantities).reduce((counts, [cardId, count]) => {
     const value = getReplacementValue(constructedCardsById[cardId], PLAYING_DECK_VALUES);
@@ -1835,7 +1852,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         collectorVariantSelections: Object.fromEntries(Object.keys(constructedQuantities)
           .filter((cardId) => constructedQuantities[cardId] > 0)
           .map((cardId) => [cardId, findCollectorVariant(cardId, availableVariantsByGameplayCard[cardId] || [], constructedVariantSelections[cardId])?.variantId || constructedCardsById[cardId]?.defaultVariantId])),
-        deckBoxId: constructedBoxId
+        deckBoxId: constructedBoxId,
+        frontCardSlot: constructedFrontCardSlot
       });
       if (saved?.deckId) setSelectedConstructedDeckId(saved.deckId);
       setConstructedSaveMessage("Constructed deck saved.");
@@ -1849,6 +1867,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedDeckName(savedConstructedDeck.name || "Rumin Constructed Deck");
     setConstructedGeneralId(savedConstructedDeck.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck.deckBoxId || "classic");
+    setConstructedFrontCardSlot(savedConstructedDeck.frontCardSlot || null);
     setConstructedFactionId(savedConstructedDeck.factionId || "rumin");
     setConstructedQuantities(savedConstructedDeck.gameplayCardQuantities || savedConstructedDeck.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck.cardSuitChoices || {});
@@ -1868,6 +1887,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedDeckName("Rumin Constructed Deck");
     setConstructedGeneralId("monti");
     setConstructedBoxId("classic");
+    setConstructedFrontCardSlot(null);
     setConstructedFactionId("rumin");
     setConstructedQuantities({});
     setConstructedSuitChoices({});
@@ -1903,13 +1923,21 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-summary-note"><span>Fair-play split</span>Every account starts with three free animated collector styles. Campaign credits unlock gameplay; collector styles never change cards, copies, values, or abilities.</div>
         </div>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
-          {[["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
+          {[["shop", "Shop"], ["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
+        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
-          <div><h3>Gameplay & Collector Packs</h3><p>Open an Initiative pack for every catalog faction, or choose a seeded faction pack. Collector variants remain cosmetic.</p></div>
+          <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
+          <strong style={{ color: checkoutConfigured ? "#86efac" : "#fca5a5" }}>{checkoutConfigured ? "Checkout connected" : "Checkout pending"}</strong>
+        </div>
+        {collectorSetPacks.length > 0 && <Suspense fallback={null}><div className="booster-pack-grid">
+          {collectorSetPacks.map((product) => <CollectorSetPackTile key={product.id} product={product} checkoutConfigured={checkoutConfigured} onBuyPack={onBuyPack} />)}
+        </div></Suspense>}
+        <div className="collection-view-heading">
+          <div><h3>Earned Gameplay Packs</h3><p>Spend campaign credits on all-faction or seeded faction packs. These are the packs that unlock playable cards.</p></div>
           <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         <PackPacingPicker value={packPacing} onChange={setPackPacing} />
@@ -1940,7 +1968,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <button type="button" onClick={startNewConstructedDeck}>New deck</button>
         </div>
         <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
-          <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog}
+          <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog} catalog={catalog}
             onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
@@ -1951,17 +1979,19 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
           renderRules={(card) => <CardRulesDetails card={card} />}
           loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}
-          cards={catalog[constructedFactionId] || []} owned={cardsOwned}
+          cards={constructedCatalogCards} owned={cardsOwned}
           quantities={constructedQuantities} suitChoices={constructedSuitChoices}
           variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
           boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
+          frontCardSlot={constructedFrontCardSlot}
           versionCount={selectedConstructedRecord?.versions?.length || 0}
           message={constructedSaveMessage} invalid={!!constructedCurveWarning || !!constructedSlotWarning}
           onNameChange={(name) => { setConstructedDeckName(name); setConstructedSaveMessage(""); }}
-          onFactionChange={(factionId) => { setConstructedFactionId(factionId); setConstructedGeneralId(deckRules.factions?.find((entry) => entry.id === factionId)?.general?.id || null); setConstructedQuantities({}); setConstructedSuitChoices({}); setConstructedVariantSelections({}); setConstructedSaveMessage(""); }}
+          onFactionChange={(factionId) => { setConstructedFactionId(factionId); setConstructedGeneralId(deckRules.factions?.find((entry) => entry.id === factionId)?.general?.id || null); setConstructedQuantities({}); setConstructedSuitChoices({}); setConstructedVariantSelections({}); setConstructedFrontCardSlot(null); setConstructedSaveMessage(""); }}
           onReplacementChange={({ quantities, suitChoices }) => { setConstructedQuantities(quantities); setConstructedSuitChoices(suitChoices); setConstructedSaveMessage(""); }}
           onVariantChange={(cardId, variantId) => { setConstructedVariantSelections((current) => ({ ...current, [cardId]: variantId })); setConstructedSaveMessage(""); }}
           onBoxChange={(boxId) => { setConstructedBoxId(boxId); setConstructedSaveMessage(""); }}
+          onFrontCardChange={(slot) => { setConstructedFrontCardSlot(slot); setConstructedSaveMessage(""); }}
           onSave={saveConstructedDeck} onReset={clearConstructedDeck} onRestore={loadSavedConstructedDeck}
         />
         </>}
@@ -2018,7 +2048,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
                     <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{PACK_THEMES[card.factionId]?.name || card.factionId} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
+                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{factionName(card.factionId)} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
                   <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
                   <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
                   </div>
@@ -2063,7 +2093,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 key={variant.variantId}
               >
                 <SpecialCardFace card={card} art={variant.art} presentation={variant} />
-                <span>{PACK_THEMES[card.factionId]?.name || card.factionId}</span>
+                <span>{factionName(card.factionId)}</span>
                 <strong>{card.name}</strong>
                 <small>{variant.finish || "collector"} · {gameplayCopies > 0 ? `${gameplayCopies} gameplay cop${gameplayCopies === 1 ? "y" : "ies"}` : "style owned · gameplay card locked"}</small>
               </button>;
@@ -2075,7 +2105,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
   return (
     <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
@@ -2087,41 +2117,39 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
       </div>
     </div>
   );
 }
 
-function DraftCardTile({ card, selected = false, disabled = false, onClick, actionLabel = "Pick" }) {
+export function DraftCardTile({ card, selected = false, disabled = false, onClick, onInspect, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
   return (
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      onMouseEnter={() => onInspect?.(card)}
+      onFocus={() => onInspect?.(card)}
+      aria-disabled={disabled}
+      aria-pressed={selected}
+      aria-label={`${selected ? "Remove" : actionLabel} ${card.name}`}
+      className={`limited-card-tile${selected ? " is-in-deck" : ""}`}
       style={{
-        border: `1px solid ${selected ? theme.accent : rarity.border}`,
-        borderRadius: 8,
-        padding: 9,
-        background: selected ? "rgba(250,204,21,0.18)" : "rgba(2,6,23,0.58)",
-        color: "#e5e7eb",
-        textAlign: "left",
-        display: "grid",
-        gap: 5,
-        minHeight: 310,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.48 : 1
+        "--limited-accent": theme.accent,
+        "--limited-glow": theme.glow,
+        "--limited-rarity": rarity.border
       }}
     >
-      <span style={{ display: "block", width: "100%", maxWidth: 180, aspectRatio: "5 / 7", justifySelf: "center", overflow: "hidden", borderRadius: 7, boxShadow: `0 8px 22px ${theme.glow}` }}>
+      <span className="limited-card-art">
         <SpecialCardFace card={card} />
       </span>
-      <strong style={{ color: rarity.color }}>{card.name}</strong>
-      <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
-      <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
-      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Swapped" : actionLabel}</span>
+      <span className="limited-card-copy">
+        <strong style={{ color: rarity.color }}>{card.name}</strong>
+        <span>{theme.name} · {rarity.label} · {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
+      </span>
+      <span className="limited-card-action">{selected ? "✓ In deck" : actionLabel}</span>
     </button>
   );
 }
@@ -2129,168 +2157,6 @@ function DraftCardTile({ card, selected = false, disabled = false, onClick, acti
 function limitedDeckSourceLabel(draftType) {
   if (draftType === "sealed") return "Sealed";
   return draftType === "bot" ? "Bot Draft" : "Live Draft";
-}
-
-function DraftScreen({ draft, lobby, player, isSpectator, account, deckRules, draftPickPending, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
-  const BASE_PLAYING_DECK_SIZE = deckRules.basePlayingDeckSize;
-  const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
-  const myPack = draft?.myCurrentPack?.cards || [];
-  const myPool = draft?.myPool || [];
-  const myDeckAdditions = draft?.myDeckAdditions || [];
-  const selectedIds = new Set(myDeckAdditions.map((card) => card.draftCopyId));
-  const selectedFactionIds = [...new Set(myDeckAdditions.map((card) => card.factionId).filter(Boolean))];
-  const selectedFactionId = selectedFactionIds[0] || "";
-  const selectedFactionName = selectedFactionId ? (PACK_THEMES[selectedFactionId]?.name || selectedFactionId) : "";
-  const selectedSlotCounts = myDeckAdditions.reduce((counts, card) => {
-    const value = getReplacementValue(card, PLAYING_DECK_VALUES);
-    if (value == null) return counts;
-    const suit = normalizeReplacementSuitId(card.replacementSuit || card.suit);
-    const key = `${value}:${suit}`;
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {});
-  const selectedSlotWarning = Object.entries(selectedSlotCounts).find(([, count]) => count > 1);
-  const savedDraftDeck = account?.stats?.savedDraftDeck || null;
-  const players = draft?.players || lobby?.players || {};
-  const connectedPlayers = Object.entries(players).filter(([, seat]) => seat.connected || seat.accountName);
-  const canStart = player === 1 && draft?.status === "lobby";
-  const hasPickedThisPass = !!draft?.myCurrentPack?.pickedThisPass;
-  const isBotDraft = !!draft?.botDraft;
-  const isSealed = !!draft?.sealed;
-
-  return (
-    <div style={MENU_THEME.page}>
-      <div style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
-          <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Limited League Match" : isSealed ? "Six Pack Sealed" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
-            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Limited League" : isSealed ? "Gauntlet Sealed" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
-            <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isSealed ? "Open six packs from one set, then build a one-faction 52-card deck from your private pool." : isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
-          </div>
-          <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
-            <RoomCodeDisplay code={draft?.roomCode || lobby?.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={onCopyRoom} color="#bfdbfe" />
-            <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-          {!isSealed && <MenuCard title="Draft Table">
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Seats: {connectedPlayers.length}/8</p>
-            <div style={{ display: "grid", gap: 6 }}>
-              {Array.from({ length: 8 }, (_, index) => index + 1).map((seatNum) => {
-                const seat = players[seatNum] || {};
-                return (
-                  <div key={seatNum} style={{ display: "flex", justifyContent: "space-between", gap: 8, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: 7, color: "#dbeafe" }}>
-                    <strong>P{seatNum}</strong>
-                    <span>{seat.accountName || (seat.connected ? "Connected" : "Open Seat")}</span>
-                    <span style={{ color: seat.connected ? "#86efac" : "#94a3b8" }}>{seat.connected ? "Online" : seat.accountName ? "Disconnected" : "Open"}</span>
-                  </div>
-                );
-              })}
-            </div>
-            {canStart && !isBotDraft && <MenuButton onClick={onStartDraft} disabled={connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
-            {draft?.status === "lobby" && !canStart && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Waiting for Player 1 to start the draft.</p>}
-            {draft?.status === "lobby" && isBotDraft && <p style={{ color: "#bfdbfe", fontSize: 13 }}>Preparing bot draft seats...</p>}
-          </MenuCard>}
-
-          <MenuCard title="Draft Status">
-            <div style={{ color: "#dbeafe", display: "grid", gap: 6 }}>
-              <div><strong>Status:</strong> {draft?.status || "lobby"}</div>
-              <div><strong>Set:</strong> {draft?.setName || "Initiative"}</div>
-              <div><strong>Factions:</strong> {(draft?.factionIds || []).map((id) => PACK_THEMES[id]?.name || id).join(", ")}</div>
-              {isSealed ? <div><strong>Pool:</strong> {draft?.packsPerPlayer || 6} packs · {myPool.length} cards</div> : <>
-                <div><strong>Round:</strong> {draft?.round || 0}/{draft?.packsPerPlayer || 3}</div>
-                <div><strong>Pick:</strong> {draft?.pickNumber || 0}</div>
-                <div><strong>Pass:</strong> {draft?.direction || "left"}</div>
-              </>}
-              <div><strong>Base deck:</strong> {draft?.baseDeck?.cardCount || 52} cards</div>
-              {isBotDraft && <div><strong>Bot table:</strong> 7 automated drafters</div>}
-              {savedDraftDeck && <div><strong>Saved league deck:</strong> {savedDraftDeck.factionName || savedDraftDeck.factionId} ({savedDraftDeck.cardCount || BASE_PLAYING_DECK_SIZE} cards, {savedDraftDeck.replacementCount || savedDraftDeck.additionCount || savedDraftDeck.cards?.length || 0} swaps) - {limitedDeckSourceLabel(savedDraftDeck.draftType)}</div>}
-            </div>
-          </MenuCard>
-        </div>
-
-        {draft?.status === "cancelled" && <MenuCard title="Draft cancelled"><p>The draft ended before all picks were completed. No deck was saved. Return to the main menu to start another table.</p></MenuCard>}
-        {draft?.status === "drafting" && !isBotDraft && draft.activePlayers?.some((p) => !players[p]?.connected) && (
-          <MenuCard title="Waiting for a player to reconnect">
-            <p>Drafting will resume when they return. If they cannot return, you can cancel this draft for everyone. Incomplete picks will not become a saved deck.</p>
-            {!isSpectator && <MenuButton variant="secondary" onClick={() => { if (window.confirm("Cancel this draft for everyone? Incomplete picks will not be saved as a deck.")) socket.emit("cancelDraft"); }}>Cancel Draft</MenuButton>}
-          </MenuCard>
-        )}
-        {draft?.status === "drafting" && !isSpectator && (
-          <MenuCard title={`Current Pack (${myPack.length} cards)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>{hasPickedThisPass ? "Pick locked in. Waiting for the other players before the next pack." : "Pick exactly one card from this pack."}</p>
-            {myPack.length === 0 ? (
-              <p style={{ color: "#bfdbfe", margin: 0 }}>Waiting for the next pack.</p>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                {myPack.map((card) => (
-                  <DraftCardTile key={card.draftCopyId} card={card} disabled={draftPickPending || hasPickedThisPass} actionLabel={draftPickPending || hasPickedThisPass ? "Waiting" : "Pick"} onClick={() => onPickCard(card.draftCopyId)} />
-                ))}
-              </div>
-            )}
-          </MenuCard>
-        )}
-
-        {draft?.status === "building" && !isSpectator && (
-          <MenuCard title={`Build ${isSealed ? "Sealed" : "Draft"} Deck (${myDeckAdditions.length} swaps)`}>
-            <p style={{ color: "#bfdbfe", marginTop: 0 }}>Choose cards from one faction only. Every card has a fixed rank and suit and replaces that exact slot in your 52-card base deck.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, marginBottom: 12 }}>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Deck size</strong>
-                <div>{draft?.baseDeck?.cardCount || BASE_PLAYING_DECK_SIZE} cards - {myDeckAdditions.length} swap{myDeckAdditions.length === 1 ? "" : "s"}</div>
-              </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Faction</strong>
-                <div>{selectedFactionName || "Choose your first card"}</div>
-              </div>
-              <div style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 8, padding: 10, color: "#dbeafe", background: "rgba(15,23,42,0.5)" }}>
-                <strong>Limited League</strong>
-                <div>{savedDraftDeck ? `Saved: ${savedDraftDeck.factionName || savedDraftDeck.factionId}` : "No saved deck yet"}</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-              <MenuButton onClick={onSaveDraftDeck} disabled={!account || myDeckAdditions.length === 0 || selectedFactionIds.length !== 1 || !!selectedSlotWarning}>Save Deck for {isSealed ? "Sealed" : "Draft"} League</MenuButton>
-              {!account && <span style={{ color: "#bfdbfe", fontSize: 13 }}>Sign in to save decks.</span>}
-              {draftSaveMessage && <span style={{ color: "#86efac", fontSize: 13, fontWeight: "bold" }}>{draftSaveMessage}</span>}
-              {selectedSlotWarning && <span style={{ color: "#fca5a5", fontSize: 13, fontWeight: "bold" }}>Two cards are replacing the same {selectedSlotWarning[0].replace(":", " of ")}.</span>}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-              {myPool.map((card) => {
-                const selected = selectedIds.has(card.draftCopyId);
-                const slotKey = `${getReplacementValue(card, PLAYING_DECK_VALUES)}:${normalizeReplacementSuitId(card.suit)}`;
-                const slotOccupied = !selected && Number(selectedSlotCounts[slotKey] || 0) > 0;
-                return (
-                  <div key={card.draftCopyId} style={{ display: "grid", gap: 6 }}>
-                    <DraftCardTile
-                      card={card}
-                      selected={selected}
-                      disabled={!selected && ((selectedFactionId && card.factionId !== selectedFactionId) || slotOccupied)}
-                      actionLabel={selected ? "Remove" : selectedFactionId && card.factionId !== selectedFactionId ? "Wrong faction" : slotOccupied ? "Slot full" : "Swap In"}
-                      onClick={() => onToggleDeckCard(card.draftCopyId)}
-                    />
-                    {selected && <div style={{ color: "#fde68a", fontSize: 12, fontWeight: 900, border: "1px solid rgba(125,211,252,0.22)", borderRadius: 6, padding: "5px 7px", background: "rgba(2,6,23,0.44)" }}>Replaces {getCardRank(card)}{getSuitSymbol(card.suit)}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </MenuCard>
-        )}
-
-        <MenuCard title={`Your ${isSealed ? "Sealed" : "Draft"} Pool (${myPool.length})`}>
-          {isSpectator ? (
-            <p style={{ color: "#bfdbfe", margin: 0 }}>Spectators can watch seat and pick counts, but not hidden packs.</p>
-          ) : myPool.length === 0 ? (
-            <p style={{ color: "#bfdbfe", margin: 0 }}>No drafted cards yet.</p>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 8, maxHeight: 320, overflowY: "auto" }}>
-              {myPool.map((card) => <DraftCardTile key={card.draftCopyId} card={card} actionLabel={selectedIds.has(card.draftCopyId) ? "Deck" : "Pool"} />)}
-            </div>
-          )}
-        </MenuCard>
-      </div>
-    </div>
-  );
 }
 
 function MatchmakingPanel({
@@ -3199,7 +3065,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   return (
     <div className="tutorial-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
-        <header className="tutorial-header">
+        <header className="tutorial-header" style={{ "--journey-art": `url("${resolveVisualAsset(TUTORIAL_ART)}")` }}>
           <div>
             <div className="tutorial-kicker">Training Protocol</div>
             <h1>Learn Gauntlet</h1>
@@ -3304,10 +3170,11 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   return (
     <div className="campaign-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
       <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
-        <div className="campaign-header">
+        <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(JOURNEY_ART)}")` }}>
           <div className="campaign-heading">
             <div className="campaign-kicker">Commander Archives</div>
             <h1>Faction Campaigns</h1>
+            <p>Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way.</p>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
@@ -3324,7 +3191,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`)})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || FACTION_VISUALS[factionId]?.art || JOURNEY_ART)})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3413,8 +3280,9 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
   );
 }
 
+const DRAFT_PRESENTATION = { MENU_THEME, PACK_THEMES, MenuButton, MenuCard, RoomCodeDisplay, DraftCardTile, getReplacementValue, normalizeReplacementSuitId, getCardRank, getSuitSymbol, limitedDeckSourceLabel };
+
 export default function App() {
-  const roomEntryTimerRef = useRef(null);
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
@@ -3462,6 +3330,7 @@ export default function App() {
   const [collectorClaimToken, setCollectorClaimToken] = useState(getCollectorClaimFromLocation);
   const [lastOpenedPack, setLastOpenedPack] = useState([]);
   const [openingPackId, setOpeningPackId] = useState("");
+  const [economyPending, setEconomyPending] = useState(false);
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
   const [rankedGameMode, setRankedGameMode] = useState("factions");
   const [rankedFactionId, setRankedFactionId] = useState("rumin");
@@ -3469,7 +3338,7 @@ export default function App() {
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
-  const [draftPickPending, setDraftPickPending] = useState(false);
+  const { pending: draftPending, run: runDraftRequest, clear: clearDraftRequest, finishEntry } = useDraftRequest(socket, setError);
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -4032,7 +3901,7 @@ export default function App() {
   }, [accountSoundMuted]);
 
   const returnToMainMenu = useCallback(() => {
-    finishRoomEntry();
+    clearDraftRequest();
     socket.emit("leaveRoom");
     clearReconnectInfo();
     resetSelections();
@@ -4050,11 +3919,10 @@ export default function App() {
     setShowTutorial(false);
     setMatchmakingStatus({ inQueue: false, message: "" });
     setDraftLeagueStatus({ inQueue: false, message: "" });
-  }, []);
+  }, [clearDraftRequest]);
 
   useEffect(() => {
     const onAssign = (payload) => {
-      finishRoomEntry();
       if (menuQueuePendingRef.current) menuCueRef.current("matchReady");
       setError("");
       setRole(payload.role);
@@ -4066,7 +3934,6 @@ export default function App() {
     };
 
     const onAssignSpectator = (payload) => {
-      finishRoomEntry();
       setError("");
       setRole("spectator");
       setPlayer(null);
@@ -4075,6 +3942,7 @@ export default function App() {
     };
 
     const onState = (newGame) => {
+      finishEntry();
       setError("");
       const accepted = liveMatchSessionRef.current.update({ game: newGame });
       setMatchReconnectPending(false);
@@ -4095,16 +3963,17 @@ export default function App() {
       }
     };
     const onLobbyState = (newLobby) => {
-      setError("");
+      finishEntry();
+      setMatchReconnectPending(false);
       setLobby(newLobby);
     };
     const onDraftState = (newDraft) => {
-      setError("");
+      finishEntry();
+      setMatchReconnectPending(false);
       setDraftState(newDraft);
-      setDraftPickPending(false);
     };
     const onError = (msg) => {
-      finishRoomEntry();
+      clearDraftRequest();
       if (/room is no longer active|could not reconnect to that player seat/i.test(String(msg || ""))) {
         returnToMainMenu();
         setMatchReconnectPending(false);
@@ -4113,7 +3982,6 @@ export default function App() {
       }
       menuCueRef.current("denied");
       setError(msg);
-      setDraftPickPending(false);
     };
     const onPeek = (text) => setPeekResult(text);
     const onMatchmakingStatus = (status) => setMatchmakingStatus(status);
@@ -4157,7 +4025,6 @@ export default function App() {
       attemptReconnect();
     };
     const onDisconnect = () => {
-      finishRoomEntry();
       setTransportConnected(false);
       setMatchReconnectPending(true);
       liveMatchSessionRef.current.update({ connected: false });
@@ -4200,7 +4067,7 @@ export default function App() {
       socket.off("rematchStatus", onRematchStatus);
       socket.off("rematchStarted", onRematchStarted);
     };
-  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu]);
+  }, [currentIdentityKey, loadCompetitiveProfile, loadLeaderboard, returnToMainMenu, clearDraftRequest, finishEntry]);
 
   useEffect(() => {
     if (Array.isArray(game?.eventLog)) {
@@ -4211,7 +4078,7 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95]) => {
+  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95], voiceHints = []) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
@@ -4226,6 +4093,13 @@ export default function App() {
       window.speechSynthesis.cancel();
       const utterance = new window.SpeechSynthesisUtterance(quote);
       [utterance.rate, utterance.pitch] = profile;
+      const availableVoices = window.speechSynthesis.getVoices();
+      utterance.voice = voiceHints
+        .map((hint) => availableVoices.find((voice) => voice.lang?.startsWith("en") && voice.name.toLowerCase().includes(hint)))
+        .find(Boolean)
+        || availableVoices.find((voice) => voice.lang?.startsWith("en") && /natural|neural|online/i.test(voice.name))
+        || availableVoices.find((voice) => voice.lang?.startsWith("en"))
+        || null;
       window.speechSynthesis.speak(utterance);
     };
 
@@ -4249,7 +4123,12 @@ export default function App() {
       : gameContent?.factions?.find((entry) => entry.id === factionId);
     const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(quote, faction?.commander?.announcementAudio?.[event], faction?.commander?.voiceProfile);
+    speakFactionQuote(
+      quote,
+      faction?.commander?.announcementAudio?.[event],
+      faction?.commander?.voiceProfile,
+      faction?.commander?.voiceHints
+    );
   }, [gameContent?.factions, speakFactionQuote]);
 
   const announceCommanderClick = useCallback(() => {
@@ -4493,6 +4372,49 @@ export default function App() {
     }
   }
 
+  async function buyGameplayPack(currency) {
+    if (!authToken || economyPending) return;
+    setEconomyPending(true);
+    playMenuCue("commit");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/economy/buy-gameplay-pack`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ currency })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not buy a gameplay pack.");
+      setAccount(data.account);
+      playMenuCue("success");
+    } catch (purchaseError) {
+      setError(purchaseError.message);
+      playMenuCue("denied");
+    } finally {
+      setEconomyPending(false);
+    }
+  }
+
+  async function buyTimetwisters(productId) {
+    if (!authToken || economyPending) return;
+    setEconomyPending(true);
+    playMenuCue("commit");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/economy/timetwister-purchase-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ productId })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Timetwister checkout is not configured yet.");
+      window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+    } catch (purchaseError) {
+      setError(purchaseError.message);
+      playMenuCue("denied");
+    } finally {
+      setEconomyPending(false);
+    }
+  }
+
   async function saveConstructedDeck(deckPayload) {
     if (!authToken) {
       playMenuCue("denied");
@@ -4610,26 +4532,8 @@ export default function App() {
     navigateHomeArea("matches");
   }
 
-  function finishRoomEntry() {
-    window.clearTimeout(roomEntryTimerRef.current);
-    roomEntryTimerRef.current = null;
-  }
-
-  useEffect(() => () => window.clearTimeout(roomEntryTimerRef.current), []);
-
   function enterRoom(event, payload) {
-    if (roomEntryTimerRef.current) return;
-    if (!socket.connected) {
-      setError("Connecting to the server. Please try again when the connection returns.");
-      return;
-    }
-    playMenuCue("commit");
-    setError("");
-    roomEntryTimerRef.current = window.setTimeout(() => {
-      finishRoomEntry();
-      setError("The table did not respond. Check your connection and try again.");
-    }, 10000);
-    socket.emit(event, payload);
+    if (runDraftRequest("enter", event, payload)) playMenuCue("commit");
   }
 
   function createRoom() { if (!account) setPlayAsGuest(true); enterRoom("createRoom", playerIdentityPayload()); }
@@ -4639,22 +4543,21 @@ export default function App() {
   function createSealedRoom() { if (!account) setPlayAsGuest(true); enterRoom("createSealedRoom", { ...playerIdentityPayload(), setId: draftSetId }); }
 
   function startDraft() {
-    socket.emit("startDraft");
+    runDraftRequest("start", "startDraft");
   }
 
   function pickDraftCard(cardCopyId) {
-    if (draftPickPending || draftState?.myCurrentPack?.pickedThisPass) return;
-    setDraftPickPending(true);
-    socket.emit("draftPick", { cardCopyId });
+    if (draftState?.myCurrentPack?.pickedThisPass) return;
+    runDraftRequest("pick", "draftPick", { cardCopyId });
   }
 
   function toggleDraftDeckCard(cardCopyId) {
     if (!draftState?.myPool) return;
     const currentIds = new Set((draftState.myDeckAdditions || []).map((card) => card.draftCopyId));
     const chosenCard = draftState.myPool.find((card) => card.draftCopyId === cardCopyId);
-    const currentFactionIds = [...new Set((draftState.myDeckAdditions || []).map((card) => card.factionId).filter(Boolean))];
-    if (chosenCard && !currentIds.has(cardCopyId) && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
-      setError("Draft decks can only include cards from one faction. Remove the current faction cards first to switch.");
+    const currentFactionIds = [...new Set((draftState.myDeckAdditions || []).map((card) => card.factionId).filter((id) => id && id !== "neutral"))];
+    if (chosenCard && !currentIds.has(cardCopyId) && chosenCard.factionId !== "neutral" && currentFactionIds.length === 1 && chosenCard.factionId !== currentFactionIds[0]) {
+      setError("Choose one faction. Reath cards work with all factions.");
       return;
     }
     if (chosenCard && !currentIds.has(cardCopyId)) {
@@ -4675,12 +4578,12 @@ export default function App() {
     const selections = draftState.myPool
       .filter((card) => currentIds.has(card.draftCopyId))
       .map((card) => ({ cardCopyId: card.draftCopyId }));
-    socket.emit("setDraftDeckAdditions", { cardCopyIds: [...currentIds], selections });
+    runDraftRequest("build", "setDraftDeckAdditions", { cardCopyIds: [...currentIds], selections });
   }
 
   function saveDraftDeck() {
     setDraftSaveMessage("");
-    socket.emit("saveDraftDeck");
+    runDraftRequest("save", "saveDraftDeck");
   }
 
   function startTutorialVsAi(mode = "basic") {
@@ -4982,6 +4885,7 @@ export default function App() {
     || account?.stats?.savedConstructedDeck
     || null;
   const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
+  const activeConstructedVersion = getCurrentDeckVersion(activeConstructedDeck);
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const enrichedFeaturedDecks = featuredDecks.map((deck) => ({
     ...deck,
@@ -5221,11 +5125,15 @@ export default function App() {
     return (
       <CollectionScreen
         account={account}
+        initialView={showCollection === "decks" ? "decks" : "shop"}
         deckRules={gameContent.deckRules}
         lastOpenedPack={lastOpenedPack}
         openingPackId={openingPackId}
         onOpenPack={openBoosterPack}
         onBuyPack={buyBoosterPack}
+        onBuyGameplayPack={buyGameplayPack}
+        onBuyTimetwisters={buyTimetwisters}
+        economyPending={economyPending}
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
         onOpenMatch={(matchId) => openPublicView("match", matchId)}
@@ -5245,16 +5153,28 @@ export default function App() {
     );
   }
 
+  if (draftPending?.action === "enter" || (role && !lobby && !game && !draftState)) {
+    return <main style={MENU_THEME.page}><div className="draft-entry">
+      <h1>Opening your table</h1>
+      {error ? <div className="draft-error" role="alert">{error}</div> : <DraftProgress message={draftPending?.connecting ? "Connecting to the server…" : "Preparing your table…"} />}
+      {(error || draftPending?.connecting) && <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>}
+    </div></main>;
+  }
+
   if (draftState || lobby?.gameMode === "draft") {
     return (
-      <DraftScreen
+      <Suspense fallback={<DraftProgress message="Loading your draft…" />}><DraftScreen
+        presentation={DRAFT_PRESENTATION}
+        onCancelDraft={() => socket.emit("cancelDraft")}
         draft={draftState}
         lobby={lobby}
         player={player}
         isSpectator={role === "spectator"}
         account={account}
         deckRules={gameContent.deckRules}
-        draftPickPending={draftPickPending}
+        draftPending={draftPending}
+        draftConnected={transportConnected && !matchReconnectPending}
+        error={error}
         draftSaveMessage={draftSaveMessage}
         onBack={returnToMainMenu}
         onCopyRoom={copyRoomCode}
@@ -5262,7 +5182,7 @@ export default function App() {
         onPickCard={pickDraftCard}
         onToggleDeckCard={toggleDraftDeckCard}
         onSaveDraftDeck={saveDraftDeck}
-      />
+      /></Suspense>
     );
   }
 
@@ -5283,12 +5203,13 @@ export default function App() {
           <div className="home-current-context">
             <span className="home-context-notch" aria-hidden="true" />
             <span className="home-context-player">
-              <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />
-              {account?.name || (playAsGuest ? guestName || "Guest" : "No player selected")}
+              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />}
+              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
             </span>
             <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
             <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
           </div>
+
           <div className="home-command-utilities">
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
@@ -5308,19 +5229,17 @@ export default function App() {
               />
               <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
             </div>
-            {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
+            {(account?.economy || (vaultRewardMinimized && packCredits > 0)) && <div className="home-command-balances">
+              {account?.economy && <CurrencyWallet economy={account.economy} compact />}
+              {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
+            </div>}
           </div>
         </div>
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {homeArea === "play" && (
-            <div className="play-hub">
-              <div className="play-view-tabs" role="tablist" aria-label="Play formats">
-                {[["practice", "Practice"], ["tables", "Tables"], ["ranked", "Ranked"], ["draft", "Draft"]].map(([viewId, label]) => (
-                  <button key={viewId} type="button" role="tab" aria-selected={playView === viewId} onClick={() => { if (playView !== viewId) playMenuCue("tab"); setPlayView(viewId); }}>{label}</button>
-                ))}
-              </div>
+            <PlayMenu view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
@@ -5329,9 +5248,9 @@ export default function App() {
                     {!account && <small>Play immediately as a guest. Sign in to keep progression and rewards.</small>}
                   </div>
                   {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
-                  <div className="play-choice-grid">
-                    <button type="button" onClick={() => startTutorialVsAi("basic")}><span>Core Game</span><strong>{gameContent.modeMetadata?.basic?.name || "Basic vs AI"}</strong><small>{gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."}</small></button>
-                    <button type="button" onClick={() => startTutorialVsAi("factions")}><span>Full Game</span><strong>{gameContent.modeMetadata?.factions?.name || "Factions vs AI"}</strong><small>{gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."}</small></button>
+                  <div className="play-mode-grid">
+                    <PlayModeCard eyebrow="Core Game" title={gameContent.modeMetadata?.basic?.name || "Basic vs AI"} description={gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."} image={TUTORIAL_ART} action="Enter training" onClick={() => startTutorialVsAi("basic")} />
+                    <PlayModeCard eyebrow="Full Game" title={gameContent.modeMetadata?.factions?.name || "Factions vs AI"} description={gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."} image="/assets/gauntlet/frumo-card.webp" accent="ice" action="Choose your faction" onClick={() => startTutorialVsAi("factions")} />
                   </div>
                 </MenuCard>
               )}
@@ -5353,9 +5272,9 @@ export default function App() {
                     </form>
                   </MenuCard>
                   <MenuCard className="play-focus-panel" title="Create Table">
-                    <div className="play-choice-grid">
-                      <button type="button" onClick={createRoom}><span>Two Players</span><strong>Duel</strong><small>Create a private faction table.</small></button>
-                      <button type="button" onClick={createFreeForAllRoom}><span>Two to Four</span><strong>Free-For-All</strong><small>Open a multiplayer faction table.</small></button>
+                    <div className="play-mode-grid">
+                      <PlayModeCard eyebrow="Two Players" title="Duel" description="Create a private faction table." image="/assets/gauntlet/rumin-card.webp" action="Create a duel" accent="brass" onClick={createRoom} />
+                      <PlayModeCard eyebrow="Two to Four" title="Free-For-All" description="Open a multiplayer faction table." image="/assets/gauntlet/sheen-card.webp" action="Gather your rivals" accent="sage" onClick={createFreeForAllRoom} />
                     </div>
                     <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
                   </MenuCard>
@@ -5407,6 +5326,20 @@ export default function App() {
                 </div>
               )}
 
+              {playView === "events" && (
+                <Suspense fallback={<div className="play-focus-panel">Loading events…</div>}>
+                  <EventHub
+                    serverUrl={SOCKET_URL}
+                    socket={socket}
+                    authToken={authToken}
+                    account={account}
+                    factions={gameContent.factions}
+                    onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
+                    onError={(message) => { setError(message); playMenuCue("denied"); }}
+                  />
+                </Suspense>
+              )}
+
               {playView === "draft" && (
                 <div className="play-draft-grid">
                   <MenuCard className="play-focus-panel" title="Draft or Sealed">
@@ -5424,10 +5357,10 @@ export default function App() {
                     {(gameContent.draftSets || []).find((set) => set.id === draftSetId)?.factionIds?.length > 0 && (
                       <p style={{ color: "#bfdbfe", fontSize: 13 }}>Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
                     )}
-                    <div className="play-choice-grid">
-                      <button type="button" onClick={createDraftRoom}><span>2–8 Players</span><strong>Draft with friends</strong><small>Live Draft: choose cards together, then build your deck.</small></button>
-                      <button type="button" onClick={createBotDraftRoom}><span>Solo Table</span><strong>Draft against bots</strong><small>Bot Draft: choose cards with seven automated drafters.</small></button>
-                      <button type="button" onClick={createSealedRoom}><span>6 Packs</span><strong>Open a Sealed pool</strong><small>Sealed: open a private pool from this set and build immediately.</small></button>
+                    <div className="play-mode-grid">
+                      <PlayModeCard eyebrow="2–8 Players" title="Draft with friends" description="Live Draft: choose cards together, then build your deck." image="/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg" action="Open a draft table" accent="sage" onClick={createDraftRoom} />
+                      <PlayModeCard eyebrow="Solo Table" title="Draft against bots" description="Bot Draft: choose cards with seven automated drafters." image="/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" action="Start your draft" accent="ice" onClick={createBotDraftRoom} />
+                      <PlayModeCard eyebrow="6 Packs" title="Open a Sealed pool" description="Sealed: open a private pool from this set and build immediately." image="/assets/gauntlet/menus/journey-expedition-v1.webp" action="Build from your pool" accent="brass" onClick={createSealedRoom} />
                     </div>
                   </MenuCard>
                   <MatchmakingPanel
@@ -5452,11 +5385,12 @@ export default function App() {
                   />
                 </div>
               )}
-            </div>
+            </PlayMenu>
           )}
 
           {homeArea === "journey" && (
             <div className="journey-hub">
+              <JourneyIntroduction campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
               {showOnboarding && (
                 <OnboardingPanel
                   canPlayAsPlayer={canPlayAsPlayer}
@@ -5468,6 +5402,7 @@ export default function App() {
               )}
               <div className="journey-route">
                 <section className="journey-learning-panel">
+                  <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
                   <div className="journey-panel-copy">
                     <span>Phase One / The Table</span>
                     <h3>Learn the rhythm of a turn</h3>
@@ -5484,9 +5419,9 @@ export default function App() {
                   </div>
                 </section>
                 <section className="journey-campaign-panel">
-                  <div className="journey-faction-strip" role="group" aria-label="Choose a faction campaign">
-                    {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
-                      <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
+                  <div className="journey-faction-strip" role="group" aria-label="Campaign factions" style={{ "--faction-count": Object.keys(gameContent.campaigns).length }}>
+                    {Object.entries(gameContent.campaigns).map(([factionId, campaign]) => (
+                      <span key={factionId} style={{ backgroundImage: `url(${resolveVisualAsset(FACTION_VISUALS[factionId]?.art || campaign.coverImage || JOURNEY_ART)})` }}><small>{campaign.factionName || factionId}</small></span>
                     ))}
                   </div>
                   <div className="journey-panel-copy">
@@ -5557,12 +5492,12 @@ export default function App() {
               </section>
               <div className="build-deck-stack">
                 <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
-                  <span className="build-deck-cover" aria-hidden="true" style={{ backgroundImage: `linear-gradient(rgba(3,8,13,0.08), rgba(3,8,13,0.72)), url(${resolveAssetPath(`/assets/gauntlet/${buildDeckFactionId}-card.webp`)})` }} />
+                  <DeckShowcase deck={activeConstructedDeck || { factionId: buildDeckFactionId }} cards={[...(account?.collection?.catalog?.[buildDeckFactionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} />
                   <div>
                     <span>Constructed / {constructedDecks.length} saved</span>
                     <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
                     <p>{activeConstructedDeck
-                      ? `${activeConstructedDeck.replacementCount || activeConstructedDeck.additionCount || 0} gameplay-card replacements.`
+                      ? `${activeConstructedVersion?.replacementCount || activeConstructedVersion?.additionCount || 0} gameplay-card replacements.`
                       : canCustomizeConstructedDeck
                         ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
                         : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
@@ -5571,7 +5506,7 @@ export default function App() {
                       onClick={() => {
                         if (activeConstructedDeck || canCustomizeConstructedDeck) {
                           playMenuCue("panelOpen");
-                          setShowCollection(true);
+                          setShowCollection("decks");
                         } else {
                           navigateHomeArea("journey");
                           playMenuCue("area");
@@ -5656,11 +5591,11 @@ export default function App() {
               <section className="identity-featured-decks" aria-labelledby="identity-featured-title">
                 <header className="identity-section-heading">
                   <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
-                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Manage Decks</MenuButton>
+                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection("decks"); }} disabled={!account}>Manage Decks</MenuButton>
                 </header>
                 {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
                   <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
-                    <DeckVisual deck={deck} decorative />
+                    {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(account?.collection?.catalog?.[deck.factionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} compact /> : <DeckVisual deck={deck} decorative />}
                     <div><span>{deck.factionName} · {deck.format === "draft" ? limitedDeckSourceLabel(deck.draftType) : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
                   </article>
                 ))}</div> : <p className="identity-empty-copy">Feature up to three decks from Build to make them part of your identity.</p>}
@@ -5891,6 +5826,10 @@ export default function App() {
       : null;
     const campaignClearType = completionEnvelope?.campaign?.firstClear ? "First clear" : completionEnvelope?.campaign?.repeatClear ? "Repeat clear" : null;
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
+    const eventReward = completionEnvelope?.event || null;
+    const unlockedCardStyles = completionEnvelope?.rewards?.cardStylesUnlocked || [];
+    const goldDelta = Number(completionEnvelope?.rewards?.goldDelta || 0);
+    const dailyQuestsCompleted = completionEnvelope?.rewards?.dailyQuestsCompleted || [];
     const unlockedAchievements = completionEnvelope?.rewards?.achievementsUnlocked || [];
     const unlockedCosmetics = completionEnvelope?.rewards?.cosmeticsUnlocked || [];
     const campaignEndDialogue = didWin && game.campaign ? buildCampaignEndDialogue(game.campaign) : [];
@@ -5949,6 +5888,10 @@ export default function App() {
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {eventReward && <div><strong>Event run:</strong> {eventReward.wins} win{eventReward.wins === 1 ? "" : "s"} · {eventReward.losses} loss{eventReward.losses === 1 ? "" : "es"}{eventReward.status === "complete" ? " · run complete" : ""}</div>}
+            {unlockedCardStyles.map((styleId) => <div key={styleId}><strong>Card style earned:</strong> {styleId.split(":")[0].replaceAll("-", " ")}</div>)}
+            {goldDelta > 0 && <div><strong>Daily quest gold:</strong> +{goldDelta.toLocaleString()}</div>}
+            {dailyQuestsCompleted.length > 0 && <div><strong>Quests completed:</strong> {dailyQuestsCompleted.map((quest) => `${quest.name} (+${quest.gold} gold)`).join(", ")}</div>}
             {completionEnvelope?.season && <div><strong>{completionEnvelope.season.displayName}:</strong> {String(completionEnvelope.season.seriesResult || completionEnvelope.season.result).toUpperCase()} · {completionEnvelope.season.pointsDelta > 0 ? "+" : ""}{completionEnvelope.season.pointsDelta} points · {completionEnvelope.season.record?.points || 0} total{completionEnvelope.season.rank ? ` · rank #${completionEnvelope.season.rank}` : ""}</div>}
             {unlockedAchievements.length > 0 && <div><strong>Achievements:</strong> {unlockedAchievements.map((achievement) => achievement.name || achievement.id).join(", ")}</div>}
             {unlockedCosmetics.length > 0 && <div><strong>Cosmetics:</strong> {unlockedCosmetics.map((cosmetic) => cosmetic.id).join(", ")}</div>}

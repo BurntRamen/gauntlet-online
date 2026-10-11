@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./TestHarness.css";
 
 const suits = ["spades", "hearts", "diamonds", "clubs"];
-const supportTypes = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
+const supportTypes = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
 const zones = { hand: "Hand", deck: "Deck · draws first", discard: "Discard", combat: "Combat lanes", support: "Support lanes" };
 const basePlayer = factionId => ({ factionId, life: 42, accelerationCounters: 0, revenants: 0, attacksDeclaredThisTurn: 0, blocksDeclaredThisTurn: 0, previousPlayedValue: null, previousAttackSuit: null, hand: [], deck: [], discard: [], combat: [null, null, null], support: [null, null, null] });
 export function initialScenario(factionId = "rumin", card) {
@@ -25,7 +25,7 @@ export default function ScenarioBuilder({ request, value, onChange, factions, ca
   const updatePlayer = (id, patch) => onChange({ ...value, players: { ...value.players, [id]: { ...value.players[id], ...patch } } });
   if (!spec) return <p role={error ? "alert" : "status"}>{error || "Loading supported scenario controls…"}</p>;
   const allowedSuits = spec.suits || suits, allowedValues = spec.values || Array.from({ length: 13 }, (_, i) => i + 2);
-  const zoneCards = (player, zone) => cards.filter(card => card.factionId === player.factionId && (zone === "support" ? supportTypes.has(card.type) : zone === "combat" ? !supportTypes.has(card.type) : true));
+  const zoneCards = (player, zone) => cards.filter(card => [player.factionId, "neutral"].includes(card.factionId) && (zone === "support" ? supportTypes.has(card.type) : zone === "combat" ? !supportTypes.has(card.type) : true));
   const nextSlot = (player, zone) => freeSlot(player, allowedSuits, allowedValues, zone === "support" ? zoneCards(player, zone) : undefined);
   return <section className="admin-scenario" aria-label="Custom starting state"><div className="admin-title-row"><h5>Custom starting state</h5><button type="button" disabled={disabled} onClick={onClose}>Use standard setup</button></div><p className="admin-note">This configures a temporary test, not a played history. Unassigned value/suit slots remain in the deck. Deck entries are drawn first, in the order shown. Start a new test to apply changes.</p>
     <div className="scenario-controls"><label>Starting turn<input type="number" min={spec.turn.min} max={spec.turn.max} value={value.turn} disabled={disabled} onChange={event => onChange({ ...value, turn: Number(event.target.value) })} /></label><label>Starting priority<select value={value.priority} disabled={disabled} onChange={event => onChange({ ...value, priority: Number(event.target.value) })}><option value={1}>Player 1</option><option value={2}>Player 2</option></select></label></div>

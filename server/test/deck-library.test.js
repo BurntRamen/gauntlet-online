@@ -5,6 +5,7 @@ const { server, __test } = require("../index");
 
 const {
   applyDeckResult,
+  buildPublicPlayerProfile,
   getSavedConstructedDeck,
   getSavedDraftDeck,
   normalizeDeckLibrary,
@@ -24,6 +25,34 @@ test("Mekan saves a standard 52-card deck with exactly one General and restores 
   assert.equal(playableDeck.cardCount, 52);
   assert.equal(getSavedConstructedDeck(stats).generalId, "hui");
   assert.throws(() => saveConstructedDeckToLibrary(stats, { factionId: "mekan", generalId: "forged" }, "mekan-owner"), /General/);
+});
+
+test("front cards and boxes survive reloads and duplication and are included in public showcases", () => {
+  const stats = makeConstructedStats();
+  const cardId = "rumin-gilded-scale-legionary";
+  const variantId = cardId + ":collector-foil";
+  stats.collection.collectorVariants = { [variantId]: 1 };
+  const original = saveConstructedDeckToLibrary(stats, constructedPayload({ deckBoxId: "obsidian", frontCardSlot: "3:spades", collectorVariantSelections: { [cardId]: variantId } }), "account-1");
+  const firstVersion = original.record.versions[0];
+  const reloaded = JSON.parse(JSON.stringify(stats));
+  assert.equal(getSavedConstructedDeck(reloaded).frontCardSlot, "3:spades");
+  assert.equal(getSavedConstructedDeck(reloaded).collectorVariantSelections[cardId], variantId);
+  const duplicate = updateDeckLibraryRecord(reloaded, original.record.id, { action: "duplicate" });
+  assert.equal(duplicate.versions[0].frontCardSlot, "3:spades");
+  updateDeckLibraryRecord(reloaded, duplicate.id, { action: "feature" });
+  const featured = buildPublicPlayerProfile({ id: "account-1", name: "Builder", stats: reloaded }).featuredDecks[0];
+  assert.equal(featured.deckBoxId, "obsidian");
+  assert.equal(featured.frontCard.suit, "spades");
+  assert.equal(featured.frontCard.collector.finish, "foil");
+  assert.equal(featured.versions, undefined);
+  const updated = saveConstructedDeckToLibrary(stats, constructedPayload({ deckId: original.record.id, deckBoxId: "obsidian", frontCardSlot: "14:clubs", collectorVariantSelections: { [cardId]: variantId } }));
+  assert.equal(updated.record.versions[0].frontCardSlot, "3:spades");
+  assert.equal(updated.record.versions[1].gameplayConfigurationHash, firstVersion.gameplayConfigurationHash);
+  assert.notEqual(updated.record.versions[1].collectorConfigurationHash, firstVersion.collectorConfigurationHash);
+  assert.equal(updated.playableDeck.frontCardSlot, "14:clubs");
+  for (const frontCardSlot of ["15:clubs", "3:invalid", {}, ""]) {
+    assert.throws(() => saveConstructedDeckToLibrary(stats, constructedPayload({ frontCardSlot })), /valid front card/);
+  }
 });
 
 test("saved collector choices survive reload and can be replaced by standard without changing gameplay", () => {

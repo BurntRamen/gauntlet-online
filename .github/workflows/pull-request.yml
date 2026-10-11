@@ -55,6 +55,9 @@ jobs:
       - name: Test live Babylon browser flows
         run: npm run test:e2e
 
+      - name: Test draft entry, picks, reconnects and deck saving
+        run: npx playwright test --config=playwright.draft.config.js
+
       - name: Test deck workshop and pack reveals
         run: npm run test:e2e:workshop
 

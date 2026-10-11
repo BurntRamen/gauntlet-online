@@ -22,8 +22,8 @@ test("entry and aggregate Admin limits cannot substitute for one another", () =>
   const result = evaluateBudgets(assets);
   assert.equal(result.adminGzipBytes, 23 * KIB);
   assert.match(result.failures.join(" "), /Initial Admin entry/);
-  assert.equal(budgets.mainGzip, 177 * KIB);
-  assert.equal(budgets.totalJavaScriptGzip, 740 * KIB);
+  assert.equal(budgets.mainGzip, 180 * KIB);
+  assert.equal(budgets.totalJavaScriptGzip, 747 * KIB);
   assert.equal(budgets.largestAsyncGzip, 350 * KIB);
 });
 

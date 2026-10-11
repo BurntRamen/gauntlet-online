@@ -15,7 +15,7 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
   const activeLabel = areas.find((area) => area.id === activeArea)?.label || "Journey";
 
   return (
-    <>
+    <div className={`home-navigation home-navigation-${activeArea}`}>
       <nav className="home-area-nav" aria-label="Gauntlet areas">
         {areas.map((area) => (
           <button
@@ -47,11 +47,11 @@ export default function HomeNavigation({ activeArea, onSelectArea, onPreloadArea
           <h2 id="home-area-title">{activeLabel}</h2>
         </div>
         <div className="home-area-content-inner" key={activeArea}>
-          {nextStep && <NextStepNotice nextStep={nextStep} activeArea={activeArea} onSound={onSound} />}
           {children}
         </div>
       </section>
-    </>
+      {nextStep && <NextStepNotice nextStep={nextStep} activeArea={activeArea} onSound={onSound} />}
+    </div>
   );
 }
 

@@ -23,6 +23,13 @@ test("full-art catalog and responsive workshop preserve selected suits and saved
   await page.getByRole("tab", { name: "Catalog", exact: true }).click();
   await expect(page.locator(".catalog-card-tile .custom-playing-card-face")).toHaveCount(72);
   await expect.poll(() => page.locator(".catalog-card-tile img").evaluateAll((images) => images.every((img) => img.complete && img.naturalWidth === 500))).toBe(true);
+  const catalogFaces = await page.locator(".catalog-card-tile > .special-card-presentation").evaluateAll((faces) => faces.map((face) => {
+    const bounds = face.getBoundingClientRect();
+    return { width: bounds.width, height: bounds.height };
+  }));
+  expect(catalogFaces.every(({ width, height }) => Math.abs(width / height - (5 / 7)) < 0.01)).toBe(true);
+  expect(new Set(catalogFaces.map(({ width }) => Math.round(width))).size).toBe(1);
+  expect(new Set(catalogFaces.map(({ height }) => Math.round(height))).size).toBe(1);
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await page.getByLabel("Deck faction", { exact: true }).selectOption("sheen");
   const definition = COLLECTION_CARDS.find((entry) => entry.id === "sheen-raincall-mender");

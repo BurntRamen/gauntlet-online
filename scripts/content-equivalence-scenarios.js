@@ -17,7 +17,11 @@ function scenarios(engine) {
   const base = (faction) => engine.createMatch({ seed: "v2-equivalence", matchId: "equivalence", gameMode: "factions", startingPriority: 1, factions: { 1: engine.FACTION_PROFILES[faction], 2: engine.FACTION_PROFILES.sheen } }).state;
   const card = (definition, prefix, suit = "♦") => ({ ...clone(definition), id: `${prefix}-${definition.id}`, definitionId: definition.id, suit, rank: String(definition.value), draftCard: true });
   const payment = (prefix) => ["♦", "♠", "♥", "♣"].map((suit, index) => ({ id: `${prefix}-pay-${index}`, name: "Payment", value: 14, rank: "A", suit }));
-  for (const definition of COLLECTION_CARDS) for (let turnIndex = 0; turnIndex < 4; turnIndex++) {
+  // This fixture captures the 126-card production catalog that existed before
+  // neutral Reath cards were introduced. Neutral cards have their own contract
+  // tests and must not rewrite the historical equivalence baseline.
+  const legacyDefinitions = COLLECTION_CARDS.filter((definition) => definition.factionId !== "neutral");
+  for (const definition of legacyDefinitions) for (let turnIndex = 0; turnIndex < 4; turnIndex++) {
     const key = `${definition.id}:${turnIndex}`;
     const game = base(definition.factionId), subject = card(definition, "subject");
     const actor = game.players[1];

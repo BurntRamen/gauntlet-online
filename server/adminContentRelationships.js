@@ -37,7 +37,7 @@ function deriveRelationships(snapshot) {
   const encounters = new Map(snapshot.domains.encounters.map(row => [row.id, row]));
   for (const [domain, rows] of Object.entries(snapshot.domains)) for (const row of rows) {
     const from = keyOf(domain, row.id);
-    if (row.factionId) link(from, "factions", row.factionId, "faction");
+    if (row.factionId && !(domain === "cards" && row.factionId === "neutral")) link(from, "factions", row.factionId, "faction");
     for (const field of ["image", "cardImage", "coverImage", "art"]) asset(from, row[field]);
     for (const field of ["dialogueAudio", "endDialogueAudio"]) for (const reference of list(row[field])) asset(from, reference);
     if (domain === "campaigns") for (const id of row.encounterIds) link(from, "encounters", id, "contains-encounter");

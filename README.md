@@ -118,7 +118,7 @@ Server variables:
 | `PUBLIC_CLIENT_URL` | Public client origin used to construct personalized collector claim links | HTTPS `CLIENT_URL`, otherwise the production Vercel URL |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service key | Empty; never expose to the client |
-| `PACK_PURCHASE_URL` | Optional checkout base URL for cosmetic collector-variant packs; paid packs never grant gameplay cards or competitive power | Empty |
+| `PACK_PURCHASE_URL` | Checkout base URL for Set 1, Set 2, and faction cosmetic collector packs; the server appends the product and account identifiers. Paid packs never grant gameplay cards or competitive power. Set 3 checkout remains locked until its card catalog exists. | Empty |
 
 Safe templates are available in `client/.env.example` and `server/.env.example`. Real `.env` files are ignored.
 

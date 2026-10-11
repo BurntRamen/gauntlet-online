@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { COLLECTION_CARDS } = require("../server/gameContent");
+const { COLLECTION_CARDS, getFactionById } = require("../server/gameContent");
 const { CARD_WORDING, KEYWORDS } = require("../server/cardWording");
 const { layoutCard, textWidth, RULE_FONT_SIZE, CAPTION_WIDTH } = require("./build-custom-card-faces");
 
@@ -14,6 +14,9 @@ test("every custom card has concise text, a guide anchor and full rules", () => 
   for (const card of COLLECTION_CARDS) {
     assert.ok(card.displayText.length < card.text.length, card.id);
     assert.ok(guide.includes(`id="${card.id}"`), card.id);
+    const article = guide.split(`<article id="${card.id}">`)[1].split("</article>")[0];
+    const faction = card.factionId === "neutral" ? "Neutral · Usable in any faction" : getFactionById(card.factionId).name;
+    assert.ok(article.includes(`<span class="card-faction">Faction: ${faction}</span>`), `${card.id} faction must be visible at its deep link`);
     assert.ok(card.text && card.text !== card.displayText, card.id);
   }
   assert.equal(KEYWORDS.length, 10);

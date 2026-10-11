@@ -49,6 +49,8 @@ function makeHarness({ failPersist = false, failConsequence = false } = {}) {
         result: consequence.result,
         boosterCreditDelta: consequence.result === "win" ? 1 : 0,
         boosterCreditReason: "campaign_first_clear",
+        goldDelta: consequence.result === "win" ? 500 : 0,
+        dailyQuestsCompleted: consequence.result === "win" ? [{ id: "win-one", name: "Claim Victory", gold: 500 }] : [],
         campaign: consequence.result === "win" ? { outcome: "cleared", firstClear: true, clearType: "first-clear" } : { outcome: "not-cleared", firstClear: false },
         progression: { campaign: { rumin: [consequence.context.campaign.chapterId] } },
         achievementsUnlocked: [{ id: "first-campaign-clear" }],
@@ -75,6 +77,8 @@ test("finalizes a campaign victory once and returns the durable completion envel
   assert.equal(first.envelope.campaign.firstClear, true);
   assert.equal(first.envelope.campaign.image, "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp");
   assert.equal(first.envelope.rewards.boosterCreditDelta, 1);
+  assert.equal(first.envelope.rewards.goldDelta, 500);
+  assert.deepEqual(first.envelope.rewards.dailyQuestsCompleted, [{ id: "win-one", name: "Claim Victory", gold: 500 }]);
   assert.equal(first.envelope.campaign.nextMission.chapterId, "second-march");
   assert.equal(retry.alreadyFinalized, true);
   assert.equal(harness.records.size, 1);

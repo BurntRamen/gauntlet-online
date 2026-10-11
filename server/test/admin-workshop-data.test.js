@@ -11,7 +11,7 @@ const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks },
 test("workshop guidance mirrors deployed contracts and cannot be rewritten by draft card wording", () => {
   const store = createContentPublication({ baseline, memory: true });
   const first = workshopMetadata(selectWorkshopSnapshot(store.status()));
-  assert.equal(first.cardEffects.length, 126);
+  assert.deepEqual(first.cardEffects.map(row => row.id).sort(), baseline.domains.cards.map(row => row.effect.id).sort());
   assert.equal(first.factionEffects.length, 10);
   assert.equal(first.bossAbilities.length, 6);
   assert.equal(first.gameConfig.startingLife, 42);
@@ -26,7 +26,7 @@ test("workshop guidance mirrors deployed contracts and cannot be rewritten by dr
   assert.throws(() => selectWorkshopSnapshot(store.status(), { source: "other" }), { status: 400 });
   const invalid = store.patch({ expectedRevision: store.status().revision, domain: "factions", id: "rumin", field: "mechanics", value: null });
   assert.equal(invalid.validation.valid, false);
-  assert.equal(workshopMetadata(selectWorkshopSnapshot(invalid, { source: "draft" })).cardEffects.length, 126, "Invalid authored values cannot hide workshop guidance needed to fix them");
+  assert.equal(workshopMetadata(selectWorkshopSnapshot(invalid, { source: "draft" })).cardEffects.length, baseline.domains.cards.length, "Invalid authored values cannot hide workshop guidance needed to fix them");
 });
 
 test("private workshop reads reject unauthenticated access, stale hashes and never mutate content or receipts", async t => {
@@ -53,7 +53,7 @@ test("private workshop reads reject unauthenticated access, stale hashes and nev
   assert.equal((await get("/releases/not-a-release/review")).status, 400);
   const presentation = await (await get(`/presentation?hash=${hash(baseline)}`)).json();
   assert.equal(presentation.resolved.releaseId, status.activeReleaseId);
-  assert.equal(presentation.resolved.manifest.cards.length, 126);
+  assert.equal(presentation.resolved.manifest.cards.length, baseline.domains.cards.length);
   assert.deepEqual(store.exportState(), before);
 });
 

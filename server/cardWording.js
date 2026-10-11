@@ -4,7 +4,7 @@
 const WORDING_VERSION = "card-wording-v1";
 const CONVENTIONS = [
   "Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.",
-  "Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.",
+  "Only Servitors and standard playing cards attack or block. Armaments, Weaponry, Spells, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.",
   "Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.",
   "First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.",
   "+N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.",
@@ -149,7 +149,25 @@ const CARD_WORDING = {
   "indela-glacial-insight": "Even omen, first clean block: draw 1 extra at turn end.",
   "indela-ring-of-fire": "Odd omen: your third+ attacks +1 value.",
   "indela-frost-nova": "Even omen: your blocks +1 value.",
-  "indela-elemental-array": "First attack or block matching your omen parity: +1 value."
+  "indela-elemental-array": "First attack or block matching your omen parity: +1 value.",
+  "neutral-soldier": "First attack: +1 value.",
+  "neutral-sergeant": "First block: +1 value.",
+  "neutral-lieutenant": "Attack after a lower-value play: +1 value.",
+  "neutral-bodyguard": "Lane block: +2 value.",
+  "neutral-officer": "Attack: +1 value.",
+  "neutral-wrestler": "Block a higher-value attacker: +2 value.",
+  "neutral-saboteur": "Attack, while you control a support: +1 value.",
+  "neutral-strategist": "First attack: draw 1 extra at turn end.",
+  "neutral-security-guard": "First lane block: +2 value.",
+  "neutral-field-marshal": "Attack: +1 per other Servitor, up to +2.",
+  "neutral-think": "Pay: pays +1.",
+  "neutral-hospital": "First clean block: Heal 1.",
+  "neutral-library": "First clean block: draw 1 extra at turn end.",
+  "neutral-assembly-station": "First Servitor attack: one payment card pays +1.",
+  "neutral-smoke-bomb": "First block: reveal for Ward 2. Then discard this.",
+  "neutral-longsword": "First lane attack: reveal for +2 value. Then discard this.",
+  "neutral-tower-shield": "First block: reveal for Ward 2. Then discard this.",
+  "neutral-holy-ground": "Your blocked attacks: Ward 1."
 };
 
 // ‘New suit’ always compares attacks, never payments or other card plays.

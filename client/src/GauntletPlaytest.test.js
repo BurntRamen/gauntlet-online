@@ -119,3 +119,15 @@ test("bookkeeping-only draft revision changes retain the captured identity and a
   expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ id: session.id, gameRevision: 3, command: { type: "passPriority", player: 1 }, automated: false });
   expect(onSession.mock.calls[0][0].draftRevision).toBe(7);
 });
+
+test("neutral cards allow choosing a real test faction", async () => {
+  const row = { id: "neutral-soldier", factionId: "neutral", name: "Soldier" };
+  const request = jest.fn().mockResolvedValue({ playtest: null });
+  render(<GauntletPlaytest request={request} state={{ ...state, draft: null, live: { domains: { ...state.live.domains, cards: [row] } } }} domain="cards" row={row} />);
+  const selector = screen.getByLabelText("Test faction");
+  expect(selector).toBeEnabled(); expect(selector).toHaveValue("rumin");
+  fireEvent.change(selector, { target: { value: "sheen" } });
+  fireEvent.click(screen.getByRole("button", { name: "Start live duel playtest" }));
+  await waitFor(() => expect(request).toHaveBeenCalled());
+  expect(JSON.parse(request.mock.calls[0][1].body)).toMatchObject({ source: "live", factionId: "sheen", subject: { kind: "card", id: row.id } });
+});

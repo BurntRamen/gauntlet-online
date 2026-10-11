@@ -13,6 +13,7 @@ const {
   DRAFT_SETS,
   FRUMO_COLLECTION_CARDS,
   INDELA_COLLECTION_CARDS,
+  NEUTRAL_COLLECTION_CARDS,
   RUMIN_COLLECTION_CARDS,
   RULES_VERSION,
   SHEEN_COLLECTION_CARDS,
@@ -44,6 +45,16 @@ test("validates the authoritative versioned game content registry", () => {
   for (const faction of content.factions) {
     assert.deepEqual(Object.keys(faction.commander.announcements).sort(), ["clicked", "critical", "denied", "selected", "wounded"]);
     assert.equal(Object.values(faction.commander.announcements).every((line) => typeof line === "string" && line.length > 10), true, faction.id);
+    assert.equal(Array.isArray(faction.commander.voiceHints) && faction.commander.voiceHints.length >= 4, true, faction.id);
+  }
+
+  const rumin = content.factions.find((faction) => faction.id === "rumin");
+  const sheen = content.factions.find((faction) => faction.id === "sheen");
+  assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
+  assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
+  for (const faction of [rumin, sheen]) {
+    assert.match(faction.commander.announcementAudio.selected, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio.selected)), true);
   }
 });
 
@@ -119,7 +130,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
     .map((card) => require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id)
     .filter((effectId) => !effectId || !sharedRulesSource.includes(`"${effectId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 126);
+  assert.equal(COLLECTION_CARDS.length, 144);
   assert.deepEqual(missing, []);
 });
 
@@ -141,7 +152,7 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
 });
 
 test("assigns every constructed card one unique, balanced rank-and-suit slot", () => {
-  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS, ZYNARTH_COLLECTION_CARDS, ASTRAL_VANGUARD_COLLECTION_CARDS, INDELA_COLLECTION_CARDS]) {
+  for (const cards of [RUMIN_COLLECTION_CARDS, SHEEN_COLLECTION_CARDS, FRUMO_COLLECTION_CARDS, BIZI_COLLECTION_CARDS, ZYNARTH_COLLECTION_CARDS, ASTRAL_VANGUARD_COLLECTION_CARDS, INDELA_COLLECTION_CARDS, NEUTRAL_COLLECTION_CARDS]) {
     const slots = cards.map((card) => `${card.value}:${card.suit}`);
     assert.equal(new Set(slots).size, cards.length);
     assert.equal(cards.every((card) => ["spades", "hearts", "diamonds", "clubs"].includes(card.suit)), true);
@@ -165,7 +176,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     .map((card) => card.id)
     .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 126);
+  assert.equal(COLLECTION_CARDS.length, 144);
   assert.deepEqual(missing, []);
 });
 
@@ -226,9 +237,9 @@ test("draft sets publish their factions and packs stay inside the selected set",
   const beyond = DRAFT_SETS.find((set) => set.id === "reath-beyond");
   for (let run = 0; run < 20; run += 1) {
     const initiativePack = __test.createDraftPack(1, initiative.factionIds);
-    assert.equal(initiativePack.cards.every((card) => initiative.factionIds.includes(card.factionId)), true);
+    assert.equal(initiativePack.cards.every((card) => card.factionId === "neutral" || initiative.factionIds.includes(card.factionId)), true);
     const beyondPack = __test.createDraftPack(1, beyond.factionIds);
-    assert.equal(beyondPack.cards.every((card) => beyond.factionIds.includes(card.factionId)), true);
+    assert.equal(beyondPack.cards.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   }
 
   const room = __test.createDraftRoom({ setId: "reath-beyond" });
@@ -236,7 +247,7 @@ test("draft sets publish their factions and packs stay inside the selected set",
   room.lobby.players[2].connected = true;
   __test.startDraft(room);
   const allCards = Object.values(room.draft.currentPacks).flatMap((pack) => pack.cards);
-  assert.equal(allCards.every((card) => beyond.factionIds.includes(card.factionId)), true);
+  assert.equal(allCards.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   assert.equal(__test.sanitizeDraftForViewer(room, 1).setId, "reath-beyond");
   const sealedRoom = __test.createDraftRoom({ setId: "reath-beyond", sealed: true });
   sealedRoom.lobby.players[1].connected = true;
@@ -246,7 +257,7 @@ test("draft sets publish their factions and packs stay inside the selected set",
   assert.equal(sealedView.sealed, true);
   assert.equal(sealedView.status, "building");
   assert.equal(sealedView.myPool.length, 48);
-  assert.equal(sealedView.myPool.every((card) => beyond.factionIds.includes(card.factionId)), true);
+  assert.equal(sealedView.myPool.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   assert.equal(sealedSpectator.myPool.length, 0);
   assert.throws(() => __test.createDraftRoom({ setId: "legacies" }), /still in development/);
   assert.throws(() => __test.createDraftRoom({ setId: "legacies", sealed: true }), /still in development/);

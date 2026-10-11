@@ -108,3 +108,20 @@ test("busy scenario setup cannot change or close", async () => {
   expect(close).toBeDisabled(); fireEvent.click(close);
   expect(onClose).not.toHaveBeenCalled(); expect(onChange).not.toHaveBeenCalled();
 });
+
+test("neutral spells and weaponry appear only in eligible scenario lanes", async () => {
+  const neutral = [{ id: "neutral-soldier", name: "Soldier", factionId: "neutral", type: "servitor", value: 2 },
+    { id: "neutral-think", name: "Think", factionId: "neutral", type: "spell", value: 3 },
+    { id: "neutral-longsword", name: "Longsword", factionId: "neutral", type: "weaponry", value: 8 }];
+  const initial = initialScenario("rumin");
+  initial.players[1].combat[0] = { value: 2, suit: "clubs" };
+  initial.players[1].support[0] = { cardId: "rumin-arm", value: 7, suit: "spades" };
+  render(<Harness initial={initial} cards={[...cards, ...neutral]} />);
+  const combat = within(await screen.findByLabelText("Player 1 combat 1 card"));
+  const support = within(screen.getByLabelText("Player 1 support 1 card"));
+  expect(combat.getByRole("option", { name: /Soldier/ })).toBeInTheDocument();
+  expect(combat.queryByRole("option", { name: /Think|Longsword/ })).not.toBeInTheDocument();
+  expect(support.getByRole("option", { name: /Think/ })).toBeInTheDocument();
+  expect(support.getByRole("option", { name: /Longsword/ })).toBeInTheDocument();
+  expect(support.queryByRole("option", { name: /Soldier/ })).not.toBeInTheDocument();
+});

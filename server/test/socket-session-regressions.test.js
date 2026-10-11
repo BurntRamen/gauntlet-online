@@ -282,7 +282,7 @@ test("sealed room creation opens a private six-pack pool for the selected set", 
   assert.equal(state.roomCode, assignment.roomCode);
   assert.equal(state.packsPerPlayer, 6);
   assert.equal(state.myPool.length, 48);
-  assert.equal(state.myPool.every((card) => ["zynarth", "astral-vanguard"].includes(card.factionId)), true);
+  assert.equal(state.myPool.every((card) => ["zynarth", "astral-vanguard", "neutral"].includes(card.factionId)), true);
   host.disconnect();
 });
 

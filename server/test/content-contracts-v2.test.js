@@ -195,5 +195,5 @@ test("v1 migration retains authored edits and newer production defaults simultan
   const migrated = require("../contentMigration").migrateV1(legacy, baseline);
   assert.equal(migrated.domains.campaigns[0].pitch, legacy.domains.campaigns[0].pitch);
   assert.deepEqual(migrated.domains.cards, baseline.domains.cards);
-  assert.equal(migrated.domains.cards.length, 126);
+  assert.equal(migrated.domains.cards.length, 144);
 });

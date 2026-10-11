@@ -205,10 +205,10 @@ test("a full bot draft can be saved and found in the deck library", async ({ pag
     const pack = page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: /Current Pack/ }) });
     const card = pack.getByRole("button").first();
     await expect(card).toBeEnabled();
-    const previous = await page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: "Draft Status" }) }).textContent();
+    const progress = page.getByRole("progressbar", { name: /Draft progress:|Draft complete/ });
+    const previous = Number(await progress.getAttribute("value"));
     await card.click();
-    await expect.poll(async () => (await page.getByRole("heading", { name: /Build Draft Deck/ }).count()) > 0
-      || (await page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: "Draft Status" }) }).textContent()) !== previous).toBe(true);
+    await expect(progress).toHaveAttribute("value", String(previous + 1));
   }
   await expect(page.getByRole("heading", { name: /Build Draft Deck/ })).toBeVisible();
   const build = page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: /Build Draft Deck/ }) });

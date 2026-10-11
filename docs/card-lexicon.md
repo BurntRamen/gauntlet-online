@@ -18,7 +18,7 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 ## Conventions
 
 - Every faction card has a fixed printed rank and suit and replaces the standard playing card with that exact rank and suit. Its suit cannot be reassigned during deckbuilding.
-- Only Servitors and standard playing cards attack or block. Armaments, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.
+- Only Servitors and standard playing cards attack or block. Armaments, Weaponry, Spells, Shelters, Ambushes, Contraptions, Biomorphs, Operations and Arcana enter a lane's support slot and remain there until their text or another rule removes them.
 - Read each line as trigger or condition: effect. Attack, Block, Pay and Enter refer to this card unless another card is named. Enter means entering one of your lanes.
 - First, second, third and fourth count your actions each turn. Second+ means second or later. Next effects expire at turn end. Once triggers on the first qualifying event each turn, unless an optional activation is stated.
 - +N value is an additional bonus for the stated attack, block or payment. A bonus lasting longer says ‘this turn’. ‘Instead’ replaces a bonus; it does not add another one.
@@ -155,3 +155,21 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Ring of Fire | Odd omen: your third+ attacks +1 value. | While this occupies a support slot and your omen is odd, your third and later attacks get +1 value. |
 | Frost Nova | Even omen: your blocks +1 value. | While this occupies a support slot and your omen is even, your blocking cards get +1 value. |
 | Elemental Array | First attack or block matching your omen parity: +1 value. | While this occupies a support slot, your first attack or block each turn matching your omen's parity gets +1 value. |
+| Soldier | First attack: +1 value. | On your first attack each turn, this gets +1 value. |
+| Sergeant | First block: +1 value. | On your first block each turn, this gets +1 value. |
+| Lieutenant | Attack after a lower-value play: +1 value. | If the last card you played had lower value, this gets +1 value when it attacks. |
+| Bodyguard | Lane block: +2 value. | When this blocks from a lane, it gets +2 value. |
+| Officer | Attack: +1 value. | When this attacks, it gets +1 value. |
+| Wrestler | Block a higher-value attacker: +2 value. | When this blocks a higher-value attacker, it gets +2 value. |
+| Saboteur | Attack, while you control a support: +1 value. | If you control a support card, this gets +1 value when it attacks. |
+| Strategist | First attack: draw 1 extra at turn end. | The first time this attacks each turn, draw 1 extra card at turn end. |
+| Security Guard | First lane block: +2 value. | On your first lane block each turn, this gets +2 value. |
+| Field Marshal | Attack: +1 per other Servitor, up to +2. | When this attacks, it gets +1 value for each other Servitor you control, up to +2. |
+| Think | Pay: pays +1. | When you use this as a payment card, it pays +1 additional value. |
+| Hospital | First clean block: Heal 1. | After your first clean block each turn, gain 1 life. |
+| Library | First clean block: draw 1 extra at turn end. | After your first clean block each turn, draw 1 extra card at turn end. |
+| Assembly Station | First Servitor attack: one payment card pays +1. | Your first Servitor attack each turn may treat one payment card as +1 value. |
+| Smoke Bomb | First block: reveal for Ward 2. Then discard this. | Reveal on your first block to prevent 2 damage from that attack. Then discard this. |
+| Longsword | First lane attack: reveal for +2 value. Then discard this. | Reveal on your first lane attack to give it +2 value. Then discard this. |
+| Tower Shield | First block: reveal for Ward 2. Then discard this. | Reveal on your first block to prevent 2 damage from that attack. Then discard this. |
+| Holy Ground | Your blocked attacks: Ward 1. | While this occupies a support slot, prevent 1 damage from each blocked attack. |

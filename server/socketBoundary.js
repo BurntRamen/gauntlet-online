@@ -1,5 +1,5 @@
 const OBJECT_EVENTS = new Set([
-  "joinMatchmaking", "joinDraftLeague", "createRoom", "createFriendChallenge",
+  "joinMatchmaking", "joinEventMatchmaking", "joinDraftLeague", "createRoom", "createFriendChallenge",
   "createFreeForAllRoom", "createDraftRoom", "createBotDraftRoom", "createSealedRoom", "createAiTutorialRoom",
   "createCampaignRoom", "joinRoom", "reconnectToRoom", "selectFaction", "setGameMode",
   "draftPick", "setDraftDeckAdditions", "duelCommand", "requestMatchState", "respondDraw",
@@ -7,7 +7,7 @@ const OBJECT_EVENTS = new Set([
   "useFocusBuff", "placeFacedown", "skipEndPlacement"
 ]);
 const STRING_FIELDS = ["authToken", "guestName", "roomCode", "reconnectToken", "role",
-  "friendId", "factionId", "chapterId", "draftType", "cardCopyId", "commandId"];
+  "friendId", "factionId", "eventId", "chapterId", "draftType", "cardCopyId", "commandId"];
 const ROOM_ENTRY_EVENTS = new Set([
   "createRoom", "createFriendChallenge", "createFreeForAllRoom", "createDraftRoom",
   "createBotDraftRoom", "createSealedRoom", "createAiTutorialRoom", "createCampaignRoom", "joinRoom"

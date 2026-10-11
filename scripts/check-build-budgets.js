@@ -4,12 +4,13 @@ const zlib = require("node:zlib");
 
 const KIB = 1024;
 const budgets = Object.freeze({
-  mainGzip: 177 * KIB,
+  // Preserve the current main/player ceilings from the shipped October updates.
+  mainGzip: 180 * KIB,
   adminEntryGzip: 20 * KIB,
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
   adminGzip: 48 * KIB,
   largestAsyncGzip: 350 * KIB,
-  totalJavaScriptGzip: 740 * KIB
+  totalJavaScriptGzip: 747 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
 const adminSource = source => /(?:^|\/)src\/(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));

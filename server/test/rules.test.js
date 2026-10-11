@@ -344,13 +344,14 @@ test("preserves constructed definition identity on unique match card instances",
 
 test("server-authored matches reconstruct every catalog card with stable private instance identity", () => {
   for (const card of COLLECTION_CARDS) {
+    const playableFactionId = card.factionId === "neutral" ? "rumin" : card.factionId;
     const makeRoom = () => ({
       roomCode: `CAT-${card.id}`,
       lobby: {
         gameMode: "factions",
         players: {
           1: {
-            factionId: card.factionId,
+            factionId: playableFactionId,
             accountName: "Catalog Builder",
             savedConstructedDeck: {
               cards: [{
@@ -360,7 +361,7 @@ test("server-authored matches reconstruct every catalog card with stable private
               }]
             }
           },
-          2: { factionId: card.factionId, accountName: "Catalog Opponent" }
+          2: { factionId: playableFactionId, accountName: "Catalog Opponent" }
         }
       }
     });
