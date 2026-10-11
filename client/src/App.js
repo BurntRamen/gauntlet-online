@@ -2123,35 +2123,33 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
   );
 }
 
-function DraftCardTile({ card, selected = false, disabled = false, onClick, actionLabel = "Pick" }) {
+export function DraftCardTile({ card, selected = false, disabled = false, onClick, onInspect, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
   return (
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      onMouseEnter={() => onInspect?.(card)}
+      onFocus={() => onInspect?.(card)}
+      aria-disabled={disabled}
+      aria-pressed={selected}
+      aria-label={`${selected ? "Remove" : actionLabel} ${card.name}`}
+      className={`limited-card-tile${selected ? " is-in-deck" : ""}`}
       style={{
-        border: `1px solid ${selected ? theme.accent : rarity.border}`,
-        borderRadius: 8,
-        padding: 9,
-        background: selected ? "rgba(250,204,21,0.18)" : "rgba(2,6,23,0.58)",
-        color: "#e5e7eb",
-        textAlign: "left",
-        display: "grid",
-        gap: 5,
-        minHeight: 310,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.48 : 1
+        "--limited-accent": theme.accent,
+        "--limited-glow": theme.glow,
+        "--limited-rarity": rarity.border
       }}
     >
-      <span style={{ display: "block", width: "100%", maxWidth: 180, aspectRatio: "5 / 7", justifySelf: "center", overflow: "hidden", borderRadius: 7, boxShadow: `0 8px 22px ${theme.glow}` }}>
+      <span className="limited-card-art">
         <SpecialCardFace card={card} />
       </span>
-      <strong style={{ color: rarity.color }}>{card.name}</strong>
-      <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
-      <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
-      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Swapped" : actionLabel}</span>
+      <span className="limited-card-copy">
+        <strong style={{ color: rarity.color }}>{card.name}</strong>
+        <span>{theme.name} · {rarity.label} · {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
+      </span>
+      <span className="limited-card-action">{selected ? "✓ In deck" : actionLabel}</span>
     </button>
   );
 }
@@ -2160,7 +2158,6 @@ function limitedDeckSourceLabel(draftType) {
   if (draftType === "sealed") return "Sealed";
   return draftType === "bot" ? "Bot Draft" : "Live Draft";
 }
-
 
 function MatchmakingPanel({
   account,

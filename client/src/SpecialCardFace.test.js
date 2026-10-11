@@ -7,7 +7,7 @@ test("a failed face keeps that card's unique artwork and the full-art fallback",
   expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/sheen/sheen-raincall-mender.webp");
   expect(container.querySelectorAll(".special-card-corner")).toHaveLength(2);
   rerender(<SpecialCardFace card={{ id: "sheen-raincall-mender", name: "Raincall Mender", factionId: "sheen", value: 4, suit: "hearts" }} />);
-  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp?v=2");
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp?v=3");
 });
 
 test("missing and broken collector images retain faction artwork and playing-card corners", () => {
@@ -24,9 +24,9 @@ test("missing and broken collector images retain faction artwork and playing-car
 
 test("registered cards show the full-art face for their fixed replacement suit", () => {
   const { rerender } = render(<SpecialCardFace card={{ id: "rumin-gilded-scale-legionary", name: "Gilded Scale Legionary", value: 3, suit: "hearts" }} />);
-  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp?v=2");
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-hearts.webp?v=3");
   rerender(<SpecialCardFace card={{ id: "rumin-gilded-scale-legionary", name: "Gilded Scale Legionary", value: 3, suit: "clubs" }} />);
-  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-clubs.webp?v=2");
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/constructed/faces/rumin-gilded-scale-legionary-clubs.webp?v=3");
 });
 
 test("paid foil presentations receive the animated collector layers", () => {
