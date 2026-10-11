@@ -1,0 +1,47 @@
+.design-workshop { min-width: 0; }
+.design-header { margin: 1.25rem 0; padding: 1.15rem 1.3rem; border: 1px solid #77623966; border-radius: 12px; background: linear-gradient(120deg,#2b251f,#181d23); }
+.design-header h3 { margin: .3rem 0 .65rem; font-size: 1.4rem; }
+.design-layout { display: grid; grid-template-columns: minmax(170px,240px) minmax(0,1fr); gap: 1.2rem; align-items: start; }
+.design-layout.has-preview { grid-template-columns: minmax(160px,220px) minmax(280px,1fr) minmax(240px,.8fr); }
+.design-editor,.design-selection,.design-preview { min-width: 0; }
+.design-selection .admin-object-list { max-height: 65vh; overflow-y: auto; }
+.design-section { margin-bottom: 1rem; padding: 1rem; border: 1px solid #ffffff16; border-radius: 10px; background: #10161c80; scroll-margin-top: 1rem; }
+.design-section > h4 { margin: 0 0 .8rem; font-size: 1.08rem; }
+.design-section h5 { font-size: .95rem; margin: .6rem 0; }
+.design-section .admin-field { margin-bottom: .85rem; }
+.design-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .6rem; margin: .7rem 0; }
+.design-facts > div { padding: .55rem .65rem; border-radius: 5px; background: #ffffff06; }
+.design-facts dt { font-size: .77rem; color: #b9b4a9; }
+.design-facts dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+.design-facts dd small { display: block; color: #b9b4a9; margin-top: .3rem; }
+.design-controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: .8rem; }
+.design-controls label,.design-preview label { display: flex; flex-direction: column; gap: .4rem; min-width: 0; max-width: 100%; font-size: .9rem; }
+.design-controls select,.design-preview select,.design-tabs button { max-width: 100%; }
+.design-controls select,.design-preview select { width:100%; min-height:42px; padding:8px; color:#edf4f7; background:#101b23; border:1px solid #648092; border-radius:5px; font:inherit; }
+.design-tabs { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; }
+.design-tabs button { text-align: left; }
+.design-tabs button[aria-pressed=true] { border-color: #d9b26b; color: #f1cf91; background: #b18b3620; }
+.design-related ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.design-related li { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.design-related li > span,.design-related small { color: #c4bba9; font-size: .8rem; }
+.design-related-more { margin-top:.65rem; }.design-related-more summary { cursor:pointer; color:#e9cd92; padding:.5rem 0; }.design-related-more[open] summary { margin-bottom:.4rem; }
+.design-effect-summary { padding: .7rem .8rem; margin-bottom: .8rem; border-left: 3px solid #c6a262; background: #c6a2620a; }
+.design-effect-summary p { line-height: 1.55; }
+.design-table { width: 100%; border-collapse: collapse; text-align: left; }
+.design-table th,.design-table td { padding: .65rem .45rem; border-bottom: 1px solid #ffffff15; overflow-wrap: anywhere; }
+.design-table thead { color: #d0b579; font-size: .8rem; }
+.design-readiness { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
+.design-readiness li { padding: .45rem .75rem; border: 1px solid #ffffff20; border-radius: 20px; font-size: .85rem; }
+.design-readiness li.is-complete { border-color: #75b49370; color: #abe3c4; }
+.design-change { margin: .6rem 0; padding: .9rem; border-radius: 8px; background: #ffffff05; }
+.design-change h5 { margin: 0 0 .6rem; }
+.design-change-values { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.design-change-values > div { min-width: 0; }
+.design-change-values p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.design-change-values small { color: #b5ac99; }
+.design-match-events { display: grid; gap: .5rem; }
+.design-match-events > details { border: 1px solid #ffffff1a; border-radius: 7px; padding: .7rem; }
+.design-match-events summary { cursor: pointer; line-height: 1.5; }
+.design-match-events summary small { display: block; color: #c0b69f; }
+@media(max-width:1200px) { .design-layout.has-preview { grid-template-columns: 200px minmax(0,1fr); } .design-preview { grid-column: 2; } }
+@media(max-width:700px) { .design-layout,.design-layout.has-preview { display: block; } .design-selection { margin-bottom: 1rem; } .design-selection .admin-object-list { max-height: 220px; } .design-section { padding: .85rem; } .design-header { padding: 1rem; } .design-tabs { display: grid; grid-template-columns: 1fr 1fr; } .design-change-values { grid-template-columns: 1fr; gap: .5rem; } }

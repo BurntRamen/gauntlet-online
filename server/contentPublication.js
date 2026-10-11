@@ -202,13 +202,18 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       state.draft.playtestedBy = actorId;
     });
   }
-  return { exportState: () => clone(read()), active, status: () => project(read()), patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  function releaseSnapshot(id) {
+    const state = read(), release = Object.hasOwn(state.releases, id) && state.releases[id];
+    if (!release) fail(404, "Content release not found.");
+    return { ...clone(release), compatible: compatible(release) };
+  }
+  return { exportState: () => clone(read()), releaseSnapshot, active, status: () => project(read()), patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
   // Mounted beneath the existing mandatory two-account namespace middleware.
   for (const [method, route, operation] of [
-    ["get", "authoring", () => publication.status()],
+    ["get", "authoring", () => require("./adminLiveAvailability").readAuthoringStatus(publication)],
     ["patch", "authoring/draft", (req) => publication.patch(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/discard", (req) => publication.discard(req.body)],
     ["post", "authoring/validate", () => publication.status()],
