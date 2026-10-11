@@ -357,11 +357,12 @@ html.is-menu-transition::view-transition-new(root) {
 .has-layered-backdrop .home-brand h1.home-brand-lockup { margin: 0; gap: 6px; }
 .has-layered-backdrop .home-brand-logo { width: 82px; height: 82px; }
 .has-layered-backdrop .home-brand-edition { font-size: 10px; letter-spacing: .24em; }
-.has-layered-backdrop .home-current-context { display: flex; justify-content: center; min-height: 0; padding: 0; background: transparent; clip-path: none; filter: none; }
-.has-layered-backdrop .home-current-context::before, .has-layered-backdrop .home-context-notch,
+.has-layered-backdrop .home-current-context { display: flex; justify-content: center; min-width: 220px; max-width: 320px; min-height: 96px; padding: 12px 18px; border: 1px solid #d4b47b80; border-radius: 8px; background: linear-gradient(135deg, #243b46, #101d28); box-shadow: 0 6px 20px #0003, inset 0 1px #fff1; clip-path: none; filter: none; }
+.has-layered-backdrop .home-current-context::before, .has-layered-backdrop .home-current-context::after, .has-layered-backdrop .home-context-notch,
 .has-layered-backdrop .home-current-context > strong, .has-layered-backdrop .home-current-context > small,
 .has-layered-backdrop .home-utility-label { display: none; }
-.has-layered-backdrop .home-context-player { color: #c9d3d3; font-size: 11px; letter-spacing: .03em; }
+.has-layered-backdrop .home-context-player { gap: 14px; color: #fff2d1; font-size: 20px; letter-spacing: .02em; text-transform: none; }
+.has-layered-backdrop .home-context-player .player-avatar { width: 64px; height: 72px; font-size: 30px; border-color: #e4c287; }
 .has-layered-backdrop .home-command-utilities { grid-column: auto; }
 .has-layered-backdrop .home-command-tools { flex-wrap: nowrap; gap: 6px; }
 .has-layered-backdrop .home-support-action .menu-button { min-height: 40px !important; padding: 8px 10px !important; font-size: 11px !important; font-weight: 600; }
@@ -390,13 +391,18 @@ html.is-menu-transition::view-transition-new(root) {
 .home-navigation .home-area-nav button:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: -4px; }
 @media (max-width: 1100px) {
   .has-layered-backdrop .home-command-header { grid-template-columns: minmax(160px, 1fr) auto; }
-  .has-layered-backdrop .home-current-context { display: none; }
+  .has-layered-backdrop .home-current-context { justify-self: end; }
+  .has-layered-backdrop .home-command-utilities { grid-column: 1 / -1; }
 }
 @media (max-width: 720px) {
   .has-layered-backdrop.menu-page { padding: 10px !important; }
   .has-layered-backdrop .menu-frame { padding: 0 16px 18px !important; }
   .has-layered-backdrop .home-command-header { display: flex !important; flex-wrap: wrap; align-items: center !important; justify-content: space-between; gap: 0 10px; min-height: 84px; padding: 6px 0 12px; }
   .has-layered-backdrop .home-brand-logo { width: 80px; height: 80px; }
+  .has-layered-backdrop .home-current-context { flex: 1 1 170px; min-width: 0; max-width: none; min-height: 84px; padding: 10px 12px; }
+  .has-layered-backdrop .home-context-player { gap: 10px; font-size: 18px; }
+  .has-layered-backdrop .home-context-player .player-avatar { width: 56px; height: 64px; font-size: 26px; }
+  .has-layered-backdrop .home-command-utilities { flex-basis: 100%; margin-top: 10px; }
   .has-layered-backdrop .home-command-tools { justify-content: flex-start; flex-wrap: wrap; }
   .home-navigation .home-area-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 16px; }
   .home-navigation .home-area-nav:has(button[data-area="studio"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
