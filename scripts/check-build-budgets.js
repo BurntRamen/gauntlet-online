@@ -13,7 +13,7 @@ const budgets = Object.freeze({
   totalJavaScriptGzip: 747 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
-const adminSource = source => /(?:^|\/)src\/(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
+const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
 
 function readAssets(directory) {
   if (!fs.existsSync(directory)) throw new Error("Client build output is missing. Run npm run build:client first.");

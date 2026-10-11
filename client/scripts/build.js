@@ -6,6 +6,9 @@ const configPath = require.resolve("react-scripts/config/webpack.config");
 const createConfig = require(configPath);
 require.cache[configPath].exports = (environment) => {
   const config = createConfig(environment);
+  // Keep maps for bundle attribution and manual debugging without downloading
+  // their discovery comments in every production chunk.
+  if (config.devtool === "source-map") config.devtool = "hidden-source-map";
   // A second safe compression pass keeps the new card UI within the existing
   // bundle budget without relaxing CRA's compatibility safeguards.
   for (const plugin of config.optimization.minimizer) {

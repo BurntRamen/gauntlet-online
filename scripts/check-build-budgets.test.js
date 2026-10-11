@@ -44,3 +44,11 @@ test("missing or duplicated build entries fail qualification", () => {
   assert.ok(evaluateBudgets([asset("gauntlet-admin.a.chunk.js", 10)]).failures.some(message => /main client/.test(message)));
   assert.ok(evaluateBudgets([asset("main.a.js", 170), asset("gauntlet-admin.a.chunk.js", 10), asset("gauntlet-admin.b.chunk.js", 10)]).failures.some(message => /exactly one named/.test(message)));
 });
+
+test("CRA production maps identify Admin modules without a src prefix", () => {
+  for (const source of ["admin/CardWorkshop.js", "GauntletPlaytest.js", "admin\\ScenarioBuilder.js"]) {
+    const result = evaluateBudgets([asset("main.a.js", 170), asset("gauntlet-admin.a.chunk.js", 18), asset("123.a.chunk.js", 2, [source])]);
+    assert.equal(result.adminGzipBytes, 20 * KIB);
+    assert.match(result.failures.join(" "), /Admin modules appeared in 123/);
+  }
+});
