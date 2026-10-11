@@ -1,6 +1,6 @@
 {
   "schemaVersion": "gauntlet.content-store.v1",
-  "revision": 3,
+  "revision": 4,
   "activeReleaseId": "gauntlet-content-fc2f00e61ebc394f3547c053bcb9affd0d14ab688ab852ce0dff02d890fc85c0",
   "releases": {
     "gauntlet-content-fc2f00e61ebc394f3547c053bcb9affd0d14ab688ab852ce0dff02d890fc85c0": {
@@ -14423,7 +14423,7 @@
           {
             "id": "rumin",
             "factionId": "rumin",
-            "commanderName": "The Jewel of Rumie · connection check",
+            "commanderName": "The Jewel of Rumie",
             "pitch": "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.",
             "coverImage": "/assets/gauntlet/campaigns/rumin/06-first-empire-bank.webp",
             "encounterIds": [
@@ -27740,10 +27740,10 @@
       }
     },
     "updatedBy": "47d97ddb-65f9-4014-be92-9b677467d943",
-    "updatedAt": "2026-10-11T20:34:47.699Z",
-    "previewedHash": "c96b6f466b62f80d792003c3289e10f9a54d7ae74e582bd3d67ce05a1fd154e1",
-    "previewedRevision": 2,
-    "playtestedHash": "c96b6f466b62f80d792003c3289e10f9a54d7ae74e582bd3d67ce05a1fd154e1",
+    "updatedAt": "2026-10-11T20:37:18.890Z",
+    "previewedHash": null,
+    "previewedRevision": null,
+    "playtestedHash": null,
     "playtestedBy": "47d97ddb-65f9-4014-be92-9b677467d943"
   },
   "activations": []
