@@ -50,6 +50,23 @@ test("command preview uses engine legality/payment and changes neither input nor
   assert.equal(playtests.command(args(session), "admin").playtest.acceptedCommands, 1);
 });
 
+test("attack evidence retains instance names while the attacker is held by pending combat", () => {
+  const publication = createContentPublication({ baseline, memory: true }), playtests = harness(publication);
+  const card = publication.active().manifest.cards.find(card => card.id === "neutral-soldier");
+  const session = playtests.start({ source: "live", subject: { kind: "card", id: card.id }, factionId: "rumin" }, "admin").playtest;
+  const instance = session.game.players[1].hand.find(entry => entry.definitionId === card.id);
+  const action = legalActions(session.game).find(action => action.type === "declareHandAttack" && action.cardId === instance.id);
+  const command = { ...action.confirmationPayload.fixed, type: action.type, player: 1, paymentCardIds: action.payment.eligibleCardIds };
+  const preview = playtests.preview({ ...args(session), command }, "admin").preview;
+  assert.equal(preview.accepted, true);
+  assert.equal(preview.cardNames[instance.id], "Soldier");
+  const executed = playtests.command({ ...args(session), command }, "admin").playtest;
+  assert.ok(!executed.game.players[1].hand.some(entry => entry.id === instance.id));
+  assert.equal(executed.lastCommand.cardNames[instance.id], "Soldier");
+  const response = playtests.preview({ ...args(executed), command: { type: "declineBlock", player: 2 } }, "admin").preview;
+  assert.equal(response.cardNames[instance.id], "Soldier");
+});
+
 test("subject mismatch and invalid replacement preserve session; bookkeeping revisions do not stale a test", () => {
   const publication = createContentPublication({ baseline, memory: true });
   publication.patch({ expectedRevision: 0, domain: "game", id: "shared-rules", field: "handSize", value: 9 }, "admin");

@@ -1,9 +1,27 @@
 .design-workshop { min-width: 0; }
-.design-header { margin: 1.25rem 0; padding: 1.15rem 1.3rem; border: 1px solid #77623966; border-radius: 12px; background: linear-gradient(120deg,#2b251f,#181d23); }
+.design-header { margin: 1rem 0; padding: 1rem 1.2rem; border: 1px solid #77623966; border-radius: 12px; background: linear-gradient(120deg,#2b251f,#181d23); }
 .design-header h3 { margin: .3rem 0 .65rem; font-size: 1.4rem; }
 .design-layout { display: grid; grid-template-columns: minmax(170px,240px) minmax(0,1fr); gap: 1.2rem; align-items: start; }
-.design-layout.has-preview { grid-template-columns: minmax(160px,220px) minmax(280px,1fr) minmax(240px,.8fr); }
-.design-editor,.design-selection,.design-preview { min-width: 0; }
+.design-layout.has-preview { grid-template-columns: minmax(170px,220px) minmax(0,1fr); }
+.design-editor,.design-selection,.design-preview,.design-main { min-width: 0; }
+.design-content { display:grid; grid-template-columns:minmax(0,1fr); gap:1rem; align-items:start; }
+.has-preview .design-content { grid-template-columns:minmax(280px,1fr) minmax(220px,.7fr); }
+.design-section-nav { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 1rem; padding-bottom:.75rem; border-bottom:1px solid var(--admin-line); }
+.design-section-nav button[aria-pressed=true] { background:#efc06e; border-color:#efc06e; color:#201707; }
+.design-list-toggle { display:none; }
+.design-section-select { display:none; }
+.design-header .admin-tags { margin-top:.4rem; }
+.design-header .admin-tags span { background:transparent; padding:0; color:var(--admin-muted); }
+.design-header h3 { margin-bottom:0; }
+.design-header .admin-actions { margin:0; }
+.design-workspace-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem; }
+.design-header-actions { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:.75rem; }
+.design-workspace-header .admin-tags { margin:0; }
+.design-editor .admin-field-columns { display:flex; flex-direction:column-reverse; gap:.75rem; }
+.design-editor .admin-comparison summary { border:0; background:transparent; color:var(--admin-muted); }
+.design-editor .admin-field { padding-top:.6rem; }
+.design-preview .admin-card-preview { margin:1rem auto; }
+.design-selection .admin-search:first-child { margin-top:0; }
 .design-selection .admin-object-list { max-height: 65vh; overflow-y: auto; }
 .design-section { margin-bottom: 1rem; padding: 1rem; border: 1px solid #ffffff16; border-radius: 10px; background: #10161c80; scroll-margin-top: 1rem; }
 .design-section > h4 { margin: 0 0 .8rem; font-size: 1.08rem; }
@@ -43,5 +61,18 @@
 .design-match-events > details { border: 1px solid #ffffff1a; border-radius: 7px; padding: .7rem; }
 .design-match-events summary { cursor: pointer; line-height: 1.5; }
 .design-match-events summary small { display: block; color: #c0b69f; }
-@media(max-width:1200px) { .design-layout.has-preview { grid-template-columns: 200px minmax(0,1fr); } .design-preview { grid-column: 2; } }
-@media(max-width:700px) { .design-layout,.design-layout.has-preview { display: block; } .design-selection { margin-bottom: 1rem; } .design-selection .admin-object-list { max-height: 220px; } .design-section { padding: .85rem; } .design-header { padding: 1rem; } .design-tabs { display: grid; grid-template-columns: 1fr 1fr; } .design-change-values { grid-template-columns: 1fr; gap: .5rem; } }
+@media(max-width:1200px) { .has-preview .design-content { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:750px) {
+ .design-layout,.design-layout.has-preview { display:block; }
+ .design-selection { margin-bottom:1rem; }
+ .design-selection .admin-object-list { max-height:none; overflow:visible; grid-template-columns:1fr; }
+ .design-workshop.has-selection .design-selection,.design-workshop:not(.has-selection) .design-main { display:none; }
+ .design-workshop.has-selection .design-list-toggle { display:block; margin-bottom:1rem; }
+ .design-section { padding:.85rem; }.design-header { padding:1rem; }
+ .design-workspace-header { align-items:flex-start; }.design-header-actions { flex-direction:column; align-items:flex-end; }
+ .design-section-nav { display:none; }
+ .design-section-select { display:grid; gap:6px; margin-bottom:1rem; color:var(--admin-muted); font-size:12px; }
+ .design-section-select select { width:100%; padding:10px; min-height:44px; color:#edf4f7; background:#101b23; border:1px solid #648092; border-radius:5px; }
+ .design-tabs { display:grid; grid-template-columns:1fr 1fr; }
+ .design-change-values { grid-template-columns:1fr; gap:.5rem; }
+}

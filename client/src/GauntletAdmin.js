@@ -6,6 +6,7 @@ import GauntletAuthoring from "./GauntletAuthoring";
 const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-matches" */ "./admin/MatchInspector"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
 const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System"];
+const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
 const DOMAINS = { campaigns: "Campaigns", encounters: "Encounters", factions: "Factions", cards: "Cards", decks: "Decks", characters: "Characters / opponents" };
 const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
 const date = (value) => value ? new Date(value).toLocaleString() : "Not recorded";
@@ -44,15 +45,15 @@ function Overview({ catalog, request, revision, onSelect }) {
   const system = useAdminData(request, "/api/admin/system", revision);
   const recent = useAdminData(request, "/api/admin/matches", revision);
   return <>
-    <p className="admin-lede">A current view of the product, its content and its evidence.</p>
+    <p className="admin-lede">Choose a workspace to edit content, review players or inspect a match.</p>
     <State state={catalog}>{(data) => <>
       <details className="admin-json"><summary>Advanced / Technical · content and rules versions</summary><Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} /></details>
       <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content", key)}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
       <p className="admin-note">Counts describe the loaded registry and derived definitions. Decks count templates/plans; player-owned decks are under Players.</p>
-      <h4>Available game entry points</h4><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
-      <p className="admin-note">Availability is defined in code; there are no global operator mode switches.</p>
+      <details className="admin-json"><summary>Available game entry points</summary><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
+      <p className="admin-note">Availability is defined in code; there are no global operator mode switches.</p></details>
     </>}</State>
-    <h4>System checks</h4><State state={system}>{(data) => <><Issues issues={data.issues} /><p className="admin-note">Checked {date(data.checkedAt)} · {data.environment} · backend {data.backendCommit || "commit not supplied"}</p></>}</State>
+    <h4>System checks</h4><State state={system}>{(data) => <><Issues issues={data.issues} /><p className="admin-note">Checked {date(data.checkedAt)} · {data.environment}</p></>}</State>
     <h4>Recent matches</h4><State state={recent}>{(data) => <><Issues issues={data.issues} /><MatchList records={data.matches.slice(0, 5)} /><button onClick={() => onSelect("Matches")}>Browse match evidence</button><p className="admin-note">{data.scope}</p></>}</State>
   </>;
 }
@@ -99,8 +100,8 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
     <label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={(event) => setValue(event.target.value)} /></label>
     <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p>
     {error && <p role="alert" className="admin-alert">{error}</p>}
-    <div className="admin-actions"><button type="submit" disabled={busy || !dirty}>{busy ? "Saving…" : "Save metadata"}</button><button type="button" disabled={busy} onClick={leave}>Cancel</button></div>
-  </form> : <button onClick={() => setEditing(true)}>Edit metadata</button>;
+    <div className="admin-actions"><button type="submit" disabled={busy || !dirty}>{busy ? "Saving…" : "Save player name"}</button><button type="button" disabled={busy} onClick={leave}>Cancel</button></div>
+  </form> : <button onClick={() => setEditing(true)}>Edit player name</button>;
 }
 
 function PlayerProfile({ player, catalog, onBack, request, guard, onSaved }) {
@@ -166,7 +167,7 @@ function Players({ request, revision, catalog, guard }) {
 
 function MatchList({ records, onInspect }) {
   if (!records.length) return <p>No completed matches found in this window.</p>;
-  return <div className="admin-table-wrap"><table><thead><tr><th>Match / time</th><th>Participants / result</th><th>Mode / encounter</th><th>Evidence</th>{onInspect && <th>Action</th>}</tr></thead><tbody>{records.map((record) => <tr key={record.matchId}><td><code>{record.matchId}</code><small>{date(record.completedAt)}</small></td><td>{(record.participants || []).map((player) => <div key={player.playerNum}>{player.displayName} · {player.faction?.name || "Basic"} · {player.result || "Not recorded"}<small>Deck {player.deck?.deckId || "runtime"} · version {player.deck?.deckVersionId || "not recorded"}</small></div>)}</td><td>{record.mode}<small>{record.campaign?.title || record.campaign?.chapterId || "—"}</small></td><td>{record.provenance?.integrity || "Not checked"}<small>Record v{record.recordVersion} · {record.contentVersion || "No content version"}</small></td>{onInspect && <td><button aria-label={`Inspect match ${record.matchId}`} onClick={() => onInspect(record.matchId)}>Inspect</button></td>}</tr>)}</tbody></table></div>;
+  return <div className="admin-table-wrap"><table><thead><tr><th>Match / time</th><th>Participants / result</th><th>Mode / encounter</th><th>Evidence</th>{onInspect && <th>Action</th>}</tr></thead><tbody>{records.map((record) => <tr key={record.matchId}><td>{date(record.completedAt)}<details><summary>Match ID</summary><code>{record.matchId}</code></details></td><td>{(record.participants || []).map((player) => <div key={player.playerNum}>{player.displayName} · {player.faction?.name || "Basic"} · {player.result || "Not recorded"}</div>)}</td><td>{record.mode}<small>{record.campaign?.title || record.campaign?.chapterId || "—"}</small></td><td>{record.provenance?.integrity || "Not checked"}<details><summary>Record versions</summary><small>Record v{record.recordVersion} · {record.contentVersion || "No content version"}</small></details></td>{onInspect && <td><button aria-label={`Inspect match ${record.matchId}`} onClick={() => onInspect(record.matchId)}>Inspect</button></td>}</tr>)}</tbody></table></div>;
 }
 
 function MatchDetail({ request, id, revision, onInspectContent }) {
@@ -191,7 +192,7 @@ function Matches({ request, revision, onInspectContent }) {
 
 function System({ request, revision, operations }) {
   const state = useAdminData(request, "/api/admin/system", revision);
-  return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><h4>Schema and rules versions</h4><Facts values={data.versions} /><h4>Content and runtime boundaries</h4>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></>}</State>
+  return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><details className="admin-json"><summary>Schema and rules versions</summary><Facts values={data.versions} /></details><details className="admin-json"><summary>Content and runtime boundaries</summary>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></details></>}</State>
     <details className="admin-legacy"><summary>Existing Studio operations and archive recovery</summary><p>Existing collector, active-room, season and explicit archive-import tools. Recovery imports write to the archive after preview and confirmation.</p>{operations}</details>
   </>;
 }
@@ -236,9 +237,9 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
   const inspectContent = (domain, id) => selectArea("Design", domain, id);
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
   return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
-    <header className="admin-header"><div><span className="admin-eyebrow">EGGS · operator workspace</span><h3>Gauntlet Admin</h3><p>Content, gameplay, players and authoritative history.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
-    <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}>{name}</button>)}</nav>
-    <div className="admin-body"><div className="admin-title-row"><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
+    <header className="admin-header"><div><span className="admin-eyebrow">EGGS · operator workspace</span><h3>Gauntlet Admin</h3></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
+    <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index]} /></svg>{name}</button>)}</nav>
+    <div className="admin-body"><div className="admin-title-row" hidden={area === "Design"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
       {area === "Design" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
       {area === "Overview" && <Overview catalog={catalog} request={request} revision={revision} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}

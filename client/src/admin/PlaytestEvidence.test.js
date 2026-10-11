@@ -10,7 +10,7 @@ test("calculated results distinguish engine events from snapshot differences and
   expect(screen.getByText(/Payment 7 \/ 5 required/)).toHaveTextContent("Card bonus +2");
   expect(screen.getByText("Observed snapshot differences")).toBeInTheDocument();
   expect(screen.getByText("Player 2 · life: 42 → 37")).toBeInTheDocument();
-  expect(screen.getByText("Player 1 · support lane 1: Not recorded → instance")).toBeInTheDocument();
+  expect(screen.getByText("Player 1 · support lane 1: Empty → instance")).toBeInTheDocument();
   expect(screen.getByText("Engine events · 1")).toBeInTheDocument();
 });
 
@@ -27,4 +27,11 @@ test("missing result renders no invented evidence and arrays are labeled as card
   expect(view.container).toBeEmptyDOMElement();
   view.rerender(<PlaytestEvidence result={{ kind: "executed", accepted: true, changes: [{ field: "hand", before: ["one", "two"], after: ["two"] }] }} />);
   expect(screen.getByText("hand: 2 card instances → 1 card instances")).toBeInTheDocument();
+});
+
+test("captured command names survive a card leaving all visible zones", () => {
+  const result = { kind: "executed", accepted: true, cardNames: { "instance-focus": "Soldier" }, command: { type: "declareHandAttack", cardId: "instance-focus", player: 1 }, changes: [{ player: 1, field: "hand", before: ["instance-focus"], after: [] }] };
+  render(<PlaytestEvidence result={result} game={{ players: {}, lanes: [] }} />);
+  expect(screen.getByText("Source: Soldier")).toBeVisible();
+  expect(screen.getByText("Player 1 · hand: Removed Soldier")).toBeVisible();
 });

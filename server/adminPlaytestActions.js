@@ -85,10 +85,25 @@ function stateChanges(before, after) {
   }
   return changes;
 }
+// Capture labels before cards leave a zone, including cards held by pending
+// combat. Evidence must not depend on where an instance happens to be later.
+function cardNames(...games) {
+  const names = {};
+  const visit = value => {
+    if (!value || typeof value !== "object") return;
+    if (value.id && value.name && value.value != null) names[value.id] = value.name;
+    for (const child of Object.values(value)) visit(child);
+  };
+  for (const game of games) {
+    for (const player of Object.values(game.players)) visit([player.hand, player.deck, player.discard]);
+    visit(game.lanes); visit(game.handAttacks);
+  }
+  return names;
+}
 function previewAction(game, command) {
   const copy = clone(game), result = engine.applyCommand(copy, clone(command));
   const payment = engine.previewPayment(clone(game), command.player, command);
   return { kind: "calculated-preview", command: clone(command), accepted: result.accepted, error: result.rejectionReason || result.error || null,
-    payment, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
+    cardNames: cardNames(game, result.state), payment, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
 }
-module.exports = { legalActions, defaultActions, previewAction, stateChanges };
+module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames };

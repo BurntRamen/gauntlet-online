@@ -1,3 +1,5 @@
+import "./WorkshopPanels.css";
+
 const names = { "uses-effect": "Uses effect", "uses-card": "Uses card", "belongs-to": "Belongs to", "uses-asset": "Uses asset" };
 
 export default function RelatedContent({ data, domain, id, onInspect }) {
