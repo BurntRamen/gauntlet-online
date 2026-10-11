@@ -1,6 +1,6 @@
 {
   "schemaVersion": "gauntlet.content-store.v1",
-  "revision": 2,
+  "revision": 3,
   "activeReleaseId": "gauntlet-content-fc2f00e61ebc394f3547c053bcb9affd0d14ab688ab852ce0dff02d890fc85c0",
   "releases": {
     "gauntlet-content-fc2f00e61ebc394f3547c053bcb9affd0d14ab688ab852ce0dff02d890fc85c0": {
@@ -27743,7 +27743,8 @@
     "updatedAt": "2026-10-11T20:34:47.699Z",
     "previewedHash": "c96b6f466b62f80d792003c3289e10f9a54d7ae74e582bd3d67ce05a1fd154e1",
     "previewedRevision": 2,
-    "playtestedHash": null
+    "playtestedHash": "c96b6f466b62f80d792003c3289e10f9a54d7ae74e582bd3d67ce05a1fd154e1",
+    "playtestedBy": "47d97ddb-65f9-4014-be92-9b677467d943"
   },
   "activations": []
 }
