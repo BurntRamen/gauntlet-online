@@ -398,7 +398,7 @@ test("a reported authoring outage keeps real live testing available without publ
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
   const before = await (await request.get(base, { headers })).json();
-  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await expect(page.getByText(/Shared draft and publication history are unavailable/)).toBeVisible();
   await expect(page.getByText("Connection setup details", { exact: true })).toHaveCount(0);
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -589,7 +589,7 @@ test("card workshop previews and executes a custom live scenario without creatin
   const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
   const before = await (await request.get(base, { headers })).json();
   expect(before.draft).toBeFalsy();
-  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   const card = page.getByRole("region", { name: "Card Workshop", exact: true });
@@ -681,7 +681,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
   const original = await (await request.get(base, { headers })).json();
   const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
-  await page.getByRole("button", { name: "126 Cards", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   const art = page.locator("#admin-field-art"), browse = art.getByRole("button", { name: "Browse images", exact: true });
