@@ -5202,15 +5202,16 @@ export default function App() {
           </div>
           <div className="home-current-context">
             <span className="home-context-notch" aria-hidden="true" />
-            <span className="home-context-player">
-              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />}
-              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
-            </span>
+            <span className="home-location-label">Current location</span>
             <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
-            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
+            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"}</small>
           </div>
 
           <div className="home-command-utilities">
+            <span className="home-context-player">
+              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="large" decorative />}
+              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
+            </span>
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
               <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />

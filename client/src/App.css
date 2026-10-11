@@ -2393,10 +2393,10 @@ textarea:focus-visible {
   letter-spacing: .09em;
   text-transform: uppercase;
 }
-.home-context-player .player-avatar { width: 32px; height: 36px; font-size: 14px; border-color: rgba(241, 199, 121, .42); }
+.home-context-player .player-avatar { width: 80px; height: 92px; font-size: 34px; border-color: rgba(241, 199, 121, .42); }
 .home-utility-label { color: #819ba8; font-size: 12px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
-.home-current-context strong { color: #fff4d7; font: 700 clamp(25px, 2vw, 30px)/1.12 Georgia, serif; letter-spacing: .015em; text-shadow: 0 2px 12px rgba(0, 0, 0, .7); }
-.home-current-context small { color: #b8cbd4; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.home-current-context strong { color: #fff4d7; font: 700 clamp(28px, 2.4vw, 36px)/1.15 Georgia, serif; letter-spacing: .015em; text-shadow: 0 2px 12px rgba(0, 0, 0, .7); }
+.home-current-context small { color: #c9dbe3; font-size: 14px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .home-command-utilities { display: grid; min-width: 0; gap: 10px; justify-items: end; }
 .home-command-tools { gap: 8px; }
 .home-command-tools button { min-height: 48px !important; padding: 10px 12px !important; border-color: rgba(125, 211, 252, .24) !important; background: rgba(9, 24, 36, .68) !important; color: #dce7eb !important; box-shadow: none !important; font-size: 14px !important; }
@@ -3214,7 +3214,8 @@ textarea:focus-visible {
 
 /* Optional account balances stay within Utilities; header columns never shift. */
 .home-command-header > * { min-width: 0; }
-.home-context-player { min-width: 0; max-width: 100%; line-height: 1.4; }
+.home-context-player { min-width: 0; max-width: 100%; gap: 14px; line-height: 1.4; font-size: 16px; letter-spacing: .02em; text-transform: none; }
+.home-location-label { color: #f1c779; font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .home-context-player .player-avatar { flex-shrink: 0; }
 .home-context-name { min-width: 0; overflow-wrap: anywhere; }
 .home-current-context > strong { max-width: 100%; overflow-wrap: anywhere; }
