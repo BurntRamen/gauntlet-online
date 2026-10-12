@@ -110,6 +110,63 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("keyboard navigation never submits via global C/P or steals keys from controls and dialogs", async () => {
+  const commands = { passPriority: jest.fn(), confirmCurrentAction: jest.fn(), activateHandCard: jest.fn(), cancelCurrentAction: jest.fn() };
+  const viewModel = { ...createViewModel(), hand: [{ id: "seven", label: "Seven", value: 7 }],
+    interactions: { ...createViewModel().interactions, confirmDisabled: false, passDisabled: false } };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel, commands, controls: {} })} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  fireEvent.keyDown(window, { key: "c" });
+  fireEvent.keyDown(window, { key: "p" });
+  const pass = screen.getByRole("button", { name: "Pass Priority" });
+  fireEvent.keyDown(pass, { key: "1" });
+  fireEvent.click(screen.getByRole("button", { name: "Keyboard help" }));
+  fireEvent.keyDown(window, { key: "1" });
+  fireEvent.keyDown(window, { key: "c" });
+  expect(commands.activateHandCard).not.toHaveBeenCalled();
+  expect(commands.passPriority).not.toHaveBeenCalled();
+  expect(commands.confirmCurrentAction).not.toHaveBeenCalled();
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Keyboard help" })).not.toBeInTheDocument();
+});
+
+test("pending submission locks gameplay while the hand reference remains readable", async () => {
+  const raw = { id: "readable", name: "Readable seven", value: 7 };
+  const inspectCard = jest.fn(), confirmCurrentAction = jest.fn();
+  render(<ProductionMatchExperience adapter={adapterFor({
+    viewModel: { ...createViewModel(), hand: [{ id: raw.id, raw, value: 7, visible: true }],
+      selection: { attackMode: { card: 0 } } },
+    diagnostics: { pendingCommandId: "sent-once" }, controls: {}, commands: { inspectCard, confirmCurrentAction }
+  })} options={{ audioEnabled: false }} />);
+  const action = await screen.findByRole("region", { name: "Current match action" });
+  expect(action).toHaveAttribute("aria-busy", "true");
+  expect(action).toHaveTextContent("Waiting for the server to confirm");
+  fireEvent.click(screen.getByRole("button", { name: "Inspect hand", exact: true }));
+  const hand = screen.getByRole("dialog", { name: "Inspect your hand" });
+  fireEvent.click(within(hand).getByRole("button", { name: /Readable seven/ }));
+  expect(inspectCard).toHaveBeenCalledWith(raw);
+  expect(confirmCurrentAction).not.toHaveBeenCalled();
+});
+
+test("pinned inspection refreshes from the current projection and clears when its identity disappears", async () => {
+  const savedWidth = window.innerWidth;
+  window.innerWidth = 1920;
+  let publish;
+  const card = { id: "pinned-seven", label: "Seven", value: 7, visible: true, raw: { id: "pinned-seven", value: 7 } };
+  const initial = { source: "live", connected: true, viewModel: { ...createViewModel(), matchId: "pin-match", hand: [card] }, inspection: card, commands: {} };
+  const adapter = { connect: jest.fn(), subscribe: listener => { publish = listener; listener(initial); return () => {}; } };
+  const { unmount } = render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Pin open" }));
+  act(() => publish({ ...initial, inspection: null, viewModel: { ...initial.viewModel, revision: 5,
+    hand: [{ ...card, valueBreakdown: { printed: 7, total: 9, equation: "7 + 2 = 9", modifiers: [] } }] } }));
+  expect(screen.getByRole("dialog", { name: "Inspect Seven" })).toHaveTextContent("7 + 2 = 9");
+  expect(screen.getByRole("button", { name: "Unpin" })).toHaveAttribute("aria-pressed", "true");
+  act(() => publish({ ...initial, inspection: null, viewModel: { ...initial.viewModel, revision: 6, hand: [] } }));
+  expect(screen.queryByRole("dialog", { name: "Inspect Seven" })).not.toBeInTheDocument();
+  unmount();
+  window.innerWidth = savedWidth;
+});
+
 test("play order stays retracted through new actions and keeps full history accessible", async () => {
   let publish;
   const update = { source: "local", connected: true, viewModel: createViewModel(), commands: {},
@@ -1362,6 +1419,7 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   fireEvent.mouseEnter(await screen.findByTestId("mock-preview-card"));
   expect(screen.getByLabelText("Seven of Hearts preview")).toHaveTextContent("Attacking in Lane 1");
   fireEvent.mouseLeave(screen.getByTestId("mock-preview-card"));
+  act(() => jest.advanceTimersByTime(180));
   expect(screen.queryByLabelText("Seven of Hearts preview")).not.toBeInTheDocument();
 
   act(() => publish({

@@ -2,7 +2,7 @@ const { test, expect: baseExpect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { io } = require("socket.io-client");
 
-const SERVER_URL = "http://127.0.0.1:4100";
+const SERVER_URL = process.env.GAUNTLET_E2E_SERVER_URL || "http://127.0.0.1:4100";
 // Match the live-entry suite's allowance for the GPU-less CI renderer.
 // Spectator startup loads a second WebGL scene before its HUD can appear.
 const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"

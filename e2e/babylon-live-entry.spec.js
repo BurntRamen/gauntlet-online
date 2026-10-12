@@ -5,7 +5,7 @@ const { io } = require("socket.io-client");
 
 const VOICE_ASSET_PATHS = require("../server/contentAssetManifest.json").entries.filter((entry) => entry.source.includes("/voices/")).map((entry) => entry.path);
 
-const SERVER_URL = "http://127.0.0.1:4100";
+const SERVER_URL = process.env.GAUNTLET_E2E_SERVER_URL || "http://127.0.0.1:4100";
 const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
   || (process.env.CI === "true" && process.platform === "linux");
 // These are multi-client correctness journeys, not frame-rate benchmarks.

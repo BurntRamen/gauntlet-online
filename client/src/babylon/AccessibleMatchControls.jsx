@@ -1,4 +1,8 @@
 import { laneTargetEnabled, laneTargetSelected } from "./abilityTargets";
+const selectionLabels = {
+  attacker: "attacker", blocker: "blocker", payment: "payment", placement: "for placement",
+  ability: "ability target", paymentBonus: "payment bonus recipient"
+};
 export default function AccessibleMatchControls({
   viewModel,
   commands,
@@ -60,10 +64,14 @@ export default function AccessibleMatchControls({
                   key={card.id || index}
                   data-match-zone="hand"
                   data-card-index={index}
-                  disabled={interactionLocked || card.unavailable}
+                  disabled={card.visible === false || card.raw?.hidden}
+                  data-inspect-only={interactionLocked || card.unavailable || undefined}
                   aria-pressed={Object.values(card.selected || {}).some(Boolean)}
-                  aria-label={`${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}${card.selected?.ability ? ", selected ability target" : ""}${card.selected?.paymentBonus ? ", selected payment bonus recipient" : ""}`}
-                  onClick={() => commands.activateHandCard?.(index)}
+                  aria-label={`${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${Object.keys(selectionLabels).filter(key => card.selected?.[key]).map(key => `, selected ${selectionLabels[key]}`).join("")}${interactionLocked || card.unavailable ? ", inspect only; unavailable to play" : ""}`}
+                  onFocus={() => commands.previewCard?.(card)}
+                  onBlur={() => commands.previewCard?.(null)}
+                  onClick={() => interactionLocked || card.unavailable
+                    ? commands.inspectCard?.(card.raw) : commands.activateHandCard?.(index)}
                   onContextMenu={(event) => { event.preventDefault(); commands.inspectCard?.(card.raw); }}
                 >
                   {card.label}
