@@ -1097,7 +1097,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(encounter.locator("summary")).toBeVisible();
-    expect(await encounter.evaluate(element => element.open)).toBe(false);
+    await expect(encounter).toHaveJSProperty("open", false);
     await toggle.click();
     await expect(ledger.locator("ol")).toBeVisible();
     await toggle.click();
