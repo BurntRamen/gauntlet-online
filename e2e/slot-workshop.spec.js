@@ -58,7 +58,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.reload();
   await page.locator('button[data-area="build"]').click();
   const build = page.locator(".build-deck-entry");
-  await expect(build).toContainText("1 gameplay-card replacements.");
+  await expect(build.locator(".build-deck-meta")).toContainText("1 replacements");
   await expect(build.getByRole("img", { name: /Obsidian deck box/ })).toBeVisible();
   await expect(build.locator(".deck-showcase-front img")).toHaveAttribute("src", MENDER_ART);
   await expect(build.locator(".is-animated-collector")).toBeVisible();

@@ -12,7 +12,7 @@ test("effect contracts are read-only and direct editing to an authored card", ()
   fireEvent.click(screen.getByRole("button", { name: "Spear" }));
   expect(inspect).toHaveBeenCalledWith("cards", "spear");
   fireEvent.change(screen.getByLabelText("Test using card"), { target: { value: "spear" } });
-  expect(target).toHaveBeenCalledWith({ domain: "card-effects", id: "spear-effect", cardId: "spear" });
+  expect(target).toHaveBeenCalledWith({ domain: "card-effects", id: "spear-effect", cardId: "spear", section: "test" });
 });
 
 test("editable parameters bind to their faction and shared configuration stays bounded", () => {

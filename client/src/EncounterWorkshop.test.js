@@ -21,11 +21,12 @@ afterEach(() => jest.restoreAllMocks());
 test("story, setup, mechanics and card sections keep one saved setup contract", () => {
   render(<View />);
   expect(screen.getByRole("heading", { name: "Identity / Story" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Opponent / Setup", exact: true }));
   expect(screen.getByRole("region", { name: "Opponent setup controls" })).toBeVisible();
   expect(screen.getByRole("region", { name: "Encounter mechanics controls" })).toBeVisible();
   expect(screen.getByRole("region", { name: "Encounter card additions controls" })).toBeVisible();
-  expect(screen.getByRole("heading", { name: "Presentation / Assets" })).toBeVisible();
-  expect(field.mock.calls.filter(([name]) => name === "setup")).toHaveLength(1);
+  expect(screen.getByText("Presentation / Assets", { selector: "h4" })).not.toBeVisible();
+  expect(screen.getAllByRole("form", { name: "Saved setup contract", hidden: true })).toHaveLength(1);
   expect(screen.getAllByRole("form")).toHaveLength(1);
   expect(screen.getByText(/Each selected card adds one copy/)).toBeVisible();
   expect(screen.getByLabelText("Boss Life")).toHaveAttribute("min", "1");
@@ -49,8 +50,10 @@ test("grouped setup edits preserve every other contract field and cross-link the
 
 test("opponent and portrait links follow their actual source and sparse audio keeps line numbering", () => {
   const inspect = jest.fn(); render(<View onInspect={inspect} />);
+  fireEvent.click(screen.getByRole("button", { name: "Opponent / Setup", exact: true }));
   fireEvent.click(screen.getByRole("button", { name: "Opponent source" }));
   expect(inspect).toHaveBeenLastCalledWith("characters", "opponent-one");
+  fireEvent.click(screen.getByRole("button", { name: "Presentation / Assets", exact: true }));
   fireEvent.click(screen.getByRole("button", { name: "Open Commander source portrait definition" }));
   expect(inspect).toHaveBeenLastCalledWith("characters", "rumin:commander");
   expect(screen.getByAltText("Commander source")).toHaveAttribute("src", "/immutable/commander.webp");
@@ -90,6 +93,7 @@ test("mobile list departure honors the supplied guard and unrelated validation s
   fireEvent.click(screen.getByText("Encounter list"));
   expect(guard).toHaveBeenCalledWith(expect.any(Function));
   expect(screen.getByRole("region", { name: "Encounter Workshop" })).toHaveClass("has-selection");
+  fireEvent.click(screen.getByRole("button", { name: "Validation", exact: true }));
   expect(screen.getByText(/No errors for this encounter/)).toBeVisible();
   expect(screen.getByText("1 validation issue elsewhere in the shared draft")).toBeVisible();
   rerender(<View state={data} onSelectList={(continueNavigation) => continueNavigation()} />);

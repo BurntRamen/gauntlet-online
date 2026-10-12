@@ -10,12 +10,14 @@ test("keeps wording separate from mechanics and previews resolved suit and colle
   const inspect = jest.fn();
   render(<CardWorkshop row={card} state={state()} field={field} onInspect={inspect} />);
   expect(screen.getByRole("heading", { name: "Displayed wording" })).toBeVisible();
-  expect(screen.getByText("Uses the deployed arm bonus.")).toBeVisible();
+  expect(screen.getByText("Uses the deployed arm bonus.")).not.toBeVisible();
   expect(screen.getByTestId("card-face")).toHaveTextContent("spades · resolved-first");
   fireEvent.change(screen.getByLabelText("Preview suit"), { target: { value: "hearts" } });
   fireEvent.change(screen.getByLabelText("Collector version"), { target: { value: "spear-alt" } });
   expect(screen.getByTestId("card-face")).toHaveTextContent("hearts · resolved-alt");
   expect(field).toHaveBeenLastCalledWith("art", { domain: "assets", row: expect.objectContaining({ id: "spear-alt" }) });
+  fireEvent.click(screen.getByRole("button", { name: "Mechanics", exact: true }));
+  expect(screen.getByText("Uses the deployed arm bonus.")).toBeVisible();
   fireEvent.click(screen.getByText("Inspect effect and its uses"));
   expect(inspect).toHaveBeenCalledWith("card-effects", "spear-effect");
 });
