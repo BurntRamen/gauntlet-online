@@ -52,7 +52,7 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
+async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true }, { timeout: 5000 })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
 async function selectOther(tab) { fireEvent.click(await screen.findByRole("button", { name: "Other content" })); fireEvent.click(await screen.findByRole("button", { name: tab, exact: true })); }
 
 test("pending GitHub publication keeps the deployed release active and cancellation preserves the draft", async () => {
@@ -100,7 +100,7 @@ test("preview uses the real card component and publication requires explicit rev
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Preview card" } });
   fireEvent.click(screen.getByRole("button", { name: "Save name to draft" }));
   await screen.findByText("1 saved field change");
-  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft" }));
+  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft", hidden: true }));
   const preview = await screen.findByRole("region", { name: "Card Workshop preview and test" });
   expect(within(preview).getByAltText("Preview card illustration")).toBeVisible();
   expect(state.live.domains.cards[0].name).toBe("First card");
@@ -124,7 +124,7 @@ test("field errors block preview, protected objects remain read-only, and confli
   render(<GauntletAuthoring {...props()} />);
   await selectCard();
   expect(screen.getAllByText(/Name is required/).length).toBeGreaterThan(1);
-  expect(screen.getByRole("button", { name: "Preview saved draft" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Preview saved draft", hidden: true })).toBeDisabled();
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Keep my edit" } });
   fireEvent.click(screen.getByRole("button", { name: "Save name to draft" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("another session");
@@ -153,7 +153,7 @@ test.each([
   fireEvent.change(await screen.findByLabelText("Draft " + fieldLabel.toLowerCase()), { target: { value: "asset-selected" } });
   fireEvent.click(screen.getByRole("button", { name: "Save " + fieldLabel.toLowerCase() + " to draft" }));
   await screen.findByText("1 saved field change");
-  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft" }));
+  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft", hidden: true }));
   const preview = await screen.findByRole("region", { name: "Isolated draft preview" });
   expect(within(preview).getByRole("img", { name })).toHaveAttribute("src", resolvedArtwork);
 });
@@ -225,8 +225,9 @@ test("deployed content stays inspectable and live tests available during an auth
   expect(screen.getByText("Live content · shared draft unavailable")).toBeVisible();
   expect(screen.getByText(state.authoringError)).toBeVisible();
   expect(screen.getByLabelText("Draft name")).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Test", exact: true }));
   expect(await screen.findByRole("button", { name: "Start live duel playtest" })).toBeEnabled();
-  expect(screen.getByRole("button", { name: "Preview saved draft" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Preview saved draft", hidden: true })).toBeDisabled();
 });
 
 test("a lost authoring connection retains conflict values without offering an unknown retry revision", async () => {
@@ -248,4 +249,34 @@ test("a lost authoring connection retains conflict values without offering an un
   expect(screen.getByLabelText("Draft name")).toHaveValue("Retained through outage");
   expect(screen.getByLabelText("Draft name")).toBeDisabled();
   expect(screen.queryByRole("button", { name: "Use latest revision for retry" })).not.toBeInTheDocument();
+});
+
+test("Publishing returns to its caller rather than the previous card in history", async () => {
+  state.live.domains.cards.push({ ...state.live.domains.cards[0], id: "card-two", name: "Second card" });
+  state.fields.cards["card-two"] = state.fields.cards["card-one"];
+  const options = props(), view = render(<GauntletAuthoring {...options} />);
+  await selectCard();
+  fireEvent.change(screen.getByLabelText("Search cards"), { target: { value: "Second" } });
+  fireEvent.click(screen.getByRole("button", { name: "Inspect Second card" }));
+  view.rerender(<GauntletAuthoring {...options} area="Publishing" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Back to previous view" }));
+  expect(options.onNavigate).toHaveBeenLastCalledWith("Design");
+  view.rerender(<GauntletAuthoring {...options} />);
+  expect(screen.getByRole("heading", { name: "Second card" })).toBeVisible();
+  expect(screen.getByLabelText("Search cards")).toHaveValue("Second");
+  expect(window.location.search).toContain("object=card-two");
+});
+
+test("focused section changes resolve local edits and preserve values when cancelled", async () => {
+  render(<GauntletAuthoring {...props()} />);
+  await selectCard();
+  fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Local name" } });
+  fireEvent.click(screen.getByRole("button", { name: "Mechanics", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  expect(screen.getByLabelText("Draft name")).toHaveValue("Local name");
+  expect(screen.getByRole("button", { name: "Details", exact: true })).toHaveAttribute("aria-pressed", "true");
+  fireEvent.click(screen.getByRole("button", { name: "Mechanics", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Discard local edits and continue" }));
+  expect(screen.getByRole("heading", { name: "Mechanics", exact: true })).toBeVisible();
+  expect(state.draft).toBeNull();
 });

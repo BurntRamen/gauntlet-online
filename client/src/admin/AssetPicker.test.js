@@ -8,10 +8,10 @@ test("pages and filters images, resolves current aliases, and only commits expli
   render(<AssetPicker library={library} value="/art/picture-0.webp" media="image" onSelect={select} onClose={close} />);
   const results = within(screen.getByRole("region", { name: "Asset results" }));
   expect(results.getAllByRole("button", { pressed: false })).toHaveLength(23);
-  expect(screen.queryByText("greeting.ogg")).not.toBeInTheDocument();
+  expect(screen.queryByText("greeting")).not.toBeInTheDocument();
   expect(screen.getByLabelText("Search assets")).toHaveFocus();
   fireEvent.click(screen.getByRole("button", { name: "Next assets" }));
-  fireEvent.click(results.getByRole("button", { name: "picture-25.webp" }));
+  fireEvent.click(results.getByRole("button", { name: "picture 25" }));
   expect(select).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Use selected artwork" }));
   expect(select).toHaveBeenCalledWith("image-25");
@@ -23,7 +23,7 @@ test("audio requires explicit playback and cancel preserves the field with focus
   const trigger = document.createElement("button"); document.body.appendChild(trigger); trigger.focus();
   const select = jest.fn(), close = jest.fn();
   const { unmount } = render(<AssetPicker library={library} value="voice" media="audio" onSelect={select} onClose={close} />);
-  const audio = screen.getByLabelText("Listen to greeting.ogg");
+  const audio = screen.getByLabelText("Listen to greeting");
   expect(audio).toHaveAttribute("preload", "none");
   expect(audio).not.toHaveAttribute("autoplay");
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));

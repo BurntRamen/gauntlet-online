@@ -5,7 +5,7 @@ const { cardEffectDefinitions } = require("../shared/duel-rules/effectRegistry")
 const { hash } = require("./authoredContent");
 const { createEvidence, recordEvidence, projectEvidence } = require("./adminPlaytestEvidence");
 const { scenarioSpec, applyScenario, focusCard } = require("./adminTestScenarios");
-const { defaultActions, legalActions, previewAction, stateChanges } = require("./adminPlaytestActions");
+const { defaultActions, legalActions, previewAction, stateChanges, cardNames } = require("./adminPlaytestActions");
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
 const clone = value => JSON.parse(JSON.stringify(value));
 const then = (value, finish) => value?.then ? value.then(finish) : finish(value);
@@ -140,7 +140,7 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
       const finish = authoring => {
         recordEvidence(session.evidence, result, command, session.cards);
         session.lastCommand = { kind: "executed", command, accepted: true, payment: engine.previewPayment(before, command.player, command),
-          events: clone(result.animationEvents || []), changes: stateChanges(before, result.state) };
+          cardNames: cardNames(before, result.state), events: clone(result.animationEvents || []), changes: stateChanges(before, result.state) };
         session.game = result.state; session.touchedAt = Date.now(); session.acceptedCommands += 1;
         return { playtest: project(body.id, session), ...(authoring ? { authoring } : {}) };
       };

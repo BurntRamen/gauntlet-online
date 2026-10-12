@@ -62,7 +62,8 @@ export default function useWorkshopContext({ initialTarget, dirty, busy, onDisca
     requestAnimationFrame(() => {
       if (mounted.current && current.current.target === next && !next.section) {
         document.getElementById("workshop-context")?.focus({ preventScroll: true });
-        window.scrollTo(0, scroll);
+        if (next.id && window.innerWidth <= 750 && !scroll) document.getElementById("workshop-context")?.scrollIntoView?.({ block: "start" });
+        else window.scrollTo(0, scroll);
       }
     });
   }), [applyTarget, requestLeave, savePosition]);
