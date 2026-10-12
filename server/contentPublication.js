@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { migrateV1 } = require("./contentMigration");
-const { clone, hash, fieldsFor, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
+const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
 function fail(status, message) { const error = new Error(message); error.status = status; throw error; }
@@ -123,7 +123,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const live = state.releases[state.activeReleaseId].snapshot;
     return Object.entries(state.draft.snapshot.domains).flatMap(([domain, rows]) => rows.flatMap((row) => {
       const original = live.domains[domain]?.find((entry) => entry.id === row.id);
-      return Object.entries(fieldsFor(domain, original || row)).filter(([field, spec]) => hash(row[field] ?? spec.defaultValue ?? null) !== hash(original?.[field] ?? spec.defaultValue ?? null)).map(([field, spec]) => ({ domain, id: row.id, field, live: original[field] ?? spec.defaultValue, draft: row[field] ?? spec.defaultValue }));
+      return Object.entries(fieldsFor(domain, original || row)).filter(([field, spec]) => hash(fieldValue(row, field, spec) ?? null) !== hash(fieldValue(original, field, spec) ?? null)).map(([field, spec]) => ({ domain, id: row.id, field, live: fieldValue(original, field, spec), draft: fieldValue(row, field, spec) }));
     }));
   }
   function project(state) {

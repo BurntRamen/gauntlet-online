@@ -37,6 +37,8 @@ test("new prose is bounded plain text with explicit owners; arbitrary fields and
   for (const value of [null, {}, "", "x".repeat(161), "bad\u0000text"]) {
     const state = store.patch({ expectedRevision: store.status().revision, domain: "game", id: "practice", field: "heroTitle", value }, "admin");
     assert.equal(state.validation.valid, false);
+    assert.deepEqual(state.changes[0].draft, value);
+    assert.deepEqual(releaseReview(state).groups[0].changes[0].after, value);
   }
   assert.throws(() => store.patch({ expectedRevision: store.status().revision, domain: "game", id: "shared-rules", field: "heroTitle", value: "No" }), /engine-controlled/);
   assert.throws(() => store.patch({ expectedRevision: store.status().revision, domain: "game", id: "practice", field: "html", value: "No" }), /engine-controlled/);

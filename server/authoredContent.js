@@ -15,6 +15,7 @@ const config = require("../shared/duel-rules/gameConfig");
 const { proseFields } = require("./websiteProse");
 const SCHEMA = "gauntlet.authored-content.v2";
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const fieldValue = (row, field, spec) => row?.[field] === undefined ? spec.defaultValue : row[field];
 const hash = (value) => crypto.createHash("sha256").update(canonicalJson(value)).digest("hex");
 const text = (label, maxLength = 160, required = true) => ({ label, type: "text", maxLength, required });
 const asset = (label, media = "image") => ({ label, type: "asset", media, maxLength: 512, required: false });
@@ -194,7 +195,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.factions = manifest.factions.map((faction) => factions[faction.id]);
   manifest.cards = clone(domains.cards);
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
-  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, mode[key] ?? spec.defaultValue])) }]));
+  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(({ id, name, description }) => ({ id, name, description }));
   manifest.contentVersion = releaseId;
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
@@ -246,4 +247,4 @@ function pinGameContent(game, resolved) {
   return game;
 }
 
-module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, createAuthoredBaseline, validateAuthoredContent, resolveEngineContent, pinGameContent };
+module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, fieldValue, createAuthoredBaseline, validateAuthoredContent, resolveEngineContent, pinGameContent };

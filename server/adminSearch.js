@@ -1,6 +1,6 @@
 "use strict";
 
-const { fieldsFor, hash } = require("./authoredContent");
+const { fieldsFor, fieldValue, hash } = require("./authoredContent");
 const { cardAuthoringDefinitions } = require("./adminCardAuthoring");
 const labels = { campaigns: "Campaigns", encounters: "Encounters", cards: "Cards", factions: "Factions", characters: "Characters", decks: "Deck templates", game: "Website prose" };
 const normalize = value => String(value || "").normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -22,7 +22,7 @@ function searchAdmin(status, { q = "", kind = "all", offset = "0" } = {}) {
     for (const [domain, objects] of Object.entries(snapshot.domains)) for (const row of objects) {
       for (const [field, spec] of Object.entries(fieldsFor(domain, row))) {
         if (!["text", "lines"].includes(spec.type)) continue;
-        const value = row[field] ?? spec.defaultValue ?? "";
+        const value = fieldValue(row, field, spec) ?? "";
         const text = Array.isArray(value) ? value.join("\n") : String(value);
         rows.push({ key: `${domain}:${row.id}:${field}`, kind: "prose", label: label(row), detail: `${labels[domain] || domain} · ${spec.label}`, text,
           target: { area: "Design", domain: domain === "game" ? "modes" : domain, id: row.id, field,

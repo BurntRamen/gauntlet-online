@@ -6,8 +6,9 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const rawDefinition = state.fields[domain]?.[row.id]?.[field];
   const definition = field === "effect" && rawDefinition ? { ...rawDefinition, abilityLabels: Object.fromEntries((state.workshopMetadata?.cardEffects || []).map(effect => [effect.id, effect.label])) } : rawDefinition;
   if (!definition) return null;
-  const live = state.live.domains[domain]?.find(entry => entry.id === row.id)?.[field] ?? definition.defaultValue;
-  const saved = row[field] ?? definition.defaultValue;
+  const effective = value => value === undefined ? definition.defaultValue : value;
+  const live = effective(state.live.domains[domain]?.find(entry => entry.id === row.id)?.[field]);
+  const saved = effective(row[field]);
   const dirty = buffer !== undefined, value = dirty ? buffer : displayValue(saved);
   const changed = JSON.stringify(saved) !== JSON.stringify(live);
   const disabled = busy || !state.writable;
