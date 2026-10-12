@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "factionId": "frumo",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/frumo",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/frumo",
+  "contentRegistry": "server/frumoCampaignVoiceAssets.json",
+  "voices": {
+    "narrator": {
+      "name": "Frumo Narrator",
+      "description": "An original mature storyteller with a clear, warm, weathered voice, restrained theatrical energy, measured pacing, and the gravity of a maritime historical epic. Neutral English pronunciation. Never imitate a real performer.",
+      "previewText": "Before revolution had a flag, it had a ledger soaked in seawater. The tide remembers every promise made above it."
+    },
+    "lafayette": {
+      "name": "Lafayette of Frumo",
+      "description": "An original principled naval revolutionary in early middle age, composed and humane, with confident projection, crisp diction, restrained passion, and the authority of a captain who values freedom over revenge. Never imitate a real person.",
+      "previewText": "Freedom cannot survive if every disagreement becomes treason. Restore the burden of choice."
+    },
+    "polea": {
+      "name": "Lord Commander Polea",
+      "description": "An original charismatic fleet commander in middle age, resonant and commanding, energetic but controlled, with a heroic public cadence that can harden into imperial certainty. Never imitate a real person.",
+      "previewText": "Today the republic needs victory. One helm can carry a fleet through any storm."
+    },
+    "danton": {
+      "name": "Corsair Danton",
+      "description": "An original bold revolutionary corsair with a broad, forceful voice, quick confident pacing, contagious courage, and rough humor shaped by cannon smoke and crowded taverns. Never imitate a real person.",
+      "previewText": "Silver Shoals was built to scare us. Then watch what escapes when common hands break royal stone."
+    },
+    "marat": {
+      "name": "Marat of the Reefs",
+      "description": "An original sharp political agitator with a lean, intense voice, fast incisive delivery, skeptical intelligence, and anger kept just beneath the words. Never imitate a real person.",
+      "previewText": "Fear must change sides, but purity is only the mask fear wears when it wants a judge's chair."
+    },
+    "robespier": {
+      "name": "Robespier the Red Tide",
+      "description": "An original austere revolutionary judge with precise diction, cool conviction, controlled intensity, and a severe voice that grows frightening because it rarely rises. Never imitate a real person.",
+      "previewText": "No kingdom can be free while the crown still lives. Mercy is how tyrants learn to swim back."
+    },
+    "mirabeau": {
+      "name": "Privateer Mirabeau",
+      "description": "An original eloquent privateer and public speaker with a rich persuasive voice, deliberate rhetorical rhythm, seasoned confidence, and the warmth to turn a tavern into an assembly. Never imitate a real person.",
+      "previewText": "A king who ignores his people will hear their cannons. Let every whispered complaint become a speech."
+    },
+    "ludvik": {
+      "name": "King Ludvik",
+      "description": "An original aging maritime monarch with polished formal diction, entitled weariness, defensive pride, and the brittle authority of a ruler who mistakes ownership for responsibility. Never imitate a real person.",
+      "previewText": "You call it greed. I call it responsibility. Do you know how difficult it is being king?"
+    },
+    "royal-officer": {
+      "name": "Frumo Royal Officer",
+      "description": "An original disciplined royal officer with clipped formal delivery, institutional confidence, and a stern mid-range voice trained to make decrees sound inevitable. Never imitate a real person.",
+      "previewText": "By order of the crown, every hold, net, vault, and table owes tribute."
+    },
+    "foreign-admiral": {
+      "name": "Foreign Admiral",
+      "description": "An original rival admiral with a deep, disciplined naval voice, restrained contempt, deliberate pacing, and the calm confidence of someone commanding a fleet beyond the horizon. Never imitate a real person.",
+      "previewText": "You have saved them. That is the dangerous part. Tomorrow they will need permission."
+    },
+    "councilor": {
+      "name": "Councilor of Captains",
+      "description": "An original older civic councilor with a thoughtful, tired voice, careful diction, moral steadiness, and the courage to challenge a victorious commander without theatrical bravado. Never imitate a real person.",
+      "previewText": "You were given command for one crisis. A republic should be slower than a warship."
+    },
+    "shadow": {
+      "name": "Polea's Shadow",
+      "description": "An original uncanny inner voice closely matched to a heroic commander but quieter, colder, and more intimate, with patient accusation and a subtle hollow resonance. It must remain clearly fictional and must not imitate a real person.",
+      "previewText": "Say it plainly. You trust the people only after they obey. History remembers chains too."
+    },
+    "coral-envoy": {
+      "name": "Coral Crown Envoy",
+      "description": "An original diplomatic sea-prince with refined, firm diction, controlled urgency, and a clear voice trained for negotiation among rival fleets. Never imitate a real person.",
+      "previewText": "The seas do not belong to one captain. You win waters faster than you can know them."
+    },
+    "brasswater-admiral": {
+      "name": "Brasswater Admiral",
+      "description": "An original industrial league admiral with a low, metallic-edged voice, economical delivery, tactical patience, and open contempt for imperial spectacle. Never imitate a real person.",
+      "previewText": "Fear sounds like obedience. That is why the tide will hate you."
+    },
+    "ice-leviathan": {
+      "name": "Ice Leviathan",
+      "description": "An original ancient nonhuman leviathan, immense and slow, with a very deep resonant voice, glacial pauses, breath like distant ice, and controlled menace. Intelligible English with restrained supernatural texture. Never imitate a real performer.",
+      "previewText": "This is not tide. This is silence. Command freezes before it reaches me."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Lafayette": "lafayette",
+    "Polea": "polea",
+    "Danton": "danton",
+    "Marat": "marat",
+    "Robespier": "robespier",
+    "Mirabeau": "mirabeau",
+    "Ludvik": "ludvik",
+    "Tax Collector": "royal-officer",
+    "Governor": "royal-officer",
+    "Carnot": "royal-officer",
+    "Royal Loyalist": "royal-officer",
+    "Admiral": "foreign-admiral",
+    "Councilor": "councilor",
+    "Shadow": "shadow",
+    "Coral Envoy": "coral-envoy",
+    "Brasswater Admiral": "brasswater-admiral",
+    "Ice Leviathan": "ice-leviathan"
+  }
+}

@@ -101,3 +101,33 @@ kit rather than replacing the whole board with a composite animation.
 Published sound effects are fixed client assets. The API key and ElevenLabs API
 are never used by the live game. Add reviewed sounds to the presentation kit by
 semantic cue ID and retain the previous file until the new mapping is verified.
+
+## Frumo campaign voices
+
+The Frumo campaign has a separate resumable text-to-speech workflow. It designs
+15 original fictional voices and renders all 120 opening and closing dialogue
+lines. It does not clone or imitate a real performer.
+
+Inspect the complete scope without making a network request:
+
+```powershell
+npm run voices:frumo -- plan
+```
+
+With `ELEVENLABS_API_KEY` set in the root `.env`, design the voices, render the
+dialogue, and publish the complete batch:
+
+```powershell
+npm run voices:frumo -- all --confirm-cost
+```
+
+The command writes previews and resumable state under the ignored
+`artifacts/elevenlabs-campaign-voices/frumo` directory. Publishing is atomic: it
+will refuse to copy a partial batch or replace an existing voice file unless
+`--force` is supplied. A complete publish also writes the campaign audio registry
+that makes the buttons appear in game. Each published line gets a provenance
+record under `docs/generated-assets/elevenlabs-campaign-voices/frumo`.
+
+Use `--only-voice polea` to design, render, or publish one character voice at a
+time. This is useful for listening to previews before committing the full
+credit spend.

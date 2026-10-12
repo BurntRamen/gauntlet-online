@@ -1208,6 +1208,14 @@ const campaignChapters = {
   ]
 };
 
+const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.frumo) {
+  const audio = frumoCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
 const RUMIN_CAMPAIGN_ART = Object.freeze({
   "brothers-of-destiny": "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",
   "the-republic": "/assets/gauntlet/campaigns/rumin/02-the-republic.webp",
