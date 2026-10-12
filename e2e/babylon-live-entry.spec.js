@@ -730,7 +730,9 @@ test("board faction cards route available orders through hand and lane selection
 });
 
 test("resolution changes preserve framing and saved light mode updates the existing match", async ({ page, baseURL }) => {
-  await page.setViewportSize({ width: 2560, height: 900 });
+  // The desktop rail caps the canvas width. Keep its CSS aspect ultrawide
+  // while performance scaling crosses the old 420-render-pixel breakpoint.
+  await page.setViewportSize({ width: 2560, height: 740 });
   await prepareGuest(page, baseURL, "Theme Reviewer", "Practice");
   await page.getByRole("button", { name: /Factions vs AI/ }).click();
   await chooseLobbyFaction(page, "Frumo");
@@ -749,8 +751,8 @@ test("resolution changes preserve framing and saved light mode updates the exist
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await expect(match).toHaveAttribute("data-match-theme", "light");
   expect(await page.evaluate(() => localStorage.getItem("gauntlet.matchTheme"))).toBe("light");
-  await page.setViewportSize({ width: 2559, height: 900 });
-  await page.setViewportSize({ width: 2560, height: 900 });
+  await page.setViewportSize({ width: 2559, height: 740 });
+  await page.setViewportSize({ width: 2560, height: 740 });
   await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).y).toBe(frame.y);
   await page.getByRole("button", { name: "Dark", exact: true }).click();
   await expect(match).toHaveAttribute("data-match-theme", "dark");
