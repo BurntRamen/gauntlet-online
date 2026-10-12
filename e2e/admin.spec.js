@@ -825,6 +825,11 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   await page.getByRole("button", { name: "Review release", exact: true }).click();
   await expect(page.getByRole("heading", { name: "No saved changes to review.", exact: true })).toBeVisible();
   await capture("publishing-desktop");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
+  await capture("publishing-mobile");
+  expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Sergeant", exact: true })).toBeVisible();
   await expect(page.getByLabel("Search cards")).toHaveValue("Sergeant");
