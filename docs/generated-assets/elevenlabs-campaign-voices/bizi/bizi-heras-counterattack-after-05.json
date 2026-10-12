@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "hera",
+  "voiceName": "General Hera",
+  "line": "People rebuild each other.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch08-after-05-hera.mp3",
+  "generatedAt": "2026-10-12T14:29:41.212Z",
+  "publishedAt": "2026-10-12T14:30:30.394Z",
+  "bytes": 22613,
+  "sha256": "a79613efaae6242ffc34bcfd9dfd9b85ddaf859afcf4c6af227f5c2fa1ae81d7"
+}

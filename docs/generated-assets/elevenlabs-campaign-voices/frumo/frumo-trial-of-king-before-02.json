@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "robespier",
+  "voiceName": "Robespier the Red Tide",
+  "line": "No kingdom can be free while the crown still lives.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-before-02-robespier.mp3",
+  "generatedAt": "2026-10-12T03:40:13.391Z",
+  "publishedAt": "2026-10-12T03:42:23.129Z",
+  "bytes": 86561,
+  "sha256": "a5f584331b19f09fd95b58e73b2b791043dbe1a0881fa9e224d7ac1487451170"
+}

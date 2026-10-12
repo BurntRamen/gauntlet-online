@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "shadow",
+  "voiceName": "Polea's Shadow",
+  "line": "You have mistaken still water for peace.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch09-after-03-shadow.mp3",
+  "generatedAt": "2026-10-12T03:41:05.332Z",
+  "publishedAt": "2026-10-12T03:42:23.251Z",
+  "bytes": 56050,
+  "sha256": "875453086df6f73e8f078c6260db8a8ab65383e87b80eef492de8ad3cabb2fba"
+}

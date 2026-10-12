@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "royal-officer",
+  "voiceName": "Frumo Royal Officer",
+  "line": "By order of King Ludvik, every hold, net, vault, and table owes tribute.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch01-before-02-tax-collector.mp3",
+  "generatedAt": "2026-10-12T03:39:26.936Z",
+  "publishedAt": "2026-10-12T03:42:23.046Z",
+  "bytes": 108713,
+  "sha256": "befaff0937618b431271eb3024eb6cc733f1206bc649a895bdfd4a7ac3962e35"
+}

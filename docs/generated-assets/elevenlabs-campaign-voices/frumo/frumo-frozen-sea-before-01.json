@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Polea sails north to conquer the only ocean that has never learned his name.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:41:19.301Z",
+  "publishedAt": "2026-10-12T03:42:23.286Z",
+  "bytes": 87815,
+  "sha256": "3001c11723ed0cd37295e26514a7def8d25593b561753735d437dc7301959115"
+}

@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "frumo",
+  "chapters": {
+    "tax-of-tides": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-before-02-tax-collector.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-before-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-before-04-tax-collector.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-before-05-lafayette.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-after-02-tax-collector.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-after-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-after-04-tax-collector.mp3",
+        "/assets/gauntlet/voices/frumo-ch01-after-05-lafayette.mp3"
+      ]
+    },
+    "voices-of-revolution": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-before-02-mirabeau.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-before-03-governor.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-before-04-danton.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-before-05-lafayette.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-after-02-mirabeau.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-after-03-marat.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch02-after-05-danton.mp3"
+      ]
+    },
+    "fall-of-silver-shoals": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-before-02-danton.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-before-03-carnot.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-before-04-danton.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-before-05-carnot.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-after-02-carnot.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-after-03-danton.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-after-04-marat.mp3",
+        "/assets/gauntlet/voices/frumo-ch03-after-05-danton.mp3"
+      ]
+    },
+    "sunken-fortress": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-before-02-ludvik.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-before-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-before-04-ludvik.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-before-05-lafayette.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-after-02-ludvik.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-after-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-after-04-ludvik.mp3",
+        "/assets/gauntlet/voices/frumo-ch04-after-05-lafayette.mp3"
+      ]
+    },
+    "trial-of-king": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-before-02-robespier.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-before-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-before-04-royal-loyalist.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-before-05-robespier.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-after-02-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-after-03-robespier.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-after-04-marat.mp3",
+        "/assets/gauntlet/voices/frumo-ch05-after-05-lafayette.mp3"
+      ]
+    },
+    "reign-of-revolution": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-before-02-robespier.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-before-03-marat.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-before-04-robespier.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-before-05-marat.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-after-02-robespier.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-after-03-marat.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch06-after-05-marat.mp3"
+      ]
+    },
+    "hero-of-republic": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-before-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-before-03-admiral.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-before-04-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-before-05-admiral.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-after-02-admiral.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-after-03-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch07-after-05-polea.mp3"
+      ]
+    },
+    "lord-commander": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-before-02-councilor.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-before-03-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-before-04-councilor.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-before-05-polea.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-after-02-councilor.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-after-03-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch08-after-05-polea.mp3"
+      ]
+    },
+    "frumo-empire": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-before-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-before-03-shadow.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-before-04-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-before-05-shadow.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-after-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-after-03-shadow.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-after-04-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch09-after-05-shadow.mp3"
+      ]
+    },
+    "hundred-fleets": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-before-02-coral-envoy.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-before-03-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-before-04-brasswater-admiral.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-before-05-polea.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-after-02-coral-envoy.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-after-03-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-after-04-brasswater-admiral.mp3",
+        "/assets/gauntlet/voices/frumo-ch10-after-05-polea.mp3"
+      ]
+    },
+    "frozen-sea": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-before-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-before-03-ice-leviathan.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-before-04-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-before-05-ice-leviathan.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-after-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-after-03-ice-leviathan.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch11-after-05-polea.mp3"
+      ]
+    },
+    "last-tide": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-before-02-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-before-03-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-before-04-polea.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-before-05-councilor.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/frumo-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-after-02-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-after-03-councilor.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-after-04-lafayette.mp3",
+        "/assets/gauntlet/voices/frumo-ch12-after-05-polea.mp3"
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "kharon",
+  "voiceName": "Kharon the Builder",
+  "line": "A workshop makes room for every useful hand.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch01-after-03-kharon.mp3",
+  "generatedAt": "2026-10-12T14:28:20.220Z",
+  "publishedAt": "2026-10-12T14:30:30.044Z",
+  "bytes": 44347,
+  "sha256": "b066448c4d59ae24f2b9ceaf738b64f62de310363643f750e9bc03bf8e12ff9d"
+}

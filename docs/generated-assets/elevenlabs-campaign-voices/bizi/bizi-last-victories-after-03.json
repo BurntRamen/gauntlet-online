@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "beli",
+  "voiceName": "General Beli",
+  "line": "The standards reached it. The roads will follow.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-after-03-beli.mp3",
+  "generatedAt": "2026-10-12T14:29:07.036Z",
+  "publishedAt": "2026-10-12T14:30:30.243Z",
+  "bytes": 51035,
+  "sha256": "fc086e7e0486248a7eaddc1628cfb5d2e97cb8d1eb02e04bf3c0473357ce9545"
+}

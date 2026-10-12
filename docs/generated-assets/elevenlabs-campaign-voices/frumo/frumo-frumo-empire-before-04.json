@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "Better one helm than a thousand drowning hands.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch09-before-04-polea.mp3",
+  "generatedAt": "2026-10-12T03:41:00.481Z",
+  "publishedAt": "2026-10-12T03:42:23.239Z",
+  "bytes": 51453,
+  "sha256": "89f318e9639d952af2e0ce14559fabbbe89fb8a850c48210a6035201d21fb5d9"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "leon",
+  "voiceName": "Scholar Leon",
+  "line": "We found three claims to obedience.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-after-03-leon.mp3",
+  "generatedAt": "2026-10-12T14:29:51.012Z",
+  "publishedAt": "2026-10-12T14:30:30.426Z",
+  "bytes": 36824,
+  "sha256": "cb6c248a16d998dcba5f37eccb9a266a15050d965b16013dbdf6e9ceea572172"
+}

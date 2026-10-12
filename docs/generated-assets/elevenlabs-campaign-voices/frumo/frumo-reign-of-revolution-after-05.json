@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "marat",
+  "voiceName": "Marat of the Reefs",
+  "line": "Then write that down before the next savior forgets.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch06-after-05-marat.mp3",
+  "generatedAt": "2026-10-12T03:40:34.989Z",
+  "publishedAt": "2026-10-12T03:42:23.174Z",
+  "bytes": 53124,
+  "sha256": "981d6b490547685c5b3b56618eba9a6972d65761327fdfe9f27619cedc645b66"
+}

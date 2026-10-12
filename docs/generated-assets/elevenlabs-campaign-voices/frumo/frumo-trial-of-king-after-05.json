@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Sentences echo longer than cheers.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-after-05-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:23.106Z",
+  "publishedAt": "2026-10-12T03:42:23.150Z",
+  "bytes": 35988,
+  "sha256": "761d52252230418000476fd313b70042b00db856bc4a1ad3da2cbc027b72c5a6"
+}

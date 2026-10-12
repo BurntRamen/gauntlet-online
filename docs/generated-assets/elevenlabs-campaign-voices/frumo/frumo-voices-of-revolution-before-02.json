@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mirabeau",
+  "voiceName": "Privateer Mirabeau",
+  "line": "A king who ignores his people will hear their cannons.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch02-before-02-mirabeau.mp3",
+  "generatedAt": "2026-10-12T03:39:39.180Z",
+  "publishedAt": "2026-10-12T03:42:23.067Z",
+  "bytes": 57722,
+  "sha256": "5b4e05f2172c9ff5ccf997b111f33c2870eccbf761cdbab515dcd1669b5fa809"
+}

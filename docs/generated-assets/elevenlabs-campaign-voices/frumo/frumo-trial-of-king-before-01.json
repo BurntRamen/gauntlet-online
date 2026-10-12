@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "With Ludvik chained, the revolution faces a question no victory can answer cleanly.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:40:12.112Z",
+  "publishedAt": "2026-10-12T03:42:23.125Z",
+  "bytes": 92413,
+  "sha256": "d0dec3db4476bf3e6e2598ae31f13e029655042cc11e964d4947ce3665084bf4"
+}

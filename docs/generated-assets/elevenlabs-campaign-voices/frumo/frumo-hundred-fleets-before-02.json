@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "coral-envoy",
+  "voiceName": "Coral Crown Envoy",
+  "line": "The seas do not belong to one captain.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch10-before-02-coral-envoy.mp3",
+  "generatedAt": "2026-10-12T03:41:10.393Z",
+  "publishedAt": "2026-10-12T03:42:23.261Z",
+  "bytes": 40586,
+  "sha256": "d0a1b61e1fc5acb44645c07c989e223d82e150627469d23f232a30bbdf465d7a"
+}

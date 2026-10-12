@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ludvik",
+  "voiceName": "King Ludvik",
+  "line": "Do you know how difficult it is being king?",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch04-before-04-ludvik.mp3",
+  "generatedAt": "2026-10-12T03:40:04.509Z",
+  "publishedAt": "2026-10-12T03:42:23.111Z",
+  "bytes": 51453,
+  "sha256": "32c264d1750c9989dd869883dd34f608136c9c413838d80241f60bdc94e893b8"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "History will remember strength.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch09-after-04-polea.mp3",
+  "generatedAt": "2026-10-12T03:41:06.221Z",
+  "publishedAt": "2026-10-12T03:42:23.253Z",
+  "bytes": 44347,
+  "sha256": "f992d32845e0635ae20e9e1a9b66458c3e9a5531a8307ed3e0f538cd4ffd3b85"
+}

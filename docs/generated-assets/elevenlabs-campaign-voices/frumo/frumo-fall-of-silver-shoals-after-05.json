@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "danton",
+  "voiceName": "Corsair Danton",
+  "line": "And let every captain know royal formations can bleed.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-after-05-danton.mp3",
+  "generatedAt": "2026-10-12T03:40:00.113Z",
+  "publishedAt": "2026-10-12T03:42:23.102Z",
+  "bytes": 51035,
+  "sha256": "d51a98dd180523d81b871df9405dc582333a4dded111165aecfca77964b41aa9"
+}

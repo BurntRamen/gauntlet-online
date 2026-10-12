@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "councilor",
+  "voiceName": "Councilor of Captains",
+  "line": "So did ambition.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch08-before-04-councilor.mp3",
+  "generatedAt": "2026-10-12T03:40:50.179Z",
+  "publishedAt": "2026-10-12T03:42:23.212Z",
+  "bytes": 22613,
+  "sha256": "876861e933265b615eb4ee75b41d1ab913372db59fdb50e04ea09a5a90d30d47"
+}

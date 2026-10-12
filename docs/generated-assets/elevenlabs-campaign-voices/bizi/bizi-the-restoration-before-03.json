@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "governor",
+  "voiceName": "Corrupt Governor",
+  "line": "Damaged things are replaced.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-before-03-governor.mp3",
+  "generatedAt": "2026-10-12T14:30:08.830Z",
+  "publishedAt": "2026-10-12T14:30:30.491Z",
+  "bytes": 35988,
+  "sha256": "54a79bb3ad303a25bfdb01797348fce1485c6dd9d90c957229724cb0f7843623"
+}
