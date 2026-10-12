@@ -186,9 +186,9 @@ test("capture matching desktop polish scenes through normal practice", async ({ 
   await context.close();
 });
 
-test("inspect, pay and submit a real attack, then read the next authoritative decision", async ({ page, baseURL }) => {
+for (const width of [750, 1366]) test(`inspect, pay and submit a real attack at ${width}px, then read the next authoritative decision`, async ({ page, baseURL }) => {
   test.setTimeout(90000);
-  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.setViewportSize({ width, height: 768 });
   await enterPractice(page, baseURL);
   await settle(page);
   const match = page.getByTestId("production-babylon-match");
@@ -213,12 +213,58 @@ test("inspect, pay and submit a real attack, then read the next authoritative de
   await action.getByRole("button", { name: "Confirm Attack", exact: true }).click();
   await expect.poll(async () => Number(await match.getAttribute("data-revision"))).toBeGreaterThan(revision);
   await page.screenshot({ path: test.info().outputPath("sequence-3-accepted.png") });
-  await expect(page.getByRole("status", { name: "Latest combat summary" })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole("status", { name: "Latest combat summary", includeHidden: true })).toBeAttached({ timeout: 30000 });
+  if (width <= 900) {
+    await page.getByRole("button", { name: /^Full log ·/ }).click();
+    await expect(page.getByRole("dialog", { name: "Match log" })).toContainText(/damage/i);
+    await page.getByRole("dialog", { name: "Match log" }).getByRole("button", { name: "Close", exact: true }).click();
+  }
   await page.screenshot({ path: test.info().outputPath("sequence-4-resolution.png") });
   await settle(page);
   await expect(action).not.toHaveAttribute("aria-busy", "true");
   await expect(action).not.toContainText("Waiting for the server");
   await page.screenshot({ path: test.info().outputPath("sequence-5-next-decision.png") });
+});
+
+test("windowed HUD keeps payment controls and the battlefield stable as history and inspection change", async ({ page, baseURL }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 750, height: 740 });
+  await enterPractice(page, baseURL);
+  for (const [width, height] of [[601, 700], [750, 740], [900, 800], [1099, 820]]) {
+    await page.setViewportSize({ width, height });
+    await settle(page);
+    await expect(page.getByTestId("production-babylon-match")).toHaveClass(/has-windowed-panels/);
+    const canvas = page.locator("canvas.babylon-match-canvas");
+    const bounds = await canvas.boundingBox();
+    const action = page.getByRole("region", { name: "Current match action" });
+    const actionBounds = await action.boundingBox();
+    expect(bounds.y + bounds.height).toBeLessThan(actionBounds.y);
+    const ledger = page.getByRole("complementary", { name: "Recent play order" });
+    await expect(ledger.getByRole("button", { name: "Play order", exact: true })).toHaveAttribute("aria-expanded", "false");
+    const card = page.locator('[data-match-zone="hand"]').first();
+    await card.focus(); await card.press("Enter");
+    await settle(page);
+    expect(await canvas.boundingBox()).toEqual(bounds);
+    expect(await action.boundingBox()).toEqual(actionBounds);
+    const payment = await page.locator(".production-payment-readout > strong").boundingBox();
+    const copy = await page.locator(".production-context-copy").boundingBox();
+    expect(payment.y + payment.height).toBeLessThanOrEqual(copy.y + copy.height);
+    await expect(action.getByRole("button", { name: "Cancel", exact: true })).toBeInViewport();
+    await page.evaluate(() => document.activeElement.blur());
+    await page.mouse.move(0, 0);
+    await expect(page.locator(".production-card-preview")).toHaveCount(0);
+    await card.focus(); await card.press("i");
+    await expect(page.locator(".production-card-inspection")).toBeVisible();
+    await page.locator(".production-card-inspection").getByRole("button", { name: "Close", exact: true }).click();
+    await action.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.evaluate(() => document.activeElement.blur());
+    await page.mouse.move(0, 0);
+    await expect(page.locator(".production-card-preview")).toHaveCount(0);
+    const mode = await page.locator(".production-mode-marker").boundingBox();
+    const log = await ledger.boundingBox();
+    expect(mode.x + mode.width).toBeLessThanOrEqual(log.x);
+    await page.screenshot({ path: test.info().outputPath(`windowed-${width}x${height}.png`) });
+  }
 });
 
 test("measure CSS pixels, render buffers and actual idle paints in each profile", async ({ browser, baseURL }) => {

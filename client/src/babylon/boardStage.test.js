@@ -177,6 +177,18 @@ test("short-landscape camera preserves a readable share of the battlefield width
   expect((board.bounds.right - board.bounds.left) / projectedWidth).toBeGreaterThan(0.7);
 });
 
+test("a desktop window fits the enlarged fan without adding an unused top gutter", () => {
+  const projection = getTableCameraProjection(727, 472, BOARD_LAYOUT_PROFILES.desktop);
+  const board = boardModuleDescriptors(BOARD_LAYOUT_PROFILES.desktop).find(module => module.id === "board-base");
+  expect((board.bounds.right - board.bounds.left) / (projection.right - projection.left)).toBeGreaterThan(0.85);
+  for (let slotIndex = 0; slotIndex < 12; slotIndex += 1) {
+    const bounds = actorBoundsAt(resolveActorPosition({ zone: { kind: "hand", side: "local", slotIndex, count: 12 } }, BOARD_LAYOUT_PROFILES.desktop));
+    expect(bounds.bottom).toBeGreaterThan(projection.tableBounds.bottom);
+    expect(bounds.left).toBeGreaterThan(projection.left);
+    expect(bounds.right).toBeLessThan(projection.right);
+  }
+});
+
 test.each(["desktop", "ultrawide"])("%s local hand sits fully below the board", (profileId) => {
   const profile = BOARD_LAYOUT_PROFILES[profileId];
   const board = boardModuleDescriptors(profile).find((module) => module.id === "board-base");
@@ -189,6 +201,8 @@ test.each(["desktop", "ultrawide"])("%s local hand sits fully below the board", 
 });
 
 test.each([
+  [750, 740],
+  [900, 800],
   [1440, 900],
   [1024, 768],
   [768, 1024],

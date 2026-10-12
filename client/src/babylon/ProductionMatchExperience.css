@@ -3204,7 +3204,7 @@
 /* Desktop space is reserved by viewport, never by hover, selection or payment.
    The existing canvas, preview, history and action controls share this frame. */
 .has-desktop-panels {
-  --desktop-rail-width: clamp(304px, 20vw, 360px);
+  --desktop-rail-width: clamp(280px, 18vw, 320px);
   --desktop-action-height: 246px;
 }
 .has-desktop-panels .production-battlefield-safe-frame {
@@ -3351,4 +3351,82 @@
   .has-desktop-panels .production-card-and-log > .production-card-preview { grid-template-columns: 1fr; }
   .has-desktop-panels .production-card-and-log .production-card-preview-art { width: 160px; }
   .has-desktop-panels .production-context-copy > strong { font-size: 16px; }
+}
+
+/* Keep the HUD shallow in a desktop window as well as at full screen. */
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-plate {
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-rows: 20px 16px 16px 32px;
+  gap: 2px 6px;
+  min-height: 0;
+  padding: 6px 8px;
+  box-sizing: border-box;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-copy { display: contents; }
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-copy > strong {
+  grid-column: 2; grid-row: 1; font-size: 14px; align-self: center;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-color { grid-column: 2; grid-row: 2; }
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-copy > span:not(.production-player-piles) {
+  grid-column: 1 / 3; grid-row: 3; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-crest {
+  grid-column: 1; grid-row: 1 / 3; width: 28px; height: 34px;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-life {
+  grid-column: 3; grid-row: 1 / 3; align-self: center;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-life strong { font-size: 28px; }
+:is(.has-desktop-panels, .has-windowed-panels) .production-priority {
+  grid-column: 3; grid-row: 3; padding: 0; min-width: 0; border: 0;
+  background: none; font-size: 10px; justify-self: end;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-piles {
+  grid-column: 1 / 3; grid-row: 4; gap: 6px; font-size: 11px; flex-wrap: nowrap;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-piles button {
+  min-height: 30px; padding: 3px 6px; font-size: 11px;
+}
+:is(.has-desktop-panels, .has-windowed-panels) .production-player-abilities {
+  grid-column: 3; grid-row: 4; margin: 0; min-height: 30px; padding: 3px 6px;
+  max-width: 76px; font-size: 10px;
+}
+.has-desktop-panels .production-turn-marker { min-height: 58px; padding-block: 5px; }
+.has-desktop-panels .production-mode-marker { top: 74px; padding-block: 4px; }
+.has-windowed-panels .production-player-plate { width: calc(42% - 12px); }
+.has-windowed-panels .production-player-plate-top { top: 6px; left: 6px; }
+.has-windowed-panels .production-player-plate-bottom { bottom: 6px; left: 6px; }
+.has-windowed-panels .production-context-panel {
+  right: 6px; bottom: 6px; width: calc(58% - 6px); height: 144px;
+  grid-template-columns: minmax(0, 1fr) 120px; grid-template-rows: minmax(0, 1fr);
+  padding: 8px 10px; gap: 8px;
+}
+.has-windowed-panels .production-action-buttons { display: flex; flex-direction: column; justify-content: center; }
+.has-windowed-panels .production-context-copy > strong { font-size: 14px; line-height: 1.4; }
+.has-windowed-panels .production-action-buttons button { font-size: 14px; }
+.has-windowed-panels .production-turn-marker {
+  top: 6px; left: 42%; right: 94px; min-height: 54px; min-width: 0;
+  grid-template-columns: 20px minmax(0, 1fr); padding: 5px 8px;
+  font-size: 10px; gap: 2px 6px;
+}
+.has-windowed-panels .production-turn-marker > i { grid-column: 1; grid-row: 1 / 4; }
+.has-windowed-panels .production-turn-marker > span,
+.has-windowed-panels .production-turn-marker > strong,
+.has-windowed-panels .production-turn-marker > small { grid-column: 2; grid-row: auto; }
+.has-windowed-panels .production-turn-marker strong { font-size: 16px; }
+.has-windowed-panels .production-turn-marker small { font-size: 10px; }
+.has-windowed-panels .production-card-and-log { top: var(--match-log-top); width: calc(58% - 6px); right: 6px; }
+.has-windowed-panels .production-match-ledger { width: min(260px, calc(100% - 126px)); }
+.has-windowed-panels .production-card-preview {
+  width: min(300px, 100%); grid-template-columns: 80px minmax(0, 1fr);
+  align-items: start; max-height: 200px; overflow-y: auto;
+}
+.has-windowed-panels .production-card-preview-art { width: 80px; min-height: 0; height: 112px; }
+.has-windowed-panels .production-card-preview-copy > strong { font-size: 18px; }
+.has-windowed-panels .production-card-state { font-size: 10px; }
+.has-windowed-panels .production-preview-inspect { min-height: 32px; padding: 4px 8px; font-size: 12px; }
+.has-windowed-panels .production-mode-marker { top: 76px; left: 42%; min-width: 0; padding: 3px 6px; }
+@media (max-width: 700px) {
+  .has-windowed-panels .production-context-panel { height: 164px; grid-template-columns: minmax(0, 1fr) 104px; }
+  .has-windowed-panels .production-action-buttons button { padding: 5px; font-size: 12px; }
 }

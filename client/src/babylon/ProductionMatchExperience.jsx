@@ -702,10 +702,9 @@ function useMatchPanelLayout() {
   return compact;
 }
 
-function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
-  const [expanded, setExpanded] = useState(!compact);
+function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
+  const [expanded, setExpanded] = useState(false);
   const contentId = useId();
-  useEffect(() => setExpanded(!compact), [compact]);
   const players = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
   const source = entries.length > 0 ? entries : history;
@@ -728,11 +727,11 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
           aria-label="Play order"
           aria-expanded={expanded} aria-controls={contentId}
           onClick={() => setExpanded(value => !value)}>
-          <span>{compact ? "Plays" : "Play order"}</span>
+          <span>Plays</span>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
         </button>
         <button type="button" onClick={onOpen} aria-label={`Full log · ${Math.max(history.length, entries.length)}`}>
-          {compact ? "Full log" : `Full log · ${Math.max(history.length, entries.length)}`}
+          Full log
         </button>
       </header>
       <div id={contentId} className="production-ledger-content" hidden={!expanded}>
@@ -1971,13 +1970,14 @@ export default function ProductionMatchExperience({
   const shellClass = useMemo(() => [
     "production-match-experience",
     desktopPanels && update?.source !== "replay" ? "has-desktop-panels" : "",
+    panelLayout === "standard" && update?.source !== "replay" ? "has-windowed-panels" : "",
     phoneHandActive ? "has-phone-hand" : "",
     referenceDockActive ? "has-reference-dock" : "",
     reducedMotion ? "reduced-motion" : "",
     update?.source ? `source-${update.source}` : "",
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
-  ].filter(Boolean).join(" "), [desktopPanels, referenceDockActive, phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  ].filter(Boolean).join(" "), [desktopPanels, panelLayout, referenceDockActive, phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
   const resultPresentationReady = Boolean(
     update?.source !== "replay"
     && viewModel?.phase === "gameOver"
@@ -2186,14 +2186,13 @@ export default function ProductionMatchExperience({
           )}
           {update?.source !== "replay" && !referencePanel && (
             <MatchLedger
-              compact={compactMatchPanels || desktopPanels}
               entries={feedEntries}
               snapshot={transportUpdate?.snapshot || update?.snapshot}
               onOpen={() => { setAbilityLogOnly(false); setReferencePanel("log"); }}
               onOpenAbilities={() => { setAbilityLogOnly(true); setReferencePanel("log"); }}
             />
           )}
-          {(!activeInspection || !desktopPanels) && <CardPreview preview={activeCardPreview} viewModel={presentedViewModel} snapshot={transportUpdate?.snapshot} onInspect={interactionCommands.inspectCard} onPreview={updatePreview} />}
+          {(!activeInspection || !desktopPanels) && <CardPreview preview={panelLayout === "standard" && !transportUpdate?.privacy?.required ? currentHover : activeCardPreview} viewModel={presentedViewModel} snapshot={transportUpdate?.snapshot} onInspect={interactionCommands.inspectCard} onPreview={updatePreview} />}
           {desktopPanels && !activeCardPreview && (
             <p className="production-inspection-empty">Hover or focus a card to preview it.</p>
           )}
