@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "The fortress falls, and every locked coin rings like a bell across the drowned markets of Ristus.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:39:55.658Z",
+  "publishedAt": "2026-10-12T03:42:23.094Z",
+  "bytes": 125849,
+  "sha256": "ea11e31cde64a1c022deaef25ff69f579934d00919a392b6e1beb4f98749dba8"
+}

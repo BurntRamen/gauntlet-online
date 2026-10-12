@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Justice is not hunger with a blade.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-before-03-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:14.519Z",
+  "publishedAt": "2026-10-12T03:42:23.133Z",
+  "bytes": 33898,
+  "sha256": "f81e825b38b7a1e17d0b634f3cad39582c4a36317cf48eeeebc6cdede4b54a40"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "robespier",
+  "voiceName": "Robespier the Red Tide",
+  "line": "The enemies of freedom wear many faces.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch06-before-02-robespier.mp3",
+  "generatedAt": "2026-10-12T03:40:25.625Z",
+  "publishedAt": "2026-10-12T03:42:23.154Z",
+  "bytes": 59812,
+  "sha256": "1e88b0530826b3b8110a7d02dc07a95702ee6a1752ead6502d66dcd2da80d401"
+}

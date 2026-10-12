@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "And then you made them yours.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch12-before-03-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:41:31.729Z",
+  "publishedAt": "2026-10-12T03:42:23.317Z",
+  "bytes": 23449,
+  "sha256": "ecc135b6eca6d98c3d36c7cadf94940631bcd27ed519bcc097c8608e394e9448"
+}

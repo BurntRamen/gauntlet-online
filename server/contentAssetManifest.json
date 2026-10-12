@@ -16156,6 +16156,1686 @@
       "bytes": 68062
     },
     {
+      "id": "asset:voices/frumo-ch01-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8b029e7a3ee583f52ff2b01fd368a59bd6b2054865fd33156c21f186c4ab8dfc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8b029e7a3ee583f52ff2b01fd368a59bd6b2054865fd33156c21f186c4ab8dfc",
+      "bytes": 139224
+    },
+    {
+      "id": "asset:voices/frumo-ch01-after-02-tax-collector.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-after-02-tax-collector.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cfd738601b9c612d33cd65b5b6257c75c50017748b0f35baa96b916d7a4eab02.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cfd738601b9c612d33cd65b5b6257c75c50017748b0f35baa96b916d7a4eab02",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/frumo-ch01-after-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-after-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1d26308bbf0802fa1d40ef98893894ef9aaf587f209a665a9854fd65d96793bb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1d26308bbf0802fa1d40ef98893894ef9aaf587f209a665a9854fd65d96793bb",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/frumo-ch01-after-04-tax-collector.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-after-04-tax-collector.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b63e01efaddd9c600e3f1377b94264704b46f10963d8022ef818ba4c4c7009e3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b63e01efaddd9c600e3f1377b94264704b46f10963d8022ef818ba4c4c7009e3",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/frumo-ch01-after-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-after-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c840126c7b22589e35c12d212d416da242edd74ba4fb1c2fe1bdc1febe6c38cb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c840126c7b22589e35c12d212d416da242edd74ba4fb1c2fe1bdc1febe6c38cb",
+      "bytes": 44765
+    },
+    {
+      "id": "asset:voices/frumo-ch01-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/048fdc5edf95e46f4cdb948ba77ac710753272164c8dc39db76202f78478a437.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "048fdc5edf95e46f4cdb948ba77ac710753272164c8dc39db76202f78478a437",
+      "bytes": 88651
+    },
+    {
+      "id": "asset:voices/frumo-ch01-before-02-tax-collector.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-before-02-tax-collector.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/befaff0937618b431271eb3024eb6cc733f1206bc649a895bdfd4a7ac3962e35.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "befaff0937618b431271eb3024eb6cc733f1206bc649a895bdfd4a7ac3962e35",
+      "bytes": 108713
+    },
+    {
+      "id": "asset:voices/frumo-ch01-before-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-before-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8e62ce1894dc7527ea2c3967e17d0c85138640c574b066564c22f887dc5e986e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8e62ce1894dc7527ea2c3967e17d0c85138640c574b066564c22f887dc5e986e",
+      "bytes": 76948
+    },
+    {
+      "id": "asset:voices/frumo-ch01-before-04-tax-collector.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-before-04-tax-collector.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/86c6706fa5ce9693b421a42a9898b800c1479924fd48255a1665b388fe537f9f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "86c6706fa5ce9693b421a42a9898b800c1479924fd48255a1665b388fe537f9f",
+      "bytes": 74022
+    },
+    {
+      "id": "asset:voices/frumo-ch01-before-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch01-before-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.0.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e2202f023dbf95f0a6daa84dd045434ae82d4fa3ee651e8b9c6b50b2313cc725.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e2202f023dbf95f0a6daa84dd045434ae82d4fa3ee651e8b9c6b50b2313cc725",
+      "bytes": 33062
+    },
+    {
+      "id": "asset:voices/frumo-ch02-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a41783578a9d9b2b629537dcb0c76d22c1cfc8c3b39ce01b1c3e00b83ce5783f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a41783578a9d9b2b629537dcb0c76d22c1cfc8c3b39ce01b1c3e00b83ce5783f",
+      "bytes": 120834
+    },
+    {
+      "id": "asset:voices/frumo-ch02-after-02-mirabeau.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-after-02-mirabeau.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9697dedd5100e422ce32a5022b73adf508ace0ddc424c92181a0068f2a8159e5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "9697dedd5100e422ce32a5022b73adf508ace0ddc424c92181a0068f2a8159e5",
+      "bytes": 18016
+    },
+    {
+      "id": "asset:voices/frumo-ch02-after-03-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-after-03-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c5cbe572b22c3ddf78857454ec352445a19a6e9e92b91c43e164efdd930817fa.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c5cbe572b22c3ddf78857454ec352445a19a6e9e92b91c43e164efdd930817fa",
+      "bytes": 56050
+    },
+    {
+      "id": "asset:voices/frumo-ch02-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c20af231947109a0104e3fa0b5acf0ea8700dafd0b7718f670031366392ac16f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c20af231947109a0104e3fa0b5acf0ea8700dafd0b7718f670031366392ac16f",
+      "bytes": 78202
+    },
+    {
+      "id": "asset:voices/frumo-ch02-after-05-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-after-05-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1796816155fa3f6d4fa2cccc380a2d46e204a753263f0d5a03127488f5198328.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1796816155fa3f6d4fa2cccc380a2d46e204a753263f0d5a03127488f5198328",
+      "bytes": 64827
+    },
+    {
+      "id": "asset:voices/frumo-ch02-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/381a2468796645cd6e347f1d1d01779907af2c6c0a0250c764e6d106ef6fe4df.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "381a2468796645cd6e347f1d1d01779907af2c6c0a0250c764e6d106ef6fe4df",
+      "bytes": 142150
+    },
+    {
+      "id": "asset:voices/frumo-ch02-before-02-mirabeau.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-before-02-mirabeau.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5b4e05f2172c9ff5ccf997b111f33c2870eccbf761cdbab515dcd1669b5fa809.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5b4e05f2172c9ff5ccf997b111f33c2870eccbf761cdbab515dcd1669b5fa809",
+      "bytes": 57722
+    },
+    {
+      "id": "asset:voices/frumo-ch02-before-03-governor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-before-03-governor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/121a490e4c4f1cd148cabc2b403441b7d349043c8d8ac12b89d7dced511463fc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "121a490e4c4f1cd148cabc2b403441b7d349043c8d8ac12b89d7dced511463fc",
+      "bytes": 41004
+    },
+    {
+      "id": "asset:voices/frumo-ch02-before-04-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-before-04-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d5ad15032feab8ffef278eab0ac199b65dca6057d8ff4ddbac017bb7113eefb8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d5ad15032feab8ffef278eab0ac199b65dca6057d8ff4ddbac017bb7113eefb8",
+      "bytes": 36824
+    },
+    {
+      "id": "asset:voices/frumo-ch02-before-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch02-before-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.1.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5445decf4df0b23330ecbf415dd942564bf9785077b923919d5157db60304126.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5445decf4df0b23330ecbf415dd942564bf9785077b923919d5157db60304126",
+      "bytes": 52288
+    },
+    {
+      "id": "asset:voices/frumo-ch03-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ea11e31cde64a1c022deaef25ff69f579934d00919a392b6e1beb4f98749dba8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ea11e31cde64a1c022deaef25ff69f579934d00919a392b6e1beb4f98749dba8",
+      "bytes": 125849
+    },
+    {
+      "id": "asset:voices/frumo-ch03-after-02-carnot.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-after-02-carnot.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8e61a611020bfc4e322a91ebeb432bd125fd7a15e65492017b0ad6a954862881.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8e61a611020bfc4e322a91ebeb432bd125fd7a15e65492017b0ad6a954862881",
+      "bytes": 43511
+    },
+    {
+      "id": "asset:voices/frumo-ch03-after-03-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-after-03-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/43f9c67878f17b29fd86084817fa19713a0e0e07e765366c6932e114b6ce3280.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "43f9c67878f17b29fd86084817fa19713a0e0e07e765366c6932e114b6ce3280",
+      "bytes": 45601
+    },
+    {
+      "id": "asset:voices/frumo-ch03-after-04-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-after-04-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6189e3e063d8a939e24ef5cf442b37791d11da79db8fe572a7abb8dc802599c5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6189e3e063d8a939e24ef5cf442b37791d11da79db8fe572a7abb8dc802599c5",
+      "bytes": 57722
+    },
+    {
+      "id": "asset:voices/frumo-ch03-after-05-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-after-05-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d51a98dd180523d81b871df9405dc582333a4dded111165aecfca77964b41aa9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d51a98dd180523d81b871df9405dc582333a4dded111165aecfca77964b41aa9",
+      "bytes": 51035
+    },
+    {
+      "id": "asset:voices/frumo-ch03-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/862db00043ca4e9122b4b05a9ecd3503896b1c22f19988ba65b16e08439555c2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "862db00043ca4e9122b4b05a9ecd3503896b1c22f19988ba65b16e08439555c2",
+      "bytes": 127521
+    },
+    {
+      "id": "asset:voices/frumo-ch03-before-02-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-before-02-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3c934e061d0db50253b05debab6b18e025f149c23896deb4c9096d3e5f2f0160.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3c934e061d0db50253b05debab6b18e025f149c23896deb4c9096d3e5f2f0160",
+      "bytes": 43511
+    },
+    {
+      "id": "asset:voices/frumo-ch03-before-03-carnot.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-before-03-carnot.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c400712145012a69a0285fec1feba25e3ddce641f00b50165a4eba4de5ffb5e3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c400712145012a69a0285fec1feba25e3ddce641f00b50165a4eba4de5ffb5e3",
+      "bytes": 29301
+    },
+    {
+      "id": "asset:voices/frumo-ch03-before-04-danton.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-before-04-danton.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ecc0c22f3a1141a42457fa39723918e4f6cc5a28cf922914662b7232bbbe0cbe.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ecc0c22f3a1141a42457fa39723918e4f6cc5a28cf922914662b7232bbbe0cbe",
+      "bytes": 24703
+    },
+    {
+      "id": "asset:voices/frumo-ch03-before-05-carnot.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch03-before-05-carnot.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.2.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/279fb0d787617eb80de9aca6bd46051d6333a357daeba380cd64bab27cfe390b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "279fb0d787617eb80de9aca6bd46051d6333a357daeba380cd64bab27cfe390b",
+      "bytes": 56886
+    },
+    {
+      "id": "asset:voices/frumo-ch04-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/84eccffa45f8161b75cd87d78f1f470f9085edee735e97efee64717ac7b610f1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "84eccffa45f8161b75cd87d78f1f470f9085edee735e97efee64717ac7b610f1",
+      "bytes": 122088
+    },
+    {
+      "id": "asset:voices/frumo-ch04-after-02-ludvik.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-after-02-ludvik.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7a3c2f7b7e37605da9a294d4549a08c0882f14f658ab93837a27613d82ccfd03.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7a3c2f7b7e37605da9a294d4549a08c0882f14f658ab93837a27613d82ccfd03",
+      "bytes": 48527
+    },
+    {
+      "id": "asset:voices/frumo-ch04-after-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-after-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/736558a240a022b46a4d14a8f70a8afe710d27c6a0af0faeb991beea4bccfcf6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "736558a240a022b46a4d14a8f70a8afe710d27c6a0af0faeb991beea4bccfcf6",
+      "bytes": 28465
+    },
+    {
+      "id": "asset:voices/frumo-ch04-after-04-ludvik.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-after-04-ludvik.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/77bb3e5ad3c6ce2cff90c57402b0fbeb27e654e96dfa2617717b5a29f1dc4611.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "77bb3e5ad3c6ce2cff90c57402b0fbeb27e654e96dfa2617717b5a29f1dc4611",
+      "bytes": 41839
+    },
+    {
+      "id": "asset:voices/frumo-ch04-after-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-after-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8e617a6dff3e34641be825fcad05eb2b1bf85ee1940da8855969db8b70f09d90.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8e617a6dff3e34641be825fcad05eb2b1bf85ee1940da8855969db8b70f09d90",
+      "bytes": 43511
+    },
+    {
+      "id": "asset:voices/frumo-ch04-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/334bb95092abb121f4685705397c764b7668ca893849e4bc4b7e3b597033ea4f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "334bb95092abb121f4685705397c764b7668ca893849e4bc4b7e3b597033ea4f",
+      "bytes": 131701
+    },
+    {
+      "id": "asset:voices/frumo-ch04-before-02-ludvik.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-before-02-ludvik.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7b71d731a148ee3f2b3f83d5e8b223b3d5b9fcefe4a8e7d3c623445a550c34e0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7b71d731a148ee3f2b3f83d5e8b223b3d5b9fcefe4a8e7d3c623445a550c34e0",
+      "bytes": 64827
+    },
+    {
+      "id": "asset:voices/frumo-ch04-before-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-before-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d09d0317cd84b69a00f7abd919d2ca3f03d44ecaf8d7808516d4796a5758fb54.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d09d0317cd84b69a00f7abd919d2ca3f03d44ecaf8d7808516d4796a5758fb54",
+      "bytes": 46437
+    },
+    {
+      "id": "asset:voices/frumo-ch04-before-04-ludvik.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-before-04-ludvik.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/32c264d1750c9989dd869883dd34f608136c9c413838d80241f60bdc94e893b8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "32c264d1750c9989dd869883dd34f608136c9c413838d80241f60bdc94e893b8",
+      "bytes": 51453
+    },
+    {
+      "id": "asset:voices/frumo-ch04-before-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch04-before-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.3.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/630a3beea822b678c755c7286bc018ed433986a12edfd833b2bd4afd8998f7ef.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "630a3beea822b678c755c7286bc018ed433986a12edfd833b2bd4afd8998f7ef",
+      "bytes": 47273
+    },
+    {
+      "id": "asset:voices/frumo-ch05-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1dd90ffe767f16fd3a9f7303c0e0ec594c98c072e1e01a993071291d9af6f4d9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1dd90ffe767f16fd3a9f7303c0e0ec594c98c072e1e01a993071291d9af6f4d9",
+      "bytes": 75276
+    },
+    {
+      "id": "asset:voices/frumo-ch05-after-02-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-after-02-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b35027b08774ddfeff5c4526421e750c78490632ad15bc45d4d352a015f5ef6a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b35027b08774ddfeff5c4526421e750c78490632ad15bc45d4d352a015f5ef6a",
+      "bytes": 45601
+    },
+    {
+      "id": "asset:voices/frumo-ch05-after-03-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-after-03-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7a03e419ec8a96b814bc6d12546a9ce567b4e9597d3d9faaf4ca4e929ca9014d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7a03e419ec8a96b814bc6d12546a9ce567b4e9597d3d9faaf4ca4e929ca9014d",
+      "bytes": 86561
+    },
+    {
+      "id": "asset:voices/frumo-ch05-after-04-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-after-04-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3d8de93e63a1240a02a09c340f0fa972a921eb8026ff6ea073cff06446694a99.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3d8de93e63a1240a02a09c340f0fa972a921eb8026ff6ea073cff06446694a99",
+      "bytes": 58976
+    },
+    {
+      "id": "asset:voices/frumo-ch05-after-05-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-after-05-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/761d52252230418000476fd313b70042b00db856bc4a1ad3da2cbc027b72c5a6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "761d52252230418000476fd313b70042b00db856bc4a1ad3da2cbc027b72c5a6",
+      "bytes": 35988
+    },
+    {
+      "id": "asset:voices/frumo-ch05-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d0dec3db4476bf3e6e2598ae31f13e029655042cc11e964d4947ce3665084bf4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d0dec3db4476bf3e6e2598ae31f13e029655042cc11e964d4947ce3665084bf4",
+      "bytes": 92413
+    },
+    {
+      "id": "asset:voices/frumo-ch05-before-02-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-before-02-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a5f584331b19f09fd95b58e73b2b791043dbe1a0881fa9e224d7ac1487451170.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a5f584331b19f09fd95b58e73b2b791043dbe1a0881fa9e224d7ac1487451170",
+      "bytes": 86561
+    },
+    {
+      "id": "asset:voices/frumo-ch05-before-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-before-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f81e825b38b7a1e17d0b634f3cad39582c4a36317cf48eeeebc6cdede4b54a40.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f81e825b38b7a1e17d0b634f3cad39582c4a36317cf48eeeebc6cdede4b54a40",
+      "bytes": 33898
+    },
+    {
+      "id": "asset:voices/frumo-ch05-before-04-royal-loyalist.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-before-04-royal-loyalist.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/baa60c76b3fcb5cfa95594b560d35977b2889567b2f8edfb2133ac1833673eca.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "baa60c76b3fcb5cfa95594b560d35977b2889567b2f8edfb2133ac1833673eca",
+      "bytes": 57722
+    },
+    {
+      "id": "asset:voices/frumo-ch05-before-05-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch05-before-05-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.4.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ea2199aa630e5dd8265a0f9fb25ffb755e328243299251c277d2a2c19dc0ba60.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ea2199aa630e5dd8265a0f9fb25ffb755e328243299251c277d2a2c19dc0ba60",
+      "bytes": 56050
+    },
+    {
+      "id": "asset:voices/frumo-ch06-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e8115eb782360596892ed6f91eafbfe70cf219c02320ee8a564e2e825bfa9005.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e8115eb782360596892ed6f91eafbfe70cf219c02320ee8a564e2e825bfa9005",
+      "bytes": 121252
+    },
+    {
+      "id": "asset:voices/frumo-ch06-after-02-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-after-02-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cb1a49c09a8340a22639f93c4d03a59c20fd1f08eba1e3cc565be56d137d17bc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cb1a49c09a8340a22639f93c4d03a59c20fd1f08eba1e3cc565be56d137d17bc",
+      "bytes": 34316
+    },
+    {
+      "id": "asset:voices/frumo-ch06-after-03-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-after-03-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f3464fdce21a8b7d5c07992218fa45df479afb3619a420136672f2e721d2dd5f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f3464fdce21a8b7d5c07992218fa45df479afb3619a420136672f2e721d2dd5f",
+      "bytes": 31391
+    },
+    {
+      "id": "asset:voices/frumo-ch06-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6d0929ec002b2712ba428d0e0da5f5d2a7898c3f70fcf8739fdb263678102b65.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6d0929ec002b2712ba428d0e0da5f5d2a7898c3f70fcf8739fdb263678102b65",
+      "bytes": 54378
+    },
+    {
+      "id": "asset:voices/frumo-ch06-after-05-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-after-05-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/981d6b490547685c5b3b56618eba9a6972d65761327fdfe9f27619cedc645b66.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "981d6b490547685c5b3b56618eba9a6972d65761327fdfe9f27619cedc645b66",
+      "bytes": 53124
+    },
+    {
+      "id": "asset:voices/frumo-ch06-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d97655cba78be2b7a1f10f02e60a937fb7de454511ac16269c2b81ae1b69d216.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d97655cba78be2b7a1f10f02e60a937fb7de454511ac16269c2b81ae1b69d216",
+      "bytes": 119162
+    },
+    {
+      "id": "asset:voices/frumo-ch06-before-02-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-before-02-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1e88b0530826b3b8110a7d02dc07a95702ee6a1752ead6502d66dcd2da80d401.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1e88b0530826b3b8110a7d02dc07a95702ee6a1752ead6502d66dcd2da80d401",
+      "bytes": 59812
+    },
+    {
+      "id": "asset:voices/frumo-ch06-before-03-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-before-03-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/91510edee98a6a59e49dc12e6ad4d83c6566c4d6782e884c54ea86882fd16d0c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "91510edee98a6a59e49dc12e6ad4d83c6566c4d6782e884c54ea86882fd16d0c",
+      "bytes": 42675
+    },
+    {
+      "id": "asset:voices/frumo-ch06-before-04-robespier.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-before-04-robespier.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fd800f5ee37249f888ac471187c6b8e993c9f91c7cfce5261d7bed9becd27db5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fd800f5ee37249f888ac471187c6b8e993c9f91c7cfce5261d7bed9becd27db5",
+      "bytes": 44347
+    },
+    {
+      "id": "asset:voices/frumo-ch06-before-05-marat.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch06-before-05-marat.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.5.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/68978023478659f3374dba83e5661fde6d910a4918512e389a2cd42b5b48bbb5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "68978023478659f3374dba83e5661fde6d910a4918512e389a2cd42b5b48bbb5",
+      "bytes": 65663
+    },
+    {
+      "id": "asset:voices/frumo-ch07-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b3fde4cd9efeb5da30b3d34443c216585f94d22d8f6b7d86eeb6a2f853a00069.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b3fde4cd9efeb5da30b3d34443c216585f94d22d8f6b7d86eeb6a2f853a00069",
+      "bytes": 112475
+    },
+    {
+      "id": "asset:voices/frumo-ch07-after-02-admiral.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-after-02-admiral.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cdf1d3e0595e381623daf3068df2791e9ae319f8ad4e50ed375920ee9d1b6752.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cdf1d3e0595e381623daf3068df2791e9ae319f8ad4e50ed375920ee9d1b6752",
+      "bytes": 52288
+    },
+    {
+      "id": "asset:voices/frumo-ch07-after-03-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-after-03-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6faebf3775b121d81f65113b3a18d7de4931dccdca8a92070c8ce4bcf4ff4206.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6faebf3775b121d81f65113b3a18d7de4931dccdca8a92070c8ce4bcf4ff4206",
+      "bytes": 66499
+    },
+    {
+      "id": "asset:voices/frumo-ch07-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/168f9b7e72bdf93cfb15e3b6c4ec066c40ae53d7da10b81c8f6f6adc669d5cb3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "168f9b7e72bdf93cfb15e3b6c4ec066c40ae53d7da10b81c8f6f6adc669d5cb3",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/frumo-ch07-after-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-after-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fe3a90bc9e9c664889b5d9fcfd7beb624845b202703a72dfd2cf5b084c3a2afa.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fe3a90bc9e9c664889b5d9fcfd7beb624845b202703a72dfd2cf5b084c3a2afa",
+      "bytes": 71515
+    },
+    {
+      "id": "asset:voices/frumo-ch07-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/72b9f4af3f1b0570c669528ca92ab726132976171e70699f13bf2eecf6e5e5bf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "72b9f4af3f1b0570c669528ca92ab726132976171e70699f13bf2eecf6e5e5bf",
+      "bytes": 140060
+    },
+    {
+      "id": "asset:voices/frumo-ch07-before-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-before-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/421e48952f3b50b219b3201d9536ee34aa52f6a9eb4faa3514766b431c01e288.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "421e48952f3b50b219b3201d9536ee34aa52f6a9eb4faa3514766b431c01e288",
+      "bytes": 41004
+    },
+    {
+      "id": "asset:voices/frumo-ch07-before-03-admiral.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-before-03-admiral.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6eec4539ee71977407f0d91ce154a38ad201c682e743bb042e932780338ae3b9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6eec4539ee71977407f0d91ce154a38ad201c682e743bb042e932780338ae3b9",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/frumo-ch07-before-04-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-before-04-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/71a4ca404e738f413fcf74990abc3d26f480e5ec10b961c881d2ad044a766066.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "71a4ca404e738f413fcf74990abc3d26f480e5ec10b961c881d2ad044a766066",
+      "bytes": 24703
+    },
+    {
+      "id": "asset:voices/frumo-ch07-before-05-admiral.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch07-before-05-admiral.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.6.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e9683c939c585d92e74aa399198dfa1aa9c0cfdcb63bf3704d75063b48b81684.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e9683c939c585d92e74aa399198dfa1aa9c0cfdcb63bf3704d75063b48b81684",
+      "bytes": 33898
+    },
+    {
+      "id": "asset:voices/frumo-ch08-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ee03497f1a83c9bc8a2d23100f358c9f31f417f8f1034f2946300f2addeeafcc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ee03497f1a83c9bc8a2d23100f358c9f31f417f8f1034f2946300f2addeeafcc",
+      "bytes": 102026
+    },
+    {
+      "id": "asset:voices/frumo-ch08-after-02-councilor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-after-02-councilor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/17ad08ed4b0f6a7be6f9b850a159358e5883399e2cfc7948782fcb7297456502.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "17ad08ed4b0f6a7be6f9b850a159358e5883399e2cfc7948782fcb7297456502",
+      "bytes": 38914
+    },
+    {
+      "id": "asset:voices/frumo-ch08-after-03-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-after-03-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/81cb0a61ddde1fe24136082beefeeed508e25ca5dcc27589deefb913b739b04d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "81cb0a61ddde1fe24136082beefeeed508e25ca5dcc27589deefb913b739b04d",
+      "bytes": 44765
+    },
+    {
+      "id": "asset:voices/frumo-ch08-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a49dd9fc1692b1cb55bee3543dfa92c6f648092cc70cee099f2acd58ab1fb341.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a49dd9fc1692b1cb55bee3543dfa92c6f648092cc70cee099f2acd58ab1fb341",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/frumo-ch08-after-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-after-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/edae3e767da0dd6b6836a120243509358baec607ba7d7258346ee973fd5d51b6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "edae3e767da0dd6b6836a120243509358baec607ba7d7258346ee973fd5d51b6",
+      "bytes": 50199
+    },
+    {
+      "id": "asset:voices/frumo-ch08-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/661a9115529b860eb5abe7046bdb76c0a6c75b4c6f24791a97af2156e58a6220.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "661a9115529b860eb5abe7046bdb76c0a6c75b4c6f24791a97af2156e58a6220",
+      "bytes": 109549
+    },
+    {
+      "id": "asset:voices/frumo-ch08-before-02-councilor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-before-02-councilor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e97233379d7b771e9398a11e7471ba4d10fc1fc9510282730402cac12fd04617.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e97233379d7b771e9398a11e7471ba4d10fc1fc9510282730402cac12fd04617",
+      "bytes": 39750
+    },
+    {
+      "id": "asset:voices/frumo-ch08-before-03-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-before-03-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e8862d548e37369e6017b7b8b75d29a3cbcfb7c88d2f74e0a06a365a47897090.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e8862d548e37369e6017b7b8b75d29a3cbcfb7c88d2f74e0a06a365a47897090",
+      "bytes": 45601
+    },
+    {
+      "id": "asset:voices/frumo-ch08-before-04-councilor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-before-04-councilor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/876861e933265b615eb4ee75b41d1ab913372db59fdb50e04ea09a5a90d30d47.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "876861e933265b615eb4ee75b41d1ab913372db59fdb50e04ea09a5a90d30d47",
+      "bytes": 22613
+    },
+    {
+      "id": "asset:voices/frumo-ch08-before-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch08-before-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.7.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3689e66d4d19949bdfb52a569ece71316bc63cd75221a526b63dd25f1517188c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3689e66d4d19949bdfb52a569ece71316bc63cd75221a526b63dd25f1517188c",
+      "bytes": 61066
+    },
+    {
+      "id": "asset:voices/frumo-ch09-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0946651c0d8da21976ee5851b2c617f8add3b8ad8d2355e03db45689c4df8bdf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0946651c0d8da21976ee5851b2c617f8add3b8ad8d2355e03db45689c4df8bdf",
+      "bytes": 122924
+    },
+    {
+      "id": "asset:voices/frumo-ch09-after-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-after-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e244786e1757b9f86c0322ba39bde06f30929da77359a6d680c068939cfa0aa1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e244786e1757b9f86c0322ba39bde06f30929da77359a6d680c068939cfa0aa1",
+      "bytes": 58140
+    },
+    {
+      "id": "asset:voices/frumo-ch09-after-03-shadow.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-after-03-shadow.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/875453086df6f73e8f078c6260db8a8ab65383e87b80eef492de8ad3cabb2fba.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "875453086df6f73e8f078c6260db8a8ab65383e87b80eef492de8ad3cabb2fba",
+      "bytes": 56050
+    },
+    {
+      "id": "asset:voices/frumo-ch09-after-04-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-after-04-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f992d32845e0635ae20e9e1a9b66458c3e9a5531a8307ed3e0f538cd4ffd3b85.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f992d32845e0635ae20e9e1a9b66458c3e9a5531a8307ed3e0f538cd4ffd3b85",
+      "bytes": 44347
+    },
+    {
+      "id": "asset:voices/frumo-ch09-after-05-shadow.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-after-05-shadow.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9670c14d1f856732deffe29915bb864552ce25d80b21fa59e813fb047bc36c6d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "9670c14d1f856732deffe29915bb864552ce25d80b21fa59e813fb047bc36c6d",
+      "bytes": 97010
+    },
+    {
+      "id": "asset:voices/frumo-ch09-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/452d313116c074bef06e69d33e4155a7b1b5cd22e5c5ebddb25278c254c2cfd2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "452d313116c074bef06e69d33e4155a7b1b5cd22e5c5ebddb25278c254c2cfd2",
+      "bytes": 145911
+    },
+    {
+      "id": "asset:voices/frumo-ch09-before-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-before-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4b16ffa24a02f9067f621c6bb4d753356e80d9a47d3a2644f34180aa3298002b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4b16ffa24a02f9067f621c6bb4d753356e80d9a47d3a2644f34180aa3298002b",
+      "bytes": 36824
+    },
+    {
+      "id": "asset:voices/frumo-ch09-before-03-shadow.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-before-03-shadow.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/11dd9f3a3dd0cf1c844a546f617c5d3505c80fc11a3fee92b2544dd42cdf4067.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "11dd9f3a3dd0cf1c844a546f617c5d3505c80fc11a3fee92b2544dd42cdf4067",
+      "bytes": 58976
+    },
+    {
+      "id": "asset:voices/frumo-ch09-before-04-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-before-04-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/89f318e9639d952af2e0ce14559fabbbe89fb8a850c48210a6035201d21fb5d9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "89f318e9639d952af2e0ce14559fabbbe89fb8a850c48210a6035201d21fb5d9",
+      "bytes": 51453
+    },
+    {
+      "id": "asset:voices/frumo-ch09-before-05-shadow.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch09-before-05-shadow.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.8.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/dab1293e6715f4e0f56c6746ee2768fbe7b488dca58b7a8ee90fe6f471010a84.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "dab1293e6715f4e0f56c6746ee2768fbe7b488dca58b7a8ee90fe6f471010a84",
+      "bytes": 90323
+    },
+    {
+      "id": "asset:voices/frumo-ch10-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/148a0bf3a6b918eb2d9c40f5068d438ffbd78557d892a37dddc407cc5e354ecf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "148a0bf3a6b918eb2d9c40f5068d438ffbd78557d892a37dddc407cc5e354ecf",
+      "bytes": 103697
+    },
+    {
+      "id": "asset:voices/frumo-ch10-after-02-coral-envoy.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-after-02-coral-envoy.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cf957e83d6a63d76e61cc2afc6b834dec014f4aaf21906e716a77a36534317c0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cf957e83d6a63d76e61cc2afc6b834dec014f4aaf21906e716a77a36534317c0",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/frumo-ch10-after-03-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-after-03-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4aaf51a3fe9ec4e1e326e29ba1ed6b6e19f890a3ef1754169b56da896a795354.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4aaf51a3fe9ec4e1e326e29ba1ed6b6e19f890a3ef1754169b56da896a795354",
+      "bytes": 67335
+    },
+    {
+      "id": "asset:voices/frumo-ch10-after-04-brasswater-admiral.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-after-04-brasswater-admiral.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/412a36d8fdeb6092b41a939f5c7b501219cb2bfd8234e36009a3a7b09d2b04f1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "412a36d8fdeb6092b41a939f5c7b501219cb2bfd8234e36009a3a7b09d2b04f1",
+      "bytes": 30973
+    },
+    {
+      "id": "asset:voices/frumo-ch10-after-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-after-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/74941d537fdace34c34e9ae17f9fc65dde8930061ba098c51096371bdafd4492.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "74941d537fdace34c34e9ae17f9fc65dde8930061ba098c51096371bdafd4492",
+      "bytes": 57722
+    },
+    {
+      "id": "asset:voices/frumo-ch10-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/59c5ec1c22eaf0f33b7a0a757515349995611379c216a438bccde5a88a72be27.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "59c5ec1c22eaf0f33b7a0a757515349995611379c216a438bccde5a88a72be27",
+      "bytes": 140060
+    },
+    {
+      "id": "asset:voices/frumo-ch10-before-02-coral-envoy.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-before-02-coral-envoy.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d0a1b61e1fc5acb44645c07c989e223d82e150627469d23f232a30bbdf465d7a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d0a1b61e1fc5acb44645c07c989e223d82e150627469d23f232a30bbdf465d7a",
+      "bytes": 40586
+    },
+    {
+      "id": "asset:voices/frumo-ch10-before-03-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-before-03-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ba0d870eb951f5bdeb39003e326d203995fce4589490d8628cb5eefbee3b9065.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ba0d870eb951f5bdeb39003e326d203995fce4589490d8628cb5eefbee3b9065",
+      "bytes": 32226
+    },
+    {
+      "id": "asset:voices/frumo-ch10-before-04-brasswater-admiral.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-before-04-brasswater-admiral.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a5818a3e0e0ca7d1f899cd82625a14990f770f97d63d46cbc4eed72de0fd6286.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a5818a3e0e0ca7d1f899cd82625a14990f770f97d63d46cbc4eed72de0fd6286",
+      "bytes": 34316
+    },
+    {
+      "id": "asset:voices/frumo-ch10-before-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch10-before-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.9.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/935aef59aa49e1904e5d0005b9f5e04208d8483beb6b2ea7a6f5228600751b80.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "935aef59aa49e1904e5d0005b9f5e04208d8483beb6b2ea7a6f5228600751b80",
+      "bytes": 74440
+    },
+    {
+      "id": "asset:voices/frumo-ch11-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/09db14b5e3c3f30dac8ae9859c13fae589582e31dea69054528af4b11b614926.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "09db14b5e3c3f30dac8ae9859c13fae589582e31dea69054528af4b11b614926",
+      "bytes": 120834
+    },
+    {
+      "id": "asset:voices/frumo-ch11-after-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-after-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0668895ca3da2a33285494f0ac02549637f8194703c2ce5872ecbbd476009aa9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0668895ca3da2a33285494f0ac02549637f8194703c2ce5872ecbbd476009aa9",
+      "bytes": 71097
+    },
+    {
+      "id": "asset:voices/frumo-ch11-after-03-ice-leviathan.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-after-03-ice-leviathan.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/614e58a16e7659a36d1e3b5e1d719eed76570a080d644ee04c93b45bf64d4cb3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "614e58a16e7659a36d1e3b5e1d719eed76570a080d644ee04c93b45bf64d4cb3",
+      "bytes": 56050
+    },
+    {
+      "id": "asset:voices/frumo-ch11-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7d65d07aa1ffd6bc6aef5b73c35112890ef6d82b92b68b1bc639db7b56f50045.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7d65d07aa1ffd6bc6aef5b73c35112890ef6d82b92b68b1bc639db7b56f50045",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/frumo-ch11-after-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-after-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d328a85fa129740d95c3914df2f100188e439b9313616dee2974220b64387ef8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d328a85fa129740d95c3914df2f100188e439b9313616dee2974220b64387ef8",
+      "bytes": 44765
+    },
+    {
+      "id": "asset:voices/frumo-ch11-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3001c11723ed0cd37295e26514a7def8d25593b561753735d437dc7301959115.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3001c11723ed0cd37295e26514a7def8d25593b561753735d437dc7301959115",
+      "bytes": 87815
+    },
+    {
+      "id": "asset:voices/frumo-ch11-before-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-before-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1a2856cfa8b5208c2041212d7faa0e292c511c72d565edd1469fd9bf5272e77a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1a2856cfa8b5208c2041212d7faa0e292c511c72d565edd1469fd9bf5272e77a",
+      "bytes": 38078
+    },
+    {
+      "id": "asset:voices/frumo-ch11-before-03-ice-leviathan.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-before-03-ice-leviathan.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/14b3b2c807a7753cb0545c232e3a476ca38a71c1a729bffa67904d066ee80fa3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "14b3b2c807a7753cb0545c232e3a476ca38a71c1a729bffa67904d066ee80fa3",
+      "bytes": 81128
+    },
+    {
+      "id": "asset:voices/frumo-ch11-before-04-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-before-04-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ebfa5654d84993587ee570eb4ef05bebcf9b7c1731d00e1854d70161090f2ee5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ebfa5654d84993587ee570eb4ef05bebcf9b7c1731d00e1854d70161090f2ee5",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/frumo-ch11-before-05-ice-leviathan.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch11-before-05-ice-leviathan.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.10.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5312876b199229b9cb6abd2a1063b88ed5a202d2eb1719306f031a95ccfac26e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5312876b199229b9cb6abd2a1063b88ed5a202d2eb1719306f031a95ccfac26e",
+      "bytes": 48527
+    },
+    {
+      "id": "asset:voices/frumo-ch12-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/05e322fa599fd58233ee3c2be11c707729949a399fc9ce10a776e75aa744866d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "05e322fa599fd58233ee3c2be11c707729949a399fc9ce10a776e75aa744866d",
+      "bytes": 145075
+    },
+    {
+      "id": "asset:voices/frumo-ch12-after-02-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-after-02-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/40c896b2e09d6162fe4a9ad76e996c45465a1d9889041a719535daae411d7abb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "40c896b2e09d6162fe4a9ad76e996c45465a1d9889041a719535daae411d7abb",
+      "bytes": 76112
+    },
+    {
+      "id": "asset:voices/frumo-ch12-after-03-councilor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-after-03-councilor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0f66137251b5319af44ded96538f51f0ad8b7dc5b428ccc278149ffd7454460d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0f66137251b5319af44ded96538f51f0ad8b7dc5b428ccc278149ffd7454460d",
+      "bytes": 56886
+    },
+    {
+      "id": "asset:voices/frumo-ch12-after-04-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-after-04-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a09182d3a67078360ebef2f74c10f7fc079184718333ef599db0c750231639c1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a09182d3a67078360ebef2f74c10f7fc079184718333ef599db0c750231639c1",
+      "bytes": 46437
+    },
+    {
+      "id": "asset:voices/frumo-ch12-after-05-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-after-05-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/29f611f94b96dd17e4ae9b6ad45c90519874570f0d7d4afa9f6a5f3cc4b57b99.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "29f611f94b96dd17e4ae9b6ad45c90519874570f0d7d4afa9f6a5f3cc4b57b99",
+      "bytes": 89487
+    },
+    {
+      "id": "asset:voices/frumo-ch12-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-before-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c58db238145074c81bccd7a748cbabbfec0fde834ee6e8d0e894fde6db510656.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c58db238145074c81bccd7a748cbabbfec0fde834ee6e8d0e894fde6db510656",
+      "bytes": 134626
+    },
+    {
+      "id": "asset:voices/frumo-ch12-before-02-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-before-02-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/46936c12dede3c0c4fc528e0b7715a87dafa40409da5a9348ba34898aecc5385.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "46936c12dede3c0c4fc528e0b7715a87dafa40409da5a9348ba34898aecc5385",
+      "bytes": 78202
+    },
+    {
+      "id": "asset:voices/frumo-ch12-before-03-lafayette.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-before-03-lafayette.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ecc135b6eca6d98c3d36c7cadf94940631bcd27ed519bcc097c8608e394e9448.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ecc135b6eca6d98c3d36c7cadf94940631bcd27ed519bcc097c8608e394e9448",
+      "bytes": 23449
+    },
+    {
+      "id": "asset:voices/frumo-ch12-before-04-polea.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-before-04-polea.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9dc2601ef44bbd53b67d75631dce3f353e1be3449aa9cb6e5efd312775a68829.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "9dc2601ef44bbd53b67d75631dce3f353e1be3449aa9cb6e5efd312775a68829",
+      "bytes": 70261
+    },
+    {
+      "id": "asset:voices/frumo-ch12-before-05-councilor.mp3",
+      "source": "/assets/gauntlet/voices/frumo-ch12-before-05-councilor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.frumo.chapters.11.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/80f352b2d3cdc52bd3fe957ce97fbea02e6174c739d904fff8220e8acfe6828a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "80f352b2d3cdc52bd3fe957ce97fbea02e6174c739d904fff8220e8acfe6828a",
+      "bytes": 29301
+    },
+    {
       "id": "asset:voices/kaiser-1.mp3",
       "source": "/assets/gauntlet/voices/kaiser-1.mp3",
       "associations": [
@@ -20696,5 +22376,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-eb630c4ba3079a762cabb3477c12b83cee6150ebbd0ca2ba053c7237ee28b1fc"
+  "version": "gauntlet-assets-148c1cd1ee5696dec2079b600533db6bca4089e0ef63b36dfa4df4be7b574c0d"
 }

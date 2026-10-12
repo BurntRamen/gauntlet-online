@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "It does when they begin mistaking one captain for the sea.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch07-after-04-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:45.125Z",
+  "publishedAt": "2026-10-12T03:42:23.197Z",
+  "bytes": 49363,
+  "sha256": "168f9b7e72bdf93cfb15e3b6c4ec066c40ae53d7da10b81c8f6f6adc669d5cb3"
+}

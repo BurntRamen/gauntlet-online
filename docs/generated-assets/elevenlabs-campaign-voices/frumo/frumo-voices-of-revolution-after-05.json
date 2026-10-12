@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "danton",
+  "voiceName": "Corsair Danton",
+  "line": "Then let courage lead, and let fear row behind it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch02-after-05-danton.mp3",
+  "generatedAt": "2026-10-12T03:39:48.391Z",
+  "publishedAt": "2026-10-12T03:42:23.083Z",
+  "bytes": 64827,
+  "sha256": "1796816155fa3f6d4fa2cccc380a2d46e204a753263f0d5a03127488f5198328"
+}

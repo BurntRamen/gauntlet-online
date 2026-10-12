@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "royal-officer",
+  "voiceName": "Frumo Royal Officer",
+  "line": "It was built to contain you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-before-03-carnot.mp3",
+  "generatedAt": "2026-10-12T03:39:51.969Z",
+  "publishedAt": "2026-10-12T03:42:23.088Z",
+  "bytes": 29301,
+  "sha256": "c400712145012a69a0285fec1feba25e3ddce641f00b50165a4eba4de5ffb5e3"
+}

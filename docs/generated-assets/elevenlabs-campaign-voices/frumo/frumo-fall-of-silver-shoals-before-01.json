@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Silver Shoals guards Ludvik's treasure and the story that royal stone cannot be breached by common hands.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:39:49.782Z",
+  "publishedAt": "2026-10-12T03:42:23.085Z",
+  "bytes": 127521,
+  "sha256": "862db00043ca4e9122b4b05a9ecd3503896b1c22f19988ba65b16e08439555c2"
+}

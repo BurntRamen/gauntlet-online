@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ludvik",
+  "voiceName": "King Ludvik",
+  "line": "Without me, you will devour each other.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch04-after-04-ludvik.mp3",
+  "generatedAt": "2026-10-12T03:40:09.911Z",
+  "publishedAt": "2026-10-12T03:42:23.121Z",
+  "bytes": 41839,
+  "sha256": "77bb3e5ad3c6ce2cff90c57402b0fbeb27e654e96dfa2617717b5a29f1dc4611"
+}
