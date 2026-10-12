@@ -919,7 +919,9 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const publicPage = await page.context().newPage();
   await publicPage.goto("/");
+  await publicPage.getByRole("navigation", { name: "Gauntlet areas", exact: true }).getByRole("button", { name: "Play Games and tables", exact: true }).click();
   await expect(publicPage.getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
+  await publicPage.screenshot({ path: "artifacts/admin-search-prose-release/published-page.png", fullPage: false });
   await publicPage.close();
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
