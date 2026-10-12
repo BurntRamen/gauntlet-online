@@ -127,6 +127,54 @@ test("outer menus are accessible on phones and the draft shortcut opens Draft", 
   expect(errors).toEqual([]);
 });
 
+test("active deck leads Build and the compact profile keeps picture editing available", async ({ page, request, baseURL }, testInfo) => {
+  test.setTimeout(90000);
+  const credentials = await account(request, "MenuLayout", "192.0.2.48");
+  const saved = await request.post(`${SERVER_URL}/api/collection/save-constructed-deck`, {
+    headers: { Authorization: `Bearer ${credentials.token}` },
+    data: { name: "The Copper Guard", factionId: "rumin", cardQuantities: {} }
+  });
+  expect(saved.ok()).toBeTruthy();
+  await signedIn(page, baseURL, credentials);
+  const settleMenu = async () => {
+    await expect(page.locator("html")).not.toHaveClass(/is-menu-transition/);
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all([...document.querySelectorAll(".home-area-content img")].map(img => img.decode().catch(() => {})));
+    });
+  };
+  for (const [width, height, label] of [[1366, 900, "desktop"], [768, 1024, "tablet"], [390, 844, "phone"]]) {
+    await page.setViewportSize({ width, height });
+    await page.locator('button[data-area="build"]').click();
+    await settleMenu();
+    const primary = page.locator(".build-deck-entry");
+    await expect(primary.getByRole("button", { name: "Edit Active Deck", exact: true })).toBeEnabled();
+    await expect(primary.getByRole("heading", { name: "The Copper Guard" })).toBeVisible();
+    const deck = await primary.boundingBox(), vault = await page.locator(".build-vault-panel").boundingBox();
+    if (width > 980) expect(deck.width * deck.height).toBeGreaterThan(vault.width * vault.height * 1.5);
+    else expect(deck.y + deck.height).toBeLessThanOrEqual(vault.y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`build-${label}.png`), fullPage: true });
+    await page.locator('button[data-area="identity"]').click();
+    await settleMenu();
+    const hero = page.locator(".identity-dossier-hero");
+    expect((await hero.boundingBox()).height).toBeLessThan(290);
+    expect((await hero.getByRole("img", { name: `${credentials.account.name} portrait` }).boundingBox()).width).toBeLessThanOrEqual(80);
+    await expect(page.getByRole("heading", { name: "Guest Identity", exact: true })).toHaveCount(0);
+    await expect(page.getByLabel("Upload profile portrait")).not.toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`profile-${label}.png`), fullPage: true });
+    const pictureSettings = page.getByText("Edit profile picture", { exact: true });
+    await pictureSettings.focus();
+    await pictureSettings.press("Enter");
+    await expect(page.getByLabel("Upload profile portrait")).toBeVisible();
+    await pictureSettings.press("Enter");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.locator('button[data-area="build"]').click();
+  await page.getByRole("button", { name: "Edit Active Deck", exact: true }).click();
+  await expect(page.getByLabel("Deck name", { exact: true })).toHaveValue("The Copper Guard");
+});
+
 test("sign-out cancels ranked matchmaking and a new identity cannot inherit the old queue", async ({ page, request, baseURL }) => {
   const old = await account(request, "LogoutA");
   const opponent = await account(request, "LogoutB");
