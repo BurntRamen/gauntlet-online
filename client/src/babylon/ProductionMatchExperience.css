@@ -3222,6 +3222,9 @@
   padding: 14px;
   gap: 10px;
 }
+.has-desktop-panels .production-match-utilities-panel {
+  max-height: calc(100dvh - var(--desktop-action-height) - 100px);
+}
 .has-desktop-panels .production-card-and-log {
   top: var(--battlefield-top-reserve);
   right: 12px;
