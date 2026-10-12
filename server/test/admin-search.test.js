@@ -8,6 +8,8 @@ const baseline = createAuthoredBaseline({ domains: { decks: fixture.domains.deck
 test("menu shortcuts need no draft provider; prose searches all declared text, not protected or private records", () => {
   assert.equal(searchAdmin(null, { q: "rollback", kind: "menus" }).results[0].target.area, "Publishing");
   assert.ok(searchAdmin(null).results.some(row => row.target.domain === "modes"));
+  assert.equal(searchAdmin(null, { q: "assets", kind: "menus" }).results[0].target.domain, "assets");
+  assert.equal(searchAdmin(null, { q: "editable prose", kind: "menus" }).results[0].target.domain, "modes");
   const live = clone(baseline);
   live.domains.cards[0].text = "A distant café beneath the moon.";
   live.domains.cards[0].privateNote = "Never index this";
