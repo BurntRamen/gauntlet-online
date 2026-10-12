@@ -17,9 +17,14 @@ async function enterPractice(page, baseURL) {
 
 async function settle(page) {
   const match = page.getByTestId("production-babylon-match");
+  // Wait for rendered frames and ResizeObserver delivery after a viewport
+  // change, including on the software renderer used by CI.
+  await page.locator(".production-turn-marker").evaluate(async element => {
+    await Promise.allSettled(element.getAnimations().map(animation => animation.finished));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   await expect(match).toHaveAttribute("data-playback-catching-up", "false");
   await expect(match).toHaveAttribute("data-active-transition-count", "0");
-  await page.waitForTimeout(250);
 }
 
 async function metrics(page) {
@@ -235,8 +240,12 @@ test("windowed HUD keeps payment controls and the battlefield stable as history 
     await settle(page);
     await expect(page.getByTestId("production-babylon-match")).toHaveClass(/has-windowed-panels/);
     const canvas = page.locator("canvas.babylon-match-canvas");
-    const bounds = await canvas.boundingBox();
     const action = page.getByRole("region", { name: "Current match action" });
+    await expect.poll(() => canvas.evaluate(element => {
+      const action = document.querySelector(".production-context-panel").getBoundingClientRect();
+      return element.getBoundingClientRect().bottom - action.top;
+    }), { message: "The resized battlefield settles above the action panel" }).toBeLessThan(0);
+    const bounds = await canvas.boundingBox();
     const actionBounds = await action.boundingBox();
     expect(bounds.y + bounds.height).toBeLessThan(actionBounds.y);
     const ledger = page.getByRole("complementary", { name: "Recent play order" });
