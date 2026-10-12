@@ -84,7 +84,7 @@ test("structured fields show live/draft values, save cross-domain changes, and r
   await screen.findByText("1 saved field change");
   expect(state.live.domains.cards[0].name).toBe("First card");
   expect(screen.getByLabelText("Draft name")).toHaveValue("Edited card");
-  await selectOther("Mode copy");
+  await selectOther("Website prose");
   fireEvent.click(await screen.findByRole("button", { name: "Inspect Practice" }));
   fireEvent.change(await screen.findByLabelText("Draft mode name"), { target: { value: "New practice" } });
   fireEvent.click(screen.getByRole("button", { name: "Save mode name to draft" }));

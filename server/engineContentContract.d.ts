@@ -67,6 +67,6 @@ export interface EngineContentRelease {
       readonly characters: Readonly<Record<string, string | { readonly name: string; readonly role: string; readonly description: string }>>;
     }>>;
     readonly collectorVariants: readonly { readonly variantId: string; readonly gameplayCardId: string; readonly art: string; readonly paid: boolean }[];
-    readonly modeMetadata: Readonly<Record<string, { readonly name: string; readonly description: string }>>;
+    readonly modeMetadata: Readonly<Record<string, { readonly name: string; readonly description: string; readonly heroTitle?: string; readonly heroEyebrow?: string; readonly heroDescription?: string; readonly menuDetail?: string }>>;
   };
 }

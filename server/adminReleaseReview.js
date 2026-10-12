@@ -1,6 +1,6 @@
 "use strict";
 
-const { hash, clone, fieldsFor } = require("./authoredContent");
+const { hash, clone, fieldsFor, fieldValue } = require("./authoredContent");
 const { objectLabel } = require("./adminContentRelationships");
 const { assetEntry } = require("./contentAssets");
 const labels = { bossLife: "Boss life", attacksPerTurn: "Attacks per turn", minAttackValue: "Minimum attack value", maxAttackValue: "Maximum attack value",
@@ -36,7 +36,7 @@ function compareSnapshots(live, draft) {
           live: clone(before ?? null), draft: clone(after ?? null), before: display(before, live), after: display(after, draft), mechanical: !!spec.mechanical,
           ...(spec.type === "asset" ? { media: spec.media, liveAsset: assetEntry(before), draftAsset: assetEntry(after) } : {}) });
       };
-      visit(original[field], row[field], [field]);
+      visit(fieldValue(original, field, spec), fieldValue(row, field, spec), [field]);
     }
   }
   return [...groups.values()].filter(group => group.changes.length);

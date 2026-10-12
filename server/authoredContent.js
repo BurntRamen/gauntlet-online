@@ -12,8 +12,10 @@ const encounterAuthoring = require("./encounterAuthoring");
 const encounterDefaults = require("./encounterDefinitions.json");
 const assets = require("./contentAssets");
 const config = require("../shared/duel-rules/gameConfig");
+const { proseFields } = require("./websiteProse");
 const SCHEMA = "gauntlet.authored-content.v2";
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const fieldValue = (row, field, spec) => row?.[field] === undefined ? spec.defaultValue : row[field];
 const hash = (value) => crypto.createHash("sha256").update(canonicalJson(value)).digest("hex");
 const text = (label, maxLength = 160, required = true) => ({ label, type: "text", maxLength, required });
 const asset = (label, media = "image") => ({ label, type: "asset", media, maxLength: 512, required: false });
@@ -34,6 +36,7 @@ FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, 
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row) {
   if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true } };
+  if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
   if (domain === "factions" && row.campaignOnly) return { name: FIELDS.factions.name, cardImage: FIELDS.factions.cardImage };
   if (domain !== "characters") return FIELDS[domain] || {};
   if (row.kind === "engine") return { name: FIELDS.characters.name };
@@ -192,7 +195,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.factions = manifest.factions.map((faction) => factions[faction.id]);
   manifest.cards = clone(domains.cards);
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
-  manifest.modeMetadata = Object.fromEntries(domains.game.map((mode) => [mode.id, { name: mode.name, description: mode.description }]));
+  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(({ id, name, description }) => ({ id, name, description }));
   manifest.contentVersion = releaseId;
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
@@ -244,4 +247,4 @@ function pinGameContent(game, resolved) {
   return game;
 }
 
-module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, createAuthoredBaseline, validateAuthoredContent, resolveEngineContent, pinGameContent };
+module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, fieldValue, createAuthoredBaseline, validateAuthoredContent, resolveEngineContent, pinGameContent };
