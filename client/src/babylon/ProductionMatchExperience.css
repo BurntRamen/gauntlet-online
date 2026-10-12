@@ -3405,7 +3405,7 @@
 .has-windowed-panels .production-context-copy > strong { font-size: 14px; line-height: 1.4; }
 .has-windowed-panels .production-action-buttons button { font-size: 14px; }
 .has-windowed-panels .production-turn-marker {
-  top: 6px; left: 42%; right: 94px; min-height: 54px; min-width: 0;
+  top: 6px; left: 42%; right: 100px; min-height: 54px; min-width: 0;
   grid-template-columns: 20px minmax(0, 1fr); padding: 5px 8px;
   font-size: 10px; gap: 2px 6px;
 }

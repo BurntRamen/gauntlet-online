@@ -987,6 +987,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   const openingDialogue = encounter.getByRole("region", { name: "Opening dialogue" });
   const ledger = page.getByRole("complementary", { name: "Recent play order" });
   await expect(ledger).toBeVisible();
+  await expect(ledger.getByRole("button", { name: "Play order", exact: true })).toHaveAttribute("aria-expanded", "false");
   await page.evaluate(() => document.fonts.ready);
   for (const { width, height } of [{ width: 1366, height: 768 }, { width: 768, height: 768 }, { width: 1024, height: 600 }]) {
     await page.setViewportSize({ width, height });
@@ -1023,7 +1024,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     await page.screenshot({ path: test.info().outputPath(`campaign-preview-${width}x${height}.png`) });
     await page.mouse.move(1, 1);
     await expect(preview).toBeHidden();
-    await expect(ledger.locator("ol")).toBeVisible();
+    await expect(ledger.locator("ol")).toBeHidden();
   }
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.screenshot({ path: test.info().outputPath("campaign-dialogue-and-log.png") });
@@ -1067,21 +1068,27 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     const menuBox = await page.locator(".production-match-utilities > summary").boundingBox();
     expect(bannerBox.x).toBeGreaterThan(opponentBox.x + opponentBox.width);
     expect(bannerBox.x + bannerBox.width).toBeLessThan(menuBox.x);
-    // ResizeObserver positions the log after responsive layout. Read all three
-    // rectangles together and wait for the same 4px (+/- 1px) spacing contract.
+    // Desktop history lives in the side rail below the header and hand
+    // inspector. Windowed history follows the phase/menu row.
     await expect.poll(() => ledger.evaluate((element) => {
+      if (element.closest(".has-desktop-panels")) {
+        const headerBottom = Math.max(...Array.from(document.querySelectorAll(
+          ".production-player-plate, .production-turn-marker, .production-inspect-hand-button"
+        )).map(control => control.getBoundingClientRect().bottom));
+        return Math.max(0, headerBottom - element.getBoundingClientRect().top);
+      }
       const marker = document.querySelector(".production-turn-marker").getBoundingClientRect();
       const menu = document.querySelector(".production-match-utilities > summary").getBoundingClientRect();
       const gap = element.getBoundingClientRect().top - Math.max(marker.bottom, menu.bottom);
       return Math.abs(gap - 4);
     }), { message: `Play order settles below the controls at ${viewport.width}px` }).toBeLessThanOrEqual(1);
     const toggle = ledger.getByRole("button", { name: "Play order", exact: true });
-    await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(ledger.locator("ol")).toBeHidden();
     await toggle.press("Space");
     await expect(ledger.locator("ol")).toBeVisible();
     await page.screenshot({ path: test.info().outputPath(`campaign-priority-${viewport.width}.png`) });
+    await toggle.click();
   }
   for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1280, height: 450 }]) {
     await page.setViewportSize(viewport);
