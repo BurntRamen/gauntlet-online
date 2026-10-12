@@ -62,7 +62,7 @@ export default function AccessibleMatchControls({
                   data-card-index={index}
                   disabled={interactionLocked || card.unavailable}
                   aria-pressed={Object.values(card.selected || {}).some(Boolean)}
-                  aria-label={`${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}${card.selected?.ability ? ", selected ability target" : ""}${card.selected?.paymentBonus ? ", selected payment bonus recipient" : ""}`}
+                  aria-label={`${card.label}, ${card.cardTypeLabel || "Standard playing card"}, ${card.combatLabel || "Can attack and block"}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${card.selected?.attacker ? ", selected attacker" : ""}${card.selected?.blocker ? ", selected blocker" : ""}${card.selected?.payment ? ", selected payment" : ""}${card.selected?.placement ? ", selected for placement" : ""}${card.selected?.ability ? ", selected ability target" : ""}${card.selected?.paymentBonus ? ", selected payment bonus recipient" : ""}`}
                   onClick={() => commands.activateHandCard?.(index)}
                   onContextMenu={(event) => { event.preventDefault(); commands.inspectCard?.(card.raw); }}
                 >

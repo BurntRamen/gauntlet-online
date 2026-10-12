@@ -1684,6 +1684,31 @@
   font-size: 10px;
 }
 
+.production-card-type {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  width: fit-content;
+  padding: 4px 7px;
+  border: 1px solid rgba(181, 137, 79, 0.45);
+  border-radius: 5px;
+  color: #f1d49c;
+  background: rgba(70, 45, 24, 0.38);
+}
+
+.production-card-type > strong {
+  color: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.production-card-type > small {
+  color: #c5ced5;
+  font-size: 10px;
+}
+
 .production-card-rules,
 .production-card-ability-status {
   margin: 0;

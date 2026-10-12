@@ -89,12 +89,14 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
           const selected = Object.values(card.selected || {}).some(Boolean);
           const role = Object.keys(card.selected || {}).find((key) => card.selected[key]);
           const visible = card.visible !== false;
+          const typeLabel = card.cardTypeLabel || "Standard playing card";
+          const combatLabel = card.combatLabel || "Can attack and block";
           return (
             <button type="button" key={card.id || index} className="phone-hand-card"
               data-match-zone="hand" data-card-index={index}
               data-hand-actor-id={visibleCardIdentity(card, `player-${viewModel.perspective?.player}:hand:${index}`)}
               data-selection-role={role || ""}
-              aria-label={visible ? `${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ''}${role ? ", selected " + role : ""}${card.selected?.paymentBonus ? ', selected payment bonus recipient' : ''}` : "Face-down card"}
+              aria-label={visible ? `${card.label}, ${typeLabel}, ${combatLabel}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ''}${role ? ", selected " + role : ""}${card.selected?.paymentBonus ? ', selected payment bonus recipient' : ''}` : "Face-down card"}
               aria-pressed={selected} disabled={interactionLocked || card.unavailable || !visible}
               onFocus={(event) => { event.currentTarget.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "instant" }); measure(); }}
               onClick={(event) => {
@@ -110,6 +112,7 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
               <span className="phone-hand-rank" aria-hidden="true">{visible
                 ? (card.rank || card.label) + ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" }[card.suit] || (card.rank ? card.suit : ""))
                 : "?"}</span>
+              {visible && <span className={`phone-hand-type ${card.combatEligible === false ? "is-support" : "is-combat"}`} aria-hidden="true">{typeLabel}</span>}
               {selected && <span className="phone-hand-selection" aria-hidden="true">{card.selected?.paymentBonus ? 'payment bonus' : role}</span>}
             </button>
           );

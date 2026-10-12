@@ -1201,6 +1201,7 @@ function CardInspection({ inspection, commands, viewModel, snapshot }) {
       <div className="production-inspection-copy">
         <span>Card inspection</span>
         <h2>{inspection.label}</h2>
+        <div className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></div>
         <strong>Printed value {inspection.value}</strong>
         {inspection.valueBreakdown && <>
           <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
@@ -1243,6 +1244,7 @@ function CardPreview({ preview, viewModel, snapshot }) {
           {preview.stateLabel || "Card preview"}
         </span>
         <strong>{details.name}</strong>
+        <span className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></span>
         {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value} · Attack/block {preview.valueBreakdown?.total ?? preview.value}</small>}
         {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
         <CardAbilityDetails details={details} />

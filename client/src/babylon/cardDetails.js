@@ -1,4 +1,5 @@
 import { hasCardEffect } from "@gauntlet/duel-rules/effectRegistry";
+import { cardCombatLabel, cardTypeLabel } from "./cardType";
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
 export function selectedCardPreview(viewModel) {
@@ -52,6 +53,8 @@ export function cardDetails(preview, viewModel, snapshot) {
   return {
     name,
     rules,
+    typeLabel: cardTypeLabel(card),
+    combatLabel: cardCombatLabel(card),
     abilityStatus,
     campaignAbility: Boolean(rules && snapshot?.campaign && (card.definitionId || card.gameplayCardId)),
     rankAndSuit: rankAndSuit && rankAndSuit !== name ? rankAndSuit : ""
