@@ -2,7 +2,7 @@ const { test, expect: baseExpect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { io } = require("socket.io-client");
 
-const SERVER_URL = "http://127.0.0.1:4100";
+const SERVER_URL = process.env.GAUNTLET_E2E_SERVER_URL || "http://127.0.0.1:4100";
 // Match the live-entry suite's allowance for the GPU-less CI renderer.
 // Spectator startup loads a second WebGL scene before its HUD can appear.
 const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
@@ -156,8 +156,11 @@ test("two real browser clients share the live Babylon engine and reconnect safel
     .click();
   await expect(pages[waiting].locator(".production-player-plate-bottom.has-priority")).toBeVisible();
 
+  // Priority can arrive before its presentation finishes. Readable hand cards
+  // remain enabled for inspection during that interval, but cannot be selected.
+  await expect(pages[waiting].locator(".babylon-accessible-controls")).toHaveAttribute("aria-busy", "false");
   await pages[waiting].evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "h" })));
-  const stagedCard = pages[waiting].locator('[data-match-zone="hand"]:not(:disabled)').first();
+  const stagedCard = pages[waiting].locator('[data-match-zone="hand"]:not(:disabled):not([data-inspect-only="true"])').first();
   await stagedCard.focus();
   await stagedCard.press("Enter");
   await expect(pages[waiting].locator('[data-match-zone="hand"][aria-pressed="true"]')).toHaveCount(1);

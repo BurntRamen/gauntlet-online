@@ -7,10 +7,10 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({ onRendererError }
 
 test("graphics failure keeps live commands usable and allows retrying the animated table", () => {
   const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
-  const commands = { activateHandCard: jest.fn(), activateLane: jest.fn(), passPriority: jest.fn() };
+  const commands = { activateHandCard: jest.fn(), activateLane: jest.fn(), passPriority: jest.fn(), inspectCard: jest.fn() };
   const viewModel = {
     phase: "priority", perspective: { player: 1 }, selection: {},
-    hand: [{ id: "card-1", label: "7♥", value: 7 }],
+    hand: [{ id: "card-1", label: "7♥", value: 7, raw: { id: "card-1", value: 7 } }],
     lanes: [{ id: "lane-1", index: 0, hasLocalCard: true, localCard: { label: "4♣" }, hasOpponentCard: true, blocks: [] }],
     interactions: { abilities: [], legalLanes: [0] }
   };
@@ -23,7 +23,11 @@ test("graphics failure keeps live commands usable and allows retrying the animat
   expect(commands.activateHandCard).toHaveBeenCalledWith(0);
   expect(commands.activateLane).toHaveBeenCalledWith(0, "local");
   rerender(<RecoverableMatchCanvas viewModel={viewModel} commands={commands} interactionLocked />);
-  expect(screen.getByRole("button", { name: "7♥, printed value 7" })).toBeDisabled();
+  const readable = screen.getByRole("button", { name: /7♥, printed value 7, inspect only/ });
+  expect(readable).toBeEnabled();
+  fireEvent.click(readable);
+  expect(commands.inspectCard).toHaveBeenCalledWith(viewModel.hand[0].raw);
+  expect(commands.activateHandCard).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Retry animated table" }));
   expect(screen.getByText("Simulate graphics failure")).toBeVisible();
   consoleError.mockRestore();

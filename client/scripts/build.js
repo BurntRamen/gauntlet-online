@@ -19,6 +19,16 @@ require.cache[configPath].exports = (environment) => {
     ...config.optimization.splitChunks,
     cacheGroups: {
       ...config.optimization.splitChunks?.cacheGroups,
+      matchRuntime: {
+        // The live adapter and table already load together. Compress them with
+        // their shared rules instead of paying for separate small chunks.
+        // Replay and ability-preview entry points retain their own lazy loads.
+        test: /[\\/]src[\\/]babylon[\\/](?!(?:MatchReplayScreen|ReplayMatchAdapter|ReplayTranscript|AbilityPreview)\.)|[\\/]shared[\\/](?:basic-gauntlet-rules|duel-rules)[\\/]/,
+        name: "gauntlet-match",
+        chunks: "async",
+        enforce: true,
+        priority: 15
+      },
       adminShared: {
         // Workshop panels share these small modules; count the named split in
         // the aggregate Admin budget rather than duplicating it in each panel.

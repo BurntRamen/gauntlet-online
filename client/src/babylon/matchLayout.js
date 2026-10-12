@@ -208,13 +208,22 @@ export function getTableCameraProjection(width, height, layoutProfile = null) {
   const boardHalfHeight = Math.abs(Number(boardTransform.z || 0))
     + MATCH_LAYOUT.table.depth * Number(boardTransform.scaleZ || 1) * projectedDepthFactor / 2
     + 0.62;
-  const halfHeight = Math.max(boardHalfHeight, requiredWidthHalf / Math.max(0.1, aspect));
+  let halfHeight = Math.max(boardHalfHeight, requiredWidthHalf / Math.max(0.1, aspect));
   // Include the full local fan below the table, including its rotated corners
   // and hover growth. Extend downward instead of adding unused space above it.
   const hand = profile.anchors.hand;
   const handBottom = hand.localZ - 0.22
     - (MATCH_LAYOUT.card.height + MATCH_LAYOUT.card.width * 0.1) * hand.localScale * 1.08 / 2;
-  const bottom = Math.min(-halfHeight, (handBottom - cameraTargetZ) * projectedDepthFactor - 0.25);
+  let bottom = Math.min(-halfHeight, (handBottom - cameraTargetZ) * projectedDepthFactor - 0.25);
+  if (profile.id === "desktop") {
+    // Fit the board and larger fan together before adding width clearance.
+    // Extending an already width-fitted frame downwards also widened it,
+    // shrinking the cards and leaving an unnecessary gutter above the table.
+    bottom = Math.min(-boardHalfHeight, (handBottom - cameraTargetZ) * projectedDepthFactor - 0.25);
+    const padding = Math.max(0, (requiredWidthHalf * 2 / aspect - (boardHalfHeight - bottom)) / 2);
+    halfHeight = boardHalfHeight + padding;
+    bottom -= padding;
+  }
   const left = -(halfHeight - bottom) * aspect / 2;
   const right = -left;
   return {
