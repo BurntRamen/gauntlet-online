@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { lazy, Suspense } from "react";
 import WorkshopNavigation from "./WorkshopNavigation";
 
 const target = { domain: "encounters", id: "chapter-one", section: "story" };
@@ -62,4 +63,25 @@ test("selecting the same search result again returns focus without adding naviga
   screen.getByRole("button").focus();
   view.rerender(content({}));
   expect(screen.getByRole("textbox")).toHaveFocus();
+});
+
+test("a late preview restores field focus after the workshop is hidden and revealed", async () => {
+  let resolvePreview;
+  const Preview = lazy(() => new Promise(resolve => { resolvePreview = resolve; }));
+  const fieldTarget = { domain: "modes", id: "practice", field: "heroTitle" };
+  const content = preview => <Suspense fallback={<p>Loading preview</p>}>
+    <WorkshopNavigation target={fieldTarget} />
+    <form id="admin-field-heroTitle"><textarea aria-label="Page heading" /></form>
+    {preview && <Preview />}
+  </Suspense>;
+  const view = render(content(false));
+  const heading = screen.getByRole("textbox");
+  expect(heading).toHaveFocus();
+  view.rerender(content(true));
+  expect(screen.getByText("Loading preview")).toBeVisible();
+  // Real browsers blur controls when Suspense hides them with display:none.
+  heading.blur();
+  await act(async () => { resolvePreview({ default: () => <p>Preview ready</p> }); });
+  expect(screen.getByText("Preview ready")).toBeVisible();
+  expect(heading).toHaveFocus();
 });

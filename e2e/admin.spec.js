@@ -887,6 +887,14 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   const token = await signIn(page, request, "Burnt Ramen"); await page.reload();
   const headers = { Authorization: "Bearer " + token };
   const state = async () => (await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json());
+  let releasePreview, previewRequested;
+  const previewGate = new Promise(resolve => { releasePreview = resolve; });
+  const previewStarted = new Promise(resolve => { previewRequested = resolve; });
+  await page.route("**/gauntlet-admin-cards.*.chunk.js", async route => {
+    previewRequested();
+    await previewGate;
+    await route.continue();
+  });
   const finder = page.getByRole("region", { name: "Search Admin", exact: true });
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Search Admin/ })).toBeVisible();
@@ -897,6 +905,9 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(headingResult).toBeVisible();
   await page.screenshot({ path: "artifacts/admin-search-prose-release/search-desktop.png", fullPage: false });
   await headingResult.click();
+  await previewStarted;
+  await expect(page.getByText("Loading workshop…", { exact: true })).toBeVisible();
+  releasePreview();
   const heading = page.getByLabel("Draft page heading", { exact: true });
   await expect(heading).toBeFocused();
   await expect(heading).toHaveValue("Master your next move.");

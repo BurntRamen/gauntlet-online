@@ -1,7 +1,7 @@
-import { useEffect } from "react";
-// Wait for a lazily loaded workshop before honoring a direct section link.
+import { useLayoutEffect } from "react";
+// Layout effects also restore focus when a lazy preview reveals this boundary again.
 export default function WorkshopNavigation({ target, ready = true, focusRequest }) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ready || (!target.section && !target.field)) return undefined;
     const focus = () => {
       const element = target.field ? document.getElementById("admin-field-" + target.field) : [target.section, "workshop-" + target.section, "card-" + target.section, "engine-" + target.section].map(id => document.getElementById(id)).find(Boolean);
