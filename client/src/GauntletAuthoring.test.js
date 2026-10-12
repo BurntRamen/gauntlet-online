@@ -52,7 +52,7 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
+async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true }, { timeout: 5000 })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
 async function selectOther(tab) { fireEvent.click(await screen.findByRole("button", { name: "Other content" })); fireEvent.click(await screen.findByRole("button", { name: tab, exact: true })); }
 
 test("pending GitHub publication keeps the deployed release active and cancellation preserves the draft", async () => {
