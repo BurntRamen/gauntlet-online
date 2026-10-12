@@ -1,6 +1,6 @@
 
 import WorkshopField, { displayValue as display } from "./admin/WorkshopField";
-import WorkshopNavigation from "./admin/WorkshopNavigation";
+
 import useWorkshopContext from "./admin/useWorkshopContext";
 import UnsavedChangesDialog from "./admin/UnsavedChangesDialog";
 import "./admin/TestHarness.css";
@@ -8,7 +8,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
 
 
-const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-preview" */ "./admin/WorkshopPreview"));
+const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/WorkshopNavigation"));
+const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/WorkshopPreview"));
 const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-encounters" */ "./EncounterWorkshop"));
 const GauntletPlaytest = lazy(() => import(/* webpackChunkName: "gauntlet-admin-test" */ "./GauntletPlaytest"));
 const title = (row) => row.name || row.title || row.commanderName || row.id;
@@ -16,7 +17,7 @@ const CardWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-card
 const EngineWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-engine" */ "./admin/EngineWorkshop"));
 const AssetPicker = lazy(() => import(/* webpackChunkName: "gauntlet-admin-assets" */ "./admin/AssetPicker"));
 const ReleaseReview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-review" */ "./admin/ReleaseReview"));
-const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-related" */ "./admin/RelatedContent"));
+const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/RelatedContent"));
 const ENGINE_DOMAINS = ["card-effects", "faction-effects", "encounter-mechanics", "game"];
 
 export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onPublished, guard, onNavigate, beforeNavigate, onExit }) {
@@ -53,7 +54,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const unsaved = Object.keys(buffers).length > 0;
   const selected = selections[domainChoice];
   const context = useWorkshopContext({
-    initialTarget: { domain: initialDomain?.name || (area === "Content" ? "campaigns" : "encounters"), id: initialDomain?.id || null },
+    initialTarget: { domain: initialDomain?.name || (area === "Content" ? "campaigns" : "encounters"), id: initialDomain?.id || null, section: initialDomain?.section, field: initialDomain?.field },
     dirty: unsaved || scenarioDirty, busy, onDiscard: () => { setBuffers({}); bufferRevision.current = null; setScenario(null); setScenarioDirty(false); },
     beforeNavigate, onExit,
     onBusy: () => setNotice("Wait for the current operation to finish."),
@@ -68,7 +69,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     setSelections(current => ({ ...current, [context.target.domain]: context.target.id }));
   }, [context.target]);
   useEffect(() => {
-    if (initialDomain) context.navigate({ domain: initialDomain.name, id: initialDomain.id || null });
+    if (initialDomain) context.navigate({ domain: initialDomain.name, id: initialDomain.id || null, section: initialDomain.section, field: initialDomain.field });
   // Navigation requests come only from the guarded Admin parent.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDomain]);
@@ -147,7 +148,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   }
   if (!state) return <p role={error ? "alert" : "status"}>{error || "Loading authored content…"}</p>;
   if (!state.guide) return <p role="status">Admin update is deploying. Refresh admin shortly.</p>;
-  const DOMAINS = { ...guide.domains, assets: "Collector artwork" };
+  const DOMAINS = { ...guide.domains, game: "Website prose", assets: "Collector artwork" };
   const snapshot = state.draft?.snapshot || state.live;
   const rows = (snapshot.domains[domain] || []).filter(entry => domainChoice !== "modes" || entry.id !== "shared-rules");
   const visibleRows = rows.filter(entry => domain !== "encounters" || !context.context.campaign || entry.campaignId === context.context.campaign).filter((entry) => `${title(entry)} ${entry.id} ${entry.factionId || ""}`.toLowerCase().includes(query.toLowerCase()));
@@ -168,8 +169,8 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const presentation = (preview || resolvedView) && row && <Preview source={source} suit={suit} variantId={variantId} guide={guide} preview={preview || resolvedView} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
   const playtest = <GauntletPlaytest request={request} state={state} row={row} domain={domain} disabled={busy || unsaved || !metadata?.capabilities?.liveTests} onAuthoring={setState} session={session} onSession={setSession} onInspect={inspect} onBusy={setBusy} onRefresh={refresh} subjectTarget={context.target} metadata={metadata} scenario={scenario} onScenario={value => { setScenario(value); setScenarioDirty(true); }} onScenarioStarted={() => setScenarioDirty(false)} />;
   return <>
-    <WorkshopNavigation target={context.target} />
     <Suspense fallback={<p role="status">Loading workshop…</p>}>
+    <WorkshopNavigation target={context.target} focusRequest={initialDomain} ready={domainChoice === context.target.domain && selected === context.target.id && area !== "Publishing"} />
     {context.pending && <UnsavedChangesDialog onKeep={context.cancel} onDiscard={context.discard} />}
     {(area === "Publishing" || context.backCount > 0) && <button className="admin-context-back" onClick={area === "Publishing" ? () => context.navigate(context.target) : context.back}>Back to previous view</button>}
     {assetPicker && <AssetPicker library={state.assetLibrary || []} relationships={relationships} {...assetPicker} onSelect={value => { assetPicker.onSelect(value); setAssetPicker(null); }} onClose={() => setAssetPicker(null)} />}
@@ -190,7 +191,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       <details className="admin-json"><summary>Activation history</summary><pre>{JSON.stringify(state.activations, null, 2)}</pre></details>
     </> : <>
       <nav className="admin-subnav" aria-label="Design workshops">{[["encounters", "Encounters"], ["cards", "Cards"], ["card-effects", "Engine / Rules"], ["campaigns", "Other content"]].map(([key, label]) => <button key={key} disabled={busy} aria-pressed={key === "card-effects" ? ENGINE_DOMAINS.includes(domainChoice) : (key === "campaigns" ? !["encounters", "cards", ...ENGINE_DOMAINS].includes(domainChoice) : domainChoice === key)} onClick={() => inspect(key, selections[key] || null)}>{label}</button>)}</nav>
-      {!['encounters', 'cards', ...ENGINE_DOMAINS].includes(domainChoice) && <nav className="admin-subnav" aria-label="Other content types">{Object.entries(DOMAINS).filter(([key]) => !["cards", "encounters", "game"].includes(key)).concat([["modes", "Mode copy"]]).map(([key, label]) => <button key={key} aria-pressed={domainChoice === key} onClick={() => inspect(key, selections[key] || null)}>{label}</button>)}</nav>}
+      {!['encounters', 'cards', ...ENGINE_DOMAINS].includes(domainChoice) && <nav className="admin-subnav" aria-label="Other content types">{Object.entries(DOMAINS).filter(([key]) => !["cards", "encounters", "game"].includes(key)).concat([["modes", "Website prose"]]).map(([key, label]) => <button key={key} aria-pressed={domainChoice === key} onClick={() => inspect(key, selections[key] || null)}>{label}</button>)}</nav>}
 
       {domain === "cards" ? <CardWorkshop busy={busy} section={context.target.section} onSection={section => context.navigate({ ...context.target, section })} onSelectList={leave} row={row} state={{ ...state, workshopMetadata: metadata, relationshipData: relationships, previewContent: preview || resolvedView }} field={renderField} preview={presentation} playtest={playtest} onInspect={inspect} onReview={() => onNavigate("Publishing")} search={search} list={list} unsaved={unsaved} suit={suit} onSuit={setSuit} variantId={variantId} onVariantChange={setVariantId} /> : ENGINE_DOMAINS.includes(domainChoice) && area !== "Game" ? <EngineWorkshop busy={busy} onSelectList={leave} state={{ ...state, workshopMetadata: metadata, relationshipData: relationships }} field={renderField} playtest={playtest} onInspect={inspect} onReview={() => onNavigate("Publishing")} context={context.context} onContext={context.remember} target={context.target} onTarget={target => context.navigate(target)} /> : domain === "encounters" ? <EncounterWorkshop busy={busy} onSection={section => context.navigate({ ...context.target, section })} section={context.target.section} context={context.context} onContext={context.remember} row={row} state={state} unsaved={unsaved} session={session} list={list} search={<>{search}<label className="admin-search">Campaign<select aria-label="Filter encounters by campaign" value={context.context.campaign || ""} onChange={event => context.remember({ campaign: event.target.value })}><option value="">All campaigns</option>{snapshot.domains.campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.commanderName}</option>)}</select></label></>} field={renderField} preview={presentation} playtest={playtest} onInspect={inspect} onSelectList={action => leave(action)} onReview={() => onNavigate("Publishing")} /> : <>
       {domain === "asset-library" && <section><h4>Immutable asset</h4>{(state.assetLibrary || []).filter(asset => asset.id === selected).map(asset => <article key={asset.id}><p>{asset.source}</p>{asset.mediaType.startsWith("image/") ? <img src={asset.path} alt={asset.source} style={{ maxWidth: "100%", maxHeight: 260 }} /> : <audio controls preload="none" src={asset.path} />}<RelatedContent data={relationships} domain="asset-library" id={asset.id} onInspect={inspect} /><details><summary>Technical · identity and digest</summary><pre>{JSON.stringify(asset, null, 2)}</pre></details></article>)}</section>}{search}<div className="admin-authoring-layout">{list}

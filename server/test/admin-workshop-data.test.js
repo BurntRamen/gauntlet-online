@@ -38,7 +38,7 @@ test("private workshop reads reject unauthenticated access, stale hashes and nev
   t.after(() => new Promise(resolve => server.close(resolve)));
   const origin = `http://127.0.0.1:${server.address().port}/api/admin/workshops`;
   const status = store.status(), before = store.exportState();
-  for (const path of ["", "/relationships", "/presentation", "/review", `/releases/${status.activeReleaseId}/review`]) {
+  for (const path of ["", "/search", "/search?q=story", "/relationships", "/presentation", "/review", `/releases/${status.activeReleaseId}/review`]) {
     const denied = await fetch(`${origin}${path}`);
     assert.equal(denied.status, 403);
     assert.match(denied.headers.get("cache-control"), /no-store/);

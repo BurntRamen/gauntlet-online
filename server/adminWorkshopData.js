@@ -5,7 +5,8 @@ const { cardAuthoringDefinitions } = require("./adminCardAuthoring");
 const { rulesAuthoringData } = require("./adminRulesAuthoring");
 const { contentRelationships } = require("./adminContentRelationships");
 const { releaseReview } = require("./adminReleaseReview");
-const { readWorkshopStatus } = require("./adminLiveAvailability");
+const { readWorkshopStatus, readAuthoringStatus } = require("./adminLiveAvailability");
+const { searchAdmin, validateSearchQuery } = require("./adminSearch");
 function fail(status, message) { throw Object.assign(new Error(message), { status }); }
 
 function selectWorkshopSnapshot(status, { source = "live", hash: expectedHash } = {}) {
@@ -30,6 +31,10 @@ function workshopMetadata(selection) {
 
 function registerAdminWorkshopRoutes(app, { publication }) {
   for (const [path, operation] of [
+    ["/search", async req => {
+      validateSearchQuery(req.query);
+      return searchAdmin(req.query?.kind === "menus" || (!req.query?.q && req.query?.kind !== "prose") ? null : await readAuthoringStatus(publication), req.query);
+    }],
     ["", async req => workshopMetadata(selectWorkshopSnapshot(await readWorkshopStatus(publication, req.query?.source), req.query))],
     ["/relationships", async req => {
       const status = await readWorkshopStatus(publication, req.query?.source), selection = selectWorkshopSnapshot(status, req.query);

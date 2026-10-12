@@ -5,6 +5,7 @@ const title = row => row.name || row.title || row.commanderName || row.id;
 export default function WorkshopPreview({ preview, domain, row, catalog, onClose, guide, suit = "spades", variantId, source = "draft" }) {
   const manifest = preview.manifest;
   const metadata = domain === "factions" ? preview.factions?.[row.id] || row
+    : domain === "game" ? manifest.modeMetadata?.[row.id] || row
     : domain === "characters" && row.kind === "faction-role" ? preview.factions?.[row.factionId]?.[row.role] || row : row;
   let factionId = row.factionId || row.id;
   let chapter;
@@ -30,6 +31,6 @@ export default function WorkshopPreview({ preview, domain, row, catalog, onClose
     <p className="admin-note">{guide.previewPurpose}</p>
     {chapter ? <CampaignChapterBriefing campaign={manifest.campaigns[factionId]} factionId={factionId} chapter={chapter} chapterIndex={manifest.campaigns[factionId].chapters.indexOf(chapter)} theme={{ primary: "#efc06e", border: "#73613e" }} difficulty={chapter.setup || catalog?.domains.encounters.find((entry) => entry.id === chapter.id)?.definition.runtime.difficulty || {}} completed unlocked canPlayAsPlayer={false} previewOnly audioEnabled={false} musicEnabled={false} onBack={onClose} />
       : card ? <><div className="admin-card-preview"><SpecialCardFace card={card} art={art} /></div><h4>{card.name}</h4><p>{card.text}</p><p className="admin-note">{guide.cardPreview}</p>{art && <img className="admin-art-preview" src={art} alt="Selected draft illustration" />}</>
-      : <article><h4>{title(metadata)}</h4>{(metadata.cardImage || metadata.image || metadata.art || metadata.coverImage) && <img className="admin-art-preview" src={metadata.cardImage || metadata.image || metadata.art || metadata.coverImage} alt={title(metadata)} />}<p>{metadata.description || metadata.pitch || metadata.text}</p><p className="admin-note">{guide.metadataPreview}</p></article>}
+      : <article>{metadata.heroTitle && <><small>{metadata.heroEyebrow}</small><h3>{metadata.heroTitle}</h3><p>{metadata.heroDescription}</p>{metadata.menuDetail && <p>Menu description: {metadata.menuDetail}</p>}</>}<h4>{title(metadata)}</h4>{(metadata.cardImage || metadata.image || metadata.art || metadata.coverImage) && <img className="admin-art-preview" src={metadata.cardImage || metadata.image || metadata.art || metadata.coverImage} alt={title(metadata)} />}<p>{metadata.description || metadata.pitch || metadata.text}</p><p className="admin-note">{guide.metadataPreview}</p></article>}
   </section>;
 }
