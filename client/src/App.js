@@ -3443,6 +3443,8 @@ export default function App() {
           homeAreaTransitionRef.current = null;
           document.documentElement.classList.remove("is-menu-transition");
         };
+        // A skipped or timed-out animation can reject ready while navigation succeeds.
+        transition.ready.catch(() => {});
         transition.finished.then(finish, finish);
         return;
       }

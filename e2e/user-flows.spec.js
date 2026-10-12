@@ -5,6 +5,31 @@ const fs = require("node:fs/promises");
 const SERVER_URL = "http://127.0.0.1:4100";
 const PASSWORD = "Flow-Test-Password-42";
 
+test("menu navigation survives a rejected transition animation without an uncaught error", async ({ page, baseURL }) => {
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    window.completedMenuTransitions = 0;
+    document.startViewTransition = update => {
+      const finished = Promise.resolve().then(update);
+      const ready = finished.then(() => {
+        setTimeout(() => { window.completedMenuTransitions += 1; }, 0);
+        throw new DOMException("Transition was aborted because of timeout in DOM update", "AbortError");
+      });
+      return { ready, finished, skipTransition() {} };
+    };
+  });
+  await page.goto(baseURL);
+  await page.locator('button[data-area="build"]').click();
+  await expect(page.getByRole("button", { name: "Open Collection Workshop", exact: true })).toBeVisible();
+  await page.locator('button[data-area="play"]').click();
+  await expect(page.getByRole("heading", { name: "Master your next move.", exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.completedMenuTransitions)).toBe(2);
+  await expect(page.locator("html")).not.toHaveClass(/is-menu-transition/);
+  expect(errors).toEqual([]);
+});
+
 test("a stalled startup becomes retryable and recovers when the server returns", async ({ page, baseURL }) => {
   const { getPublicGameContent } = require("../server/gameContent");
   let attempts = 0;
