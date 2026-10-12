@@ -110,6 +110,22 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("announces priority once and automatically passes a forced no-choice window", async () => {
+  jest.useFakeTimers();
+  const passPriority = jest.fn();
+  render(<ProductionMatchExperience adapter={adapterFor({
+    legalActions: [{ type: "passPriority" }],
+    commands: { passPriority }
+  })} options={{ audioEnabled: false, reducedMotion: true }} />);
+
+  expect(screen.getByRole("alert")).toHaveTextContent("Your Priority");
+  act(() => jest.advanceTimersByTime(500));
+  expect(passPriority).toHaveBeenCalledTimes(1);
+  act(() => jest.advanceTimersByTime(2000));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  jest.useRealTimers();
+});
+
 test("play order stays retracted through new actions and keeps full history accessible", async () => {
   let publish;
   const update = { source: "local", connected: true, viewModel: createViewModel(), commands: {},

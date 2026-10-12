@@ -1698,6 +1698,37 @@ function checkVictory(game, events) {
   return true;
 }
 
+function hasRemainingCombatCard(game, playerNumber) {
+  const player = game.players[playerNumber];
+  if (!player) return false;
+  return [
+    ...(player.hand || []),
+    ...(player.deck || []),
+    ...game.lanes.map((lane) => lane.facedown?.[playerNumber]).filter(Boolean)
+  ].some(isCombatCard);
+}
+
+function checkUnplayableDraw(game, events) {
+  if (
+    game.campaign
+    || game.phase !== "priority"
+    || pendingAttack(game)
+    || game.players[1].life <= 0
+    || game.players[2].life <= 0
+    || hasRemainingCombatCard(game, 1)
+    || hasRemainingCombatCard(game, 2)
+    || getFactionAbilityActions(game, 1).length
+    || getFactionAbilityActions(game, 2).length
+  ) return false;
+
+  game.phase = "gameOver";
+  game.priority = null;
+  game.winner = null;
+  game.message = "The match ends in a draw because neither player can make another play.";
+  events.push(event(game, "match.ended", { winner: null, reason: "no_legal_play" }));
+  return true;
+}
+
 function currentPlacementPlayer(game) {
   return game.endPlacementStep === 0
     ? game.endPlacementFirstPlayer
@@ -2575,7 +2606,7 @@ function applyCommand(current, rawCommand) {
     label = `Player ${player} passed priority.`;
     if (game.priorityPassed[1] && game.priorityPassed[2]) {
       events.push(event(game, "priorityRound.closed"));
-      if (!checkVictory(game, events)) startEndPlacement(game, events);
+      if (!checkVictory(game, events) && !checkUnplayableDraw(game, events)) startEndPlacement(game, events);
     } else {
       game.priority = otherPlayer(player);
       game.message = `Player ${game.priority} has priority.`;

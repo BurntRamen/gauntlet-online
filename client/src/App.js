@@ -3001,7 +3001,8 @@ function RulebookPanel() {
       rules: [
         "Players are not eliminated immediately when their life reaches 0 or less during a turn.",
         "At the end of the turn, if either player has 0 or less life, the player with the higher life total wins.",
-        "If both players are tied at the end-of-turn life check, the game is a draw."
+        "If both players are tied at the end-of-turn life check, the game is a draw.",
+        "If both players still have life but neither has a combat card or faction action remaining, the game also ends in a draw."
       ]
     }
   ];
@@ -3113,7 +3114,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
-function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss }) {
+function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss, onNavigate }) {
   const steps = [
     { label: "Start here", text: "Learn priority, payment, blocking, and lanes in the tutorial." },
     { label: "Practice safely", text: "Play Basic vs AI before entering multiplayer or faction powers." },
@@ -3139,6 +3140,12 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
             <span style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{step.text}</span>
           </div>
         ))}
+      </div>
+      <div role="navigation" aria-label="New player destinations" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("play")}>Play a Match</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("journey")}>Campaign & Tutorial</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("build")}>Cards & Decks</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("rewards")}>Quests & Rewards</MenuButton>
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
         <MenuButton onClick={onStartBasicAi}>Play Basic vs AI</MenuButton>
@@ -5241,6 +5248,16 @@ export default function App() {
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
+          {showOnboarding && (
+            <OnboardingPanel
+              canPlayAsPlayer={canPlayAsPlayer}
+              onStartTutorial={openOnboardingTutorial}
+              onStartBasicAi={startOnboardingBasicAi}
+              onEnableHints={enableOnboardingHints}
+              onDismiss={dismissOnboarding}
+              onNavigate={navigateHomeArea}
+            />
+          )}
           {homeArea === "play" && (
             <PlayMenu view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
@@ -5394,15 +5411,6 @@ export default function App() {
           {homeArea === "journey" && (
             <div className="journey-hub">
               <JourneyIntroduction campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
-              {showOnboarding && (
-                <OnboardingPanel
-                  canPlayAsPlayer={canPlayAsPlayer}
-                  onStartTutorial={openOnboardingTutorial}
-                  onStartBasicAi={startOnboardingBasicAi}
-                  onEnableHints={enableOnboardingHints}
-                  onDismiss={dismissOnboarding}
-                />
-              )}
               <div className="journey-route">
                 <section className="journey-learning-panel">
                   <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
@@ -5804,7 +5812,8 @@ export default function App() {
               },
               onRejectedAction: factionVoiceFor,
               commanderAnnouncement: factionVoice,
-              onCommanderClick: announceCommanderClick
+              onCommanderClick: announceCommanderClick,
+              tutorialGuidance: game.players?.[2]?.opponentKind === "training-ai"
             }}
             onLeaveMatch={returnToMainMenu}
           />
