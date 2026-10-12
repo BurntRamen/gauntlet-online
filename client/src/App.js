@@ -5240,7 +5240,7 @@ export default function App() {
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {homeArea === "play" && (
-            <PlayMenu view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
+            <PlayMenu modeMetadata={gameContent.modeMetadata} view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
@@ -5391,7 +5391,7 @@ export default function App() {
 
           {homeArea === "journey" && (
             <div className="journey-hub">
-              <JourneyIntroduction campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
+              <JourneyIntroduction copy={gameContent.modeMetadata?.campaign} campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
               {showOnboarding && (
                 <OnboardingPanel
                   canPlayAsPlayer={canPlayAsPlayer}

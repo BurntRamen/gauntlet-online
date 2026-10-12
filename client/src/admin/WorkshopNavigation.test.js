@@ -46,3 +46,20 @@ test("unmount cleans up a pending observer and later sections are left alone", a
   await waitFor(() => expect(screen.getByRole("button", { name: "Another editor" })).toHaveFocus());
   expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled();
 });
+
+test("field links wait for the selected object before focusing its editor", async () => {
+  const fieldTarget = { domain: "modes", id: "practice", field: "heroTitle" };
+  const view = render(<><button autoFocus>Old selection</button><form id="admin-field-heroTitle"><textarea aria-label="Old heading" /></form><WorkshopNavigation target={fieldTarget} ready={false} /></>);
+  expect(screen.getByRole("button")).toHaveFocus();
+  view.rerender(<><form id="admin-field-heroTitle"><textarea aria-label="New heading" /></form><WorkshopNavigation target={fieldTarget} /></>);
+  await waitFor(() => expect(screen.getByRole("textbox", { name: "New heading" })).toHaveFocus());
+});
+
+test("selecting the same search result again returns focus without adding navigation history", () => {
+  const fieldTarget = { domain: "modes", id: "practice", field: "heroTitle" };
+  const content = request => <><button>Search result</button><form id="admin-field-heroTitle"><textarea aria-label="Page heading" /></form><WorkshopNavigation target={fieldTarget} focusRequest={request} /></>;
+  const view = render(content({}));
+  screen.getByRole("button").focus();
+  view.rerender(content({}));
+  expect(screen.getByRole("textbox")).toHaveFocus();
+});

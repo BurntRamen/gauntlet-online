@@ -36,7 +36,7 @@ function compareSnapshots(live, draft) {
           live: clone(before ?? null), draft: clone(after ?? null), before: display(before, live), after: display(after, draft), mechanical: !!spec.mechanical,
           ...(spec.type === "asset" ? { media: spec.media, liveAsset: assetEntry(before), draftAsset: assetEntry(after) } : {}) });
       };
-      visit(original[field], row[field], [field]);
+      visit(original[field] ?? spec.defaultValue, row[field] ?? spec.defaultValue, [field]);
     }
   }
   return [...groups.values()].filter(group => group.changes.length);

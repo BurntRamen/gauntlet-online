@@ -202,7 +202,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByLabel("Draft title", { exact: true }).fill("Brothers of Destiny · preview");
   await page.getByRole("button", { name: "Save title to draft", exact: true }).click();
   await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
-  await otherContent(page, "Mode copy");
+  await otherContent(page, "Website prose");
   await page.getByRole("button", { name: "Inspect Practice privately", exact: true }).click();
   await page.getByLabel("Draft mode description").fill("Practice with a reviewed content release.");
   await page.getByRole("button", { name: "Save mode description to draft" }).click();
@@ -755,7 +755,7 @@ test("workshop metadata, relationships, review and test APIs keep the stable-ID 
   await page.goto("/admin/gauntlet");
   const visitor = await signIn(page, request, "Visitor");
   const headers = { Authorization: "Bearer " + visitor };
-  for (const path of ["/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
+  for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
     expect((await request.get("http://127.0.0.1:4117" + path)).status()).toBe(401);
     expect((await request.get("http://127.0.0.1:4117" + path, { headers })).status()).toBe(403);
   }
@@ -878,4 +878,62 @@ test("visual menu pass preserves review context and keeps phone editing focused"
     expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
+});
+
+
+test("Admin search opens exact prose editors, guards local edits, and publishes page copy", async ({ page, request }) => {
+  test.setTimeout(120000);
+  await page.goto("/admin/gauntlet");
+  const token = await signIn(page, request, "Burnt Ramen"); await page.reload();
+  const headers = { Authorization: "Bearer " + token };
+  const state = async () => (await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json());
+  const finder = page.getByRole("region", { name: "Search Admin", exact: true });
+  await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Search Admin/ })).toBeVisible();
+  await page.keyboard.press("Control+k");
+  await expect(finder.getByRole("searchbox")).toBeFocused();
+  await finder.getByRole("searchbox").fill("Master your next move");
+  const headingResult = finder.getByRole("button", { name: /Page heading.*Practice privately/ });
+  await expect(headingResult).toBeVisible();
+  await page.screenshot({ path: "artifacts/admin-search-prose-release/search-desktop.png", fullPage: false });
+  await headingResult.click();
+  const heading = page.getByLabel("Draft page heading", { exact: true });
+  await expect(heading).toBeFocused();
+  await expect(heading).toHaveValue("Master your next move.");
+  await heading.fill("A browser-reviewed practice heading.");
+  await page.keyboard.press("Control+k");
+  await finder.getByRole("searchbox").fill("rollback");
+  await finder.getByRole("button", { name: /Publishing/ }).click();
+  await page.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(heading).toHaveValue("A browser-reviewed practice heading.");
+  await finder.getByRole("button", { name: "Close search", exact: true }).click();
+  await page.getByRole("button", { name: "Save page heading to draft", exact: true }).click();
+  await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Isolated draft preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
+  await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true }).click();
+  await page.getByLabel("Release name").fill("Browser prose search");
+  await page.getByRole("button", { name: "Publish release", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
+  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  const publicPage = await page.context().newPage();
+  await publicPage.goto("/");
+  await expect(publicPage.getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
+  await publicPage.close();
+  await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press("Control+k");
+  await finder.getByRole("searchbox").fill("Begin your journey");
+  await expect(finder.getByRole("button", { name: /Page heading/ })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
+  await page.screenshot({ path: "artifacts/admin-search-prose-release/search-mobile.png", fullPage: false });
+  await finder.getByRole("button", { name: /Page heading/ }).click();
+  await expect(page.getByLabel("Draft page heading", { exact: true })).toBeFocused();
+  await expect(page.getByLabel("Draft page heading", { exact: true })).toHaveValue("Begin your journey.");
+  await page.screenshot({ path: "artifacts/admin-search-prose-release/editor-mobile.png", fullPage: false });
+  expect((await state()).draft).toBeNull();
 });

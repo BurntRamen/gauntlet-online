@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { PlayMenu, PlayModeCard } from "./PlayMenu";
+import JourneyIntroduction from "./JourneyMenu";
 
 function MenuHarness() {
   const [view, setView] = useState("practice");
@@ -41,4 +42,17 @@ test("mode cards preserve the disabled identity gate and invoke the selected mod
   rerender(<PlayModeCard {...props} />);
   fireEvent.click(screen.getByRole("button", { name: /Basic vs AI/ }));
   expect(start).toHaveBeenCalledTimes(1);
+});
+
+test("published page prose is rendered as text with shipped fallbacks and stable navigation", () => {
+  const { rerender } = render(<PlayMenu view="tables" onSelectView={() => {}} modeMetadata={{ freeForAll: { heroTitle: "<b>Custom heading</b>", heroDescription: "Published introduction", menuDetail: "Gather your friends" } }} />);
+  expect(screen.getByRole("heading", { name: "<b>Custom heading</b>" })).toBeVisible();
+  expect(screen.getByText("Published introduction")).toBeVisible();
+  expect(screen.getByRole("tab", { name: "Tables" })).toHaveTextContent("Gather your friends");
+  expect(screen.getByText("Private matches")).toBeVisible();
+  rerender(<JourneyIntroduction copy={{ heroTitle: "Custom journey", heroEyebrow: "A new overline", heroDescription: "A new introduction" }} />);
+  expect(screen.getByRole("heading", { name: "Custom journey" })).toBeVisible();
+  expect(screen.getByText("A new introduction")).toBeVisible();
+  rerender(<JourneyIntroduction />);
+  expect(screen.getByRole("heading", { name: "Begin your journey." })).toBeVisible();
 });

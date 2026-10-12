@@ -3,11 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const domains = new Set(["encounters", "cards", "card-effects", "faction-effects", "encounter-mechanics", "game", "modes", "campaigns", "factions", "decks", "characters", "assets", "asset-library"]);
 export function workshopTarget(value, fallback = { domain: "encounters", id: null }) {
   if (!value || !domains.has(value.domain)) return fallback;
-  return { domain: value.domain, id: typeof value.id === "string" && value.id.length <= 240 ? value.id : null, section: typeof value.section === "string" && /^[a-z-]{1,60}$/.test(value.section) ? value.section : null, ...(typeof value.cardId === "string" && value.cardId.length <= 240 ? { cardId: value.cardId } : {}) };
+  return { domain: value.domain, id: typeof value.id === "string" && value.id.length <= 240 ? value.id : null, ...(typeof value.field === "string" && /^[a-zA-Z][a-zA-Z0-9]{0,59}$/.test(value.field) ? { field: value.field } : {}), section: typeof value.section === "string" && /^[a-z-]{1,60}$/.test(value.section) ? value.section : null, ...(typeof value.cardId === "string" && value.cardId.length <= 240 ? { cardId: value.cardId } : {}) };
 }
 export function targetFromLocation(fallback) {
   const params = new URLSearchParams(window.location.search);
-  return workshopTarget({ domain: params.get("workshop"), id: params.get("object"), section: params.get("section"), cardId: params.get("testCard") }, fallback);
+  return workshopTarget({ domain: params.get("workshop"), id: params.get("object"), section: params.get("section"), cardId: params.get("testCard"), field: params.get("field") }, fallback);
 }
 
 // One editing buffer belongs to the active object. Navigation stores context,
@@ -56,11 +56,12 @@ export default function useWorkshopContext({ initialTarget, dirty, busy, onDisca
     url.searchParams.set("workshop", next.domain);
     if (next.id) url.searchParams.set("object", next.id); else url.searchParams.delete("object");
     if (next.section) url.searchParams.set("section", next.section); else url.searchParams.delete("section");
+    if (next.field) url.searchParams.set("field", next.field);
     if (next.cardId) url.searchParams.set("testCard", next.cardId); else url.searchParams.delete("testCard");
     window.history.pushState({ ...window.history.state, gauntletWorkshop: index.current, workshopTarget: next }, "", url);
     applyTarget(next);
     requestAnimationFrame(() => {
-      if (mounted.current && current.current.target === next && !next.section) {
+      if (mounted.current && current.current.target === next && !next.section && !next.field) {
         document.getElementById("workshop-context")?.focus({ preventScroll: true });
         if (next.id && window.innerWidth <= 750 && !scroll) document.getElementById("workshop-context")?.scrollIntoView?.({ block: "start" });
         else window.scrollTo(0, scroll);

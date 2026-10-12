@@ -4,6 +4,7 @@ import "./GauntletAdmin.css";
 import { targetFromLocation } from "./admin/useWorkshopContext";
 import GauntletAuthoring from "./GauntletAuthoring";
 const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-matches" */ "./admin/MatchInspector"));
+const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/AdminSearch"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
 const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System"];
 const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
@@ -49,9 +50,9 @@ function Overview({ catalog, request, revision, onSelect }) {
     <State state={catalog}>{(data) => <>
       <details className="admin-json"><summary>Advanced / Technical · content and rules versions</summary><Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} /></details>
       <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content", key)}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
-      <p className="admin-note">Counts describe the loaded registry and derived definitions. Decks count templates/plans; player-owned decks are under Players.</p>
+      <p className="admin-note">Live content counts. Decks are templates; player decks are under Players.</p>
       <details className="admin-json"><summary>Available game entry points</summary><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
-      <p className="admin-note">Availability is defined in code; there are no global operator mode switches.</p></details>
+      <p className="admin-note">Mode availability is managed in code.</p></details>
     </>}</State>
     <h4>System checks</h4><State state={system}>{(data) => <><Issues issues={data.issues} /><p className="admin-note">Checked {date(data.checkedAt)} · {data.environment}</p></>}</State>
     <h4>Recent matches</h4><State state={recent}>{(data) => <><Issues issues={data.issues} /><MatchList records={data.matches.slice(0, 5)} /><button onClick={() => onSelect("Matches")}>Browse match evidence</button><p className="admin-note">{data.scope}</p></>}</State>
@@ -226,18 +227,19 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
   useEffect(() => { if (exitGuard) exitGuard.current = action => playerGuard.current() && guard.current(() => { if (action) clearAdminLocation(); action?.(); }); return () => { if (exitGuard) exitGuard.current = action => { action?.(); return true; }; }; }, [exitGuard]);
   const [contentDomain, setContentDomain] = useState(null);
   const authoring = ["Design", "Publishing"].includes(area);
-  const selectArea = (name, domain, id) => canLeave(() => {
+  const selectArea = (name, domain, id, section, field, accepted) => canLeave(() => {
     const next = ["Content", "Game"].includes(name) ? "Design" : name;
     if (next !== area) areaScroll.current[area] = window.scrollY;
     if (["Design", "Publishing"].includes(next)) setAuthoringArea(next);
-    if (domain || name === "Game") setContentDomain({ name: domain || "game", id });
+    if (domain || name === "Game") setContentDomain({ name: domain || "game", id, section, field });
     if (next === "Matches") setMatchesOpened(true);
-    setArea(next);
+    setArea(next); accepted?.();
   });
   const inspectContent = (domain, id) => selectArea("Design", domain, id);
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
   return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
     <header className="admin-header"><div><span className="admin-eyebrow">Private operator workspace</span><h3>Gauntlet Admin</h3><p>Design content, inspect players, and manage releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
+    <Suspense fallback={null}><AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} /></Suspense>
     <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index]} /></svg>{name}</button>)}</nav>
     <div className="admin-body"><div className="admin-title-row" hidden={area === "Design"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
       {area === "Design" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
