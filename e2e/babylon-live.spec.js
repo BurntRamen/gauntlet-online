@@ -202,7 +202,12 @@ test("faction abilities, spectator privacy, responsive layout, and accessibility
   }, { roomCode: duel.roomCode });
   const spectatorPage = await spectatorContext.newPage();
   await spectatorPage.goto(baseURL);
-  await expect(spectatorPage.getByText("Spectator view")).toBeVisible();
+  // A second concurrent software WebGL context can finish initializing just
+  // beyond 30 seconds. Keep this functional allowance separate from the
+  // unchanged cold-load performance budgets.
+  await expect(spectatorPage.getByText("Spectator view")).toBeVisible({
+    timeout: softwareGraphics ? 60000 : 10000
+  });
   await expect(spectatorPage.getByRole("button", { name: "Pass Priority" })).toHaveCount(0);
   await expect(spectatorPage.locator("[data-match-zone='hand']")).toHaveCount(0);
 
