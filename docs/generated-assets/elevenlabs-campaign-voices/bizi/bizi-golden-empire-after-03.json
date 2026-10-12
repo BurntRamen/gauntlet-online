@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "justine",
+  "voiceName": "Emperor Justine",
+  "line": "Delay is time, and time is possibility.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-after-03-justine.mp3",
+  "generatedAt": "2026-10-12T14:28:43.423Z",
+  "publishedAt": "2026-10-12T14:30:30.135Z",
+  "bytes": 43511,
+  "sha256": "c8b3197e6aff68cfaeff6b1a0a183204142b5b1aab1fcb56b58f6eb81065b7d5"
+}

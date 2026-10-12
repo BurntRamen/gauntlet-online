@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maxor",
+  "voiceName": "Maxor the Usurper",
+  "line": "Builders still need someone to command them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch01-before-05-maxor.mp3",
+  "generatedAt": "2026-10-12T14:28:16.836Z",
+  "publishedAt": "2026-10-12T14:30:30.028Z",
+  "bytes": 35988,
+  "sha256": "d49077d68e6733b9b7589810fbf440d5b483eb031a3326306d7aec762c331847"
+}

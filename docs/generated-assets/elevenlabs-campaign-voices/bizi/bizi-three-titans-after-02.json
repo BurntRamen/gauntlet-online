@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "iro",
+  "voiceName": "Scholar Iro",
+  "line": "We came seeking one origin.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-after-02-iro.mp3",
+  "generatedAt": "2026-10-12T14:29:49.953Z",
+  "publishedAt": "2026-10-12T14:30:30.423Z",
+  "bytes": 24285,
+  "sha256": "00f02bf92c034790c80a21951ae3c2a1f2aca8a0677ff0a05f9034a7eb4bd733"
+}

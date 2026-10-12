@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Bizi Chronicle",
+  "line": "Machina sleeps beneath Constanti while faith and reason argue over the same ancient engine.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T14:28:23.639Z",
+  "publishedAt": "2026-10-12T14:30:30.060Z",
+  "bytes": 108713,
+  "sha256": "8c8b6bc1a461b3d7dddacdf6c144a3296541f5e42eaeef5c4b0966f213b063cd"
+}

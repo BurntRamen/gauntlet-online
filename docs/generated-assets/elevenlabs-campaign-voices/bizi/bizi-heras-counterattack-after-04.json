@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "khosar",
+  "voiceName": "Khosar the Conqueror",
+  "line": "Then I will break the people instead.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch08-after-04-khosar.mp3",
+  "generatedAt": "2026-10-12T14:29:40.435Z",
+  "publishedAt": "2026-10-12T14:30:30.390Z",
+  "bytes": 33898,
+  "sha256": "25868f14d419694d042a712e78d08dcb5a73db62385478124887e2f84447327f"
+}

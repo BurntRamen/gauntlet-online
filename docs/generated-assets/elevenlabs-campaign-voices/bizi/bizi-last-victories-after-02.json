@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "insurgent",
+  "voiceName": "Riot Leader",
+  "line": "You conquered land your supply lines cannot remember.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-after-02-coalition-marshal.mp3",
+  "generatedAt": "2026-10-12T14:29:05.818Z",
+  "publishedAt": "2026-10-12T14:30:30.236Z",
+  "bytes": 56050,
+  "sha256": "3ff1c7c11637e40365c24b38094a92f119038f7f74e6f21ce5542f05d237aefc"
+}

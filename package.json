@@ -28,6 +28,7 @@
     "generate:basic-card-art": "node scripts/generate-basic-card-art.js",
     "assets:elevenlabs": "node scripts/elevenlabs-assets.js",
     "voices:frumo": "node scripts/elevenlabs-campaign-voices.js",
+    "voices:bizi": "node scripts/elevenlabs-campaign-voices.js --manifest scripts/elevenlabs-bizi-campaign.json",
     "test:elevenlabs-assets": "node --test scripts/elevenlabs-assets.test.js",
     "prepare:experience-gate": "node scripts/prepare-babylon-qualification.js",
     "check:experience-gate": "node scripts/babylon-experience-gate.js",
