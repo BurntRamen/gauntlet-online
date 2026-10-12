@@ -214,7 +214,6 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const preview = page.getByRole("region", { name: "Isolated draft preview" });
   await encounterSection(page, "preview");
-  await page.getByText("Open presentation preview", { exact: true }).click();
   await expect(preview.getByRole("heading", { name: "Brothers of Destiny · preview", exact: true })).toBeVisible();
   await expect(preview.getByRole("button", { name: "Begin Battle", exact: true })).toBeDisabled();
   await preview.screenshot({ path: "artifacts/admin-authoring-preview.png" });
@@ -483,10 +482,8 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await expect(page.getByText("Draft validation completed.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await encounterSection(page, "preview");
-  await page.getByText("Open presentation preview", { exact: true }).click();
   await expect(page.getByRole("region", { name: "Isolated draft preview" }).getByRole("heading", { name: "Brothers of Destiny", exact: true })).toBeVisible();
   await encounterSection(page, "preview");
-  await page.getByText("Open presentation preview", { exact: true }).click();
   await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: "artifacts/workshop-desktop-editor.png" });
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
@@ -562,11 +559,9 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   expect((await new AxeBuilder({ page }).include(".encounter-workshop").analyze()).violations).toEqual([]);
   await encounterSection(page, "preview");
-  await page.getByText("Open presentation preview", { exact: true }).click();
   expect((await new AxeBuilder({ page }).include(".encounter-workshop").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await encounterSection(page, "preview");
-  await page.getByText("Open presentation preview", { exact: true }).click();
   await page.getByRole("combobox", { name: "Jump to section", exact: true }).focus();
   await page.getByRole("combobox", { name: "Jump to section", exact: true }).selectOption("story");
   await expect(page.locator("#workshop-story")).toBeFocused();

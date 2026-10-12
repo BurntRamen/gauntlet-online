@@ -1,5 +1,7 @@
 .gauntlet-admin { --admin-line: #354957; --admin-muted: #b2c4cf; --admin-surface: #142530; --admin-raised: #1b303d; --admin-input: #0b1822; --admin-accent: #efc06e; color: #edf4f7; background: #101e29; border: 1px solid var(--admin-line); border-radius: 10px; overflow: hidden; text-align: left; font-family: var(--font-ui, "Segoe UI", Arial, sans-serif); }
 .gauntlet-admin * { box-sizing: border-box; }
+.gauntlet-admin a { color:#b5deef; text-underline-offset:3px; }
+.gauntlet-admin a:hover { color:#fff8e7; }
 .gauntlet-admin [hidden] { display:none !important; }
 .admin-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 24px; background: #182b38; border-bottom: 1px solid var(--admin-line); }
 .admin-header h3 { margin: 6px 0; font-size: 26px; color: #fff8e7; }.admin-header p { margin: 0; color: var(--admin-muted); }
@@ -28,7 +30,7 @@
 .admin-player-edit { margin-block:16px; padding:4px 16px 12px; background:#182b38; border-left:3px solid #efc06e; }
 .admin-player-heading h4 { font-size:26px; color:#f4d49d; margin:8px 0; overflow-wrap:anywhere; }
 .admin-player-heading p { margin:8px 0; }.admin-player-back { display:none; }
-.admin-player-totals { display:flex; flex-wrap:wrap; gap:24px; color:var(--admin-muted); font-size:13px; }.admin-player-totals strong { color:#efc06e; font-size:24px; margin-right:6px; }
+.admin-player-totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; color:var(--admin-muted); font-size:12px; }.admin-player-totals p { margin:0; }.admin-player-totals strong { display:block; color:#efc06e; font-size:22px; margin-bottom:4px; }
 .admin-player-empty { padding:24px; color:var(--admin-muted); border:1px dashed var(--admin-line); }
 .admin-player-card { margin:12px 0; border-bottom:1px solid var(--admin-line); padding-bottom:12px; }
 .gauntlet-admin .admin-player-card summary { border:0; background:transparent; }.admin-player-card summary span { display:block; color:var(--admin-muted); font-size:12px; padding-top:4px; }
@@ -166,4 +168,5 @@
 .admin-field .admin-badge { font-size:11px; flex-shrink:0; }
 .gauntlet-admin .admin-comparison summary { font-size:12px; color:var(--admin-muted); }
 .admin-json > summary { border:0; border-bottom:1px solid var(--admin-line); background:transparent; color:var(--admin-muted); }
+.admin-releases .admin-source > button { margin:0 8px 8px 0; }
 @media(max-width:650px) { .admin-header .admin-actions { display:grid; grid-template-columns:1fr 1fr; }.admin-header p { font-size:12px; }.admin-field > .admin-title-row { align-items:flex-start; flex-wrap:wrap; gap:6px; } }
