@@ -506,7 +506,6 @@ test(`two ordinary ${profile} browser clients complete live Basic combat and pla
   await selectedBlocker.press("Enter");
   await expect(selectedBlocker).toHaveCount(0);
   await clickHandCardByValue(startingPage, "lowest");
-  await currentAction(startingPage).getByRole("button", { name: "Choose Payment" }).click();
   await payUntilEnabled(startingPage, "Confirm Block");
   await currentAction(startingPage).getByRole("button", { name: "Confirm Block" }).click();
   await waitForPlaybackSettled(startingPage);
