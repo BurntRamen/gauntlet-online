@@ -616,7 +616,7 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
 test("normal Training Grounds entry uses the shared Babylon match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
   await prepareGuest(page, baseURL, "AI Trainee", "Practice");
-  await page.getByRole("button", { name: /Basic vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
 
   const match = page.getByTestId("production-babylon-match");
   await expect(match).toBeVisible();
@@ -657,7 +657,7 @@ test("capture current match baseline through normal local practice and campaign 
     const page = await context.newPage();
     await prepareGuest(page, baseURL, "Baseline Reviewer", "Practice");
     if (route === "practice") {
-      await page.getByRole("button", { name: /Basic vs AI/ }).click();
+      await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
     } else {
       await page.locator('button[data-area="journey"]').click();
       await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
@@ -685,7 +685,7 @@ test("capture current match baseline through normal local practice and campaign 
 test("normal Faction Training Grounds entry uses the same production match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
   await prepareGuest(page, baseURL, "Faction Trainee", "Practice");
-  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
   await expect(page.getByText("Table Command")).toBeVisible();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
@@ -709,7 +709,7 @@ test("normal Faction Training Grounds entry uses the same production match and s
 test("board faction cards route available orders through hand and lane selection", async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1836, height: 878 });
   await prepareGuest(page, baseURL, "Board Ability Reviewer", "Practice");
-  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const commander = page.locator('[data-faction-role="commander"]');
@@ -734,7 +734,7 @@ test("resolution changes preserve framing and saved light mode updates the exist
   // while performance scaling crosses the old 420-render-pixel breakpoint.
   await page.setViewportSize({ width: 2560, height: 740 });
   await prepareGuest(page, baseURL, "Theme Reviewer", "Practice");
-  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
@@ -762,7 +762,7 @@ test("resolution changes preserve framing and saved light mode updates the exist
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
   await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");
-  await page.getByRole("button", { name: /Factions vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");

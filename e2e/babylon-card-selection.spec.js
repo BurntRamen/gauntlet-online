@@ -47,7 +47,7 @@ for (const mode of ["Basic", "Factions"]) {
     });
     await page.goto(baseURL);
     await page.locator('button[data-area="play"]').click();
-    await page.getByRole("button", { name: new RegExp(`${mode} vs AI`) }).click();
+    await page.getByRole("button", { name: `Play ${mode} vs AI`, exact: true }).click();
     if (mode === "Factions") {
       await page.getByRole("button", { name: "Choose Rumin" }).click();
       await page.getByRole("button", { name: "Confirm Start" }).click();

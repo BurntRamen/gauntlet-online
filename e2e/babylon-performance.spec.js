@@ -16,7 +16,7 @@ async function openTrainingGrounds(page, baseURL, sampleId) {
   await page.getByPlaceholder("Guest name").fill(`Perf ${sampleId.slice(-14)}`);
   await page.locator('button[data-area="play"]').click();
   await page.getByRole("tab", { name: "Practice" }).click();
-  await expect(page.getByRole("button", { name: /Basic vs AI/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Play Basic vs AI", exact: true })).toBeEnabled();
 }
 
 async function collectSample(browser, baseURL, viewport, sampleId) {
@@ -24,7 +24,7 @@ async function collectSample(browser, baseURL, viewport, sampleId) {
   const page = await context.newPage();
   await openTrainingGrounds(page, baseURL, sampleId);
   const startedAt = Date.now();
-  await page.getByRole("button", { name: /Basic vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await expect(page.locator(".production-context-panel")).toBeVisible();
