@@ -4152,6 +4152,31 @@ export default function App() {
     );
   }, [announceCommander, game, player, role]);
 
+  const announceFactionFeatureClick = useCallback((featureRole) => {
+    if (!game || role === "spectator" || !player) return;
+    const currentPlayer = game.players?.[player];
+    if (!currentPlayer?.faction || currentPlayer.faction.id === "basic") return;
+    if (featureRole === "commander") {
+      announceCommanderClick();
+      return;
+    }
+    const feature = currentPlayer.faction[featureRole];
+    if (!feature) return;
+    if (featureRole === "general") {
+      const quote = feature.clickedAnnouncement || "The general is ready.";
+      setFactionVoice({ quote, detail: "General selected", speaker: feature.name || "General", kind: "clicked" });
+      speakFactionQuote(quote, feature.clickedAudio, currentPlayer.faction.commander?.voiceProfile, currentPlayer.faction.commander?.voiceHints);
+      return;
+    }
+    if (featureRole === "city" && feature.clickedSound && !accountSoundMuted && typeof window !== "undefined" && window.Audio) {
+      if (voiceAudioRef.current) voiceAudioRef.current.pause();
+      const audio = new window.Audio(resolveAssetPath(feature.clickedSound));
+      audio.volume = 0.8;
+      voiceAudioRef.current = audio;
+      audio.play().catch(() => {});
+    }
+  }, [accountSoundMuted, announceCommanderClick, game, player, role, speakFactionQuote]);
+
   useEffect(() => {
     const matchId = game?.matchId || "";
     const currentPlayer = role !== "spectator" && player ? game?.players?.[player] : null;
@@ -5812,6 +5837,7 @@ export default function App() {
               onRejectedAction: factionVoiceFor,
               commanderAnnouncement: factionVoice,
               onCommanderClick: announceCommanderClick,
+              onFactionCardClick: announceFactionFeatureClick,
               tutorialGuidance: game.players?.[2]?.opponentKind === "training-ai"
             }}
             onLeaveMatch={returnToMainMenu}
@@ -6764,8 +6790,8 @@ export default function App() {
 
   function handlePowerClick(power) {
     setExpandedPower(power.id);
-    if (power.id !== "commander" || isSpectator || !me) return;
-    announceCommanderClick();
+    if (isSpectator || !me) return;
+    announceFactionFeatureClick(power.id);
   }
 
   const undoRequest = game.undoRequest;

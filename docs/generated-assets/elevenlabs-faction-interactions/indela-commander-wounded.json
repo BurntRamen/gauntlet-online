@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "role": "commander",
+  "event": "wounded",
+  "line": "Twenty-one life. Read the omen, then rewrite it.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-indela-commander-wounded.mp3",
+  "generatedAt": "2026-10-13T19:59:21.574Z",
+  "publishedAt": "2026-10-13T19:59:37.260Z",
+  "bytes": 55214,
+  "sha256": "e5d47d210405a7a1f59a98731265dab0b6e125a293fccbd679f9a4b6cf64cbf4"
+}

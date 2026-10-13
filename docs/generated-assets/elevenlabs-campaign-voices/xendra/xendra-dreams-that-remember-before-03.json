@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "syllith",
+  "voiceName": "Syllith the Echoing Child",
+  "line": "Did you?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch03-before-03-syllith.mp3",
+  "generatedAt": "2026-10-13T19:50:25.448Z",
+  "publishedAt": "2026-10-13T19:52:16.202Z",
+  "bytes": 65663,
+  "sha256": "71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308"
+}

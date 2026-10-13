@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "rumin",
+  "role": "commander",
+  "event": "denied",
+  "line": "The treasury will not underwrite this assault.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-rumin-commander-denied.mp3",
+  "generatedAt": "2026-10-13T19:58:42.302Z",
+  "publishedAt": "2026-10-13T19:59:37.088Z",
+  "bytes": 52288,
+  "sha256": "5315e8b6dfedd7d9973e2caf08946ef119b029a716f56af260fe8ff6442ba286"
+}

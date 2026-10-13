@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "zynarth",
+  "role": "commander",
+  "event": "selected",
+  "line": "The brood awakens. One will become many.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3",
+  "generatedAt": "2026-10-13T19:59:25.203Z",
+  "publishedAt": "2026-10-13T19:59:37.279Z",
+  "bytes": 50199,
+  "sha256": "2475317c42067c5e07c6b376f0db914786812f7d0b43f6418ceb2f2e7abc2c42"
+}

@@ -12186,6 +12186,152 @@
       "bytes": 2867303
     },
     {
+      "id": "asset:match/kits/gauntlet-core-v1/audio/ability_activate.wav",
+      "source": "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav",
+      "associations": [
+        {
+          "object": "content.factions.0.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.1.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.2.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.3.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.4.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.5.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.6.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.7.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.8.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.9.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.0.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.1.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.2.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.3.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.4.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.5.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.6.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.7.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.8.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.9.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.mekan.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.jali.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.gracus.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.indela.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.rumin.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.sheen.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.frumo.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.bizi.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.zynarth.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.astral-vanguard.city.clickedSound",
+          "usage": "clickedSound"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/716748f9b07adda52157509835dd511f9695995af670abb2b73e444fff72ac68.wav",
+      "mediaType": "audio/wav",
+      "sha256": "716748f9b07adda52157509835dd511f9695995af670abb2b73e444fff72ac68",
+      "bytes": 49964
+    },
+    {
       "id": "asset:meerus-gauntlet-2.webp",
       "source": "/assets/gauntlet/meerus-gauntlet-2.webp",
       "associations": [
@@ -17828,8 +17974,184 @@
       "bytes": 42675
     },
     {
-      "id": "asset:voices/focus-1.mp3",
-      "source": "/assets/gauntlet/voices/focus-1.mp3",
+      "id": "asset:voices/faction-astral-vanguard-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.astral-vanguard.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/107a67f239bf0cf2aa8514252b1de6dbce311ce9460edc85b30f39565ce679fb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "107a67f239bf0cf2aa8514252b1de6dbce311ce9460edc85b30f39565ce679fb",
+      "bytes": 51453
+    },
+    {
+      "id": "asset:voices/faction-astral-vanguard-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.astral-vanguard.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/599ce60f7051598be38760c379edbae27ff6b7958cefd767757b97bca64c36f0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "599ce60f7051598be38760c379edbae27ff6b7958cefd767757b97bca64c36f0",
+      "bytes": 67335
+    },
+    {
+      "id": "asset:voices/faction-astral-vanguard-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.astral-vanguard.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/386b6b1e07e878c71432ac883f5e5c3481ca7a86d364e0d7beeb8d3bac568092.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "386b6b1e07e878c71432ac883f5e5c3481ca7a86d364e0d7beeb8d3bac568092",
+      "bytes": 39750
+    },
+    {
+      "id": "asset:voices/faction-astral-vanguard-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.astral-vanguard.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/50289639b1b711551d77df3a1672fa6923926b78cdba9d290fb06c18bf1ee166.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "50289639b1b711551d77df3a1672fa6923926b78cdba9d290fb06c18bf1ee166",
+      "bytes": 53124
+    },
+    {
+      "id": "asset:voices/faction-astral-vanguard-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.astral-vanguard.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/69a078b66ab39118a722415e82e1a34208a64151f714110b845de9acba899579.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "69a078b66ab39118a722415e82e1a34208a64151f714110b845de9acba899579",
+      "bytes": 62737
+    },
+    {
+      "id": "asset:voices/faction-astral-vanguard-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-astral-vanguard-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.9.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.9.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.astral-vanguard.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c8339823174f371c9a8d9d8831bd81be6f2aec83246ef5700d1b47e0f1f57587.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c8339823174f371c9a8d9d8831bd81be6f2aec83246ef5700d1b47e0f1f57587",
+      "bytes": 38078
+    },
+    {
+      "id": "asset:voices/faction-bizi-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.3.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.bizi.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/393735fbc6688ad5ef11279611f112d2debe73082966d099c405e1ecdbb912f7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "393735fbc6688ad5ef11279611f112d2debe73082966d099c405e1ecdbb912f7",
+      "bytes": 43511
+    },
+    {
+      "id": "asset:voices/faction-bizi-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.3.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.bizi.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4f7be7eb36b4221644df195d9a43e01e5eace2ea12d51cbff000df9c486abb2b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4f7be7eb36b4221644df195d9a43e01e5eace2ea12d51cbff000df9c486abb2b",
+      "bytes": 50199
+    },
+    {
+      "id": "asset:voices/faction-bizi-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-commander-denied.mp3",
       "associations": [
         {
           "object": "content.factions.3.commander.announcementAudio.denied",
@@ -17844,10 +18166,1276 @@
           "usage": "denied"
         }
       ],
-      "path": "/assets/gauntlet/releases/eba3b3834189deb653457a33e8dd643007ab76fb8eaed85609bb921811a55983.mp3",
+      "path": "/assets/gauntlet/releases/b93bb45e7c776060194420f5a528b8bea962df1eb805654997b7e1e02b4684fb.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "eba3b3834189deb653457a33e8dd643007ab76fb8eaed85609bb921811a55983",
-      "bytes": 68062
+      "sha256": "b93bb45e7c776060194420f5a528b8bea962df1eb805654997b7e1e02b4684fb",
+      "bytes": 31391
+    },
+    {
+      "id": "asset:voices/faction-bizi-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.3.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.bizi.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7ada53ff54b597f5ae56cd18d965fa802bd753208f42d6434df671cd30b20270.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7ada53ff54b597f5ae56cd18d965fa802bd753208f42d6434df671cd30b20270",
+      "bytes": 41839
+    },
+    {
+      "id": "asset:voices/faction-bizi-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.3.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.bizi.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/40c23142c28fa8eed55cdc51c6b885fe7ee4b86e31ca68a13e3ec384ca15d0fb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "40c23142c28fa8eed55cdc51c6b885fe7ee4b86e31ca68a13e3ec384ca15d0fb",
+      "bytes": 47691
+    },
+    {
+      "id": "asset:voices/faction-bizi-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-bizi-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.3.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.3.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.bizi.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/49b5ca06bc24de72470e37018019e2984b0086eecc08d3de9cda0753dc6b1f47.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "49b5ca06bc24de72470e37018019e2984b0086eecc08d3de9cda0753dc6b1f47",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/faction-frumo-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/59b8e767fbf286de40eecb4756780a6f5bc1291d1613628dd44f4240941d8c6e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "59b8e767fbf286de40eecb4756780a6f5bc1291d1613628dd44f4240941d8c6e",
+      "bytes": 43511
+    },
+    {
+      "id": "asset:voices/faction-frumo-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b6087897dfec258d74d7d68d08f2ff5c1075501ac5af05bb7603e1794fbdc131.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b6087897dfec258d74d7d68d08f2ff5c1075501ac5af05bb7603e1794fbdc131",
+      "bytes": 81964
+    },
+    {
+      "id": "asset:voices/faction-frumo-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1a07e973981b33b5010067b084834eaa387c02f5cd0ec682a9a17166a4453b46.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1a07e973981b33b5010067b084834eaa387c02f5cd0ec682a9a17166a4453b46",
+      "bytes": 33062
+    },
+    {
+      "id": "asset:voices/faction-frumo-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6e95441c15c2d9db7efc46cf1e8e7d5a69ad5ef7496b781fb297df0738f8cc16.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6e95441c15c2d9db7efc46cf1e8e7d5a69ad5ef7496b781fb297df0738f8cc16",
+      "bytes": 33898
+    },
+    {
+      "id": "asset:voices/faction-frumo-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.2.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.frumo.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c66c4139e10ac2b01c46efe12e0acfda2da3982b1cee07a8992cb9c986a7cd7e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c66c4139e10ac2b01c46efe12e0acfda2da3982b1cee07a8992cb9c986a7cd7e",
+      "bytes": 76112
+    },
+    {
+      "id": "asset:voices/faction-frumo-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-frumo-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.2.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.2.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.frumo.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/172dcf4bc5d48c49ceed5722a843be89b463247b20ea3a151f509dd1715cf835.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "172dcf4bc5d48c49ceed5722a843be89b463247b20ea3a151f509dd1715cf835",
+      "bytes": 103697
+    },
+    {
+      "id": "asset:voices/faction-gracus-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.6.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.gracus.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7da450dbcef72724661342ff17f3ba8f560d543084ef9d3eb3d4042157a09ea1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7da450dbcef72724661342ff17f3ba8f560d543084ef9d3eb3d4042157a09ea1",
+      "bytes": 41004
+    },
+    {
+      "id": "asset:voices/faction-gracus-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.6.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.gracus.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a872ac7c69135066900d182f171af6452da3dd7fbd69b9d4537b9331000fd7f5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a872ac7c69135066900d182f171af6452da3dd7fbd69b9d4537b9331000fd7f5",
+      "bytes": 53960
+    },
+    {
+      "id": "asset:voices/faction-gracus-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.6.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.gracus.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eee915bec4a3414428679d589e3e9cc0e450c104e49a78d5f0c7fa026686e11a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "eee915bec4a3414428679d589e3e9cc0e450c104e49a78d5f0c7fa026686e11a",
+      "bytes": 38078
+    },
+    {
+      "id": "asset:voices/faction-gracus-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.6.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.gracus.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3dbcb475f38d089893c138c521dcf127403e640778d143436242bde532b0b87a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3dbcb475f38d089893c138c521dcf127403e640778d143436242bde532b0b87a",
+      "bytes": 63573
+    },
+    {
+      "id": "asset:voices/faction-gracus-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.6.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.gracus.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/031ce648a3ad01f094f96e380d8c12443fef95246a60e587457d07ccf6e54b6b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "031ce648a3ad01f094f96e380d8c12443fef95246a60e587457d07ccf6e54b6b",
+      "bytes": 66499
+    },
+    {
+      "id": "asset:voices/faction-gracus-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-gracus-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.6.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.6.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.2.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.6.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.6.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.gracus.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.gracus.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d3678ce5da04f93dfc24f5e1ce3e487ac191e9daefdf8bf9f81e1bf2eec26aca.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d3678ce5da04f93dfc24f5e1ce3e487ac191e9daefdf8bf9f81e1bf2eec26aca",
+      "bytes": 51035
+    },
+    {
+      "id": "asset:voices/faction-indela-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.7.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.indela.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/66bcf2ead4aca9abf40614cd637b40561af8d2e5211d620fd6c1bd049a341eac.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "66bcf2ead4aca9abf40614cd637b40561af8d2e5211d620fd6c1bd049a341eac",
+      "bytes": 41004
+    },
+    {
+      "id": "asset:voices/faction-indela-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.7.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.indela.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/dcb7bd40e966ad6f2ce0e694116dc95ff719437adf110a99f67804a8d24e8da9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "dcb7bd40e966ad6f2ce0e694116dc95ff719437adf110a99f67804a8d24e8da9",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/faction-indela-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.7.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.indela.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a73b91ee5a0e8ca5e7110f701c2a550c71cdceac624adc471fb5d5740e3e81bc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a73b91ee5a0e8ca5e7110f701c2a550c71cdceac624adc471fb5d5740e3e81bc",
+      "bytes": 27629
+    },
+    {
+      "id": "asset:voices/faction-indela-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.7.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.indela.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/124d10a8c4a088c7b53009a1a6ad88af08b2f34d52e86ea07150b420c3f421ad.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "124d10a8c4a088c7b53009a1a6ad88af08b2f34d52e86ea07150b420c3f421ad",
+      "bytes": 56886
+    },
+    {
+      "id": "asset:voices/faction-indela-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.7.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.indela.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e5d47d210405a7a1f59a98731265dab0b6e125a293fccbd679f9a4b6cf64cbf4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e5d47d210405a7a1f59a98731265dab0b6e125a293fccbd679f9a4b6cf64cbf4",
+      "bytes": 55214
+    },
+    {
+      "id": "asset:voices/faction-indela-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-indela-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.7.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.7.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.3.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.7.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.7.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.indela.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.indela.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/24522d35b42bc6061fd39a1e62d3d398483a8059420aed18fbf49ce2b723e3ec.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "24522d35b42bc6061fd39a1e62d3d398483a8059420aed18fbf49ce2b723e3ec",
+      "bytes": 34316
+    },
+    {
+      "id": "asset:voices/faction-jali-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.5.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.jali.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a28d66e8602ce79e6005e5aaa0011b0eadcde51e56de457c42f639216c4d1c34.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a28d66e8602ce79e6005e5aaa0011b0eadcde51e56de457c42f639216c4d1c34",
+      "bytes": 47273
+    },
+    {
+      "id": "asset:voices/faction-jali-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.5.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.jali.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9416ddc311a7cf145e66e1b9b3e36b06741d574b42eeaa0f3962cccbd0caaf1d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "9416ddc311a7cf145e66e1b9b3e36b06741d574b42eeaa0f3962cccbd0caaf1d",
+      "bytes": 44765
+    },
+    {
+      "id": "asset:voices/faction-jali-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.5.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.jali.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4d0323e170bb363e0c9244894c13d856a41a54f9504dc8a6aace1f03d8b9a74a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4d0323e170bb363e0c9244894c13d856a41a54f9504dc8a6aace1f03d8b9a74a",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/faction-jali-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.5.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.jali.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3bcc2dca0daed5da6b2d0cabd3c82b6e16262bea2a6325ca890ba0f7c015a91e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3bcc2dca0daed5da6b2d0cabd3c82b6e16262bea2a6325ca890ba0f7c015a91e",
+      "bytes": 41004
+    },
+    {
+      "id": "asset:voices/faction-jali-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.5.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.jali.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/91737874605db2e241cf0479a12c3911d0a1000f4e1805590c47fe5e933ff058.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "91737874605db2e241cf0479a12c3911d0a1000f4e1805590c47fe5e933ff058",
+      "bytes": 54378
+    },
+    {
+      "id": "asset:voices/faction-jali-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-jali-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.5.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.5.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.1.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.5.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.5.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.jali.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.jali.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/576089cd3c15dbc1560c279e5f1a9be3e9dc1f2a06220c0b7d2891c582ee2ac0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "576089cd3c15dbc1560c279e5f1a9be3e9dc1f2a06220c0b7d2891c582ee2ac0",
+      "bytes": 36824
+    },
+    {
+      "id": "asset:voices/faction-mekan-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.4.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.mekan.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c17c9da48afa0483647763114b925bc315e8a7b6bd6f94f18c3ec72f7d02a122.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c17c9da48afa0483647763114b925bc315e8a7b6bd6f94f18c3ec72f7d02a122",
+      "bytes": 40586
+    },
+    {
+      "id": "asset:voices/faction-mekan-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.4.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.mekan.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3098c56c69c0f26bfd2100093377147dc7527f6e13310b7699c818f5f19f425c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3098c56c69c0f26bfd2100093377147dc7527f6e13310b7699c818f5f19f425c",
+      "bytes": 53960
+    },
+    {
+      "id": "asset:voices/faction-mekan-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.4.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.mekan.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a02d844dbb88fdb1a2defad2fd04c6783a08fa0d933df840ef9a0d0148af300c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a02d844dbb88fdb1a2defad2fd04c6783a08fa0d933df840ef9a0d0148af300c",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/faction-mekan-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.4.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.mekan.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/21c9dd9297f1d5d71e329a1419accee423b3b03f8a7f304a708ffc9c2b06eac1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "21c9dd9297f1d5d71e329a1419accee423b3b03f8a7f304a708ffc9c2b06eac1",
+      "bytes": 53124
+    },
+    {
+      "id": "asset:voices/faction-mekan-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.4.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.mekan.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/bf82bddab199c3fdcd1d657a25419105ca8a14989efbe20ade19624e3f047ebe.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "bf82bddab199c3fdcd1d657a25419105ca8a14989efbe20ade19624e3f047ebe",
+      "bytes": 51035
+    },
+    {
+      "id": "asset:voices/faction-mekan-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-mekan-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.4.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.4.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.4.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.4.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.mekan.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.mekan.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6289de0fab15b5d3a22c20f9a1c52ae19b2a95abe561147ce45dd46c19ab99fa.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6289de0fab15b5d3a22c20f9a1c52ae19b2a95abe561147ce45dd46c19ab99fa",
+      "bytes": 35988
+    },
+    {
+      "id": "asset:voices/faction-rumin-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/08994d7cfaa904aca3b0f35a5a7d1eacc384ac56a0751ebe17b9f2ad84ebf4de.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "08994d7cfaa904aca3b0f35a5a7d1eacc384ac56a0751ebe17b9f2ad84ebf4de",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/faction-rumin-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6ab951a5d964d3fd10e4037dfb9a32e8a1bf1689403baf651e7782877de88621.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6ab951a5d964d3fd10e4037dfb9a32e8a1bf1689403baf651e7782877de88621",
+      "bytes": 52288
+    },
+    {
+      "id": "asset:voices/faction-rumin-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5315e8b6dfedd7d9973e2caf08946ef119b029a716f56af260fe8ff6442ba286.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5315e8b6dfedd7d9973e2caf08946ef119b029a716f56af260fe8ff6442ba286",
+      "bytes": 52288
+    },
+    {
+      "id": "asset:voices/faction-rumin-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c769db6cd0730a00d279b8f957992c7851a407ddb081c0401afbc953219332ac.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c769db6cd0730a00d279b8f957992c7851a407ddb081c0401afbc953219332ac",
+      "bytes": 44347
+    },
+    {
+      "id": "asset:voices/faction-rumin-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.0.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.rumin.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6aab73ddfffdcf011690e50f194c573b558d3a6b74515e128a8fbc773d1b30a8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6aab73ddfffdcf011690e50f194c573b558d3a6b74515e128a8fbc773d1b30a8",
+      "bytes": 25539
+    },
+    {
+      "id": "asset:voices/faction-rumin-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-rumin-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.0.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.0.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.rumin.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/42f517b74560ff828f060b43750b7368a39ecd3d75dc442aedebde0661d8cf65.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "42f517b74560ff828f060b43750b7368a39ecd3d75dc442aedebde0661d8cf65",
+      "bytes": 49363
+    },
+    {
+      "id": "asset:voices/faction-sheen-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ad439905e271f41c9a7bbdeaeb16ddb186b4dedb204373bc616e1df059b0b14b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ad439905e271f41c9a7bbdeaeb16ddb186b4dedb204373bc616e1df059b0b14b",
+      "bytes": 48527
+    },
+    {
+      "id": "asset:voices/faction-sheen-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e97c418ba9fc2cd09c08802d41ff914f5eefd89da0def303fd3a0f6ec9ae65cb.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e97c418ba9fc2cd09c08802d41ff914f5eefd89da0def303fd3a0f6ec9ae65cb",
+      "bytes": 50199
+    },
+    {
+      "id": "asset:voices/faction-sheen-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b41119bf8a6332f72e002511f83dac3ccbf9c74387b61ee170ff143352b4f1e7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b41119bf8a6332f72e002511f83dac3ccbf9c74387b61ee170ff143352b4f1e7",
+      "bytes": 47273
+    },
+    {
+      "id": "asset:voices/faction-sheen-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6cff294da33401224b89d037b764a8396e57f75b95d6ba26c6aef93dfbee5bc2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6cff294da33401224b89d037b764a8396e57f75b95d6ba26c6aef93dfbee5bc2",
+      "bytes": 56050
+    },
+    {
+      "id": "asset:voices/faction-sheen-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.1.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.sheen.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/92222333cbda8d260b21752da4296c7deec198d34477ce77ebfd230a7143a786.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "92222333cbda8d260b21752da4296c7deec198d34477ce77ebfd230a7143a786",
+      "bytes": 73186
+    },
+    {
+      "id": "asset:voices/faction-sheen-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-sheen-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.1.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.1.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.sheen.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/86e846574c291c5451c80d130e4b0581ae2c9498cd90210191eead7dd0666b96.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "86e846574c291c5451c80d130e4b0581ae2c9498cd90210191eead7dd0666b96",
+      "bytes": 65663
+    },
+    {
+      "id": "asset:voices/faction-zynarth-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0120c3eb1c4e414dc5d462505139ba066adeaaa19ab3e41615121a07fedfa7a1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0120c3eb1c4e414dc5d462505139ba066adeaaa19ab3e41615121a07fedfa7a1",
+      "bytes": 48527
+    },
+    {
+      "id": "asset:voices/faction-zynarth-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7d4057374a300a6f6887e4e3559a75a29e084357b509793b8ecd364705ddf2bc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7d4057374a300a6f6887e4e3559a75a29e084357b509793b8ecd364705ddf2bc",
+      "bytes": 57722
+    },
+    {
+      "id": "asset:voices/faction-zynarth-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1c635d39315b26bba194f776cdbcea7577c01e802182f32f391439ee6ce25e97.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1c635d39315b26bba194f776cdbcea7577c01e802182f32f391439ee6ce25e97",
+      "bytes": 32226
+    },
+    {
+      "id": "asset:voices/faction-zynarth-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2475317c42067c5e07c6b376f0db914786812f7d0b43f6418ceb2f2e7abc2c42.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2475317c42067c5e07c6b376f0db914786812f7d0b43f6418ceb2f2e7abc2c42",
+      "bytes": 50199
+    },
+    {
+      "id": "asset:voices/faction-zynarth-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.zynarth.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d0a4b6bb12dee558d5e2baf0b459d112bd3c3564b72cd7c90cc0784d594baf65.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d0a4b6bb12dee558d5e2baf0b459d112bd3c3564b72cd7c90cc0784d594baf65",
+      "bytes": 53960
+    },
+    {
+      "id": "asset:voices/faction-zynarth-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-zynarth-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.8.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.8.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.zynarth.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5ec78d4f9d932c07b81fdd975eab20a2225b2306e189ed74a6db482f98ec1592.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5ec78d4f9d932c07b81fdd975eab20a2225b2306e189ed74a6db482f98ec1592",
+      "bytes": 36824
     },
     {
       "id": "asset:voices/frumo-ch01-after-01-narrator.mp3",
@@ -19530,72 +21118,6 @@
       "bytes": 29301
     },
     {
-      "id": "asset:voices/kaiser-1.mp3",
-      "source": "/assets/gauntlet/voices/kaiser-1.mp3",
-      "associations": [
-        {
-          "object": "content.factions.0.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "content.deckRules.factions.0.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "factions.rumin.commander.announcementAudio.denied",
-          "usage": "denied"
-        }
-      ],
-      "path": "/assets/gauntlet/releases/016719dd7560fdf5264859f30779de859ad15a8ba39c5321914ad49b26f04bfc.mp3",
-      "mediaType": "audio/mpeg",
-      "sha256": "016719dd7560fdf5264859f30779de859ad15a8ba39c5321914ad49b26f04bfc",
-      "bytes": 73078
-    },
-    {
-      "id": "asset:voices/leafen-gao-1.mp3",
-      "source": "/assets/gauntlet/voices/leafen-gao-1.mp3",
-      "associations": [
-        {
-          "object": "content.factions.1.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "content.deckRules.factions.1.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "factions.sheen.commander.announcementAudio.denied",
-          "usage": "denied"
-        }
-      ],
-      "path": "/assets/gauntlet/releases/2e44c73b1bc1b51d68c421dedf58bf7cc66efb8269d81591056379297ccf9c1c.mp3",
-      "mediaType": "audio/mpeg",
-      "sha256": "2e44c73b1bc1b51d68c421dedf58bf7cc66efb8269d81591056379297ccf9c1c",
-      "bytes": 77675
-    },
-    {
-      "id": "asset:voices/polea-1.mp3",
-      "source": "/assets/gauntlet/voices/polea-1.mp3",
-      "associations": [
-        {
-          "object": "content.factions.2.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "content.deckRules.factions.2.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "factions.frumo.commander.announcementAudio.denied",
-          "usage": "denied"
-        }
-      ],
-      "path": "/assets/gauntlet/releases/fa69bbd9c3ac1ecac3f7af7f35d6795d6f04b1f0c8878d440ca0156e3087d6e6.mp3",
-      "mediaType": "audio/mpeg",
-      "sha256": "fa69bbd9c3ac1ecac3f7af7f35d6795d6f04b1f0c8878d440ca0156e3087d6e6",
-      "bytes": 57613
-    },
-    {
       "id": "asset:voices/rumin-ch01-after-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/rumin-ch01-after-01-narrator.mp3",
       "associations": [
@@ -20118,20 +21640,8 @@
       "source": "/assets/gauntlet/voices/rumin-ch04-before-03-kaiser.mp3",
       "associations": [
         {
-          "object": "content.factions.0.commander.announcementAudio.selected",
-          "usage": "selected"
-        },
-        {
           "object": "content.campaigns.rumin.chapters.3.dialogueAudio.2",
           "usage": "2"
-        },
-        {
-          "object": "content.deckRules.factions.0.commander.announcementAudio.selected",
-          "usage": "selected"
-        },
-        {
-          "object": "factions.rumin.commander.announcementAudio.selected",
-          "usage": "selected"
         }
       ],
       "path": "/assets/gauntlet/releases/77274201b3335df16e1f4bd9329add1fd88dbafc43f8f16fbdb9e80110807856.mp3",
@@ -21880,20 +23390,8 @@
       "source": "/assets/gauntlet/voices/sheen-ch04-before-02-leafen-gao.mp3",
       "associations": [
         {
-          "object": "content.factions.1.commander.announcementAudio.selected",
-          "usage": "selected"
-        },
-        {
           "object": "content.campaigns.sheen.chapters.3.dialogueAudio.1",
           "usage": "1"
-        },
-        {
-          "object": "content.deckRules.factions.1.commander.announcementAudio.selected",
-          "usage": "selected"
-        },
-        {
-          "object": "factions.sheen.commander.announcementAudio.selected",
-          "usage": "selected"
         }
       ],
       "path": "/assets/gauntlet/releases/b3a22e8470f9432a65fdb86c946077aa0001f3a0fbe4c954db40bf16be995d74.mp3",
@@ -23064,26 +24562,340 @@
       "bytes": 75162
     },
     {
-      "id": "asset:voices/zalara-1.mp3",
-      "source": "/assets/gauntlet/voices/zalara-1.mp3",
+      "id": "asset:voices/xendra-ch01-before-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-01-narrator.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.denied",
-          "usage": "denied"
-        },
-        {
-          "object": "factions.zynarth.commander.announcementAudio.denied",
-          "usage": "denied"
+          "object": "content.campaigns.xendra.chapters.0.dialogueAudio.0",
+          "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/f2556dc53798778753634c1f56c6bf9c410c7e05cc768b826c14ce3f6ebc2941.mp3",
+      "path": "/assets/gauntlet/releases/29c286dc27ce5ca14efb0f21d3dfc32a02ec9e173db1069a2e616e4250c4ab37.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "f2556dc53798778753634c1f56c6bf9c410c7e05cc768b826c14ce3f6ebc2941",
-      "bytes": 65137
+      "sha256": "29c286dc27ce5ca14efb0f21d3dfc32a02ec9e173db1069a2e616e4250c4ab37",
+      "bytes": 152599
+    },
+    {
+      "id": "asset:voices/xendra-ch01-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eceb72b6a0cd1a280812e48b2860a712458f3bdfc9ed17ed6cc29cbcdf73faee.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "eceb72b6a0cd1a280812e48b2860a712458f3bdfc9ed17ed6cc29cbcdf73faee",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/xendra-ch01-before-03-terrified-villager.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-03-terrified-villager.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ac798eebc441a539fe4e8cb4e1fc6df4eb2873f262f7ef823a24e7588ee88b8c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ac798eebc441a539fe4e8cb4e1fc6df4eb2873f262f7ef823a24e7588ee88b8c",
+      "bytes": 35152
+    },
+    {
+      "id": "asset:voices/xendra-ch02-before-01-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-01-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7",
+      "bytes": 33062
+    },
+    {
+      "id": "asset:voices/xendra-ch02-before-02-village-elder.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-02-village-elder.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a34459d9b371b3d04d7adb59ae42a1fe7a525398ff6f7390fd74510fbcf726d3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a34459d9b371b3d04d7adb59ae42a1fe7a525398ff6f7390fd74510fbcf726d3",
+      "bytes": 61066
+    },
+    {
+      "id": "asset:voices/xendra-ch02-before-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/90cabffa23e8f671fa32f540f0152bcc0eee25520bd881054f9e1e0b33ac2696.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "90cabffa23e8f671fa32f540f0152bcc0eee25520bd881054f9e1e0b33ac2696",
+      "bytes": 60648
+    },
+    {
+      "id": "asset:voices/xendra-ch03-before-01-syllith.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-before-01-syllith.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/341aa24bb06ca3d85904731b6e90df25f994ccdd842300fad1f743d03a7a275c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "341aa24bb06ca3d85904731b6e90df25f994ccdd842300fad1f743d03a7a275c",
+      "bytes": 51453
+    },
+    {
+      "id": "asset:voices/xendra-ch03-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/23ecb8541a2c2edc34f58396c4ebcf014f5de0779b9c60fc28132daa7d834f58.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "23ecb8541a2c2edc34f58396c4ebcf014f5de0779b9c60fc28132daa7d834f58",
+      "bytes": 19688
+    },
+    {
+      "id": "asset:voices/xendra-ch03-before-03-syllith.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-before-03-syllith.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308",
+      "bytes": 65663
+    },
+    {
+      "id": "asset:voices/xendra-ch04-before-01-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-01-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/88a0a48779d0878935f5905bb599845891b723e8fed99d7dd510135c73e81254.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "88a0a48779d0878935f5905bb599845891b723e8fed99d7dd510135c73e81254",
+      "bytes": 115400
+    },
+    {
+      "id": "asset:voices/xendra-ch04-before-02-thrallmaker.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293",
+      "bytes": 50199
+    },
+    {
+      "id": "asset:voices/xendra-ch04-before-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b93269e980459084392b234f1c031a33fb80c93d28799bf8b00391ed28bad55b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b93269e980459084392b234f1c031a33fb80c93d28799bf8b00391ed28bad55b",
+      "bytes": 35988
+    },
+    {
+      "id": "asset:voices/xendra-ch05-before-01-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-before-01-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060",
+      "bytes": 51453
+    },
+    {
+      "id": "asset:voices/xendra-ch05-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b14fe0c39895b94d9d3e02748882d6aa0ad64de569b30e6e4b0f4bb16d8ef0ed.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b14fe0c39895b94d9d3e02748882d6aa0ad64de569b30e6e4b0f4bb16d8ef0ed",
+      "bytes": 25539
+    },
+    {
+      "id": "asset:voices/xendra-ch05-before-03-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-before-03-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d9fa2a364e9de92757f635d20cb63a9f6bb2ee96e7d919767fdd697b07f285e9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d9fa2a364e9de92757f635d20cb63a9f6bb2ee96e7d919767fdd697b07f285e9",
+      "bytes": 39750
+    },
+    {
+      "id": "asset:voices/xendra-ch06-before-01-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-01-arel-voss.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2d7fa44fec81c115b84c43fafac8e3fa80cec70c3ffc7972c1c744a2541d07bf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2d7fa44fec81c115b84c43fafac8e3fa80cec70c3ffc7972c1c744a2541d07bf",
+      "bytes": 37660
+    },
+    {
+      "id": "asset:voices/xendra-ch06-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/46670ce9880fa68f44723621676e02bb57dbd0b6fcfb0bca52ebf12ba2c650e4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "46670ce9880fa68f44723621676e02bb57dbd0b6fcfb0bca52ebf12ba2c650e4",
+      "bytes": 47691
+    },
+    {
+      "id": "asset:voices/xendra-ch06-before-03-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-03-arel-voss.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c9a3f8a674f0a6ea5edec9681dfe72ecbe47339745f5d3a0417dfc4532d533c7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c9a3f8a674f0a6ea5edec9681dfe72ecbe47339745f5d3a0417dfc4532d533c7",
+      "bytes": 23449
+    },
+    {
+      "id": "asset:voices/xendra-ch07-before-01-krauth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-01-krauth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/89833324cfe4bcfa1fb41bb206e529541676f52d908c0dafb1f07d9e19e94367.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "89833324cfe4bcfa1fb41bb206e529541676f52d908c0dafb1f07d9e19e94367",
+      "bytes": 47691
+    },
+    {
+      "id": "asset:voices/xendra-ch07-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b292ca8f305fc53df23123871301ce08d95f98dad5de012f3165e3fd70998614.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b292ca8f305fc53df23123871301ce08d95f98dad5de012f3165e3fd70998614",
+      "bytes": 29301
+    },
+    {
+      "id": "asset:voices/xendra-ch07-before-03-krauth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-03-krauth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4",
+      "bytes": 47273
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-01-defender.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-01-defender.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121",
+      "bytes": 33062
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8653244df4a099f00066c46bdde424730441dd93bd6b97db644bce9cf0cf3efe.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8653244df4a099f00066c46bdde424730441dd93bd6b97db644bce9cf0cf3efe",
+      "bytes": 27629
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-03-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-03-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db",
+      "bytes": 88651
     }
   ],
   "faces": {
@@ -24070,5 +25882,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-b3aeee0ca2dc7207e38cfe823b5c8a59ab95b358edd45f8a1c07d11da3a98863"
+  "version": "gauntlet-assets-e1c078bd94c6d6b485f7fdf6526a73ce58a8f7e38df550b9c1d8d24de8f8e1da"
 }

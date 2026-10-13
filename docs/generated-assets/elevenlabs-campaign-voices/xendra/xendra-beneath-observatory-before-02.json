@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "thrallmaker",
+  "voiceName": "The Thrallmaker",
+  "line": "The first mercy is surrender.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
+  "generatedAt": "2026-10-13T19:50:27.770Z",
+  "publishedAt": "2026-10-13T19:52:16.210Z",
+  "bytes": 50199,
+  "sha256": "9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293"
+}

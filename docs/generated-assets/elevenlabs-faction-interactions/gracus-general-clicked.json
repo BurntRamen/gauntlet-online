@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "role": "general",
+  "event": "clicked",
+  "line": "A champion enters when the crowd needs courage.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-gracus-general-clicked.mp3",
+  "generatedAt": "2026-10-13T19:59:19.031Z",
+  "publishedAt": "2026-10-13T19:59:37.246Z",
+  "bytes": 51035,
+  "sha256": "d3678ce5da04f93dfc24f5e1ce3e487ac191e9daefdf8bf9f81e1bf2eec26aca"
+}

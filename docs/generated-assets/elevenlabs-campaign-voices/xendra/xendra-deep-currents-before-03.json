@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "nulth",
+  "voiceName": "Nulth the Hollow Voice",
+  "line": "Then why do they spend their lives closing?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-before-03-nulth.mp3",
+  "generatedAt": "2026-10-13T19:52:07.829Z",
+  "publishedAt": "2026-10-13T19:52:16.226Z",
+  "bytes": 39750,
+  "sha256": "d9fa2a364e9de92757f635d20cb63a9f6bb2ee96e7d919767fdd697b07f285e9"
+}

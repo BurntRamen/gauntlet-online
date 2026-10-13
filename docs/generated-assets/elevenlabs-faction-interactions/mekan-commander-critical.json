@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "mekan",
+  "role": "commander",
+  "event": "critical",
+  "line": "Ten life remains. Celebrate as if dawn depends on it.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-mekan-commander-critical.mp3",
+  "generatedAt": "2026-10-13T19:59:04.009Z",
+  "publishedAt": "2026-10-13T19:59:37.184Z",
+  "bytes": 53960,
+  "sha256": "3098c56c69c0f26bfd2100093377147dc7527f6e13310b7699c818f5f19f425c"
+}
