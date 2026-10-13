@@ -500,7 +500,7 @@ test(`two ordinary ${profile} browser clients complete live Basic combat and pla
   await expect(currentAction(startingPage)).toContainText(/may block or decline/i);
   await clickHandCardByValue(startingPage, "lowest");
   await clickHandCardByValue(startingPage, "lowest");
-  const selectedBlocker = startingPage.locator('[data-match-zone="hand"][aria-pressed="true"]');
+  const selectedBlocker = startingPage.locator('[data-match-zone="hand"][aria-label*="selected blocker"]');
   await expect(selectedBlocker).toHaveCount(1);
   await selectedBlocker.focus();
   await selectedBlocker.press("Enter");

@@ -821,6 +821,7 @@
   color: #eaf4ff;
   background: linear-gradient(145deg, rgba(11, 24, 42, 0.97), rgba(7, 14, 26, 0.97));
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.56), 0 0 24px rgba(74, 143, 255, 0.16);
+  pointer-events: none;
 }
 
 .production-tutorial-coach > span {
@@ -834,6 +835,7 @@
 .production-tutorial-coach strong { font-size: 18px; }
 .production-tutorial-coach p { margin: 0; color: #c5d5e6; font-size: 13px; line-height: 1.45; }
 .production-tutorial-coach button {
+  pointer-events: auto;
   justify-self: end;
   margin-top: 4px;
   padding: 7px 12px;
