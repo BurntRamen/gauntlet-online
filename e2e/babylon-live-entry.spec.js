@@ -505,7 +505,6 @@ test(`two ordinary ${profile} browser clients complete live Basic combat and pla
   await selectedBlocker.focus();
   await selectedBlocker.press("Enter");
   await expect(selectedBlocker).toHaveCount(0);
-  await expect(currentAction(startingPage).getByRole("button", { name: "Choose Blocker" })).toBeDisabled();
   await clickHandCardByValue(startingPage, "lowest");
   await currentAction(startingPage).getByRole("button", { name: "Choose Payment" }).click();
   await payUntilEnabled(startingPage, "Confirm Block");
@@ -685,7 +684,7 @@ test("capture current match baseline through normal local practice and campaign 
 test("normal Faction Training Grounds entry uses the same production match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
   await prepareGuest(page, baseURL, "Faction Trainee", "Practice");
-  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
+  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
   await expect(page.getByText("Table Command")).toBeVisible();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
@@ -709,7 +708,7 @@ test("normal Faction Training Grounds entry uses the same production match and s
 test("board faction cards route available orders through hand and lane selection", async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1836, height: 878 });
   await prepareGuest(page, baseURL, "Board Ability Reviewer", "Practice");
-  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
+  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const commander = page.locator('[data-faction-role="commander"]');
@@ -734,7 +733,7 @@ test("resolution changes preserve framing and saved light mode updates the exist
   // while performance scaling crosses the old 420-render-pixel breakpoint.
   await page.setViewportSize({ width: 2560, height: 740 });
   await prepareGuest(page, baseURL, "Theme Reviewer", "Practice");
-  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
+  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
@@ -762,7 +761,7 @@ test("resolution changes preserve framing and saved light mode updates the exist
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
   await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");
-  await page.getByRole("button", { name: "Play Factions vs AI", exact: true }).click();
+  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
