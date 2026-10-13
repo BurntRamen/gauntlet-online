@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { migrateV1 } = require("./contentMigration");
-const { clone, hash, fieldsFor, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
+const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
 function fail(status, message) { const error = new Error(message); error.status = status; throw error; }
@@ -123,7 +123,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const live = state.releases[state.activeReleaseId].snapshot;
     return Object.entries(state.draft.snapshot.domains).flatMap(([domain, rows]) => rows.flatMap((row) => {
       const original = live.domains[domain]?.find((entry) => entry.id === row.id);
-      return Object.keys(fieldsFor(domain, original || row)).filter((field) => hash(row[field]) !== hash(original?.[field])).map((field) => ({ domain, id: row.id, field, live: original[field], draft: row[field] }));
+      return Object.entries(fieldsFor(domain, original || row)).filter(([field, spec]) => hash(fieldValue(row, field, spec) ?? null) !== hash(fieldValue(original, field, spec) ?? null)).map(([field, spec]) => ({ domain, id: row.id, field, live: fieldValue(original, field, spec), draft: fieldValue(row, field, spec) }));
     }));
   }
   function project(state) {
@@ -150,7 +150,8 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (!revert && value === undefined) fail(400, "A draft value is required.");
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null };
       const row = state.draft.snapshot.domains[domain].find((entry) => entry.id === id);
-      row[field] = clone(revert ? state.releases[state.activeReleaseId].snapshot.domains[domain].find((entry) => entry.id === id)[field] : value);
+      const next = revert ? state.releases[state.activeReleaseId].snapshot.domains[domain].find(entry => entry.id === id)[field] : value;
+      if (next === undefined) delete row[field]; else row[field] = clone(next);
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
     });
   }
@@ -202,13 +203,18 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       state.draft.playtestedBy = actorId;
     });
   }
-  return { exportState: () => clone(read()), active, status: () => project(read()), patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  function releaseSnapshot(id) {
+    const state = read(), release = Object.hasOwn(state.releases, id) && state.releases[id];
+    if (!release) fail(404, "Content release not found.");
+    return { ...clone(release), compatible: compatible(release) };
+  }
+  return { exportState: () => clone(read()), releaseSnapshot, active, status: () => project(read()), patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
   // Mounted beneath the existing mandatory two-account namespace middleware.
   for (const [method, route, operation] of [
-    ["get", "authoring", () => publication.status()],
+    ["get", "authoring", () => require("./adminLiveAvailability").readAuthoringStatus(publication)],
     ["patch", "authoring/draft", (req) => publication.patch(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/discard", (req) => publication.discard(req.body)],
     ["post", "authoring/validate", () => publication.status()],

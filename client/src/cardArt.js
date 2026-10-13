@@ -19,7 +19,7 @@ export function getCustomCardFacePath(card) {
   const definition = getCustomCardArtDefinition(card);
   if (!definition) return "";
   const suit = SUIT_NAMES[normalizeCardDisplayText(card?.suit).trim().toLowerCase()] || "spades";
-  return `/assets/gauntlet/constructed/faces/${definition.id}-${suit}.webp?v=2`;
+  return `/assets/gauntlet/constructed/faces/${definition.id}-${suit}.webp?v=3`;
 }
 
 const SUPPORTED_FACTIONS = new Set(PLAYING_CARD_ART_FACTIONS);

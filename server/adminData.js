@@ -236,7 +236,10 @@ function createAdminData(deps) {
     if (!record || (record.completion && record.completion.status !== "finalized")) {
       const error = new Error("Completed match not found."); error.status = 404; throw error;
     }
-    return { match: publicMatchRecord(record), provenance: { source: archived ? "canonical archive" : deps.persistence.status().mode,
+    let status = null;
+    try { status = deps.publication ? await deps.publication.status() : null; } catch { /* Recorded evidence remains readable when current authoring is unavailable. */ }
+    const projected = publicMatchRecord(record);
+    return { match: projected, design: require("./adminMatchDesign").projectMatchDesign(projected, status?.live, status?.draft?.snapshot), provenance: { source: archived ? "canonical archive" : deps.persistence.status().mode,
       integrity: archived ? "verified" : "not-verified", sha256: archived?.index.sha256 || null,
       note: "Existing public evidence projection. Private hands, room snapshots and reconnect credentials are not read. No events or provenance are rewritten." } };
   }

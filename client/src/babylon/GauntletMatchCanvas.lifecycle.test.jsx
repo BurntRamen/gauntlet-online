@@ -110,3 +110,18 @@ test("balanced quality responds only to sustained slow frames and respects manua
   for (let i = 0; i < 1000; i++) sample(33.3);
   expect(scaling).toBe(1.6);
 });
+
+test("skipped idle frames are sampled at callback cadence, not mistaken for graphics pressure", () => {
+  const adapt = createAdaptiveResolutionController();
+  let lastRenderedAt = -Infinity, scaling = 1, paints = 0;
+  for (let frame = 0; frame < 360; frame++) {
+    const now = frame * 1000 / 60;
+    scaling = adapt({ now, quality: "balanced", baseScaling: 1, currentScaling: scaling });
+    if (shouldRenderMatchFrame({ now, lastRenderedAt, animationActive: false })) {
+      paints++;
+      lastRenderedAt = now;
+    }
+  }
+  expect(paints).toBe(180);
+  expect(scaling).toBe(1);
+});

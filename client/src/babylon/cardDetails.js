@@ -2,6 +2,22 @@ import { hasCardEffect } from "@gauntlet/duel-rules/effectRegistry";
 import { cardCombatLabel, cardTypeLabel } from "./cardType";
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
+// Only already-projected, readable cards may sustain a pinned inspection.
+// Never retain an old raw card after it leaves the viewer's current projection.
+export function readableMatchCards(viewModel) {
+  const cards = [
+    ...(viewModel?.attacks || []).flatMap(attack => [
+      attack.card, ...(attack.blocks || []).map(block => block.card), ...(attack.attachments || [])
+    ]),
+    ...(viewModel?.hand || []),
+    ...(viewModel?.lanes || []).flatMap(lane => [
+      lane.localCard, lane.opponentCard, lane.localSupport, lane.opponentSupport
+    ])
+  ];
+  return Array.from(new Map(cards.filter(card => card?.id && card.visible !== false
+    && !card.hidden && !card.raw?.hidden).map(card => [card.id, card])).values());
+}
+
 export function selectedCardPreview(viewModel) {
   let card = viewModel?.hand?.find((entry) => (
     entry.selected?.blocker || entry.selected?.attacker || entry.selected?.placement

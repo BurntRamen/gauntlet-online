@@ -126,6 +126,63 @@ test("announces priority once and automatically passes a forced no-choice window
   jest.useRealTimers();
 });
 
+test("keyboard navigation never submits via global C/P or steals keys from controls and dialogs", async () => {
+  const commands = { passPriority: jest.fn(), confirmCurrentAction: jest.fn(), activateHandCard: jest.fn(), cancelCurrentAction: jest.fn() };
+  const viewModel = { ...createViewModel(), hand: [{ id: "seven", label: "Seven", value: 7 }],
+    interactions: { ...createViewModel().interactions, confirmDisabled: false, passDisabled: false } };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel, commands, controls: {} })} options={{ audioEnabled: false }} />);
+  await screen.findByTestId("production-babylon-match");
+  fireEvent.keyDown(window, { key: "c" });
+  fireEvent.keyDown(window, { key: "p" });
+  const pass = screen.getByRole("button", { name: "Pass Priority" });
+  fireEvent.keyDown(pass, { key: "1" });
+  fireEvent.click(screen.getByRole("button", { name: "Keyboard help" }));
+  fireEvent.keyDown(window, { key: "1" });
+  fireEvent.keyDown(window, { key: "c" });
+  expect(commands.activateHandCard).not.toHaveBeenCalled();
+  expect(commands.passPriority).not.toHaveBeenCalled();
+  expect(commands.confirmCurrentAction).not.toHaveBeenCalled();
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Keyboard help" })).not.toBeInTheDocument();
+});
+
+test("pending submission locks gameplay while the hand reference remains readable", async () => {
+  const raw = { id: "readable", name: "Readable seven", value: 7 };
+  const inspectCard = jest.fn(), confirmCurrentAction = jest.fn();
+  render(<ProductionMatchExperience adapter={adapterFor({
+    viewModel: { ...createViewModel(), hand: [{ id: raw.id, raw, value: 7, visible: true }],
+      selection: { attackMode: { card: 0 } } },
+    diagnostics: { pendingCommandId: "sent-once" }, controls: {}, commands: { inspectCard, confirmCurrentAction }
+  })} options={{ audioEnabled: false }} />);
+  const action = await screen.findByRole("region", { name: "Current match action" });
+  expect(action).toHaveAttribute("aria-busy", "true");
+  expect(action).toHaveTextContent("Waiting for the server to confirm");
+  fireEvent.click(screen.getByRole("button", { name: "Inspect hand", exact: true }));
+  const hand = screen.getByRole("dialog", { name: "Inspect your hand" });
+  fireEvent.click(within(hand).getByRole("button", { name: /Readable seven/ }));
+  expect(inspectCard).toHaveBeenCalledWith(raw);
+  expect(confirmCurrentAction).not.toHaveBeenCalled();
+});
+
+test("pinned inspection refreshes from the current projection and clears when its identity disappears", async () => {
+  const savedWidth = window.innerWidth;
+  window.innerWidth = 1920;
+  let publish;
+  const card = { id: "pinned-seven", label: "Seven", value: 7, visible: true, raw: { id: "pinned-seven", value: 7 } };
+  const initial = { source: "live", connected: true, viewModel: { ...createViewModel(), matchId: "pin-match", hand: [card] }, inspection: card, commands: {} };
+  const adapter = { connect: jest.fn(), subscribe: listener => { publish = listener; listener(initial); return () => {}; } };
+  const { unmount } = render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Pin open" }));
+  act(() => publish({ ...initial, inspection: null, viewModel: { ...initial.viewModel, revision: 5,
+    hand: [{ ...card, valueBreakdown: { printed: 7, total: 9, equation: "7 + 2 = 9", modifiers: [] } }] } }));
+  expect(screen.getByRole("dialog", { name: "Inspect Seven" })).toHaveTextContent("7 + 2 = 9");
+  expect(screen.getByRole("button", { name: "Unpin" })).toHaveAttribute("aria-pressed", "true");
+  act(() => publish({ ...initial, inspection: null, viewModel: { ...initial.viewModel, revision: 6, hand: [] } }));
+  expect(screen.queryByRole("dialog", { name: "Inspect Seven" })).not.toBeInTheDocument();
+  unmount();
+  window.innerWidth = savedWidth;
+});
+
 test("play order stays retracted through new actions and keeps full history accessible", async () => {
   let publish;
   const update = { source: "local", connected: true, viewModel: createViewModel(), commands: {},
@@ -137,14 +194,14 @@ test("play order stays retracted through new actions and keeps full history acce
   } }} options={{ audioEnabled: false, reducedMotion: true }} />);
   const ledger = await screen.findByRole("complementary", { name: "Recent play order" });
   const toggle = within(ledger).getByRole("button", { name: "Play order", exact: true });
-  expect(toggle).toHaveAttribute("aria-expanded", "true");
-  fireEvent.click(toggle);
   expect(toggle).toHaveAttribute("aria-expanded", "false");
   expect(ledger.querySelector("ol")).not.toBeVisible();
   act(() => publish({ ...update, snapshot: { actionHistory: [...update.snapshot.actionHistory,
     { id: "pass-2", type: "priority.passed", player: 2 }] } }));
   expect(toggle).toHaveAttribute("aria-expanded", "false");
   expect(ledger.querySelector("ol")).not.toBeVisible();
+  fireEvent.click(toggle);
+  expect(ledger.querySelector("ol")).toBeVisible();
   fireEvent.click(within(ledger).getByRole("button", { name: /Full log · 2/ }));
   expect(screen.getByRole("dialog", { name: "Match log" })).toBeVisible();
 });
@@ -159,6 +216,7 @@ test("last ability survives routine actions and opens searchable ability history
     publicCombatLog: [{ id: 'payment', sequence: 2, type: 'payment.discarded', total: 5, required: 5 }],
     actionHistory: [{ id: 'pass', sequence: 3, type: 'priority.passed', player: 2 }]
   } })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Play order', exact: true }));
   const recall = await screen.findByRole('button', { name: 'Recall last ability' });
   expect(recall).toHaveTextContent('Watane applied · 5♥');
   expect(recall).toHaveTextContent('5 → 7');
@@ -184,6 +242,7 @@ test("grouped ability animations cannot mix one source with another source's des
   render(<ProductionMatchExperience adapter={adapterFor({
     viewModel: { ...createViewModel(), events: [expired, readiness] }
   })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Play order', exact: true }));
   fireEvent.click(await screen.findByRole('button', { name: 'Recall last ability' }));
   const log = screen.getByRole('dialog', { name: 'Match log' });
   fireEvent.change(within(log).getByRole('searchbox'), { target: { value: 'Watane' } });
@@ -1333,6 +1392,7 @@ test.each([
     snapshot: { campaign: { title: "The First Titan" }, players: { 1: { accelerationCounters: counters } } }
   })} options={{ audioEnabled: false }} />);
 
+  fireEvent.mouseEnter(await screen.findByTestId("mock-preview-card"));
   const preview = await screen.findByRole("complementary", { name: "Heat-Sink Matrix preview" });
   expect(preview).toHaveTextContent("Selected for blocker");
   expect(preview).toHaveTextContent("Relic");
@@ -1353,6 +1413,7 @@ test("equipped foil survives the selected-card preview and inspection dialog", a
   const card = { id: raw.id, label: raw.name, value: 3, raw, artPath: "/cards/guard.webp", selected: { attacker: true } };
   const viewModel = { ...createViewModel(), hand: [card] };
   render(<ProductionMatchExperience adapter={adapterFor({ viewModel, inspection: card })} options={{ audioEnabled: false }} />);
+  fireEvent.mouseEnter(await screen.findByTestId("mock-preview-card"));
   const preview = await screen.findByRole("complementary", { name: "Foil Guard preview" });
   const inspection = screen.getByRole("dialog", { name: "Inspect Foil Guard" });
   [preview, inspection].forEach((element) => {
@@ -1381,6 +1442,7 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   fireEvent.mouseEnter(await screen.findByTestId("mock-preview-card"));
   expect(screen.getByLabelText("Seven of Hearts preview")).toHaveTextContent("Attacking in Lane 1");
   fireEvent.mouseLeave(screen.getByTestId("mock-preview-card"));
+  act(() => jest.advanceTimersByTime(180));
   expect(screen.queryByLabelText("Seven of Hearts preview")).not.toBeInTheDocument();
 
   act(() => publish({

@@ -16,7 +16,7 @@ export const GRAPHICS_QUALITY_OPTIONS = Object.freeze([
   Object.freeze({
     id: "high",
     label: "High",
-    description: "Uses the display's native resolution for sharper cards and text.",
+    description: "Renders one table pixel per CSS pixel. This is below native resolution on high-DPI displays.",
     fixedScalingLevel: 1
   }),
   Object.freeze({

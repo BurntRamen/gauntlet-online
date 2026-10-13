@@ -10,9 +10,10 @@ const SCENES = [
   { id: "draft", label: "Draft", detail: "Draft & sealed", mark: "05", title: "Every pick is a possibility.", eyebrow: "The drafting room", description: "Draft your picks or open a Sealed pool. Build a deck that is yours, one card at a time.", image: "build" }
 ];
 
-export function PlayMenu({ view, onSelectView, children }) {
+export function PlayMenu({ view, onSelectView, children, modeMetadata = {} }) {
   const tabs = useRef([]);
   const scene = SCENES.find(({ id }) => id === view) || SCENES[0];
+  const copy = modeMetadata[view === "tables" ? "freeForAll" : view] || {};
   const image = `/assets/gauntlet/backgrounds/gauntlet-menu-${scene.image}-${scene.image === "matches" ? "v2" : "v1"}.jpg`;
 
   function moveTab(event, index) {
@@ -31,9 +32,9 @@ export function PlayMenu({ view, onSelectView, children }) {
     <div className={`play-menu scene-${scene.id}`}>
       <header className="play-scene-hero" style={{ "--scene-art": `url("${resolveVisualAsset(image)}")` }}>
         <div className="play-scene-copy">
-          <span className="play-eyebrow">{scene.eyebrow}</span>
-          <h3>{scene.title}</h3>
-          <p>{scene.description}</p>
+          <span className="play-eyebrow">{copy.heroEyebrow ?? scene.eyebrow}</span>
+          <h3>{copy.heroTitle ?? scene.title}</h3>
+          <p>{copy.heroDescription ?? scene.description}</p>
         </div>
         <span className="play-scene-inscription" aria-hidden="true">GAUNTLET <span> / </span> {scene.mark}</span>
       </header>
@@ -43,7 +44,7 @@ export function PlayMenu({ view, onSelectView, children }) {
             id={`play-tab-${item.id}`} aria-label={item.label} aria-controls={`play-panel-${item.id}`} aria-selected={view === item.id}
             tabIndex={view === item.id ? 0 : -1} onKeyDown={(event) => moveTab(event, index)} onClick={() => onSelectView(item.id)}>
             <span className="play-tab-number" aria-hidden="true">{item.mark}</span>
-            <span><strong>{item.label}</strong><small>{item.detail}</small></span>
+            <span><strong>{item.label}</strong><small>{modeMetadata[item.id === "tables" ? "freeForAll" : item.id]?.menuDetail ?? item.detail}</small></span>
             <span className="play-tab-arrow" aria-hidden="true">↗</span>
           </button>
         ))}

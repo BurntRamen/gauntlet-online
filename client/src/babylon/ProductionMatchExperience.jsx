@@ -7,7 +7,7 @@ import FactionBoardCards from "./FactionBoardCards";
 import AbilityStatePanel from "./AbilityStatePanel";
 import GameIcon from "./GameIcon";
 import { MatchLogRow, VisualLogSummary, MatchLogLegend } from "./VisualMatchLog";
-import { cardDetails, selectedCardPreview } from "./cardDetails";
+import { cardDetails, readableMatchCards, selectedCardPreview } from "./cardDetails";
 import CollectorCardPresentation from "../CollectorCardPresentation";
 import MatchCardFace from "./MatchCardFace";
 import { matchDescriptorLabel } from "./matchDescriptor";
@@ -388,7 +388,7 @@ function PlayerPlate({
   );
 }
 
-function ContextActions({ viewModel, commands, connected, resolving = false }) {
+function ContextActions({ viewModel, commands, connected, resolving = false, pending = false, commandStatus }) {
   const spectator = viewModel?.perspective?.spectator;
   const interactions = viewModel?.interactions || {};
   const hasSelection = !!(
@@ -421,33 +421,31 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
       </section>
     );
   }
-  if (resolving) {
+  if (resolving || pending) {
     return (
-      <section className="production-context-panel resolving" aria-label="Current match action">
+      <section className="production-context-panel resolving" aria-label="Current match action" aria-busy="true">
         <div className="production-context-copy" aria-live="polite">
           <span className="production-context-kicker">
             <GameIcon name="priority" size={15} />
-            Resolution
+            {pending ? "Submitting" : "Action accepted"}
           </span>
-          <strong>Resolving the committed action…</strong>
+          <strong>{pending ? "Waiting for the server to confirm…" : "Resolving the committed action…"}</strong>
+          <span className="production-action-reason">You can still inspect readable cards.</span>
         </div>
       </section>
     );
   }
   return (
     <section className={`production-context-panel${viewModel?.payment?.active ? " has-payment" : ""}${viewModel?.abilityPreview ? " has-ability-preview" : ""}`} aria-label="Current match action">
-      {viewModel?.abilityPreview && <div className="ability-commit-preview" aria-label="Commitment preview" aria-live="polite">
-        <b>{viewModel.abilityPreview.title}</b>
-        {viewModel.abilityPreview.lines.map((line, i) => <p key={i}>{line}</p>)}
-        {viewModel.abilityPreview.error && <p>{viewModel.abilityPreview.error}</p>}
-        <p>{viewModel.abilityPreview.response}</p>
-      </div>}
       <div className="production-context-copy" aria-live="polite">
         <span className="production-context-kicker">
           <GameIcon name={actionIcon} size={15} />
-          {hasSelection ? "Confirm action" : "Your action"}
+          {hasSelection ? "Selected · not yet committed" : viewModel?.priority === viewModel?.perspective?.player ? "Your action" : "Opponent's action"}
         </span>
         <strong>{viewModel?.instruction || "Choose an action."}</strong>
+        {commandStatus?.state === "rejected" && viewModel?.statusNotice && (
+          <span className="production-action-rejection" role="alert">{viewModel.statusNotice}</span>
+        )}
         {viewModel?.payment?.active && (() => {
           const total = Number(viewModel.payment.total || 0);
           const required = Number(viewModel.payment.required || 0);
@@ -467,6 +465,12 @@ function ContextActions({ viewModel, commands, connected, resolving = false }) {
             </div>
           );
         })()}
+        {viewModel?.abilityPreview && <details className="ability-commit-preview" aria-label="Commitment preview">
+          <summary>{viewModel.abilityPreview.title}</summary>
+          {viewModel.abilityPreview.lines.map((line, i) => <p key={i}>{line}</p>)}
+          {viewModel.abilityPreview.error && <p>{viewModel.abilityPreview.error}</p>}
+          <p>{viewModel.abilityPreview.response}</p>
+        </details>}
         {hasSelection && !viewModel?.payment?.active && interactions.confirmDisabled && interactions.confirmReason && (
           <span className="production-action-reason">{interactions.confirmReason}</span>
         )}
@@ -592,10 +596,11 @@ function MatchUtilities({
             ))}
           </select>
           <small id="gauntlet-graphics-quality-help">
-            {graphicsProfile.description} Rendering at {renderResolutionPercent}% resolution. Changes apply immediately and are saved.
+            {graphicsProfile.description} Rendering at {renderResolutionPercent}% of CSS resolution. Changes apply immediately and are saved.
           </small>
         </div>
         <div className="production-utility-shortcuts" aria-label="Match information">
+          {!spectator && <button type="button" onClick={() => openReference("hand")}>Inspect hand</button>}
           <button type="button" onClick={() => openReference("discard")}>Discard piles</button>
           <button type="button" onClick={() => openReference("log")}>Match log</button>
           {descriptor?.ruleset === "factions" && (
@@ -685,8 +690,9 @@ function factionProfile(value, fallbackName) {
   };
 }
 
-function useCompactMatchPanels() {
-  const read = () => window.innerWidth <= 600 || window.innerHeight <= 520;
+function useMatchPanelLayout() {
+  const read = () => window.innerWidth >= 1100 && window.innerHeight >= 650 ? "desktop"
+    : window.innerWidth <= 600 || window.innerHeight <= 520 ? "compact" : "standard";
   const [compact, setCompact] = useState(read);
   useEffect(() => {
     const resize = () => setCompact(read());
@@ -696,10 +702,9 @@ function useCompactMatchPanels() {
   return compact;
 }
 
-function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
-  const [expanded, setExpanded] = useState(!compact);
+function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
+  const [expanded, setExpanded] = useState(false);
   const contentId = useId();
-  useEffect(() => setExpanded(!compact), [compact]);
   const players = snapshot?.players || {};
   const history = authoritativeMatchHistory(snapshot);
   const source = entries.length > 0 ? entries : history;
@@ -722,11 +727,11 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
           aria-label="Play order"
           aria-expanded={expanded} aria-controls={contentId}
           onClick={() => setExpanded(value => !value)}>
-          <span>{compact ? "Plays" : "Play order"}</span>
+          <span>Plays</span>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
         </button>
         <button type="button" onClick={onOpen} aria-label={`Full log · ${Math.max(history.length, entries.length)}`}>
-          {compact ? "Full log" : `Full log · ${Math.max(history.length, entries.length)}`}
+          Full log
         </button>
       </header>
       <div id={contentId} className="production-ledger-content" hidden={!expanded}>
@@ -755,7 +760,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities, compact }) {
 }
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
-  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onCommanderClick }) {
+  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onCommanderClick, obscured = false }) {
   const [abilitySearch, setAbilitySearch] = useState("");
   useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
@@ -775,6 +780,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
     return `${content.title} ${content.detail}`.toLocaleLowerCase().includes(abilitySearch.trim().toLocaleLowerCase());
   });
   const titles = {
+    hand: "Inspect your hand",
     discard: "Discard piles",
     log: "Match log",
     factions: "Faction abilities",
@@ -787,7 +793,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
       ? players.filter((player) => player.id === viewModel?.perspective?.player)
       : players;
   return (
-    <section id={docked ? "match-reference-dock" : undefined}
+    <section id={docked ? "match-reference-dock" : undefined} hidden={obscured}
       className={`production-reference-panel${docked ? " is-docked" : ""}`}
       role="dialog" aria-modal={docked ? undefined : true} aria-label={titles[kind]}>
       <div className="production-reference-card">
@@ -798,6 +804,19 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
           </div>
           <button type="button" autoFocus onClick={onClose}>Close</button>
         </header>
+        {kind === "hand" && !viewModel?.perspective?.spectator && (
+          <>
+            <p>Inspect without playing a card.</p>
+            <div className="production-discard-grid production-inspect-hand">
+              {(viewModel?.hand || []).filter(card => card.visible !== false && !card.raw?.hidden).map(card => (
+                <button type="button" key={card.id} onClick={() => commands.inspectCard?.(card.raw)}>
+                  {card.artPath && <MatchCardArt card={card} artPath={card.artPath} loading="lazy" />}
+                  <strong>{cardDisplayName(card.raw)}</strong>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         {kind === "discard" && (
           <nav className="production-discard-switcher" aria-label="Choose discard pile">
             <button type="button" aria-pressed={!playerId} onClick={() => onSelectPlayer(null)}>Both piles</button>
@@ -958,13 +977,15 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
         )}
         {kind === "keyboard" && (
           <dl className="production-keyboard-help">
-            <div><dt>H / L / F / A</dt><dd>Move focus to hand, lanes, faction abilities, or actions.</dd></div>
-            <div><dt>Arrow keys</dt><dd>Move within the focused zone.</dd></div>
-            <div><dt>1–8</dt><dd>Select a readable card from your hand.</dd></div>
-            <div><dt>I</dt><dd>Inspect the focused hand card.</dd></div>
-            <div><dt>D</dt><dd>Open both discard piles.</dd></div>
-            <div><dt>C / P</dt><dd>Confirm the staged action or pass priority.</dd></div>
-            <div><dt>Escape</dt><dd>Close inspection or cancel the staged action.</dd></div>
+            {[
+              ["H / L / F / A", "Move focus to hand, lanes, faction abilities, or actions."],
+              ["Arrow keys", "Move within the focused zone."],
+              ["1–8", "Select a readable card from your hand."],
+              ["I", "Inspect the focused hand card."],
+              ["D", "Open both discard piles."],
+              ["Enter / Space", "Activate the focused control. Confirm and pass use their labeled buttons."],
+              ["Escape", "Close inspection or cancel the staged action."]
+            ].map(([key, help]) => <div key={key}><dt>{key}</dt><dd>{help}</dd></div>)}
           </dl>
         )}
       </div>
@@ -1174,23 +1195,27 @@ function CardAbilityDetails({ details }) {
   </>;
 }
 
-function CardInspection({ inspection, commands, viewModel, snapshot }) {
+function CardInspection({ inspection, commands, viewModel, snapshot, docked = false, pinned = false, onPin }) {
   if (!inspection) return null;
   const details = cardDetails(inspection, viewModel, snapshot);
   return (
     <section
-      className="production-card-inspection"
+      className={`production-card-inspection${docked ? " is-desktop-inspection" : ""}`}
       role="dialog"
-      aria-modal="true"
+      aria-modal={docked ? undefined : true}
       aria-label={`Inspect ${inspection.label}`}
     >
+      <div className="production-inspection-actions">
+      {docked && onPin && <button type="button" aria-pressed={pinned} onClick={onPin}>{pinned ? "Unpin" : "Pin open"}</button>}
       <button
         type="button"
         className="production-inspection-close"
+        autoFocus
         onClick={() => commands.closeInspection?.()}
       >
         Close
       </button>
+      </div>
       <div className="production-inspection-card">
         {inspection.artPath ? (
           <MatchCardArt card={inspection} artPath={inspection.artPath} alt={`${inspection.label}, value ${inspection.value}`} />
@@ -1226,11 +1251,14 @@ function MatchCardArt({ card, artPath, alt = "", loading }) {
   return <CollectorCardPresentation card={card}><img src={artPath} alt={alt} loading={loading} /></CollectorCardPresentation>;
 }
 
-function CardPreview({ preview, viewModel, snapshot }) {
+function CardPreview({ preview, viewModel, snapshot, onInspect, onPreview }) {
   if (!preview) return null;
   const details = cardDetails(preview, viewModel, snapshot);
   return (
-    <aside className="production-card-preview" aria-label={`${details.name} preview`}>
+    <aside className="production-card-preview" aria-label={`${details.name} preview`}
+      onMouseEnter={() => onPreview?.(preview)} onMouseLeave={() => onPreview?.(null)}
+      onFocusCapture={() => onPreview?.(preview)}
+      onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) onPreview?.(null); }}>
       <div className="production-card-preview-art">
         {preview.artPath ? (
           <MatchCardArt card={preview} artPath={preview.artPath} />
@@ -1248,6 +1276,7 @@ function CardPreview({ preview, viewModel, snapshot }) {
         {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value} · Attack/block {preview.valueBreakdown?.total ?? preview.value}</small>}
         {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
         <CardAbilityDetails details={details} />
+        {onInspect && <button type="button" className="production-preview-inspect" onClick={() => onInspect(preview.raw || preview)}>Inspect card</button>}
       </div>
     </aside>
   );
@@ -1510,6 +1539,7 @@ export default function ProductionMatchExperience({
   const [abilityLogOnly, setAbilityLogOnly] = useState(false);
   const [referencePlayer, setReferencePlayer] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
+  const [pinnedInspection, setPinnedInspection] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [colorTheme, setColorTheme] = useState(initialMatchTheme);
@@ -1521,6 +1551,7 @@ export default function ProductionMatchExperience({
   const inspectionReturnFocusRef = useRef(null);
   const referenceReturnFocusRef = useRef(null);
   const interactionCueTokenRef = useRef(0);
+  const previewClearTimerRef = useRef(null);
   const playbackRef = useRef(null);
   const rootRef = useRef(null);
   const handRailRef = useRef({ enabled: false, anchors: new Map(), version: 0 });
@@ -1529,8 +1560,17 @@ export default function ProductionMatchExperience({
   const autoActionRef = useRef("");
   const tutorialTipsSeenRef = useRef(new Set());
   const phoneHandLayout = usePhoneHandLayout();
-  const compactMatchPanels = useCompactMatchPanels();
+  const panelLayout = useMatchPanelLayout();
+  const desktopPanels = panelLayout === "desktop";
+  const compactMatchPanels = panelLayout === "compact";
   adapterRef.current = adapter;
+
+  const updatePreview = useCallback((card) => {
+    window.clearTimeout(previewClearTimerRef.current);
+    if (card) setPreviewCard(card);
+    else previewClearTimerRef.current = window.setTimeout(() => setPreviewCard(null), 180);
+  }, []);
+  useEffect(() => () => window.clearTimeout(previewClearTimerRef.current), []);
 
   useEffect(() => {
     if (options.presentationKit) {
@@ -1562,6 +1602,7 @@ export default function ProductionMatchExperience({
     setUpdate(null);
     setAuthoritativeUpdate(null);
     setPreviewCard(null);
+    setPinnedInspection(null);
     setFeedEntries([]);
     const playback = new BattlefieldPlaybackQueue({
       reducedMotion,
@@ -1704,11 +1745,17 @@ export default function ProductionMatchExperience({
       passPriority: commands.passPriority,
       confirmCurrentAction: withTone("ui.confirm", confirmCurrentAction),
       cancelCurrentAction: withTone("ui.cancel", commands.cancelCurrentAction),
-      inspectCard: withTone("ui.select", commands.inspectCard),
-      closeInspection: withTone("ui.cancel", commands.closeInspection),
+      inspectCard: withTone("ui.select", (card) => {
+        inspectionReturnFocusRef.current = referenceReturnFocusRef.current?.isConnected
+          ? referenceReturnFocusRef.current : document.activeElement;
+        setReferencePanel(current => current === "hand" ? null : current);
+        setPinnedInspection(null);
+        return commands.inspectCard?.(card);
+      }),
+      closeInspection: withTone("ui.cancel", () => { setPinnedInspection(null); return commands.closeInspection?.(); }),
       loadPresentationModule: presentationModelLoader,
       presentationCue: playUiTone,
-      previewCard: setPreviewCard,
+      previewCard: updatePreview,
       openDiscard: (pile) => {
         referenceReturnFocusRef.current = document.activeElement;
         setReferencePlayer(typeof pile === "number" ? pile : pile
@@ -1719,9 +1766,10 @@ export default function ProductionMatchExperience({
       newMatch: withTone("ui.confirm", commands.newMatch),
       concede: withTone("ui.confirm", commands.concede)
     };
-  }, [commands, onRejectedAction, playUiTone, presentationModelLoader, viewModel?.interactions?.confirmDisabled, viewModel?.interactions?.confirmReason, viewModel?.matchId, viewModel?.revision, viewModel?.selection?.attackMode, viewModel?.top?.id, viewModel?.bottom?.id]);
+  }, [commands, onRejectedAction, playUiTone, presentationModelLoader, updatePreview, viewModel?.interactions?.confirmDisabled, viewModel?.interactions?.confirmReason, viewModel?.matchId, viewModel?.revision, viewModel?.selection?.attackMode, viewModel?.top?.id, viewModel?.bottom?.id]);
   const gameplayInputLocked = Boolean(
     transportUpdate?.connected === false
+    || transportUpdate?.diagnostics?.pendingCommandId
     || playbackState.inputLocked
     || playbackState.catchingUp
   );
@@ -1858,10 +1906,11 @@ export default function ProductionMatchExperience({
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
         root.style.setProperty("--battlefield-bottom-reserve",
-          (bounds.width >= 1366 && bounds.height > 520 ? 8 : Math.ceil(hudHeight)) + "px");
+          (desktopPanels || (bounds.width >= 1366 && bounds.height > 520) ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities > summary", ".production-turn-marker"]
+        const top = [".production-player-plate-top", ".production-match-utilities > summary", ".production-turn-marker",
+          ...(desktopPanels ? [".production-player-plate-bottom"] : [])]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",
           Math.ceil(Math.max(0, ...top.map((rect) => rect.bottom - bounds.top)) + 4) + "px");
@@ -1890,10 +1939,19 @@ export default function ProductionMatchExperience({
       root.style.removeProperty("--battlefield-top-reserve");
       root.style.removeProperty("--match-log-top");
     };
-  }, [phoneHandActive, referenceDockActive, update?.source]);
+  }, [desktopPanels, phoneHandActive, referenceDockActive, update?.source]);
+
+  const readableCards = useMemo(() => readableMatchCards(viewModel), [viewModel]);
+  const inspectionScope = `${viewModel?.matchId}:${viewModel?.perspective?.player}:${viewModel?.perspective?.spectator}`;
+  const pinnedCard = pinnedInspection?.scope === inspectionScope && !transportUpdate?.privacy?.required
+    ? readableCards.find(card => card.id === pinnedInspection.id) : null;
+  const activeInspection = transportUpdate?.privacy?.required ? null : transportUpdate?.inspection || pinnedCard;
+  useEffect(() => {
+    if (pinnedInspection && !pinnedCard) setPinnedInspection(null);
+  }, [pinnedInspection, pinnedCard]);
 
   useEffect(() => {
-    if (transportUpdate?.inspection) {
+    if (activeInspection) {
       if (!inspectionReturnFocusRef.current && document.activeElement instanceof HTMLElement) {
         inspectionReturnFocusRef.current = document.activeElement;
       }
@@ -1904,14 +1962,27 @@ export default function ProductionMatchExperience({
     if (returnTarget?.isConnected) {
       window.requestAnimationFrame(() => returnTarget.focus());
     }
-  }, [transportUpdate?.inspection]);
+  }, [activeInspection]);
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (!presentedViewModel || event.defaultPrevented) return;
+      if (!presentedViewModel || event.defaultPrevented || transportUpdate?.privacy?.required || event.repeat) return;
       const element = event.target;
       const key = event.key.toLowerCase();
       if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (element?.closest?.("input, select, textarea, [contenteditable]:not([contenteditable='false'])")) return;
+      if (key === "escape" && activeInspection) {
+        event.preventDefault();
+        interactionCommands.closeInspection?.();
+        return;
+      }
+      if (key === "escape" && referencePanel) {
+        event.preventDefault();
+        closeReference();
+        return;
+      }
+      if (referencePanel || (activeInspection && !desktopPanels)
+        || element?.closest?.("[role='dialog'], dialog, .production-match-utilities[open]")) return;
       const activeZone = element?.dataset?.matchZone;
       if (activeZone && ["arrowright", "arrowdown", "arrowleft", "arrowup", "home", "end"].includes(key)) {
         const zoneTargets = Array.from(document.querySelectorAll(
@@ -1930,17 +2001,7 @@ export default function ProductionMatchExperience({
         }
         return;
       }
-      if (key === "escape" && transportUpdate?.inspection) {
-        event.preventDefault();
-        interactionCommands.closeInspection?.();
-        return;
-      }
-      if (key === "escape" && referencePanel) {
-        event.preventDefault();
-        closeReference();
-        return;
-      }
-      if (element?.matches?.("input, select, textarea, [contenteditable='true']")) return;
+      if (!activeZone && element?.closest?.("button, a, summary, [role='button']")) return;
       const focusZone = (zone) => {
         const target = document.querySelector(`[data-match-zone="${zone}"]:not(:disabled)`);
         target?.focus();
@@ -1960,22 +2021,6 @@ export default function ProductionMatchExperience({
           event.preventDefault();
           gameplayCommands.activateHandCard?.(index);
         }
-        return;
-      }
-      const hasStagedSelection = !!(
-        presentedViewModel.selection?.attackMode
-        || presentedViewModel.selection?.blockMode
-        || presentedViewModel.selection?.placementMode
-        || presentedViewModel.selection?.abilityMode
-      );
-      if (key === "p" && !presentedViewModel.interactions.passDisabled && !hasStagedSelection) {
-        event.preventDefault();
-        gameplayCommands.passPriority?.();
-        return;
-      }
-      if (key === "c" && (!presentedViewModel.interactions.confirmDisabled || presentedViewModel.selection?.attackMode)) {
-        event.preventDefault();
-        gameplayCommands.confirmCurrentAction?.();
         return;
       }
       if (key === "i") {
@@ -1998,26 +2043,34 @@ export default function ProductionMatchExperience({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeReference, openReference, gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.inspection]);
+  }, [activeInspection, desktopPanels, closeReference, openReference, gameplayCommands, gameplayInputLocked, interactionCommands, presentedViewModel, referencePanel, transportUpdate?.privacy?.required]);
 
   const shellClass = useMemo(() => [
     "production-match-experience",
+    desktopPanels && update?.source !== "replay" ? "has-desktop-panels" : "",
+    panelLayout === "standard" && update?.source !== "replay" ? "has-windowed-panels" : "",
     phoneHandActive ? "has-phone-hand" : "",
     referenceDockActive ? "has-reference-dock" : "",
     reducedMotion ? "reduced-motion" : "",
     update?.source ? `source-${update.source}` : "",
     transportUpdate?.connected === false ? "is-disconnected" : "",
     playbackState.catchingUp ? "is-resolving" : ""
-  ].filter(Boolean).join(" "), [referenceDockActive, phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
+  ].filter(Boolean).join(" "), [desktopPanels, panelLayout, referenceDockActive, phoneHandActive, playbackState.catchingUp, reducedMotion, transportUpdate?.connected, update?.source]);
   const resultPresentationReady = Boolean(
     update?.source !== "replay"
     && viewModel?.phase === "gameOver"
     && battlefieldViewModel?.phase === "gameOver"
     && (!playbackState.catchingUp || battlefieldViewModel?.presentationPlayback?.finalReconcile)
   );
-  const activeCardPreview = transportUpdate?.privacy?.required ? null : previewCard || (
+  const selectedPreview = selectedCardPreview(presentedViewModel);
+  const hoverIdentity = previewCard?.id ? readableCards.find(card => card.id === previewCard.id) : null;
+  const currentHover = previewCard?.id
+    ? hoverIdentity && { ...previewCard, ...hoverIdentity,
+      ...(selectedPreview?.id === hoverIdentity.id ? selectedPreview : {}) }
+    : previewCard;
+  const activeCardPreview = transportUpdate?.privacy?.required ? null : currentHover || (
     transportUpdate?.source !== "replay" && !viewModel?.perspective?.spectator
-      ? selectedCardPreview(presentedViewModel)
+      ? selectedPreview
       : null
   );
 
@@ -2181,6 +2234,8 @@ export default function ProductionMatchExperience({
           commands={gameplayCommands}
           connected={!gameplayInputLocked}
           resolving={playbackState.catchingUp}
+          pending={Boolean(transportUpdate?.diagnostics?.pendingCommandId)}
+          commandStatus={transportUpdate?.diagnostics?.commandStatus}
         />
         {update?.controls && (
           <MatchUtilities
@@ -2221,20 +2276,30 @@ export default function ProductionMatchExperience({
             catchingUp={playbackState.catchingUp}
           />
         )}
-        <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}`}>
+        <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}${activeInspection ? " is-inspecting" : ""}`} inert={desktopPanels && activeInspection ? true : undefined} aria-hidden={desktopPanels && activeInspection ? true : undefined}>
+          {desktopPanels && !viewModel.perspective?.spectator && update?.source !== "replay" && (
+            <button type="button" className="production-inspect-hand-button" onClick={() => openReference("hand")}>
+              <GameIcon name="inspect" size={18} /> Inspect hand · {viewModel.hand?.length || 0}
+            </button>
+          )}
           {update?.source !== "replay" && !referencePanel && (
             <MatchLedger
-              compact={compactMatchPanels}
               entries={feedEntries}
               snapshot={transportUpdate?.snapshot || update?.snapshot}
               onOpen={() => { setAbilityLogOnly(false); setReferencePanel("log"); }}
               onOpenAbilities={() => { setAbilityLogOnly(true); setReferencePanel("log"); }}
             />
           )}
-          <CardPreview preview={activeCardPreview} viewModel={presentedViewModel} snapshot={update?.snapshot} />
+          {(!activeInspection || !desktopPanels) && <CardPreview preview={panelLayout === "standard" && !transportUpdate?.privacy?.required ? currentHover : activeCardPreview} viewModel={presentedViewModel} snapshot={transportUpdate?.snapshot} onInspect={interactionCommands.inspectCard} onPreview={updatePreview} />}
+          {desktopPanels && !activeCardPreview && (
+            <p className="production-inspection-empty">Hover or focus a card to preview it.</p>
+          )}
         </div>
         {update?.source !== "replay" && <CombatRecap events={feedEntries} />}
-        <CardInspection inspection={transportUpdate?.inspection} commands={interactionCommands} viewModel={viewModel} snapshot={transportUpdate?.snapshot} />
+        <CardInspection inspection={activeInspection} commands={interactionCommands} viewModel={viewModel} snapshot={transportUpdate?.snapshot}
+          docked={desktopPanels && update?.source !== "replay"} pinned={Boolean(pinnedCard)}
+          onPin={readableCards.some(card => card.id === activeInspection?.id)
+            ? () => setPinnedInspection(pinnedCard ? null : { scope: inspectionScope, id: activeInspection.id }) : undefined} />
         {resultPresentationReady && (
           <MatchResult
             viewModel={viewModel}
@@ -2255,6 +2320,7 @@ export default function ProductionMatchExperience({
       {!transportUpdate?.privacy?.required && (
         <MatchReferencePanel
           kind={referencePanel}
+          obscured={Boolean(activeInspection)}
           snapshot={update?.snapshot}
           viewModel={presentedViewModel}
           commands={gameplayCommands}

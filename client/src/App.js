@@ -1481,19 +1481,16 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
     <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
       <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />
       <div className="identity-dossier-portrait">
-        <span className="identity-dossier-portrait-label">Registered likeness</span>
-        <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="hero" />
-        {account ? (
-          <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
-        ) : <small>Sign in to register a portrait.</small>}
+        <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
       </div>
       <div className="identity-dossier-copy">
-        <span>{title} · Active dossier</span>
+        <span>{title}</span>
         <h3>{account?.name || "Guest Identity"}</h3>
-        <p>{account ? "Your Gauntlet honors, chosen insignia, and represented decks." : "Choose a guest name or sign in to establish a persistent Gauntlet dossier."}</p>
-        <div className="identity-dossier-tags" aria-label="Dossier capabilities">
-          <span>Match identity</span><span>Public record</span><span>Community portrait</span>
-        </div>
+        <p>{account ? "Your honors, progress, and personal style." : "Sign in to save your progress, or choose a guest name below."}</p>
+        {account && <details className="identity-portrait-settings">
+          <summary>Edit profile picture</summary>
+          <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
+        </details>}
       </div>
       <div className="identity-dossier-stats" aria-label="Identity summary">
         <span><strong>{achievements}</strong><small>Honors</small></span>
@@ -2123,35 +2120,33 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
   );
 }
 
-function DraftCardTile({ card, selected = false, disabled = false, onClick, actionLabel = "Pick" }) {
+export function DraftCardTile({ card, selected = false, disabled = false, onClick, onInspect, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
   return (
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      onMouseEnter={() => onInspect?.(card)}
+      onFocus={() => onInspect?.(card)}
+      aria-disabled={disabled}
+      aria-pressed={selected}
+      aria-label={`${selected ? "Remove" : actionLabel} ${card.name}`}
+      className={`limited-card-tile${selected ? " is-in-deck" : ""}`}
       style={{
-        border: `1px solid ${selected ? theme.accent : rarity.border}`,
-        borderRadius: 8,
-        padding: 9,
-        background: selected ? "rgba(250,204,21,0.18)" : "rgba(2,6,23,0.58)",
-        color: "#e5e7eb",
-        textAlign: "left",
-        display: "grid",
-        gap: 5,
-        minHeight: 310,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.48 : 1
+        "--limited-accent": theme.accent,
+        "--limited-glow": theme.glow,
+        "--limited-rarity": rarity.border
       }}
     >
-      <span style={{ display: "block", width: "100%", maxWidth: 180, aspectRatio: "5 / 7", justifySelf: "center", overflow: "hidden", borderRadius: 7, boxShadow: `0 8px 22px ${theme.glow}` }}>
+      <span className="limited-card-art">
         <SpecialCardFace card={card} />
       </span>
-      <strong style={{ color: rarity.color }}>{card.name}</strong>
-      <span style={{ color: "#bfdbfe", fontSize: 12 }}>{theme.name} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
-      <span style={{ fontSize: 12, lineHeight: 1.35 }}>{card.text}</span>
-      <span style={{ justifySelf: "end", color: theme.accent, fontWeight: "bold", fontSize: 12 }}>{selected ? "Swapped" : actionLabel}</span>
+      <span className="limited-card-copy">
+        <strong style={{ color: rarity.color }}>{card.name}</strong>
+        <span>{theme.name} · {rarity.label} · {getCardRank(card)}{getSuitSymbol(card.suit)}</span>
+      </span>
+      <span className="limited-card-action">{selected ? "✓ In deck" : actionLabel}</span>
     </button>
   );
 }
@@ -2160,7 +2155,6 @@ function limitedDeckSourceLabel(draftType) {
   if (draftType === "sealed") return "Sealed";
   return draftType === "bot" ? "Bot Draft" : "Live Draft";
 }
-
 
 function MatchmakingPanel({
   account,
@@ -3368,7 +3362,7 @@ export default function App() {
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
-  const adminExitGuard = useRef(() => true);
+  const adminExitGuard = useRef(action => { action?.(); return true; });
   const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
   const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
   const [identityView, setIdentityView] = useState("profile");
@@ -3453,6 +3447,8 @@ export default function App() {
           homeAreaTransitionRef.current = null;
           document.documentElement.classList.remove("is-menu-transition");
         };
+        // A skipped or timed-out animation can reject ready while navigation succeeds.
+        transition.ready.catch(() => {});
         transition.finished.then(finish, finish);
         return;
       }
@@ -5076,7 +5072,7 @@ export default function App() {
   if (homeArea === "studio" && !game && !lobby) {
     return (
       <main className="admin-page">
-        <button className="admin-back" onClick={() => { if (adminExitGuard.current()) navigateHomeArea("journey"); }}>Back to Gauntlet</button>
+        <button className="admin-back" onClick={() => adminExitGuard.current(() => navigateHomeArea("journey"))}>Back to Gauntlet</button>
         <Suspense fallback={<SurfaceLoading label="Gauntlet Admin" />}>
           <Studio
             serverUrl={SOCKET_URL}
@@ -5212,15 +5208,16 @@ export default function App() {
           </div>
           <div className="home-current-context">
             <span className="home-context-notch" aria-hidden="true" />
-            <span className="home-context-player">
-              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="small" decorative />}
-              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
-            </span>
+            <span className="home-location-label">Current location</span>
             <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
-            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"} · Current destination</small>
+            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"}</small>
           </div>
 
           <div className="home-command-utilities">
+            <span className="home-context-player">
+              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="large" decorative />}
+              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
+            </span>
             <span className="home-utility-label">Utilities</span>
             <div className="home-command-tools">
               <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
@@ -5259,7 +5256,7 @@ export default function App() {
             />
           )}
           {homeArea === "play" && (
-            <PlayMenu view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
+            <PlayMenu modeMetadata={gameContent.modeMetadata} view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
@@ -5410,7 +5407,7 @@ export default function App() {
 
           {homeArea === "journey" && (
             <div className="journey-hub">
-              <JourneyIntroduction campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
+              <JourneyIntroduction copy={gameContent.modeMetadata?.campaign} campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
               <div className="journey-route">
                 <section className="journey-learning-panel">
                   <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
@@ -5483,6 +5480,37 @@ export default function App() {
 
           {homeArea === "build" && (
             <div className="build-hub">
+              <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
+                <div className="build-deck-display"><DeckShowcase deck={activeConstructedDeck || { factionId: buildDeckFactionId }} cards={[...(account?.collection?.catalog?.[buildDeckFactionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} /></div>
+                <div className="build-deck-copy">
+                  <span>{activeConstructedDeck ? "Your active deck" : "Your next deck"}</span>
+                  <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
+                  <p>{activeConstructedDeck
+                    ? "Refine your card choices, customize its look, and make it your own."
+                    : canCustomizeConstructedDeck
+                      ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
+                      : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
+                  <div className="build-deck-meta" aria-label="Deck summary">
+                    <span><strong>52</strong> cards</span>
+                    <span><strong>{activeConstructedVersion?.replacementCount || activeConstructedVersion?.additionCount || 0}</strong> replacements</span>
+                    <span><strong>{constructedDecks.length}</strong> saved decks</span>
+                  </div>
+                  <MenuButton
+                    onClick={() => {
+                      if (activeConstructedDeck || canCustomizeConstructedDeck) {
+                        playMenuCue("panelOpen");
+                        setShowCollection("decks");
+                      } else {
+                        navigateHomeArea("journey");
+                        playMenuCue("area");
+                      }
+                    }}
+                    disabled={!account}
+                  >
+                    {activeConstructedDeck ? "Edit Active Deck" : canCustomizeConstructedDeck ? "Build Custom Deck" : "Earn Cards in Campaign"}
+                  </MenuButton>
+                </div>
+              </section>
               <section className="build-vault-panel">
                 <div className="build-faction-strip" role="group" aria-label="Faction collections">
                   {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
@@ -5491,53 +5519,24 @@ export default function App() {
                 </div>
                 <div className="build-panel-copy">
                   <span>The Vault</span>
-                  <h3>Turn free-play rewards into a personal deck</h3>
-                  <p>{account ? "Earn gameplay cards through campaign packs, then choose owned collector presentation without changing competitive power." : "Sign in to keep earned gameplay progression, collector variants, and saved decks."}</p>
+                  <h3>Grow your collection</h3>
+                  <p>{account ? "Open earned packs, browse your cards, and choose collector artwork." : "Sign in to keep earned gameplay progression, collector variants, and saved decks."}</p>
                 </div>
                 <div className="build-vault-stats">
                   <span><small>Gameplay earned</small><strong>{ownedCardCount}</strong></span>
                   <span><small>Earned packs</small><strong>{openedPackCount}</strong></span>
                   <span><small>Credits ready</small><strong>{packCredits}</strong></span>
                 </div>
-                <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Open Collection Workshop</MenuButton>
+                <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Open Collection Workshop</MenuButton>
               </section>
-              <div className="build-deck-stack">
-                <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
-                  <DeckShowcase deck={activeConstructedDeck || { factionId: buildDeckFactionId }} cards={[...(account?.collection?.catalog?.[buildDeckFactionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} />
-                  <div>
-                    <span>Constructed / {constructedDecks.length} saved</span>
-                    <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
-                    <p>{activeConstructedDeck
-                      ? `${activeConstructedVersion?.replacementCount || activeConstructedVersion?.additionCount || 0} gameplay-card replacements.`
-                      : canCustomizeConstructedDeck
-                        ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
-                        : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
-                    <MenuButton
-                      variant="secondary"
-                      onClick={() => {
-                        if (activeConstructedDeck || canCustomizeConstructedDeck) {
-                          playMenuCue("panelOpen");
-                          setShowCollection("decks");
-                        } else {
-                          navigateHomeArea("journey");
-                          playMenuCue("area");
-                        }
-                      }}
-                      disabled={!account}
-                    >
-                      {activeConstructedDeck ? "Edit Active Deck" : canCustomizeConstructedDeck ? "Build Custom Deck" : "Earn Cards in Campaign"}
-                    </MenuButton>
-                  </div>
-                </section>
-                <section className="build-draft-entry">
-                  <div>
-                    <span>Draft Library</span>
-                    <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
-                    <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
-                  </div>
-                  <MenuButton variant="secondary" onClick={() => { setPlayView("draft"); navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
-                </section>
-              </div>
+              <section className="build-draft-entry">
+                <div>
+                  <span>Draft Library</span>
+                  <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
+                  <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
+                </div>
+                <MenuButton variant="secondary" onClick={() => { setPlayView("draft"); navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
+              </section>
             </div>
           )}
 
@@ -5556,7 +5555,7 @@ export default function App() {
                 serverUrl={SOCKET_URL}
                 onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
               />
-              <div className="identity-profile-layout">
+              <div className={`identity-profile-layout${account ? "" : " is-guest"}`}>
                 <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
                 <section className="identity-admin-rail" aria-label="Identity administration">
                   <AccountPanel
@@ -5569,20 +5568,20 @@ export default function App() {
                     onSubmit={submitAuth}
                     onSignOut={signOut}
                   />
-                  <MenuCard title="Guest Identity">
+                  {!account && <MenuCard title="Guest Identity">
                     <label className="identity-guest-toggle">
                       <input type="checkbox" checked={playAsGuest} onChange={(e) => setPlayAsGuest(e.target.checked)} disabled={!!account} />
                       Play as guest
                     </label>
                     <input
                       className="identity-guest-input"
+                      aria-label="Guest name"
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       placeholder="Guest name"
                       disabled={!!account || !playAsGuest}
                     />
-                    {account && <p className="identity-admin-note">Signed-in games use {account.name}.</p>}
-                  </MenuCard>
+                  </MenuCard>}
                 </section>
               </div>
               </>}

@@ -171,3 +171,29 @@ test("Supabase adapters select safe account columns, paginate, and read preferre
   assert.equal((await data.matches()).matches[0].provenance.source, "compatibility");
   assert.match(queries.at(-1), /id=like.match%3A\*/);
 });
+
+test("historical match evidence remains readable when current authoring is unavailable", async () => {
+  const before = JSON.stringify(record);
+  let authoringReads = 0;
+  const data = createAdminData({
+    publication: { status: async () => { authoringReads += 1; throw new Error("PRIVATE_PROVIDER_DIAGNOSTIC"); } },
+    archive: { findById: async () => ({ record, index: { sha256: "verified-history-digest" } }) },
+    persistence: { findById: async () => { throw new Error("Canonical records must not fall back to storage"); }, status: () => ({ mode: "file" }) }
+  });
+  const result = await data.match(record.matchId);
+  assert.equal(authoringReads, 1);
+  assert.deepEqual(result.match, publicMatchRecord(record));
+  assert.equal(result.provenance.integrity, "verified");
+  assert.equal(result.provenance.sha256, "verified-history-digest");
+  assert.equal(result.design.matchId, record.matchId);
+  assert.equal(result.design.current.hash, null);
+  assert.equal(result.design.current.bindings, null);
+  assert.equal(result.design.draft, undefined);
+  assert.ok(result.design.events.some(event => event.text === "Player 1 wins."));
+  const faction = result.design.references.find(reference => reference.domain === "factions" && reference.id === "rumin");
+  assert.equal(faction.recorded.label, "Rumin");
+  assert.equal(faction.current.available, false);
+  assert.equal(faction.current.definition, null);
+  assert.equal(JSON.stringify(result).includes("PRIVATE_PROVIDER_DIAGNOSTIC"), false);
+  assert.equal(JSON.stringify(record), before);
+});
