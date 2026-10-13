@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "kharon",
+  "voiceName": "Kharon the Builder",
+  "line": "Truth is the only machine worth rebuilding everything for.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-after-05-kharon.mp3",
+  "generatedAt": "2026-10-12T14:28:33.817Z",
+  "publishedAt": "2026-10-12T14:30:30.100Z",
+  "bytes": 56886,
+  "sha256": "48e0ac8ebc270e90dd24b1d0f9a3be40dd49d6a5b292bf6be3ac000bc211bb1e"
+}

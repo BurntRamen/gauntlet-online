@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "disciple",
+  "voiceName": "Theo's Disciple",
+  "line": "It leaves doors.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-after-05-disciple.mp3",
+  "generatedAt": "2026-10-12T14:30:05.211Z",
+  "publishedAt": "2026-10-12T14:30:30.479Z",
+  "bytes": 24285,
+  "sha256": "ee6293009ef03b096935e77bac750012d5d4b23fafcb5ac61ddfe902a1d66cbd"
+}

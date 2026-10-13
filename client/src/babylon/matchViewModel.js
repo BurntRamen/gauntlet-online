@@ -3,6 +3,7 @@ import {
   getPlayingCardArtPath,
   normalizeCardDisplayText
 } from "../cardArt";
+import { cardCombatLabel, cardTypeLabel, isCombatCapableCard } from "./cardType";
 
 const LANE_INDEXES = [0, 1, 2];
 const { valueBreakdown, pendingEffects } = require("@gauntlet/duel-rules");
@@ -54,6 +55,10 @@ function normalizeCard(card, { visible = true, factionId = null, id = "hidden" }
       value: null,
       artPath: "",
       factionId: "",
+      cardType: "",
+      cardTypeLabel: "Hidden card",
+      combatEligible: false,
+      combatLabel: "",
       expectsFaceArt: false
     };
   }
@@ -71,6 +76,10 @@ function normalizeCard(card, { visible = true, factionId = null, id = "hidden" }
     valueBreakdown: valueBreakdown(card),
     artPath: getPlayingCardArtPath(card, resolvedFactionId),
     factionId: resolvedFactionId,
+    cardType: String(card.type || "standard").toLowerCase(),
+    cardTypeLabel: cardTypeLabel(card),
+    combatEligible: isCombatCapableCard(card),
+    combatLabel: cardCombatLabel(card),
     expectsFaceArt: expectsPlayingCardArt(card),
     raw: card
   };

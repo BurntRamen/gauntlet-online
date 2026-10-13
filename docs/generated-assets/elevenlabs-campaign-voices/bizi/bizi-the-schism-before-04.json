@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "severus",
+  "voiceName": "Archon Severus",
+  "line": "Then certainty will rule what doubt could not hold.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-before-04-severus.mp3",
+  "generatedAt": "2026-10-12T14:29:58.606Z",
+  "publishedAt": "2026-10-12T14:30:30.452Z",
+  "bytes": 67753,
+  "sha256": "8597b4583e34a63617f9da36d97c3d2f07c124ee07adb33dbaf06fb86395ee39"
+}

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "factionId": "bizi",
+  "chapters": {
+    "kharons-vision": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-before-02-kharon.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-before-03-maxor.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-before-04-kharon.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-before-05-maxor.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-after-02-maxor.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-after-03-kharon.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-after-04-maxor.mp3",
+        "/assets/gauntlet/voices/bizi-ch01-after-05-kharon.mp3"
+      ]
+    },
+    "first-titan": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-before-02-assembly.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-before-03-kharon.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-before-04-assembly.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-before-05-kharon.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-after-02-assembly.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-after-03-kharon.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-after-04-assembly.mp3",
+        "/assets/gauntlet/voices/bizi-ch02-after-05-kharon.mp3"
+      ]
+    },
+    "golden-empire": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-before-02-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-before-03-justine.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-before-04-beli.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-before-05-vandal-engine.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-after-02-vandal-engine.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-after-03-justine.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-after-04-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch03-after-05-beli.mp3"
+      ]
+    },
+    "riot-of-sparks": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-before-02-justine.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-before-03-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-before-04-riot-leader.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-before-05-beli.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-after-02-riot-leader.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-after-03-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-after-04-beli.mp3",
+        "/assets/gauntlet/voices/bizi-ch04-after-05-justine.mp3"
+      ]
+    },
+    "last-victories": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-before-02-beli.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-before-03-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-before-04-coalition-marshal.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-before-05-beli.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-after-02-coalition-marshal.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-after-03-beli.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-after-04-theo.mp3",
+        "/assets/gauntlet/voices/bizi-ch05-after-05-beli.mp3"
+      ]
+    },
+    "age-of-focus": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-before-02-maurice.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-before-03-focus.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-before-04-maurice.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-before-05-focus.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-after-02-maurice.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-after-03-focus.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-after-04-maurice.mp3",
+        "/assets/gauntlet/voices/bizi-ch06-after-05-focus.mp3"
+      ]
+    },
+    "great-invasion": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-before-02-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-before-03-focus.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-before-04-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-before-05-focus.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-after-02-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-after-03-focus.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-after-04-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch07-after-05-focus.mp3"
+      ]
+    },
+    "heras-counterattack": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-before-02-hera.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-before-03-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-before-04-hera.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-before-05-khosar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-after-02-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-after-03-hera.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-after-04-khosar.mp3",
+        "/assets/gauntlet/voices/bizi-ch08-after-05-hera.mp3"
+      ]
+    },
+    "three-titans": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-before-02-iro.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-before-03-cult-leader.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-before-04-leon.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-before-05-cult-leader.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-after-02-iro.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-after-03-leon.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-after-04-cult-leader.mp3",
+        "/assets/gauntlet/voices/bizi-ch09-after-05-iro.mp3"
+      ]
+    },
+    "the-schism": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-before-02-severus.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-before-03-disciple.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-before-04-severus.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-before-05-disciple.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-after-02-severus.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-after-03-disciple.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-after-04-severus.mp3",
+        "/assets/gauntlet/voices/bizi-ch10-after-05-disciple.mp3"
+      ]
+    },
+    "the-restoration": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-before-02-xios.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-before-03-governor.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-before-04-xios.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-before-05-governor.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-after-02-governor.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-after-03-xios.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-after-04-governor.mp3",
+        "/assets/gauntlet/voices/bizi-ch11-after-05-xios.mp3"
+      ]
+    },
+    "last-gear": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-before-02-defender.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-before-03-iron-sultan.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-before-04-kharons-recording.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-before-05-defender.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/bizi-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-after-02-iron-sultan.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-after-03-defender.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-after-04-kharons-recording.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-after-05-iron-sultan.mp3",
+        "/assets/gauntlet/voices/bizi-ch12-after-06-defender.mp3"
+      ]
+    }
+  }
+}

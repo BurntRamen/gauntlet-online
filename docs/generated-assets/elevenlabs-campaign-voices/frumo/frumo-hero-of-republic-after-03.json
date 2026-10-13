@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "Saving a people should not sound like accusation.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch07-after-03-polea.mp3",
+  "generatedAt": "2026-10-12T03:40:43.939Z",
+  "publishedAt": "2026-10-12T03:42:23.194Z",
+  "bytes": 66499,
+  "sha256": "6faebf3775b121d81f65113b3a18d7de4931dccdca8a92070c8ce4bcf4ff4206"
+}

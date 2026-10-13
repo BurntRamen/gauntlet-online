@@ -77,7 +77,7 @@ test("fresh visitors can enter practice directly and recommendations follow the 
   await expect(page.getByRole("button", { name: "Play with friends", exact: true })).toBeVisible();
   await page.locator('button[data-area="play"]').click();
   await page.getByLabel("Practice guest name").fill("New Practice Player");
-  await page.getByRole("button", { name: /Basic vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
 });
 
@@ -105,7 +105,7 @@ test("direct practice preserves a saved account while its profile is unavailable
   }));
   await page.goto(baseURL);
   await page.locator('button[data-area="play"]').click();
-  await page.getByRole("button", { name: /Basic vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator(".production-player-plate-bottom .production-player-copy strong")).toHaveText(credentials.account.name);
 });
@@ -303,7 +303,7 @@ test("completed match exports, imports on another device, replays, and rejects m
   await signedIn(page, baseURL, credentials);
   await page.locator('button[data-area="play"]').click();
   await page.getByRole("tab", { name: "Practice" }).click();
-  await page.getByRole("button", { name: /Basic vs AI/ }).click();
+  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await page.getByText("Match", { exact: true }).click();
   await page.getByRole("button", { name: "Concede", exact: true }).click();

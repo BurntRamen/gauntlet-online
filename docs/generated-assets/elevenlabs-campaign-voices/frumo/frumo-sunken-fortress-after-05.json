@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Then our first free act will be proving you wrong.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch04-after-05-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:10.986Z",
+  "publishedAt": "2026-10-12T03:42:23.123Z",
+  "bytes": 43511,
+  "sha256": "8e617a6dff3e34641be825fcad05eb2b1bf85ee1940da8855969db8b70f09d90"
+}

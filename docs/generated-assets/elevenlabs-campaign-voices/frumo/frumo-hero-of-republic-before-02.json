@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "I did not come to rule the republic.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch07-before-02-polea.mp3",
+  "generatedAt": "2026-10-12T03:40:37.463Z",
+  "publishedAt": "2026-10-12T03:42:23.181Z",
+  "bytes": 41004,
+  "sha256": "421e48952f3b50b219b3201d9536ee34aa52f6a9eb4faa3514766b431c01e288"
+}

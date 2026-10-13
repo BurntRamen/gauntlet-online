@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ludvik",
+  "voiceName": "King Ludvik",
+  "line": "You call it greed. I call it responsibility.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch04-before-02-ludvik.mp3",
+  "generatedAt": "2026-10-12T03:40:02.582Z",
+  "publishedAt": "2026-10-12T03:42:23.106Z",
+  "bytes": 64827,
+  "sha256": "7b71d731a148ee3f2b3f83d5e8b223b3d5b9fcefe4a8e7d3c623445a550c34e0"
+}

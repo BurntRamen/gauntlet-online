@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "defender",
+  "voiceName": "Defender of Constanti",
+  "line": "We only need the wall to remember us until dawn.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-05-defender.mp3",
+  "generatedAt": "2026-10-12T14:30:23.069Z",
+  "publishedAt": "2026-10-12T14:30:30.534Z",
+  "bytes": 42675,
+  "sha256": "4a47de34a3ec9a5cca777a1c7d20b92e6c4ed0cf96af90af73dfeb54a858396c"
+}

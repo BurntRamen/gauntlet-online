@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Bizi Chronicle",
+  "line": "The Bizi survive the first collapse because they know failure is a state, not a verdict.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch07-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T14:29:26.826Z",
+  "publishedAt": "2026-10-12T14:30:30.340Z",
+  "bytes": 97010,
+  "sha256": "cbe9ec396844d8bcf0991261cb5544897604207dc327120dfec072bfcd84ffb3"
+}

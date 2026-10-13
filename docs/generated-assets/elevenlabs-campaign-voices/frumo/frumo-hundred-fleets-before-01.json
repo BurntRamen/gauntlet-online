@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Rival sea powers unite, not because they agree with each other, but because Polea has taught them what fear shares.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch10-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:41:09.289Z",
+  "publishedAt": "2026-10-12T03:42:23.257Z",
+  "bytes": 140060,
+  "sha256": "59c5ec1c22eaf0f33b7a0a757515349995611379c216a438bccde5a88a72be27"
+}

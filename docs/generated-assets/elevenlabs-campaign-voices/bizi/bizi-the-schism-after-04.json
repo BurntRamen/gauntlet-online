@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "severus",
+  "voiceName": "Archon Severus",
+  "line": "Doubt leaves no monuments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-after-04-severus.mp3",
+  "generatedAt": "2026-10-12T14:30:04.312Z",
+  "publishedAt": "2026-10-12T14:30:30.476Z",
+  "bytes": 41839,
+  "sha256": "ecbb17f8966615024720350a8eaa2af3a3ae2493f47a75496907f155420a1218"
+}

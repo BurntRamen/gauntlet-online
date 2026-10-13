@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Then remember how easily a hand becomes a fist.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch12-after-04-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:41:38.968Z",
+  "publishedAt": "2026-10-12T03:42:23.333Z",
+  "bytes": 46437,
+  "sha256": "a09182d3a67078360ebef2f74c10f7fc079184718333ef599db0c750231639c1"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "brasswater-admiral",
+  "voiceName": "Brasswater Admiral",
+  "line": "That is why the tide will hate you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch10-after-04-brasswater-admiral.mp3",
+  "generatedAt": "2026-10-12T03:41:17.411Z",
+  "publishedAt": "2026-10-12T03:42:23.281Z",
+  "bytes": 30973,
+  "sha256": "412a36d8fdeb6092b41a939f5c7b501219cb2bfd8234e36009a3a7b09d2b04f1"
+}

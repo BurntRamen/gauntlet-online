@@ -1,6 +1,7 @@
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
 import { getPlayingCardArtPath } from "../cardArt";
+import { cardTypeLabel, isCombatCapableCard } from "./cardType";
 import {
   createLocalMatchRecorder,
   createPortableLocalMatchId,
@@ -398,6 +399,8 @@ export class LocalDuelAdapter {
         card.factionId || this.game.players[this.perspective]?.faction?.id || "basic"
       ),
       description: card.rulesText || card.text || card.description || "",
+      cardTypeLabel: cardTypeLabel(card),
+      combatEligible: isCombatCapableCard(card),
       raw: card
     };
     this.inspection = inspection;
@@ -629,7 +632,6 @@ export class LocalDuelAdapter {
     }
     if (this.selection.kind === "handBlock") {
       if (this.selection.blockerCardIds.length !== 1) return { label: "Choose Blocker", disabled: true };
-      if (this.selection.selectionRole === "blocker") return { label: "Choose Payment", disabled: false };
       return { label: "Confirm Block", disabled: !!values.error || values.total < values.required };
     }
     if (this.selection.kind === "laneBlock") {
@@ -650,7 +652,6 @@ export class LocalDuelAdapter {
     }
     if (this.selection.kind === "handBlock") {
       if (this.selection.blockerCardIds.length !== 1) return "Choose exactly one blocking card.";
-      if (this.selection.selectionRole === "blocker") return "Continue to payment before confirming.";
       const missing = Math.max(0, values.required - values.total);
       return missing > 0 ? `Select ${missing} more payment value for the blocker.` : "";
     }
@@ -748,9 +749,6 @@ export class LocalDuelAdapter {
     const constructedNote = constructedNotes.length ? ` ${constructedNotes.join(" · ")}.` : "";
     if (this.selection.kind === "handAttack") return `Choose ${values.required} payment for this independent hand attack.${heraNote}${meerusNote}${constructedNote}`;
     if (this.selection.kind === "laneAttack") return `Lane ${this.selection.laneIndex + 1} attack · choose ${values.required} payment.${constructedNote}`;
-    if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
-      return "Choose exactly one hand blocker, then continue to payment. Choosing another card replaces it.";
-    }
     if (this.selection.kind === "handBlock") return `Choose ${values.required} payment for the selected blocker.${heraNote}${constructedNote}`;
     if (this.selection.kind === "laneBlock") return `Same-lane blocker · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "placement") {
@@ -1189,27 +1187,30 @@ export class LocalDuelAdapter {
       }
       if (
         this.selection.kind === "handBlock"
-        && this.selection.selectionRole === "payment"
         && this.selection.blockerCardIds.includes(card.id)
       ) {
-        this.notice = "A blocker cannot also pay for itself.";
+        this.selection = freshSelection();
+        this.notice = "Block selection cleared. Choose a blocker.";
         this.emit();
         return;
       }
-      const role = this.selection.kind === "handBlock"
-        ? this.selection.selectionRole
-        : "blocker";
-      this.selection = this.normalizeConstructedSelection(freshSelection({
-        ...this.selection,
-        kind: "handBlock",
-        selectionRole: role,
-        blockerCardIds: role === "blocker"
-          ? this.selection.blockerCardIds.includes(card.id) ? [] : [card.id]
-          : this.selection.blockerCardIds || [],
-        paymentCardIds: role === "payment"
-          ? toggleId(this.selection.paymentCardIds || [], card.id)
-          : (this.selection.paymentCardIds || []).filter((id) => id !== card.id)
-      }));
+      if (this.selection.kind !== "handBlock") {
+        if (!isCombatCapableCard(card)) {
+          this.notice = `${displayCardName(card)} is a ${cardTypeLabel(card)} support card. Only Servitors and standard playing cards can block.`;
+          this.emit();
+          return;
+        }
+        this.selection = freshSelection({
+          kind: "handBlock",
+          selectionRole: "payment",
+          blockerCardIds: [card.id]
+        });
+      } else {
+        this.selection = this.normalizeConstructedSelection({
+          ...this.selection,
+          paymentCardIds: toggleId(this.selection.paymentCardIds || [], card.id)
+        });
+      }
       this.emit();
       return;
     }
@@ -1224,6 +1225,11 @@ export class LocalDuelAdapter {
       return;
     }
     if (this.selection.kind !== "handAttack") {
+      if (!isCombatCapableCard(card)) {
+        this.notice = `${displayCardName(card)} is a ${cardTypeLabel(card)} support card. Only Servitors and standard playing cards can attack.`;
+        this.emit();
+        return;
+      }
       this.selection = freshSelection({
         kind: "handAttack",
         attackerCardId: card.id,
@@ -1302,12 +1308,6 @@ export class LocalDuelAdapter {
         this.notice = `Unable to attack. ${reason}`;
         this.emit();
       }
-      return;
-    }
-    if (this.selection.kind === "handBlock" && this.selection.selectionRole === "blocker") {
-      this.selection = { ...this.selection, selectionRole: "payment" };
-      this.notice = "Blocker staged. Choose payment cards.";
-      this.emit();
       return;
     }
     const command = this.commandForSelection();
