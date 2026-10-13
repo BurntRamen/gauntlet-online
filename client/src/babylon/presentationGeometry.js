@@ -15,9 +15,9 @@ function handPosition(actor, profile) {
   const centered = centeredIndex(index, count);
   const normalized = count > 1 ? centered / ((count - 1) / 2) : 0;
   const scale = local ? hand.localScale : hand.opponentScale;
-  const availableWidth = profile.id === "portrait" ? 14.4 : profile.id === "short-landscape" ? 22.2 : 24.5;
+  const availableWidth = profile.id === "portrait" ? 14.4 : profile.id === "short-landscape" ? 22.2 : profile.id === "desktop" ? 26.3 : 24.5;
   const maximumSpread = local
-    ? (profile.id === "portrait" ? 1.65 : profile.id === "short-landscape" ? 1.62 : profile.id === "ultrawide" ? 2.06 : 2.4)
+    ? (profile.id === "portrait" ? 1.65 : profile.id === "short-landscape" ? 1.62 : profile.id === "ultrawide" ? 2.52 : 3.15)
     : (profile.id === "portrait" ? 1.02 : 1.34);
   const spread = count <= 1
     ? 0
