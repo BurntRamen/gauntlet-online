@@ -17,12 +17,12 @@ let origin;
 test.before(async () => { await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve)); origin = `http://127.0.0.1:${server.address().port}`; });
 test.after(async () => { await new Promise((resolve) => server.close(resolve)); fs.rmSync(root, { recursive: true, force: true }); });
 async function call(route = "", body, account = accounts[0], method = body ? "POST" : "GET") {
-  const response = await fetch(`${origin}/api/admin/authoring${route}`, { method, headers: { "Content-Type": "application/json", ...(account ? { Authorization: `Bearer ${__test.issueAccountSession(account).token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const response = await fetch(`${origin}/api/admin/authoring${route}`, { method, headers: { "Content-Type": "application/json", Connection: "close", ...(account ? { Authorization: `Bearer ${__test.issueAccountSession(account).token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   return { status: response.status, body: await response.json() };
 }
 
 test("all authoring reads and writes retain the exact two-account server gate", async () => {
-  for (const [route, method] of [["", "GET"], ["/draft", "PATCH"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
+  for (const [route, method] of [["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
     assert.equal((await call(route, method === "GET" ? undefined : {}, null, method)).status, 401);
     assert.equal((await call(route, method === "GET" ? undefined : {}, accounts[2], method)).status, 403);
   }
@@ -208,4 +208,26 @@ test("HTTP stale writes, invalid drafts and stale previews fail without replacin
   assert.equal(discarded.status, 200);
   assert.equal(discarded.body.draft, null);
   assert.equal(discarded.body.activeReleaseId, originalId);
+});
+
+test("uploaded private bytes require stable-ID authorization; published bytes use immutable delivery", async () => {
+  const pub = __test.contentPublication;
+  if (pub.status().draft) pub.discard({ expectedRevision: pub.status().revision });
+  const data = (await require("sharp")({ create: { width: 40, height: 50, channels: 3, background: "green" } }).png().toBuffer()).toString("base64");
+  const uploaded = await call("/assets/upload", { expectedRevision: pub.status().revision, title: "Route image", description: "", notes: "Private", data }, accounts[1]);
+  assert.equal(uploaded.status, 200); const asset = uploaded.body.uploaded;
+  for (const actor of [null, accounts[2]]) assert.equal((await call("/assets/" + asset.id, undefined, actor)).status, actor ? 403 : 401);
+  for (const actor of accounts.slice(0, 2)) {
+    const result = await call("/assets/" + asset.id, undefined, actor); assert.equal(result.status, 200);
+    assert.equal(require("../authoredAssets").digest(Buffer.from(result.body.data, "base64")), asset.sha256);
+  }
+  const url = origin + require("../authoredAssets").publicPath(asset);
+  assert.equal((await fetch(url, { headers: { Connection: "close" } })).status, 404);
+  pub.patch({ expectedRevision: pub.status().revision, domain: "assets", id: "rumin-coin-scale-spear:standard", field: "art", value: asset.id }, accounts[0].id);
+  assert.equal((await call("/assets/" + asset.id, {}, accounts[0], "DELETE")).status, 409);
+  pub.preview({ expectedRevision: pub.status().revision }); pub.publish({ expectedRevision: pub.status().revision, label: "Private to published" }, accounts[0].id);
+  const result = await fetch(url, { headers: { Connection: "close" } }); assert.equal(result.status, 200);
+  assert.match(result.headers.get("cache-control"), /immutable/); assert.equal(result.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(require("../authoredAssets").digest(Buffer.from(await result.arrayBuffer())), asset.sha256);
+  assert.equal((await call("/assets/" + asset.id, undefined, null)).status, 401, "private metadata endpoint stays private after publication");
 });

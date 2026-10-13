@@ -26,6 +26,6 @@ export function collectorPresentation(card, presentation) {
 
 export function collectorVersionLabel(variant) {
   if (!variant) return "Standard";
-  if (variant.finish === "standard") return "Standard";
+  if (variant.origin !== "admin-printing-v1" && variant.finish === "standard") return "Standard";
   return variant.name || (variant.finish === "foil" ? "Collector foil" : variant.finish);
 }

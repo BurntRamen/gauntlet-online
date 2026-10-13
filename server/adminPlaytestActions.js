@@ -101,9 +101,9 @@ function cardNames(...games) {
   return names;
 }
 function previewAction(game, command) {
-  const copy = clone(game), result = engine.applyCommand(copy, clone(command));
+  const copy = clone(game), result = engine.applyCommand(copy, clone(command), { diagnostics: true });
   const payment = engine.previewPayment(clone(game), command.player, command);
   return { kind: "calculated-preview", command: clone(command), accepted: result.accepted, error: result.rejectionReason || result.error || null,
-    cardNames: cardNames(game, result.state), payment, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
+    cardNames: cardNames(game, result.state), payment, mechanicsTrace: result.mechanicsTrace, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
 }
 module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames };

@@ -1,14 +1,15 @@
+import { PrivateImage } from "./PrivateAsset";
 import { WorkshopSection } from "./WorkshopShell";
 
 const text = (value) => value === null || value === undefined || value === "" ? "Empty" : Array.isArray(value) ? value.join(", ") || "None" : typeof value === "object" ? JSON.stringify(value, null, 2) : String(value);
 
 function Value({ value, library, label, resolvedAsset }) {
   const asset = resolvedAsset || library?.find((entry) => [entry.id, entry.source, entry.path].includes(value));
-  return <div><small>{label}</small>{asset?.mediaType?.startsWith("image/") ? <img className="admin-art-preview" loading="lazy" src={asset.path} alt={`${label} artwork`} /> : asset?.mediaType?.startsWith("audio/") ? <audio controls preload="none" src={asset.path} aria-label={`${label} audio`} /> : null}<p>{text(value)}</p></div>;
+  return <div><small>{label}</small>{asset?.mediaType?.startsWith("image/") ? <PrivateImage className="admin-art-preview" loading="lazy" src={asset.path} alt={`${label} artwork`} /> : asset?.mediaType?.startsWith("audio/") ? <audio controls preload="none" src={asset.path} aria-label={`${label} audio`} /> : null}<p>{text(value)}</p></div>;
 }
 
 function Change({ change, onInspect, library, comparison = false }) {
-  return <article className="design-change"><div className="admin-title-row"><h5>{change.label || change.id} · {change.fieldLabel || change.field}</h5>{onInspect && <button type="button" onClick={() => onInspect(change.domain, change.id)}>Open {change.label || change.id}</button>}</div><div className="design-change-values"><Value label="Live" value={change.before ?? change.live} library={library} resolvedAsset={change.liveAsset} /><Value label={comparison ? "Selected release" : "Saved draft"} value={change.after ?? change.draft} library={library} resolvedAsset={change.draftAsset} /></div></article>;
+  return <article className="design-change"><div className="admin-title-row"><h5>{change.label || change.id} · {change.fieldLabel || change.field}</h5>{onInspect && <button type="button" onClick={() => onInspect(change.domain, change.id)}>Open {change.label || change.id}</button>}</div>{change.scope && <p className="admin-note">{change.scope}</p>}<div className="design-change-values"><Value label="Live" value={change.before ?? change.live} library={library} resolvedAsset={change.liveAsset} /><Value label={comparison ? "Selected release" : "Saved draft"} value={change.after ?? change.draft} library={library} resolvedAsset={change.draftAsset} /></div></article>;
 }
 
 export default function ReleaseReview({ state, review, onInspect, onPublish, onDiscard, onRollback, onCompare, releaseName = "", onReleaseName, busy, unsaved }) {

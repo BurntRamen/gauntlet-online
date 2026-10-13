@@ -2027,7 +2027,7 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
             colorTheme={colorTheme}
-            cardBackAsset={options.cardBackAsset}
+            cardBackAsset={transportUpdate?.snapshot?.presentationAssets?.[options.cardBackAsset || "/assets/gauntlet/match/gauntlet-card-back-official.jpg"] || options.cardBackAsset}
             handRailPresentation={phoneHandActive ? handRailRef : null}
             interactionStatus={transportUpdate?.connected === false
               ? "Connection interrupted. The current table is preserved while reconnecting."

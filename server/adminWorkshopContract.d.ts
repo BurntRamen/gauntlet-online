@@ -1,7 +1,7 @@
 import { ContentBinding, CardEffectId, FactionMechanicId } from "../shared/duel-rules/contentContracts";
 
 export type WorkshopSource = "live" | "draft";
-export type AuthoredDomain = "campaigns" | "encounters" | "factions" | "cards" | "decks" | "characters" | "assets" | "game";
+export type AuthoredDomain = "campaigns" | "encounters" | "factions" | "cards" | "sets" | "decks" | "offers" | "characters" | "assets" | "game";
 export interface WorkshopSubject { readonly domain: AuthoredDomain | "card-effects" | "faction-effects"; readonly id: string; }
 export interface WorkshopIdentity {
   readonly source: WorkshopSource; readonly hash: string; readonly releaseId: string; readonly revision: number | null;
@@ -29,12 +29,32 @@ export interface ReleaseReview {
   readonly version: 1; readonly revision: number; readonly hash: string | null;
   readonly groups: readonly { readonly id: string; readonly label: string; readonly category: string; readonly changes: readonly ReleaseChange[] }[];
   readonly readiness: { readonly saved: boolean; readonly validated: boolean; readonly previewed: boolean; readonly engineTestRequired: boolean; readonly engineTested: boolean; readonly ready: boolean; readonly phase: string; readonly engineTestLabel: string; readonly writable: boolean; readonly connectionRequired: boolean };
-  readonly comparison?: { readonly releaseId: string; readonly label: string; readonly compatible: boolean; readonly activeReleaseId: string; readonly canRollback: boolean };
+  readonly comparison?: { readonly releaseId: string; readonly label: string; readonly compatible: boolean; readonly activeReleaseId: string; readonly canRollback: boolean; readonly rollbackBlocked: string | null };
 }
 
-export type TestSubject = { readonly kind: "encounter" | "card" | "faction" | "game-config"; readonly id: string } | { readonly kind: "card-effect"; readonly id: CardEffectId; readonly cardId: string };
+export type TestSubject = { readonly kind: "deck" | "encounter" | "faction" | "game-config"; readonly id: string } | { readonly kind: "card"; readonly id: string; readonly printingId?: string } | { readonly kind: "card-effect"; readonly id: CardEffectId; readonly cardId: string };
+export interface UploadedImageVersion {
+  readonly id: string; readonly assetId: string; readonly version: number;
+  readonly schemaVersion: "gauntlet.uploaded-image.v1"; readonly mediaType: "image/webp";
+  readonly sha256: string; readonly originalSha256: string; readonly bytes: number; readonly width: number; readonly height: number;
+}
+export interface ImageUpload {
+  readonly expectedRevision: number; readonly requestId: string; readonly assetId?: string;
+  readonly title: string; readonly description: string; readonly notes: string; readonly data: string;
+}
 export interface ScenarioSlot { readonly value: number; readonly suit: "spades" | "hearts" | "diamonds" | "clubs"; readonly cardId?: string; }
 export interface ScenarioPlayer { readonly factionId: string; readonly life: number; readonly hand: readonly ScenarioSlot[]; readonly deck: readonly ScenarioSlot[]; readonly discard: readonly ScenarioSlot[]; readonly combat: readonly [ScenarioSlot|null, ScenarioSlot|null, ScenarioSlot|null]; readonly support: readonly [ScenarioSlot|null, ScenarioSlot|null, ScenarioSlot|null]; readonly accelerationCounters: number; readonly revenants: number; readonly attacksDeclaredThisTurn: number; readonly blocksDeclaredThisTurn: number; readonly previousPlayedValue: number|null; readonly previousAttackSuit: ScenarioSlot["suit"]|null; }
 export interface TestScenario { readonly version: 1; readonly turn: number; readonly priority: 1|2; readonly players: {readonly 1: ScenarioPlayer; readonly 2: ScenarioPlayer}; }
 export interface TestStart { readonly source?: WorkshopSource; readonly subject?: TestSubject; readonly expectedRevision?: number; readonly factionId?: string; readonly encounterId?: string; readonly scenario?: TestScenario; }
 export interface TestIdentity { readonly source: WorkshopSource; readonly subject: TestSubject & {readonly label: string}; readonly contentHash: string; readonly draftHash: string|null; readonly draftRevision: number|null; readonly releaseId: string; readonly binding: ContentBinding; readonly scenario: TestScenario|null; readonly scenarioHash: string|null; readonly expiresAt: string; }
+
+/** Private test result only. Never serialized into match state or public events. */
+export interface MechanicsTraceStep {
+  readonly step: "eligibility" | "condition" | "effect" | "usage" | "expiration" | "rejected";
+  readonly message: string; readonly source?: string; readonly sourceId?: string;
+  readonly ability?: number; readonly order?: number; readonly revision?: number;
+  readonly required?: number; readonly paid?: number; readonly target?: string | number;
+  readonly condition?: { readonly kind: string; readonly amount?: number }; readonly observed?: number | boolean;
+  readonly operation?: "attackBonus" | "gainLife"; readonly duration?: "combat" | "instant";
+  readonly before?: number; readonly amount?: number; readonly after?: number; readonly costsCommitted?: false;
+}

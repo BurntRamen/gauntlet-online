@@ -1,10 +1,5 @@
-export function findCollectorVariant(gameplayCardId, collectorCatalog = [], selectedVariantId = "") {
-  const candidates = collectorCatalog.filter((variant) => variant?.gameplayCardId === gameplayCardId);
-  return candidates.find((variant) => variant.variantId === selectedVariantId)
-    || candidates.find((variant) => variant.paid === false)
-    || candidates[0]
-    || null;
-}
+import { resolvePrinting } from "@gauntlet/duel-rules/printings";
+export const findCollectorVariant = resolvePrinting;
 
 export function getGameplayCardArt(gameplayCardId, collectorCatalog = [], selectedVariantId = "") {
   return findCollectorVariant(gameplayCardId, collectorCatalog, selectedVariantId)?.art || "";

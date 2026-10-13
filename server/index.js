@@ -2,6 +2,8 @@ const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALU
 const encounterDefaults = require("./encounterDefinitions.json");
 const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
 const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
+const { resolvePrinting, canUsePrinting } = require("../shared/duel-rules/printings");
+const { resolveComposition, compositionPayload } = require("../shared/duel-rules/deckContract");
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const CLIENT_URLS = (process.env.CLIENT_URLS || "")
@@ -168,9 +170,9 @@ const {
   SHEEN_COLLECTION_CARDS,
   campaignChapters,
   factionsData,
-  getCollectorVariantById,
+  getCollectorVariantById: getSourceCollectorVariantById,
   getFactionById,
-  getGameplayCardById,
+  getGameplayCardById: getSourceGameplayCardById,
   getPublicGameContent: getSourceGameContent,
   listFactions
 } = require("./gameContent");
@@ -185,6 +187,9 @@ const {
 
 let contentPublication = null;
 function getPublicGameContent() { return contentPublication ? contentPublication.active().manifest : getSourceGameContent(); }
+const { available: contentAvailable, cardsFor, assertConstructedCards } = require("./releaseCatalog");
+function getGameplayCardById(id) { return contentPublication ? contentPublication.lookupCard(id) : getSourceGameplayCardById(id); }
+function getCollectorVariantById(id) { return contentPublication ? contentPublication.lookupVariant(id) : getSourceCollectorVariantById(id); }
 const { createAuthoredBaseline, pinGameContent } = require("./authoredContent");
 const { createContentPublication, registerContentPublicationRoutes } = require("./contentPublication");
 
@@ -226,6 +231,7 @@ const corsOptions = {
 const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
+server.on("listening", () => require("./contentAssets").setDeliveryOrigin(process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${server.address().port}`));
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
@@ -248,6 +254,11 @@ app.get(["/api/admin/access", "/admin/gauntlet", "/admin/gauntlet/{*section}"], 
   res.json({ authorized: true, accountId: req.gauntletAdminAccount.id });
 });
 app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
+app.use("/api/admin/authoring/assets/upload", express.json({ limit: "4200kb" }));
+app.use("/api/admin/authoring/assets/upload", (error, req, res, next) => {
+  if (!error) return next();
+  res.status(error.status === 413 ? 413 : 400).json({ error: "Upload request is invalid or too large. Use a still image up to 3 MiB." });
+});
 app.use("/api/admin/authoring", express.json({ limit: "160kb" }));
 app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
 app.use(express.json({ limit: "20kb" }));
@@ -334,21 +345,8 @@ app.get("/api/storage-status", async (_req, res) => {
 });
 
 // ============ ACCOUNT AUTH ============
-function loadAccountStore() {
-  try {
-    if (!fs.existsSync(ACCOUNT_DATA_FILE)) return { accounts: [] };
-    const parsed = JSON.parse(fs.readFileSync(ACCOUNT_DATA_FILE, "utf8"));
-    return { accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [] };
-  } catch (error) {
-    console.error("[Accounts] Failed to load account store", error);
-    return { accounts: [] };
-  }
-}
-
-function saveAccountStore(store) {
-  fs.mkdirSync(path.dirname(ACCOUNT_DATA_FILE), { recursive: true });
-  fs.writeFileSync(ACCOUNT_DATA_FILE, JSON.stringify(store, null, 2));
-}
+function loadAccountStore() { return require("./accountStore").read(ACCOUNT_DATA_FILE); }
+function saveAccountStore(store) { return require("./accountStore").save(ACCOUNT_DATA_FILE, store); }
 
 function emptyFactionStatsStore() {
   return {
@@ -809,7 +807,7 @@ function normalizeCollection(stats = {}) {
   for (const [gameplayCardId, variantId] of Object.entries(collection.selectedVariants || {})) {
     const variant = getCollectorVariantById(String(variantId));
     if (!variant || variant.gameplayCardId !== gameplayCardId) continue;
-    if (variant.paid && !collectorVariants[variant.variantId]) continue;
+    if (!canUsePrinting(variant, collectorVariants)) continue;
     selectedVariants[gameplayCardId] = variant.variantId;
   }
   const openedGameplayPacks = Math.max(0, Number(collection.openedGameplayPacks ?? collection.openedPacks ?? 0));
@@ -864,9 +862,10 @@ function publicCollectorVariant(variant, content = null) {
 
 function collectionSummary(stats = {}) {
   const manifest = getPublicGameContent();
-  const catalog = Object.fromEntries([...new Set(COLLECTION_CARDS.map((card) => card.factionId))].map((factionId) => [
+  const visibleCards = manifest.cards.filter(card => contentAvailable(card, "library") || contentAvailable(card, "constructed") || Number(stats.collection?.gameplayEntitlements?.[card.id]) > 0);
+  const catalog = Object.fromEntries([...new Set(visibleCards.map((card) => card.factionId))].map((factionId) => [
     factionId,
-    COLLECTION_CARDS.filter((card) => card.factionId === factionId).map((card) => getPlayableCollectionCard(card, {}, manifest))
+    visibleCards.filter((card) => card.factionId === factionId).map((card) => getPlayableCollectionCard(card, {}, manifest))
   ]));
   return {
     ...normalizeCollection(stats),
@@ -908,17 +907,26 @@ function createDraftPlayerSeat() {
 }
 
 function getDraftSet(setId = "initiative") {
-  return DRAFT_SETS.find((set) => set.id === setId) || DRAFT_SETS.find((set) => set.id === "initiative");
+  return contentPublication ? contentPublication.lookupSet(setId) : DRAFT_SETS.find(set => set.id === setId);
 }
 
 function normalizeDraftType(draftType) {
   return draftType === "bot" || draftType === "sealed" ? draftType : "player";
 }
 
-function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent()) {
+function bindLimitedRelease(draft, manifest, format, resolved) {
+  const set = manifest.draftSets.find(set => set.id === (draft.setId || "initiative"));
+  if (!set?.[format === "sealed" ? "sealedAvailable" : "draftAvailable"]) throw new Error("This set is no longer available in the published release. Choose an available set.");
+  draft.factionIds = [...set.factionIds]; draft.setName = set.name;
+  draft.contentVersion = manifest.contentVersion;
+  draft.resolvedContent = clonePlain(resolved);
+}
+
+function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent(), setId = null, format = "draft") {
+  const pool = cardsFor(manifest, format, { setId });
   const availableFactionIds = (factionIds || [])
-    .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
-  if (NEUTRAL_COLLECTION_CARDS.length) availableFactionIds.push(NEUTRAL_FACTION_ID);
+    .filter((factionId) => pool.some((card) => card.factionId === factionId));
+  if (!availableFactionIds.includes(NEUTRAL_FACTION_ID) && pool.some(card => card.factionId === NEUTRAL_FACTION_ID)) availableFactionIds.push(NEUTRAL_FACTION_ID);
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   return {
     id: crypto.randomUUID(),
@@ -926,7 +934,7 @@ function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameConten
     cards: DRAFT_PACK_SLOTS.map((slot) => {
       const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      const card = pickCollectionCard(factionId, rarity, manifest);
+      const card = pickCollectionCard(factionId, rarity, manifest, format, setId);
       return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
     }).filter(Boolean)
   };
@@ -1286,11 +1294,11 @@ function resolveCollectorVariantSelections(collection, gameplayCardQuantities, r
     const requestedVariantId = requestedSelections[gameplayCardId]
       || collection.selectedVariants?.[gameplayCardId]
       || gameplayCard.defaultVariantId;
-    const variant = getCollectorVariantById(requestedVariantId);
+    const variant = resolvePrinting(gameplayCardId, getPublicGameContent().collectorVariants, requestedVariantId, gameplayCard.defaultVariantId);
     if (!variant || variant.gameplayCardId !== gameplayCardId) {
       throw new Error(`Choose a collector variant made for ${gameplayCard.name}.`);
     }
-    if (variant.paid && !collection.collectorVariants?.[variant.variantId]) {
+    if (!canUsePrinting(variant, collection.collectorVariants)) {
       throw new Error(`You do not own the ${variant.name} collector variant.`);
     }
     selections[gameplayCardId] = variant.variantId;
@@ -1304,7 +1312,8 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
       const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
       if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) || count <= 0) return [];
-      const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
+      const variant = resolvePrinting(cardId, getPublicGameContent().collectorVariants, collectorVariantSelections[cardId], card.defaultVariantId);
+      if (!variant) throw new Error("Saved printing is unavailable or belongs to another card.");
       return Array.from({ length: count }, () => {
         const suit = card.suit;
         return getPlayableCollectionCard(card, {
@@ -1327,7 +1336,7 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
     });
 }
 
-function getSavedConstructedDeck(stats = {}) {
+function getSavedConstructedDeck(stats = {}, selection = null, { competitive = false, inspect = false } = {}) {
   const libraryRecord = getActiveDeckRecord(stats, "constructed");
   const libraryVersion = getDeckRecordVersion(libraryRecord);
   const deck = libraryVersion ? {
@@ -1340,7 +1349,12 @@ function getSavedConstructedDeck(stats = {}) {
   } : stats.savedConstructedDeck;
   const gameplayCardQuantities = deck?.gameplayCardQuantities || deck?.cardQuantities;
   if (!deck || !deck.factionId || !gameplayCardQuantities || typeof gameplayCardQuantities !== "object") return null;
+  if (selection && (deck.factionId !== selection.factionId || (selection.generalId !== undefined && (deck.generalId || getFactionById(deck.factionId)?.general?.id || null) !== selection.generalId))) return null;
+  const savedDefinitions = Object.entries(gameplayCardQuantities).filter(([, count]) => Number(count) > 0).map(([id]) => getGameplayCardById(id));
+  assertConstructedCards(savedDefinitions);
+  if (savedDefinitions.some(card => !card)) return null;
   const collection = normalizeCollection(stats);
+  if (!competitive && !inspect && savedDefinitions.some(card => !(Number(collection.gameplayEntitlements?.[card.id]) > 0))) throw Object.assign(new Error("This deck uses ranked/event card access. Earn the selected cards to use it in casual or campaign play, or choose a different deck."), { status: 422, code: "CONTENT_DECK_UNAVAILABLE" });
   let collectorVariantSelections;
   try {
     collectorVariantSelections = resolveCollectorVariantSelections(
@@ -1349,7 +1363,7 @@ function getSavedConstructedDeck(stats = {}) {
       deck.collectorVariantSelections || {}
     );
   } catch (error) {
-    collectorVariantSelections = resolveCollectorVariantSelections(collection, gameplayCardQuantities, {});
+    throw Object.assign(new Error("Your saved printing selection is unavailable or not owned. Edit or choose another deck; ownership and saved references are retained."), { code: "CONTENT_DECK_UNAVAILABLE", status: 422 });
   }
   const cards = expandConstructedCardQuantities(
     gameplayCardQuantities,
@@ -1380,6 +1394,8 @@ function getSavedConstructedDeck(stats = {}) {
     cardQuantities: canonicalQuantities,
     gameplayCardQuantities: canonicalQuantities,
     cardSuitChoices: canonicalSuitChoices,
+    accessMode: deck.accessMode || "earned",
+    cardBackId: deck.cardBackId || null,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
     frontCardSlot: normalizeFrontCardSlot(deck.frontCardSlot),
     collectorVariantSelections,
@@ -1393,6 +1409,8 @@ function getSavedConstructedDeck(stats = {}) {
 }
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  if (payload.accessMode != null && !["earned", "competitive"].includes(payload.accessMode)) throw new Error("Choose earned or competitive card access.");
+  if (payload.cardBackId != null && !normalizeProgression(stats).cosmetics.unlockedCardBacks.includes(payload.cardBackId)) throw new Error("Choose an unlocked card back.");
   if (payload.frontCardSlot != null && !normalizeFrontCardSlot(payload.frontCardSlot)) {
     throw new Error("Choose a valid front card from the 52-card deck.");
   }
@@ -1402,7 +1420,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   }
   const factionId = String(payload.factionId || "");
   const faction = getFactionById(factionId);
-  if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
+  if (!faction || faction.campaignOnly) throw new Error("Choose a valid faction for the constructed deck.");
   const requestedQuantities = payload.gameplayCardQuantities || payload.cardQuantities;
   const requested = requestedQuantities && typeof requestedQuantities === "object" ? requestedQuantities : {};
   const requestedVariantSelections = payload.collectorVariantSelections && typeof payload.collectorVariantSelections === "object"
@@ -1410,47 +1428,28 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     : {};
   const collection = normalizeCollection(stats);
   const sanitized = {};
-  const sanitizedSuitChoices = {};
-  let totalReplacements = 0;
-  const valueCounts = {};
-  const slotCounts = {};
-
   for (const [cardId, rawQuantity] of Object.entries(requested)) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
     if (quantity <= 0) continue;
     const card = getCollectionCatalogCard(cardId);
-    if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID)) throw new Error("Constructed decks can include one faction plus neutral Reath cards.");
-    const value = getReplacementCardValue(card);
-    if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
-    if (quantity > 1) throw new Error(`${card.name} occupies only the ${value} of ${card.suit}; a deck can include it once.`);
+    if (quantity !== 1 || !Number.isFinite(quantity)) throw new Error(card ? `${card.name} occupies only the ${card.value} of ${card.suit}; a deck can include it once.` : "Choose a valid gameplay card.");
     const entitled = Math.max(0, Math.floor(Number(collection.gameplayEntitlements?.[cardId] || 0)));
-    if (quantity > entitled) {
-      throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card.name}.`);
-    }
-    valueCounts[value] = (valueCounts[value] || 0) + quantity;
-    if (valueCounts[value] > MAX_REPLACEMENTS_PER_VALUE) {
-      throw new Error(`Your 52-card deck can only have ${MAX_REPLACEMENTS_PER_VALUE} cards with value ${value}. Swap fewer cards at that value.`);
-    }
-    totalReplacements += quantity;
-    if (totalReplacements > MAX_CONSTRUCTED_REPLACEMENTS) {
-      throw new Error(`Constructed decks stay at ${BASE_PLAYING_DECK_SIZE} cards total.`);
-    }
+    if (payload.accessMode !== "competitive" && quantity > entitled) throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card?.name || cardId}.`);
     sanitized[cardId] = quantity;
-    sanitizedSuitChoices[cardId] = [card.suit];
-    for (const suit of sanitizedSuitChoices[cardId]) {
-      const slotKey = `${value}:${suit}`;
-      slotCounts[slotKey] = (slotCounts[slotKey] || 0) + 1;
-      if (slotCounts[slotKey] > 1) {
-        throw new Error(`Only one card can replace the ${value} of ${suit}. Choose a different suit for one of those cards.`);
-      }
-    }
   }
-
-  const collectorVariantSelections = resolveCollectorVariantSelections(
-    collection,
-    sanitized,
-    requestedVariantSelections
-  );
+  const collectorVariantSelections = resolveCollectorVariantSelections(collection, sanitized, requestedVariantSelections);
+  // The player saver, Admin decks, shop fulfillment and opponents share the
+  // same slot, faction, release availability and printing contract.
+  const loadout = require("../shared/duel-rules/deckContract").resolveComposition({
+    factionId, generalId: payload.generalId || faction.general?.id || null,
+    cards: Object.keys(sanitized).map(cardId => ({ cardId, printingId: collectorVariantSelections[cardId] }))
+  }, getPublicGameContent(), { channel: "constructed", ownership: collection, allCards: payload.accessMode === "competitive" });
+  const totalReplacements = loadout.replacementCount, valueCounts = {}, slotCounts = {}, sanitizedSuitChoices = {};
+  for (const card of loadout.cards) {
+    valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
+    slotCounts[`${card.value}:${card.suit}`] = 1;
+    sanitizedSuitChoices[card.id] = [card.suit];
+  }
 
   return {
     name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
@@ -1473,6 +1472,8 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     cardQuantities: sanitized,
     gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
+    accessMode: payload.accessMode || "earned",
+    cardBackId: payload.cardBackId || null,
     deckBoxId: normalizeDeckBoxId(payload.deckBoxId),
     frontCardSlot: normalizeFrontCardSlot(payload.frontCardSlot),
     collectorVariantSelections,
@@ -1565,7 +1566,7 @@ function saveConstructedDeckToLibrary(stats = {}, payload = {}, ownerId = null) 
   library.activeConstructedDeckId = record.id;
   stats.deckLibrary = library;
   syncLegacyDeckPointers(stats);
-  return { record, playableDeck: getSavedConstructedDeck(stats) };
+  return { record, playableDeck: getSavedConstructedDeck(stats, null, { inspect: true }) };
 }
 
 function saveDraftDeckToLibrary(stats = {}, savedDraftDeck, ownerId = null) {
@@ -1737,7 +1738,8 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  return profile ? { ...stats, profile, economy } : { ...stats, economy };
+  const { _accountRevision, ...visible } = stats;
+  return profile ? { ...visible, profile, economy } : { ...visible, economy };
 }
 
 function economySummary(stats = {}) {
@@ -3126,16 +3128,17 @@ function getDraftLeagueProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
-function pickCollectionCard(factionId, rarity, manifest = null) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
+function pickCollectionCard(factionId, rarity, manifest = getPublicGameContent(), channel = "earnedPacks", setId = null) {
+  const cardPool = cardsFor(manifest, channel, { factionId, rarity, setId });
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function pickCollectionCardFromPool(rarity) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID && card.rarity === rarity);
+  const manifest = getPublicGameContent();
+  const cardPool = cardsFor(manifest, "earnedPacks", { rarity }).filter((card) => card.factionId !== NEUTRAL_FACTION_ID);
   if (cardPool.length === 0) return null;
-  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function resolveBoosterSlot(slot) {
@@ -3211,7 +3214,7 @@ function grantPurchasedCollectorPack(stats, productId, options = {}) {
   if (!product) throw new Error("Unknown collector pack.");
   if (product.available === false) throw new Error(product.unavailableReason || `${product.name} is not available yet.`);
   const eligibleFactionIds = new Set(product.factionIds || (product.factionId ? [product.factionId] : []));
-  const eligibleVariants = COLLECTOR_VARIANTS.filter((variant) => (
+  const eligibleVariants = getPublicGameContent().collectorVariants.filter((variant) => (
     variant.paid
     && variant.acquisition === PAID_COLLECTOR_ACQUISITION
     && eligibleFactionIds.has(getGameplayCardById(variant.gameplayCardId)?.factionId)
@@ -3317,7 +3320,7 @@ function buildCompetitiveCapabilitySnapshot(stats = {}) {
       simultaneousLifeDepletion: "higher remaining life wins; equal life draws",
       concession: "the conceding player loses"
     },
-    gameplayPool: COLLECTION_CARDS
+    gameplayPool: getPublicGameContent().cards
       .filter((card) => Number(collection.gameplayEntitlements[card.gameplayCardId] || 0) > 0)
       .map((card) => ({
         gameplayCardId: card.gameplayCardId,
@@ -3882,6 +3885,48 @@ app.post("/api/collection/open-pack", async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message || "Could not open booster pack." });
   }
+});
+
+async function deckPurchaseCapability() {
+  if (!useSupabaseStore()) return { ready: true, storage: "atomic-account-file" };
+  try {
+    const version = await supabaseRequest("rpc/gauntlet_account_write_capability", { method: "POST", body: "{}" });
+    if (version === 1) return { ready: true, storage: "supabase-revision-guard" };
+  } catch { /* Absence is a capability failure, never permission to debit. */ }
+  return { ready: false, reason: "Deck purchases require the account concurrency migration on this service's database." };
+}
+async function purchaseDeckProduct(accountId, input) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Deck purchases are not configured safely yet. No payment was taken."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
+    const result = require("./deckCommerce").preparePurchase(account, input, contentPublication.active(), { normalizeCollection, normalizeProgression, saveDeck: saveConstructedDeckToLibrary });
+    if (!result.alreadyPurchased) {
+      if (store) { account.stats = result.stats; saveAccountStore(store); }
+      else await patchSupabaseAccount(accountId, { stats: result.stats, last_seen_at: result.receipt.purchasedAt });
+    }
+    const updated = store ? account : await findSupabaseAccountById(accountId);
+    return { account: publicAccount(updated), receipt: result.receipt, alreadyPurchased: result.alreadyPurchased };
+  });
+}
+app.get("/api/economy/deck-products", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const resolved = contentPublication.active();
+  const offers = resolved.manifest.deckOffers.filter(offer => offer.status === "available");
+  const ids = new Set(offers.flatMap(offer => offer.template.composition.cards.map(card => card.cardId)));
+  res.json({ offers, cards: resolved.manifest.cards.filter(card => ids.has(card.id)), collectorVariants: resolved.manifest.collectorVariants.filter(variant => ids.has(variant.gameplayCardId)), capability: await deckPurchaseCapability(), releaseId: resolved.releaseId });
+});
+app.get("/api/economy/deck-receipts", async (req, res) => {
+  const context = await requireAccountRecord(req, res); if (!context) return;
+  res.set("Cache-Control", "no-store");
+  res.json({ receipts: Object.entries(normalizeEconomy(context.account.stats).purchaseReceipts).filter(([key]) => key.startsWith("deck:")).map(([, receipt]) => receipt).sort((a, b) => b.purchasedAt.localeCompare(a.purchasedAt)) });
+});
+app.post("/api/economy/buy-deck-product", async (req, res) => {
+  try {
+    const context = await requireAccountRecord(req, res); if (!context) return;
+    res.json(await purchaseDeckProduct(context.account.id, req.body));
+  } catch (error) { res.status(error.status || 409).json({ error: error.message || "Purchase was not confirmed. Retry the same request.", purchaseRejected: error.purchaseRejected === true }); }
 });
 
 app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
@@ -4471,6 +4516,12 @@ app.get("/api/leaderboard", async (req, res) => {
   });
 });
 
+function profileForDeck(player) {
+  const profile = clonePlain(player.profile || {}), back = player.savedConstructedDeck?.cardBackId;
+  if (back && PROGRESSION_COSMETICS.cardBacks[back]) profile.cosmetics = { ...profile.cosmetics, selectedCardBack: back };
+  return Object.keys(profile).length ? profile : null;
+}
+
 function getCampaignNarration(chapterId) {
   return CAMPAIGN_NARRATION[chapterId] || {};
 }
@@ -4513,10 +4564,10 @@ function getCampaignDifficulty(factionId, chapterId, setup = encounterDefaults[c
   return campaignDifficulty(setup);
 }
 
-function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup = encounterDefaults[campaignChapters[factionId]?.[chapterIndex]?.id]) {
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup = encounterDefaults[campaignChapters[factionId]?.[chapterIndex]?.id], manifest = getPublicGameContent()) {
   return (setup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
-    .map((cardId) => getCollectionCatalogCard(cardId)).filter(Boolean)
-    .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }));
+    .map((cardId) => manifest.cards.find(card => card.id === cardId)).filter(card => contentAvailable(card, "encounters"))
+    .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }, manifest));
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
@@ -4761,8 +4812,14 @@ const adminPlaytests = createAdminPlaytests({ publication: contentPublication, c
     } else {
       // Populate both decks from the selected draft faction to exercise its effects.
       for (const player of [1, 2]) room.lobby.players[player].savedConstructedDeck = { cards: resolved.manifest.cards.filter((card) => card.factionId === room.lobby.players[player].factionId).map((card, index) => ({ ...card, suit: DRAFT_CARD_SUITS[index % 4] })) };
+      if (selection.templateId) {
+        const template = resolved.manifest.deckTemplates.find(row => row.id === selection.templateId);
+        const loadout = resolveComposition(template.composition, resolved.manifest);
+        room.lobby.players[1].generalId = loadout.general.id;
+        room.lobby.players[1].savedConstructedDeck = { cards: loadout.cards, templateId: template.id, templateRevision: template.revision };
+      }
     }
-    createGameFromLobby(room, { contentRelease: resolved, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
+    createGameFromLobby(room, { contentRelease: resolved, isolatedPlaytest: true, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
     return room.game;
   }
 });
@@ -5078,7 +5135,8 @@ function openSealedPool(roomState, playerNum = 1) {
   const draft = roomState.draft;
   if (!draft?.sealed) throw new Error("That room is not a sealed event.");
   const key = String(playerNum);
-  const manifest = getPublicGameContent();
+  const resolved = contentPublication.active(), manifest = resolved.manifest;
+  bindLimitedRelease(draft, manifest, "sealed", resolved);
   draft.status = "building";
   draft.activePlayers = [playerNum];
   draft.round = 0;
@@ -5089,7 +5147,7 @@ function openSealedPool(roomState, playerNum = 1) {
   draft.draftedPools = { [key]: [] };
   draft.deckAdditions = { [key]: [] };
   for (let packIndex = 0; packIndex < SEALED_PACKS_PER_PLAYER; packIndex++) {
-    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest).cards);
+    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest, draft.setId, "sealed").cards);
   }
   draft.completedAt = new Date().toISOString();
 }
@@ -5432,7 +5490,8 @@ async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
     if (lobbyPlayer) lobbyPlayer.savedConstructedDeck = null;
     return;
   }
-  const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId));
+  lobbyPlayer.savedConstructedDeck = null;
+  const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId), { factionId: lobbyPlayer.factionId, generalId: lobbyPlayer.generalId });
   lobbyPlayer.savedConstructedDeck = savedConstructedDeck?.factionId === lobbyPlayer.factionId
     && (savedConstructedDeck.generalId || null) === (lobbyPlayer.generalId || null) ? savedConstructedDeck : null;
 }
@@ -5747,7 +5806,8 @@ function startDraft(roomState) {
   const draft = roomState.draft;
   // Resolve the release once for all 192 cards. Resolving/cloning the full
   // catalog per card blocks Socket.IO heartbeats on the production instance.
-  const manifest = getPublicGameContent();
+  const resolved = contentPublication.active(), manifest = resolved.manifest;
+  bindLimitedRelease(draft, manifest, "draft", resolved);
   const activePlayers = getConnectedDraftPlayers(roomState);
   draft.status = "drafting";
   draft.activePlayers = activePlayers;
@@ -5766,7 +5826,7 @@ function startDraft(roomState) {
     draft.draftedPools[key] = [];
     draft.deckAdditions[key] = [];
     for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
-      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest));
+      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest, draft.setId, "draft"));
     }
     draft.currentPacks[key] = draft.unopenedPacks[key].shift();
   });
@@ -7677,12 +7737,16 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
   if (!faction || !chapter?.setup) throw new Error("Unknown encounter.");
   const difficulty = getCampaignDifficulty(factionId, chapterId, chapter.setup);
   const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
-  const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup);
-  const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss", chapter.setup);
+  const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup, resolvedContent.manifest);
+  const opponentTemplate = chapter.opponentDeckId && resolvedContent.manifest.deckTemplates.find(row => row.id === chapter.opponentDeckId);
+  if (chapter.opponentDeckId && (!opponentTemplate?.destinations.encounter || opponentTemplate.composition.factionId !== factionId || chapter.setup.bossAdditions.length)) throw new Error("This encounter's authored opponent deck is incompatible. Correct the deck assignment and legacy additions before starting.");
+  const bossCampaignCards = opponentTemplate ? resolveComposition(opponentTemplate.composition, resolvedContent.manifest, { channel: "encounters" }).cards : getCampaignDeckAdditions(factionId, chapterIndex, "boss", chapter.setup, resolvedContent.manifest);
+  if (opponentTemplate) roomState.lobby.players[2].generalId = opponentTemplate.composition.generalId;
   const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
   const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
   roomState.lobby.gameMode = "factions";
   roomState.lobby.campaign = {
+    ...(opponentTemplate ? { opponentTemplate: { id: opponentTemplate.id, revision: opponentTemplate.revision, name: opponentTemplate.name, composition: clonePlain(opponentTemplate.composition) } } : {}),
     setup: clonePlain(chapter.setup),
     factionId,
     chapterId,
@@ -7714,7 +7778,14 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
 }
 
 function createGameFromLobby(roomState, options = {}) {
-  const resolvedContent = options.contentRelease || contentPublication.active();
+  const resolvedContent = options.contentRelease || roomState.draft?.resolvedContent || contentPublication.active();
+  if (!options.contentRelease && roomState.draft?.contentVersion && roomState.draft.contentVersion !== resolvedContent.releaseId) throw Object.assign(new Error("This limited session has no recoverable release binding. Its pool is retained; restore its original content before starting a match."), { code: "CONTENT_LIMITED_RELEASE_UNAVAILABLE", status: 422 });
+  // Recheck queued/cached decks against this game's release, before changing
+  // the room. A publication may have changed legality while players waited.
+  // The private harness also needs to test cards before they become legal.
+  for (const player of Object.values(roomState.lobby.players)) if (!options.isolatedPlaytest && !player.savedDraftDeck?.cards?.length) {
+    assertConstructedCards((player.savedConstructedDeck?.cards || []).map(card => resolvedContent.manifest.cards.find(row => row.id === (card.gameplayCardId || card.id))));
+  }
   if (isFreeForAllRoom(roomState)) {
     createFreeForAllGameFromLobby(roomState, resolvedContent);
     return;
@@ -7834,7 +7905,7 @@ function createGameFromLobby(roomState, options = {}) {
         id: 1,
         accountId: roomState.lobby.players[1].accountId || null,
         accountName: roomState.lobby.players[1].accountName || null,
-        profile: clonePlain(roomState.lobby.players[1].profile || null),
+        profile: profileForDeck(roomState.lobby.players[1]),
         faction: faction1,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -7850,7 +7921,7 @@ function createGameFromLobby(roomState, options = {}) {
         accountId: roomState.lobby.players[2].accountId || null,
         accountName: roomState.lobby.players[2].accountName || null,
         opponentKind: roomState.lobby.players[2].opponentKind || (roomState.lobby.campaign ? "campaign-boss" : null),
-        profile: clonePlain(roomState.lobby.players[2].profile || null),
+        profile: profileForDeck(roomState.lobby.players[2]),
         faction: faction2,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -8092,7 +8163,7 @@ io.on("connection", (socket) => {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Choose a valid ranked faction and General." });
       return;
     }
-    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const savedDeck = selectedFaction ? getSavedConstructedDeck(account.stats || {}, { factionId: selectedFaction.id, generalId: selectedFaction.general?.id || null }, { competitive: true }) : null;
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -8163,7 +8234,7 @@ io.on("connection", (socket) => {
       socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Choose a valid faction and General for this event." });
       return;
     }
-    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const savedDeck = selectedFaction ? getSavedConstructedDeck(account.stats || {}, { factionId: selectedFaction.id, generalId: selectedFaction.general?.id || null }, { competitive: true }) : null;
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -8530,6 +8601,7 @@ io.on("connection", (socket) => {
       return;
     }
 
+    const campaignConstructedDeck = getSavedConstructedDeck(accountStats, { factionId });
     const roomState = createRoom();
     const { difficulty, bossAbility } = prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId);
     roomState.lobby.players[1].socket = socket.id;
@@ -8540,7 +8612,6 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].profile = clonePlain(identity.profile || null);
     roomState.lobby.players[1].factionId = factionId;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
-    const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
     roomState.lobby.players[1].savedConstructedDeck = campaignConstructedDeck?.factionId === factionId ? campaignConstructedDeck : null;
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
@@ -10301,6 +10372,8 @@ module.exports = {
     createFreeForAllGameFromLobby,
     createGameFromLobby,
     contentPublication,
+    purchaseDeckProduct,
+    deckPurchaseCapability,
     createMatchedRoom,
     createDraftLeagueRoom,
     continueBestOf3Series,
@@ -10320,6 +10393,8 @@ module.exports = {
     buildCompetitiveCapabilitySnapshot,
     buildCollectorVariantProvenance,
     createDraftPack,
+    collectionSummary,
+    openCollectionBooster,
     createDraftRoom,
     matchArchive,
     matchPersistence,

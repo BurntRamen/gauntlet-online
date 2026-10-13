@@ -89,6 +89,7 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
     {row && <><div className="workshop-editor" hidden={["preview", "test"].includes(group)}>
       <section hidden={group !== "story"} id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</section>
       <section hidden={group !== "setup"} id="workshop-setup" tabIndex={-1}><h4>Opponent / Setup</h4><p>Opponent: {opponent ? <button type="button" onClick={() => onInspect("characters", opponent.id)}>{opponent.name}</button> : "Not recorded"}<br />Effective player faction: {faction ? <button type="button" onClick={() => onInspect("factions", faction.id)}>{faction.name}</button> : "Not recorded"}</p>
+        {field("opponentDeckId")}{row.opponentDeckId && <button type="button" onClick={() => onInspect("decks", row.opponentDeckId)}>Inspect assigned opponent recipe</button>}
         {field("setup", { renderContract: (props) => <EncounterSetupFields {...props} /> })}
         <details><summary>Technical · identity and routing</summary><pre className="admin-protected">{JSON.stringify({ encounter: row.id, campaign: row.campaignId, opponent: row.opponentId, deck: row.deckId, nextEncounter: row.nextEncounterId, branches: row.branches }, null, 2)}</pre></details>
       </section>

@@ -19,10 +19,21 @@ require.cache[configPath].exports = (environment) => {
     ...config.optimization.splitChunks,
     cacheGroups: {
       ...config.optimization.splitChunks?.cacheGroups,
+      sharedAuthoringConsumers: {
+        // The player shop and Admin use one actual offer renderer; the engine
+        // and guided mechanics editor use one validator. Do not duplicate these
+        // shared runtime modules in the small private workshop chunks.
+        test: /[\\/]src[\\/]DeckOfferCard\.js$|[\\/]shared[\\/]duel-rules[\\/]compositionContract\.js$/,
+        name: "content-consumers",
+        chunks: "async",
+        minChunks: 2,
+        enforce: true,
+        priority: 40
+      },
       adminShared: {
         // Workshop panels share these small modules; count the named split in
         // the aggregate Admin budget rather than duplicating it in each panel.
-        test: /[\\/]src[\\/]admin[\\/](?:WorkshopShell|RelatedContent)\.js$/,
+        test: /[\\/]src[\\/](?:admin[\\/](?:WorkshopShell|RelatedContent)|GauntletContractFields)\.js$/,
         name: "gauntlet-admin-shared",
         chunks: "async",
         minChunks: 2,

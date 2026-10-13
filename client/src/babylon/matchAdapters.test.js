@@ -1050,3 +1050,26 @@ test("a live adapter waits for the next chapter snapshot without declaring rende
   expect(updates.at(-1).viewModel.matchId).toBe(next.matchId);
   adapter.dispose();
 });
+
+
+test("a new composed armament is selectable and executed through the player action interface", () => {
+  const composition = require("@gauntlet/duel-rules/compositionContract"), effect = composition.create();
+  effect.abilities[0].condition = { kind: "overpay", amount: 2 };
+  effect.abilities[0].effects.push({ kind: "gainLife", amount: 1, ...composition.operations.gainLife });
+  const adapter = createLocalDuelAdapter({ seed: "new-composed-card", gameMode: "factions", factions: { 1: { id: "rumin", name: "Rumin" }, 2: { id: "sheen", name: "Sheen" } } });
+  const player = adapter.controller, hand = adapter.game.players[player].hand, weapon = hand.splice(2, 1)[0];
+  Object.assign(hand[0], { value: 2, rank: "2" }); Object.assign(hand[1], { value: 14, rank: "A" });
+  makeConstructed(weapon, "auth-card-fixture", { type: "armament", factionId: "rumin", name: "Composed fixture", effect });
+  adapter.game.lanes[0].support[player] = weapon;
+  const beforeLife = adapter.game.players[player].life;
+  let update = latestUpdate(adapter); update.commands.activateHandCard(0);
+  update = latestUpdate(adapter); update.commands.activateHandCard(1);
+  update = latestUpdate(adapter);
+  expect(update.viewModel.interactions.abilities.find(ability => ability.id === "constructed:arm:" + weapon.id)).toEqual(expect.objectContaining({ available: true }));
+  update.commands.activateAbility("constructed:arm:" + weapon.id);
+  update = latestUpdate(adapter); update.commands.confirmCurrentAction(); update = latestUpdate(adapter);
+  expect(update.diagnostics.game.handAttacks[0].effectiveValue).toBe(4);
+  expect(update.diagnostics.game.players[player].life).toBe(beforeLife + 1);
+  expect(update.diagnostics.game.lanes[0].support[player]).toBeNull();
+  adapter.dispose();
+});

@@ -5,6 +5,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { createContentPublication } = require("./contentPublication");
 const { clone, hash, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
+const imageAssets = require("./authoredAssets");
 const REPOSITORY = "BurntRamen/gauntlet-online";
 const DRAFT_BRANCH = "codex/gauntlet-admin-draft";
 const DRAFT_PATH = "content/gauntlet-draft.json";
@@ -40,12 +41,12 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   async function readFile(ref, filename) {
     const text = await request(`contents/${filename}?ref=${encode(ref)}`, { raw: true, missing: true });
     if (text === null) return null;
-    if (Buffer.byteLength(text) > MAX_BYTES) fail(503, "The content history exceeds the supported size. Archive older releases before authoring again.");
+    if (Buffer.byteLength(text) > MAX_BYTES) fail(503, "The retained content package exceeds 16 MiB. Storage expansion is required; no history was removed.");
     return { value: JSON.parse(text), sha: blobSha(Buffer.from(text)) };
   }
   async function putFile(branch, filename, value, previousSha, message) {
     const content = bytes(value);
-    if (content.length > MAX_BYTES) fail(422, "The content history exceeds the supported size. Archive older releases before publishing.");
+    if (content.length > MAX_BYTES) fail(422, "The retained content package exceeds 16 MiB. Storage expansion is required; no history was removed.");
     return request(`contents/${filename}`, { method: "PUT", body: { branch, message, content: content.toString("base64"), ...(previousSha ? { sha: previousSha } : {}) } });
   }
   return { request, readFile, putFile };
@@ -57,12 +58,16 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
   if (packaged) {
     if (packaged.schemaVersion !== RELEASE_SCHEMA || packaged.id !== `gauntlet-content-${hash(packaged.snapshot)}` || packaged.sha256 !== hash(packaged.snapshot) || !validateAuthoredContent(packaged.snapshot, baseline).valid) throw new Error("The packaged GitHub content release is incompatible or corrupt.");
-    const { schemaVersion, ...release } = packaged;
+    imageAssets.validatePackage(packaged.assetPackage, packaged.snapshot);
+    initial.assetBlobs = clone(packaged.assetPackage?.blobs || {});
+    const { schemaVersion, assetPackage, ...release } = packaged;
     initial.releases[release.id] = release; initial.activeReleaseId = release.id;
   }
   const deployed = initial.releases[initial.activeReleaseId];
   const deployedContent = resolveEngineContent(deployed.snapshot, deployed.id);
-  const active = () => clone(deployedContent);
+  const active = () => resolveEngineContent(deployed.snapshot, deployed.id);
+  const cardIndex = new Map(deployedContent.manifest.cards.map(card => [card.id, card]));
+  const variantIndex = new Map(deployedContent.manifest.collectorVariants.map(variant => [variant.variantId, variant]));
   const core = (state) => createContentPublication({ baseline, memory: true, initialState: state });
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
@@ -90,14 +95,16 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   }
   async function operate(method, args, actorId) {
     if (!token) fail(503, "Connect the server's repository-scoped GitHub credential before saving Admin changes.");
+    if (method === "uploadAsset" && (await client.request(""))?.private !== true) fail(503, "Private image uploads require a private repository or an approved private storage adapter. No image was saved to GitHub.");
+    if (method === "saveNotes" && (await client.request(""))?.private !== true) fail(503, "Private notes require a verified private repository. No notes were saved.");
     const loaded = await load();
     if (loaded.state.pending) fail(409, "A publication is in progress. Finish its checks and deployment before editing another draft.");
     const store = core(loaded.state);
     if (method === "recordPlaytest" && store.status().draft?.playtestedHash === args && hash(store.status().draft.snapshot) === args) return project(loaded.state);
-    const result = store[method](args, actorId);
+    const result = await store[method](args, actorId);
     const state = store.exportState();
     await save(loaded, state, `Gauntlet Admin: ${method}${actorId ? ` by ${actorId}` : ""}`);
-    return { ...project(state), ...(result.preview ? { preview: result.preview } : {}) };
+    return { ...project(state), ...(result.preview ? { preview: result.preview } : {}), ...(result.uploaded ? { uploaded: result.uploaded } : {}) };
   }
   async function playtestContent(revision) { const loaded = await load(); if (loaded.state.pending) fail(409, "Finish the current publication before starting another playtest."); return core(loaded.state).playtestContent(revision); }
   async function recordPlaytest(draftHash, actorId) { return operate("recordPlaytest", draftHash, actorId); }
@@ -137,7 +144,8 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     const beforePending = hash(pending);
     const release = state.releases[pending.releaseId];
     if (!release || !/^codex\/gauntlet-content-[a-f0-9]{16}-\d+$/.test(pending.branch) || !/^[a-f0-9]{40}$/.test(pending.baseCommit)) fail(503, "Invalid GitHub publication record.");
-    const payload = { schemaVersion: RELEASE_SCHEMA, ...clone(release) };
+    const pack = imageAssets.packageAssets(state, release.snapshot);
+    const payload = { schemaVersion: RELEASE_SCHEMA, ...clone(release), ...(pack.versions.length ? { assetPackage: pack } : {}) };
     let branch = await client.request(`git/ref/heads/${pending.branch}`, { missing: true });
     if (!branch) {
       try { await client.request("git/refs", { method: "POST", body: { ref: `refs/heads/${pending.branch}`, sha: pending.baseCommit } }); }
@@ -154,7 +162,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     if (comparison.files?.length !== 1 || comparison.files[0].filename !== RELEASE_PATH || comparison.files[0].status === "removed") fail(409, "A content publication may change only its release file. Review unexpected branch changes in GitHub.");
     const pulls = await client.request(`pulls?state=all&head=${encode(`BurntRamen:${pending.branch}`)}&base=main`);
     let pr = pulls.find((item) => item.head.ref === pending.branch && item.base.ref === "main");
-    if (!pr) pr = await client.request("pulls", { method: "POST", body: { title: `Gauntlet content: ${release.label}`, head: pending.branch, base: "main", body: `Publish validated Gauntlet content ${release.id}.\n\nThe exact draft passed server validation, saved preview, and any required real-engine playtest. Only the versioned content release file changes. Requested by approved account ${pending.requestedBy}.` } });
+    if (!pr) pr = await client.request("pulls", { method: "POST", body: { title: `Gauntlet content: ${release.label}`, head: pending.branch, base: "main", body: `Publish validated Gauntlet content ${release.id}.\n\nThe exact draft passed server validation, saved preview, and any required real-engine playtest. The release file includes exact image versions and verified bytes for current and retained releases. Requested by approved account ${pending.requestedBy}.` } });
     pr = await client.request(`pulls/${pr.number}`);
     if (pr.head.sha !== branch.object.sha || pr.base.ref !== "main") fail(409, "The pull request head changed. Refresh and review it before publishing.");
     pending.pullRequestNumber = pr.number; pending.url = `https://github.com/${REPOSITORY}/pull/${pr.number}`; pending.headCommit = pr.head.sha;
@@ -178,10 +186,21 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     if (hash(pending) !== beforePending) { state.revision += 1; await save(loaded, state, `Gauntlet Admin: publication ${pending.phase}`); }
     return project(state);
   }
-  return { active, status: async () => project((await load()).state),
+  return { active,
+    saveNotes: (args, actor) => operate("saveNotes", args, actor),
+    uploadAsset: (args, actor) => operate("uploadAsset", args, actor), archiveAsset: args => operate("archiveAsset", args),
+    privateAsset: async id => core((await load()).state).privateAsset(id),
+    publicAsset: (id, digest) => {
+      const row = packaged?.assetPackage?.versions.find(row => row.id === id && row.sha256 === digest);
+      if (!row) fail(404, "Published image version not found.");
+      return { mediaType: row.mediaType, sha256: row.sha256, body: imageAssets.verifiedBytes(row, packaged.assetPackage.blobs) };
+    },
+    status: async () => project((await load()).state),
+    lookupCard: id => clone(cardIndex.get(id) || null), lookupVariant: id => clone(variantIndex.get(id) || null),
+    lookupSet: id => clone(deployedContent.manifest.draftSets.find(set => set.id === id) || null),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),
-    patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),
+    create: (args, actor) => operate("create", args, actor), patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),
     publish, rollback: (args, actor) => publish(args, actor, "rollback"), playtestContent, recordPlaytest, reconcile, cancelPublication };
 }
 module.exports = { createGitHubContentPublication, createGitHubClient, REPOSITORY, DRAFT_BRANCH, DRAFT_PATH, RELEASE_PATH, RELEASE_SCHEMA, blobSha };

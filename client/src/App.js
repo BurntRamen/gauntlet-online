@@ -45,6 +45,7 @@ import { PlayMenu, PlayModeCard } from "./PlayMenu";
 import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
+import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
@@ -1536,7 +1537,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
         <CardRulesDetails card={card} />
         <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
       </div>
-      {expanded && <CardInspectModal card={{ ...card, collector: variant }} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
+      {expanded && <CardInspectModal card={{ ...card, collector: variant, presentation: variant?.presentation || card.presentation }} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
     </aside>
   );
 }
@@ -1684,7 +1685,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1707,6 +1708,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
+  const [constructedAccess, setConstructedAccess] = useState(savedConstructedDeck?.accessMode || "competitive");
+  const [constructedBack, setConstructedBack] = useState(savedConstructedDeck?.cardBackId || "");
   const [constructedBoxId, setConstructedBoxId] = useState(savedConstructedDeck?.deckBoxId || "classic");
   const [constructedFrontCardSlot, setConstructedFrontCardSlot] = useState(savedConstructedDeck?.frontCardSlot || null);
   const [packPacing, setPackPacing] = useState(readPackPacing);
@@ -1733,6 +1736,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     // Account updates and name-only saves must not replace in-progress card edits.
     if (loadedConstructedVersion.current === versionKey) return;
     loadedConstructedVersion.current = versionKey;
+    setConstructedAccess(savedConstructedDeck?.accessMode || "competitive");
+    setConstructedBack(savedConstructedDeck?.cardBackId || "");
     setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
     setConstructedFrontCardSlot(savedConstructedDeck?.frontCardSlot || null);
@@ -1741,7 +1746,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot, savedConstructedDeck?.accessMode, savedConstructedDeck?.cardBackId]);
 
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
@@ -1787,7 +1792,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   });
   const normalizedCollectorSearch = collectorSearch.trim().toLowerCase();
   const ownedCollectorVariants = collectorCatalog
-    .filter((variant) => variant.paid && Number(collectorOwnership[variant.variantId] || 0) > 0)
+    .filter((variant) => (variant.paid || variant.entitlementRequired) && Number(collectorOwnership[variant.variantId] || 0) > 0)
     .map((variant) => ({
       variant,
       card: allCatalogCards.find((card) => card.id === variant.gameplayCardId) || {
@@ -1809,7 +1814,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     || null;
   const availableVariantsByGameplayCard = collectorCatalog.reduce((byCard, variant) => {
     if (!variant?.gameplayCardId) return byCard;
-    if (variant.paid && Number(collectorOwnership[variant.variantId] || 0) <= 0) return byCard;
+    if (!canUsePrinting(variant, collectorOwnership)) return byCard;
     if (!byCard[variant.gameplayCardId]) byCard[variant.gameplayCardId] = [];
     byCard[variant.gameplayCardId].push(variant);
     return byCard;
@@ -1849,6 +1854,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         collectorVariantSelections: Object.fromEntries(Object.keys(constructedQuantities)
           .filter((cardId) => constructedQuantities[cardId] > 0)
           .map((cardId) => [cardId, findCollectorVariant(cardId, availableVariantsByGameplayCard[cardId] || [], constructedVariantSelections[cardId])?.variantId || constructedCardsById[cardId]?.defaultVariantId])),
+        accessMode: constructedAccess,
+        cardBackId: constructedBack || null,
         deckBoxId: constructedBoxId,
         frontCardSlot: constructedFrontCardSlot
       });
@@ -1924,7 +1931,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
-        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
+        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop deckStore={deckStore} economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
           <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
@@ -1969,6 +1976,9 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
+        <label className="deck-product-setting">Card access<select aria-label="Deck card access" value={constructedAccess} onChange={event => setConstructedAccess(event.target.value)}><option value="competitive">All legal cards · ranked and constructed events</option><option value="earned">Earned cards · casual and campaign too</option></select></label>
+        <p>Gameplay access never unlocks paid printings. Draft and Sealed retain their generated pools.</p>
+        <label className="deck-product-setting">Deck card back<select aria-label="Deck card back" value={constructedBack} onChange={event => setConstructedBack(event.target.value)}><option value="">Account selection</option>{(account.progression?.cosmetics?.unlockedCardBacks || ["classic"]).map(id => <option value={id} key={id}>{account.progression?.definitions?.cardBacks?.[id]?.name || id}</option>)}</select></label>
         <DeckWorkshop
           key={selectedConstructedDeckId || "new-deck"}
           name={constructedDeckName} factionId={constructedFactionId}
@@ -1976,7 +1986,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
           renderRules={(card) => <CardRulesDetails card={card} />}
           loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}
-          cards={constructedCatalogCards} owned={cardsOwned}
+          cards={constructedCatalogCards} owned={constructedAccess === "competitive" ? Object.fromEntries(constructedCatalogCards.map(card => [card.id, 1])) : cardsOwned}
           quantities={constructedQuantities} suitChoices={constructedSuitChoices}
           variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
           boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
@@ -2034,7 +2044,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = cardsOwned[card.id] || 0;
               const collectorCount = (collectorCatalog || [])
-                .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
+                .filter((variant) => variant.gameplayCardId === card.id && (variant.paid || variant.entitlementRequired))
                 .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
               const art = resolveVisualAsset(getCardIllustration(card, findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art));
               return (
@@ -2059,7 +2069,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-view-heading">
             <div>
               <h3>Collector Styles</h3>
-              <p>Animated presentations you own. Styles are visible here even when their gameplay card has not been earned.</p>
+              <p>Card presentations you own. Styles are visible here even when their gameplay card has not been earned.</p>
             </div>
             <label className="collection-search-field">
               <span>Search collection</span>
@@ -2102,7 +2112,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
   return (
     <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
@@ -2114,7 +2124,7 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} deckStore={deckStore} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
       </div>
     </div>
   );
@@ -4891,7 +4901,7 @@ export default function App() {
     featuredArt: getDeckFeaturedArt(deck, account?.collection?.collectorCatalog || [])
   }));
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
-  const canCustomizeConstructedDeck = ownedCardCount > 0;
+  const canCustomizeConstructedDeck = !!account;
   const nextCampaignStep = getNextCampaignChapter(gameContent?.campaigns || {}, account?.progression?.campaign || {}, "rumin");
   let journeyNextStep;
 
@@ -5132,6 +5142,7 @@ export default function App() {
         onBuyPack={buyBoosterPack}
         onBuyGameplayPack={buyGameplayPack}
         onBuyTimetwisters={buyTimetwisters}
+        deckStore={{ endpoint: SOCKET_URL, token: authToken, accountId: account?.id, onAccount: setAccount }}
         economyPending={economyPending}
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
@@ -5480,7 +5491,7 @@ export default function App() {
                   <p>{activeConstructedDeck
                     ? "Refine your card choices, customize its look, and make it your own."
                     : canCustomizeConstructedDeck
-                      ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
+                      ? "Use all legal cards in ranked and constructed events. Choose earned-card access for casual and campaign decks."
                       : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
                   <div className="build-deck-meta" aria-label="Deck summary">
                     <span><strong>52</strong> cards</span>

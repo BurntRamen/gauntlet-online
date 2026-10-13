@@ -148,10 +148,10 @@ test("corrupted local account storage fails closed without returning private con
   fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, "private corrupt account value");
   try {
     const system = await get("system");
-    assert.equal(system.status, 401);
+    assert.equal(system.status, 503);
     const serialized = JSON.stringify(system.body);
     for (const secret of [root, process.env.OWNER_STATS_TOKEN, "private corrupt account value", process.env.ACCOUNT_AUTH_SECRET]) assert.equal(serialized.includes(secret), false);
-    assert.equal((await get("players")).status, 401);
+    assert.equal((await get("players")).status, 503);
   } finally { fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, before); }
 });
 

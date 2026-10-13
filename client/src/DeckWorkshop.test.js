@@ -4,8 +4,8 @@ import DeckWorkshop from "./DeckWorkshop";
 
 const card = { id: "test-card", name: "Test Guard", factionId: "rumin", value: 2, suit: "spades", defaultVariantId: "test-card:standard" };
 const variants = [
-  { variantId: card.defaultVariantId, finish: "standard", name: "Test Guard Standard" },
-  { variantId: "test-card:foil", finish: "foil", name: "Test Guard Collector Foil", animationStyle: "gilded-march" }
+  { gameplayCardId: card.id, variantId: card.defaultVariantId, finish: "standard", name: "Test Guard Standard" },
+  { gameplayCardId: card.id, variantId: "test-card:foil", finish: "foil", name: "Test Guard Collector Foil", animationStyle: "gilded-march" }
 ];
 
 test("the visible card version selector updates the slot, matching card and preview, then returns to standard", () => {

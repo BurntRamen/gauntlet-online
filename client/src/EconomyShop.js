@@ -1,11 +1,13 @@
+import DeckProducts from "./DeckProducts";
 import CurrencyWallet from "./CurrencyWallet";
 
-export default function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters }) {
+export default function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters, deckStore }) {
   if (!economy) return <p className="economy-sign-in">Sign in to earn gold, complete daily quests, and use the shop.</p>;
   const quests = economy.daily?.quests || [];
   const prices = economy.gameplayPackPrices || { gold: 1000, timetwisters: 200 };
   return <div className="economy-shop">
     <CurrencyWallet economy={economy} />
+    {deckStore && <DeckProducts {...deckStore} balance={economy} />}
     <section className="daily-quests" aria-labelledby="daily-quests-title">
       <div className="collection-view-heading"><div><h3 id="daily-quests-title">Daily Quests</h3><p>Quests refresh each UTC day. Gold is awarded as soon as a quest is completed.</p></div><strong>{economy.daily?.date || "Today"}</strong></div>
       <div className="daily-quest-grid">

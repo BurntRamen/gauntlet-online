@@ -3,6 +3,7 @@
 // This is a deployed, finite catalogue of engine handlers. Authors configure
 // these definitions; they never supply handler names or executable code.
 const definitions = require("./effectDefinitions.json");
+const composition = require("./compositionContract");
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
 const FACTION_EFFECT_CONTRACT_VERSION = "gauntlet.faction-effects.v1";
 const entries = Object.fromEntries(definitions.map((row) => [row.id, row]));
@@ -18,6 +19,7 @@ function defaultCardEffect(cardId) {
   return definition ? { id: definition.id, version: definition.version, parameters: Object.fromEntries(Object.entries(definition.parameters).map(([key, rule]) => [key, rule.default])) } : null;
 }
 function validateCardEffect(effect, card) {
+  if (effect?.id === composition.ID) return composition.validate(effect, card);
   const entry = effect && entries[effect.id];
   return !!entry && Object.keys(effect).sort().join() === "id,parameters,version" && effect.version === entry.version
     && (!card || (entry.factionId === card.factionId && entry.cardType === card.type))

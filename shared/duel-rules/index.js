@@ -10,6 +10,8 @@ const indela = require("./indela");
 const zynarth = require("./zynarth");
 const astralVanguard = require("./astralVanguard");
 const effects = require("./effects");
+const compositionContract = require("./compositionContract");
+const compositionRuntime = require("./compositionRuntime");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -845,10 +847,11 @@ function calculateFactionAttackBonus(player, card) {
   return { bonus, notes };
 }
 
-function calculateConstructedAttackBonus(game, playerNumber, card, source, command, paymentCards) {
+function calculateConstructedAttackBonus(game, playerNumber, card, source, command, paymentCards, payment) {
   const player = game.players[playerNumber];
   const notes = [];
   const attachedCards = [];
+  const compositions = [];
   let bonus = 0;
   const attackNumber = Number(player.turnData.attacksDeclaredThisTurn || 0) + 1;
   const baseValue = cardValue(card);
@@ -886,7 +889,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     .filter((entry) => (
       entry.card.factionId === "rumin"
       && cardHasType(entry.card, "armament")
-      && RUMIN_ARMABLE_EFFECT_IDS.has(cardEffect(entry.card)?.id)
+      && (RUMIN_ARMABLE_EFFECT_IDS.has(cardEffect(entry.card)?.id) || compositionRuntime.armable(entry.card))
     ));
   const selectedWeapons = selectedWeaponIds.map((id) => (
     availableWeapons.find((entry) => entry.card.id === id)
@@ -904,7 +907,12 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   for (const entry of selectedWeapons) {
     const weapon = entry.card;
     let weaponBonus = 0;
-    if (hasCardEffect(weapon, "gilded-scale-legionary")) {
+    if (compositionRuntime.isComposed(weapon)) {
+      const plan = compositionRuntime.prepare(weapon, { overpay: payment.total - payment.required,
+        diamondsPaid: [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map(entry => entry.suit)].some(suit => suitKey(suit) === "diamonds"), attackValue: baseValue, attackNumber });
+      if (plan.error) return plan;
+      compositions.push(plan);
+    } else if (hasCardEffect(weapon, "gilded-scale-legionary")) {
       const diamondPaid = [...player.turnData.paymentSuitsThisTurn, ...paymentCards.map((entry) => entry.suit)].some((suit) => suitKey(suit) === "diamonds");
       weaponBonus = diamondPaid ? 2 : 0;
     } else if (hasCardEffect(weapon, "coin-scale-spear")) weaponBonus = cardParameter(weapon, "armBonus");
@@ -1120,7 +1128,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     notes.push("Elemental Array +1");
   }
 
-  return { bonus, notes, attachedCards };
+  return { bonus, notes, attachedCards, compositions };
 }
 
 function applyOverpayFactionEffects(player, total, required, events, game) {
@@ -1561,7 +1569,7 @@ function pendingAttack(game) {
   return laneIndex >= 0 ? { attack: game.lanes[laneIndex].attack, laneIndex } : null;
 }
 
-function resolveAttack(game, attack, laneIndex, events) {
+function resolveAttack(game, attack, laneIndex, events, trace) {
   const defender = attack.targetPlayer;
   const blockValue = (attack.block || []).reduce((sum, block) => sum + block.effectiveValue, 0);
   const prevented = (attack.block || []).reduce((sum, block) => sum + Number(block.preventDamage || 0), 0);
@@ -1626,6 +1634,7 @@ function resolveAttack(game, attack, laneIndex, events) {
   mekan.combat(game, attack, damage);
   jali.combat(game, attack, damage, events, event);
   game.players[attack.player].discard.push(...(attack.attachedCards || []));
+  for (const source of (attack.attachedCards || []).filter(compositionRuntime.isComposed)) trace?.push({ step: "expiration", source: source.name, sourceId: source.id, target: attack.card.id, message: "Combat ended. Its attack modifiers expired; the armament went to discard. Life already gained remains." });
   (attack.block || []).forEach((block) => {
     if (!block.card?.token) game.players[block.player].discard.push(block.card);
   });
@@ -1842,7 +1851,7 @@ function normalizeCommand(command) {
   return command;
 }
 
-function applyCommand(current, rawCommand) {
+function applyCommandInternal(current, rawCommand, trace) {
   const envelope = rawCommand?.command && typeof rawCommand.command === "object"
     ? rawCommand
     : null;
@@ -1856,6 +1865,7 @@ function applyCommand(current, rawCommand) {
       }
     : rawCommand);
   if (!current || !command) return reject(current, command, "A match and command are required.");
+  if (current.contentBinding?.compositionVersion && current.contentBinding.compositionVersion !== compositionContract.VERSION) return reject(current, command, "Unsupported composition interpreter binding.");
   if (
     envelope
     && Number.isFinite(Number(envelope.baseRevision))
@@ -2013,7 +2023,8 @@ function applyCommand(current, rawCommand) {
       attackCard,
       laneIndex == null ? "hand" : "lane",
       command,
-      payment.cards
+      payment.cards,
+      payment
     );
     if (constructedAttack.error) return reject(current, command, constructedAttack.error);
     const valueNotes = [...temporaryBonusNotes(attackCard),
@@ -2052,6 +2063,7 @@ function applyCommand(current, rawCommand) {
     recordPlayedCard(actor, attackCard);
     if (attackCard.factionId === "bizi") actor.turnData.biziCardsPlayedThisTurn += 1;
     addPaymentSuits(actor, payment.cards);
+    for (const plan of constructedAttack.compositions) compositionRuntime.execute(plan, game, attack, events, event, trace);
     applyOverpayFactionEffects(actor, payment.total, payment.required, events, game);
     applyConstructedOverpayEffects(
       game,
@@ -2290,7 +2302,7 @@ function applyCommand(current, rawCommand) {
     );
     label = `Player ${player} blocked with ${blockCards.map((card) => `${card.rank}${card.suit}`).join(", ")}.`;
     if (game.gameMode === "basic") {
-      resolveAttack(game, pending.attack, pending.laneIndex, events);
+      resolveAttack(game, pending.attack, pending.laneIndex, events, trace);
     } else {
       game.priorityPassed = { 1: false, 2: false };
       game.priorityPassed[player] = true;
@@ -2307,7 +2319,7 @@ function applyCommand(current, rawCommand) {
     events.push(event(game, "block.declined", { player }));
     label = `Player ${player} declined the block.`;
     if (game.gameMode === "basic") {
-      resolveAttack(game, pending.attack, pending.laneIndex, events);
+      resolveAttack(game, pending.attack, pending.laneIndex, events, trace);
     } else {
       game.priorityPassed[player] = true;
       game.priority = pending.attack.player;
@@ -2558,7 +2570,7 @@ function applyCommand(current, rawCommand) {
       ) {
         events.push(event(game, "priority.passed", { player }));
         label = `Player ${player} passed to combat resolution.`;
-        resolveAttack(game, activeCombat.attack, activeCombat.laneIndex, events);
+        resolveAttack(game, activeCombat.attack, activeCombat.laneIndex, events, trace);
       } else {
         game.priorityPassed[player] = true;
         game.priority = otherPlayer(player);
@@ -2655,6 +2667,14 @@ function applyCommand(current, rawCommand) {
     actionLogEntry,
     animationEvents: events
   };
+}
+
+// Private diagnostics never enter state, events, socket projections or archives.
+function applyCommand(current, command, options) {
+  const trace = options?.diagnostics === true ? [] : null;
+  const result = applyCommandInternal(current, command, trace);
+  if (trace) result.mechanicsTrace = result.accepted ? trace : [{ step: "rejected", message: result.rejectionReason, costsCommitted: false }];
+  return result;
 }
 
 // The same payment rules power incomplete-selection previews and commitment.
@@ -2802,7 +2822,7 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
       .filter((entry) => (
         entry.card.factionId === "rumin"
         && cardHasType(entry.card, "armament")
-        && RUMIN_ARMABLE_EFFECT_IDS.has(cardEffect(entry.card)?.id)
+        && (RUMIN_ARMABLE_EFFECT_IDS.has(cardEffect(entry.card)?.id) || compositionRuntime.armable(entry.card))
       ));
     if (weapons.length) {
       options.push({

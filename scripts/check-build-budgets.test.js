@@ -13,7 +13,7 @@ test("all named workshop splits share one Admin total and do not inflate player 
   assert.equal(result.totalGzipBytes, 670 * KIB);
   assert.equal(result.failures.length, 1, "The independent largest-async limit remains in force");
   assert.match(result.failures[0], /Largest async/);
-  assets.push(asset("gauntlet-admin-scenarios.a.chunk.js", 14));
+  assets.push(asset("gauntlet-admin-scenarios.a.chunk.js", budgets.adminGzip / KIB - 35 + 1));
   assert.ok(evaluateBudgets(assets).failures.some(message => /All Admin/.test(message)));
 });
 
@@ -23,7 +23,8 @@ test("entry and aggregate Admin limits cannot substitute for one another", () =>
   assert.equal(result.adminGzipBytes, 23 * KIB);
   assert.match(result.failures.join(" "), /Initial Admin entry/);
   assert.equal(budgets.mainGzip, 180 * KIB);
-  assert.equal(budgets.totalJavaScriptGzip, 747 * KIB);
+  assert.equal(budgets.totalJavaScriptGzip, 748 * KIB);
+  assert.equal(budgets.adminGzip, 61 * KIB);
   assert.equal(budgets.largestAsyncGzip, 350 * KIB);
 });
 
