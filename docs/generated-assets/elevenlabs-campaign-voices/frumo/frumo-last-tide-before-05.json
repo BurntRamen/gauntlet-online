@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "councilor",
+  "voiceName": "Councilor of Captains",
+  "line": "The living will judge first.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch12-before-05-councilor.mp3",
+  "generatedAt": "2026-10-12T03:41:33.843Z",
+  "publishedAt": "2026-10-12T03:42:23.321Z",
+  "bytes": 29301,
+  "sha256": "80f352b2d3cdc52bd3fe957ce97fbea02e6174c739d904fff8220e8acfe6828a"
+}

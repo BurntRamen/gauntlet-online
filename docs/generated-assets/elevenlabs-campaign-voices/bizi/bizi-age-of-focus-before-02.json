@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maurice",
+  "voiceName": "Emperor Maurice",
+  "line": "You call murder progress?",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-before-02-maurice.mp3",
+  "generatedAt": "2026-10-12T14:29:11.462Z",
+  "publishedAt": "2026-10-12T14:30:30.268Z",
+  "bytes": 27629,
+  "sha256": "08cde3ae52c095875e3a9188ea8c6c4bdd69003c9f07972129ffcde5bbc0fa4d"
+}

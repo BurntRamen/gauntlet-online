@@ -62,7 +62,7 @@ test("Jali Revenant actions require confirmation in the production controls", ()
   adapter.dispose();
 });
 
-test("hand blocking replaces or clears one blocker while payment stays multi-card and excludes it", () => {
+test("hand blocking enters payment selection immediately and excludes the blocker", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-single-block" });
   const defender = adapter.controller;
   const attacker = defender === 1 ? 2 : 1;
@@ -77,24 +77,45 @@ test("hand blocking replaces or clears one blocker while payment stays multi-car
   const hand = adapter.game.players[defender].hand;
   adapter.activateHandCard(0);
   expect(adapter.selection.blockerCardIds).toEqual([hand[0].id]);
-  adapter.activateHandCard(1);
-  expect(adapter.selection.blockerCardIds).toEqual([hand[1].id]);
-  adapter.activateHandCard(1);
-  expect(adapter.selection.blockerCardIds).toEqual([]);
-  expect(adapter.confirmState().disabled).toBe(true);
-  adapter.activateHandCard(0);
-  adapter.confirmCurrentAction();
   expect(adapter.selection.selectionRole).toBe("payment");
-  adapter.activateHandCard(0);
-  expect(adapter.selection.paymentCardIds).toEqual([]);
+  expect(adapter.confirmState().label).toBe("Confirm Block");
   adapter.activateHandCard(1);
   adapter.activateHandCard(2);
   expect(adapter.selection.paymentCardIds).toEqual([hand[1].id, hand[2].id]);
   expect(adapter.selection.blockerCardIds).toEqual([hand[0].id]);
-  adapter.selection.selectionRole = "blocker";
-  adapter.activateHandCard(1);
-  expect(adapter.selection.blockerCardIds).toEqual([hand[1].id]);
-  expect(adapter.selection.paymentCardIds).toEqual([hand[2].id]);
+  adapter.activateHandCard(0);
+  expect(adapter.selection.kind).toBeNull();
+  expect(adapter.selection.blockerCardIds).toEqual([]);
+  expect(adapter.selection.paymentCardIds).toEqual([]);
+  adapter.dispose();
+});
+
+test("support cards explain their type instead of staging an invalid attack or block", () => {
+  const adapter = createLocalDuelAdapter({ seed: "adapter-support-card-guidance" });
+  const player = adapter.game.players[adapter.controller];
+  const support = makeConstructed(player.hand[0], "bizi-power-conduit", {
+    factionId: "bizi",
+    name: "Power Conduit",
+    type: "contraption"
+  });
+
+  adapter.game.priority = adapter.controller;
+  adapter.activateHandCard(0);
+  expect(adapter.selection.kind).toBeNull();
+  expect(adapter.notice).toBe("Power Conduit is a Contraption support card. Only Servitors and standard playing cards can attack.");
+
+  const attacker = adapter.controller === 1 ? 2 : 1;
+  adapter.game.handAttacks = [{
+    id: "support-guidance-attack", player: attacker, targetPlayer: adapter.controller,
+    source: "hand", sourceLane: null,
+    card: adapter.game.players[attacker].hand[0], effectiveValue: 10,
+    block: [], notes: [], attachedCards: [],
+    payment: { player: attacker, cards: [], required: 0, total: 0 }
+  }];
+  adapter.activateHandCard(0);
+  expect(adapter.selection.kind).toBeNull();
+  expect(adapter.notice).toBe("Power Conduit is a Contraption support card. Only Servitors and standard playing cards can block.");
+  expect(support.type).toBe("contraption");
   adapter.dispose();
 });
 

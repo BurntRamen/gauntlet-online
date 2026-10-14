@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "xios",
+  "voiceName": "Restorer Xios",
+  "line": "Not destroyed. Repaired. Remember that.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-before-04-xios.mp3",
+  "generatedAt": "2026-10-12T14:30:10.146Z",
+  "publishedAt": "2026-10-12T14:30:30.494Z",
+  "bytes": 41004,
+  "sha256": "3969629865fa4dd27189546bf0930ae0dbc1fe5150eaaf3bbbff687e085829b8"
+}

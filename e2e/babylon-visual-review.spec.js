@@ -1574,7 +1574,7 @@ test("capture real live and replay match presentation states", async ({ browser,
   await localPage.getByPlaceholder("Guest name").fill("Visual Local");
   await localPage.locator('button[data-area="play"]').click();
   await localPage.getByRole("tab", { name: "Practice" }).click();
-  await localPage.getByRole("button", { name: /Basic vs AI/ }).click();
+  await localPage.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
   await expect(localPage.getByTestId("production-babylon-match")).toBeVisible();
   const localMatch = localPage.getByTestId("production-babylon-match");
   registerScenario(manifest, "local-training", null, {

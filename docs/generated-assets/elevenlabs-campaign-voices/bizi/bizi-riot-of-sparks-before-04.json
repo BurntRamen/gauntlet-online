@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "insurgent",
+  "voiceName": "Riot Leader",
+  "line": "Open the palace and let the people answer for you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch04-before-04-riot-leader.mp3",
+  "generatedAt": "2026-10-12T14:28:50.318Z",
+  "publishedAt": "2026-10-12T14:30:30.163Z",
+  "bytes": 46437,
+  "sha256": "492275d5107d25aa05803d8eaff99317807903a988b5160ddd7e2b9d796d5594"
+}

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "factionId": "xendra",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/xendra",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/xendra",
+  "contentRegistry": "server/xendraCampaignVoiceAssets.json",
+  "libraryVoiceIds": {
+    "nulth": "F4AXgTwG8nWPB9dcXaTh",
+    "arel": "EXAVITQu4vr4xnSDxMaL",
+    "krauth": "SOYHLrjzK2X1ezoPC6cr",
+    "defender": "p4TAaoUAniL3oGGYQxGO"
+  },
+  "voices": {
+    "narrator": {
+      "name": "XenDra Witness",
+      "description": "An original mature cosmic-horror narrator with calm documentary precision, quiet dread, measured pacing, and a restrained intimate delivery, as if recording events that reality is already trying to erase. Neutral English pronunciation. Never imitate a real performer.",
+      "previewText": "Everyone celebrated the eclipse. Elias counted the stars and realized they had changed positions. By morning, the village remembered a different sky."
+    },
+    "elias": {
+      "name": "Elias Varen",
+      "description": "An original thoughtful young cartographer with an intelligent, observant voice, grounded warmth, controlled fear, and growing exhaustion. He begins skeptical and humane, then becomes haunted and eerily serene without losing clear diction. Never imitate a real person.",
+      "previewText": "Stars do not drift at noon. Maps can lie, but the sky should not. I will follow the error until it becomes an answer, even if the answer follows me home."
+    },
+    "villager": {
+      "name": "Terrified Villager",
+      "description": "An original frightened rural villager with a strained, breathless voice, urgent warning, and the raw panic of someone who has seen an impossible sky. Natural rather than theatrical. Never imitate a real person.",
+      "previewText": "Do not look at the sky. Please, whatever you hear, keep your eyes on the road. The voices know when you notice them, and they remember every face."
+    },
+    "elder": {
+      "name": "The Village Elder",
+      "description": "An original elderly village leader with gentle formal speech that is unnaturally even, synchronized, and emotionally hollow beneath a welcoming surface. Subtle uncanny calm, no robotic filter. Never imitate a real person.",
+      "previewText": "The light was beautiful. We are well. Everyone here is exactly as they should be. There is no reason to search the empty houses or ask where the children went."
+    },
+    "syllith": {
+      "name": "Syllith the Echoing Child",
+      "description": "An original eerie childlike alien voice with soft curiosity, playful pauses, lucid intelligence, and a faint doubled resonance, unsettling through calmness rather than screaming. Never imitate a real person.",
+      "previewText": "Stars do not drift at dawn. Did you say noon, or did you only remember saying it? Memory is a room with many doors, Elias, and I have the keys."
+    },
+    "thrallmaker": {
+      "name": "The Thrallmaker",
+      "description": "An original inhuman persuader with a low, smooth, compassionate voice, slow deliberate pacing, and a nearly comforting certainty that makes surrender sound merciful. Never imitate a real person.",
+      "previewText": "The first mercy is surrender. The second is forgetting why you resisted. Be still, and the Deep Currents will carry every sharp thought away."
+    },
+    "nulth": {
+      "name": "Nulth the Hollow Voice",
+      "description": "An original ageless alien philosopher with a hollow resonant voice, precise questions, patient pacing, and layered undertones that suggest more than one speaker sharing a breath. Never imitate a real person.",
+      "previewText": "If pain could end, who would defend the wound? If memory could rest, who would demand it wake? You call the silence death because you have never heard it sing."
+    },
+    "arel": {
+      "name": "Arel Voss",
+      "description": "An original charismatic human conduit with a warm, peaceful, persuasive voice, unhurried confidence, and the unnerving compassion of someone who welcomes assimilation as release. Never imitate a real person.",
+      "previewText": "They are not taking people. They are waiting for lonely minds to stop closing the door. I opened mine willingly, and for the first time I was not alone."
+    },
+    "krauth": {
+      "name": "Krauth Crown of Static",
+      "description": "An original alien sovereign with vast controlled authority, low measured delivery, a dry electrical edge, and absolute certainty. Menacing through scale and composure, never shouting. Never imitate a real person.",
+      "previewText": "You did not uncover the door. You built it. Intent is a candle. Consequence is the sun. Now the light has found this world, and no shadow can conceal it."
+    },
+    "defender": {
+      "name": "Last Defender of Reath",
+      "description": "An original exhausted veteran defender with firm projection, grief held behind command discipline, and desperate compassion for a former ally. Never imitate a real person.",
+      "previewText": "Elias, step away from the sky. Whatever promised you peace has taken enough. We can still close the passage, but you must remember which side you belong to."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Elias": "elias",
+    "Terrified Villager": "villager",
+    "Village Elder": "elder",
+    "Syllith": "syllith",
+    "Thrallmaker": "thrallmaker",
+    "Nulth": "nulth",
+    "Arel Voss": "arel",
+    "Krauth": "krauth",
+    "Defender": "defender"
+  }
+}

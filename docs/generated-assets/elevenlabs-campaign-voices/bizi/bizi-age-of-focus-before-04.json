@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maurice",
+  "voiceName": "Emperor Maurice",
+  "line": "Then your empire will run perfectly without a soul.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-before-04-maurice.mp3",
+  "generatedAt": "2026-10-12T14:29:13.598Z",
+  "publishedAt": "2026-10-12T14:30:30.282Z",
+  "bytes": 50199,
+  "sha256": "dce2b2eeeafcfcf2c533fca417aa0d8ec385f5b17ce30f3390021564e3b4431e"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "councilor",
+  "voiceName": "Councilor of Captains",
+  "line": "And if another crisis asks for one hand on the helm?",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch12-after-03-councilor.mp3",
+  "generatedAt": "2026-10-12T03:41:37.763Z",
+  "publishedAt": "2026-10-12T03:42:23.330Z",
+  "bytes": 56886,
+  "sha256": "0f66137251b5319af44ded96538f51f0ad8b7dc5b428ccc278149ffd7454460d"
+}

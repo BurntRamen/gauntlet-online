@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "rumin",
+  "role": "commander",
+  "event": "critical",
+  "line": "If I surrender, Rumie returns to corruption.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-rumin-commander-critical.mp3",
+  "generatedAt": "2026-10-13T19:58:41.411Z",
+  "publishedAt": "2026-10-13T19:59:37.084Z",
+  "bytes": 52288,
+  "sha256": "6ab951a5d964d3fd10e4037dfb9a32e8a1bf1689403baf651e7782877de88621"
+}

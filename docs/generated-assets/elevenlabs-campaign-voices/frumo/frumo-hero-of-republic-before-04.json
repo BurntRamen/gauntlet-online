@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "Today it needs victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch07-before-04-polea.mp3",
+  "generatedAt": "2026-10-12T03:40:39.288Z",
+  "publishedAt": "2026-10-12T03:42:23.184Z",
+  "bytes": 24703,
+  "sha256": "71a4ca404e738f413fcf74990abc3d26f480e5ec10b961c881d2ad044a766066"
+}

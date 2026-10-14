@@ -37,6 +37,13 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.factions.length, 10);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
   assert.equal(content.campaigns.xendra.chapters.length, 8);
+  for (const chapter of content.campaigns.xendra.chapters) {
+    assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length, `${chapter.id}: dialogue audio`);
+    chapter.dialogueAudio.forEach((audioPath) => {
+      assert.match(audioPath, /^\/assets\/gauntlet\/voices\/xendra-.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", audioPath)), true, audioPath);
+    });
+  }
   assert.equal(content.cards.length, COLLECTION_CARDS.length);
   assert.equal(content.collectorVariants.length, COLLECTOR_VARIANTS.length);
   assert.equal(content.deckRules.basePlayingDeckSize, 52);
@@ -52,9 +59,17 @@ test("validates the authoritative versioned game content registry", () => {
   const sheen = content.factions.find((faction) => faction.id === "sheen");
   assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
   assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
-  for (const faction of [rumin, sheen]) {
-    assert.match(faction.commander.announcementAudio.selected, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio.selected)), true);
+  for (const faction of content.factions) {
+    for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
+      assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+    }
+    assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+  }
+  for (const faction of content.factions) {
+    assert.equal(typeof faction.general.clickedAnnouncement, "string", faction.id);
+    assert.equal(faction.city.clickedSound, "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav", faction.id);
   }
 });
 

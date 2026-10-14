@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "I do not need to know every wave to command the tide.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch10-after-03-polea.mp3",
+  "generatedAt": "2026-10-12T03:41:16.624Z",
+  "publishedAt": "2026-10-12T03:42:23.278Z",
+  "bytes": 67335,
+  "sha256": "4aaf51a3fe9ec4e1e326e29ba1ed6b6e19f890a3ef1754169b56da896a795354"
+}

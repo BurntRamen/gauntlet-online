@@ -13,8 +13,8 @@ const budgets = Object.freeze({
   // named Admin modules; initial entry and player ceilings remain unchanged.
   adminGzip: 61 * KIB,
   largestAsyncGzip: 350 * KIB,
-  // Shared executable validation/runtime raises measured player code to 747.7.
-  totalJavaScriptGzip: 748 * KIB
+  // Priority guidance and unified combat-payment controls add 1.5 KiB gzip.
+  totalJavaScriptGzip: 750 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
 const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));

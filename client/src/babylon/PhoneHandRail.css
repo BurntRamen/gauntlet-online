@@ -73,6 +73,26 @@
   pointer-events: none;
 }
 
+.phone-hand-type {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  max-width: 68px;
+  overflow: hidden;
+  padding: 2px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  color: #fff8e8;
+  background: rgba(14, 25, 35, 0.9);
+  font: 800 8px/10px "Segoe UI", Arial, sans-serif;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.phone-hand-type.is-support { background: rgba(101, 48, 32, 0.94); }
+
 .phone-hand-selection {
   position: absolute;
   right: 0;

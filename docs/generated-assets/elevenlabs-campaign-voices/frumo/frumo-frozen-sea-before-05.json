@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ice-leviathan",
+  "voiceName": "Ice Leviathan",
+  "line": "Command freezes before it reaches me.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch11-before-05-ice-leviathan.mp3",
+  "generatedAt": "2026-10-12T03:41:23.009Z",
+  "publishedAt": "2026-10-12T03:42:23.295Z",
+  "bytes": 48527,
+  "sha256": "5312876b199229b9cb6abd2a1063b88ed5a202d2eb1719306f031a95ccfac26e"
+}

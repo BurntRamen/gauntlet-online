@@ -45,8 +45,15 @@ test("only ready source cards glow and only legal choices submit their existing 
   expect(within(dialog).queryByText("The Last Gamble")).not.toBeInTheDocument();
   fireEvent.click(within(dialog).getByRole("button", { name: "Place a hand card" }));
   expect(activateAbility).toHaveBeenCalledWith("polea-place");
+  fireEvent.click(screen.getByRole("button", { name: "general: Lafayette · Unavailable" }));
+  expect(onFactionCardClick).toHaveBeenCalledWith("general", expect.objectContaining({ name: "Lafayette" }));
+  fireEvent.keyDown(document, { key: "Escape" });
+  fireEvent.click(screen.getByRole("button", { name: "city: Ristus · Passive" }));
+  expect(onFactionCardClick).toHaveBeenCalledWith("city", expect.objectContaining({ name: "Ristus" }));
+  expect(screen.getByRole("dialog", { name: "Ristus abilities" })).toBeInTheDocument();
+  fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(commander).toHaveFocus();
+  expect(screen.getByRole("button", { name: "city: Ristus · Passive" })).toHaveFocus();
 });
 
 test("passive cards explain automatic effects and Escape returns focus", () => {

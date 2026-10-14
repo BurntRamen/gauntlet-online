@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "role": "commander",
+  "event": "denied",
+  "line": "The arena rejects that challenge.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-gracus-commander-denied.mp3",
+  "generatedAt": "2026-10-13T19:59:17.883Z",
+  "publishedAt": "2026-10-13T19:59:37.242Z",
+  "bytes": 38078,
+  "sha256": "eee915bec4a3414428679d589e3e9cc0e450c104e49a78d5f0c7fa026686e11a"
+}

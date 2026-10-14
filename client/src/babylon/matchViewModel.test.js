@@ -95,6 +95,24 @@ test("keeps approved faction art paths on visible local cards", () => {
   expect(view.hand[0].artPath).toBe("/assets/gauntlet/playing-cards/rumin-4-spades.webp");
 });
 
+test("exposes a clear card type and combat eligibility for every visible card", () => {
+  const game = makeGame();
+  game.players[1].hand[0].type = "servitor";
+  game.players[1].hand[1].type = "contraption";
+  const view = createBasicGauntletMatchViewModel({ game, player: 1, role: "player" });
+
+  expect(view.hand[0]).toEqual(expect.objectContaining({
+    cardTypeLabel: "Servitor",
+    combatEligible: true,
+    combatLabel: "Can attack and block"
+  }));
+  expect(view.hand[1]).toEqual(expect.objectContaining({
+    cardTypeLabel: "Contraption",
+    combatEligible: false,
+    combatLabel: "Support card · cannot attack or block"
+  }));
+});
+
 test("spectator view has no private hand or lane identities", () => {
   const view = createBasicGauntletMatchViewModel({ game: makeGame(), role: "spectator", player: null });
 

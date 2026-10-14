@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "zealot",
+  "voiceName": "Titan Cult Leader",
+  "line": "Teeth protect the faithful.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-before-05-cult-leader.mp3",
+  "generatedAt": "2026-10-12T14:29:47.297Z",
+  "publishedAt": "2026-10-12T14:30:30.415Z",
+  "bytes": 37660,
+  "sha256": "c092e3a97beb068f5d171cc3f2e66862e0b166a88829670fa15c346add5c81da"
+}

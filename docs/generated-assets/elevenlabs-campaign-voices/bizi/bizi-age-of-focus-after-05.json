@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "focus",
+  "voiceName": "Focus",
+  "line": "Mercy was never a system requirement.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-after-05-focus.mp3",
+  "generatedAt": "2026-10-12T14:29:19.779Z",
+  "publishedAt": "2026-10-12T14:30:30.312Z",
+  "bytes": 36824,
+  "sha256": "d507be809c7b560a925c8013687f86d7ecde01c755c88b17bd920d9b7963ad3d"
+}

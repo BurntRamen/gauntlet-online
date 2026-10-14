@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "No. But I know how easy you made suffering look.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch04-before-05-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:05.667Z",
+  "publishedAt": "2026-10-12T03:42:23.113Z",
+  "bytes": 47273,
+  "sha256": "630a3beea822b678c755c7286bc018ed433986a12edfd833b2bd4afd8998f7ef"
+}

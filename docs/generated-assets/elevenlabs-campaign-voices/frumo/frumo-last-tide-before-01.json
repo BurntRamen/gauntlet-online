@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Former allies gather with rival fleets, and the last battle asks whether Frumo can survive its greatest hero.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:41:29.675Z",
+  "publishedAt": "2026-10-12T03:42:23.310Z",
+  "bytes": 134626,
+  "sha256": "c58db238145074c81bccd7a748cbabbfec0fde834ee6e8d0e894fde6db510656"
+}

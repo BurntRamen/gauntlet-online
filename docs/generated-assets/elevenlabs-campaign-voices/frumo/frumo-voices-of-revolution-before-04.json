@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "danton",
+  "voiceName": "Corsair Danton",
+  "line": "Then Coral Bay will learn a new language.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch02-before-04-danton.mp3",
+  "generatedAt": "2026-10-12T03:39:41.367Z",
+  "publishedAt": "2026-10-12T03:42:23.070Z",
+  "bytes": 36824,
+  "sha256": "d5ad15032feab8ffef278eab0ac199b65dca6057d8ff4ddbac017bb7113eefb8"
+}

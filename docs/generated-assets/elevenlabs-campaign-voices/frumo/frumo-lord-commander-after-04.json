@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "A republic should be slower than a warship.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch08-after-04-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:55.156Z",
+  "publishedAt": "2026-10-12T03:42:23.225Z",
+  "bytes": 37660,
+  "sha256": "a49dd9fc1692b1cb55bee3543dfa92c6f648092cc70cee099f2acd58ab1fb341"
+}

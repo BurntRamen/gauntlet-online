@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "villager",
+  "voiceName": "Terrified Villager",
+  "line": "Don't look at the sky!",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-before-03-terrified-villager.mp3",
+  "generatedAt": "2026-10-13T19:50:20.180Z",
+  "publishedAt": "2026-10-13T19:52:16.179Z",
+  "bytes": 35152,
+  "sha256": "ac798eebc441a539fe4e8cb4e1fc6df4eb2873f262f7ef823a24e7588ee88b8c"
+}

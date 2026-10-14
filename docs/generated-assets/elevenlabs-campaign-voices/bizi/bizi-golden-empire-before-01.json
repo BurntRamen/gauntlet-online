@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Bizi Chronicle",
+  "line": "Centuries later, three leaders attempt to restore the old empire at the height of its golden machinery.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T14:28:35.416Z",
+  "publishedAt": "2026-10-12T14:30:30.103Z",
+  "bytes": 116236,
+  "sha256": "3b882215e5f5a8bdb39618c5e56be602022348515e4fb48b7920e09d219f224d"
+}

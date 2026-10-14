@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "nulth",
+  "voiceName": "Nulth the Hollow Voice",
+  "line": "If pain could end, who would defend the wound?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-before-01-nulth.mp3",
+  "generatedAt": "2026-10-13T19:52:05.933Z",
+  "publishedAt": "2026-10-13T19:52:16.217Z",
+  "bytes": 51453,
+  "sha256": "12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060"
+}

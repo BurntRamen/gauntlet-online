@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "The tribute fleet breaks, and Ristus hears a sound older than royal law: captains refusing to kneel.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch01-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:39:32.060Z",
+  "publishedAt": "2026-10-12T03:42:23.054Z",
+  "bytes": 139224,
+  "sha256": "8b029e7a3ee583f52ff2b01fd368a59bd6b2054865fd33156c21f186c4ab8dfc"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Before revolution had a flag, it had a ledger soaked in seawater.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch01-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:39:25.345Z",
+  "publishedAt": "2026-10-12T03:42:23.040Z",
+  "bytes": 88651,
+  "sha256": "048fdc5edf95e46f4cdb948ba77ac710753272164c8dc39db76202f78478a437"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "The first public oaths are sworn beneath lanterns, reef smoke, and the nervous silence of informers.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch02-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:39:44.108Z",
+  "publishedAt": "2026-10-12T03:42:23.073Z",
+  "bytes": 120834,
+  "sha256": "a41783578a9d9b2b629537dcb0c76d22c1cfc8c3b39ce01b1c3e00b83ce5783f"
+}

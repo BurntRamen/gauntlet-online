@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "khosar",
+  "voiceName": "Khosar the Conqueror",
+  "line": "I broke your empire in a season.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch07-after-02-khosar.mp3",
+  "generatedAt": "2026-10-12T14:29:27.849Z",
+  "publishedAt": "2026-10-12T14:30:30.343Z",
+  "bytes": 34316,
+  "sha256": "cd71530e43467a42e8245aa00cd243245714390d9e4d4aca1220282626122f9d"
+}
