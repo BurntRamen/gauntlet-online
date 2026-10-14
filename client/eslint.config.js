@@ -10,7 +10,7 @@ module.exports = [{
   rules: {
     ...js.configs.recommended.rules,
     "no-empty": ["error", { allowEmptyCatch: true }],
-    "no-unused-vars": ["warn", { args: "none", ignoreRestSiblings: true, varsIgnorePattern: "^React$" }],
+    "no-unused-vars": ["warn", { args: "none", caughtErrors: "none", ignoreRestSiblings: true, varsIgnorePattern: "^React$" }],
     "react/jsx-uses-vars": "error", "react/jsx-no-undef": "error", "react/jsx-key": "warn",
     "react-hooks/rules-of-hooks": "error", "react-hooks/exhaustive-deps": "warn"
   }

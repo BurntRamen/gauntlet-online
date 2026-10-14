@@ -21,6 +21,7 @@ async function build() {
   const report = (await lint.loadFormatter("stylish")).format(results);
   if (report) console.log(report);
   if (results.some(result => result.errorCount > 0)) throw new Error("Client lint failed");
+  if (process.env.CI && process.env.CI.toLowerCase() !== "false" && results.some(result => result.warningCount > 0)) throw new Error("Client lint warnings fail CI");
   prepareOutput();
   const compiler = require("webpack")(require("../config/webpack.config")("production"));
   await new Promise((resolve, reject) => compiler.run((error, stats) => compiler.close(closeError => {
