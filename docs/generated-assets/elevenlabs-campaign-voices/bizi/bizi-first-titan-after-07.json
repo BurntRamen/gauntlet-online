@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "kharon",
+  "voiceName": "Kharon the Builder",
+  "line": "Good. No revelation should have only one copy.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-after-07-kharon.mp3",
+  "generatedAt": "2026-10-14T15:09:11.651Z",
+  "publishedAt": "2026-10-14T15:12:34.845Z",
+  "bytes": 46436,
+  "sha256": "eae70a8af7e040519af6e6b3c0249d589c449d5f3d175fc3e7ddc8d4d387648f"
+}

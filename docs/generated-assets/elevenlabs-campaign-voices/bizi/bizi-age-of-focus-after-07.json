@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "focus",
+  "voiceName": "Focus",
+  "line": "Then the model will be corrected with their data.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-after-07-focus.mp3",
+  "generatedAt": "2026-10-14T15:09:32.787Z",
+  "publishedAt": "2026-10-14T15:12:34.934Z",
+  "bytes": 38913,
+  "sha256": "040e63c33b508f9c6484657398a03656dd902c3c03af9f54a50ed7ef46219a7e"
+}

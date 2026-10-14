@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "justine",
+  "voiceName": "Emperor Justine",
+  "line": "The granaries, aqueducts, and schools are its purpose. You are only a relic that learned to count targets.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-before-06-justine.mp3",
+  "generatedAt": "2026-10-14T15:09:13.649Z",
+  "publishedAt": "2026-10-14T15:12:34.855Z",
+  "bytes": 120833,
+  "sha256": "7ce11c643be87189f232406d0d5795d577abb2a2446338926986dc45ccc9f164"
+}

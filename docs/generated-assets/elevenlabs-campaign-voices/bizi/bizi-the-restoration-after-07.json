@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "xios",
+  "voiceName": "Restorer Xios",
+  "line": "A restoration that depends on one restorer is only another delay.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-after-07-xios.mp3",
+  "generatedAt": "2026-10-14T15:12:14.573Z",
+  "publishedAt": "2026-10-14T15:12:35.053Z",
+  "bytes": 65662,
+  "sha256": "2e5867a2c7117778cec8af7f75eadb6de22c3fe6216682444bca26355adf3d3b"
+}

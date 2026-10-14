@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "iro",
+  "voiceName": "Scholar Iro",
+  "line": "Machina's chambers hold tools, Melech's hold laws, and Meca's hold commands. None contains permission to rule us.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-before-06-iro.mp3",
+  "generatedAt": "2026-10-14T15:09:43.525Z",
+  "publishedAt": "2026-10-14T15:12:34.993Z",
+  "bytes": 122087,
+  "sha256": "7b1bcd35ff4dbc781a3f7edb9d2642cbed4d540589c8510247ac5de4e0989a75"
+}

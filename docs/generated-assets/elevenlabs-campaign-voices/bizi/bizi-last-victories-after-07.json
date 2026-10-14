@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "beli",
+  "voiceName": "General Beli",
+  "line": "Then let history decide whether I saved the empire or only taught it how to overreach.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-after-07-beli.mp3",
+  "generatedAt": "2026-10-14T15:09:28.340Z",
+  "publishedAt": "2026-10-14T15:12:34.914Z",
+  "bytes": 84888,
+  "sha256": "405a4dc74d2c8740173235449b4f57b24146a56447940155e487d89f6c7f8979"
+}

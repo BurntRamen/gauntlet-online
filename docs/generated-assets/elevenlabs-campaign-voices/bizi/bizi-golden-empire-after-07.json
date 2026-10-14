@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "theo",
+  "voiceName": "Theo the Philosopher",
+  "line": "If we polish the empire faster than we repair it, the next enemy will rise from inside.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-after-07-theo.mp3",
+  "generatedAt": "2026-10-14T15:09:17.408Z",
+  "publishedAt": "2026-10-14T15:12:34.867Z",
+  "bytes": 78201,
+  "sha256": "7e0f2119f85aa582ee320993177bc9c7b5e6c99640ff665dc90afc5b85e7eba8"
+}

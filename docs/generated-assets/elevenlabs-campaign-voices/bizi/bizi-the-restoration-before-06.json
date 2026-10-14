@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "xios",
+  "voiceName": "Restorer Xios",
+  "line": "Your accounts show three armies paid, two armies fielded, and one army that exists only in your private estate.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-before-06-xios.mp3",
+  "generatedAt": "2026-10-14T15:09:54.956Z",
+  "publishedAt": "2026-10-14T15:12:35.042Z",
+  "bytes": 105786,
+  "sha256": "a9d8e967824bc08d176b5eb285a8f269a192b676a8d8c746a3e0116f53c2f695"
+}

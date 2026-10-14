@@ -134,6 +134,14 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
   for (const chapter of content.campaigns.bizi.chapters) {
     assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
+    assert.ok(chapter.dialogue.length >= 7, `${chapter.id}: opening dialogue depth`);
+    assert.ok(chapter.endDialogue.length >= 7, `${chapter.id}: closing dialogue depth`);
+    assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length, `${chapter.id}: opening voice coverage`);
+    assert.equal(chapter.endDialogueAudio.length, chapter.endDialogue.length, `${chapter.id}: closing voice coverage`);
+    for (const audioPath of [...chapter.dialogueAudio, ...chapter.endDialogueAudio]) {
+      assert.match(audioPath, /^\/assets\/gauntlet\/voices\/bizi-.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", audioPath)), true, audioPath);
+    }
   }
 });
 
