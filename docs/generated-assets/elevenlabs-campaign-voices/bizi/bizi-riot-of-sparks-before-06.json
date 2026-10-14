@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "insurgent",
+  "voiceName": "Riot Leader",
+  "line": "We forged the gears that made this court rich, then buried our children when those gears took their hands.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch04-before-06-riot-leader.mp3",
+  "generatedAt": "2026-10-14T15:09:18.714Z",
+  "publishedAt": "2026-10-14T15:12:34.878Z",
+  "bytes": 107876,
+  "sha256": "8fd733fa709f5eabe078ade5c3febcf80e8d10a6cb375b5bff27ae47828235a9"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "theo",
+  "voiceName": "Theo the Philosopher",
+  "line": "Roads cannot carry grain and glory in equal measure forever.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-after-06-theo.mp3",
+  "generatedAt": "2026-10-14T15:09:26.945Z",
+  "publishedAt": "2026-10-14T15:12:34.912Z",
+  "bytes": 53959,
+  "sha256": "3898f10e762e6f4c6361237554ebddb2c23d703d235fcf609a0f6b2f90195e70"
+}

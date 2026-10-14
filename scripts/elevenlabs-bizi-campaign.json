@@ -28,7 +28,6 @@
     "severus": "VvmLPzhPQHSqLOL9D1R7",
     "disciple": "bIHbv24MWmeRgasZH58o",
     "xios": "nPczCjzI2devNBz1zQrb",
-    "governor": "rf6gIZkOOQ5Kz7gDqFcT",
     "defender": "p4TAaoUAniL3oGGYQxGO",
     "sultan": "gsb5SfYBeDadQ3Ue1Ggu"
   },
@@ -52,7 +51,7 @@
     "severus": { "name": "Archon Severus", "description": "An elegant but dangerous ideologue with controlled menace, a faint sneer, and total certainty that purity justifies coercion. Never imitate a real person.", "previewText": "Unity built on compromise is rust. Certainty will rule what doubt could not hold." },
     "disciple": { "name": "Theo's Disciple", "description": "A clear, composed younger reformer with patient courage, restrained idealism, and a steady voice that refuses doctrinal intimidation. Never imitate a real person.", "previewText": "The greatest enemy of an empire is certainty. Doubt leaves doors." },
     "xios": { "name": "Restorer Xios", "description": "A mature engineer-statesman with a deep, reassuring voice, practical optimism, and disciplined authority focused on repair rather than glory. Never imitate a real person.", "previewText": "The machine is damaged, not destroyed. We repair it so others can repair it after us." },
-    "governor": { "name": "Corrupt Governor", "description": "A deadpan bureaucrat with formal precision, dry contempt, and the practiced calm of an official who disguises surrender as fiscal realism. Never imitate a real person.", "previewText": "Damaged things are replaced. Repair costs more than surrender." },
+    "governor": { "name": "Corrupt Governor", "description": "A deadpan bureaucrat with formal precision, dry contempt, and the practiced calm of an official who disguises surrender as fiscal realism. Never imitate a real person.", "previewText": "Damaged things are replaced. Repair costs more than surrender, and every account can be arranged to prove that resistance was never affordable." },
     "defender": { "name": "Defender of Constanti", "description": "A seasoned city defender with a deep, direct voice, exhausted courage, and the calm of a soldier protecting knowledge after hope has become impractical. Never imitate a real person.", "previewText": "The Titans are silent. We only need the wall to remember us until dawn." },
     "sultan": { "name": "Iron Sultan", "description": "A blunt, commanding conqueror with a low authoritative voice and unwavering certainty that destruction proves ownership. Never imitate a real person.", "previewText": "Your city has no gods left. Your last machine is ash, and its future belongs to me." }
   },
@@ -78,7 +77,7 @@
     "Severus": "severus",
     "Disciple": "disciple",
     "Xios": "xios",
-    "Governor": "governor",
+    "Governor": "assembly",
     "Defender": "defender",
     "Iron Sultan": "sultan"
   }
