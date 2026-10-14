@@ -1,10 +1,16 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v21";
+const CONTENT_VERSION = "gauntlet-content-v22";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
+const {
+  ADDITIONAL_CAMPAIGNS,
+  ADDITIONAL_CAMPAIGN_NARRATION,
+  ADDITIONAL_CAMPAIGN_METADATA,
+  ADDITIONAL_CAMPAIGN_CHARACTERS
+} = require("./additionalCampaigns");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
 const GRACUS_LEGACY = LEGACIES.factions.find((faction) => faction.id === "gracus");
@@ -1126,7 +1132,6 @@ const factionsData = {
   zynarth: {
     id: "zynarth",
     name: "Zynarth",
-    campaignPending: true,
     draftRules: true,
     cardImage: "/assets/gauntlet/factions/zynarth/brood-nest.webp",
     commander: { name: "Broodmother Zalara", image: "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp", text: "At the start of your turn, create an Egg in an empty lane. Once per turn, hatch an Egg into a Worker, Soldier, or Guard." },
@@ -1509,6 +1514,8 @@ const campaignChapters = {
   ]
 };
 
+Object.assign(campaignChapters, ADDITIONAL_CAMPAIGNS);
+
 const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.frumo) {
   const audio = frumoCampaignVoiceAssets.chapters?.[chapter.id];
@@ -1617,6 +1624,7 @@ for (const chapters of Object.values(campaignChapters)) {
 }
 
 const CAMPAIGN_NARRATION = {
+  ...ADDITIONAL_CAMPAIGN_NARRATION,
   "falling-star": {
     beforeBattle: "The Astral expedition breaks apart over Reath. Alden and Myra race scavengers to the crash sites, determined that the Vanguard's first act on this world will be rescue.",
     afterBattle: "The survivors are safe, but the fleet is gone. Alden chooses to ask Reath for a place rather than take one."
@@ -1892,6 +1900,7 @@ const CAMPAIGN_NARRATION = {
 };
 
 const CAMPAIGN_METADATA = {
+  ...ADDITIONAL_CAMPAIGN_METADATA,
   rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal." },
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
@@ -1901,6 +1910,7 @@ const CAMPAIGN_METADATA = {
 };
 
 const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
+  ...ADDITIONAL_CAMPAIGN_CHARACTERS,
   "astral-vanguard": {
     narrator: {
       name: "Astral Vanguard Narrator",
@@ -2098,7 +2108,7 @@ function validateGameContent() {
       }
     }
     const chapters = campaignChapters[factionId];
-    if (!faction.campaignPending && faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
+    if (!faction.campaignPending && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
       throw new Error(`Invalid game content: faction ${factionId} has an invalid campaign chapter count.`);
     }
   }

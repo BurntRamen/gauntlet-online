@@ -1794,5 +1794,1449 @@
     "attackTiming": "clear-priority",
     "winRoute": "first-uncompleted",
     "lossRoute": "retry"
+  },
+  "mekan-flower-ringed-lake": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "The Bone Road Marauders: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-first-guest": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "The Silent Ferryman: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-lantern-procession": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "The Ash-Mask Gang: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-spectral-symphony": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "Maestro Veyra: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-jade-ball": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "Champion Xoco: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-the-empty-chair": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 1,
+      "name": "The Grief Eater: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-war-of-returning": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "General Calavera: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-festival-without-end": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "The Gilded Host: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-the-stolen-names": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "Archivist Silex: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-siege-of-san-mikal": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "The Pale Conquistador: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-one-more-song": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "The Quiet Plague: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mekan-grand-reunion": {
+    "version": 1,
+    "bossLife": 50,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Festival Rhythm",
+      "text": "The first scripted attack each turn gets +1 value as the Guest list grows.",
+      "tier": 2,
+      "name": "The Keeper Beyond: Festival Rhythm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-line-after-loss": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "Lord Haruto: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-three-hidden-banners": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "The Mirror Clan: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-floating-city": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "Admiral Sevrin: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-bested-prince": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "Prince Daigo: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-storm-formation": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "The Thunder Ronin: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-revenant-famine": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 1,
+      "name": "The White Abbot: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-paper-moon-coup": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "Minister Kuro: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-falling-katana": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "The Chain Artificer: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-warrior-without-memory": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "Nameless Revenant: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-seven-clan-war": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "General Akari: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-last-revenant": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "The Oblivion Bell: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "jali-formation-eternal": {
+    "version": 1,
+    "bossLife": 50,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Returning Line",
+      "text": "The first scripted attack each turn gets +1 value as the bested rejoin the formation.",
+      "tier": 2,
+      "name": "The Emperor of Empty Armor: Returning Line"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-cliffs-of-athun": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "Storm-King Bront: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-first-minotaur": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "Labyrinth Warden: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-towering-follow-up": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "Duelist Nemeon: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-tribute-refused": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "Tax-Lord Corven: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-arena-of-echoes": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "The Applause Shade: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-giants-coast": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 1,
+      "name": "Titan of the Breakers: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-broken-horn": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "Champion Doria: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-three-arena-war": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "House Varkos: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-minotaur-revolt": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "Red-Horn Kastos: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-quiet-arena": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "The Censor of Athun: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-the-impossible-wager": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "Oracle Minoa: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "gracus-worthy-contest": {
+    "version": 1,
+    "bossLife": 50,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Rising Stakes",
+      "text": "The first scripted attack each turn gets +1 value as the arena raises the stakes.",
+      "tier": 2,
+      "name": "The Mountain That Walks: Rising Stakes"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-first-omen": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "Dean Var: Omen Pressure"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-academy-of-omens": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "The Unwritten Exam: Omen Pressure"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-second-reading": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "Magister Sol: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "bossAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-odd-even-war": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "Parity Lords: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "bossAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-cost-of-prophecy": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "Oracle Sen: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate"
+    ],
+    "bossAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-library-of-maybe": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 1,
+      "name": "The Certain Librarian: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate"
+    ],
+    "bossAdditions": [
+      "indela-blazing-initiate",
+      "indela-glacier-initiate"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-the-null-card": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "Professor Zero: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller"
+    ],
+    "bossAdditions": [
+      "indela-blazing-initiate",
+      "indela-glacier-initiate"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-frozen-forecast": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "Winter Seer: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller"
+    ],
+    "bossAdditions": [
+      "indela-flameweaver",
+      "indela-blizzard-caller"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-burning-proof": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "The Red Theorem: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller",
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler"
+    ],
+    "bossAdditions": [
+      "indela-flameweaver",
+      "indela-blizzard-caller",
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler",
+      "indela-fire-enchanter",
+      "indela-headmaster"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-omen-market": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "Broker Pell: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller",
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler"
+    ],
+    "bossAdditions": [
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler",
+      "indela-fire-enchanter",
+      "indela-headmaster",
+      "indela-arcane-amplification",
+      "indela-elemental-infusion"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-city-of-one-answer": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "Archmagus Eka: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller",
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler",
+      "indela-fire-enchanter",
+      "indela-headmaster"
+    ],
+    "bossAdditions": [
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler",
+      "indela-fire-enchanter",
+      "indela-headmaster",
+      "indela-arcane-amplification",
+      "indela-elemental-infusion"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "indela-open-future": {
+    "version": 1,
+    "bossLife": 50,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Omen Pressure",
+      "text": "The first scripted attack each turn gets +1 value under the current omen.",
+      "tier": 2,
+      "name": "The Final Omen: Omen Pressure"
+    },
+    "playerAdditions": [
+      "indela-student-of-flame",
+      "indela-frost-apprentice",
+      "indela-blazing-initiate",
+      "indela-glacier-initiate",
+      "indela-flameweaver",
+      "indela-blizzard-caller",
+      "indela-mystic-of-embers",
+      "indela-arctic-channeler",
+      "indela-fire-enchanter",
+      "indela-headmaster"
+    ],
+    "bossAdditions": [
+      "indela-fire-enchanter",
+      "indela-headmaster",
+      "indela-arcane-amplification",
+      "indela-elemental-infusion",
+      "indela-scorched-earth-ritual",
+      "indela-frostbite-gale"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-first-hatching": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "The Glass Hunter: Adaptive Swarm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-borrowed-biomass": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "Harvester Morn: Adaptive Swarm"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-many-minds": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "The One Voice: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "bossAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-molt-war": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "Chitin Tyrant Vrax: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "bossAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-spore-sickness": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "The Bloom Below: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper"
+    ],
+    "bossAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-human-wall": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 1,
+      "name": "Captain Elian Ward: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper"
+    ],
+    "bossAdditions": [
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-sacrifice-engine": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "Biomancer Syth: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster"
+    ],
+    "bossAdditions": [
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-rival-brood": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "Broodmother Xethra: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster"
+    ],
+    "bossAdditions": [
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-winter-nest": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "The White Hunger: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster",
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden"
+    ],
+    "bossAdditions": [
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster",
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden",
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-queenless-night": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "The Severing Signal: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster",
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden"
+    ],
+    "bossAdditions": [
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden",
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer",
+      "zynarth-spawning-pool",
+      "zynarth-pheromone-route"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-devourer-star": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "The World-Eater Larva: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster",
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden",
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer"
+    ],
+    "bossAdditions": [
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden",
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer",
+      "zynarth-spawning-pool",
+      "zynarth-pheromone-route"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "zynarth-brood-of-reath": {
+    "version": 1,
+    "bossLife": 50,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Adaptive Swarm",
+      "text": "The first scripted attack each turn gets +1 value as the brood adapts.",
+      "tier": 2,
+      "name": "The Purifier Coalition: Adaptive Swarm"
+    },
+    "playerAdditions": [
+      "zynarth-spore-runner",
+      "zynarth-nutrient-tender",
+      "zynarth-brood-shepherd",
+      "zynarth-carapace-keeper",
+      "zynarth-adaptive-stalker",
+      "zynarth-hunting-cluster",
+      "zynarth-biomass-reclaimer",
+      "zynarth-hive-warden",
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer"
+    ],
+    "bossAdditions": [
+      "zynarth-brood-titan",
+      "zynarth-ancient-devourer",
+      "zynarth-spawning-pool",
+      "zynarth-pheromone-route",
+      "zynarth-hardened-nursery",
+      "zynarth-metabolic-web"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
   }
 }
