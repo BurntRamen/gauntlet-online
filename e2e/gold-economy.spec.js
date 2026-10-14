@@ -51,7 +51,9 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     await library.screenshot({ path: "artifacts/gold-analysis-desktop.png" });
     await area(); await choose("Marketplace"); await page.getByRole("button", { name: /^Personal match analysis gold-browser-analysis/ }).click(); await page.getByRole("button", { name: "Archive definition", exact: true }).click(); await publish("Retire offer, preserve permanent library access");
     await player.reload(); await player.locator('button[data-area="identity"]').click(); await player.getByRole("tab", { name: "Gold & Library", exact: true }).click();
-    await expect(library).toContainText("800 Gold · Published"); await expect(library.getByRole("button", { name: /^Review Personal/ })).toHaveCount(0);
+    // Publishing refreshes the full Admin catalog while the player session is
+    // restored. Wait for the resulting wallet view, including on loaded runners.
+    await expect(library).toContainText("800 Gold · Published", { timeout: 15000 }); await expect(library.getByRole("button", { name: /^Review Personal/ })).toHaveCount(0);
     await library.getByRole("button", { name: "Open Personal match analysis", exact: true }).click(); await expect(library).toContainText("1 finalized matches");
     await player.setViewportSize({ width: 390, height: 844 });
     expect((await new AxeBuilder({ page: player }).include(".economy-console").analyze()).violations).toEqual([]);
