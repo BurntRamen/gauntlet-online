@@ -5,6 +5,8 @@ Work branch: `codex/admin-content-lifecycle`. The subsequent request “and then
 
 ## Purpose-connected decks and products — current pass
 
+Security follow-up (14 October): the CRA toolchain has been replaced with explicit maintained Webpack/Babel/Jest/ESLint configuration. The client audit now reports zero findings at all severities. The full 738-test client suite and four tooling security checks pass, and production bundles remain within unchanged limits (main 172.7 KiB, player 712.6, initial Admin 17.5, total Admin 55.9). See [the current security disposition](admin-dependency-audit.md); earlier audit and build measurements below describe the pre-remediation branch. Clean-install, full browser/CI evidence and Case's migration remain separate release gates.
+
 The user confirmed that a deck product is a recipe, deck box, exact selected printings (“treatment”), and card back. Admin sets explicit Gold/Timetwister prices; blank disables a currency and zero means a free claim. Ranked and constructed events permit every legal gameplay card. Cosmetics still require ownership. Draft and Sealed retain their captured generated pools. Casual and campaign replacement cards still require earned gameplay access.
 
 ### Control-to-destination contract

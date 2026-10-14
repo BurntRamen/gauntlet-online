@@ -17,4 +17,4 @@ Each account stats write carries the revision it read. PostgreSQL compares that 
 
 The migration has passed executable PostgreSQL tests through PGlite, including stale writes, transaction rollback and denial of anonymous capability access. It has **not** been applied to or verified on the production database from this session.
 
-This step does not resolve the separate client dependency findings, public GitHub repository limitation for private uploads/notes, or unavailable canonical match archive. Those remain recorded in [the capability map](admin-suite-capabilities.md).
+The client dependency findings have a separate tooling fix and release checks in [the security disposition](admin-dependency-audit.md). This SQL does not change GitHub repository visibility, enable private uploads/notes in a public repository, or create the unavailable canonical match archive. Those limitations remain recorded in [the capability map](admin-suite-capabilities.md).

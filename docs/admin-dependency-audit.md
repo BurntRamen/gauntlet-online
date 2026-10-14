@@ -1,5 +1,19 @@
 # Dependency security disposition — connected Admin suite
 
+## Security remediation — 14 October 2026
+
+The actual replacement client lockfile reports **zero critical, high, moderate or low findings**, including development dependencies. Root and server are audited independently. The earlier 99-package client result below is retained as historical evidence, not the current disposition.
+
+Removed `react-scripts` and its obsolete compiler/dev-server/test graph. The client now declares maintained Webpack 5, Babel 7, Jest 30/jsdom, ESLint 9 and PostCSS tools directly, with reviewed configuration in `client/config` and `client/scripts`. React, browser targets, public URLs, source maps, static assets, named lazy chunks, CSS extraction and WebGL pruning are retained. The Vercel file explicitly selects locked installation and the existing static build output. Render configuration and production content are unchanged.
+
+There is one narrow override: `@istanbuljs/load-nyc-config` uses `js-yaml` 5.4.3 instead of its obsolete 3.x parser, removing `argparse` 1 / `sprintf-js`. Inspection confirmed that the parent calls only `load`; executable regression checks exercise YAML inheritance, arrays, option names, malformed YAML and rejection of JavaScript tags. Remove this override when the parent adopts a patched parser. This is a dependency replacement, not an advisory suppression. No audit threshold was lowered and no `--force` upgrade was used.
+
+The replacement development server binds only to loopback, validates Host/Origin, rejects traversal and hidden files, restricts methods and serves only compiled output. It uses Webpack watch with manual browser refresh; it does not retain the old dev server's proxy/TLS/HMR features. Environment loading preserves precedence and exposes only public-prefixed values plus NODE_ENV/PUBLIC_URL. Tests check that service credentials do not enter browser configuration.
+
+Initial integration verification: all **99 client suites / 738 tests** pass; **4 toolchain security/compatibility tests** pass; the production build succeeds. Measured gzip: main **172.7 KiB**, player **712.6 KiB**, initial Admin **17.5 KiB**, total Admin **55.9 KiB**, largest async **274.2 KiB**. All existing ceilings remain unchanged. Raw results and subsequent clean-install/browser verification are in `artifacts/security/`; release readiness still requires the complete CI/browser results and Case's separate migration.
+
+## Historical audit before toolchain remediation
+
 Audited 12 October 2026 against the root, server and client npm lockfiles, before and after compatible updates. Raw audit JSON, original lockfiles, update logs and npm explain output are in `artifacts/printings/`. No forced upgrade, override or advisory suppression was applied. Counts are npm affected-package totals (including propagated findings), not counts of distinct exploitable vulnerabilities.
 
 | Lockfile | Before critical/high/moderate/low | After critical/high/moderate/low | Result |

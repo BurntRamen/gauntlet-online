@@ -1,3 +1,4 @@
+const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4117"}`;
 const { test: base, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 // API assertions pause while the browser edits. Avoid reusing an idle socket
@@ -29,7 +30,7 @@ async function quickActions(playtest) {
 }
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
-    const response = await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name, password: "test-password" } });
+    const response = await request.post(`${serverUrl}/api/auth/login`, { data: { name, password: "test-password" } });
     expect(response.ok()).toBeTruthy();
     loginSessions.set(name, (await response.json()).token);
   }
@@ -41,7 +42,7 @@ async function signIn(page, request, name) {
 test("both authorized accounts can inspect every section; other accounts and guests cannot", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("heading", { name: "Private administration" })).toBeVisible();
-  expect((await request.get("http://127.0.0.1:4117/admin/gauntlet/content")).status()).toBe(401);
+  expect((await request.get(`${serverUrl}/admin/gauntlet/content`)).status()).toBe(401);
   await page.getByRole("button", { name: "Sign in through Identity" }).click();
   await page.getByPlaceholder("Account name", { exact: true }).fill("simply");
   await page.getByPlaceholder("Password", { exact: true }).fill("test-password");
@@ -50,7 +51,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   const visitor = await signIn(page, request, "Visitor");
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("alert")).toContainText("does not have access");
-  expect((await request.get("http://127.0.0.1:4117/api/admin/catalog", { headers: { Authorization: `Bearer ${visitor}` } })).status()).toBe(403);
+  expect((await request.get(`${serverUrl}/api/admin/catalog`, { headers: { Authorization: `Bearer ${visitor}` } })).status()).toBe(403);
 
   await signIn(page, request, "simply");
   await page.reload();
@@ -148,7 +149,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   await page.goto("/admin/gauntlet");
   const visitor = await signIn(page, request, "Visitor");
   const path = "/api/admin/players/cccccccc-cccc-4ccc-8ccc-cccccccccccc/metadata";
-  const denied = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${visitor}` }, data: { expectedName: "Visitor", metadata: { name: "Changed by visitor" } } });
+  const denied = await request.patch(`${serverUrl}${path}`, { headers: { Authorization: `Bearer ${visitor}` }, data: { expectedName: "Visitor", metadata: { name: "Changed by visitor" } } });
   expect(denied.status()).toBe(403);
   const admin = await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
@@ -178,7 +179,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   await page.reload();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
-  const restored = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
+  const restored = await request.patch(`${serverUrl}${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
   expect(restored.ok()).toBeTruthy();
 });
 
@@ -186,9 +187,9 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` };
-  const live = async () => (await (await request.get("http://127.0.0.1:4117/api/game-content", { maxRetries: 2 })).json()).content;
+  const live = async () => (await (await request.get(`${serverUrl}/api/game-content`, { maxRetries: 2 })).json()).content;
   const original = await live();
-  const historyBefore = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
+  const historyBefore = await (await request.get(`${serverUrl}/api/admin/matches`, { headers })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Design", { exact: true }).click();
   await otherContent(page, "Campaigns");
@@ -238,7 +239,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await live()).contentVersion).toBe(original.contentVersion);
-  const historyAfter = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
+  const historyAfter = await (await request.get(`${serverUrl}/api/admin/matches`, { headers })).json();
   expect(historyAfter).toEqual(historyBefore);
   await nav.getByText("Design", { exact: true }).click();
   await otherContent(page, "Factions");
@@ -254,7 +255,7 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` };
-  const before = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const before = await (await request.get(`${serverUrl}/api/admin/authoring`, { headers })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Design", { exact: true }).click();
   await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
@@ -281,12 +282,12 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
   await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
-  const content = await (await request.get("http://127.0.0.1:4117/api/game-content", { maxRetries: 2 })).json();
+  const content = await (await request.get(`${serverUrl}/api/game-content`, { maxRetries: 2 })).json();
   expect(content.content.campaigns.rumin.chapters[0].setup.bossLife).toBe(31);
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
-  const after = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const after = await (await request.get(`${serverUrl}/api/admin/authoring`, { headers })).json();
   expect(after.activeReleaseId).toBe(before.activeReleaseId);
 });
 
@@ -294,7 +295,7 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: "Bearer " + token };
-  const original = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const original = await (await request.get(`${serverUrl}/api/admin/authoring`, { headers })).json();
   const artwork = original.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
   expect(artwork).toBeTruthy();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
@@ -314,9 +315,9 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
     await expect.poll(() => image.evaluate((element) => element.complete && element.naturalWidth > 0)).toBeTruthy();
     await preview.screenshot({ path: "artifacts/admin-qualification-" + field.replace(/ /g, "-") + ".png" });
   }
-  const current = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const current = await (await request.get(`${serverUrl}/api/admin/authoring`, { headers })).json();
   expect(current.activeReleaseId).toBe(original.activeReleaseId);
-  expect((await request.post("http://127.0.0.1:4117/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+  expect((await request.post(`${serverUrl}/api/admin/authoring/discard`, { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
 });
 
 test("Admin is discoverable only after access approval and review controls retain keyboard context", async ({ page, request }) => {
@@ -417,7 +418,7 @@ test("a reported authoring outage keeps real live testing available without publ
   });
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: "Bearer " + token }, base = `${serverUrl}/api/admin/authoring`;
   const before = await (await request.get(base, { headers })).json();
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await expect(page.getByText(/Shared draft and publication history are unavailable/)).toBeVisible();
@@ -444,7 +445,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   test.setTimeout(180000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: `Bearer ${token}` }, base = `${serverUrl}/api/admin/authoring`;
   const saved = async () => (await request.get(base, { headers })).json();
   const initial = await saved();
   await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
@@ -588,11 +589,11 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
 test("a second operator's revision conflict preserves local typing and requires an explicit retry", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: `Bearer ${token}` }, base = `${serverUrl}/api/admin/authoring`;
   await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Draft story", { exact: true }).fill("Local operator story.");
-  const login = await (await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name: "Burnt Ramen", password: "test-password" } })).json();
+  const login = await (await request.post(`${serverUrl}/api/auth/login`, { data: { name: "Burnt Ramen", password: "test-password" } })).json();
   const before = await (await request.get(base, { headers })).json();
   expect((await request.patch(`${base}/draft`, { headers: { Authorization: `Bearer ${login.token}` }, data: { expectedRevision: before.revision, domain: "encounters", id: "brothers-of-destiny", field: "story", value: "Other operator story." } })).ok()).toBeTruthy();
   await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
@@ -614,7 +615,7 @@ test("card workshop previews and executes a custom live scenario without creatin
   test.setTimeout(120000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: "Bearer " + token }, base = `${serverUrl}/api/admin/authoring`;
   const before = await (await request.get(base, { headers })).json();
   expect(before.draft).toBeFalsy();
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
@@ -712,7 +713,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   test.setTimeout(90000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: "Bearer " + token }, base = `${serverUrl}/api/admin/authoring`;
   const original = await (await request.get(base, { headers })).json();
   const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
@@ -763,19 +764,19 @@ test("workshop metadata, relationships, review and test APIs keep the stable-ID 
   const visitor = await signIn(page, request, "Visitor");
   const headers = { Authorization: "Bearer " + visitor };
   for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
-    expect((await request.get("http://127.0.0.1:4117" + path)).status()).toBe(401);
-    expect((await request.get("http://127.0.0.1:4117" + path, { headers })).status()).toBe(403);
+    expect((await request.get(`${serverUrl}` + path)).status()).toBe(401);
+    expect((await request.get(`${serverUrl}` + path, { headers })).status()).toBe(403);
   }
   for (const path of ["/api/admin/authoring/playtest", "/api/admin/authoring/playtest/preview-command"]) {
-    expect((await request.post("http://127.0.0.1:4117" + path, { data: {} })).status()).toBe(401);
-    expect((await request.post("http://127.0.0.1:4117" + path, { headers, data: {} })).status()).toBe(403);
+    expect((await request.post(`${serverUrl}` + path, { data: {} })).status()).toBe(401);
+    expect((await request.post(`${serverUrl}` + path, { headers, data: {} })).status()).toBe(403);
   }
 });
 
 test("direct workshop sections and browser forward navigation resolve local edits before leaving", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply");
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
+  const headers = { Authorization: "Bearer " + token }, base = `${serverUrl}/api/admin/authoring`;
   const before = await (await request.get(base, { headers })).json();
   await page.goto("/admin/gauntlet?workshop=cards&object=rumin-coin-scale-spear&section=mechanics");
   const card = page.getByRole("region", { name: "Card Workshop", exact: true });
@@ -893,7 +894,7 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "Burnt Ramen"); await page.reload();
   const headers = { Authorization: "Bearer " + token };
-  const state = async () => (await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json());
+  const state = async () => (await (await request.get(`${serverUrl}/api/admin/authoring`, { headers })).json());
   let releasePreview, previewRequested;
   const previewGate = new Promise(resolve => { releasePreview = resolve; });
   const previewStarted = new Promise(resolve => { previewRequested = resolve; });
@@ -1038,7 +1039,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await page.getByRole("button", { name: "Restore Browser catalog one", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
-  const publicContent = await (await request.get("http://127.0.0.1:4117/api/game-content")).json();
+  const publicContent = await (await request.get(`${serverUrl}/api/game-content`)).json();
   expect(publicContent.content.cards.find(c => c.id === card.id).effect.parameters.armBonus).toBe(2);
   await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1051,7 +1052,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await page.getByRole("button", { name: "Cancel creation", exact: true }).click();
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Discard local edits and continue", exact: true }).click();
   await expect(page.getByLabel("New content name")).toHaveCount(0);
-  const state = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers: { Authorization: "Bearer " + token } })).json();
+  const state = await (await request.get(`${serverUrl}/api/admin/authoring`, { headers: { Authorization: "Bearer " + token } })).json();
   expect(state.draft).toBeNull();
 });
 
@@ -1151,7 +1152,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByRole("button", { name: "Restore Browser composed R1", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
-  const publicContent = (await (await request.get("http://127.0.0.1:4117/api/game-content")).json()).content;
+  const publicContent = (await (await request.get(`${serverUrl}/api/game-content`)).json()).content;
   expect(publicContent.cards.find(c => c.id === card.id).effect.abilities[0].condition).toEqual({ kind: "overpay", amount: 2 });
   expect(publicContent.contentBinding.compositionVersion).toBe("gauntlet.composition.armament.v1");
 });

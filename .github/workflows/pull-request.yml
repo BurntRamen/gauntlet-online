@@ -43,6 +43,9 @@ jobs:
       - name: Test client behavior
         run: npm run test:client
 
+      - name: Test build configuration and development server boundaries
+        run: npm --prefix client run test:toolchain
+
       - name: Build client
         run: npm run build:client
 

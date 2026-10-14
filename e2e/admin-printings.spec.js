@@ -23,7 +23,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   await page.getByRole("button", { name: "Create set", exact: true }).click();
   await page.getByLabel("New content name").fill("Printing Browser Edition");
   await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Printing Browser Edition", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Selected content", { exact: true }).getByRole("heading", { name: "Printing Browser Edition", exact: true })).toBeVisible();
   const edition = (await status()).draft.snapshot.domains.sets[0].id;
   await open(page); await page.getByRole("button", { name: "Duplicate selected printing" }).click();
   await page.getByLabel("New content name").fill("Rumin Sentry alternate");
