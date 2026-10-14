@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "justine",
+  "voiceName": "Emperor Justine",
+  "line": "Open them. If the empire cannot survive the truth, it deserves no restoration.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch04-after-07-justine.mp3",
+  "generatedAt": "2026-10-14T15:09:22.627Z",
+  "publishedAt": "2026-10-14T15:12:34.891Z",
+  "bytes": 86560,
+  "sha256": "e46ba4623652253858943fc5268e3233c45d737c94cd50324f0735f217c02836"
+}

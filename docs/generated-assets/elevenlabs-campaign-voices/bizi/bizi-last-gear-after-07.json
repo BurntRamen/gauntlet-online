@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "sultan",
+  "voiceName": "Iron Sultan",
+  "line": "An empire without a capital is only a memory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-after-07-iron-sultan.mp3",
+  "generatedAt": "2026-10-14T15:12:18.985Z",
+  "publishedAt": "2026-10-14T15:12:35.072Z",
+  "bytes": 40585,
+  "sha256": "a6a942cb65ed152d4e38ef22995c959711a0e08ac41ce8c696bf63d54a5866f3"
+}

@@ -87,7 +87,7 @@ test("catalog reflects the live registry, campaign-only content and deterministi
   const { body, status } = await get("catalog");
   assert.equal(status, 200);
   assert.equal(body.counts.cards, require("../gameContent").COLLECTION_CARDS.length);
-  assert.equal(body.counts.encounters, 56);
+  assert.equal(body.counts.encounters, 128);
   assert.equal(body.counts.factions, 11);
   assert.match(body.domains.factions.find((f) => f.id === "xendra").definition.availability, /campaign only/);
   const encounter = body.domains.encounters[0];
