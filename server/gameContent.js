@@ -966,10 +966,10 @@ const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 
 const COMMANDER_ANNOUNCEMENTS = Object.freeze({
-  rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline, tribute, triumph. In that order.", wounded: "Our line bends at twenty-one. It does not break.", critical: "Ten life remains. Spend everything. Yield nothing.", denied: "The treasury will not underwrite this assault." },
-  sheen: { selected: "We won a forest. Now we must make it a home.", clicked: "Be still. Even the smallest root can split stone.", wounded: "At twenty-one, the canopy thins. Guard the living heart.", critical: "Ten life remains. Take root and endure.", denied: "The roots have not gathered enough strength." },
-  frumo: { selected: "All sails answer the Lord Commander. Make ready.", clicked: "The tide favors the captain who gives it orders.", wounded: "Twenty-one life. Reef the sails and hold the line.", critical: "Ten life. One last broadside decides the sea.", denied: "A poor wager, captain." },
-  bizi: { selected: "Conductor online. Progress is now inevitable.", clicked: "Every mechanism has a purpose. Including you.", wounded: "Life reserve at twenty-one. Redirecting power to defense.", critical: "Critical threshold: ten. Release every safeguard.", denied: "Insufficient power allocation." },
+  rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline first. Then conquest.", wounded: "Order has a cost.", critical: "If I surrender, Rumie returns to corruption.", denied: "The treasury will not underwrite this assault." },
+  sheen: { selected: "We won a forest. Now we must make it a home.", clicked: "Patience. Growth must be nourished.", wounded: "No. I have shown ten valleys where to begin.", critical: "Then hunger will find us planted together.", denied: "The roots have not gathered enough strength." },
+  frumo: { selected: "Today it needs victory.", clicked: "I freed the Frumo from kings.", wounded: "Storms are accidents. Ice is weather. Hunger is logistics.", critical: "I freed the Frumo. I united them. I made them strong.", denied: "A poor wager, captain." },
+  bizi: { selected: "Systems fail. Systems restart.", clicked: "Disorder has fallen below acceptable limits.", wounded: "Compassion is inefficient. Progress is not.", critical: "Heat is a condition. Adaptation is a response.", denied: "Insufficient power allocation." },
   mekan: { selected: "The guests have arrived. Let the eternal festival begin.", clicked: "Every ending is only another invitation.", wounded: "Twenty-one life, and still the procession dances.", critical: "Ten life remains. Celebrate as if dawn depends on it.", denied: "The celebration remembers every payment." },
   jali: { selected: "The fallen march beside us. Form the line.", clicked: "A warrior bested is a warrior waiting to return.", wounded: "Twenty-one life. Call the names of those we have lost.", critical: "Ten life. Raise the Revenants and stand.", denied: "The formation has not yet answered." },
   gracus: { selected: "The arena has its champions. Let the contest begin!", clicked: "Give the crowd a battle worthy of legend.", wounded: "Twenty-one life! Now the true contest begins.", critical: "Ten life! Roar louder than death itself!", denied: "The arena rejects that challenge." },
@@ -981,16 +981,56 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
   rumin: {
     selected: "/assets/gauntlet/voices/rumin-ch04-before-03-kaiser.mp3",
+    clicked: "/assets/gauntlet/voices/kaiser-3.mp3",
+    wounded: "/assets/gauntlet/voices/rumin-ch09-after-03-kaiser.mp3",
+    critical: "/assets/gauntlet/voices/rumin-ch07-before-03-kaiser.mp3",
     denied: "/assets/gauntlet/voices/kaiser-1.mp3"
   },
   sheen: {
     selected: "/assets/gauntlet/voices/sheen-ch04-before-02-leafen-gao.mp3",
+    clicked: "/assets/gauntlet/voices/leafen-gao-2.mp3",
+    wounded: "/assets/gauntlet/voices/sheen-ch01-after-04-leafen-gao.mp3",
+    critical: "/assets/gauntlet/voices/sheen-ch04-before-05-leafen-gao.mp3",
     denied: "/assets/gauntlet/voices/leafen-gao-1.mp3"
   },
-  frumo: { denied: "/assets/gauntlet/voices/polea-1.mp3" },
-  bizi: { denied: "/assets/gauntlet/voices/focus-1.mp3" },
+  frumo: {
+    selected: "/assets/gauntlet/voices/frumo-ch07-before-04-polea.mp3",
+    clicked: "/assets/gauntlet/voices/frumo-ch09-before-02-polea.mp3",
+    wounded: "/assets/gauntlet/voices/frumo-ch11-after-02-polea.mp3",
+    critical: "/assets/gauntlet/voices/frumo-ch12-before-02-polea.mp3",
+    denied: "/assets/gauntlet/voices/polea-1.mp3"
+  },
+  bizi: {
+    selected: "/assets/gauntlet/voices/bizi-ch07-after-03-focus.mp3",
+    clicked: "/assets/gauntlet/voices/bizi-ch06-after-03-focus.mp3",
+    wounded: "/assets/gauntlet/voices/bizi-ch06-before-03-focus.mp3",
+    critical: "/assets/gauntlet/voices/bizi-ch07-before-05-focus.mp3",
+    denied: "/assets/gauntlet/voices/focus-1.mp3"
+  },
   zynarth: { denied: "/assets/gauntlet/voices/zalara-1.mp3" }
 });
+
+const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
+  rumin: "Discipline first. Then conquest.",
+  sheen: "Tradition has become a fence around empty soil.",
+  frumo: "The sea gives enough for all Frumo. Your king has taught it to starve.",
+  bizi: "Machines break. Empires fall.",
+  mekan: "The festival remembers every guest.",
+  jali: "The fallen still know the road to battle.",
+  gracus: "A champion enters when the crowd needs courage.",
+  indela: "The omen is clear enough to act.",
+  zynarth: "The brood adapts through every keeper.",
+  "astral-vanguard": "Formation set. Await the descent."
+});
+
+const GENERAL_CLICK_AUDIO = Object.freeze({
+  rumin: "/assets/gauntlet/voices/kaiser-3.mp3",
+  sheen: "/assets/gauntlet/voices/sheen-ch08-before-02-tang.mp3",
+  frumo: "/assets/gauntlet/voices/frumo-ch01-before-03-lafayette.mp3",
+  bizi: "/assets/gauntlet/voices/bizi-ch08-before-02-hera.mp3"
+});
+
+const CITY_CLICK_SOUND = "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav";
 
 const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
@@ -1118,12 +1158,20 @@ factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.i
 factionsData.jali.general = factionsData.jali.generals[0];
 factionsData.gracus.general = factionsData.gracus.generals[0];
 factionsData.indela.general = factionsData.indela.generals[0];
+const factionInteractionVoiceAssets = require("./factionInteractionVoiceAssets.json");
 for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)) {
   factionsData[factionId].commander.announcements = announcements;
   factionsData[factionId].commander.voiceProfile = COMMANDER_VOICE_PROFILES[factionId];
   factionsData[factionId].commander.voiceHints = COMMANDER_VOICE_HINTS[factionId];
-  const announcementAudio = COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
+  const generatedAudio = factionInteractionVoiceAssets.factions?.[factionId];
+  const announcementAudio = generatedAudio?.commander || COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
   if (announcementAudio) factionsData[factionId].commander.announcementAudio = announcementAudio;
+  if (factionsData[factionId].general) {
+    factionsData[factionId].general.clickedAnnouncement = GENERAL_CLICK_ANNOUNCEMENTS[factionId];
+    const generalAudio = generatedAudio?.general?.clicked || GENERAL_CLICK_AUDIO[factionId];
+    if (generalAudio) factionsData[factionId].general.clickedAudio = generalAudio;
+  }
+  if (factionsData[factionId].city) factionsData[factionId].city.clickedSound = CITY_CLICK_SOUND;
 }
 
 function listFactions() {
@@ -1219,6 +1267,14 @@ for (const chapter of campaignChapters.frumo) {
 const biziCampaignVoiceAssets = require("./biziCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.bizi) {
   const audio = biziCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
+const xendraCampaignVoiceAssets = require("./xendraCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.xendra) {
+  const audio = xendraCampaignVoiceAssets.chapters?.[chapter.id];
   if (!audio) continue;
   chapter.dialogueAudio = [...audio.dialogueAudio];
   chapter.endDialogueAudio = [...audio.endDialogueAudio];

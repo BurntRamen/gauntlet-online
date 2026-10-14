@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "zynarth",
+  "role": "commander",
+  "event": "denied",
+  "line": "The brood is not ready to strike.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3",
+  "generatedAt": "2026-10-13T19:59:29.508Z",
+  "publishedAt": "2026-10-13T19:59:37.297Z",
+  "bytes": 32226,
+  "sha256": "1c635d39315b26bba194f776cdbcea7577c01e802182f32f391439ee6ce25e97"
+}

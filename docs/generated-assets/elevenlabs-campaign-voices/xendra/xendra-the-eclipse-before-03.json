@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "krauth",
+  "voiceName": "Krauth Crown of Static",
+  "line": "Intent is a candle. Consequence is the sun.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-before-03-krauth.mp3",
+  "generatedAt": "2026-10-13T19:52:13.266Z",
+  "publishedAt": "2026-10-13T19:52:16.252Z",
+  "bytes": 47273,
+  "sha256": "426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4"
+}

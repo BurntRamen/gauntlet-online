@@ -760,7 +760,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
 }
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
-  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onCommanderClick, obscured = false }) {
+  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onFactionCardClick, obscured = false }) {
   const [abilitySearch, setAbilitySearch] = useState("");
   useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
@@ -926,14 +926,14 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                   ["General", factionProfile(player.faction?.general, "General")],
                   ["City", factionProfile(player.faction?.city, "City")]
                 ].map(([role, profile]) => profile && (
-                  <div className={`production-faction-profile${role === "Commander" && onCommanderClick ? " is-interactive" : ""}`} key={role}
-                    role={role === "Commander" && onCommanderClick ? "button" : undefined}
-                    tabIndex={role === "Commander" && onCommanderClick ? 0 : undefined}
-                    onClick={role === "Commander" ? onCommanderClick : undefined}
-                    onKeyDown={role === "Commander" && onCommanderClick ? (event) => {
+                  <div className={`production-faction-profile${onFactionCardClick ? " is-interactive" : ""}`} key={role}
+                    role={onFactionCardClick ? "button" : undefined}
+                    tabIndex={onFactionCardClick ? 0 : undefined}
+                    onClick={onFactionCardClick ? () => onFactionCardClick(role.toLowerCase()) : undefined}
+                    onKeyDown={onFactionCardClick ? (event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        onCommanderClick();
+                        onFactionCardClick(role.toLowerCase());
                       }
                     } : undefined}>
                     {profile.image && <img src={resolveMatchAssetPath(profile.image)} alt="" />}
@@ -2173,7 +2173,7 @@ export default function ProductionMatchExperience({
               faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}
               viewModel={presentedViewModel} commands={gameplayCommands}
               layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked}
-              onFactionCardClick={(role) => { if (role === "commander") options.onCommanderClick?.(); }} />
+              onFactionCardClick={(role) => options.onFactionCardClick?.(role)} />
           )}
         </div>
 
@@ -2330,7 +2330,7 @@ export default function ProductionMatchExperience({
           recentEvents={feedEntries}
           abilitiesOnly={abilityLogOnly}
           onAbilityFilter={setAbilityLogOnly}
-          onCommanderClick={options.onCommanderClick}
+          onFactionCardClick={options.onFactionCardClick}
           onClose={closeReference}
         />
       )}

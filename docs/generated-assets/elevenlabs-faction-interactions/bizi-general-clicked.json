@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "role": "general",
+  "event": "clicked",
+  "line": "Machines break. Empires fall.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-bizi-general-clicked.mp3",
+  "generatedAt": "2026-10-13T19:58:59.531Z",
+  "publishedAt": "2026-10-13T19:59:37.167Z",
+  "bytes": 37660,
+  "sha256": "49b5ca06bc24de72470e37018019e2984b0086eecc08d3de9cda0753dc6b1f47"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "defender",
+  "voiceName": "Last Defender of Reath",
+  "line": "Elias, step away from the sky.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch08-before-01-defender.mp3",
+  "generatedAt": "2026-10-13T19:52:14.535Z",
+  "publishedAt": "2026-10-13T19:52:16.257Z",
+  "bytes": 33062,
+  "sha256": "663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121"
+}
