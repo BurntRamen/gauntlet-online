@@ -5,12 +5,12 @@
   "factionId": "bizi",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "governor",
-  "voiceName": "Corrupt Governor",
+  "voiceKey": "assembly",
+  "voiceName": "Assembly of Doubt",
   "line": "And when it fails again?",
   "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-after-04-governor.mp3",
-  "generatedAt": "2026-10-12T14:30:15.444Z",
-  "publishedAt": "2026-10-12T14:30:30.512Z",
-  "bytes": 23449,
-  "sha256": "9e3331852a1c2ab44784acd548648c28e0863c6d81eaf2ac9ac1781d4960ddd9"
+  "generatedAt": "2026-10-14T15:12:12.049Z",
+  "publishedAt": "2026-10-14T15:12:35.049Z",
+  "bytes": 24284,
+  "sha256": "848e4b130d05b91196918c263132056539f890e9e7fbc3b940e74cc5ab70a845"
 }

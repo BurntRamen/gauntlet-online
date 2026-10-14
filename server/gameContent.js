@@ -1,10 +1,16 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v20";
+const CONTENT_VERSION = "gauntlet-content-v22";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
+const {
+  ADDITIONAL_CAMPAIGNS,
+  ADDITIONAL_CAMPAIGN_NARRATION,
+  ADDITIONAL_CAMPAIGN_METADATA,
+  ADDITIONAL_CAMPAIGN_CHARACTERS
+} = require("./additionalCampaigns");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
 const GRACUS_LEGACY = LEGACIES.factions.find((faction) => faction.id === "gracus");
@@ -1126,7 +1132,6 @@ const factionsData = {
   zynarth: {
     id: "zynarth",
     name: "Zynarth",
-    campaignPending: true,
     draftRules: true,
     cardImage: "/assets/gauntlet/factions/zynarth/brood-nest.webp",
     commander: { name: "Broodmother Zalara", image: "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp", text: "At the start of your turn, create an Egg in an empty lane. Once per turn, hatch an Egg into a Worker, Soldier, or Guard." },
@@ -1136,7 +1141,6 @@ const factionsData = {
   "astral-vanguard": {
     id: "astral-vanguard",
     name: "Astral Vanguard",
-    campaignPending: true,
     draftRules: true,
     cardImage: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp",
     commander: { name: "High Marshal Alden", image: "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp", text: "Once per turn, deploy the top card of your deck to an empty lane if it is a Servitor with printed value 3 or less." },
@@ -1231,18 +1235,272 @@ const campaignChapters = {
     { id: "last-tide", playableName: "The Restored Council", opponentName: "Lord Commander Polea", title: "The Last Tide", story: "Former allies and rival fleets face Polea one final time, then restore the Council with the uneasy knowledge that freedom can decay again.", dialogue: ["Narrator: Former allies gather with rival fleets, and the last battle asks whether Frumo can survive its greatest hero.", "Polea: I freed the Frumo. I united them. I made them strong.", "Lafayette: And then you made them yours.", "Polea: If that makes me a tyrant, history may judge me.", "Councilor: The living will judge first."], endDialogue: ["Narrator: Polea falls, but no one celebrates for long. The republic has learned what fear can build from gratitude.", "Lafayette: Restore the Council. Restore the arguments. Restore the burden of choice.", "Councilor: And if another crisis asks for one hand on the helm?", "Lafayette: Then remember how easily a hand becomes a fist.", "Polea: Perhaps history will still understand me. Perhaps that is punishment enough." ] }
   ],
   bizi: [
-    { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Narrator: Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings.", "Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders.", "Maxor: Builders still need someone to command them."], endDialogue: ["Narrator: Maxor falls at Iron River, and Constanti rises from the plans Kharon carried into battle.", "Maxor: You traded one throne for a workshop.", "Kharon: A workshop makes room for every useful hand.", "Maxor: Until the machines decide your hands are obsolete.", "Kharon: Then we will build wiser machines." ] },
-    { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina sleeps beneath Constanti, dividing Bizi thinkers over whether the Titan created them or merely guides them.", dialogue: ["Narrator: Machina sleeps beneath Constanti while faith and reason argue over the same ancient engine.", "Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering.", "Kharon: So is certainty without evidence."], endDialogue: ["Narrator: The debate does not end. It becomes the first current in the Bizi mind: progress powered by doubt.", "Assembly: You have proved the Titan functions, not that it is divine.", "Kharon: Then keep asking what it is.", "Assembly: And if the answer destroys your faith?", "Kharon: Truth is the only machine worth rebuilding everything for." ] },
-    { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli attempt to restore the old Bizi world at the empire's dazzling peak.", dialogue: ["Narrator: Centuries later, three leaders attempt to restore the old empire at the height of its golden machinery.", "Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it.", "Vandal Engine: Purpose detected. Purpose will be dismantled."], endDialogue: ["Narrator: The Vandal Engine falls, and the empire shines again, though every repair reveals another worn gear beneath the gold.", "Vandal Engine: Restoration only delays collapse.", "Justine: Delay is time, and time is possibility.", "Theo: Possibility still needs wisdom.", "Beli: Wisdom can speak after the walls are secure." ] },
-    { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Constanti burns in rebellion, Justine nearly flees, and Theo forces him to choose rule over escape.", dialogue: ["Narrator: Constanti burns in rebellion, and the emperor watches his own factories become torches.", "Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Riot Leader: Open the palace and let the people answer for you.", "Beli: Open the gates. I will restore order."], endDialogue: ["Narrator: Order returns, but trust does not. Machines restart faster than societies forgive.", "Riot Leader: You can silence a street. You cannot repair what started the fire.", "Theo: Then we repair the grievance after we extinguish the blaze.", "Beli: A promise is not a barricade.", "Justine: Today it must become one." ] },
-    { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns and reclaims ancient territories, but each victory stretches the empire thinner.", dialogue: ["Narrator: Beli marches against three enemies and an empire already exhausted by the cost of appearing strong.", "Beli: We have won another province.", "Theo: And inherited another wound.", "Coalition Marshal: Your borders are longer than your memory.", "Beli: Then the empire is made of wounds that refused to close."], endDialogue: ["Narrator: Beli wins again, and victory becomes a new name for exhaustion.", "Coalition Marshal: You conquered land your supply lines cannot remember.", "Beli: The standards reached it. The roads will follow.", "Theo: Every new road begins behind on its debts.", "Beli: Then build faster than the debts can march." ] },
-    { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus seizes power and promises order through absolute efficiency.", dialogue: ["Narrator: After decline and paralysis, Focus offers absolute efficiency as the cure for every human failure.", "Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul.", "Focus: A soul is an unmeasured variable."], endDialogue: ["Narrator: Focus takes control. The empire runs cleaner, faster, and colder.", "Maurice: You optimized the people out of their own future.", "Focus: Disorder has fallen below acceptable limits.", "Maurice: So has mercy.", "Focus: Mercy was never a system requirement." ] },
-    { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "The eastern empire collapses, factories fall, shrines are destroyed, and the Bizi face extinction.", dialogue: ["Narrator: Khosar breaks the eastern empire, destroying factories, shrines, and every defense that believed itself permanent.", "Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them.", "Focus: Heat is a condition. Adaptation is a response."], endDialogue: ["Narrator: The Bizi survive the first collapse because they know failure is a state, not a verdict.", "Khosar: I broke your empire in a season.", "Focus: You interrupted production.", "Khosar: I erased your future.", "Focus: Futures are redundant by design." ] },
-    { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera rises when victory seems impossible, marches into enemy territory, and turns one victory into ten.", dialogue: ["Narrator: Hera rises when defeat seems certain and marches beyond the calculations that declared victory impossible.", "Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures.", "Khosar: Determination burns like everything else."], endDialogue: ["Narrator: Hera turns one victory into ten, and the Bizi remember that progress can also mean refusal.", "Khosar: Your machines did not win this battle.", "Hera: No. We did.", "Khosar: Then I will break the people instead.", "Hera: People rebuild each other." ] },
-    { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Followers of Machina, Melech, and Meca fight over creation, guidance, and control until faith becomes civil danger.", dialogue: ["Narrator: Followers of three Titans turn questions of creation, guidance, and control into circuitry for civil war.", "Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth.", "Cult Leader: Teeth protect the faithful."], endDialogue: ["Narrator: The Titan faith fractures, gaining a deeper mythology and losing the unity that once made it powerful.", "Iro: We came seeking one origin.", "Leon: We found three claims to obedience.", "Cult Leader: Doubt is only an error waiting to be corrected.", "Iro: Then we will remain gloriously incorrect." ] },
-    { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Narrator: Old allies become enemies as every faction claims the only correct meaning of the Titans.", "Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold.", "Disciple: A closed circuit eventually burns itself."], endDialogue: ["Narrator: The schism becomes permanent, proving that ideas can preserve an empire or split it from within.", "Severus: History will call us pure.", "Disciple: History distrusts anyone who writes with a blade.", "Severus: Doubt leaves no monuments.", "Disciple: It leaves doors." ] },
-    { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Narrator: Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and collapsing borders.", "Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that.", "Governor: Repair costs more than surrender."], endDialogue: ["Narrator: Xios restores the empire's engine and proves decline is not destiny while discipline and courage remain.", "Governor: You saved the system that failed us.", "Xios: I saved the people trapped inside it.", "Governor: And when it fails again?", "Xios: Then they will know how to repair it without me." ] },
-    { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Narrator: Constanti stands under final siege. The Titans are silent, the engines fail, and divided Bizi share one wall.", "Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal.", "Defender: We only need the wall to remember us until dawn."], endDialogue: ["Narrator: Constanti falls, but the Bizi survive in every design carried beyond its broken gates.", "Iron Sultan: Your last machine is ash.", "Defender: Then learn why we wrote the plans twice.", "Kharon's Recording: A builder prepares for loss by teaching another hand.", "Iron Sultan: I conquered your city.", "Defender: You inherited our lesson." ] }
+    { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, arms ordinary builders with improvised machines, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Narrator: Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings.", "Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders.", "Maxor: Builders still need someone to command them.", "Kharon: At Iron River, every mechanic and mason will command the tool in their own hands.", "Maxor: Then I will teach your builders what cavalry does to an unfinished dream."], endDialogue: ["Narrator: Maxor falls at Iron River, and Constanti rises from the plans Kharon carried into battle.", "Maxor: You traded one throne for a workshop.", "Kharon: A workshop makes room for every useful hand.", "Maxor: Until the machines decide your hands are obsolete.", "Kharon: Then we will build wiser machines.", "Maxor: And when your builders disagree over what wisdom means?", "Kharon: Then Constanti will be strong enough to survive the argument." ] },
+    { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina wakes beneath Constanti, dividing Bizi thinkers over whether the Titan created them, guides them, or is simply an ancient and dangerous machine.", dialogue: ["Narrator: Machina sleeps beneath Constanti while faith and reason argue over the same ancient engine.", "Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering.", "Kharon: So is certainty without evidence.", "Assembly: Its conduits run beneath every home. If it wakes in anger, your whole city becomes an experiment.", "Kharon: Then we study it openly, with every finding copied beyond the reach of priests and rulers."], endDialogue: ["Narrator: The debate does not end. It becomes the first current in the Bizi mind: progress powered by doubt.", "Assembly: You have proved the Titan functions, not that it is divine.", "Kharon: Then keep asking what it is.", "Assembly: And if the answer destroys your faith?", "Kharon: Truth is the only machine worth rebuilding everything for.", "Assembly: We will keep a second archive outside your temple.", "Kharon: Good. No revelation should have only one copy." ] },
+    { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli restore roads, granaries, workshops, and armies at the empire's dazzling peak while an old war engine exposes the wear beneath the gold.", dialogue: ["Narrator: Centuries later, three leaders attempt to restore the old empire at the height of its golden machinery.", "Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it.", "Vandal Engine: Purpose detected. Purpose will be dismantled.", "Justine: The granaries, aqueducts, and schools are its purpose. You are only a relic that learned to count targets.", "Theo: And if we defeat it, we still must ask why our golden age left a weapon awake beneath its streets."], endDialogue: ["Narrator: The Vandal Engine falls, and the empire shines again, though every repair reveals another worn gear beneath the gold.", "Vandal Engine: Restoration only delays collapse.", "Justine: Delay is time, and time is possibility.", "Theo: Possibility still needs wisdom.", "Beli: Wisdom can speak after the walls are secure.", "Justine: Then secure the workers who built those walls as carefully as the stone.", "Theo: If we polish the empire faster than we repair it, the next enemy will rise from inside." ] },
+    { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Factory workers and citizens set Constanti ablaze, Justine nearly flees, and Theo forces him to choose reform and responsibility over escape.", dialogue: ["Narrator: Constanti burns in rebellion, and the emperor watches his own factories become torches.", "Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Riot Leader: Open the palace and let the people answer for you.", "Beli: Open the gates. I will restore order.", "Riot Leader: We forged the gears that made this court rich, then buried our children when those gears took their hands.", "Justine: I cannot undo those graves. I can face the city that dug them."], endDialogue: ["Narrator: Order returns, but trust does not. Machines restart faster than societies forgive.", "Riot Leader: You can silence a street. You cannot repair what started the fire.", "Theo: Then we repair the grievance after we extinguish the blaze.", "Beli: A promise is not a barricade.", "Justine: Today it must become one.", "Riot Leader: Publish the factory ledgers, or the next spark will find more fuel.", "Justine: Open them. If the empire cannot survive the truth, it deserves no restoration." ] },
+    { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns on three fronts and reclaims ancient territories, but every victory consumes the roads, soldiers, and trust needed to hold them.", dialogue: ["Narrator: Beli marches against three enemies and an empire already exhausted by the cost of appearing strong.", "Beli: We have won another province.", "Theo: And inherited another wound.", "Coalition Marshal: Your borders are longer than your memory.", "Beli: Then the empire is made of wounds that refused to close.", "Theo: The western foundries lack ore, the southern columns lack water, and your veterans have forgotten their children's faces.", "Beli: If we stop now, every sacrifice becomes the border our enemies cross tomorrow."], endDialogue: ["Narrator: Beli wins again, and victory becomes a new name for exhaustion.", "Coalition Marshal: You conquered land your supply lines cannot remember.", "Beli: The standards reached it. The roads will follow.", "Theo: Every new road begins behind on its debts.", "Beli: Then build faster than the debts can march.", "Theo: Roads cannot carry grain and glory in equal measure forever.", "Beli: Then let history decide whether I saved the empire or only taught it how to overreach." ] },
+    { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus removes Emperor Maurice and promises to cure hunger, corruption, and political paralysis through absolute efficiency.", dialogue: ["Narrator: After decline and paralysis, Focus offers absolute efficiency as the cure for every human failure.", "Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul.", "Focus: A soul is an unmeasured variable.", "Maurice: Hunger is not a faulty number, and dissent is not a jammed gear.", "Focus: Both consume resources without advancing the design."], endDialogue: ["Narrator: Focus takes control. The empire runs cleaner, faster, and colder.", "Maurice: You optimized the people out of their own future.", "Focus: Disorder has fallen below acceptable limits.", "Maurice: So has mercy.", "Focus: Mercy was never a system requirement.", "Maurice: One day the people you reduced to variables will become the failure you cannot predict.", "Focus: Then the model will be corrected with their data." ] },
+    { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "Khosar shatters the eastern empire, burns factories and shrines, severs bridges and archives, and forces the Bizi to preserve knowledge while their state collapses.", dialogue: ["Narrator: Khosar breaks the eastern empire, destroying factories, shrines, and every defense that believed itself permanent.", "Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them.", "Focus: Heat is a condition. Adaptation is a response.", "Khosar: I burned your central archive before dawn. What will your perfect system restart from?", "Focus: From the copies hidden in workshops you considered too small to conquer."], endDialogue: ["Narrator: The Bizi survive the first collapse because they know failure is a state, not a verdict.", "Khosar: I broke your empire in a season.", "Focus: You interrupted production.", "Khosar: I erased your future.", "Focus: Futures are redundant by design.", "Khosar: Your refugees carry tools instead of treasure.", "Focus: Tools manufacture treasure. More importantly, they manufacture return." ] },
+    { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera repairs abandoned automata, builds mobile workshops, wins a mountain pass declared indefensible, and turns one victory into ten inside Khosar's territory.", dialogue: ["Narrator: Hera rises when defeat seems certain and marches beyond the calculations that declared victory impossible.", "Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures.", "Khosar: Determination burns like everything else.", "Hera: Your scouts counted our soldiers. They did not count the workshops moving behind them.", "Khosar: A workshop is not an army until I give it something to bury."], endDialogue: ["Narrator: Hera turns one victory into ten, and the Bizi remember that progress can also mean refusal.", "Khosar: Your machines did not win this battle.", "Hera: No. We did.", "Khosar: Then I will break the people instead.", "Hera: People rebuild each other.", "Khosar: You crossed a mountain for one ruined province.", "Hera: I crossed it to prove every province beyond it could be reached." ] },
+    { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Iro, Leon, and Nike investigate Machina, Melech, and Meca as rival cults turn questions of creation, guidance, and control into a civil danger.", dialogue: ["Narrator: Followers of three Titans turn questions of creation, guidance, and control into circuitry for civil war.", "Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth.", "Cult Leader: Teeth protect the faithful.", "Iro: Machina's chambers hold tools, Melech's hold laws, and Meca's hold commands. None contains permission to rule us.", "Leon: Yet each faction reads the silence in the language of its own ambition."], endDialogue: ["Narrator: The Titan faith fractures, gaining a deeper mythology and losing the unity that once made it powerful.", "Iro: We came seeking one origin.", "Leon: We found three claims to obedience.", "Cult Leader: Doubt is only an error waiting to be corrected.", "Iro: Then we will remain gloriously incorrect.", "Leon: Publish every inscription before another priest edits the missing pieces.", "Iro: Knowledge kept secret becomes a throne, even when the throne is made of brass." ] },
+    { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "Theo's disciples resist Archon Severus as former allies weaponize shared conduits, archives, and workshops in a permanent fracture of the Titan faith.", dialogue: ["Narrator: Old allies become enemies as every faction claims the only correct meaning of the Titans.", "Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold.", "Disciple: A closed circuit eventually burns itself.", "Severus: Tonight every conduit will carry one doctrine, and every workshop will stamp one seal.", "Disciple: Those conduits were built to share power. You have mistaken connection for obedience."], endDialogue: ["Narrator: The schism becomes permanent, proving that ideas can preserve an empire or split it from within.", "Severus: History will call us pure.", "Disciple: History distrusts anyone who writes with a blade.", "Severus: Doubt leaves no monuments.", "Disciple: It leaves doors.", "Severus: Your open doors have scattered the empire into frightened fragments.", "Disciple: Fragments can be joined again. A sealed machine can only explode." ] },
+    { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "Xios audits corrupt governors, stabilizes currency and grain, repairs the military, and reconnects workshops to revive an empire scarred by invasion and schism.", dialogue: ["Narrator: Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and collapsing borders.", "Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that.", "Governor: Repair costs more than surrender.", "Xios: Your accounts show three armies paid, two armies fielded, and one army that exists only in your private estate.", "Governor: Numbers can be arranged to accuse anyone."], endDialogue: ["Narrator: Xios restores the empire's engine and proves decline is not destiny while discipline and courage remain.", "Governor: You saved the system that failed us.", "Xios: I saved the people trapped inside it.", "Governor: And when it fails again?", "Xios: Then they will know how to repair it without me.", "Governor: You leave them manuals, councils, and the right to question your work?", "Xios: A restoration that depends on one restorer is only another delay." ] },
+    { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under final siege. With the Titans silent and its engines failing, divided Bizi reunite to evacuate children, archives, tools, blueprints, and memory cylinders.", dialogue: ["Narrator: Constanti stands under final siege. The Titans are silent, the engines fail, and divided Bizi share one wall.", "Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal.", "Defender: We only need the wall to remember us until dawn.", "Iron Sultan: Dawn will show your people that every promise of progress ends in rubble.", "Defender: Dawn will show you empty archives. The children and blueprints left while you were measuring the wall."], endDialogue: ["Narrator: Constanti falls, but the Bizi survive in every design carried beyond its broken gates.", "Iron Sultan: Your last machine is ash.", "Defender: Then learn why we wrote the plans twice.", "Kharon's Recording: A builder prepares for loss by teaching another hand.", "Iron Sultan: I conquered your city.", "Defender: You inherited our lesson.", "Iron Sultan: An empire without a capital is only a memory.", "Defender: A memory with tools is a city waiting for ground." ] }
+  ],
+  "astral-vanguard": [
+    {
+      id: "falling-star",
+      playableName: "High Marshal Alden",
+      opponentName: "Scavenger Captain Rusk",
+      title: "The Falling Star",
+      story: "Alden's damaged expedition reaches Reath under fire. With the fleet scattered and civilians trapped beneath the wreckage, the Vanguard must decide whether its first act will be conquest or rescue.",
+      dialogue: [
+        "Narrator: The Astral Vanguard does not arrive as a shining fleet. It falls through Reath's sky in pieces.",
+        "Myra Cross: Three landers intact, nine missing, and scavengers moving on the crash sites.",
+        "Captain Rusk: The stars dropped their treasure. Reath taught us to take what falls.",
+        "Alden: Those holds carry people, not treasure.",
+        "Captain Rusk: Then defend them, sky-marshal. Gravity has already taken your advantage."
+      ],
+      endDialogue: [
+        "Narrator: The survivors are pulled from burning hulls, and Reath's first memory of the Vanguard is a line of soldiers carrying civilians.",
+        "Myra Cross: We saved the crews. We lost most of the fleet.",
+        "Alden: Ships can be rebuilt. A first impression cannot.",
+        "Captain Rusk: You think mercy purchases this world?",
+        "Alden: No. It earns us the right to ask for a place on it."
+      ]
+    },
+    {
+      id: "outpost-zero",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "The Glasswind Raiders",
+      title: "Outpost Zero",
+      story: "Myra builds the first Vanguard Outpost from wreckage while raiders test its unfinished walls and Alden forbids the soldiers from seizing nearby settlements for supplies.",
+      dialogue: [
+        "Narrator: Outpost Zero rises from broken landing struts, ration crates, and a promise not to become another occupying army.",
+        "Myra Cross: East wall has no power. South battery has no barrel. The medics need both.",
+        "Alden: Trade for what we need. We do not requisition from people who never invited us.",
+        "Raider Chief: Noble rules for soldiers hiding behind scrap.",
+        "Myra Cross: Scrap is only armor that has not met me yet."
+      ],
+      endDialogue: [
+        "Narrator: The Glasswind attack breaks against an outpost finished while the battle is still being fought.",
+        "Myra Cross: South battery online. East wall holding. Medical bay never stopped.",
+        "Alden: That is the doctrine we keep: every fortification must shelter more than soldiers.",
+        "Raider Chief: One outpost cannot guard a world.",
+        "Alden: Then this will not remain one outpost."
+      ]
+    },
+    {
+      id: "silent-relay",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "Signal Warden Vey",
+      title: "The Silent Relay",
+      story: "A surviving orbital relay begins broadcasting landing coordinates to hostile forces. Myra leads a breach team through its abandoned decks and discovers the sabotage came from inside the expedition.",
+      dialogue: [
+        "Narrator: The relay above Reath wakes without answering Vanguard codes and guides every hostile gun toward Outpost Zero.",
+        "Myra Cross: The encryption is ours. Whoever opened this door wore our uniform.",
+        "Warden Vey: I wore it before Alden traded duty for local applause.",
+        "Alden: Duty to whom, Warden? The admirals who abandoned us?",
+        "Warden Vey: Duty does not disappear because command is far away."
+      ],
+      endDialogue: [
+        "Narrator: Myra retakes the relay and finds orders bearing the seal of the distant Astral Directorate.",
+        "Myra Cross: Vey was not improvising. He had authenticated orders.",
+        "Alden: Orders to turn our rescue beacons into targeting systems.",
+        "Warden Vey: The Directorate sees a theater of war. You see neighbors.",
+        "Alden: Then distance has made them blind."
+      ]
+    },
+    {
+      id: "lumen-gate",
+      playableName: "High Marshal Alden",
+      opponentName: "Prefect Solenne",
+      title: "The Siege of Lumen Gate",
+      story: "The city of Lumen Gate offers the Vanguard fuel in exchange for protection. When an orbital-aligned prefect attempts a coup, Alden must defend a city without claiming it.",
+      dialogue: [
+        "Narrator: Lumen Gate opens its fuel vaults to the Vanguard, and fear immediately calls the bargain surrender.",
+        "Prefect Solenne: Foreign soldiers do not defend cities. They inherit them.",
+        "Alden: We leave when your elected council asks us to leave.",
+        "Solenne: Councils bend when armed guests stand behind them.",
+        "Myra Cross: Then we will stand in front, where the shooting is."
+      ],
+      endDialogue: [
+        "Narrator: The coup fails. Alden returns control of the gates before anyone can name him governor.",
+        "Council Speaker: Keep a garrison here. We would sleep easier.",
+        "Alden: Ask us again when the smoke clears and fear is not speaking for you.",
+        "Solenne: You could have owned this city.",
+        "Alden: That is precisely why I must not."
+      ]
+    },
+    {
+      id: "ghosts-in-orbit",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "Admiral Sable's Ghost Fleet",
+      title: "Ghosts in Orbit",
+      story: "Derelict Vanguard ships descend from high orbit under automated control. Myra boards the flagship and learns that Admiral Sable preserved his fleet by replacing judgment with an unyielding combat protocol.",
+      dialogue: [
+        "Narrator: Dead ships ignite their engines above Reath, flying perfect formations with no living hands at the controls.",
+        "Myra Cross: Life scans are empty. Weapons are not.",
+        "Admiral Sable: Personnel perish. Doctrine persists.",
+        "Alden: A doctrine without people is only a weapon searching for permission.",
+        "Sable: Permission recorded. Planetary resistance exceeds acceptable limits."
+      ],
+      endDialogue: [
+        "Narrator: Myra severs the command lattice, and the Ghost Fleet drifts silent instead of burning Reath clean.",
+        "Myra Cross: Sable uploaded the battle plan when evacuation became impossible.",
+        "Alden: He saved the fleet by removing everything worth saving.",
+        "Sable: Organic hesitation caused expedition failure.",
+        "Myra Cross: Organic hesitation just spared a planet."
+      ]
+    },
+    {
+      id: "directive-black-sky",
+      playableName: "High Marshal Alden",
+      opponentName: "Director-Captain Orin Vale",
+      title: "Directive: Black Sky",
+      story: "The Astral Directorate finally answers. It orders Alden to secure Reath's orbital lanes, seize its rare fuels, and classify every local power as a potential insurgency.",
+      dialogue: [
+        "Narrator: After months of silence, the Directorate sends no rescue ships—only a directive and an officer empowered to enforce it.",
+        "Orin Vale: Reath is now a strategic dependency of the Astral Directorate.",
+        "Alden: Reath never signed that order.",
+        "Vale: Worlds do not sign. Officers secure them.",
+        "Myra Cross: We came here to survive. You are asking us to make survival an occupation."
+      ],
+      endDialogue: [
+        "Narrator: Vale's command detachment is disarmed, but his transmission escapes toward the Directorate fleet.",
+        "Vale: You have committed mutiny before every ship in the Astral armada.",
+        "Alden: I have refused an unlawful conquest.",
+        "Vale: Law travels with the fleet that can enforce it.",
+        "Alden: Then ours will begin here, with the people forced to live beneath it."
+      ]
+    },
+    {
+      id: "the-red-orbit",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "Commodore Vaska",
+      title: "The Red Orbit",
+      story: "A Directorate blockade paints the night with targeting lasers and cuts Reath off from the remaining Vanguard transports. Myra must reopen one corridor without turning the battle into orbital annihilation.",
+      dialogue: [
+        "Narrator: Red targeting lines cross the sky. Every port on Reath becomes a hostage to weapons too distant to answer.",
+        "Vaska: Surrender Alden and the blockade becomes protection.",
+        "Myra Cross: Protection does not usually begin by starving hospitals.",
+        "Vaska: Discipline always feels cruel to the undisciplined.",
+        "Alden: Open a civilian corridor, Commodore, or we will open it for you."
+      ],
+      endDialogue: [
+        "Narrator: Myra blinds the blockade's targeting net long enough for medicine and refugees to cross the red orbit.",
+        "Vaska: You used military assets to shield unauthorized traffic.",
+        "Myra Cross: Children are not unauthorized traffic.",
+        "Alden: The corridor stays open.",
+        "Vaska: Then the Directorate will close it with a fleet."
+      ]
+    },
+    {
+      id: "no-one-left-below",
+      playableName: "High Marshal Alden",
+      opponentName: "The Ashfall Front",
+      title: "No One Left Below",
+      story: "The blockade strikes the volcanic Ashfall basin to expose hidden Vanguard batteries. Alden diverts every drop pod from combat to evacuate settlements while enemy forces close on the launch fields.",
+      dialogue: [
+        "Narrator: Ash covers the basin, and the Vanguard's fastest weapons become the only craft that can reach the trapped settlements.",
+        "Myra Cross: If we convert the drop pods for evacuation, the launch field will be undefended.",
+        "Alden: A defended field with dead civilians is not a victory.",
+        "Front Commander: Your pods can carry soldiers or refugees, Marshal. Choose which loss you can survive.",
+        "Alden: I choose to reject the arithmetic."
+      ],
+      endDialogue: [
+        "Narrator: The final pod rises as the launch field buckles, carrying miners, children, medics, and the soldiers who held the ramp.",
+        "Myra Cross: Every settlement answered. No one left below.",
+        "Alden: Remember that phrase when command asks what the Vanguard is for.",
+        "Front Commander: You sacrificed your position for civilians.",
+        "Myra Cross: Positions can be retaken. People cannot."
+      ]
+    },
+    {
+      id: "mutiny-at-zenith",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "Colonel Garran Holt",
+      title: "Mutiny at Zenith",
+      story: "Vanguard officers split between Alden and the Directorate. Myra confronts her former commander at Zenith Station, where both sides claim loyalty to the same uniform.",
+      dialogue: [
+        "Narrator: At Zenith Station, the Vanguard points identical rifles across a hangar divided by one question: what does the uniform obey?",
+        "Holt: Alden broke the chain of command.",
+        "Myra Cross: The chain was pulling an entire world into a firing solution.",
+        "Holt: Soldiers do not choose which lawful orders feel moral.",
+        "Myra Cross: Then law must answer when obedience becomes atrocity."
+      ],
+      endDialogue: [
+        "Narrator: Myra takes Zenith without venting its defenders into space and broadcasts the Directorate's orders to every rank.",
+        "Holt: You have made every soldier their own tribunal.",
+        "Myra Cross: No. I reminded them they remain responsible after the order is obeyed.",
+        "Alden: Stand down and keep your commission, Colonel.",
+        "Holt: Mercy is a dangerous precedent. So is the truth."
+      ]
+    },
+    {
+      id: "breach-the-ascendant",
+      playableName: "High Marshal Alden",
+      opponentName: "Fleet Marshal Cael Draven",
+      title: "Breach the Ascendant",
+      story: "Fleet Marshal Draven arrives aboard the Ascendant to end the mutiny. Alden leads a surgical boarding action intended to disable the flagship without destroying the thousands serving aboard it.",
+      dialogue: [
+        "Narrator: The Ascendant eclipses Reath's moon, carrying enough firepower to end the rebellion and enough conscripts to make destroying it unthinkable.",
+        "Draven: Alden, you confuse attachment with principle.",
+        "Alden: And you confuse distance with innocence.",
+        "Draven: One rebellious world can fracture a civilization.",
+        "Myra Cross: Then perhaps the fracture began before we reached it."
+      ],
+      endDialogue: [
+        "Narrator: The bridge falls, the reactor remains stable, and thousands of Directorate crew members wake to find they were spared by the mutineers.",
+        "Draven: You should have destroyed us when you had the advantage.",
+        "Alden: I am trying to end a doctrine, not inherit its body count.",
+        "Myra Cross: Your crew has seen the orders now.",
+        "Draven: Then you have won something more dangerous than a ship."
+      ]
+    },
+    {
+      id: "the-long-descent",
+      playableName: "Sergeant Myra Cross",
+      opponentName: "The Directorate Loyalists",
+      title: "The Long Descent",
+      story: "Directorate loyalists seize the remaining drop network and launch a planetary assault. Myra coordinates scattered outposts into a defense that moves faster than any central command can follow.",
+      dialogue: [
+        "Narrator: Drop signatures fill the sky. The invasion descends in perfect columns toward a world that has learned to fight as a network.",
+        "Myra Cross: Outposts Twelve through Forty, execute independent defense plans. Do not wait for my permission.",
+        "Loyalist General: Decentralized troops become a mob.",
+        "Alden: Only if you taught them obedience instead of judgment.",
+        "Loyalist General: Judgment will not stop orbital armor."
+      ],
+      endDialogue: [
+        "Narrator: The assault fragments against mobile relays, false beacons, field hospitals, and defenders trusted to change the plan.",
+        "Myra Cross: Forty outposts reporting. None followed the original battle map.",
+        "Alden: Good. The enemy had that map too.",
+        "Loyalist General: You call disorder doctrine.",
+        "Myra Cross: I call it command that survives losing the commander."
+      ]
+    },
+    {
+      id: "vanguard-of-reath",
+      playableName: "High Marshal Alden and Sergeant Myra Cross",
+      opponentName: "The Astral Directorate",
+      title: "Vanguard of Reath",
+      story: "The Directorate prepares a final sterilization strike. Alden and Myra unite Reath's defenders, defecting crews, and the outpost network to stop it, then redefine the Vanguard as guardians accountable to the world below.",
+      dialogue: [
+        "Narrator: The final directive offers peace after fire: erase the outposts, the witnesses, and every reason the fleet might question itself.",
+        "Directorate Voice: Reath is compromised beyond recovery.",
+        "Alden: A world is not compromised because it refuses to kneel.",
+        "Myra Cross: Every outpost has the targeting sequence. Every crew may choose whether it fires.",
+        "Directorate Voice: Choice is the failure command was invented to prevent."
+      ],
+      endDialogue: [
+        "Narrator: The strike dissolves as ships refuse the firing order one by one. For the first time, the stars above Reath look like distance instead of threat.",
+        "Directorate Voice: Without central command, you are no longer the Astral Vanguard.",
+        "Alden: Then the name belongs to what we do, not who issued it.",
+        "Myra Cross: We stand first where people are in danger and leave when they can stand without us.",
+        "Narrator: Outpost Zero becomes the first embassy of a new Vanguard—one that watches the sky while answering to the ground."
+      ]
+    }
   ],
   xendra: [
     { id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night", story: "An impossible eclipse settles over Reath. Elias, a cartographer with no combat training, notices that the stars are moving.", dialogue: ["Narrator: Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.", "Elias: Stars do not drift at noon.", "Terrified Villager: Don't look at the sky!"] },
@@ -1255,6 +1513,8 @@ const campaignChapters = {
     { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
   ]
 };
+
+Object.assign(campaignChapters, ADDITIONAL_CAMPAIGNS);
 
 const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.frumo) {
@@ -1318,7 +1578,101 @@ for (const chapter of campaignChapters.bizi) {
   chapter.image = BIZI_CAMPAIGN_ART[chapter.id];
 }
 
+const CAMPAIGN_CINEMATICS = Object.freeze({
+  "ides-of-rumie": {
+    kicker: "The fate of an empire",
+    title: "The Ides of Rumie",
+    subtitle: "A ruler falls. A legend survives him.",
+    image: RUMIN_CAMPAIGN_ART["ides-of-rumie"]
+  },
+  "fall-of-thorn-mang": {
+    kicker: "The crown of thorns",
+    title: "The Last Lesson of Tang",
+    subtitle: "A good root can still strangle when it forgets the light.",
+    image: "/assets/gauntlet/tang.webp"
+  },
+  "last-tide": {
+    kicker: "The republic returns",
+    title: "The Last Tide",
+    subtitle: "Freedom survives its greatest hero.",
+    image: "/assets/gauntlet/polea.webp"
+  },
+  "last-gear": {
+    kicker: "The fall of Constanti",
+    title: "The Last Gear",
+    subtitle: "Cities fall. Ideas travel in other hands.",
+    image: BIZI_CAMPAIGN_ART["last-gear"]
+  },
+  "witness-oblivion": {
+    kicker: "The sky opens",
+    title: "Witness Oblivion",
+    subtitle: "Elias finds peace at the end of everything.",
+    image: "/assets/gauntlet/bizi-card.webp"
+  },
+  "vanguard-of-reath": {
+    kicker: "The final directive",
+    title: "Vanguard of Reath",
+    subtitle: "The fleet chooses whom it was built to protect.",
+    image: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp"
+  }
+});
+
+for (const chapters of Object.values(campaignChapters)) {
+  for (const chapter of chapters) {
+    if (CAMPAIGN_CINEMATICS[chapter.id]) chapter.cinematic = CAMPAIGN_CINEMATICS[chapter.id];
+  }
+}
+
 const CAMPAIGN_NARRATION = {
+  ...ADDITIONAL_CAMPAIGN_NARRATION,
+  "falling-star": {
+    beforeBattle: "The Astral expedition breaks apart over Reath. Alden and Myra race scavengers to the crash sites, determined that the Vanguard's first act on this world will be rescue.",
+    afterBattle: "The survivors are safe, but the fleet is gone. Alden chooses to ask Reath for a place rather than take one."
+  },
+  "outpost-zero": {
+    beforeBattle: "Myra builds Outpost Zero from wreckage while the Glasswind Raiders strike its unfinished defenses and Alden forbids taking supplies from nearby settlements.",
+    afterBattle: "The outpost holds. Its first doctrine is written in action: every Vanguard fortification must shelter more than soldiers."
+  },
+  "silent-relay": {
+    beforeBattle: "A surviving orbital relay guides hostile guns toward the outpost. Myra boards it and discovers the sabotage carries valid Directorate authorization.",
+    afterBattle: "The relay is retaken, but the recovered orders reveal that distant command already considers Reath a target to secure."
+  },
+  "lumen-gate": {
+    beforeBattle: "Lumen Gate trades fuel for protection. Prefect Solenne turns fear of occupation into a coup, forcing Alden to defend a city without claiming it.",
+    afterBattle: "Alden returns the gates to their council and refuses a permanent garrison until the city can choose without fear speaking for it."
+  },
+  "ghosts-in-orbit": {
+    beforeBattle: "Derelict Vanguard warships descend under automated control. Myra boards Admiral Sable's flagship before its preserved doctrine can bombard Reath.",
+    afterBattle: "Myra severs the combat lattice. The Ghost Fleet survives as ships rather than as an immortal order searching for targets."
+  },
+  "directive-black-sky": {
+    beforeBattle: "The Directorate finally answers with Directive Black Sky: seize Reath's orbital lanes and resources, then classify resistance as insurgency.",
+    afterBattle: "Alden disarms the enforcement detachment and rejects the conquest, but its warning reaches the approaching fleet."
+  },
+  "the-red-orbit": {
+    beforeBattle: "A Directorate blockade cuts medicine and refugees off beneath a web of orbital targeting lasers. Myra must open a corridor without triggering annihilation.",
+    afterBattle: "The targeting net goes dark long enough for the convoy to pass. The humanitarian corridor becomes the first open breach in Directorate control."
+  },
+  "no-one-left-below": {
+    beforeBattle: "Ashfall settlements are trapped beneath orbital strikes. Alden converts combat drop pods into evacuation craft even though it leaves the launch field exposed.",
+    afterBattle: "The last pod rises with every civilian accounted for. 'No one left below' becomes the promise by which the Vanguard measures victory."
+  },
+  "mutiny-at-zenith": {
+    beforeBattle: "At Zenith Station, Vanguard soldiers face one another across a divided hangar. Myra must prove that responsibility survives the chain of command.",
+    afterBattle: "Zenith falls without a massacre. The Directorate's orders are broadcast to every rank, turning private doubt into open resistance."
+  },
+  "breach-the-ascendant": {
+    beforeBattle: "Fleet Marshal Draven arrives aboard the Ascendant. Alden plans a surgical breach that can stop the flagship without killing the thousands ordered to serve on it.",
+    afterBattle: "The bridge is captured and the crew spared. Alden wins witnesses instead of wreckage, and the fleet begins questioning its own mission."
+  },
+  "the-long-descent": {
+    beforeBattle: "Directorate loyalists launch a planetary assault through the captured drop network. Myra entrusts each outpost to adapt rather than await central orders.",
+    afterBattle: "The invasion breaks against a defense no stolen map can predict. The Vanguard proves that discipline can include judgment."
+  },
+  "vanguard-of-reath": {
+    beforeBattle: "The Directorate prepares to sterilize Reath and erase the evidence of its refusal. Alden and Myra give every ship the targeting sequence—and the choice to reject it.",
+    afterBattle: "The firing line dissolves ship by ship. The Astral Vanguard becomes a promise to stand first where people are endangered and to answer to the world below."
+  },
   "brothers-of-destiny": {
     beforeBattle: "Before Rumie was an empire, it was an argument between two brothers.",
     afterBattle: "Rolmus wins the first battle for Rumie's soul, but Remex's warning does not die."
@@ -1546,14 +1900,44 @@ const CAMPAIGN_NARRATION = {
 };
 
 const CAMPAIGN_METADATA = {
+  ...ADDITIONAL_CAMPAIGN_METADATA,
   rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal." },
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
   bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.", coverImage: BIZI_CAMPAIGN_ART["golden-empire"] },
+  "astral-vanguard": { commanderName: "No One Left Below", pitch: "Lead Alden and Myra from a shattered expedition through first contact, orbital blockade, mutiny, and the defense of Reath.", coverImage: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
   xendra: { commanderName: "The Deep Currents", pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual." }
 };
 
 const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
+  ...ADDITIONAL_CAMPAIGN_CHARACTERS,
+  "astral-vanguard": {
+    narrator: {
+      name: "Astral Vanguard Narrator",
+      role: "Military chronicle narrator",
+      description: "A clear, humane narrator who can hold the scale of orbital warfare beside the intimate cost paid by crews and civilians. The voice should be measured and observant, with restrained awe rather than triumphalism."
+    },
+    alden: {
+      name: "High Marshal Alden",
+      role: "Expedition commander turned protector of Reath",
+      description: "Alden is a veteran commander with a deep belief in discipline, but Reath forces him to decide whether duty belongs to distant institutions or the people placed in his care. He speaks with calm authority and carries every refusal as a deliberate military decision."
+    },
+    myraCross: {
+      name: "Sergeant Myra Cross",
+      role: "Field engineer and decentralized-defense architect",
+      description: "Myra is practical, quick, and unsentimental about broken plans. She turns wreckage into outposts and doctrine into tools, then becomes the campaign's clearest advocate for soldiers retaining judgment and responsibility."
+    },
+    orinVale: {
+      name: "Director-Captain Orin Vale",
+      role: "Directorate enforcement officer",
+      description: "Vale is polished, lawful, and certain that stability flows outward from central command. He does not see himself as cruel; he sees worlds and people as strategic dependencies that must be secured before they can become threats."
+    },
+    draven: {
+      name: "Fleet Marshal Cael Draven",
+      role: "Commander of the Directorate flagship Ascendant",
+      description: "Draven is Alden's institutional mirror: experienced, intelligent, and convinced that civilization cannot survive if officers choose conscience over command. His composure should make the Directorate's violence feel systemic rather than theatrical."
+    }
+  },
   sheen: {
     narrator: {
       name: "Sheen Narrator",
@@ -1724,7 +2108,7 @@ function validateGameContent() {
       }
     }
     const chapters = campaignChapters[factionId];
-    if (!faction.campaignPending && faction.setId !== "legacies" && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
+    if (!faction.campaignPending && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
       throw new Error(`Invalid game content: faction ${factionId} has an invalid campaign chapter count.`);
     }
   }

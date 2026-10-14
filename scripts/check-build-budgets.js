@@ -10,8 +10,8 @@ const budgets = Object.freeze({
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
   adminGzip: 48 * KIB,
   largestAsyncGzip: 350 * KIB,
-  // Priority guidance and unified combat-payment controls add 1.5 KiB gzip.
-  totalJavaScriptGzip: 750 * KIB
+  // Priority guidance, unified combat-payment controls, and voiced campaign cinematics add 4.5 KiB gzip.
+  totalJavaScriptGzip: 753 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
 const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|GauntletParaLeague|GauntletEconomy|GauntletCompetition|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));

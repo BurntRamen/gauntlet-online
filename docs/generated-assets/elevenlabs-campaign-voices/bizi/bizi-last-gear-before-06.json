@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "sultan",
+  "voiceName": "Iron Sultan",
+  "line": "Dawn will show your people that every promise of progress ends in rubble.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-06-iron-sultan.mp3",
+  "generatedAt": "2026-10-14T15:12:16.161Z",
+  "publishedAt": "2026-10-14T15:12:35.062Z",
+  "bytes": 61901,
+  "sha256": "74045ca82b39c5e3e96a28d13351df7ec544e931feec4e6e29e51f970f71ba32"
+}

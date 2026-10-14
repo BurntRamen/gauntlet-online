@@ -20,11 +20,11 @@ test("Frumo manifest covers every scripted campaign speaker and line", () => {
 
 test("Bizi manifest covers every scripted campaign speaker and line", () => {
   const plan = buildLinePlan(biziManifest);
-  assert.equal(plan.length, 121);
+  assert.equal(plan.length, 169);
   assert.equal(new Set(plan.map((line) => line.chapterId)).size, 12);
-  assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 22);
+  assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 21);
   assert.equal(plan[0].fileName, "bizi-ch01-before-01-narrator.mp3");
-  assert.equal(plan.at(-1).fileName, "bizi-ch12-after-06-defender.mp3");
+  assert.equal(plan.at(-1).fileName, "bizi-ch12-after-08-defender.mp3");
 });
 
 test("XenDra manifest covers every scripted campaign speaker and line", () => {

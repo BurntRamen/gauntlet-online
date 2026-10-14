@@ -69,6 +69,20 @@ function createAuthoredBaseline(catalog) {
   domains.cards = manifest.cards.map((card) => ({ ...clone(card), effect: effects.defaultCardEffect(card.id) }));
   domains.assets = manifest.collectorVariants.map((variant) => ({ id: variant.variantId, ...clone(variant) }));
   domains.decks = catalog.domains.decks.map((deck) => ({ id: deck.id, name: deck.name, description: deck.id === "standard" ? "52 value-and-suit slots. Constructed cards replace matching slots." : "Campaign cards replace slots in the standard faction deck. Card choices and quantities follow this chapter.", plan: deck.id === "standard" ? clone(manifest.deckRules) : { encounterId: deck.id.replace(/:decks$/, "") } }));
+  const authoredDeckIds = new Set(domains.decks.map((deck) => deck.id));
+  for (const campaign of Object.values(manifest.campaigns)) {
+    for (const chapter of campaign.chapters) {
+      const id = `${chapter.id}:decks`;
+      if (authoredDeckIds.has(id)) continue;
+      domains.decks.push({
+        id,
+        name: `${chapter.title} decks`,
+        description: "Campaign cards replace slots in the standard faction deck. Card choices and quantities follow this chapter.",
+        plan: { encounterId: chapter.id }
+      });
+      authoredDeckIds.add(id);
+    }
+  }
   const modeCopy = {
     basic: ["Basic vs AI", "Practice priority, payment, blocking, and lanes."], factions: ["Factions vs AI", "Commanders, cities, generals, and faction powers."],
     draft: ["Live Draft", "Draft with players, then save your deck."], freeForAll: ["Free-For-All", "Open a multiplayer faction table."],

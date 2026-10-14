@@ -75,9 +75,6 @@
 #root .app-layout-74 { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 #root .app-layout-75 { margin-top: 8px; font-weight: bold; }
 #root .app-layout-76 { font-size: 12px; margin-top: 4px; }
-#root .app-layout-77 { position: fixed; left: 12px; bottom: 12px; z-index: 2000; padding: 0 12px; border-radius: 8px; background: #1c0e07; color: #fde9b0; }
-#root .app-layout-78 { display: grid; gap: 3px; min-width: 0; }
-#root .app-layout-79 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 #root .app-layout-80 { width: 78px; padding: 3px 6px; border: 1px solid currentColor; border-radius: 6px; background: rgba(255,255,255,0.7); color: inherit; font-weight: bold; font-size: 13px; text-align: center; }
 #root .app-layout-81 { border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; padding: 3px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 #root .app-layout-82 { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }

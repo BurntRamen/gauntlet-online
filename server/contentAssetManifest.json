@@ -16350,6 +16350,34 @@
       "bytes": 35988
     },
     {
+      "id": "asset:voices/bizi-ch01-after-06-maxor.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch01-after-06-maxor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.0.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/55a8865fe42ab2bc904026b2cbf618ea69f889bd34b15b50c4aaa054516cbd05.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "55a8865fe42ab2bc904026b2cbf618ea69f889bd34b15b50c4aaa054516cbd05",
+      "bytes": 55213
+    },
+    {
+      "id": "asset:voices/bizi-ch01-after-07-kharon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch01-after-07-kharon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.0.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1d40ba56d72af8cdeb666d7423be51e87d00306dce124fb0a6ff1d299922ce66.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1d40ba56d72af8cdeb666d7423be51e87d00306dce124fb0a6ff1d299922ce66",
+      "bytes": 51034
+    },
+    {
       "id": "asset:voices/bizi-ch01-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch01-before-01-narrator.mp3",
       "associations": [
@@ -16418,6 +16446,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "d49077d68e6733b9b7589810fbf440d5b483eb031a3326306d7aec762c331847",
       "bytes": 35988
+    },
+    {
+      "id": "asset:voices/bizi-ch01-before-06-kharon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch01-before-06-kharon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.0.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5a11a20e5f63291354ba933a22e39737c8818a112f8e5b33d13c12d8a215111b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5a11a20e5f63291354ba933a22e39737c8818a112f8e5b33d13c12d8a215111b",
+      "bytes": 75275
+    },
+    {
+      "id": "asset:voices/bizi-ch01-before-07-maxor.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch01-before-07-maxor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.0.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/026c06ac0c50e66b487318da8f1a19d36e930c145eeba50ee736ac0df05a14f6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "026c06ac0c50e66b487318da8f1a19d36e930c145eeba50ee736ac0df05a14f6",
+      "bytes": 66498
     },
     {
       "id": "asset:voices/bizi-ch02-after-01-narrator.mp3",
@@ -16490,6 +16546,34 @@
       "bytes": 56886
     },
     {
+      "id": "asset:voices/bizi-ch02-after-06-assembly.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch02-after-06-assembly.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.1.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2fd54a6da9b0ede85e5bb10dda49ee7032edd88d689d2a1ad77f361c6e6c49cc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2fd54a6da9b0ede85e5bb10dda49ee7032edd88d689d2a1ad77f361c6e6c49cc",
+      "bytes": 53123
+    },
+    {
+      "id": "asset:voices/bizi-ch02-after-07-kharon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch02-after-07-kharon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.1.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eae70a8af7e040519af6e6b3c0249d589c449d5f3d175fc3e7ddc8d4d387648f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "eae70a8af7e040519af6e6b3c0249d589c449d5f3d175fc3e7ddc8d4d387648f",
+      "bytes": 46436
+    },
+    {
       "id": "asset:voices/bizi-ch02-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch02-before-01-narrator.mp3",
       "associations": [
@@ -16558,6 +16642,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "b7d79cbc639494f6d9f7f695dde92881b353d649e99d37d396f6ac5ac50eddb8",
       "bytes": 34316
+    },
+    {
+      "id": "asset:voices/bizi-ch02-before-06-assembly.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch02-before-06-assembly.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.1.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1816c0ca01e561bb6ea2e93dcbd8f11d49ee06f9bae50733f3e0b4e9e76b1520.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1816c0ca01e561bb6ea2e93dcbd8f11d49ee06f9bae50733f3e0b4e9e76b1520",
+      "bytes": 108712
+    },
+    {
+      "id": "asset:voices/bizi-ch02-before-07-kharon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch02-before-07-kharon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.1.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/86c3d0266b480d94ad60fc13de88dcdb566fcb08e6bb7a3f0570561d34ae9ab3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "86c3d0266b480d94ad60fc13de88dcdb566fcb08e6bb7a3f0570561d34ae9ab3",
+      "bytes": 84888
     },
     {
       "id": "asset:voices/bizi-ch03-after-01-narrator.mp3",
@@ -16630,6 +16742,34 @@
       "bytes": 44765
     },
     {
+      "id": "asset:voices/bizi-ch03-after-06-justine.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch03-after-06-justine.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.2.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a9683e871fc6d0d74716031093c2e6eb24e81256443b97fb62c64a4efe702283.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a9683e871fc6d0d74716031093c2e6eb24e81256443b97fb62c64a4efe702283",
+      "bytes": 66498
+    },
+    {
+      "id": "asset:voices/bizi-ch03-after-07-theo.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch03-after-07-theo.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.2.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7e0f2119f85aa582ee320993177bc9c7b5e6c99640ff665dc90afc5b85e7eba8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7e0f2119f85aa582ee320993177bc9c7b5e6c99640ff665dc90afc5b85e7eba8",
+      "bytes": 78201
+    },
+    {
       "id": "asset:voices/bizi-ch03-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch03-before-01-narrator.mp3",
       "associations": [
@@ -16698,6 +16838,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "fc116f9f7b6bf11953314da6b967f23cb1ad377c4e88d26b20f5195a1b9c83da",
       "bytes": 59812
+    },
+    {
+      "id": "asset:voices/bizi-ch03-before-06-justine.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch03-before-06-justine.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.2.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7ce11c643be87189f232406d0d5795d577abb2a2446338926986dc45ccc9f164.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7ce11c643be87189f232406d0d5795d577abb2a2446338926986dc45ccc9f164",
+      "bytes": 120833
+    },
+    {
+      "id": "asset:voices/bizi-ch03-before-07-theo.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch03-before-07-theo.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.2.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/1c1f58110e3a577496ab480255c397417673578b3c1d2048df451f283ba477cf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "1c1f58110e3a577496ab480255c397417673578b3c1d2048df451f283ba477cf",
+      "bytes": 84888
     },
     {
       "id": "asset:voices/bizi-ch04-after-01-narrator.mp3",
@@ -16770,6 +16938,34 @@
       "bytes": 30137
     },
     {
+      "id": "asset:voices/bizi-ch04-after-06-riot-leader.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch04-after-06-riot-leader.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.3.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ecfec361361071de3f33fad4edb511f62193cfefcdaeafd13366add4f8a1fdf8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ecfec361361071de3f33fad4edb511f62193cfefcdaeafd13366add4f8a1fdf8",
+      "bytes": 63572
+    },
+    {
+      "id": "asset:voices/bizi-ch04-after-07-justine.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch04-after-07-justine.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.3.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e46ba4623652253858943fc5268e3233c45d737c94cd50324f0735f217c02836.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e46ba4623652253858943fc5268e3233c45d737c94cd50324f0735f217c02836",
+      "bytes": 86560
+    },
+    {
       "id": "asset:voices/bizi-ch04-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch04-before-01-narrator.mp3",
       "associations": [
@@ -16838,6 +17034,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "1c6f0f33b4fe99c093e536b55681fcbd6fc3342d31b81bcf68be1b6906b4dbfa",
       "bytes": 41839
+    },
+    {
+      "id": "asset:voices/bizi-ch04-before-06-riot-leader.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch04-before-06-riot-leader.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.3.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8fd733fa709f5eabe078ade5c3febcf80e8d10a6cb375b5bff27ae47828235a9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8fd733fa709f5eabe078ade5c3febcf80e8d10a6cb375b5bff27ae47828235a9",
+      "bytes": 107876
+    },
+    {
+      "id": "asset:voices/bizi-ch04-before-07-justine.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch04-before-07-justine.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.3.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3e60b3fb0c9dffdaf397d4387f3c24a8282aad2d9c98a2ed91631eb05f0b2a94.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3e60b3fb0c9dffdaf397d4387f3c24a8282aad2d9c98a2ed91631eb05f0b2a94",
+      "bytes": 65662
     },
     {
       "id": "asset:voices/bizi-ch05-after-01-narrator.mp3",
@@ -16910,6 +17134,34 @@
       "bytes": 40586
     },
     {
+      "id": "asset:voices/bizi-ch05-after-06-theo.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch05-after-06-theo.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.4.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3898f10e762e6f4c6361237554ebddb2c23d703d235fcf609a0f6b2f90195e70.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3898f10e762e6f4c6361237554ebddb2c23d703d235fcf609a0f6b2f90195e70",
+      "bytes": 53959
+    },
+    {
+      "id": "asset:voices/bizi-ch05-after-07-beli.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch05-after-07-beli.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.4.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/405a4dc74d2c8740173235449b4f57b24146a56447940155e487d89f6c7f8979.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "405a4dc74d2c8740173235449b4f57b24146a56447940155e487d89f6c7f8979",
+      "bytes": 84888
+    },
+    {
       "id": "asset:voices/bizi-ch05-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch05-before-01-narrator.mp3",
       "associations": [
@@ -16978,6 +17230,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "bb74bc341cfcd4a9e867d934fdbc0e0d5ae48da99bd006ba7611044803cef416",
       "bytes": 54378
+    },
+    {
+      "id": "asset:voices/bizi-ch05-before-06-theo.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch05-before-06-theo.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.4.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d331e719a01f6fadeb86f3904006726efa2626dda5b3937ff91c18f8dc555d4a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d331e719a01f6fadeb86f3904006726efa2626dda5b3937ff91c18f8dc555d4a",
+      "bytes": 104950
+    },
+    {
+      "id": "asset:voices/bizi-ch05-before-07-beli.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch05-before-07-beli.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.4.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d18d1b705cf7665fd0e76a9b9d53862d0c0a586941b6be7df255ff52b9eb3b60.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d18d1b705cf7665fd0e76a9b9d53862d0c0a586941b6be7df255ff52b9eb3b60",
+      "bytes": 81127
     },
     {
       "id": "asset:voices/bizi-ch06-after-01-narrator.mp3",
@@ -17050,6 +17330,34 @@
       "bytes": 36824
     },
     {
+      "id": "asset:voices/bizi-ch06-after-06-maurice.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch06-after-06-maurice.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.5.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d9b1cd3f8772fa610780bd64cfe0cbafdf1f232e042a46aca126c847d2017e9b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d9b1cd3f8772fa610780bd64cfe0cbafdf1f232e042a46aca126c847d2017e9b",
+      "bytes": 79873
+    },
+    {
+      "id": "asset:voices/bizi-ch06-after-07-focus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch06-after-07-focus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.5.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/040e63c33b508f9c6484657398a03656dd902c3c03af9f54a50ed7ef46219a7e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "040e63c33b508f9c6484657398a03656dd902c3c03af9f54a50ed7ef46219a7e",
+      "bytes": 38913
+    },
+    {
       "id": "asset:voices/bizi-ch06-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch06-before-01-narrator.mp3",
       "associations": [
@@ -17118,6 +17426,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "f31ab0745e545b148cddf3a11152b3ceadc84a126fcb4ef6eea7d8a1e3698fbe",
       "bytes": 36824
+    },
+    {
+      "id": "asset:voices/bizi-ch06-before-06-maurice.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch06-before-06-maurice.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.5.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4617656cd15d9c9585a6636bd6715cb7fe978c006adeefd8dc0547a30cca2832.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4617656cd15d9c9585a6636bd6715cb7fe978c006adeefd8dc0547a30cca2832",
+      "bytes": 76947
+    },
+    {
+      "id": "asset:voices/bizi-ch06-before-07-focus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch06-before-07-focus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.5.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/86271ef5703e0f7c6b5a7d1d49115c67441a01bdf4baffe79bba4bbd21f86edd.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "86271ef5703e0f7c6b5a7d1d49115c67441a01bdf4baffe79bba4bbd21f86edd",
+      "bytes": 53959
     },
     {
       "id": "asset:voices/bizi-ch07-after-01-narrator.mp3",
@@ -17190,6 +17526,34 @@
       "bytes": 36824
     },
     {
+      "id": "asset:voices/bizi-ch07-after-06-khosar.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch07-after-06-khosar.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.6.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a097fe8eba1a7a354afd4f4b193bfc6ccf457989d2d35a627412c4b7bcf784f8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a097fe8eba1a7a354afd4f4b193bfc6ccf457989d2d35a627412c4b7bcf784f8",
+      "bytes": 47690
+    },
+    {
+      "id": "asset:voices/bizi-ch07-after-07-focus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch07-after-07-focus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.6.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fad81db730b8effbc2bc742efc2f027716a54fa660c42207c754b090736c8e72.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fad81db730b8effbc2bc742efc2f027716a54fa660c42207c754b090736c8e72",
+      "bytes": 76947
+    },
+    {
       "id": "asset:voices/bizi-ch07-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch07-before-01-narrator.mp3",
       "associations": [
@@ -17258,6 +17622,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "f2ac6943759803934e7932ab3b5173632e842e888acd4a2c4e224dc4fb11cb0d",
       "bytes": 58140
+    },
+    {
+      "id": "asset:voices/bizi-ch07-before-06-khosar.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch07-before-06-khosar.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.6.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ee433a65a7648e1f13ec8c60393b83af986e1d5a18ca8056ffee3e4dba6a16db.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ee433a65a7648e1f13ec8c60393b83af986e1d5a18ca8056ffee3e4dba6a16db",
+      "bytes": 87396
+    },
+    {
+      "id": "asset:voices/bizi-ch07-before-07-focus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch07-before-07-focus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.6.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d03f9352508428bd18abacb8d9c7a120b402a3f528e83bb60211f9f6c2dff18d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d03f9352508428bd18abacb8d9c7a120b402a3f528e83bb60211f9f6c2dff18d",
+      "bytes": 65662
     },
     {
       "id": "asset:voices/bizi-ch08-after-01-narrator.mp3",
@@ -17330,6 +17722,34 @@
       "bytes": 22613
     },
     {
+      "id": "asset:voices/bizi-ch08-after-06-khosar.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch08-after-06-khosar.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.7.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/63a26f45326344910957942619ab263d06b7e5ae5ac79aa1d8ff916c63ae7135.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "63a26f45326344910957942619ab263d06b7e5ae5ac79aa1d8ff916c63ae7135",
+      "bytes": 44346
+    },
+    {
+      "id": "asset:voices/bizi-ch08-after-07-hera.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch08-after-07-hera.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.7.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/57dbf689601b43efd2d4f2a83782570dab0eba8ae7c2a5025b4f81ba82e763df.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "57dbf689601b43efd2d4f2a83782570dab0eba8ae7c2a5025b4f81ba82e763df",
+      "bytes": 59811
+    },
+    {
       "id": "asset:voices/bizi-ch08-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch08-before-01-narrator.mp3",
       "associations": [
@@ -17398,6 +17818,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "2049dc4dc856e289ecddd1e983c6f9efd489c81e675d7468b4068f7ccf18898f",
       "bytes": 41004
+    },
+    {
+      "id": "asset:voices/bizi-ch08-before-06-hera.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch08-before-06-hera.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.7.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/aa4c9e3d6ebcf7199d3d571b92e0a0d038f64889d406b2498183cd08e66d52fa.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "aa4c9e3d6ebcf7199d3d571b92e0a0d038f64889d406b2498183cd08e66d52fa",
+      "bytes": 76111
+    },
+    {
+      "id": "asset:voices/bizi-ch08-before-07-khosar.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch08-before-07-khosar.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.7.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f8753c0eec757608b348c507a2ffc5acad74514b156ac7acaf645da3e1af6fe6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f8753c0eec757608b348c507a2ffc5acad74514b156ac7acaf645da3e1af6fe6",
+      "bytes": 51452
     },
     {
       "id": "asset:voices/bizi-ch09-after-01-narrator.mp3",
@@ -17470,6 +17918,34 @@
       "bytes": 35152
     },
     {
+      "id": "asset:voices/bizi-ch09-after-06-leon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch09-after-06-leon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.8.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fac056dc4a886895a2b02ecb24ea254ee23666c749ad2cdf1b862690a4a7b545.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fac056dc4a886895a2b02ecb24ea254ee23666c749ad2cdf1b862690a4a7b545",
+      "bytes": 64408
+    },
+    {
+      "id": "asset:voices/bizi-ch09-after-07-iro.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch09-after-07-iro.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.8.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3a287a8b023b21e7417067c55500d0d086920894b571dbef5a4f60a5a49c9054.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3a287a8b023b21e7417067c55500d0d086920894b571dbef5a4f60a5a49c9054",
+      "bytes": 64408
+    },
+    {
       "id": "asset:voices/bizi-ch09-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch09-before-01-narrator.mp3",
       "associations": [
@@ -17538,6 +18014,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "c092e3a97beb068f5d171cc3f2e66862e0b166a88829670fa15c346add5c81da",
       "bytes": 37660
+    },
+    {
+      "id": "asset:voices/bizi-ch09-before-06-iro.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch09-before-06-iro.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.8.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7b1bcd35ff4dbc781a3f7edb9d2642cbed4d540589c8510247ac5de4e0989a75.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7b1bcd35ff4dbc781a3f7edb9d2642cbed4d540589c8510247ac5de4e0989a75",
+      "bytes": 122087
+    },
+    {
+      "id": "asset:voices/bizi-ch09-before-07-leon.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch09-before-07-leon.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.8.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a522e77479057ff63b155646f7b9efdfdbeb3e06ea5d66965b8a03a9a369135a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a522e77479057ff63b155646f7b9efdfdbeb3e06ea5d66965b8a03a9a369135a",
+      "bytes": 63572
     },
     {
       "id": "asset:voices/bizi-ch10-after-01-narrator.mp3",
@@ -17610,6 +18114,34 @@
       "bytes": 24285
     },
     {
+      "id": "asset:voices/bizi-ch10-after-06-severus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch10-after-06-severus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.9.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e341795acadd6eca38386003ffd9fa3029d0c421e59ba0092cfff55895aeba00.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e341795acadd6eca38386003ffd9fa3029d0c421e59ba0092cfff55895aeba00",
+      "bytes": 91576
+    },
+    {
+      "id": "asset:voices/bizi-ch10-after-07-disciple.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch10-after-07-disciple.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.9.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/acfde892ddf164496a6bb3dea4658a7df7cdb93e44649f5696b99d566a7db26a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "acfde892ddf164496a6bb3dea4658a7df7cdb93e44649f5696b99d566a7db26a",
+      "bytes": 73185
+    },
+    {
       "id": "asset:voices/bizi-ch10-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch10-before-01-narrator.mp3",
       "associations": [
@@ -17680,6 +18212,34 @@
       "bytes": 40586
     },
     {
+      "id": "asset:voices/bizi-ch10-before-06-severus.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch10-before-06-severus.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.9.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f0f9d4e15b1199aa4b4da585eefd0ca3eb69b5d9943c4f62282978460209e79d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f0f9d4e15b1199aa4b4da585eefd0ca3eb69b5d9943c4f62282978460209e79d",
+      "bytes": 142985
+    },
+    {
+      "id": "asset:voices/bizi-ch10-before-07-disciple.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch10-before-07-disciple.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.9.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/096e346c981658b91dad21e9043ec15bebeb258b83ea3d9c16c7db6c0e183b3f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "096e346c981658b91dad21e9043ec15bebeb258b83ea3d9c16c7db6c0e183b3f",
+      "bytes": 79873
+    },
+    {
       "id": "asset:voices/bizi-ch11-after-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch11-after-01-narrator.mp3",
       "associations": [
@@ -17702,10 +18262,10 @@
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/ac7eccfa6b43684bda79c74134eb6166c87446f35d4664050245d8380420949a.mp3",
+      "path": "/assets/gauntlet/releases/70e1c9678d16c677b95868a0a74db87a8b71eeb1e0891237892215f4c9394a88.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "ac7eccfa6b43684bda79c74134eb6166c87446f35d4664050245d8380420949a",
-      "bytes": 48527
+      "sha256": "70e1c9678d16c677b95868a0a74db87a8b71eeb1e0891237892215f4c9394a88",
+      "bytes": 36823
     },
     {
       "id": "asset:voices/bizi-ch11-after-03-xios.mp3",
@@ -17730,10 +18290,10 @@
           "usage": "3"
         }
       ],
-      "path": "/assets/gauntlet/releases/9e3331852a1c2ab44784acd548648c28e0863c6d81eaf2ac9ac1781d4960ddd9.mp3",
+      "path": "/assets/gauntlet/releases/848e4b130d05b91196918c263132056539f890e9e7fbc3b940e74cc5ab70a845.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "9e3331852a1c2ab44784acd548648c28e0863c6d81eaf2ac9ac1781d4960ddd9",
-      "bytes": 23449
+      "sha256": "848e4b130d05b91196918c263132056539f890e9e7fbc3b940e74cc5ab70a845",
+      "bytes": 24284
     },
     {
       "id": "asset:voices/bizi-ch11-after-05-xios.mp3",
@@ -17748,6 +18308,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "36198d215ed9e575ee3411c7a0b682573dfc1bd0d18a9ca7ebe5bd41992d2c6a",
       "bytes": 44347
+    },
+    {
+      "id": "asset:voices/bizi-ch11-after-06-governor.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch11-after-06-governor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.10.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c59998b82cefc3acbe0d64cd991e0e4095fbb4158b8315a28dd86b8b1e2210fe.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c59998b82cefc3acbe0d64cd991e0e4095fbb4158b8315a28dd86b8b1e2210fe",
+      "bytes": 58139
+    },
+    {
+      "id": "asset:voices/bizi-ch11-after-07-xios.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch11-after-07-xios.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.10.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2e5867a2c7117778cec8af7f75eadb6de22c3fe6216682444bca26355adf3d3b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2e5867a2c7117778cec8af7f75eadb6de22c3fe6216682444bca26355adf3d3b",
+      "bytes": 65662
     },
     {
       "id": "asset:voices/bizi-ch11-before-01-narrator.mp3",
@@ -17786,10 +18374,10 @@
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/54a79bb3ad303a25bfdb01797348fce1485c6dd9d90c957229724cb0f7843623.mp3",
+      "path": "/assets/gauntlet/releases/5f398b94f883e1fe62327e6887122a2f958d4f6f358e7ef7acb296bee92c551e.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "54a79bb3ad303a25bfdb01797348fce1485c6dd9d90c957229724cb0f7843623",
-      "bytes": 35988
+      "sha256": "5f398b94f883e1fe62327e6887122a2f958d4f6f358e7ef7acb296bee92c551e",
+      "bytes": 30972
     },
     {
       "id": "asset:voices/bizi-ch11-before-04-xios.mp3",
@@ -17814,10 +18402,38 @@
           "usage": "4"
         }
       ],
-      "path": "/assets/gauntlet/releases/8c3f124351d011d421fd75e086c56ea287df0c6f0bd98e6d7a3e3f054760a575.mp3",
+      "path": "/assets/gauntlet/releases/be7a5949fed9f338b3663e8908948dfebdfd8589b23c221bae739c30cde5d5da.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "8c3f124351d011d421fd75e086c56ea287df0c6f0bd98e6d7a3e3f054760a575",
-      "bytes": 43511
+      "sha256": "be7a5949fed9f338b3663e8908948dfebdfd8589b23c221bae739c30cde5d5da",
+      "bytes": 37659
+    },
+    {
+      "id": "asset:voices/bizi-ch11-before-06-xios.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch11-before-06-xios.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.10.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a9d8e967824bc08d176b5eb285a8f269a192b676a8d8c746a3e0116f53c2f695.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a9d8e967824bc08d176b5eb285a8f269a192b676a8d8c746a3e0116f53c2f695",
+      "bytes": 105786
+    },
+    {
+      "id": "asset:voices/bizi-ch11-before-07-governor.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch11-before-07-governor.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.10.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3108a8a4e881fcd00480ad0420c14b5073bab2e00d5cf95c9e26c223368004d9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3108a8a4e881fcd00480ad0420c14b5073bab2e00d5cf95c9e26c223368004d9",
+      "bytes": 35987
     },
     {
       "id": "asset:voices/bizi-ch12-after-01-narrator.mp3",
@@ -17904,6 +18520,34 @@
       "bytes": 24703
     },
     {
+      "id": "asset:voices/bizi-ch12-after-07-iron-sultan.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch12-after-07-iron-sultan.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.11.endDialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a6a942cb65ed152d4e38ef22995c959711a0e08ac41ce8c696bf63d54a5866f3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a6a942cb65ed152d4e38ef22995c959711a0e08ac41ce8c696bf63d54a5866f3",
+      "bytes": 40585
+    },
+    {
+      "id": "asset:voices/bizi-ch12-after-08-defender.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch12-after-08-defender.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.11.endDialogueAudio.7",
+          "usage": "7"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2748d4c2c2ca18b831edb60e54bc30b35c5f3231040d1f8416816d639bc4fb5c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2748d4c2c2ca18b831edb60e54bc30b35c5f3231040d1f8416816d639bc4fb5c",
+      "bytes": 46436
+    },
+    {
       "id": "asset:voices/bizi-ch12-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/bizi-ch12-before-01-narrator.mp3",
       "associations": [
@@ -17972,6 +18616,34 @@
       "mediaType": "audio/mpeg",
       "sha256": "4a47de34a3ec9a5cca777a1c7d20b92e6c4ed0cf96af90af73dfeb54a858396c",
       "bytes": 42675
+    },
+    {
+      "id": "asset:voices/bizi-ch12-before-06-iron-sultan.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch12-before-06-iron-sultan.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.11.dialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/74045ca82b39c5e3e96a28d13351df7ec544e931feec4e6e29e51f970f71ba32.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "74045ca82b39c5e3e96a28d13351df7ec544e931feec4e6e29e51f970f71ba32",
+      "bytes": 61901
+    },
+    {
+      "id": "asset:voices/bizi-ch12-before-07-defender.mp3",
+      "source": "/assets/gauntlet/voices/bizi-ch12-before-07-defender.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.bizi.chapters.11.dialogueAudio.6",
+          "usage": "6"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f56161ccce492937a76af4051da922ccf1225cb5418cb722c616778a40a6ced7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f56161ccce492937a76af4051da922ccf1225cb5418cb722c616778a40a6ced7",
+      "bytes": 81127
     },
     {
       "id": "asset:voices/faction-astral-vanguard-commander-clicked.mp3",
@@ -25882,5 +26554,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-e1c078bd94c6d6b485f7fdf6526a73ce58a8f7e38df550b9c1d8d24de8f8e1da"
+  "version": "gauntlet-assets-628767da496e16bd8ceb61d3dce7a4a60bae061c1b6240e449ddf89074089619"
 }

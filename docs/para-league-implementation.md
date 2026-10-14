@@ -3,7 +3,7 @@
 ## Live integration status (2026-10-14)
 
 Release work is in the isolated `codex/para-gold-live` worktree, integrated with
-`804d9fe467b69bbfad8f6204a09403fca9753dce` from current main. The original dirty
+`63044341c5c75055f7ed02cb85cbb55ccba73633` from current main. The original dirty
 checkout and its two Para patches remain preserved. Historical sections below
 describe the earlier local implementation; their old counts and provider limitations
 are not claims about this release.
@@ -598,3 +598,12 @@ issued only by the isolated fixture; production authentication and login throttl
 remain unchanged. Read-only fixture requests retry connection resets, while mutations
 are never automatically retried. Publishing tests wait for the saved preview before
 leaving the editor, matching the current busy-state navigation guard.
+
+The concurrent campaign release #74 was integrated after these measurements. It adds
+all-faction campaigns, voiced dialogue and cinematics; those changes remain intact.
+That upstream release independently set the player ceiling to 753 KiB. This release
+retains the current-main ceilings and the stricter shared-Economy accounting. Final
+combined build and CI results supersede the pre-merge figures above. The isolated
+browser run passed all 17 existing Admin flows, the full Gold flow and official Para
+settlement (19 passing). The remaining Para authoring assertion was updated to match
+the shortened simulator copy and is pending a clean rerun.

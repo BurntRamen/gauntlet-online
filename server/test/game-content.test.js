@@ -35,7 +35,30 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
   assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 56);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 128);
+  for (const factionId of ["mekan", "jali", "gracus", "indela", "zynarth"]) {
+    assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
+    assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
+  }
+  const zynarth = content.factions.find((faction) => faction.id === "zynarth");
+  assert.equal(zynarth.campaignPending, undefined);
+  assert.equal(zynarth.campaignOnly, undefined);
+  assert.equal(content.campaigns["astral-vanguard"].chapters.length, 12);
+  assert.equal(content.campaigns["astral-vanguard"].coverImage, "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp");
+  for (const chapter of content.campaigns["astral-vanguard"].chapters) {
+    assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
+    assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
+    assert.equal(typeof chapter.beforeBattle, "string", `${chapter.id}: briefing`);
+    assert.equal(typeof chapter.afterBattle, "string", `${chapter.id}: debriefing`);
+  }
+  const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
+  assert.equal(cinematicChapters.length, 11);
+  for (const chapter of cinematicChapters) {
+    assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
+    assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);
+    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.cinematic.image)), true, `${chapter.id}: cinematic image`);
+  }
+  assert.equal(content.campaigns.rumin.chapters.find((chapter) => chapter.id === "ides-of-rumie").cinematic.title, "The Ides of Rumie");
   assert.equal(content.campaigns.xendra.chapters.length, 8);
   for (const chapter of content.campaigns.xendra.chapters) {
     assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length, `${chapter.id}: dialogue audio`);
@@ -134,6 +157,14 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
   for (const chapter of content.campaigns.bizi.chapters) {
     assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
+    assert.ok(chapter.dialogue.length >= 7, `${chapter.id}: opening dialogue depth`);
+    assert.ok(chapter.endDialogue.length >= 7, `${chapter.id}: closing dialogue depth`);
+    assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length, `${chapter.id}: opening voice coverage`);
+    assert.equal(chapter.endDialogueAudio.length, chapter.endDialogue.length, `${chapter.id}: closing voice coverage`);
+    for (const audioPath of [...chapter.dialogueAudio, ...chapter.endDialogueAudio]) {
+      assert.match(audioPath, /^\/assets\/gauntlet\/voices\/bizi-.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", audioPath)), true, audioPath);
+    }
   }
 });
 

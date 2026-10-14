@@ -56,7 +56,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await page.getByLabel("Week 1: Faction Open", { exact: true }).selectOption("7-0");
   await page.getByRole("button", { name: "Simulate saved rules" }).click();
   await expect(page.getByText("Qualifying Prestige: 30 · Combined Prestige: 30")).toBeVisible();
-  await expect(page.getByText("Score requirement: met. Preview only; enter through Para League.")).toBeVisible();
+  await expect(page.getByText("Requirement: met. Enter through Para League.")).toBeVisible();
   const simulator = page.getByRole("region", { name: "Para eligibility simulator" });
   await simulator.screenshot({ path: "artifacts/para-simulation-desktop.png" });
   await choose("Seasons");

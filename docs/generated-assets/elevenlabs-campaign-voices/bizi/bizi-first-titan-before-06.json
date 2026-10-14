@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "assembly",
+  "voiceName": "Assembly of Doubt",
+  "line": "Its conduits run beneath every home. If it wakes in anger, your whole city becomes an experiment.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-before-06-assembly.mp3",
+  "generatedAt": "2026-10-14T15:09:07.958Z",
+  "publishedAt": "2026-10-14T15:12:34.833Z",
+  "bytes": 108712,
+  "sha256": "1816c0ca01e561bb6ea2e93dcbd8f11d49ee06f9bae50733f3e0b4e9e76b1520"
+}

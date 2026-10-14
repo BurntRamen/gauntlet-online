@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "iro",
+  "voiceName": "Scholar Iro",
+  "line": "Knowledge kept secret becomes a throne, even when the throne is made of brass.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-after-07-iro.mp3",
+  "generatedAt": "2026-10-14T15:09:47.240Z",
+  "publishedAt": "2026-10-14T15:12:35.008Z",
+  "bytes": 64408,
+  "sha256": "3a287a8b023b21e7417067c55500d0d086920894b571dbef5a4f60a5a49c9054"
+}
