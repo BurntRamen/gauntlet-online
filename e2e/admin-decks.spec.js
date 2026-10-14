@@ -3,10 +3,10 @@ const fs = require("node:fs"), path = require("node:path"), { spawn } = require(
 const endpoint = "http://127.0.0.1:4117", artifacts = path.resolve(__dirname, "../artifacts/purpose/browser");
 let root, child;
 async function start() {
-  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), windowsHide: true, env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PURPOSE_FIXTURE: "true" }, stdio: ["ignore", "pipe", "pipe"] });
+  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), windowsHide: true, env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PURPOSE_FIXTURE: "true" }, stdio: ["ignore", "pipe", "pipe", "ipc"] });
   await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error("Fixture timeout")), 30000); child.once("exit", code => { clearTimeout(timer); reject(new Error(`Fixture exit ${code}`)); }); child.stderr.on("data", bytes => fs.appendFileSync(path.join(artifacts, "server.log"), bytes)); child.stdout.on("data", bytes => { fs.appendFileSync(path.join(artifacts, "server.log"), bytes); if (String(bytes).includes("fixture server ready")) { clearTimeout(timer); resolve(); } }); });
 }
-async function stop() { if (child && child.exitCode === null) await new Promise(resolve => { child.once("exit", resolve); child.kill(); }); }
+async function stop() { if (child && child.exitCode === null) await new Promise((resolve, reject) => { child.once("exit", code => code === 0 ? resolve() : reject(new Error(`Fixture shutdown failed: ${code}`))); child.send("shutdown"); }); }
 test.beforeAll(async () => { fs.mkdirSync(artifacts, { recursive: true }); root = fs.mkdtempSync(path.resolve(__dirname, "../.playwright-data/purpose-")); await start(); });
 test.afterAll(stop);
 test("author, reopen, test, publish and buy a deck product; retain it across restart and a fresh browser", async ({ page, request, browser }) => {

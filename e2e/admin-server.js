@@ -63,6 +63,19 @@ if (process.env.GAUNTLET_ASSET_FIXTURE_ROOT) {
   });
   app.get("/api/admin/fixture/image-matches", (req, res) => res.json({ rooms: rooms.loadRooms().map(room => ({ roomCode: room.roomCode, game: room.game, publicState: require("../shared/match-history/replay").buildPublicReplaySnapshot(room.game) })) }));
 }
+// HTTP close does not close upgraded WebSockets. Restart tests deliberately
+// keep browsers open, so close every connection belonging to this fixture.
+const fixtureConnections = new Set();
+server.on("connection", socket => {
+  fixtureConnections.add(socket);
+  socket.once("close", () => fixtureConnections.delete(socket));
+});
+function stopFixture() {
+  server.close(() => process.exit(0));
+  for (const socket of fixtureConnections) socket.destroy();
+}
 server.listen(4117, "127.0.0.1", () => console.log("Isolated admin fixture server ready"));
-process.on("SIGTERM", () => server.close(() => process.exit(0)));
-process.on("SIGINT", () => server.close(() => process.exit(0)));
+process.once("SIGTERM", stopFixture);
+process.once("SIGINT", stopFixture);
+// IPC exercises the same shutdown on Windows, where kill() skips signal handlers.
+process.on("message", message => { if (message === "shutdown") stopFixture(); });

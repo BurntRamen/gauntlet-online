@@ -3,10 +3,10 @@ const fs = require("node:fs"), path = require("node:path"), { spawn } = require(
 const serverUrl = "http://127.0.0.1:4117", cardId = "rumin-vault-shield-bearer", artifactRoot = path.resolve(__dirname, "../artifacts/printings/browser");
 let child, root;
 async function start() {
-  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PRINTING_FIXTURE: "true" }, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PRINTING_FIXTURE: "true" }, windowsHide: true, stdio: ["ignore", "pipe", "pipe", "ipc"] });
   await new Promise((resolve, reject) => { const timeout = setTimeout(() => reject(new Error("Fixture startup timed out")), 30000); child.once("exit", code => { clearTimeout(timeout); reject(new Error("Fixture exited: " + code)); }); child.stderr.on("data", bytes => fs.appendFileSync(path.join(artifactRoot, "server.log"), bytes)); child.stdout.on("data", bytes => { fs.appendFileSync(path.join(artifactRoot, "server.log"), bytes); if (String(bytes).includes("fixture server ready")) { clearTimeout(timeout); resolve(); } }); });
 }
-async function stop() { if (child && child.exitCode === null) await new Promise(resolve => { child.once("exit", resolve); child.kill(); }); }
+async function stop() { if (child && child.exitCode === null) await new Promise((resolve, reject) => { child.once("exit", code => code === 0 ? resolve() : reject(new Error(`Fixture shutdown failed: ${code}`))); child.send("shutdown"); }); }
 test.beforeAll(async () => { fs.mkdirSync(artifactRoot, { recursive: true }); root = fs.mkdtempSync(path.resolve(__dirname, "../.playwright-data/printings-")); await start(); });
 test.afterAll(stop);
 async function section(page, label) { const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true }); if (await select.isVisible()) await select.selectOption({ label }); else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name: label, exact: true }).click(); }

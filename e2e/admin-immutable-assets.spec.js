@@ -4,7 +4,7 @@ const serverUrl = "http://127.0.0.1:4117", cardId = "rumin-vault-shield-bearer";
 const artifactRoot = path.resolve(__dirname, "../artifacts/immutable-assets");
 let child, root;
 async function start() {
-  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root }, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root }, windowsHide: true, stdio: ["ignore", "pipe", "pipe", "ipc"] });
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error("Fixture startup timed out")), 30000);
     child.once("exit", code => { clearTimeout(timeout); reject(new Error("Fixture exited: " + code)); });
@@ -12,7 +12,7 @@ async function start() {
     child.stdout.on("data", bytes => { fs.appendFileSync(path.join(artifactRoot, "server.log"), bytes); if (String(bytes).includes("fixture server ready")) { clearTimeout(timeout); resolve(); } });
   });
 }
-async function stop() { if (child && child.exitCode === null) await new Promise(resolve => { child.once("exit", resolve); child.kill(); }); }
+async function stop() { if (child && child.exitCode === null) await new Promise((resolve, reject) => { child.once("exit", code => code === 0 ? resolve() : reject(new Error(`Fixture shutdown failed: ${code}`))); child.send("shutdown"); }); }
 test.beforeAll(async () => { fs.mkdirSync(artifactRoot, { recursive: true }); const parent = path.resolve(__dirname, "../.playwright-data"); fs.mkdirSync(parent, { recursive: true }); root = fs.mkdtempSync(path.join(parent, "immutable-assets-")); await start(); });
 test.afterAll(async () => { await stop(); });
 const hash = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
