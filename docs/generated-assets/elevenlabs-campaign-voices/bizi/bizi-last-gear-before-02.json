@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "defender",
+  "voiceName": "Defender of Constanti",
+  "line": "The Titans are silent.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-02-defender.mp3",
+  "generatedAt": "2026-10-12T14:30:19.539Z",
+  "publishedAt": "2026-10-12T14:30:30.522Z",
+  "bytes": 24285,
+  "sha256": "b1f5ba4cda6571642911479d253bdef9f55f9b8d9de7c17497cac462eb3ce5da"
+}

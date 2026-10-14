@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Bizi Chronicle",
+  "line": "Constanti stands under final siege. The Titans are silent, the engines fail, and divided Bizi share one wall.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-10-12T14:30:18.285Z",
+  "publishedAt": "2026-10-12T14:30:30.519Z",
+  "bytes": 142150,
+  "sha256": "08c071deca08837d51a79d5138527f587d11c69e050f6d45a46784e39c683002"
+}

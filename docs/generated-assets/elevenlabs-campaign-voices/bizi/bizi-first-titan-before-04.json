@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "assembly",
+  "voiceName": "Assembly of Doubt",
+  "line": "Faith is poor engineering.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-before-04-assembly.mp3",
+  "generatedAt": "2026-10-12T14:28:26.886Z",
+  "publishedAt": "2026-10-12T14:30:30.074Z",
+  "bytes": 26375,
+  "sha256": "ec6d157f6900051175a41b79ea1012d11833b0d153010cf25256f3a1a0a554fb"
+}

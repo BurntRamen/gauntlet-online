@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "severus",
+  "voiceName": "Archon Severus",
+  "line": "History will call us pure.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-after-02-severus.mp3",
+  "generatedAt": "2026-10-12T14:30:02.294Z",
+  "publishedAt": "2026-10-12T14:30:30.468Z",
+  "bytes": 38914,
+  "sha256": "3c32dc06c51f8422b57145b0355f7ad4622014b65f4de396e533328e01ee0d84"
+}

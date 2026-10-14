@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "kharon",
+  "voiceName": "Kharon the Builder",
+  "line": "Steel rusts. Cities fall. But ideas are eternal.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-04-kharons-recording.mp3",
+  "generatedAt": "2026-10-12T14:30:21.965Z",
+  "publishedAt": "2026-10-12T14:30:30.529Z",
+  "bytes": 62737,
+  "sha256": "b41b4b11dc038b945b180353e1ee6016e3ed770bb5ba2ba101eff40baac4deb0"
+}

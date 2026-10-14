@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "engine",
+  "voiceName": "Vandal Engine",
+  "line": "Purpose detected. Purpose will be dismantled.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-before-05-vandal-engine.mp3",
+  "generatedAt": "2026-10-12T14:28:39.809Z",
+  "publishedAt": "2026-10-12T14:30:30.118Z",
+  "bytes": 59812,
+  "sha256": "fc116f9f7b6bf11953314da6b967f23cb1ad377c4e88d26b20f5195a1b9c83da"
+}

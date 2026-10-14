@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "kharon",
+  "voiceName": "Kharon the Builder",
+  "line": "Then keep asking what it is.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-after-03-kharon.mp3",
+  "generatedAt": "2026-10-12T14:28:31.540Z",
+  "publishedAt": "2026-10-12T14:30:30.093Z",
+  "bytes": 29301,
+  "sha256": "bfa13cae65d28610289ac05ce4a5160d14cd5b08536e3b4b1838b0c8f59541b6"
+}

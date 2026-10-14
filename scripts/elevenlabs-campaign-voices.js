@@ -8,7 +8,7 @@ const API_BASE_URL = "https://api.elevenlabs.io/v1";
 const DEFAULT_MANIFEST = "scripts/elevenlabs-frumo-campaign.json";
 
 function parseArgs(argv) {
-  const args = { command: "plan", onlyVoices: [] };
+  const args = { command: null, onlyVoices: [] };
   const rest = [...argv];
   if (rest[0] && !rest[0].startsWith("--")) args.command = rest.shift();
   while (rest.length) {
@@ -19,8 +19,10 @@ function parseArgs(argv) {
     else if (token === "--only-voice") args.onlyVoices.push(...String(rest.shift() || "").split(",").filter(Boolean));
     else if (token.startsWith("--manifest=")) args.manifest = token.slice(11);
     else if (token.startsWith("--only-voice=")) args.onlyVoices.push(...token.slice(13).split(",").filter(Boolean));
+    else if (!token.startsWith("--") && !args.command) args.command = token;
     else throw new Error(`Unknown argument: ${token}`);
   }
+  args.command ||= "plan";
   return args;
 }
 
@@ -134,8 +136,14 @@ async function designVoices({ manifest, workspaceRoot, apiKey, confirmCost, only
   const voiceKeys = onlyVoices.length ? onlyVoices : [...used];
   for (const voiceKey of voiceKeys) {
     const definition = manifest.voices[voiceKey];
-    if (!definition || !used.has(voiceKey)) throw new Error(`Unknown or unused Frumo voice: ${voiceKey}`);
+    if (!definition || !used.has(voiceKey)) throw new Error(`Unknown or unused ${manifest.factionId} voice: ${voiceKey}`);
     if (state.voices[voiceKey]?.voiceId) continue;
+    const libraryVoiceId = manifest.libraryVoiceIds?.[voiceKey];
+    if (libraryVoiceId) {
+      state.voices[voiceKey] = { voiceId: libraryVoiceId, name: definition.name, source: "existing-library", adoptedAt: new Date().toISOString() };
+      writeJson(paths.state, state);
+      continue;
+    }
     const designRequest = { voice_description: definition.description, text: definition.previewText, model_id: manifest.voiceDesignModelId };
     const designed = await apiJson(fetchImpl, `${API_BASE_URL}/text-to-voice/design?output_format=${encodeURIComponent(manifest.outputFormat)}`, { method: "POST", body: JSON.stringify(designRequest) }, apiKey);
     if (!designed.previews?.length) throw new Error(`${voiceKey}: Voice Design returned no previews.`);
@@ -231,7 +239,7 @@ function publishLines({ manifest, workspaceRoot, onlyVoices = [], force = false 
 function printPlan(manifest, logger = console.log) {
   const lines = buildLinePlan(manifest);
   const voiceKeys = [...new Set(lines.map((line) => line.voiceKey))];
-  logger(`Frumo campaign voice plan: ${lines.length} lines, ${voiceKeys.length} original fictional voices, ${lines.reduce((sum, line) => sum + line.text.length, 0)} dialogue characters.`);
+  logger(`${manifest.factionId} campaign voice plan: ${lines.length} lines, ${voiceKeys.length} fictional character voices, ${lines.reduce((sum, line) => sum + line.text.length, 0)} dialogue characters.`);
   campaignChapters[manifest.factionId].forEach((chapter, index) => {
     const chapterLines = lines.filter((line) => line.chapterId === chapter.id);
     logger(`- Chapter ${index + 1}: ${chapter.title} (${chapterLines.length} lines)`);
@@ -240,7 +248,7 @@ function printPlan(manifest, logger = console.log) {
 
 function usage() {
   return [
-    "Usage: npm run voices:frumo -- <plan|design|generate|publish|all> [options]",
+    "Usage: node scripts/elevenlabs-campaign-voices.js <plan|design|generate|publish|all> [options]",
     "",
     "  plan                    Validate scripts and show the cost-bearing scope without API calls",
     "  design --confirm-cost   Design and save original fictional character voices",
@@ -263,11 +271,11 @@ async function main(argv = process.argv.slice(2), dependencies = {}) {
   const common = { manifest, workspaceRoot, apiKey: process.env.ELEVENLABS_API_KEY, confirmCost: args.confirmCost, onlyVoices: args.onlyVoices, force: args.force, ...dependencies };
   if (args.command === "design") return designVoices(common);
   if (args.command === "generate") return generateLines(common);
-  if (args.command === "publish") return console.log(`Published ${publishLines(common)} Frumo campaign voice files.`);
+  if (args.command === "publish") return console.log(`Published ${publishLines(common)} ${manifest.factionId} campaign voice files.`);
   if (args.command === "all") {
     await designVoices(common);
     await generateLines(common);
-    return console.log(`Published ${publishLines(common)} Frumo campaign voice files.`);
+    return console.log(`Published ${publishLines(common)} ${manifest.factionId} campaign voice files.`);
   }
   throw new Error(`Unknown command: ${args.command}\n\n${usage()}`);
 }

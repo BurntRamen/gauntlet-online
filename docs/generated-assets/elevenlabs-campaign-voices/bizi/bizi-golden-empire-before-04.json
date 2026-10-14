@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "beli",
+  "voiceName": "General Beli",
+  "line": "And give me the armies to defend it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch03-before-04-beli.mp3",
+  "generatedAt": "2026-10-12T14:28:38.797Z",
+  "publishedAt": "2026-10-12T14:30:30.114Z",
+  "bytes": 38914,
+  "sha256": "f39b43b108624b2c6f4f497077f487fd25c7ad0339799df60c41ec05dd22f08d"
+}
