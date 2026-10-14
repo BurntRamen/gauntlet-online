@@ -67,7 +67,7 @@ export default function AccessibleMatchControls({
                   disabled={card.visible === false || card.raw?.hidden}
                   data-inspect-only={interactionLocked || card.unavailable || undefined}
                   aria-pressed={Object.values(card.selected || {}).some(Boolean)}
-                  aria-label={`${card.label}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${Object.keys(selectionLabels).filter(key => card.selected?.[key]).map(key => `, selected ${selectionLabels[key]}`).join("")}${interactionLocked || card.unavailable ? ", inspect only; unavailable to play" : ""}`}
+                  aria-label={`${card.label}, ${card.cardTypeLabel || "Standard playing card"}, ${card.combatLabel || "Can attack and block"}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ""}${Object.keys(selectionLabels).filter(key => card.selected?.[key]).map(key => `, selected ${selectionLabels[key]}`).join("")}${interactionLocked || card.unavailable ? ", inspect only; unavailable to play" : ""}`}
                   onFocus={() => commands.previewCard?.(card)}
                   onBlur={() => commands.previewCard?.(null)}
                   onClick={() => interactionLocked || card.unavailable

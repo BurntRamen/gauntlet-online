@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Then the harbor will learn how many ships can sink.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch01-after-05-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:39:36.528Z",
+  "publishedAt": "2026-10-12T03:42:23.063Z",
+  "bytes": 44765,
+  "sha256": "c840126c7b22589e35c12d212d416da242edd74ba4fb1c2fe1bdc1febe6c38cb"
+}

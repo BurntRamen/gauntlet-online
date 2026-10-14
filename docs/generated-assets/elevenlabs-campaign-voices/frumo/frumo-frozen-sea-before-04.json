@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "Then I will break silence too.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch11-before-04-polea.mp3",
+  "generatedAt": "2026-10-12T03:41:22.129Z",
+  "publishedAt": "2026-10-12T03:42:23.292Z",
+  "bytes": 35152,
+  "sha256": "ebfa5654d84993587ee570eb4ef05bebcf9b7c1731d00e1854d70161090f2ee5"
+}

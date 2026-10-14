@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "Polea wins the impossible battle, and the republic chants his name with gratitude and relief.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch07-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:40:41.676Z",
+  "publishedAt": "2026-10-12T03:42:23.189Z",
+  "bytes": 112475,
+  "sha256": "b3fde4cd9efeb5da30b3d34443c216585f94d22d8f6b7d86eeb6a2f853a00069"
+}

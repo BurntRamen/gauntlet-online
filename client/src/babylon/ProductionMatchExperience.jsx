@@ -760,7 +760,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
 }
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
-  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onCommanderClick, obscured = false }) {
+  playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onFactionCardClick, obscured = false }) {
   const [abilitySearch, setAbilitySearch] = useState("");
   useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
@@ -926,14 +926,14 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                   ["General", factionProfile(player.faction?.general, "General")],
                   ["City", factionProfile(player.faction?.city, "City")]
                 ].map(([role, profile]) => profile && (
-                  <div className={`production-faction-profile${role === "Commander" && onCommanderClick ? " is-interactive" : ""}`} key={role}
-                    role={role === "Commander" && onCommanderClick ? "button" : undefined}
-                    tabIndex={role === "Commander" && onCommanderClick ? 0 : undefined}
-                    onClick={role === "Commander" ? onCommanderClick : undefined}
-                    onKeyDown={role === "Commander" && onCommanderClick ? (event) => {
+                  <div className={`production-faction-profile${onFactionCardClick ? " is-interactive" : ""}`} key={role}
+                    role={onFactionCardClick ? "button" : undefined}
+                    tabIndex={onFactionCardClick ? 0 : undefined}
+                    onClick={onFactionCardClick ? () => onFactionCardClick(role.toLowerCase()) : undefined}
+                    onKeyDown={onFactionCardClick ? (event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        onCommanderClick();
+                        onFactionCardClick(role.toLowerCase());
                       }
                     } : undefined}>
                     {profile.image && <img src={resolveMatchAssetPath(profile.image)} alt="" />}
@@ -1226,6 +1226,7 @@ function CardInspection({ inspection, commands, viewModel, snapshot, docked = fa
       <div className="production-inspection-copy">
         <span>Card inspection</span>
         <h2>{inspection.label}</h2>
+        <div className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></div>
         <strong>Printed value {inspection.value}</strong>
         {inspection.valueBreakdown && <>
           <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
@@ -1271,6 +1272,7 @@ function CardPreview({ preview, viewModel, snapshot, onInspect, onPreview }) {
           {preview.stateLabel || "Card preview"}
         </span>
         <strong>{details.name}</strong>
+        <span className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></span>
         {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value} · Attack/block {preview.valueBreakdown?.total ?? preview.value}</small>}
         {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
         <CardAbilityDetails details={details} />
@@ -1464,6 +1466,41 @@ function ArenaPhaseBanner({ viewModel, activeEventType = "" }) {
   );
 }
 
+function tutorialCoachTip(viewModel) {
+  if (!viewModel || viewModel.phase === "gameOver") return null;
+  if (viewModel.phase === "end") {
+    return {
+      key: `end-${viewModel.turn}`,
+      title: "Place cards into lanes",
+      text: "Choose a card and an open lane, or skip when you have no placement. After all lanes are handled, both hands refill."
+    };
+  }
+  if (viewModel.attacks?.length) {
+    return viewModel.localHasPriority
+      ? {
+          key: `defend-${viewModel.turn}`,
+          title: "Defend or decline",
+          text: "Choose a blocker and then choose its payment cards. If you do not want to block, pass and combat will continue."
+        }
+      : {
+          key: `response-${viewModel.turn}`,
+          title: "Your opponent is responding",
+          text: "The attack is waiting for a block or pass. Watch the priority banner; controls return when you receive priority."
+        };
+  }
+  return viewModel.localHasPriority
+    ? {
+        key: `priority-${viewModel.turn}`,
+        title: "You have priority",
+        text: "You may attack, use an available faction ability, or pass. Select a card once, then select the cards that pay for it."
+      }
+    : {
+        key: `waiting-${viewModel.turn}`,
+        title: "Opponent has priority",
+        text: "Wait for your opponent to act or pass. The priority announcement will flash when it becomes your turn to choose."
+      };
+}
+
 function normalizeBattlefieldFactionId(viewModel) {
   const localPlayer = viewModel?.perspective?.player;
   const localFaction = localPlayer ? viewModel?.players?.[localPlayer]?.factionId : "";
@@ -1507,6 +1544,8 @@ export default function ProductionMatchExperience({
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [colorTheme, setColorTheme] = useState(initialMatchTheme);
   const [sceneMetrics, setSceneMetrics] = useState(null);
+  const [priorityFlash, setPriorityFlash] = useState(null);
+  const [tutorialTip, setTutorialTip] = useState(null);
   const adapterRef = useRef(adapter);
   const sceneMetricsSignatureRef = useRef("");
   const inspectionReturnFocusRef = useRef(null);
@@ -1517,6 +1556,9 @@ export default function ProductionMatchExperience({
   const rootRef = useRef(null);
   const handRailRef = useRef({ enabled: false, anchors: new Map(), version: 0 });
   const handRailMatchRef = useRef(null);
+  const lastPriorityRef = useRef("");
+  const autoActionRef = useRef("");
+  const tutorialTipsSeenRef = useRef(new Set());
   const phoneHandLayout = usePhoneHandLayout();
   const panelLayout = useMatchPanelLayout();
   const desktopPanels = panelLayout === "desktop";
@@ -1744,6 +1786,42 @@ export default function ProductionMatchExperience({
       cancelCurrentAction: undefined
     };
   }, [gameplayInputLocked, interactionCommands]);
+
+  useEffect(() => {
+    if (!viewModel || viewModel.phase === "gameOver" || viewModel.priority == null) return undefined;
+    const priorityKey = `${viewModel.matchId}:${viewModel.priority}`;
+    if (lastPriorityRef.current === priorityKey) return undefined;
+    lastPriorityRef.current = priorityKey;
+    const local = Number(viewModel.priority) === Number(viewModel.perspective?.player);
+    setPriorityFlash({
+      key: `${priorityKey}:${viewModel.revision}`,
+      local,
+      label: local ? "Your Priority" : `${viewModel.priorityLabel || "Opponent"} Has Priority`
+    });
+    const timeout = window.setTimeout(() => setPriorityFlash(null), reducedMotion ? 1200 : 1650);
+    return () => window.clearTimeout(timeout);
+  }, [reducedMotion, viewModel]);
+
+  useEffect(() => {
+    if (!options.tutorialGuidance || !viewModel) return;
+    const tip = tutorialCoachTip(viewModel);
+    if (!tip || tutorialTipsSeenRef.current.has(tip.key)) return;
+    tutorialTipsSeenRef.current.add(tip.key);
+    setTutorialTip(tip);
+  }, [options.tutorialGuidance, viewModel]);
+
+  useEffect(() => {
+    if (gameplayInputLocked || viewModel?.perspective?.spectator || viewModel?.phase === "gameOver") return undefined;
+    const legalActions = transportUpdate?.legalActions || [];
+    if (legalActions.length !== 1 || !["passPriority", "declineBlock", "skipPlacement"].includes(legalActions[0]?.type)) {
+      return undefined;
+    }
+    const automaticKey = `${viewModel?.matchId}:${viewModel?.revision}:${legalActions[0].type}`;
+    if (autoActionRef.current === automaticKey) return undefined;
+    autoActionRef.current = automaticKey;
+    const timeout = window.setTimeout(() => gameplayCommands.passPriority?.(), 450);
+    return () => window.clearTimeout(timeout);
+  }, [gameplayCommands, gameplayInputLocked, transportUpdate?.legalActions, viewModel?.matchId, viewModel?.perspective?.spectator, viewModel?.phase, viewModel?.revision]);
   const battlefieldFactionId = normalizeBattlefieldFactionId(viewModel);
   const presentedViewModel = useMemo(() => {
     if (!viewModel || !gameplayInputLocked) return viewModel;
@@ -2095,7 +2173,7 @@ export default function ProductionMatchExperience({
               faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}
               viewModel={presentedViewModel} commands={gameplayCommands}
               layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked}
-              onFactionCardClick={(role) => { if (role === "commander") options.onCommanderClick?.(); }} />
+              onFactionCardClick={(role) => options.onFactionCardClick?.(role)} />
           )}
         </div>
 
@@ -2106,6 +2184,26 @@ export default function ProductionMatchExperience({
             <strong>“{options.commanderAnnouncement.quote}”</strong>
             {options.commanderAnnouncement.detail && <small>{options.commanderAnnouncement.detail}</small>}
           </div>
+        )}
+        {priorityFlash && (
+          <div
+            key={priorityFlash.key}
+            className={`production-priority-flash${priorityFlash.local ? " is-local" : " is-opponent"}`}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <span aria-hidden="true">◇</span>
+            <strong>{priorityFlash.label}</strong>
+          </div>
+        )}
+        {tutorialTip && (
+          <aside className="production-tutorial-coach" role="dialog" aria-label="Tutorial guidance">
+            <span>Training Guide</span>
+            <strong>{tutorialTip.title}</strong>
+            <p>{tutorialTip.text}</p>
+            <button type="button" onClick={() => setTutorialTip(null)}>Got it</button>
+          </aside>
         )}
         {phoneHandActive && (
           <PhoneHandRail viewModel={gameplayInputLocked ? canvasViewModel : presentedViewModel}
@@ -2232,7 +2330,7 @@ export default function ProductionMatchExperience({
           recentEvents={feedEntries}
           abilitiesOnly={abilityLogOnly}
           onAbilityFilter={setAbilityLogOnly}
-          onCommanderClick={options.onCommanderClick}
+          onFactionCardClick={options.onFactionCardClick}
           onClose={closeReference}
         />
       )}

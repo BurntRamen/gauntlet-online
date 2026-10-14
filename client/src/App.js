@@ -2997,7 +2997,8 @@ function RulebookPanel() {
       rules: [
         "Players are not eliminated immediately when their life reaches 0 or less during a turn.",
         "At the end of the turn, if either player has 0 or less life, the player with the higher life total wins.",
-        "If both players are tied at the end-of-turn life check, the game is a draw."
+        "If both players are tied at the end-of-turn life check, the game is a draw.",
+        "If both players still have life but neither has a combat card or faction action remaining, the game also ends in a draw."
       ]
     }
   ];
@@ -3109,7 +3110,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
-function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss }) {
+function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss, onNavigate }) {
   const steps = [
     { label: "Start here", text: "Learn priority, payment, blocking, and lanes in the tutorial." },
     { label: "Practice safely", text: "Play Basic vs AI before entering multiplayer or faction powers." },
@@ -3135,6 +3136,12 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
             <span style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{step.text}</span>
           </div>
         ))}
+      </div>
+      <div role="navigation" aria-label="New player destinations" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("play")}>Play a Match</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("journey")}>Campaign & Tutorial</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("build")}>Cards & Decks</MenuButton>
+        <MenuButton variant="secondary" onClick={() => onNavigate?.("rewards")}>Quests & Rewards</MenuButton>
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
         <MenuButton onClick={onStartBasicAi}>Play Basic vs AI</MenuButton>
@@ -4080,41 +4087,16 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95], voiceHints = []) => {
+  const speakFactionQuote = useCallback((voiceClip) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
     }
-    if (accountSoundMuted) {
-      window.speechSynthesis?.cancel();
-      return;
-    }
-
-    const speakWithBrowserVoice = () => {
-      if (typeof window === "undefined" || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-      window.speechSynthesis.cancel();
-      const utterance = new window.SpeechSynthesisUtterance(quote);
-      [utterance.rate, utterance.pitch] = profile;
-      const availableVoices = window.speechSynthesis.getVoices();
-      utterance.voice = voiceHints
-        .map((hint) => availableVoices.find((voice) => voice.lang?.startsWith("en") && voice.name.toLowerCase().includes(hint)))
-        .find(Boolean)
-        || availableVoices.find((voice) => voice.lang?.startsWith("en") && /natural|neural|online/i.test(voice.name))
-        || availableVoices.find((voice) => voice.lang?.startsWith("en"))
-        || null;
-      window.speechSynthesis.speak(utterance);
-    };
-
-    if (voiceClip && typeof window !== "undefined" && window.Audio) {
-      window.speechSynthesis?.cancel();
-      const audio = new window.Audio(resolveAssetPath(voiceClip));
-      audio.volume = 1;
-      voiceAudioRef.current = audio;
-      audio.play().catch(speakWithBrowserVoice);
-      return;
-    }
-
-    speakWithBrowserVoice();
+    window.speechSynthesis?.cancel();
+    if (accountSoundMuted || !voiceClip || !window.Audio) return;
+    const audio = new window.Audio(resolveAssetPath(voiceClip));
+    voiceAudioRef.current = audio;
+    audio.play().catch(() => {});
   }, [accountSoundMuted]);
 
   const announceCommander = useCallback((factionInput, event, commanderName = "Commander", detail = "") => {
@@ -4125,28 +4107,30 @@ export default function App() {
       : gameContent?.factions?.find((entry) => entry.id === factionId);
     const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(
-      quote,
-      faction?.commander?.announcementAudio?.[event],
-      faction?.commander?.voiceProfile,
-      faction?.commander?.voiceHints
-    );
+    speakFactionQuote(faction?.commander?.announcementAudio?.[event]);
   }, [gameContent?.factions, speakFactionQuote]);
 
-  const announceCommanderClick = useCallback(() => {
+  const announceFactionFeatureClick = useCallback((featureRole) => {
     if (!game || role === "spectator" || !player) return;
     const currentPlayer = game.players?.[player];
     if (!currentPlayer?.faction || currentPlayer.faction.id === "basic") return;
-    const now = Date.now();
-    if (now - commanderClickRef.current < 650) return;
-    commanderClickRef.current = now;
-    announceCommander(
-      currentPlayer.faction,
-      "clicked",
-      currentPlayer.faction.commander?.name || currentPlayer.faction.name,
-      "Commander selected"
-    );
-  }, [announceCommander, game, player, role]);
+    if (featureRole === "commander") {
+      const now = Date.now();
+      if (now - commanderClickRef.current < 650) return;
+      commanderClickRef.current = now;
+      announceCommander(currentPlayer.faction, "clicked", currentPlayer.faction.commander?.name || currentPlayer.faction.name, "Commander selected");
+      return;
+    }
+    const feature = currentPlayer.faction[featureRole];
+    if (!feature) return;
+    if (featureRole === "general") {
+      const quote = feature.clickedAnnouncement || "The general is ready.";
+      setFactionVoice({ quote, detail: "General selected", speaker: feature.name || "General", kind: "clicked" });
+      speakFactionQuote(feature.clickedAudio);
+      return;
+    }
+    if (featureRole === "city" && feature.clickedSound) speakFactionQuote(feature.clickedSound);
+  }, [announceCommander, game, player, role, speakFactionQuote]);
 
   useEffect(() => {
     const matchId = game?.matchId || "";
@@ -5241,6 +5225,16 @@ export default function App() {
         {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
         {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
+          {showOnboarding && (
+            <OnboardingPanel
+              canPlayAsPlayer={canPlayAsPlayer}
+              onStartTutorial={openOnboardingTutorial}
+              onStartBasicAi={startOnboardingBasicAi}
+              onEnableHints={enableOnboardingHints}
+              onDismiss={dismissOnboarding}
+              onNavigate={navigateHomeArea}
+            />
+          )}
           {homeArea === "play" && (
             <PlayMenu modeMetadata={gameContent.modeMetadata} view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
@@ -5395,15 +5389,6 @@ export default function App() {
           {homeArea === "journey" && (
             <div className="journey-hub">
               <JourneyIntroduction copy={gameContent.modeMetadata?.campaign} campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
-              {showOnboarding && (
-                <OnboardingPanel
-                  canPlayAsPlayer={canPlayAsPlayer}
-                  onStartTutorial={openOnboardingTutorial}
-                  onStartBasicAi={startOnboardingBasicAi}
-                  onEnableHints={enableOnboardingHints}
-                  onDismiss={dismissOnboarding}
-                />
-              )}
               <div className="journey-route">
                 <section className="journey-learning-panel">
                   <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
@@ -5809,7 +5794,8 @@ export default function App() {
               },
               onRejectedAction: factionVoiceFor,
               commanderAnnouncement: factionVoice,
-              onCommanderClick: announceCommanderClick
+              onFactionCardClick: announceFactionFeatureClick,
+              tutorialGuidance: game.players?.[2]?.opponentKind === "training-ai"
             }}
             onLeaveMatch={returnToMainMenu}
           />
@@ -6761,8 +6747,8 @@ export default function App() {
 
   function handlePowerClick(power) {
     setExpandedPower(power.id);
-    if (power.id !== "commander" || isSpectator || !me) return;
-    announceCommanderClick();
+    if (isSpectator || !me) return;
+    announceFactionFeatureClick(power.id);
   }
 
   const undoRequest = game.undoRequest;

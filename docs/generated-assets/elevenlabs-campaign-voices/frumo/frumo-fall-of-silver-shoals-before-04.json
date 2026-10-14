@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "danton",
+  "voiceName": "Corsair Danton",
+  "line": "Then watch what escapes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-before-04-danton.mp3",
+  "generatedAt": "2026-10-12T03:39:52.965Z",
+  "publishedAt": "2026-10-12T03:42:23.090Z",
+  "bytes": 24703,
+  "sha256": "ecc0c22f3a1141a42457fa39723918e4f6cc5a28cf922914662b7232bbbe0cbe"
+}

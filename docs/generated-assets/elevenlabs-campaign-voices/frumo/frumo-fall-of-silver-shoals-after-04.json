@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "marat",
+  "voiceName": "Marat of the Reefs",
+  "line": "Open the vaults. Let the people see what hunger purchased.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch03-after-04-marat.mp3",
+  "generatedAt": "2026-10-12T03:39:58.955Z",
+  "publishedAt": "2026-10-12T03:42:23.100Z",
+  "bytes": 57722,
+  "sha256": "6189e3e063d8a939e24ef5cf442b37791d11da79db8fe572a7abb8dc802599c5"
+}

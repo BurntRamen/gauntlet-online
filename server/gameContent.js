@@ -966,10 +966,10 @@ const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
 
 const COMMANDER_ANNOUNCEMENTS = Object.freeze({
-  rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline, tribute, triumph. In that order.", wounded: "Our line bends at twenty-one. It does not break.", critical: "Ten life remains. Spend everything. Yield nothing.", denied: "The treasury will not underwrite this assault." },
-  sheen: { selected: "We won a forest. Now we must make it a home.", clicked: "Be still. Even the smallest root can split stone.", wounded: "At twenty-one, the canopy thins. Guard the living heart.", critical: "Ten life remains. Take root and endure.", denied: "The roots have not gathered enough strength." },
-  frumo: { selected: "All sails answer the Lord Commander. Make ready.", clicked: "The tide favors the captain who gives it orders.", wounded: "Twenty-one life. Reef the sails and hold the line.", critical: "Ten life. One last broadside decides the sea.", denied: "A poor wager, captain." },
-  bizi: { selected: "Conductor online. Progress is now inevitable.", clicked: "Every mechanism has a purpose. Including you.", wounded: "Life reserve at twenty-one. Redirecting power to defense.", critical: "Critical threshold: ten. Release every safeguard.", denied: "Insufficient power allocation." },
+  rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline first. Then conquest.", wounded: "Order has a cost.", critical: "If I surrender, Rumie returns to corruption.", denied: "The treasury will not underwrite this assault." },
+  sheen: { selected: "We won a forest. Now we must make it a home.", clicked: "Patience. Growth must be nourished.", wounded: "No. I have shown ten valleys where to begin.", critical: "Then hunger will find us planted together.", denied: "The roots have not gathered enough strength." },
+  frumo: { selected: "Today it needs victory.", clicked: "I freed the Frumo from kings.", wounded: "Storms are accidents. Ice is weather. Hunger is logistics.", critical: "I freed the Frumo. I united them. I made them strong.", denied: "A poor wager, captain." },
+  bizi: { selected: "Systems fail. Systems restart.", clicked: "Disorder has fallen below acceptable limits.", wounded: "Compassion is inefficient. Progress is not.", critical: "Heat is a condition. Adaptation is a response.", denied: "Insufficient power allocation." },
   mekan: { selected: "The guests have arrived. Let the eternal festival begin.", clicked: "Every ending is only another invitation.", wounded: "Twenty-one life, and still the procession dances.", critical: "Ten life remains. Celebrate as if dawn depends on it.", denied: "The celebration remembers every payment." },
   jali: { selected: "The fallen march beside us. Form the line.", clicked: "A warrior bested is a warrior waiting to return.", wounded: "Twenty-one life. Call the names of those we have lost.", critical: "Ten life. Raise the Revenants and stand.", denied: "The formation has not yet answered." },
   gracus: { selected: "The arena has its champions. Let the contest begin!", clicked: "Give the crowd a battle worthy of legend.", wounded: "Twenty-one life! Now the true contest begins.", critical: "Ten life! Roar louder than death itself!", denied: "The arena rejects that challenge." },
@@ -981,16 +981,56 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
   rumin: {
     selected: "/assets/gauntlet/voices/rumin-ch04-before-03-kaiser.mp3",
+    clicked: "/assets/gauntlet/voices/kaiser-3.mp3",
+    wounded: "/assets/gauntlet/voices/rumin-ch09-after-03-kaiser.mp3",
+    critical: "/assets/gauntlet/voices/rumin-ch07-before-03-kaiser.mp3",
     denied: "/assets/gauntlet/voices/kaiser-1.mp3"
   },
   sheen: {
     selected: "/assets/gauntlet/voices/sheen-ch04-before-02-leafen-gao.mp3",
+    clicked: "/assets/gauntlet/voices/leafen-gao-2.mp3",
+    wounded: "/assets/gauntlet/voices/sheen-ch01-after-04-leafen-gao.mp3",
+    critical: "/assets/gauntlet/voices/sheen-ch04-before-05-leafen-gao.mp3",
     denied: "/assets/gauntlet/voices/leafen-gao-1.mp3"
   },
-  frumo: { denied: "/assets/gauntlet/voices/polea-1.mp3" },
-  bizi: { denied: "/assets/gauntlet/voices/focus-1.mp3" },
+  frumo: {
+    selected: "/assets/gauntlet/voices/frumo-ch07-before-04-polea.mp3",
+    clicked: "/assets/gauntlet/voices/frumo-ch09-before-02-polea.mp3",
+    wounded: "/assets/gauntlet/voices/frumo-ch11-after-02-polea.mp3",
+    critical: "/assets/gauntlet/voices/frumo-ch12-before-02-polea.mp3",
+    denied: "/assets/gauntlet/voices/polea-1.mp3"
+  },
+  bizi: {
+    selected: "/assets/gauntlet/voices/bizi-ch07-after-03-focus.mp3",
+    clicked: "/assets/gauntlet/voices/bizi-ch06-after-03-focus.mp3",
+    wounded: "/assets/gauntlet/voices/bizi-ch06-before-03-focus.mp3",
+    critical: "/assets/gauntlet/voices/bizi-ch07-before-05-focus.mp3",
+    denied: "/assets/gauntlet/voices/focus-1.mp3"
+  },
   zynarth: { denied: "/assets/gauntlet/voices/zalara-1.mp3" }
 });
+
+const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
+  rumin: "Discipline first. Then conquest.",
+  sheen: "Tradition has become a fence around empty soil.",
+  frumo: "The sea gives enough for all Frumo. Your king has taught it to starve.",
+  bizi: "Machines break. Empires fall.",
+  mekan: "The festival remembers every guest.",
+  jali: "The fallen still know the road to battle.",
+  gracus: "A champion enters when the crowd needs courage.",
+  indela: "The omen is clear enough to act.",
+  zynarth: "The brood adapts through every keeper.",
+  "astral-vanguard": "Formation set. Await the descent."
+});
+
+const GENERAL_CLICK_AUDIO = Object.freeze({
+  rumin: "/assets/gauntlet/voices/kaiser-3.mp3",
+  sheen: "/assets/gauntlet/voices/sheen-ch08-before-02-tang.mp3",
+  frumo: "/assets/gauntlet/voices/frumo-ch01-before-03-lafayette.mp3",
+  bizi: "/assets/gauntlet/voices/bizi-ch08-before-02-hera.mp3"
+});
+
+const CITY_CLICK_SOUND = "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/ability_activate.wav";
 
 const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
@@ -1118,12 +1158,20 @@ factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.i
 factionsData.jali.general = factionsData.jali.generals[0];
 factionsData.gracus.general = factionsData.gracus.generals[0];
 factionsData.indela.general = factionsData.indela.generals[0];
+const factionInteractionVoiceAssets = require("./factionInteractionVoiceAssets.json");
 for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)) {
   factionsData[factionId].commander.announcements = announcements;
   factionsData[factionId].commander.voiceProfile = COMMANDER_VOICE_PROFILES[factionId];
   factionsData[factionId].commander.voiceHints = COMMANDER_VOICE_HINTS[factionId];
-  const announcementAudio = COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
+  const generatedAudio = factionInteractionVoiceAssets.factions?.[factionId];
+  const announcementAudio = generatedAudio?.commander || COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
   if (announcementAudio) factionsData[factionId].commander.announcementAudio = announcementAudio;
+  if (factionsData[factionId].general) {
+    factionsData[factionId].general.clickedAnnouncement = GENERAL_CLICK_ANNOUNCEMENTS[factionId];
+    const generalAudio = generatedAudio?.general?.clicked || GENERAL_CLICK_AUDIO[factionId];
+    if (generalAudio) factionsData[factionId].general.clickedAudio = generalAudio;
+  }
+  if (factionsData[factionId].city) factionsData[factionId].city.clickedSound = CITY_CLICK_SOUND;
 }
 
 function listFactions() {
@@ -1183,18 +1231,18 @@ const campaignChapters = {
     { id: "last-tide", playableName: "The Restored Council", opponentName: "Lord Commander Polea", title: "The Last Tide", story: "Former allies and rival fleets face Polea one final time, then restore the Council with the uneasy knowledge that freedom can decay again.", dialogue: ["Narrator: Former allies gather with rival fleets, and the last battle asks whether Frumo can survive its greatest hero.", "Polea: I freed the Frumo. I united them. I made them strong.", "Lafayette: And then you made them yours.", "Polea: If that makes me a tyrant, history may judge me.", "Councilor: The living will judge first."], endDialogue: ["Narrator: Polea falls, but no one celebrates for long. The republic has learned what fear can build from gratitude.", "Lafayette: Restore the Council. Restore the arguments. Restore the burden of choice.", "Councilor: And if another crisis asks for one hand on the helm?", "Lafayette: Then remember how easily a hand becomes a fist.", "Polea: Perhaps history will still understand me. Perhaps that is punishment enough." ] }
   ],
   bizi: [
-    { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders."] },
-    { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina sleeps beneath Constanti, dividing Bizi thinkers over whether the Titan created them or merely guides them.", dialogue: ["Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering."] },
-    { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli attempt to restore the old Bizi world at the empire's dazzling peak.", dialogue: ["Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it."] },
-    { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Constanti burns in rebellion, Justine nearly flees, and Theo forces him to choose rule over escape.", dialogue: ["Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Beli: Open the gates. I will restore order."] },
-    { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns and reclaims ancient territories, but each victory stretches the empire thinner.", dialogue: ["Beli: We have won another province.", "Theo: And inherited another wound.", "Beli: Then the empire is made of wounds that refused to close."] },
-    { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus seizes power and promises order through absolute efficiency.", dialogue: ["Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul."] },
-    { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "The eastern empire collapses, factories fall, shrines are destroyed, and the Bizi face extinction.", dialogue: ["Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them."] },
-    { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera rises when victory seems impossible, marches into enemy territory, and turns one victory into ten.", dialogue: ["Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures."] },
-    { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Followers of Machina, Melech, and Meca fight over creation, guidance, and control until faith becomes civil danger.", dialogue: ["Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth."] },
-    { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold."] },
-    { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that."] },
-    { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal."] }
+    { id: "kharons-vision", playableName: "Kharon", opponentName: "Maxor the Usurper", title: "Kharon's Vision", story: "A young inventor receives visions from Titan Machina, defeats Maxor at Iron River, and founds Constanti.", dialogue: ["Narrator: Kharon receives visions from Titan Machina and dreams of a city built by invention rather than kings.", "Kharon: The future shall not belong to kings.", "Maxor: Then it will belong to tyrants with better machines.", "Kharon: No. It shall belong to builders.", "Maxor: Builders still need someone to command them."], endDialogue: ["Narrator: Maxor falls at Iron River, and Constanti rises from the plans Kharon carried into battle.", "Maxor: You traded one throne for a workshop.", "Kharon: A workshop makes room for every useful hand.", "Maxor: Until the machines decide your hands are obsolete.", "Kharon: Then we will build wiser machines." ] },
+    { id: "first-titan", playableName: "Kharon", opponentName: "The Assembly of Doubt", title: "The First Titan", story: "Machina sleeps beneath Constanti, dividing Bizi thinkers over whether the Titan created them or merely guides them.", dialogue: ["Narrator: Machina sleeps beneath Constanti while faith and reason argue over the same ancient engine.", "Assembly: You ask us to kneel before a machine.", "Kharon: I ask you to listen before you fear.", "Assembly: Faith is poor engineering.", "Kharon: So is certainty without evidence."], endDialogue: ["Narrator: The debate does not end. It becomes the first current in the Bizi mind: progress powered by doubt.", "Assembly: You have proved the Titan functions, not that it is divine.", "Kharon: Then keep asking what it is.", "Assembly: And if the answer destroys your faith?", "Kharon: Truth is the only machine worth rebuilding everything for." ] },
+    { id: "golden-empire", playableName: "Justine, Theo, and Beli", opponentName: "The Vandal Engine", title: "The Golden Empire", story: "Centuries later, Justine, Theo, and Beli attempt to restore the old Bizi world at the empire's dazzling peak.", dialogue: ["Narrator: Centuries later, three leaders attempt to restore the old empire at the height of its golden machinery.", "Theo: An empire cannot survive on steel alone.", "Justine: Then give it purpose.", "Beli: And give me the armies to defend it.", "Vandal Engine: Purpose detected. Purpose will be dismantled."], endDialogue: ["Narrator: The Vandal Engine falls, and the empire shines again, though every repair reveals another worn gear beneath the gold.", "Vandal Engine: Restoration only delays collapse.", "Justine: Delay is time, and time is possibility.", "Theo: Possibility still needs wisdom.", "Beli: Wisdom can speak after the walls are secure." ] },
+    { id: "riot-of-sparks", playableName: "Theo and Beli", opponentName: "The Riot Leader", title: "The Riot of Sparks", story: "Constanti burns in rebellion, Justine nearly flees, and Theo forces him to choose rule over escape.", dialogue: ["Narrator: Constanti burns in rebellion, and the emperor watches his own factories become torches.", "Justine: The factories are ash. The city hates me.", "Theo: Do you wish to be remembered as a ruler or a fugitive?", "Riot Leader: Open the palace and let the people answer for you.", "Beli: Open the gates. I will restore order."], endDialogue: ["Narrator: Order returns, but trust does not. Machines restart faster than societies forgive.", "Riot Leader: You can silence a street. You cannot repair what started the fire.", "Theo: Then we repair the grievance after we extinguish the blaze.", "Beli: A promise is not a barricade.", "Justine: Today it must become one." ] },
+    { id: "last-victories", playableName: "Beli", opponentName: "The Desert Coalition, Iron Tribes, and Sea Raiders", title: "The Last Victories", story: "Beli wins impossible campaigns and reclaims ancient territories, but each victory stretches the empire thinner.", dialogue: ["Narrator: Beli marches against three enemies and an empire already exhausted by the cost of appearing strong.", "Beli: We have won another province.", "Theo: And inherited another wound.", "Coalition Marshal: Your borders are longer than your memory.", "Beli: Then the empire is made of wounds that refused to close."], endDialogue: ["Narrator: Beli wins again, and victory becomes a new name for exhaustion.", "Coalition Marshal: You conquered land your supply lines cannot remember.", "Beli: The standards reached it. The roads will follow.", "Theo: Every new road begins behind on its debts.", "Beli: Then build faster than the debts can march." ] },
+    { id: "age-of-focus", playableName: "Focus", opponentName: "Emperor Maurice", title: "The Age of Focus", story: "After decline and exhaustion, Focus seizes power and promises order through absolute efficiency.", dialogue: ["Narrator: After decline and paralysis, Focus offers absolute efficiency as the cure for every human failure.", "Maurice: You call murder progress?", "Focus: Compassion is inefficient. Progress is not.", "Maurice: Then your empire will run perfectly without a soul.", "Focus: A soul is an unmeasured variable."], endDialogue: ["Narrator: Focus takes control. The empire runs cleaner, faster, and colder.", "Maurice: You optimized the people out of their own future.", "Focus: Disorder has fallen below acceptable limits.", "Maurice: So has mercy.", "Focus: Mercy was never a system requirement." ] },
+    { id: "great-invasion", playableName: "Focus", opponentName: "Khosar the Conqueror", title: "The Great Invasion", story: "The eastern empire collapses, factories fall, shrines are destroyed, and the Bizi face extinction.", dialogue: ["Narrator: Khosar breaks the eastern empire, destroying factories, shrines, and every defense that believed itself permanent.", "Khosar: Your gears stop where my banners begin.", "Focus: Systems fail. Systems restart.", "Khosar: Not after I melt them.", "Focus: Heat is a condition. Adaptation is a response."], endDialogue: ["Narrator: The Bizi survive the first collapse because they know failure is a state, not a verdict.", "Khosar: I broke your empire in a season.", "Focus: You interrupted production.", "Khosar: I erased your future.", "Focus: Futures are redundant by design." ] },
+    { id: "heras-counterattack", playableName: "Hera", opponentName: "Khosar", title: "Hera's Counterattack", story: "Hera rises when victory seems impossible, marches into enemy territory, and turns one victory into ten.", dialogue: ["Narrator: Hera rises when defeat seems certain and marches beyond the calculations that declared victory impossible.", "Hera: Machines break. Empires fall.", "Khosar: Then kneel before the empire that remains.", "Hera: Determination endures.", "Khosar: Determination burns like everything else."], endDialogue: ["Narrator: Hera turns one victory into ten, and the Bizi remember that progress can also mean refusal.", "Khosar: Your machines did not win this battle.", "Hera: No. We did.", "Khosar: Then I will break the people instead.", "Hera: People rebuild each other." ] },
+    { id: "three-titans", playableName: "Iro, Leon, and Nike", opponentName: "Machina, Melech, and Meca Cult Leaders", title: "The Three Titans", story: "Followers of Machina, Melech, and Meca fight over creation, guidance, and control until faith becomes civil danger.", dialogue: ["Narrator: Followers of three Titans turn questions of creation, guidance, and control into circuitry for civil war.", "Iro: A Titan should guide, not divide.", "Cult Leader: Division proves truth has enemies.", "Leon: Or that certainty has teeth.", "Cult Leader: Teeth protect the faithful."], endDialogue: ["Narrator: The Titan faith fractures, gaining a deeper mythology and losing the unity that once made it powerful.", "Iro: We came seeking one origin.", "Leon: We found three claims to obedience.", "Cult Leader: Doubt is only an error waiting to be corrected.", "Iro: Then we will remain gloriously incorrect." ] },
+    { id: "the-schism", playableName: "Theo's Disciples", opponentName: "Archon Severus", title: "The Schism", story: "The Titan faith fractures permanently as old allies become enemies and the empire weakens from certainty within.", dialogue: ["Narrator: Old allies become enemies as every faction claims the only correct meaning of the Titans.", "Severus: Unity built on compromise is rust.", "Disciple: The greatest enemy of an empire is certainty.", "Severus: Then certainty will rule what doubt could not hold.", "Disciple: A closed circuit eventually burns itself."], endDialogue: ["Narrator: The schism becomes permanent, proving that ideas can preserve an empire or split it from within.", "Severus: History will call us pure.", "Disciple: History distrusts anyone who writes with a blade.", "Severus: Doubt leaves no monuments.", "Disciple: It leaves doors." ] },
+    { id: "the-restoration", playableName: "Xios", opponentName: "Corrupt Governors and Invaders", title: "The Restoration", story: "The empire nearly collapses until Xios reforms the economy, repairs the military, and revives Bizi industry.", dialogue: ["Narrator: Xios inherits a damaged machine of state: corrupt governors, broken armies, failing industry, and collapsing borders.", "Xios: The machine is damaged.", "Governor: Damaged things are replaced.", "Xios: Not destroyed. Repaired. Remember that.", "Governor: Repair costs more than surrender."], endDialogue: ["Narrator: Xios restores the empire's engine and proves decline is not destiny while discipline and courage remain.", "Governor: You saved the system that failed us.", "Xios: I saved the people trapped inside it.", "Governor: And when it fails again?", "Xios: Then they will know how to repair it without me." ] },
+    { id: "last-gear", playableName: "The Defenders of Constanti", opponentName: "The Iron Sultan", title: "The Last Gear", story: "Constanti falls under siege. Machina's engines fail, the Titans fall silent, and divided Bizi fight side by side so their knowledge survives.", dialogue: ["Narrator: Constanti stands under final siege. The Titans are silent, the engines fail, and divided Bizi share one wall.", "Defender: The Titans are silent.", "Iron Sultan: Then your city has no gods left.", "Kharon's Recording: Steel rusts. Cities fall. But ideas are eternal.", "Defender: We only need the wall to remember us until dawn."], endDialogue: ["Narrator: Constanti falls, but the Bizi survive in every design carried beyond its broken gates.", "Iron Sultan: Your last machine is ash.", "Defender: Then learn why we wrote the plans twice.", "Kharon's Recording: A builder prepares for loss by teaching another hand.", "Iron Sultan: I conquered your city.", "Defender: You inherited our lesson." ] }
   ],
   xendra: [
     { id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night", story: "An impossible eclipse settles over Reath. Elias, a cartographer with no combat training, notices that the stars are moving.", dialogue: ["Narrator: Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.", "Elias: Stars do not drift at noon.", "Terrified Villager: Don't look at the sky!"] },
@@ -1207,6 +1255,30 @@ const campaignChapters = {
     { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
   ]
 };
+
+const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.frumo) {
+  const audio = frumoCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
+const biziCampaignVoiceAssets = require("./biziCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.bizi) {
+  const audio = biziCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
+const xendraCampaignVoiceAssets = require("./xendraCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.xendra) {
+  const audio = xendraCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
 
 const RUMIN_CAMPAIGN_ART = Object.freeze({
   "brothers-of-destiny": "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",

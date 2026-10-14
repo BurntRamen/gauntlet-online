@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "role": "commander",
+  "event": "critical",
+  "line": "Ten life! Roar louder than death itself!",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-gracus-commander-critical.mp3",
+  "generatedAt": "2026-10-13T19:59:16.933Z",
+  "publishedAt": "2026-10-13T19:59:37.236Z",
+  "bytes": 53960,
+  "sha256": "a872ac7c69135066900d182f171af6452da3dd7fbd69b9d4537b9331000fd7f5"
+}

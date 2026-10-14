@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Bizi Chronicle",
+  "line": "Xios restores the empire's engine and proves decline is not destiny while discipline and courage remain.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T14:30:12.747Z",
+  "publishedAt": "2026-10-12T14:30:30.501Z",
+  "bytes": 133373,
+  "sha256": "3688ad84b6af3a5b5f35e9017688703413d7c708d57bcc976764d517e586cda9"
+}

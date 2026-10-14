@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maurice",
+  "voiceName": "Emperor Maurice",
+  "line": "So has mercy.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-after-04-maurice.mp3",
+  "generatedAt": "2026-10-12T14:29:19.009Z",
+  "publishedAt": "2026-10-12T14:30:30.308Z",
+  "bytes": 20942,
+  "sha256": "88af1fa98800532d9d4da702d8a4dde5214400846a37520d2027734aa72a945d"
+}

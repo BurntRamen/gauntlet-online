@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "Freedom cannot survive if every disagreement becomes treason.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch06-after-04-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:33.966Z",
+  "publishedAt": "2026-10-12T03:42:23.172Z",
+  "bytes": 54378,
+  "sha256": "6d0929ec002b2712ba428d0e0da5f5d2a7898c3f70fcf8739fdb263678102b65"
+}

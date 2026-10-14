@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "polea",
+  "voiceName": "Lord Commander Polea",
+  "line": "I have made disorder answerable.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch08-after-03-polea.mp3",
+  "generatedAt": "2026-10-12T03:40:54.020Z",
+  "publishedAt": "2026-10-12T03:42:23.223Z",
+  "bytes": 44765,
+  "sha256": "81cb0a61ddde1fe24136082beefeeed508e25ca5dcc27589deefb913b739b04d"
+}

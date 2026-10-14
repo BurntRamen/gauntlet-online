@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "We have made the crown mortal. That should have been enough.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-after-02-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:40:19.276Z",
+  "publishedAt": "2026-10-12T03:42:23.141Z",
+  "bytes": 45601,
+  "sha256": "b35027b08774ddfeff5c4526421e750c78490632ad15bc45d4d352a015f5ef6a"
+}

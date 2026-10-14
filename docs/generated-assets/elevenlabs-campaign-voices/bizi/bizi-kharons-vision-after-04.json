@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maxor",
+  "voiceName": "Maxor the Usurper",
+  "line": "Until the machines decide your hands are obsolete.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch01-after-04-maxor.mp3",
+  "generatedAt": "2026-10-12T14:28:21.037Z",
+  "publishedAt": "2026-10-12T14:30:30.048Z",
+  "bytes": 55214,
+  "sha256": "7d3e88b5c79b5465b55597f8a34675ebad9c56ee5b41eb34100db1c44658bf99"
+}

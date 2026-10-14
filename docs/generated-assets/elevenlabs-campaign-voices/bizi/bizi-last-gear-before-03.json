@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "sultan",
+  "voiceName": "Iron Sultan",
+  "line": "Then your city has no gods left.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch12-before-03-iron-sultan.mp3",
+  "generatedAt": "2026-10-12T14:30:20.763Z",
+  "publishedAt": "2026-10-12T14:30:30.526Z",
+  "bytes": 30137,
+  "sha256": "56c6c1d9a45b9719661182785fbfd8b3d4cc0da2e3556dbf6340fc8ff343122f"
+}

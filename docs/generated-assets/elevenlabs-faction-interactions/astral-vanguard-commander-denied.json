@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "role": "commander",
+  "event": "denied",
+  "line": "Deployment parameters are incomplete.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-astral-vanguard-commander-denied.mp3",
+  "generatedAt": "2026-10-13T19:59:35.984Z",
+  "publishedAt": "2026-10-13T19:59:37.328Z",
+  "bytes": 39750,
+  "sha256": "386b6b1e07e878c71432ac883f5e5c3481ca7a86d364e0d7beeb8d3bac568092"
+}

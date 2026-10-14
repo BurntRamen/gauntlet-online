@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "khosar",
+  "voiceName": "Khosar the Conqueror",
+  "line": "I erased your future.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch07-after-04-khosar.mp3",
+  "generatedAt": "2026-10-12T14:29:29.642Z",
+  "publishedAt": "2026-10-12T14:30:30.351Z",
+  "bytes": 24703,
+  "sha256": "fec16d8225323fbf061dbe8225cc8f9b9320f51282172e748c4af3c30331dd82"
+}

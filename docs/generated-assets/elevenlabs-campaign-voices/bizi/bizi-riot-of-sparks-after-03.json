@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "theo",
+  "voiceName": "Theo the Philosopher",
+  "line": "Then we repair the grievance after we extinguish the blaze.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch04-after-03-theo.mp3",
+  "generatedAt": "2026-10-12T14:28:55.600Z",
+  "publishedAt": "2026-10-12T14:30:30.182Z",
+  "bytes": 45601,
+  "sha256": "3459f83753edb41db3ca7c7249cea38acd0c6e80fbe8b15f00304179d03e9114"
+}

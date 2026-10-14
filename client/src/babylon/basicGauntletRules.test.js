@@ -84,6 +84,27 @@ function finishPlacementWithSkips(state) {
   return state;
 }
 
+test("ends in a draw when neither positive-life player has another playable combat card", () => {
+  let state = setup();
+  for (const player of [1, 2]) {
+    state.players[player].hand = [];
+    state.players[player].deck = [];
+  }
+  state.lanes.forEach((lane) => {
+    lane.facedown = { 1: null, 2: null };
+  });
+
+  state = accepted(state, { type: "passPriority", player: 1 });
+  state = accepted(state, { type: "passPriority", player: 2 });
+
+  expect(state.phase).toBe("gameOver");
+  expect(state.winner).toBeNull();
+  expect(state.message).toMatch(/neither player can make another play/i);
+  expect(state.lastEvents).toEqual(expect.arrayContaining([
+    expect.objectContaining({ type: "match.ended", winner: null, reason: "no_legal_play" })
+  ]));
+});
+
 function prepareLaneOne(state) {
   state = enterPlacement(state);
   const p1Card = state.players[1].hand[0];

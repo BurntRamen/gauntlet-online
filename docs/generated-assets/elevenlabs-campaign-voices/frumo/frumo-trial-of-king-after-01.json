@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "Frumo Narrator",
+  "line": "The verdict divides the republic before it has even learned to stand.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch05-after-01-narrator.mp3",
+  "generatedAt": "2026-10-12T03:40:18.174Z",
+  "publishedAt": "2026-10-12T03:42:23.138Z",
+  "bytes": 75276,
+  "sha256": "1dd90ffe767f16fd3a9f7303c0e0ec594c98c072e1e01a993071291d9af6f4d9"
+}

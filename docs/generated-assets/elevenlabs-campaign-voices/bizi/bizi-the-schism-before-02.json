@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "severus",
+  "voiceName": "Archon Severus",
+  "line": "Unity built on compromise is rust.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-before-02-severus.mp3",
+  "generatedAt": "2026-10-12T14:29:56.316Z",
+  "publishedAt": "2026-10-12T14:30:30.442Z",
+  "bytes": 57722,
+  "sha256": "c1c166aa5b647cd59ea47db4cded35706883bb7e96dcbc8ed3a82669c500542a"
+}

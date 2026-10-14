@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "governor",
+  "voiceName": "Corrupt Governor",
+  "line": "And when it fails again?",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch11-after-04-governor.mp3",
+  "generatedAt": "2026-10-12T14:30:15.444Z",
+  "publishedAt": "2026-10-12T14:30:30.512Z",
+  "bytes": 23449,
+  "sha256": "9e3331852a1c2ab44784acd548648c28e0863c6d81eaf2ac9ac1781d4960ddd9"
+}

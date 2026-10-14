@@ -37,9 +37,9 @@ these categories to `"pass"` only when it genuinely passes:
 
 Record and remediate failures before regenerating the affected captures.
 
-The blocking state is now `single-hand-blocker`: choosing another card replaces
-the blocker, choosing that card again clears it, and payment remains a separate
-multi-card selection. Automated coverage must verify empty/multi-block commands,
+The blocking state is `single-hand-blocker`: choosing a combat card stages it
+and immediately enters multi-card payment selection, matching the attack flow.
+Choosing the staged blocker again clears the action. Automated coverage must verify empty/multi-block commands,
 self-payment and a second declaration are rejected without changing the hand,
 payment, counters, priority, revision or archives. Keep historical multi-block
 replay coverage separately; it is not current acceptance evidence. Preserve old

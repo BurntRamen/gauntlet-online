@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "line": "What did you see during the eclipse?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-before-01-elias.mp3",
+  "generatedAt": "2026-10-13T19:50:20.853Z",
+  "publishedAt": "2026-10-13T19:52:16.183Z",
+  "bytes": 33062,
+  "sha256": "ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7"
+}

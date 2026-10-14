@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "frumo",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "lafayette",
+  "voiceName": "Lafayette of Frumo",
+  "line": "No. We returned what the crown stole first.",
+  "clientOutput": "client/public/assets/gauntlet/voices/frumo-ch01-after-03-lafayette.mp3",
+  "generatedAt": "2026-10-12T03:39:34.184Z",
+  "publishedAt": "2026-10-12T03:42:23.058Z",
+  "bytes": 37660,
+  "sha256": "1d26308bbf0802fa1d40ef98893894ef9aaf587f209a665a9854fd65d96793bb"
+}
