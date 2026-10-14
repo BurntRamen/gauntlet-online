@@ -4084,41 +4084,16 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((quote, voiceClip, profile = [0.96, 0.95], voiceHints = []) => {
+  const speakFactionQuote = useCallback((voiceClip) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
     }
-    if (accountSoundMuted) {
-      window.speechSynthesis?.cancel();
-      return;
-    }
-
-    const speakWithBrowserVoice = () => {
-      if (typeof window === "undefined" || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-      window.speechSynthesis.cancel();
-      const utterance = new window.SpeechSynthesisUtterance(quote);
-      [utterance.rate, utterance.pitch] = profile;
-      const availableVoices = window.speechSynthesis.getVoices();
-      utterance.voice = voiceHints
-        .map((hint) => availableVoices.find((voice) => voice.lang?.startsWith("en") && voice.name.toLowerCase().includes(hint)))
-        .find(Boolean)
-        || availableVoices.find((voice) => voice.lang?.startsWith("en") && /natural|neural|online/i.test(voice.name))
-        || availableVoices.find((voice) => voice.lang?.startsWith("en"))
-        || null;
-      window.speechSynthesis.speak(utterance);
-    };
-
-    if (voiceClip && typeof window !== "undefined" && window.Audio) {
-      window.speechSynthesis?.cancel();
-      const audio = new window.Audio(resolveAssetPath(voiceClip));
-      audio.volume = 1;
-      voiceAudioRef.current = audio;
-      audio.play().catch(speakWithBrowserVoice);
-      return;
-    }
-
-    speakWithBrowserVoice();
+    window.speechSynthesis?.cancel();
+    if (accountSoundMuted || !voiceClip || !window.Audio) return;
+    const audio = new window.Audio(resolveAssetPath(voiceClip));
+    voiceAudioRef.current = audio;
+    audio.play().catch(() => {});
   }, [accountSoundMuted]);
 
   const announceCommander = useCallback((factionInput, event, commanderName = "Commander", detail = "") => {
@@ -4129,35 +4104,18 @@ export default function App() {
       : gameContent?.factions?.find((entry) => entry.id === factionId);
     const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(
-      quote,
-      faction?.commander?.announcementAudio?.[event],
-      faction?.commander?.voiceProfile,
-      faction?.commander?.voiceHints
-    );
+    speakFactionQuote(faction?.commander?.announcementAudio?.[event]);
   }, [gameContent?.factions, speakFactionQuote]);
-
-  const announceCommanderClick = useCallback(() => {
-    if (!game || role === "spectator" || !player) return;
-    const currentPlayer = game.players?.[player];
-    if (!currentPlayer?.faction || currentPlayer.faction.id === "basic") return;
-    const now = Date.now();
-    if (now - commanderClickRef.current < 650) return;
-    commanderClickRef.current = now;
-    announceCommander(
-      currentPlayer.faction,
-      "clicked",
-      currentPlayer.faction.commander?.name || currentPlayer.faction.name,
-      "Commander selected"
-    );
-  }, [announceCommander, game, player, role]);
 
   const announceFactionFeatureClick = useCallback((featureRole) => {
     if (!game || role === "spectator" || !player) return;
     const currentPlayer = game.players?.[player];
     if (!currentPlayer?.faction || currentPlayer.faction.id === "basic") return;
     if (featureRole === "commander") {
-      announceCommanderClick();
+      const now = Date.now();
+      if (now - commanderClickRef.current < 650) return;
+      commanderClickRef.current = now;
+      announceCommander(currentPlayer.faction, "clicked", currentPlayer.faction.commander?.name || currentPlayer.faction.name, "Commander selected");
       return;
     }
     const feature = currentPlayer.faction[featureRole];
@@ -4165,17 +4123,11 @@ export default function App() {
     if (featureRole === "general") {
       const quote = feature.clickedAnnouncement || "The general is ready.";
       setFactionVoice({ quote, detail: "General selected", speaker: feature.name || "General", kind: "clicked" });
-      speakFactionQuote(quote, feature.clickedAudio, currentPlayer.faction.commander?.voiceProfile, currentPlayer.faction.commander?.voiceHints);
+      speakFactionQuote(feature.clickedAudio);
       return;
     }
-    if (featureRole === "city" && feature.clickedSound && !accountSoundMuted && typeof window !== "undefined" && window.Audio) {
-      if (voiceAudioRef.current) voiceAudioRef.current.pause();
-      const audio = new window.Audio(resolveAssetPath(feature.clickedSound));
-      audio.volume = 0.8;
-      voiceAudioRef.current = audio;
-      audio.play().catch(() => {});
-    }
-  }, [accountSoundMuted, announceCommanderClick, game, player, role, speakFactionQuote]);
+    if (featureRole === "city" && feature.clickedSound) speakFactionQuote(feature.clickedSound);
+  }, [announceCommander, game, player, role, speakFactionQuote]);
 
   useEffect(() => {
     const matchId = game?.matchId || "";
@@ -5836,7 +5788,6 @@ export default function App() {
               },
               onRejectedAction: factionVoiceFor,
               commanderAnnouncement: factionVoice,
-              onCommanderClick: announceCommanderClick,
               onFactionCardClick: announceFactionFeatureClick,
               tutorialGuidance: game.players?.[2]?.opponentKind === "training-ai"
             }}
