@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "leon",
+  "voiceName": "Scholar Leon",
+  "line": "Yet each faction reads the silence in the language of its own ambition.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch09-before-07-leon.mp3",
+  "generatedAt": "2026-10-14T15:09:44.767Z",
+  "publishedAt": "2026-10-14T15:12:34.996Z",
+  "bytes": 63572,
+  "sha256": "a522e77479057ff63b155646f7b9efdfdbeb3e06ea5d66965b8a03a9a369135a"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "beli",
+  "voiceName": "General Beli",
+  "line": "If we stop now, every sacrifice becomes the border our enemies cross tomorrow.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-before-07-beli.mp3",
+  "generatedAt": "2026-10-14T15:09:25.779Z",
+  "publishedAt": "2026-10-14T15:12:34.902Z",
+  "bytes": 81127,
+  "sha256": "d18d1b705cf7665fd0e76a9b9d53862d0c0a586941b6be7df255ff52b9eb3b60"
+}

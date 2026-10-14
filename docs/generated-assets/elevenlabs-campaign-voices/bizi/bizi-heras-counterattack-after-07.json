@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "hera",
+  "voiceName": "General Hera",
+  "line": "I crossed it to prove every province beyond it could be reached.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch08-after-07-hera.mp3",
+  "generatedAt": "2026-10-14T15:09:41.684Z",
+  "publishedAt": "2026-10-14T15:12:34.982Z",
+  "bytes": 59811,
+  "sha256": "57dbf689601b43efd2d4f2a83782570dab0eba8ae7c2a5025b4f81ba82e763df"
+}

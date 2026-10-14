@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "assembly",
+  "voiceName": "Assembly of Doubt",
+  "line": "We will keep a second archive outside your temple.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch02-after-06-assembly.mp3",
+  "generatedAt": "2026-10-14T15:09:10.531Z",
+  "publishedAt": "2026-10-14T15:12:34.844Z",
+  "bytes": 53123,
+  "sha256": "2fd54a6da9b0ede85e5bb10dda49ee7032edd88d689d2a1ad77f361c6e6c49cc"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "theo",
+  "voiceName": "Theo the Philosopher",
+  "line": "The western foundries lack ore, the southern columns lack water, and your veterans have forgotten their children's faces.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch05-before-06-theo.mp3",
+  "generatedAt": "2026-10-14T15:09:24.208Z",
+  "publishedAt": "2026-10-14T15:12:34.901Z",
+  "bytes": 104950,
+  "sha256": "d331e719a01f6fadeb86f3904006726efa2626dda5b3937ff91c18f8dc555d4a"
+}

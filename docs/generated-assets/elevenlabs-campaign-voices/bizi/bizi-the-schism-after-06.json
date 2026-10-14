@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "severus",
+  "voiceName": "Archon Severus",
+  "line": "Your open doors have scattered the empire into frightened fragments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch10-after-06-severus.mp3",
+  "generatedAt": "2026-10-14T15:09:52.271Z",
+  "publishedAt": "2026-10-14T15:12:35.032Z",
+  "bytes": 91576,
+  "sha256": "e341795acadd6eca38386003ffd9fa3029d0c421e59ba0092cfff55895aeba00"
+}

@@ -14,8 +14,7 @@ import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
-import { useDialogueActivity, useDialoguePlayback } from "./dialoguePlayback";
-import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
+import { useDialogueActivity } from "./dialoguePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -53,6 +52,8 @@ const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
 const EventHub = lazy(() => import("./EventHub"));
 const EconomyShop = lazy(() => import("./EconomyShop"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
+const CampaignDialogueBlock = lazy(() => import("./CampaignDialogueBlock"));
+const CampaignCinematic = lazy(() => import("./CampaignCinematic"));
 let matchesHubModule;
 let matchesHubPromise;
 let studioModule;
@@ -462,7 +463,7 @@ function getBoardBackground(factionId) {
 }
 
 function getCampaignDifficulty(factionId, chapterIndex) {
-  if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi") {
+  if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi" || factionId === "astral-vanguard") {
     return {
       bossLife: Math.min(58, 18 + chapterIndex * 3),
       attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
@@ -2480,151 +2481,6 @@ function CombatStrip({ game, perspectivePlayer, onInspect }) {
           </div>
         );
       })}
-    </div>
-  );
-}
-
-const CAMPAIGN_SPEAKER_IMAGE_ALIASES = {
-  augustus: "/assets/gauntlet/kaiser-gauntlet.webp",
-  bark: "/assets/gauntlet/sheen-card.webp",
-  blackthorn: "/assets/gauntlet/sheen-card.webp",
-  bobei: "/assets/gauntlet/kaiser-gauntlet.webp",
-  brutus: "/assets/gauntlet/rumin-card.webp",
-  cassius: "/assets/gauntlet/rumin-card.webp",
-  crowd: "/assets/gauntlet/rumie.webp",
-  den: "/assets/gauntlet/sheen-card.webp",
-  dowan: "/assets/gauntlet/sheen-card.webp",
-  focus: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
-  guardian: "/assets/gauntlet/rumin-card.webp",
-  hera: "/assets/gauntlet/factions/bizi/hera-general.webp",
-  hushan: "/assets/gauntlet/sheen-card.webp",
-  kaiser: "/assets/gauntlet/kaiser-gauntlet.webp",
-  arel: "/assets/gauntlet/bizi-card.webp",
-  elias: "/assets/gauntlet/rumin-card.webp",
-  krauth: "/assets/gauntlet/bizi-card.webp",
-  nulth: "/assets/gauntlet/frumo-card.webp",
-  syllith: "/assets/gauntlet/sheen-card.webp",
-  thrallmaker: "/assets/gauntlet/bizi-card.webp",
-  lafayette: "/assets/gauntlet/lafayette.webp",
-  leafen: "/assets/gauntlet/leafen-gao.png",
-  leshan: "/assets/gauntlet/sheen-card.webp",
-  marcell: "/assets/gauntlet/rumin-card.webp",
-  merchant: "/assets/gauntlet/rumie.webp",
-  polea: "/assets/gauntlet/polea.webp",
-  reane: "/assets/gauntlet/sheen-card.webp",
-  remex: "/assets/gauntlet/rumin-card.webp",
-  rolmus: "/assets/gauntlet/kaiser-gauntlet.webp",
-  senator: "/assets/gauntlet/rumie.webp",
-  severan: "/assets/gauntlet/rumin-card.webp",
-  tang: "/assets/gauntlet/tang.webp",
-  vercan: "/assets/gauntlet/rumin-card.webp",
-  zalara: "/assets/gauntlet/frumo-card.webp"
-};
-
-function getCampaignSpeakerImage(speaker) {
-  const normalized = String(speaker || "").toLowerCase();
-  const aliasKey = Object.keys(CAMPAIGN_SPEAKER_IMAGE_ALIASES).find((key) => normalized.includes(key));
-  if (aliasKey) return CAMPAIGN_SPEAKER_IMAGE_ALIASES[aliasKey];
-  if (["ironbark", "rootlash", "goldroot", "hollowvine", "drought", "blight", "ash"].some((key) => normalized.includes(key))) return "/assets/gauntlet/sheen-card.webp";
-  if (["admiral", "captain", "tide", "pirate", "corsair", "deep", "sunken"].some((key) => normalized.includes(key))) return "/assets/gauntlet/frumo-card.webp";
-  if (["voltari", "silicon", "conductor", "regnum", "engine", "machine"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
-  if (["xendra", "sovereign", "thrall", "conduit", "eclipse", "defender"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
-  return "/assets/gauntlet/rumin-card.webp";
-}
-
-function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
-  const playback = useDialoguePlayback({ lines, audio, scopeKey: autoPlayKey, enabled: audioEnabled });
-  const { play, hasAudio } = playback;
-  const autoPlayedRef = useRef("");
-  useEffect(() => {
-    if (!autoPlayKey || !hasAudio || !audioEnabled || autoPlayedRef.current === autoPlayKey) return;
-    const timer = window.setTimeout(() => {
-      autoPlayedRef.current = autoPlayKey;
-      play(0, true);
-    }, 50);
-    return () => window.clearTimeout(timer);
-  }, [autoPlayKey, hasAudio, audioEnabled, play]);
-
-  if (audioOnly) {
-    if (!playback.mode && !playback.status.includes("blocked")) return null;
-    return (
-      <div style={{ position: "fixed", left: 12, bottom: 12, zIndex: 2000, padding: "0 12px", borderRadius: 8, background: "#1c0e07", color: "#fde9b0" }}>
-        <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
-      </div>
-    );
-  }
-  if (playback.entries.length === 0) return null;
-
-  return (
-    <div
-      style={{
-        marginTop: compact ? 6 : 12,
-        padding: compact ? "6px 8px" : 12,
-        borderRadius: compact ? 6 : 10,
-        background: light ? "rgba(255,255,255,0.58)" : "rgba(15,23,42,0.3)",
-        border: light ? "1px solid rgba(42,22,11,0.22)" : "1px solid rgba(250,204,21,0.22)",
-        textAlign: "left",
-        color: light ? "#2f1c10" : "#f8fafc",
-        lineHeight: 1.35
-      }}
-    >
-      <div style={{ fontSize: compact ? 10 : 12, textTransform: "uppercase", letterSpacing: 1, color: light ? "#8a4b16" : "#facc15", fontWeight: "bold", marginBottom: compact ? 4 : 8 }}>
-        {title}
-      </div>
-      <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
-      <div style={{ display: "grid", gap: compact ? 3 : 6, fontSize: compact ? 11 : 14 }}>
-        {playback.entries.map((entry, index) => {
-          const { speaker, text: spoken } = entry;
-          const isPlaying = playback.playingIndex === index;
-          const speakerImage = getCampaignSpeakerImage(speaker);
-          return (
-            <div
-              key={`${speaker}-${index}`}
-              style={{
-                display: "grid",
-                gridTemplateColumns: `${compact ? 34 : 46}px minmax(0, 1fr)`,
-                gap: compact ? 7 : 10,
-                alignItems: "start",
-                padding: compact ? "3px 0" : "5px 0",
-                background: isPlaying ? "rgba(231,201,110,.12)" : "transparent"
-              }}
-            >
-              <img
-                src={resolveAssetPath(speakerImage)}
-                alt=""
-                style={{
-                  width: compact ? 34 : 46,
-                  height: compact ? 34 : 46,
-                  borderRadius: 8,
-                  objectFit: "cover",
-                  border: light ? "1px solid rgba(124,45,18,0.35)" : "1px solid rgba(250,204,21,0.38)",
-                  background: "rgba(15,23,42,0.6)",
-                  boxShadow: "0 6px 18px rgba(0,0,0,0.22)"
-                }}
-              />
-              <span style={{ display: "grid", gap: 3, minWidth: 0 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                  <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}</strong>
-                    <DialogueVoiceButton
-                      playback={playback} index={index} enabled={audioEnabled}
-                      style={{
-                        border: "1px solid rgba(250,204,21,0.42)",
-                        borderRadius: 4,
-                        padding: compact ? "1px 5px" : "2px 7px",
-                        background: light ? "rgba(255,247,237,0.86)" : "rgba(42,22,11,0.72)",
-                        color: light ? "#7c2d12" : "#fde68a",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        fontSize: compact ? 10 : 12
-                      }}
-                    />
-                </span>
-                <span>{spoken}</span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -5889,16 +5745,26 @@ export default function App() {
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
-          {didWin && (
-            <CampaignDialogueBlock
-              title="Ending Dialogue"
-              audioEnabled={!accountSoundMuted}
-              lines={campaignEndDialogue}
-              audio={game.campaign?.endDialogueAudio}
-              autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
-              light
-            />
-          )}
+          {didWin && <Suspense fallback={null}>
+            {game.campaign?.cinematic ? (
+              <CampaignCinematic
+                cinematic={game.campaign.cinematic}
+                audioEnabled={!accountSoundMuted}
+                lines={campaignEndDialogue}
+                audio={game.campaign.endDialogueAudio}
+                autoPlayKey={`${game.campaign.chapterId}-cinematic`}
+              />
+            ) : (
+              <CampaignDialogueBlock
+                title="Ending Dialogue"
+                audioEnabled={!accountSoundMuted}
+                lines={campaignEndDialogue}
+                audio={game.campaign?.endDialogueAudio}
+                autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
+                light
+              />
+            )}
+          </Suspense>}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
             {(resultProjection.canonicalAvailable
               ? resultProjection.participants
@@ -9000,13 +8866,13 @@ export default function App() {
       </div>
       <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
       {game.campaign && (
-        <CampaignDialogueBlock
+        <Suspense fallback={null}><CampaignDialogueBlock
           lines={game.campaign.startDialogue || game.campaign.dialogue}
           audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
           audioEnabled={!accountSoundMuted}
           autoPlayKey={game.campaign.chapterId ? `${game.matchId || "campaign"}-${game.campaign.chapterId}-opening` : ""}
           audioOnly
-        />
+        /></Suspense>
       )}
 
       {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
@@ -9269,7 +9135,7 @@ export default function App() {
               {matchDrawer === "chapter" && game.campaign && (
                 <div className="focus-drawer-scroll focus-chapter-drawer">
                   <p>{game.campaign.story}</p>
-                  <CampaignDialogueBlock audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact />
+                  <Suspense fallback={null}><CampaignDialogueBlock audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact /></Suspense>
                 </div>
               )}
 

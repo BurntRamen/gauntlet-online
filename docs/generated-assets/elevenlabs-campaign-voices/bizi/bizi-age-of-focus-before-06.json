@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "bizi",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "maurice",
+  "voiceName": "Emperor Maurice",
+  "line": "Hunger is not a faulty number, and dissent is not a jammed gear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/bizi-ch06-before-06-maurice.mp3",
+  "generatedAt": "2026-10-14T15:09:29.776Z",
+  "publishedAt": "2026-10-14T15:12:34.922Z",
+  "bytes": 76947,
+  "sha256": "4617656cd15d9c9585a6636bd6715cb7fe978c006adeefd8dc0547a30cca2832"
+}

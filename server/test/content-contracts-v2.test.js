@@ -44,8 +44,9 @@ test("all 2,800 current-production pre-conversion engine outcomes remain equival
   assert.deepEqual(scenarios(explicit), expected);
 });
 
-test("all 56 encounter setups preserve captured difficulty, ability, deck plans and scripted attack sequences", () => {
-  assert.equal(Object.keys(defaults).length, 56);
+test("all captured encounter setups remain stable while new campaigns add validated encounters", () => {
+  assert.equal(Object.keys(fixture).length, 56);
+  assert.equal(Object.keys(defaults).length, 128);
   for (const [id, legacy] of Object.entries(fixture)) {
     const setup = defaults[id];
     assert.equal(encounters.validateEncounterSetup(setup, baseline.domains.cards, legacy.factionId), true, id);
