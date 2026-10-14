@@ -334,7 +334,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await page.getByRole("button", { name: "Close admin", exact: true }).click();
   await expect(adminLink).toBeVisible();
   await adminLink.click();
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await expect(workshops(page).getByRole("button", { name: "Encounters", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await page.getByLabel("Search encounters").fill("nothing matches this encounter");
@@ -448,7 +448,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   const headers = { Authorization: `Bearer ${token}` }, base = `${serverUrl}/api/admin/authoring`;
   const saved = async () => (await request.get(base, { headers })).json();
   const initial = await saved();
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   const story = page.getByLabel("Draft story", { exact: true });
@@ -590,7 +590,7 @@ test("a second operator's revision conflict preserves local typing and requires 
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` }, base = `${serverUrl}/api/admin/authoring`;
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Draft story", { exact: true }).fill("Local operator story.");
   const login = await (await request.post(`${serverUrl}/api/auth/login`, { data: { name: "Burnt Ramen", password: "test-password" } })).json();
@@ -814,7 +814,7 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   const capture = async name => page.screenshot({ path: `artifacts/admin-visual-pass/${name}.png`, fullPage: false });
   await expect(page.getByRole("button", { name: /^\d+ Cards$/ })).toBeVisible();
   await capture("overview-desktop");
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await expect(page.getByLabel("Filter encounters by campaign", { exact: true })).toHaveCSS("background-color", "rgb(12, 24, 34)");
