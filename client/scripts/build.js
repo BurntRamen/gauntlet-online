@@ -28,6 +28,7 @@ async function build() {
     if (error || closeError) return reject(error || closeError);
     console.log(stats.toString({ colors: false, preset: "errors-warnings" }));
     if (stats.hasErrors()) return reject(new Error("Client compilation failed"));
+    if (process.env.CI && process.env.CI.toLowerCase() !== "false" && stats.hasWarnings()) return reject(new Error("Client compilation warnings fail CI"));
     resolve();
   })));
 }
