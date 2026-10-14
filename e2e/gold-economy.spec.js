@@ -1,12 +1,12 @@
+const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test"), AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
-const origin = "http://127.0.0.1:4117";
 test("Admin authors and publishes a usable Gold product; player earns, buys, reads, retains retired access and receives an audited refund", async ({ page, request, browser }) => {
   test.setTimeout(180000);
   const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8")).simply;
   const headers = { Authorization: `Bearer ${token}` };
-  const get = async (route) => (await (await request.get(origin + route, { headers })).json());
-  async function login(p, admin) { await p.goto(admin ? "/admin/gauntlet" : "http://127.0.0.1:3117/"); await p.evaluate((t) => localStorage.setItem("gauntlet_auth_token", t), token); await p.reload(); }
+  const get = async (route) => (await (await request.get(origin + route, { headers, maxRetries: 2 })).json());
+  async function login(p, admin) { await p.goto(admin ? "/admin/gauntlet" : clientOrigin + "/"); await p.evaluate((t) => localStorage.setItem("gauntlet_auth_token", t), token); await p.reload(); }
   await login(page, true); const before = await get("/api/admin/authoring");
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   const area = () => nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
@@ -16,7 +16,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   const dates = async () => { await fill("Start (UTC)", "2026-01-01T00:00"); await fill("End (UTC)", "2099-01-01T00:00"); };
   const save = async () => { await page.getByRole("button", { name: "Save definition to draft" }).click(); await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0); };
   const publish = async (name) => {
-    await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+    await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
     await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await fill("Release name", name);
     await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
     await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
@@ -35,7 +35,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   await fill("ID", "gold-browser-analysis"); await fill("Name", "Personal match analysis"); await select("Category", "analytics"); await select("Availability", "active"); await dates();
   await page.getByLabel("Personal match analysis (gold-browser-analysis-access)", { exact: true }).check(); await fill("Gold price", "200"); await save();
   await publish("Operational Gold and match analysis"); const release = (await get("/api/admin/authoring")).activeReleaseId;
-  const context = await browser.newContext({ baseURL: "http://127.0.0.1:3117" }); const player = await context.newPage();
+  const context = await browser.newContext({ baseURL: clientOrigin }); const player = await context.newPage();
   try {
     await login(player, false); await player.locator('button[data-area="identity"]').click(); await player.getByRole("tab", { name: "Gold & Library", exact: true }).click();
     const library = player.getByRole("region", { name: "Gold & Library", exact: true });

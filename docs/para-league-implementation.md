@@ -571,3 +571,30 @@ Browser evidence: `artifacts/gold-player-purchase.png`, `artifacts/gold-analysis
 The user has authorized deployment after completion and importing existing Gold as opening balances outside seasonal caps. The old local base is `bc1b7e70c5385935149007924fef622c46e4f8eb`; verified remote main is `cb89c7566c78952797a639cd77df86f10b8b73fd`. Remote main now includes daily Gold, Timetwisters, event engines and GitHub-backed Admin publishing that are absent from this local base. The local test counts above do not qualify that integration. Do not publish this older tree over current production. Preserve current main in an isolated release worktree, port the Para/Gold changes with current publication and engine contracts, replace repeatable Gold issuance, and prove a once-only opening-balance import before activation.
 
 The live storage diagnostic reports durable Supabase accounts but process-local full match records and no canonical archive table. This is an actual durability gap for canonical evidence. The SQLite Para/Gold stores require a verified persistent private volume or a qualified transactional production adapter; neither may be represented as durable merely because a deploy succeeds. No production mutation has occurred at this checkpoint.
+
+## Integrated release qualification (2026-10-14)
+
+The release worktree passed 385 server tests and 50 qualification tests. The focused
+client run passed 24 tests across Admin, Para editing and the shared Economy console,
+including explicit revision retry after a conflicting Para edit. The prior full client
+run passed 727 tests across 95 suites; the new full CI run must include the additional
+conflict case before merge. Browser qualification and deployment are still pending.
+
+The production build passes every unchanged current-main ceiling. Exact gzip bytes:
+main 180,606 / 184,320; initial Admin 20,438 / 20,480; aggregate Admin 49,122 / 49,152;
+player JavaScript 767,483 / 768,000; largest async chunk 292,617 / 358,400. Shared Economy
+remains charged to both categories, including renamed chunks detected by source maps.
+Static App layout values and board gradients moved into CSS without changing their
+values. Related lazy Admin panels compress together; the Competition entry is lazy.
+Four standard Terser passes preserve the existing compatibility options. The 2 KiB
+headroom target is not achieved against the larger current-main integration: aggregate
+Admin has 30 bytes and player JavaScript 517 bytes remaining. Further UI growth requires
+real reductions; ceilings must not be increased or chunks excluded.
+
+Local Admin browser runs can use GAUNTLET_ADMIN_PORT and GAUNTLET_ADMIN_CLIENT_PORT
+to avoid another worktree's servers. The compiled client must target the matching
+backend. GAUNTLET_ADMIN_USE_BUILD=true reuses that completed build. Test sessions are
+issued only by the isolated fixture; production authentication and login throttling
+remain unchanged. Read-only fixture requests retry connection resets, while mutations
+are never automatically retried. Publishing tests wait for the saved preview before
+leaving the editor, matching the current busy-state navigation guard.

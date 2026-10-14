@@ -4,21 +4,21 @@ import WorkshopField, { displayValue as display } from "./admin/WorkshopField";
 import useWorkshopContext from "./admin/useWorkshopContext";
 import UnsavedChangesDialog from "./admin/UnsavedChangesDialog";
 import "./admin/TestHarness.css";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
 
 
-const GauntletParaLeague = lazy(() => import(/* webpackChunkName: "gauntlet-admin-para" */ "./GauntletParaLeague"));
-const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/WorkshopNavigation"));
-const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/WorkshopPreview"));
-const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-encounters" */ "./EncounterWorkshop"));
-const GauntletPlaytest = lazy(() => import(/* webpackChunkName: "gauntlet-admin-test" */ "./GauntletPlaytest"));
+const GauntletParaLeague = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletParaLeague"));
+const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/WorkshopNavigation"));
+const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/WorkshopPreview"));
+const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./EncounterWorkshop"));
+const GauntletPlaytest = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletPlaytest"));
 const title = (row) => row.name || row.title || row.commanderName || row.id;
-const CardWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/CardWorkshop"));
-const EngineWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-engine" */ "./admin/EngineWorkshop"));
-const AssetPicker = lazy(() => import(/* webpackChunkName: "gauntlet-admin-assets" */ "./admin/AssetPicker"));
-const ReleaseReview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-review" */ "./admin/ReleaseReview"));
-const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/RelatedContent"));
+const CardWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/CardWorkshop"));
+const EngineWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/EngineWorkshop"));
+const AssetPicker = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/AssetPicker"));
+const ReleaseReview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/ReleaseReview"));
+const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/RelatedContent"));
 const ENGINE_DOMAINS = ["card-effects", "faction-effects", "encounter-mechanics", "game"];
 
 export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onPublished, guard, onNavigate, beforeNavigate, onExit }) {
@@ -53,6 +53,11 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const [notice, setNotice] = useState("");
   const domain = area === "Game" || domainChoice === "modes" ? "game" : domainChoice;
   const [paraDirty, setParaDirty] = useState(false), [paraEditor, setParaEditor] = useState(0);
+  const onParaDirty = useCallback(dirty => {
+    if (dirty) bufferRevision.current ??= latest.current.state?.revision;
+    else bufferRevision.current = null;
+    setParaDirty(dirty);
+  }, []);
   const unsaved = Object.keys(buffers).length > 0 || paraDirty;
   const selected = selections[domainChoice];
   const context = useWorkshopContext({
@@ -140,7 +145,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   async function act(action, body = {}) {
     setBusy(true); setError(""); setNotice("");
     try {
-      const result = await request(`/api/admin/authoring/${action}`, { method: action === "draft" ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: state.revision, ...body }) });
+      const result = await request(`/api/admin/authoring/${action}`, { method: action === "draft" ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: action === "para-draft" ? bufferRevision.current ?? state.revision : state.revision, ...body }) });
       setState(result); bufferRevision.current = result.revision; setPreview(result.preview || null); setConfirm(null);
       if (action === "publish" || action === "rollback") { setReleaseName(""); onPublished(); }
       setNotice(result.pending ? guide.publicationPending : action === "para-draft" ? result.notice : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? "Previous release restored for future games." : action === "discard" ? "Shared draft discarded." : action === "validate" ? "Draft validation completed." : "Saved draft preview is ready.");
@@ -185,7 +190,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     {state.pending && <section className="admin-preview" aria-label="Publication progress"><h4>Publication: {state.pending.phase.replaceAll("-", " ")}</h4><p>{guide.deploymentPending}</p>{state.pending.url && <a href={state.pending.url} target="_blank" rel="noreferrer">View publication in GitHub</a>}<div className="admin-actions"><button disabled={busy} onClick={() => act("reconcile")}>Check publication</button>{state.pending.phase !== "deploying" && <button disabled={busy} onClick={() => setConfirm({ action: "cancel-publication" })}>Cancel publication</button>}</div></section>}
     {projectionError && <p role="status" className="admin-note">Workshop reference data: {projectionError}</p>}{error && <p role="alert" className="admin-alert">{error}</p>}{notice && <p role="status" className="admin-good">{notice}</p>}
     <details className="admin-json admin-global-validation" open={!state.validation.valid} hidden={area !== "Publishing" && !state.draft && state.validation.valid}><summary>Global validation · {state.validation.errors.length} errors · {state.validation.warnings.length} warnings</summary><Validation guide={guide} validation={state.validation} /></details>
-    {area === "Para League & Economy" ? (state.para ? <GauntletParaLeague key={paraEditor} state={state} act={act} busy={busy} request={request} onDirty={setParaDirty} preview={preview} /> : <p role="status">Para definitions are unavailable until shared authoring reconnects.</p>) : area === "Publishing" ? <>
+    {area === "Para League & Economy" ? (state.para ? <GauntletParaLeague key={paraEditor} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">Para definitions are unavailable until shared authoring reconnects.</p>) : area === "Publishing" ? <>
       <p className="admin-lede">{guide.publishingHelp}</p>
       <details className="admin-json"><summary>{guide.releaseIdentity}</summary><p className="admin-note">Active release: <code>{state.activeReleaseId}</code><br />Draft revision: {state.revision}<br />{state.storage}</p></details>
       <ReleaseReview state={state} review={review} busy={busy} unsaved={unsaved} onInspect={inspect} releaseName={releaseName} onReleaseName={setReleaseName} onPublish={() => setConfirm({ action: "publish", label: releaseName })} onDiscard={() => setConfirm({ action: "discard" })} />

@@ -1,7 +1,9 @@
+import "./AppLayouts.css";
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { io } from "socket.io-client";
 import "./App.css";
+import "./BoardBackgrounds.css";
 import "./FocusedMatchScreen.css";
 import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
 import useDraftRequest from "./useDraftRequest";
@@ -370,78 +372,16 @@ const HOME_AREA_CONTEXT = {
 };
 
 const BOARD_BACKGROUNDS = {
-  rumin: `
-    linear-gradient(180deg, rgba(3, 7, 18, 0.06), rgba(3, 7, 18, 0.34)),
-    radial-gradient(circle at 14% 18%, rgba(239, 68, 68, 0.44), transparent 18%),
-    radial-gradient(circle at 72% 14%, rgba(56, 189, 248, 0.36), transparent 20%),
-    radial-gradient(circle at 48% 30%, rgba(250, 204, 21, 0.34), transparent 24%),
-    linear-gradient(90deg, transparent 0 6%, rgba(248, 250, 252, 0.22) 6% 7%, transparent 7% 12%, rgba(248, 250, 252, 0.18) 12% 13%, transparent 13% 20%, rgba(251, 146, 60, 0.22) 20% 21%, transparent 21%),
-    linear-gradient(0deg, rgba(15, 23, 42, 0.58) 0 18%, transparent 18%),
-    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.68) 0 18px, rgba(30, 41, 59, 0.68) 18px 20px, transparent 20px 64px),
-    repeating-linear-gradient(0deg, transparent 0 22px, rgba(248, 250, 252, 0.12) 22px 23px),
-    linear-gradient(135deg, #e879f9 0%, #fb7185 18%, #f59e0b 34%, #22c55e 54%, #0ea5e9 72%, #1e293b 100%)
-  `,
-  sheen: `
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.7), transparent 34%),
-    radial-gradient(ellipse at 16% 24%, rgba(22, 101, 52, 0.28), transparent 30%),
-    radial-gradient(ellipse at 78% 20%, rgba(5, 46, 22, 0.22), transparent 28%),
-    repeating-linear-gradient(102deg, rgba(17, 24, 39, 0.28) 0 1px, transparent 1px 22px),
-    linear-gradient(112deg, transparent 0 10%, rgba(17, 24, 39, 0.18) 10% 11%, transparent 11% 20%, rgba(22, 101, 52, 0.22) 20% 21%, transparent 21%),
-    radial-gradient(ellipse at 50% 100%, rgba(21, 128, 61, 0.28), transparent 42%),
-    linear-gradient(180deg, #f8f3e7 0%, #e7ead9 42%, #bad0ad 72%, #6b8f68 100%)
-  `,
-  bizi: `
-    radial-gradient(circle at 76% 14%, rgba(253, 224, 71, 0.34), transparent 16%),
-    radial-gradient(ellipse at 28% 62%, rgba(120, 53, 15, 0.18), transparent 34%),
-    repeating-linear-gradient(166deg, rgba(92, 45, 16, 0.24) 0 2px, transparent 2px 38px),
-    repeating-linear-gradient(12deg, rgba(255, 247, 237, 0.12) 0 1px, transparent 1px 34px),
-    linear-gradient(90deg, transparent 0 18%, rgba(76, 29, 149, 0.18) 18% 19%, transparent 19% 38%, rgba(76, 29, 149, 0.14) 38% 39%, transparent 39%),
-    radial-gradient(ellipse at 50% 84%, rgba(69, 26, 3, 0.46), transparent 38%),
-    linear-gradient(180deg, #e9d1a8 0%, #c49a6a 38%, #9b6a3d 64%, #4a321f 100%)
-  `,
-  frumo: `
-    radial-gradient(circle at 18% 22%, rgba(125, 211, 252, 0.54), transparent 18%),
-    radial-gradient(circle at 82% 28%, rgba(45, 212, 191, 0.46), transparent 22%),
-    radial-gradient(circle at 50% 66%, rgba(236, 72, 153, 0.34), transparent 22%),
-    radial-gradient(circle at 24% 76%, rgba(168, 85, 247, 0.28), transparent 18%),
-    repeating-linear-gradient(100deg, rgba(255,255,255,0.15) 0 3px, transparent 3px 42px),
-    repeating-radial-gradient(circle at 74% 70%, rgba(255,255,255,0.16) 0 2px, transparent 2px 18px),
-    linear-gradient(160deg, rgba(20, 184, 166, 0.38), transparent 36%),
-    linear-gradient(180deg, #67e8f9 0%, #0891b2 32%, #0369a1 62%, #172554 100%)
-  `,
-  mekan: `
-    radial-gradient(circle at 20% 24%, rgba(253, 224, 71, 0.4), transparent 16%),
-    radial-gradient(circle at 78% 30%, rgba(244, 114, 182, 0.36), transparent 22%),
-    repeating-linear-gradient(112deg, rgba(20, 184, 166, 0.24) 0 3px, transparent 3px 40px),
-    linear-gradient(160deg, #831843 0%, #9d174d 34%, #0f766e 70%, #172554 100%)
-  `,
-  jali: `
-    radial-gradient(circle at 50% 18%, rgba(251, 113, 133, 0.34), transparent 18%),
-    repeating-linear-gradient(135deg, rgba(254, 205, 211, 0.12) 0 3px, transparent 3px 34px),
-    repeating-linear-gradient(45deg, rgba(15, 23, 42, 0.34) 0 2px, transparent 2px 54px),
-    linear-gradient(180deg, #4c0519 0%, #881337 38%, #1e293b 74%, #09090b 100%)
-  `,
-  gracus: `
-    radial-gradient(circle at 50% 18%, rgba(251, 191, 36, 0.4), transparent 18%),
-    repeating-linear-gradient(90deg, rgba(255, 237, 213, 0.1) 0 4px, transparent 4px 54px),
-    radial-gradient(ellipse at 50% 90%, rgba(34, 211, 238, 0.34), transparent 42%),
-    linear-gradient(180deg, #431407 0%, #9a3412 44%, #155e75 100%)
-  `,
-  indela: `
-    radial-gradient(circle at 50% 24%, rgba(254, 243, 199, 0.42), transparent 14%),
-    repeating-radial-gradient(circle at 50% 28%, rgba(196, 181, 253, 0.13) 0 2px, transparent 2px 34px),
-    repeating-linear-gradient(45deg, rgba(125, 211, 252, 0.08) 0 2px, transparent 2px 48px),
-    linear-gradient(180deg, #1e1b4b 0%, #581c87 48%, #172554 100%)
-  `,
-  xendra: `
-    radial-gradient(circle at 50% 16%, rgba(216, 180, 254, 0.52), transparent 16%),
-    radial-gradient(circle at 18% 42%, rgba(14, 165, 233, 0.24), transparent 18%),
-    repeating-radial-gradient(circle at 54% 22%, rgba(250, 250, 255, 0.18) 0 2px, transparent 2px 28px),
-    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.52) 0 24px, rgba(88, 28, 135, 0.34) 24px 27px, transparent 27px 70px),
-    linear-gradient(180deg, #09090f 0%, #1e1b4b 34%, #581c87 68%, #020617 100%)
-  `,
-  default:
-    "linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%)"
+  rumin: "var(--gauntlet-board-rumin)",
+  sheen: "var(--gauntlet-board-sheen)",
+  bizi: "var(--gauntlet-board-bizi)",
+  frumo: "var(--gauntlet-board-frumo)",
+  mekan: "var(--gauntlet-board-mekan)",
+  jali: "var(--gauntlet-board-jali)",
+  gracus: "var(--gauntlet-board-gracus)",
+  indela: "var(--gauntlet-board-indela)",
+  xendra: "var(--gauntlet-board-xendra)",
+  default: "var(--gauntlet-board-default)"
 };
 
 function buildCampaignEndDialogue(campaign = {}) {
@@ -683,12 +623,12 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
           {card.tempBuff ? <small>Buff: +{card.tempBuff}</small> : null}
         </button>
       ) : <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="app-layout-1">
         <div style={{ color: suitColor, fontWeight: "bold", lineHeight: 1 }}>
-          <div style={{ fontSize: 18 }}>{rank}</div>
-          <div style={{ fontSize: 16 }}>{suit}</div>
+          <div className="app-layout-2">{rank}</div>
+          <div className="app-layout-3">{suit}</div>
         </div>
-        <div style={{ fontSize: 9, color: "#666", textAlign: "right" }}>
+        <div className="app-layout-4">
           {card?.tempBuff ? <div>Buff: +{card.tempBuff}</div> : null}
           <div>Value: {getCardNumericValue(card)}</div>
         </div>
@@ -709,7 +649,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         style={{ position: "relative", margin: "4px 0", height: 50, borderRadius: 4, overflow: "hidden", border: "1px solid rgba(82,50,26,0.42)", background: "linear-gradient(180deg, #fff7e8, #d8b98c)", padding: 0, cursor: onActivate ? "pointer" : onInspect && card ? "zoom-in" : "default" }}
       >
         {card?.image ? (
-          <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(card.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></CollectorCardPresentation>
+          <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(card.image)} alt="" className="app-layout-5" /></CollectorCardPresentation>
         ) : (
           <div style={{ textAlign: "center", fontSize: 34, lineHeight: "50px", color: suitColor }}>{suit}</div>
         )}
@@ -718,9 +658,9 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
         </div>
       </button>
 
-      <div style={{ marginBottom: 5 }}>
-        {card?.name && <div style={{ fontSize: 10, fontWeight: "bold", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</div>}
-        {card?.faction && <div style={{ fontSize: 9, color: "#555", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.faction}</div>}
+      <div className="app-layout-6">
+        {card?.name && <div className="app-layout-7">{card.name}</div>}
+        {card?.faction && <div className="app-layout-8">{card.faction}</div>}
       </div>
 
       <div
@@ -735,8 +675,8 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
           textAlign: "center"
         }}
       >
-        <div style={{ fontSize: 14 }}>{rank}</div>
-        <div style={{ fontSize: 13 }}>{suit}</div>
+        <div className="app-layout-9">{rank}</div>
+        <div className="app-layout-10">{suit}</div>
       </div>
 
       </>}
@@ -779,41 +719,41 @@ function CardInspectModal({ card, onClose, artFactionId }) {
 
   if (playingCardArt) {
     return (
-      <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.82)", display: "grid", placeItems: "center", padding: 18 }}>
-        <div onClick={(event) => event.stopPropagation()} style={{ position: "relative", width: "min(390px, 88vw)", maxHeight: "90dvh", overflow: "auto", border: "1px solid rgba(241,199,121,0.8)", borderRadius: 8, background: "#090704", boxShadow: "0 28px 90px rgba(0,0,0,0.72)" }}>
-          <CollectorCardPresentation card={card}><img src={resolveAssetPath(playingCardArt)} alt={`${card.name || getCardRank(card)} ${suit}`} style={{ width: "100%", maxHeight: "78dvh", objectFit: "contain", display: "block" }} /></CollectorCardPresentation>
+      <div role="dialog" aria-modal="true" onClick={onClose} className="app-layout-11">
+        <div onClick={(event) => event.stopPropagation()} className="app-layout-12">
+          <CollectorCardPresentation card={card}><img src={resolveAssetPath(playingCardArt)} alt={`${card.name || getCardRank(card)} ${suit}`} className="app-layout-13" /></CollectorCardPresentation>
           <CardRulesDetails card={card} />
-          <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: "1px solid rgba(255,255,255,0.45)", borderRadius: 4, background: "rgba(7,16,26,0.9)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+          <button onClick={onClose} className="app-layout-14">Close</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
-      <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 94vw)", border: "2px solid rgba(250, 204, 21, 0.75)", borderRadius: 10, background: "linear-gradient(180deg, #f8fafc, #e5e7eb)", boxShadow: "0 24px 80px rgba(0,0,0,0.55)", overflow: "hidden" }}>
-        <div style={{ position: "relative", height: 210, background: "#0f172a" }}>
-          {getCardIllustration(card) ? <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(getCardIllustration(card))} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></CollectorCardPresentation> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
-          <button onClick={onClose} style={{ position: "absolute", right: 10, top: 10, border: 0, borderRadius: 6, background: "rgba(15,23,42,0.86)", color: "#fff", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+    <div role="dialog" aria-modal="true" onClick={onClose} className="app-layout-15">
+      <div onClick={(event) => event.stopPropagation()} className="app-layout-16">
+        <div className="app-layout-17">
+          {getCardIllustration(card) ? <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(getCardIllustration(card))} alt="" className="app-layout-5" /></CollectorCardPresentation> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
+          <button onClick={onClose} className="app-layout-18">Close</button>
         </div>
-        <div style={{ padding: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
+        <div className="app-layout-19">
+          <div className="app-layout-20">
             <div>
-              <h2 style={{ margin: 0, color: "#111827" }}>{card.name || getCardShortLabel(card)}</h2>
-              <div style={{ color: "#475569", marginTop: 4 }}>{card.faction || "Standard card"}</div>
+              <h2 className="app-layout-21">{card.name || getCardShortLabel(card)}</h2>
+              <div className="app-layout-22">{card.faction || "Standard card"}</div>
             </div>
             <div style={{ color: suitColor, fontWeight: "bold", textAlign: "center", fontSize: 28, lineHeight: 1 }}>
               <div>{getCardRank(card)}</div>
               <div>{suit}</div>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 14 }}>
+          <div className="app-layout-23">
             <StatusPill label="Value" value={getCardNumericValue(card)} bg="#fff" />
             <StatusPill label="Suit" value={suit} bg="#fff" />
             <StatusPill label="Buff" value={card.tempBuff ? `+${card.tempBuff}` : "None"} bg="#fff" />
           </div>
           {(card.rulesText || card.text) && (
-            <div style={{ marginTop: 14, border: "1px solid rgba(15,23,42,0.14)", borderRadius: 8, padding: 10, color: "#1f2937", background: "#fff7ed", lineHeight: 1.35 }}>
+            <div className="app-layout-24">
               {card.rulesText || card.text}
             </div>
           )}
@@ -827,25 +767,25 @@ function DiscardPileModal({ game, playerNumbers, onClose, onInspect, onPreview }
   if (!game) return null;
 
   return (
-    <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 78, background: "rgba(2,6,23,0.72)", display: "grid", placeItems: "center", padding: 18 }}>
-      <div onClick={(event) => event.stopPropagation()} style={{ width: "min(820px, 94vw)", maxHeight: "86dvh", overflow: "auto", border: "2px solid rgba(250,204,21,0.72)", borderRadius: 10, background: "linear-gradient(180deg, #21150c, #090604)", color: "#fff7e6", boxShadow: "0 24px 80px rgba(0,0,0,0.58)", padding: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
-          <h2 style={{ margin: 0, fontFamily: "Georgia, serif", color: "#f7d99e" }}>Discard Piles</h2>
-          <button onClick={onClose} style={{ border: "1px solid rgba(247,217,158,0.52)", borderRadius: 6, background: "rgba(8,5,3,0.62)", color: "#fff7e6", padding: "6px 10px", cursor: "pointer" }}>Close</button>
+    <div role="dialog" aria-modal="true" onClick={onClose} className="app-layout-25">
+      <div onClick={(event) => event.stopPropagation()} className="app-layout-26">
+        <div className="app-layout-27">
+          <h2 className="app-layout-28">Discard Piles</h2>
+          <button onClick={onClose} className="app-layout-29">Close</button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+        <div className="app-layout-30">
           {playerNumbers.map((playerNum) => {
             const discard = game.players?.[playerNum]?.discard || [];
             return (
-              <section key={playerNum} style={{ border: "1px solid rgba(247,217,158,0.36)", borderRadius: 8, background: "rgba(255,239,207,0.06)", padding: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", marginBottom: 8 }}>
-                  <strong style={{ color: "#f7d99e" }}>{getGamePlayerName(game, playerNum)} (P{playerNum})</strong>
+              <section key={playerNum} className="app-layout-31">
+                <div className="app-layout-32">
+                  <strong className="app-layout-33">{getGamePlayerName(game, playerNum)} (P{playerNum})</strong>
                   <span style={{ color: TABLETOP_THEME.muted, fontSize: 12 }}>{discard.length} cards</span>
                 </div>
                 {discard.length === 0 ? (
                   <div style={{ color: TABLETOP_THEME.muted, fontSize: 13 }}>No cards in discard.</div>
                 ) : (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <div className="app-layout-34">
                     {discard.map((card, index) => (
                       <button
                         key={card.id || `${playerNum}-${index}`}
@@ -856,7 +796,7 @@ function DiscardPileModal({ game, playerNumbers, onClose, onInspect, onPreview }
                           onPreview(card);
                           onInspect(card);
                         }}
-                        style={{ border: 0, background: "transparent", padding: 0, cursor: "zoom-in" }}
+                        className="app-layout-35"
                       >
                         <SmallCardToken card={card} />
                       </button>
@@ -1158,7 +1098,7 @@ function startMusicTrack(trackKey, volume) {
 function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   return (
-    <div className="home-music-control" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "#bfdbfe", fontSize: 13 }}>
+    <div className="home-music-control app-layout-36" >
       {account && <MenuButton variant="secondary" onClick={() => onSoundMutedChange(!soundMuted)}>{soundMuted ? "Unmute All" : "Mute All"}</MenuButton>}
       <MenuButton variant="secondary" onClick={onToggle} disabled={soundMuted}>{enabled ? "Pause Music" : "Play Music"}</MenuButton>
       <span>{track.label}</span>
@@ -1173,7 +1113,7 @@ function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, acc
         disabled={soundMuted}
         style={{ width: 110, opacity: soundMuted ? 0.48 : 1 }}
       />
-      {account && soundMuted && <span style={{ color: "#fca5a5", fontWeight: "bold" }}>All sounds muted</span>}
+      {account && soundMuted && <span className="app-layout-37">All sounds muted</span>}
     </div>
   );
 }
@@ -1297,15 +1237,15 @@ function HotkeyWindow({ visible, onClose }) {
   ];
 
   return (
-    <div style={{ position: "fixed", right: 14, top: 58, zIndex: 40, width: "min(340px, calc(100vw - 28px))", border: "2px solid rgba(125, 211, 252, 0.65)", borderRadius: 8, background: "rgba(15, 23, 42, 0.96)", color: "#e5eef8", boxShadow: "0 18px 50px rgba(0,0,0,0.4)", padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8 }}>
-        <h3 style={{ margin: 0, color: "#facc15", fontSize: 16 }}>Gameplay Shortcuts</h3>
-        <button onClick={onClose} style={{ padding: "3px 8px" }}>Close</button>
+    <div className="app-layout-38">
+      <div className="app-layout-39">
+        <h3 className="app-layout-40">Gameplay Shortcuts</h3>
+        <button onClick={onClose} className="app-layout-41">Close</button>
       </div>
-      <div style={{ display: "grid", gap: 6, fontSize: 13 }}>
+      <div className="app-layout-42">
         {shortcuts.map(([key, label]) => (
-          <div key={key} style={{ display: "grid", gridTemplateColumns: "70px minmax(0, 1fr)", gap: 8, alignItems: "center" }}>
-            <kbd style={{ border: "1px solid rgba(191, 219, 254, 0.45)", borderRadius: 5, padding: "3px 6px", textAlign: "center", background: "rgba(30, 41, 59, 0.92)", color: "#f8fafc" }}>{key}</kbd>
+          <div key={key} className="app-layout-43">
+            <kbd className="app-layout-44">{key}</kbd>
             <span>{label}</span>
           </div>
         ))}
@@ -1318,7 +1258,7 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
   if (account) {
     return (
       <MenuCard title="Account">
-        <p style={{ marginTop: 0 }}>Signed in as <strong>{account.name}</strong></p>
+        <p className="app-layout-45">Signed in as <strong>{account.name}</strong></p>
         <MenuButton variant="secondary" onClick={onSignOut}>Sign Out</MenuButton>
       </MenuCard>
     );
@@ -1326,7 +1266,7 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
 
   return (
     <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
-      <p style={{ margin: "0 0 10px", color: "#bfdbfe", fontSize: 13 }}>
+      <p className="app-layout-46">
         {mode === "register"
           ? "Save campaign progress, rewards, match results, and your Season Zero record."
           : "Return to your campaign, collection, match history, and ranked record."}
@@ -1341,7 +1281,7 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
           event.preventDefault();
           onSubmit();
         }}
-        style={{ display: "grid", gap: 10 }}
+        className="app-layout-47"
       >
         <input
           value={form.name}
@@ -1361,11 +1301,11 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
           aria-label="Password"
         />
         {mode === "register" && (
-          <small style={{ color: "#93c5fd", lineHeight: 1.4 }}>
+          <small className="app-layout-48">
             Account names use 3-24 letters, numbers, spaces, hyphens, or underscores. Passwords need at least 8 characters.
           </small>
         )}
-        {error && <div style={{ color: "#fca5a5", fontSize: 13 }}>{error}</div>}
+        {error && <div className="app-layout-49">{error}</div>}
         <div>
           <MenuButton type="submit" style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
           <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
@@ -1676,11 +1616,11 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
         <button
           type="button"
           onClick={() => onBuyPack(collectorPack.id)}
-          style={{ zIndex: 2, justifySelf: "start", border: "1px solid rgba(255,255,255,0.26)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.48)", color: "#fff7dc", fontWeight: 900, fontSize: 12 }}
+          className="app-layout-50"
         >
           Buy $1 Collector Pack
         </button>
-        <small style={{ zIndex: 2, color: "#fde68a", lineHeight: 1.25 }}>Cosmetic finishes and provenance only. No cards, copies, values, or abilities.</small>
+        <small className="app-layout-51">Cosmetic finishes and provenance only. No cards, copies, values, or abilities.</small>
       </>}
     </article>
   );
@@ -1752,7 +1692,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   if (!account) {
     return (
       <MenuCard title="Collection">
-        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to open all-faction or seeded faction packs and build a card collection.</p>
+        <p className="app-layout-52">Sign in to open all-faction or seeded faction packs and build a card collection.</p>
       </MenuCard>
     );
   }
@@ -1914,7 +1854,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
 
   return (
     <MenuCard className="collection-workspace" title="Collection Workshop">
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
+      <div className="app-layout-53">
         {collectionView !== "decks" && <div className="collection-summary-bar">
           <div className="collection-summary-stat"><span>Gameplay copies earned</span><strong>{ownedTotal}</strong></div>
           <div className="collection-summary-stat"><span>Collector variants</span><strong>{collectorVariantTotal}</strong></div>
@@ -1937,7 +1877,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div></Suspense>}
         <div className="collection-view-heading">
           <div><h3>Earned Gameplay Packs</h3><p>Spend campaign credits on all-faction or seeded faction packs. These are the packs that unlock playable cards.</p></div>
-          <strong style={{ color: "#fde68a" }}>{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
+          <strong className="app-layout-54">{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
         </div>
         <PackPacingPicker value={packPacing} onChange={setPackPacing} />
         {boosters.length > 0 && (
@@ -1995,27 +1935,27 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         />
         </>}
         {collectionView === "catalog" && <div>
-          <div className="collection-view-heading" style={{ marginBottom: 8 }}>
+          <div className="collection-view-heading app-layout-55" >
             <div>
               <h3>Card Catalog</h3>
-              <div style={{ color: "#bfdbfe", fontSize: 12 }}>Gameplay earned: {ownedUniqueCount}/{allCatalogCards.length} definitions ({ownedPercent}%). Collector variants are tracked separately.</div>
+              <div className="app-layout-56">Gameplay earned: {ownedUniqueCount}/{allCatalogCards.length} definitions ({ownedPercent}%). Collector variants are tracked separately.</div>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <div className="app-layout-57">
               <input
                 value={catalogSearch}
                 onChange={(event) => setCatalogSearch(event.target.value)}
                 placeholder="Search cards"
-                style={{ minWidth: 160, border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}
+                className="app-layout-58"
               />
-              <select value={catalogFactionFilter} onChange={(event) => setCatalogFactionFilter(event.target.value)} style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}>
+              <select value={catalogFactionFilter} onChange={(event) => setCatalogFactionFilter(event.target.value)} className="app-layout-59">
                 <option value="all">All factions</option>
                 {Object.entries(PACK_THEMES).map(([factionId, theme]) => <option key={factionId} value={factionId}>{theme.name}</option>)}
               </select>
-              <select value={catalogRarityFilter} onChange={(event) => setCatalogRarityFilter(event.target.value)} style={{ border: "1px solid rgba(125,211,252,0.28)", borderRadius: 6, padding: "7px 9px", background: "rgba(15,23,42,0.74)", color: "#e5e7eb" }}>
+              <select value={catalogRarityFilter} onChange={(event) => setCatalogRarityFilter(event.target.value)} className="app-layout-59">
                 <option value="all">All rarities</option>
                 {Object.entries(RARITY_STYLES).map(([rarity, style]) => <option key={rarity} value={rarity}>{style.label}</option>)}
               </select>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
+              <label className="app-layout-60">
                 <input type="checkbox" checked={catalogOwnedOnly} onChange={(event) => setCatalogOwnedOnly(event.target.checked)} />
                 Earned only
               </label>
@@ -2028,9 +1968,9 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             owned={Number(cardsOwned[inspectedCatalogCard?.id] || 0)}
             compact
           />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8, maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
+          <div className="app-layout-61">
             {filteredCatalogCards.length === 0 && (
-              <div style={{ color: "#bfdbfe", fontSize: 13 }}>No cards match those filters.</div>
+              <div className="app-layout-62">No cards match those filters.</div>
             )}
             {filteredCatalogCards.map((card) => {
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
@@ -2043,13 +1983,13 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
                 <button type="button" className="catalog-card-tile" onClick={() => setInspectedCatalogCardId(card.id)} aria-pressed={inspectedCatalogCard?.id === card.id} key={card.id} style={{ "--rarity-border": rarity.border, opacity: count > 0 ? 1 : 0.72 }}>
                   <SpecialCardFace card={card} art={art} />
                   <div className="catalog-card-copy">
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <div className="app-layout-63">
                     <strong style={{ color: rarity.color }}>{card.name}</strong>
-                    <span style={{ color: "#f8fafc", fontWeight: "bold" }}>gameplay x{count}</span>
+                    <span className="app-layout-64">gameplay x{count}</span>
                   </div>
-                  <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0" }}>{factionName(card.factionId)} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
-                  <div style={{ color: "#e5e7eb", fontSize: 12, lineHeight: 1.35 }}>{card.text}</div>
-                  <div style={{ color: "#fde68a", fontSize: 11, marginTop: 6 }}>Collector variants owned: {collectorCount}. Cosmetic only.</div>
+                  <div className="app-layout-65">{factionName(card.factionId)} - {rarity.label} {card.type} - {getCardRank(card)}{getSuitSymbol(card.suit)}</div>
+                  <div className="app-layout-66">{card.text}</div>
+                  <div className="app-layout-67">Collector variants owned: {collectorCount}. Cosmetic only.</div>
                   </div>
                 </button>
               );
@@ -2172,20 +2112,20 @@ function MatchmakingPanel({
 }) {
   return (
     <MenuCard title={title}>
-      <p style={{ marginTop: 0, color: "#bfdbfe" }}>{description}</p>
+      <p className="app-layout-68">{description}</p>
       {status.message && <div style={{ color: status.inQueue ? "#fde68a" : "#bfdbfe", fontSize: 13, marginBottom: 10 }}>{status.message}</div>}
       {status.inQueue ? (
         <>
-          <p style={{ margin: "0 0 10px", color: "#bfdbfe", fontSize: 13 }}>Keep this page open while searching. You can cancel at any time, and no bot will be substituted for a ranked opponent.</p>
+          <p className="app-layout-46">Keep this page open while searching. You can cancel at any time, and no bot will be substituted for a ranked opponent.</p>
           <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
         </>
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div className="app-layout-34">
           <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
           {extraActions}
         </div>
       )}
-      {!account && <p style={{ color: "#bfdbfe", fontSize: 13 }}>{signedOutText}</p>}
+      {!account && <p className="app-layout-62">{signedOutText}</p>}
     </MenuCard>
   );
 }
@@ -2213,7 +2153,7 @@ function FriendsPanel({
   if (!account) {
     return (
       <MenuCard title="Friends">
-        <p style={{ margin: 0, color: "#bfdbfe" }}>Sign in to add friends and send messages.</p>
+        <p className="app-layout-52">Sign in to add friends and send messages.</p>
       </MenuCard>
     );
   }
@@ -2230,17 +2170,17 @@ function FriendsPanel({
 
   return (
     <MenuCard className="friends-panel" title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
-      {error && <div style={{ color: "#fca5a5", fontSize: 13, marginBottom: 10 }}>{error}</div>}
+      {error && <div className="app-layout-69">{error}</div>}
       {incomingChallenges.map((challenge) => (
         <div key={challenge.id} className="friend-challenge-alert">
           <strong>{challenge.fromName} challenged you</strong>
-          <div style={{ color: "#bfdbfe", fontSize: 12, margin: "3px 0 8px" }}>Faction Duel · room {challenge.roomCode}</div>
+          <div className="app-layout-70">Faction Duel · room {challenge.roomCode}</div>
           <MenuButton onClick={() => onJoinChallenge(challenge)} style={{ marginRight: 7 }}>Join Table</MenuButton>
           <MenuButton variant="secondary" onClick={() => onUpdateChallenge(challenge.id, "decline")}>Decline</MenuButton>
         </div>
       ))}
       {outgoingChallenges.length > 0 && (
-        <div style={{ color: "#bfdbfe", fontSize: 12, marginBottom: 10 }}>
+        <div className="app-layout-71">
           Waiting on {outgoingChallenges.map((challenge) => challenge.toName).join(", ")}.
         </div>
       )}
@@ -2347,7 +2287,7 @@ function StatusPill({ label, value, bg = "#f3f4f6" }) {
 
 function HelperText({ enabled, children }) {
   if (!enabled || !children) return null;
-  return <div className="helper-text" style={{ marginTop: 5, color: "#475569", fontSize: 12, lineHeight: 1.3 }}>{children}</div>;
+  return <div className="helper-text app-layout-72" >{children}</div>;
 }
 
 function HelperToggle({ enabled, onToggle, light = false }) {
@@ -2390,7 +2330,7 @@ function QuickActionButton({ children, className = "", disabled = false, reason 
 function LobbySeatGrid({ lobby }) {
   const playerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+    <div className="app-layout-73">
       {playerNumbers.map((playerNum) => {
         const seat = lobby.players[playerNum];
         const faction = (lobby.factions || []).find((entry) => entry.id === seat.factionId);
@@ -2398,12 +2338,12 @@ function LobbySeatGrid({ lobby }) {
         const occupied = !!seat.connected || !!seat.accountName;
         return (
           <div key={playerNum} style={{ border: `2px solid ${occupied ? theme.border : "rgba(148,163,184,0.45)"}`, borderRadius: 8, padding: 10, background: occupied ? "rgba(255,255,255,0.94)" : "rgba(15,23,42,0.28)", color: occupied ? "#111827" : "#bfdbfe", minHeight: 96 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+            <div className="app-layout-74">
               <strong style={{ color: occupied ? theme.primary : "#e5e7eb" }}>Seat {playerNum}</strong>
               <span style={{ fontSize: 11, fontWeight: "bold", color: seat.connected ? "#166534" : "#991b1b" }}>{seat.connected ? "Connected" : "Open"}</span>
             </div>
-            <div style={{ marginTop: 8, fontWeight: "bold" }}>{seat.accountName || "Waiting for player"}</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>{faction?.name || (lobby.gameMode === "basic" ? "Basic Gauntlet" : "No faction selected")}</div>
+            <div className="app-layout-75">{seat.accountName || "Waiting for player"}</div>
+            <div className="app-layout-76">{faction?.name || (lobby.gameMode === "basic" ? "Basic Gauntlet" : "No faction selected")}</div>
             <div style={{ fontSize: 12, marginTop: 4, color: seat.readyToStart ? "#166534" : occupied ? "#92400e" : "#94a3b8" }}>{seat.readyToStart ? "Ready" : occupied ? "Not ready" : "Empty"}</div>
           </div>
         );
@@ -2550,7 +2490,7 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
   if (audioOnly) {
     if (!playback.mode && !playback.status.includes("blocked")) return null;
     return (
-      <div style={{ position: "fixed", left: 12, bottom: 12, zIndex: 2000, padding: "0 12px", borderRadius: 8, background: "#1c0e07", color: "#fde9b0" }}>
+      <div className="app-layout-77">
         <DialoguePlaybackControls playback={playback} enabled={audioEnabled} />
       </div>
     );
@@ -2604,8 +2544,8 @@ function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], com
                   boxShadow: "0 6px 18px rgba(0,0,0,0.22)"
                 }}
               />
-              <span style={{ display: "grid", gap: 3, minWidth: 0 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span className="app-layout-78">
+                <span className="app-layout-79">
                   <strong style={{ color: light ? "#7c2d12" : "#fde68a" }}>{speaker}</strong>
                     <DialogueVoiceButton
                       playback={playback} index={index} enabled={audioEnabled}
@@ -2647,47 +2587,19 @@ function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
         value={code}
         aria-label="Room code"
         onFocus={(event) => event.target.select()}
-        style={{
-          width: 78,
-          padding: "3px 6px",
-          border: "1px solid currentColor",
-          borderRadius: 6,
-          background: "rgba(255,255,255,0.7)",
-          color: "inherit",
-          fontWeight: "bold",
-          fontSize: 13,
-          textAlign: "center"
-        }}
+        className="app-layout-80"
       />
       <button
         type="button"
         onClick={() => onCopy(code, "code")}
-        style={{
-          border: "1px solid currentColor",
-          borderRadius: 6,
-          background: "transparent",
-          color: "inherit",
-          padding: "3px 8px",
-          fontSize: 12,
-          fontWeight: "bold",
-          cursor: "pointer"
-        }}
+        className="app-layout-81"
       >
         Copy
       </button>
       <button
         type="button"
         onClick={() => onCopy(code, "link")}
-        style={{
-          border: "1px solid currentColor",
-          borderRadius: 6,
-          background: "transparent",
-          color: "inherit",
-          padding: "3px 8px",
-          fontSize: 12,
-          fontWeight: "bold",
-          cursor: "pointer"
-        }}
+        className="app-layout-81"
       >
         Copy Link
       </button>
@@ -2713,18 +2625,18 @@ function ShareGameQrCard() {
 
   return (
     <MenuCard title="Share Game">
-      <div style={{ display: "grid", gridTemplateColumns: "96px minmax(0, 1fr)", gap: 12, alignItems: "center" }}>
+      <div className="app-layout-82">
         <a href={gameUrl} target="_blank" rel="noreferrer" aria-label="Open Gauntlet Online">
           <img
             src={qrUrl}
             alt="QR code for Gauntlet Online"
             width="96"
             height="96"
-            style={{ display: "block", width: 96, height: 96, borderRadius: 8, border: "2px solid rgba(125,211,252,0.5)", background: "#fff", padding: 4 }}
+            className="app-layout-83"
           />
         </a>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: "0 0 8px", color: "#bfdbfe", fontSize: 13 }}>Scan to open Gauntlet Online on another device.</p>
+        <div className="app-layout-84">
+          <p className="app-layout-85">Scan to open Gauntlet Online on another device.</p>
           <input
             readOnly
             value={gameUrl}
@@ -2774,11 +2686,11 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions =
     >
       <button type="button" className="compact-power-select" onClick={onToggle}>
         <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
-          {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
+          {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" className="app-layout-5" />}
         </span>
-        <span style={{ minWidth: 0, alignSelf: "center" }}>
+        <span className="app-layout-86">
           <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
-          <span style={{ display: "block", fontSize: 14, fontWeight: "bold", color: "#29170d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature?.name || "None"}</span>
+          <span className="app-layout-87">{feature?.name || "None"}</span>
         </span>
       </button>
       {actions.length > 0 && (
@@ -2806,10 +2718,10 @@ function LaneCardLabel({ label, card, hidden = false }) {
 function SmallCardToken({ card }) {
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
   return (
-    <div title={card?.name || getCardShortLabel(card)} style={{ width: 42, minHeight: 56, border: "1px solid rgba(82,50,26,0.62)", borderRadius: 5, background: "linear-gradient(180deg, #f8ecd5, #d6b386)", padding: 4, display: "grid", alignContent: "space-between", boxShadow: "0 4px 10px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.35)" }}>
+    <div title={card?.name || getCardShortLabel(card)} className="app-layout-88">
       <strong style={{ color: suitColor, fontSize: 14 }}>{getCardRank(card)}</strong>
       <span style={{ color: suitColor, fontSize: 18, lineHeight: 1, textAlign: "center" }}>{getSuitSymbol(card?.suit)}</span>
-      <span style={{ fontSize: 8, color: "#475569", textAlign: "right" }}>{getCardNumericValue(card)}</span>
+      <span className="app-layout-89">{getCardNumericValue(card)}</span>
     </div>
   );
 }
@@ -2835,9 +2747,9 @@ function PlayerInfoBox({ game, playerNum, perspectivePlayer, position = "top" })
       }}
     >
       <PlayerAvatar subject={infoPlayer} name={getGamePlayerName(game, playerNum)} serverUrl={SOCKET_URL} size="small" decorative />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
-          <strong style={{ color: "#f7d99e", fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getGamePlayerName(game, playerNum)}</strong>
+      <div className="app-layout-84">
+        <div className="app-layout-90">
+          <strong className="app-layout-91">{getGamePlayerName(game, playerNum)}</strong>
           <span style={{ color: TABLETOP_THEME.muted, fontSize: 12 }}>P{playerNum}</span>
         </div>
         <div style={{ color: connectionColor, fontSize: 12, marginTop: 2 }}>{infoPlayer.connected ? "Connected" : "Disconnected"}</div>
@@ -2870,11 +2782,11 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
   if (opponentNumbers.length === 0) return null;
   return (
     <SectionCard className="opponent-intel" borderColor="#334155" background="rgba(255,255,255,0.94)" style={{ padding: 8, marginBottom: 6 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 15 }}>Opponent Abilities</h3>
-        <button onClick={onToggleAbilities} style={{ padding: "4px 8px", fontSize: 12 }}>{showAbilities ? "Hide Abilities" : "Show Abilities"}</button>
+      <div className="app-layout-92">
+        <h3 className="app-layout-93">Opponent Abilities</h3>
+        <button onClick={onToggleAbilities} className="app-layout-94">{showAbilities ? "Hide Abilities" : "Show Abilities"}</button>
       </div>
-      <div style={{ display: "grid", gap: 8 }}>
+      <div className="app-layout-95">
         {opponentNumbers.map((p) => {
           const opponent = game.players[p];
           const theme = getFactionTheme(opponent.faction.id);
@@ -2882,15 +2794,15 @@ function OpponentIntelPanel({ game, player, showAbilities, onToggleAbilities }) 
             <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.light, padding: 8, textAlign: "center" }}>
               <strong style={{ color: theme.primary, display: "block", marginBottom: showAbilities ? 8 : 0 }}>{opponent.accountName || opponent.faction?.name || `Player ${p}`}</strong>
               {showAbilities && (
-                <div className="opponent-ability-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))", gap: 6, fontSize: 12, alignItems: "stretch" }}>
+                <div className="opponent-ability-grid app-layout-96" >
                   {["commander", "city", "general"].map((key) => opponent.faction?.[key] && (
                     <div key={key} style={{ border: `1px solid ${theme.border}`, borderRadius: 7, padding: 8, background: "rgba(255,255,255,0.72)", display: "grid", alignContent: "start", justifyItems: "center", textAlign: "center", minHeight: 92 }}>
                       {opponent.faction[key].image && (
                         <img src={opponent.faction[key].image} alt="" style={{ width: 34, height: 34, borderRadius: 5, objectFit: "cover", marginBottom: 5, border: `1px solid ${theme.border}` }} />
                       )}
-                      <span style={{ color: "#6b7280", fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.6 }}>{key}</span>
+                      <span className="app-layout-97">{key}</span>
                       <strong style={{ color: theme.primary, display: "block", lineHeight: 1.15 }}>{opponent.faction[key].name}</strong>
-                      <div style={{ color: "#475569", marginTop: 4, lineHeight: 1.25 }}>{opponent.faction[key].text}</div>
+                      <div className="app-layout-98">{opponent.faction[key].text}</div>
                     </div>
                   ))}
                 </div>
@@ -2909,11 +2821,11 @@ function PaymentLogPanel({ game }) {
   return (
     <div className="payment-log-panel" style={{ marginTop: 10, border: `1px solid ${TABLETOP_THEME.goldSoft}`, borderRadius: 6, background: "rgba(12,8,5,0.72)", padding: 8, minHeight: 0, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04)" }}>
       <h3 style={{ margin: "0 0 6px 0", fontSize: 14, color: TABLETOP_THEME.text }}>Payments & Reveals</h3>
-      <div className="payment-log-list" style={{ display: "grid", gap: 6, maxHeight: "min(20dvh, 190px)", overflowY: "auto", paddingRight: 4 }}>
+      <div className="payment-log-list app-layout-99" >
         {entries.map((entry) => (
           <div key={entry.id} style={{ borderTop: `1px solid ${TABLETOP_THEME.goldSoft}`, paddingTop: 6, fontSize: 12, color: TABLETOP_THEME.text }}>
             <strong>P{entry.player}</strong> {entry.label}
-            {entry.cards?.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>{entry.cards.map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}</div>}
+            {entry.cards?.length > 0 && <div className="app-layout-100">{entry.cards.map((card, idx) => <SmallCardToken key={card.id || idx} card={card} />)}</div>}
           </div>
         ))}
       </div>
@@ -3118,36 +3030,36 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   ];
 
   return (
-    <div style={{ position: "relative", overflow: "hidden", border: "1px solid rgba(250,204,21,0.46)", borderRadius: 10, padding: 16, marginBottom: 18, background: "linear-gradient(135deg, rgba(15,23,42,0.92), rgba(69,36,12,0.86)), radial-gradient(circle at 82% 24%, rgba(250,204,21,0.18), transparent 30%)", boxShadow: "0 18px 40px rgba(0,0,0,0.24)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 12 }}>
+    <div className="app-layout-101">
+      <div className="app-layout-102">
         <div>
-          <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>New Player Route</div>
-          <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 28 }}>Learn the game in one guided match</h2>
-          <p style={{ margin: "8px 0 0", color: "#bfdbfe", lineHeight: 1.45, maxWidth: 780 }}>
+          <div className="app-layout-103">New Player Route</div>
+          <h2 className="app-layout-104">Learn the game in one guided match</h2>
+          <p className="app-layout-105">
             Gauntlet is easiest to learn by playing a low-pressure Basic AI match first. You can still jump into campaign, draft, or multiplayer whenever you are ready.
           </p>
         </div>
-        <button type="button" onClick={onDismiss} style={{ flex: "0 0 auto", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, padding: "6px 9px", background: "rgba(2,6,23,0.52)", color: "#dbeafe", fontWeight: 900 }}>Dismiss</button>
+        <button type="button" onClick={onDismiss} className="app-layout-106">Dismiss</button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 14 }}>
+      <div className="app-layout-107">
         {steps.map((step, index) => (
-          <div key={step.label} style={{ border: "1px solid rgba(125,211,252,0.22)", borderRadius: 8, padding: 10, background: "rgba(2,6,23,0.34)" }}>
-            <strong style={{ display: "block", color: "#fde68a", marginBottom: 4 }}>{index + 1}. {step.label}</strong>
-            <span style={{ color: "#dbeafe", fontSize: 13, lineHeight: 1.35 }}>{step.text}</span>
+          <div key={step.label} className="app-layout-108">
+            <strong className="app-layout-109">{index + 1}. {step.label}</strong>
+            <span className="app-layout-110">{step.text}</span>
           </div>
         ))}
       </div>
-      <div role="navigation" aria-label="New player destinations" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+      <div role="navigation" aria-label="New player destinations" className="app-layout-111">
         <MenuButton variant="secondary" onClick={() => onNavigate?.("play")}>Play a Match</MenuButton>
         <MenuButton variant="secondary" onClick={() => onNavigate?.("journey")}>Campaign & Tutorial</MenuButton>
         <MenuButton variant="secondary" onClick={() => onNavigate?.("build")}>Cards & Decks</MenuButton>
         <MenuButton variant="secondary" onClick={() => onNavigate?.("rewards")}>Quests & Rewards</MenuButton>
       </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+      <div className="app-layout-112">
         <MenuButton onClick={onStartBasicAi}>Play Basic vs AI</MenuButton>
         <MenuButton variant="secondary" onClick={onStartTutorial}>Open Tutorial</MenuButton>
         <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
-        {!canPlayAsPlayer && <span style={{ color: "#bfdbfe", fontSize: 13 }}>This will use your guest name unless you sign in first.</span>}
+        {!canPlayAsPlayer && <span className="app-layout-62">This will use your guest name unless you sign in first.</span>}
       </div>
     </div>
   );
@@ -3184,7 +3096,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        {!canPlayAsPlayer && <div style={{ marginBottom: 14, color: "#fecaca" }}>Sign in or enable guest play on the main menu to start a campaign battle.</div>}
+        {!canPlayAsPlayer && <div className="app-layout-113">Sign in or enable guest play on the main menu to start a campaign battle.</div>}
         <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
           {campaignEntries.map(([factionId, campaign]) => {
             const selected = factionId === activeFactionId;
@@ -5222,8 +5134,8 @@ export default function App() {
             </div>}
           </div>
         </div>
-        {supportMessage && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{supportMessage}</div>}
-        {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+        {supportMessage && <div className="app-layout-114">{supportMessage}</div>}
+        {error && <div className="app-layout-115"><strong>Error:</strong> {error}</div>}
         <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
           {showOnboarding && (
             <OnboardingPanel
@@ -5283,10 +5195,10 @@ export default function App() {
               {playView === "ranked" && (
                 <div className="play-ranked-grid">
                   <div>
-                    <fieldset disabled={matchmakingStatus.inQueue} style={{ border: "1px solid #64748b", borderRadius: 10, padding: 12, marginBottom: 12, color: "#e2e8f0" }}>
+                    <fieldset disabled={matchmakingStatus.inQueue} className="app-layout-116">
                       <legend>Ranked format</legend>
-                      <label style={{ display: "block", marginBottom: 8 }}><input type="radio" name="ranked-format" checked={rankedGameMode === "factions"} onChange={() => setRankedGameMode("factions")} /> Faction Ranked — faction powers and one chosen General.</label>
-                      <label style={{ display: "block" }}><input type="radio" name="ranked-format" checked={rankedGameMode === "basic"} onChange={() => setRankedGameMode("basic")} /> Classic Ranked — the base Gauntlet game, without factions or faction powers.</label>
+                      <label className="app-layout-117"><input type="radio" name="ranked-format" checked={rankedGameMode === "factions"} onChange={() => setRankedGameMode("factions")} /> Faction Ranked — faction powers and one chosen General.</label>
+                      <label className="app-layout-118"><input type="radio" name="ranked-format" checked={rankedGameMode === "basic"} onChange={() => setRankedGameMode("basic")} /> Classic Ranked — the base Gauntlet game, without factions or faction powers.</label>
                     </fieldset>
                     {rankedGameMode === "factions" && <>
                       <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
@@ -5342,9 +5254,9 @@ export default function App() {
                 <div className="play-draft-grid">
                   <MenuCard className="play-focus-panel" title="Draft or Sealed">
                     {!account && <p>Guest limited play is practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your deck</MenuButton></p>}
-                    <label style={{ display: "grid", gap: 6, marginBottom: 12, color: "#dbeafe", fontWeight: 800 }}>
+                    <label className="app-layout-119">
                       Limited set
-                      <select value={draftSetId} onChange={(event) => setDraftSetId(event.target.value)} style={{ padding: 10, borderRadius: 6 }}>
+                      <select value={draftSetId} onChange={(event) => setDraftSetId(event.target.value)} className="app-layout-120">
                         {(gameContent.draftSets || []).map((set) => (
                           <option key={set.id} value={set.id} disabled={!set.draftAvailable}>
                             Set {set.number}: {set.name}{set.draftAvailable ? "" : " — cards coming soon"}
@@ -5353,7 +5265,7 @@ export default function App() {
                       </select>
                     </label>
                     {(gameContent.draftSets || []).find((set) => set.id === draftSetId)?.factionIds?.length > 0 && (
-                      <p style={{ color: "#bfdbfe", fontSize: 13 }}>Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
+                      <p className="app-layout-62">Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
                     )}
                     <div className="play-mode-grid">
                       <PlayModeCard eyebrow="2–8 Players" title="Draft with friends" description="Live Draft: choose cards together, then build your deck." image="/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg" action="Open a draft table" accent="sage" onClick={createDraftRoom} />
@@ -5438,7 +5350,7 @@ export default function App() {
           )}
 
           {homeArea === "matches" && (
-            <Suspense fallback={<p style={{ color: "#bfdbfe" }}>Loading match history…</p>}>
+            <Suspense fallback={<p className="app-layout-121">Loading match history…</p>}>
               <MatchesHub
                 account={account}
                 authToken={authToken}
@@ -5654,12 +5566,12 @@ export default function App() {
     return (
       <div className="lobby-page menu-page area-play" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.play)})` }}>
         <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
+        <div className="app-layout-122">
           <div>
-            <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Faction Command</div>
-            <h1 style={{ margin: 0, fontSize: 40, color: "#f8fafc", textShadow: "0 0 18px rgba(56,189,248,0.4)" }}>Gauntlet Online</h1>
+            <div className="app-layout-123">Faction Command</div>
+            <h1 className="app-layout-124">Gauntlet Online</h1>
           </div>
-          <div style={{ color: "#bfdbfe", fontSize: 13, textAlign: "right", display: "grid", gap: 8, justifyItems: "end" }}>
+          <div className="app-layout-125">
             <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
             <RoomCodeDisplay
               code={lobby?.roomCode}
@@ -5670,9 +5582,9 @@ export default function App() {
             <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
         </div>
-        {copyNotice && <div style={{ color: "#fde68a", marginBottom: 12, fontSize: 13 }}>{copyNotice}</div>}
-        {account && <p style={{ color: "#dbeafe" }}><strong>Account:</strong> {account.name}</p>}
-        {error && <div style={{ color: "#fca5a5", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+        {copyNotice && <div className="app-layout-114">{copyNotice}</div>}
+        {account && <p className="app-layout-126"><strong>Account:</strong> {account.name}</p>}
+        {error && <div className="app-layout-115"><strong>Error:</strong> {error}</div>}
         <MenuCard className="lobby-command-panel" title="Table Command">
           <div className="lobby-command-meta">
             <span><small>Format</small><strong>{isFreeForAllMode ? "Free-for-all" : isBasicMode ? "Basic Mode" : "Faction Mode"}</strong></span>
@@ -5736,7 +5648,7 @@ export default function App() {
             {isBasicMode && (
               <>
                 <MenuCard title="Basic Mode">
-                  <p style={{ margin: 0 }}>No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p>
+                  <p className="app-layout-127">No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p>
                 </MenuCard>
                 {lobbyReadyBar}
               </>
@@ -5876,9 +5788,9 @@ export default function App() {
             </div>
           )}
           <div style={{ color: myTheme.primary, fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>{didWin && game.campaign ? "After Battle" : "Match Result"}</div>
-          <h1 style={{ margin: "0 0 10px 0", fontFamily: "Georgia, serif", fontSize: "clamp(36px, 7vw, 58px)", color: "#2a160b", textShadow: "0 2px 0 rgba(255,255,255,0.48)" }}>{resultTitle}</h1>
-          <p style={{ margin: "0 auto 20px auto", maxWidth: 560, fontSize: 18, color: "#2f1c10" }}>{resultDetail}</p>
-          <div style={{ margin: "0 auto 18px", maxWidth: 620, display: "grid", gap: 8, textAlign: "left", fontSize: 14, color: "#2f1c10" }}>
+          <h1 className="app-layout-128">{resultTitle}</h1>
+          <p className="app-layout-129">{resultDetail}</p>
+          <div className="app-layout-130">
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
             {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
@@ -5905,7 +5817,7 @@ export default function App() {
               light
             />
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 22, textAlign: "left" }}>
+          <div className="app-layout-131">
             {(resultProjection.canonicalAvailable
               ? resultProjection.participants
               : Object.keys(game.players || {}).map(Number).sort((a, b) => a - b).map((p) => ({
@@ -5918,13 +5830,13 @@ export default function App() {
               const theme = getFactionTheme(participant.faction?.id || "basic");
               return (
                 <div key={p} style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: "rgba(255,255,255,0.72)", padding: 12 }}>
-                  <div style={{ fontWeight: "bold", color: theme.primary }}>{participant.displayName || `Player ${p}`} <span style={{ color: "#555", fontWeight: "normal" }}>(Player {p})</span> - {participant.faction?.name || "Basic"}</div>
+                  <div style={{ fontWeight: "bold", color: theme.primary }}>{participant.displayName || `Player ${p}`} <span className="app-layout-132">(Player {p})</span> - {participant.faction?.name || "Basic"}</div>
                   <div>{participant.finalLife} life</div>
                 </div>
               );
             })}
           </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          <div className="app-layout-133">
             {nextCampaignChapter && (
               <MenuButton
                 disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}
@@ -5962,7 +5874,7 @@ export default function App() {
             {canRematch && rematchRequestedByOpponent && <MenuButton variant="secondary" onClick={declineRematch}>Decline</MenuButton>}
             <MenuButton variant={nextCampaignChapter || !game.campaign ? "secondary" : "primary"} onClick={returnToMainMenu}>Main Menu</MenuButton>
           </div>
-          {canRematch && rematchStatus.message && <p style={{ margin: "12px 0 0", color: "#4b2d16", fontSize: 13 }}>{rematchStatus.message}</p>}
+          {canRematch && rematchStatus.message && <p className="app-layout-134">{rematchStatus.message}</p>}
         </div>
       </div>
     );
@@ -6112,13 +6024,13 @@ export default function App() {
       >
         <div style={{ fontSize: 12, fontWeight: "bold", color: myTheme.primary, textTransform: "uppercase" }}>Quick Actions</div>
         {(attackMode || blockMode) && (
-          <div style={{ border: "1px solid rgba(17,24,39,0.16)", borderRadius: 6, padding: "5px 6px", color: "#111827", fontSize: 12, background: "rgba(255,255,255,0.58)", fontWeight: "bold" }}>
+          <div className="app-layout-135">
             Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
           </div>
         )}
         {attackMode && (
           <>
-            <div style={{ color: "#555", fontSize: 12 }}>
+            <div className="app-layout-136">
               {attackMode.from === "hand" ? "Choose an attack card, target, and payment." : "Choose a target and payment."}
             </div>
             <QuickActionButton className="quick-action-primary" onClick={confirmFfaAttack} reason={ffaAttackConfirmReason}>Confirm Attack</QuickActionButton>
@@ -6127,7 +6039,7 @@ export default function App() {
         )}
         {blockMode && (
           <>
-            <div style={{ color: "#555", fontSize: 12 }}>Choose block cards if needed, then pay at least the block value.</div>
+            <div className="app-layout-136">Choose block cards if needed, then pay at least the block value.</div>
             <QuickActionButton className="quick-action-primary" onClick={confirmFfaBlock} disabled={!!ffaBlockConfirmReason} reason={ffaBlockConfirmReason}>Confirm Block</QuickActionButton>
             <QuickActionButton className="quick-action-danger" onClick={passFfaBlock}>Take Damage</QuickActionButton>
             <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
@@ -6135,7 +6047,7 @@ export default function App() {
         )}
         {placementMode && (
           <>
-            <div style={{ color: "#555", fontSize: 12 }}>Choose one hand card to place face-down in lane {placementMode.lane + 1}.</div>
+            <div className="app-layout-136">Choose one hand card to place face-down in lane {placementMode.lane + 1}.</div>
             <QuickActionButton className="quick-action-primary" onClick={confirmFfaPlacement} disabled={!!ffaPlacementConfirmReason} reason={ffaPlacementConfirmReason}>Place Facedown</QuickActionButton>
             <QuickActionButton className="quick-action-secondary" onClick={() => skipFfaPlacement(placementMode.lane)}>Skip Lane</QuickActionButton>
             <QuickActionButton className="quick-action-secondary" onClick={resetSelections}>Cancel</QuickActionButton>
@@ -6153,9 +6065,9 @@ export default function App() {
           </>
         )}
         {(ffaAttackConfirmReason || ffaBlockConfirmReason || ffaPlacementConfirmReason) && (
-          <div style={{ color: "#92400e", fontSize: 12, fontWeight: "bold" }}>{ffaAttackConfirmReason || ffaBlockConfirmReason || ffaPlacementConfirmReason}</div>
+          <div className="app-layout-137">{ffaAttackConfirmReason || ffaBlockConfirmReason || ffaPlacementConfirmReason}</div>
         )}
-        <div style={{ color: "#555", fontSize: 12 }}>{game.message || "Choose an action."}</div>
+        <div className="app-layout-136">{game.message || "Choose an action."}</div>
       </div>
     ) : null;
 
@@ -6202,13 +6114,13 @@ export default function App() {
             }
           }
         `}</style>
-        <div className="ffa-root" style={{ display: "grid", gridTemplateRows: "auto auto minmax(0, 1fr) auto", gap: 8, maxWidth: 1500, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <div className="ffa-root app-layout-138" >
+          <div className="app-layout-139">
             <div>
-              <h2 style={{ margin: 0 }}>Gauntlet Online</h2>
-              <div style={{ fontSize: 13, fontWeight: "bold" }}>Free-for-all - Turn {game.turn} - {game.phase} - Priority Player {game.priority}</div>
+              <h2 className="app-layout-127">Gauntlet Online</h2>
+              <div className="app-layout-140">Free-for-all - Turn {game.turn} - {game.phase} - Priority Player {game.priority}</div>
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div className="app-layout-141">
               <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `Player ${player}`} onCopy={copyRoomCode} />
               <button onClick={() => setShowHotkeys((value) => !value)}>Shortcuts</button>
               {!isSpectator && <button onClick={() => setShowOpponentAbilities((value) => !value)}>{showOpponentAbilities ? "Hide Abilities" : "Show Abilities"}</button>}
@@ -6217,9 +6129,9 @@ export default function App() {
             </div>
           </div>
           <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
-          {copyNotice && <div style={{ color: "#fde68a", fontWeight: "bold" }}>{copyNotice}</div>}
-          {error && <div style={{ color: "#b91c1c", fontWeight: "bold" }}>{error}</div>}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
+          {copyNotice && <div className="app-layout-142">{copyNotice}</div>}
+          {error && <div className="app-layout-143">{error}</div>}
+          <div className="app-layout-144">
             {playerNumbers.map((p) => {
               const pTheme = getFactionTheme(game.players[p].faction.id);
               return (
@@ -6228,12 +6140,12 @@ export default function App() {
                   <div>Player {p} - {game.players[p].faction.name}</div>
                   <div>{game.players[p].life} life - {game.players[p].connected ? "Connected" : "Disconnected"}</div>
                   {p !== player && <div>{game.players[p].handCount ?? game.players[p].hand?.length ?? 0} cards in hand</div>}
-                  {game.players[p].eliminated && <div style={{ color: "#991b1b", fontWeight: "bold" }}>Eliminated</div>}
+                  {game.players[p].eliminated && <div className="app-layout-145">Eliminated</div>}
                   {p !== player && showOpponentAbilities && (
                     <div style={{ borderTop: `1px solid ${pTheme.border}`, marginTop: 6, paddingTop: 6, fontSize: 12, display: "grid", gap: 6, textAlign: "center" }}>
                       {["commander", "city", "general"].map((key) => game.players[p].faction?.[key] && (
                         <div key={key} style={{ border: `1px solid ${pTheme.border}`, borderRadius: 7, padding: 7, background: "rgba(255,255,255,0.62)" }}>
-                          <span style={{ color: "#64748b", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>{key}</span>
+                          <span className="app-layout-146">{key}</span>
                           <strong style={{ display: "block", color: pTheme.primary }}>{game.players[p].faction[key].name}</strong>
                           <div>{game.players[p].faction[key].text}</div>
                         </div>
@@ -6245,23 +6157,23 @@ export default function App() {
             })}
           </div>
           <CombatStrip game={game} />
-          <div className="ffa-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 8, minHeight: 0 }}>
-            <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+          <div className="ffa-grid app-layout-147" >
+            <div className="app-layout-148">
               <SectionCard title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(120px, 1fr))", gap: 7, overflowX: "auto" }}>
+                <div className="app-layout-149">
                   {game.lanes.map((lane, i) => (
                     <div key={i} style={{ border: `2px solid ${lane.attack ? "#991b1b" : "#111"}`, borderRadius: 8, padding: 7, background: lane.attack ? "#fff1f2" : "#f8fafc", fontSize: 12 }}>
                       <strong>Lane {i + 1}</strong>
-                      <div style={{ display: "grid", gap: 4, marginTop: 6 }}>
+                      <div className="app-layout-150">
                         {playerNumbers.map((p) => (
                           <LaneCardLabel key={p} label={`P${p}`} card={lane.facedown?.[p]} hidden={p !== player && !!lane.facedown?.[p]} />
                         ))}
                       </div>
-                      {lane.attack && <div style={{ marginTop: 6 }}><strong>Attack:</strong> P{lane.attack.player} to P{lane.attack.targetPlayer} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
+                      {lane.attack && <div className="app-layout-151"><strong>Attack:</strong> P{lane.attack.player} to P{lane.attack.targetPlayer} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
                       {lane.block?.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx}> P{entry.player}:{getCardShortLabel(entry.card)} ({entry.effectiveValue || 0})</span>)}</div>}
-                      {!isSpectator && canDeclareAttack && lane.facedown?.[player] && !lane.attack && <button onClick={() => startFfaLaneAttack(i)} style={{ marginTop: 6 }}>Attack</button>}
-                      {!isSpectator && defenderMayBlock && lane.attack?.targetPlayer === player && lane.block.length === 0 && <button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: i }); }} style={{ marginTop: 6 }}>Block Lane</button>}
-                      {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div style={{ marginTop: 6 }}><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => skipFfaPlacement(i)} style={{ marginLeft: 6 }}>Skip</button></div>}
+                      {!isSpectator && canDeclareAttack && lane.facedown?.[player] && !lane.attack && <button onClick={() => startFfaLaneAttack(i)} className="app-layout-151">Attack</button>}
+                      {!isSpectator && defenderMayBlock && lane.attack?.targetPlayer === player && lane.block.length === 0 && <button onClick={() => { resetSelections(); setBlockMode({ type: "laneAttack", lane: i }); }} className="app-layout-151">Block Lane</button>}
+                      {!isSpectator && isMyEndPlacementTurn && i === currentEndLane && !game.endPlaced?.[player]?.[i] && <div className="app-layout-151"><button onClick={() => { resetSelections(); setPlacementMode({ lane: i }); }}>Place</button><button onClick={() => skipFfaPlacement(i)} className="app-layout-152">Skip</button></div>}
                     </div>
                   ))}
                 </div>
@@ -6276,14 +6188,14 @@ export default function App() {
                           <CardBox card={card} artFactionId={me?.faction?.id} selected={selected} accent={myTheme.primary} bg={selected ? "#dbeafe" : "white"} onInspect={setInspectedCard} onPreview={setPreviewedCard}>
                             {(attackMode?.from === "hand" || blockMode?.type === "handAttack" || placementMode || attackMode || blockMode) && (
                               <div className="card-action-rail">
-                                {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} style={{ width: "100%", fontSize: 10 }}>Attack</button>}
-                                {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} style={{ width: "100%", fontSize: 10 }}>{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
-                                {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} style={{ width: "100%", fontSize: 10 }}>Place</button>}
-                                {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} style={{ width: "100%", fontSize: 10 }}>Pay</button>}
+                                {attackMode?.from === "hand" && <button onClick={() => selectAttackCard(i)} className="app-layout-153">Attack</button>}
+                                {blockMode?.type === "handAttack" && <button onClick={() => selectBlockCard(i)} className="app-layout-153">{selectedBlockCardIndexes.includes(i) ? "Remove" : "Block"}</button>}
+                                {placementMode && <button onClick={() => setSelectedPlacementCardIndex(i)} className="app-layout-153">Place</button>}
+                                {(attackMode || blockMode) && <button onClick={() => togglePayment(i)} className="app-layout-153">Pay</button>}
                               </div>
                             )}
-                            <div className="card-actions" style={{ display: "grid", gap: 4 }}>
-                              <div style={{ fontSize: 9, color: "#4b5563" }}>Index {i}</div>
+                            <div className="card-actions app-layout-154" >
+                              <div className="app-layout-155">Index {i}</div>
                             </div>
                           </CardBox>
                         </div>
@@ -6295,35 +6207,35 @@ export default function App() {
               </SectionCard>}
             </div>
             {!isSpectator && <SectionCard title="Actions" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 10, alignSelf: "start" }}>
-              <p style={{ marginTop: 0 }}>{game.message || "Choose an action."}</p>
+              <p className="app-layout-45">{game.message || "Choose an action."}</p>
               {ffaUndoRequest && (
-                <div style={{ marginBottom: 10, padding: 10, borderRadius: 8, background: "#fef3c7", border: "1px solid #f59e0b" }}>
+                <div className="app-layout-156">
                   <strong>Undo requested:</strong> Player {ffaUndoRequest.requester} wants to undo {ffaUndoRequest.label}.
-                  {ffaUndoNeedsMe && <div style={{ display: "flex", gap: 8, marginTop: 8 }}><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
+                  {ffaUndoNeedsMe && <div className="app-layout-157"><button onClick={() => respondUndo(true)}>Approve Undo</button><button onClick={() => respondUndo(false)}>Decline</button></div>}
                 </div>
               )}
               <HelperText enabled={showHelperLabels}>This panel shows the detailed setup for the action you are currently building.</HelperText>
-              {!attackMode && !blockMode && !placementMode && <p style={{ color: "#555" }}>Use Quick Actions beside your hand for the main turn commands.</p>}
-              {attackMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+              {!attackMode && !blockMode && !placementMode && <p className="app-layout-158">Use Quick Actions beside your hand for the main turn commands.</p>}
+              {attackMode && <div className="app-layout-159">
                 <label>Target <select value={currentTarget} onChange={(e) => setAttackMode((prev) => ({ ...prev, targetPlayer: Number(e.target.value) }))}>{targetOptions.map((p) => <option key={p} value={p}>Player {p}</option>)}</select></label>
                 <div>Selected: {activeAttackCard ? getCardShortLabel(activeAttackCard) : "none"} - Pay {paymentTotal}/{activeAttackRequired}</div>
                 <button onClick={confirmFfaAttack} title={ffaAttackConfirmReason || ""}>Confirm Attack</button>
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
-              {blockMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+              {blockMode && <div className="app-layout-159">
                 <div>Block payment: {paymentTotal}/{activeBlockRequired || "-"}</div>
                 <button onClick={confirmFfaBlock} disabled={activeBlockRequired <= 0 || paymentTotal < activeBlockRequired}>Confirm Block</button>
-                <button onClick={passFfaBlock} style={{ color: "#991b1b" }}>Take Damage</button>
+                <button onClick={passFfaBlock} className="app-layout-160">Take Damage</button>
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
-              {placementMode && <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+              {placementMode && <div className="app-layout-159">
                 <div>Place in lane {placementMode.lane + 1}: {selectedPlacementCardIndex != null ? getCardShortLabel(me.hand[selectedPlacementCardIndex]) : "choose a card"}</div>
                 <button onClick={confirmFfaPlacement} disabled={selectedPlacementCardIndex == null}>Confirm Placement</button>
                 <button onClick={resetSelections}>Cancel</button>
               </div>}
-              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+              <div className="app-layout-161">
                 <button onClick={requestUndo}>Request Undo</button>
-                <button onClick={concedeGame} style={{ color: "#991b1b" }}>Concede</button>
+                <button onClick={concedeGame} className="app-layout-160">Concede</button>
               </div>
               <PaymentLogPanel game={game} />
             </SectionCard>}
@@ -6781,7 +6693,7 @@ export default function App() {
     >
       <div className="context-action-title">Current Action</div>
       {(attackMode || blockMode) && (
-        <div className="context-payment-total" style={{ border: "1px solid rgba(247,217,158,0.28)", borderRadius: 5, padding: "5px 6px", color: "#fff4d6", fontSize: 12, background: "rgba(255,239,207,0.06)" }}>
+        <div className="context-payment-total app-layout-162" >
           Payment {paymentTotal}/{attackMode ? activeAttackRequired : activeBlockRequired || "-"}
         </div>
       )}
@@ -6968,9 +6880,9 @@ export default function App() {
         </>
       )}
       {(attackConfirmReason || blockConfirmReason || placementConfirmReason) && (
-        <div style={{ color: "#fcd34d", fontSize: 12, fontWeight: "bold" }}>{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
+        <div className="app-layout-163">{attackConfirmReason || blockConfirmReason || placementConfirmReason}</div>
       )}
-      {paymentWarning && <div style={{ color: "#991b1b", fontSize: 12, fontWeight: "bold" }}>{paymentWarning}</div>}
+      {paymentWarning && <div className="app-layout-164">{paymentWarning}</div>}
       {(attackMode || blockMode || placementMode || abilityMode || (game.phase === "damage" && game.message && /waiting/i.test(game.message))) && (
         <div style={{ color: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "#f7d99e" : TABLETOP_THEME.muted, fontSize: 12, fontWeight: game.phase === "damage" && game.message && /waiting/i.test(game.message) ? "bold" : "normal" }}>
           {normalizeCardDisplayText(quickActionHelpText())}
@@ -7034,7 +6946,7 @@ export default function App() {
   function renderEventEntry(entry, idx, compact = false) {
     return (
       <div key={entry.id || `${entry.text}-${idx}`} style={{ padding: compact ? 8 : 10, borderRadius: 8, background: idx === 0 && !compact ? myTheme.light : "#f3f4f6", border: "1px solid rgba(0,0,0,0.06)" }}>
-        <div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>Turn {entry.turn || 1} - {entry.phase || "game"}</div>
+        <div className="app-layout-165">Turn {entry.turn || 1} - {entry.phase || "game"}</div>
         <div>{normalizeCardDisplayText(entry.text)}</div>
       </div>
     );
@@ -7043,22 +6955,22 @@ export default function App() {
   let rightPanel;
 
   if (isSpectator) {
-    rightPanel = <div><h3 style={{ marginTop: 0 }}>Spectator View</h3><p>You are watching this match.</p><p><strong>Spectators:</strong> {game.spectatorCount || 0}</p></div>;
+    rightPanel = <div><h3 className="app-layout-45">Spectator View</h3><p>You are watching this match.</p><p><strong>Spectators:</strong> {game.spectatorCount || 0}</p></div>;
   } else if (attackMode) {
     rightPanel = (
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Attack Setup</h3>
         <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: myTheme.light }}>
-          <p style={{ margin: 0 }}><strong>From:</strong> {attackMode.from}</p>
-          {attackMode.from === "lane" && <p style={{ margin: "6px 0 0 0" }}><strong>Lane:</strong> {attackMode.lane + 1}</p>}
-          <p style={{ margin: "6px 0 0 0" }}><strong>Selected attack card:</strong> {activeAttackCard ? getCardShortLabel(activeAttackCard) : "None selected"}</p>
+          <p className="app-layout-127"><strong>From:</strong> {attackMode.from}</p>
+          {attackMode.from === "lane" && <p className="app-layout-166"><strong>Lane:</strong> {attackMode.lane + 1}</p>}
+          <p className="app-layout-166"><strong>Selected attack card:</strong> {activeAttackCard ? getCardShortLabel(activeAttackCard) : "None selected"}</p>
         </div>
-        {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
+        {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label className="app-layout-167"><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
         <p><strong>Payment total:</strong> {paymentTotal}</p>
         <p><strong>Required:</strong> {activeAttackCard ? activeAttackRequired : "-"}</p>
         {meerusFreeAttackApplies && <p style={{ color: myTheme.primary, fontWeight: "bold" }}>Meerus: this third attack costs 0.</p>}
-        {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
-        <button onClick={confirmAttack} disabled={!activeAttackCard} style={{ marginRight: 10 }}>Confirm Attack</button>
+        {paymentWarning && <div className="app-layout-168">{paymentWarning}</div>}
+        <button onClick={confirmAttack} disabled={!activeAttackCard} className="app-layout-169">Confirm Attack</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -7071,15 +6983,15 @@ export default function App() {
         <div>
           <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Hand Attack</h3>
           <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
-            <p style={{ margin: 0 }}><strong>Incoming attack:</strong> {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}</p>
-            <p style={{ margin: "6px 0 0 0" }}><strong>Selected block cards:</strong> {activeBlockCards.length > 0 ? activeBlockCards.map(getCardShortLabel).join(", ") : "None selected"}</p>
+            <p className="app-layout-127"><strong>Incoming attack:</strong> {attack ? `${getCardShortLabel(attack.card)} (effective ${attack.effectiveValue})` : "None"}</p>
+            <p className="app-layout-166"><strong>Selected block cards:</strong> {activeBlockCards.length > 0 ? activeBlockCards.map(getCardShortLabel).join(", ") : "None selected"}</p>
           </div>
-          {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label style={{ display: "block", marginBottom: 10 }}><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
+          {me.faction.id === "bizi" && !me.turnData.heraUsed && (me.turnData.suitsPlayedThisTurn || []).length > 0 && <label className="app-layout-167"><input type="checkbox" checked={useHeraBonus} onChange={(e) => setUseHeraBonus(e.target.checked)} /> Use Hera payment bonus</label>}
           <p><strong>Payment total:</strong> {paymentTotal}</p>
           <p><strong>Required:</strong> {activeBlockCards.length > 0 ? required : "-"}</p>
-          {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
-          <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Block</button>
-          <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
+          {paymentWarning && <div className="app-layout-168">{paymentWarning}</div>}
+          <button onClick={confirmBlock} disabled={activeBlockCards.length === 0 || paymentTotal < required} className="app-layout-169">Confirm Block</button>
+          <button onClick={passCurrentBlock} className="app-layout-169">Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
@@ -7092,15 +7004,15 @@ export default function App() {
         <div>
           <h3 style={{ marginTop: 0, color: oppTheme.primary }}>Block Lane Attack</h3>
           <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: oppTheme.light }}>
-            <p style={{ margin: 0 }}><strong>Lane:</strong> {blockMode.lane + 1}</p>
-            <p style={{ margin: "6px 0 0 0" }}><strong>Incoming attack:</strong> {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}</p>
-            <p style={{ margin: "6px 0 0 0" }}><strong>Lane blocker:</strong> {laneBlocker ? getCardShortLabel(laneBlocker) : "No card in this lane"}</p>
+            <p className="app-layout-127"><strong>Lane:</strong> {blockMode.lane + 1}</p>
+            <p className="app-layout-166"><strong>Incoming attack:</strong> {laneAttack ? `${getCardShortLabel(laneAttack.card)} (effective ${laneAttack.effectiveValue})` : "None"}</p>
+            <p className="app-layout-166"><strong>Lane blocker:</strong> {laneBlocker ? getCardShortLabel(laneBlocker) : "No card in this lane"}</p>
           </div>
           <p><strong>Payment total:</strong> {paymentTotal}</p>
           <p><strong>Required:</strong> {laneBlocker ? required : "-"}</p>
-          {paymentWarning && <div style={{ marginBottom: 10, color: "#991b1b", fontWeight: "bold" }}>{paymentWarning}</div>}
-          <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} style={{ marginRight: 10 }}>Confirm Lane Block</button>
-          <button onClick={passCurrentBlock} style={{ marginRight: 10 }}>Pass / Take Damage</button>
+          {paymentWarning && <div className="app-layout-168">{paymentWarning}</div>}
+          <button onClick={confirmBlock} disabled={!laneBlocker || paymentTotal < required} className="app-layout-169">Confirm Lane Block</button>
+          <button onClick={passCurrentBlock} className="app-layout-169">Pass / Take Damage</button>
           <button onClick={resetSelections}>Cancel</button>
         </div>
       );
@@ -7110,10 +7022,10 @@ export default function App() {
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Facedown Placement</h3>
         <div style={{ marginBottom: 10, padding: 10, borderRadius: 10, background: myTheme.light }}>
-          <p style={{ margin: 0 }}><strong>Lane:</strong> {placementMode.lane + 1}</p>
-          <p style={{ margin: "6px 0 0 0" }}><strong>Selected card:</strong> {activePlacementCard ? getCardShortLabel(activePlacementCard) : "None selected"}</p>
+          <p className="app-layout-127"><strong>Lane:</strong> {placementMode.lane + 1}</p>
+          <p className="app-layout-166"><strong>Selected card:</strong> {activePlacementCard ? getCardShortLabel(activePlacementCard) : "None selected"}</p>
         </div>
-        <button onClick={confirmPlacement} disabled={!activePlacementCard} style={{ marginRight: 10 }}>Confirm Placement</button>
+        <button onClick={confirmPlacement} disabled={!activePlacementCard} className="app-layout-169">Confirm Placement</button>
         <button onClick={resetSelections}>Cancel</button>
       </div>
     );
@@ -7121,28 +7033,28 @@ export default function App() {
     rightPanel = (
       <div>
         <h3 style={{ marginTop: 0, color: myTheme.primary }}>Polea Ability</h3>
-        <label style={{ display: "block", marginBottom: 10 }}>Mode
-          <select value={abilityMode.mode} onChange={(e) => setAbilityMode((prev) => ({ ...prev, mode: e.target.value, handIndex: "", lane: "", laneA: "", laneB: "", targetPlayer: "", targetType: "", handAttackId: "" }))} style={{ display: "block", width: "100%", marginTop: 4 }}>
+        <label className="app-layout-167">Mode
+          <select value={abilityMode.mode} onChange={(e) => setAbilityMode((prev) => ({ ...prev, mode: e.target.value, handIndex: "", lane: "", laneA: "", laneB: "", targetPlayer: "", targetType: "", handAttackId: "" }))} className="app-layout-170">
             <option value="">Select mode</option><option value="1">Put hand card into empty lane</option><option value="2">Switch up to 2 lane cards you control</option><option value="3">Look at 1 face-down card</option><option value="4">Give +1 value until end of turn</option>
           </select>
         </label>
-        {String(abilityMode.mode) === "1" && <><label style={{ display: "block", marginBottom: 10 }}>Choose hand card<select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select hand card</option>{me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}</select></label><label style={{ display: "block", marginBottom: 10 }}>Choose empty lane<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.poleaPlaceLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label></>}
-        {String(abilityMode.mode) === "2" && <><label style={{ display: "block", marginBottom: 10 }}>First occupied lane<select value={abilityMode.laneA} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneA: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label><label style={{ display: "block", marginBottom: 10 }}>Second occupied lane<select value={abilityMode.laneB} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneB: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label></>}
-        {String(abilityMode.mode) === "3" && <><label style={{ display: "block", marginBottom: 10 }}>Choose face-down target<select value={abilityMode.targetPlayer !== "" && abilityMode.lane !== "" ? `${abilityMode.targetPlayer}-${abilityMode.lane}` : ""} onChange={(e) => { const [targetPlayer, lane] = e.target.value.split("-"); setAbilityMode((prev) => ({ ...prev, targetPlayer: targetPlayer ?? "", lane: lane ?? "" })); }} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select face-down card</option>{clickableTargets.poleaPeekTargets.map((t, idx) => <option key={`${t.targetPlayer}-${t.lane}-${idx}`} value={`${t.targetPlayer}-${t.lane}`}>Player {t.targetPlayer} - Lane {t.lane + 1}</option>)}</select></label>{peekResult && <div style={{ marginBottom: 10, padding: 10, background: "#f3f4f6", borderRadius: 8 }}><strong>Peek Result:</strong> {peekResult}</div>}</>}
-        {String(abilityMode.mode) === "4" && <><label style={{ display: "block", marginBottom: 10 }}>Target type<select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select target type</option><option value="laneCard">Your face-down lane card</option><option value="laneAttack">Your lane attack</option><option value="handAttack">Your hand attack</option></select></label>{abilityMode.targetType === "laneCard" && <label style={{ display: "block", marginBottom: 10 }}>Choose lane card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.poleaBuffLaneCards.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "laneAttack" && <label style={{ display: "block", marginBottom: 10 }}>Choose lane attack<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select attacking lane</option>{clickableTargets.poleaBuffLaneAttacks.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "handAttack" && <label style={{ display: "block", marginBottom: 10 }}>Choose hand attack<select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select hand attack</option>{clickableTargets.poleaBuffHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}</select></label>}</>}
-        <button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button><button onClick={resetSelections}>Cancel</button>
+        {String(abilityMode.mode) === "1" && <><label className="app-layout-167">Choose hand card<select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))} className="app-layout-170"><option value="">Select hand card</option>{me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}</select></label><label className="app-layout-167">Choose empty lane<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.poleaPlaceLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label></>}
+        {String(abilityMode.mode) === "2" && <><label className="app-layout-167">First occupied lane<select value={abilityMode.laneA} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneA: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label><label className="app-layout-167">Second occupied lane<select value={abilityMode.laneB} onChange={(e) => setAbilityMode((prev) => ({ ...prev, laneB: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.poleaSwitchableLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label></>}
+        {String(abilityMode.mode) === "3" && <><label className="app-layout-167">Choose face-down target<select value={abilityMode.targetPlayer !== "" && abilityMode.lane !== "" ? `${abilityMode.targetPlayer}-${abilityMode.lane}` : ""} onChange={(e) => { const [targetPlayer, lane] = e.target.value.split("-"); setAbilityMode((prev) => ({ ...prev, targetPlayer: targetPlayer ?? "", lane: lane ?? "" })); }} className="app-layout-170"><option value="">Select face-down card</option>{clickableTargets.poleaPeekTargets.map((t, idx) => <option key={`${t.targetPlayer}-${t.lane}-${idx}`} value={`${t.targetPlayer}-${t.lane}`}>Player {t.targetPlayer} - Lane {t.lane + 1}</option>)}</select></label>{peekResult && <div className="app-layout-171"><strong>Peek Result:</strong> {peekResult}</div>}</>}
+        {String(abilityMode.mode) === "4" && <><label className="app-layout-167">Target type<select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))} className="app-layout-170"><option value="">Select target type</option><option value="laneCard">Your face-down lane card</option><option value="laneAttack">Your lane attack</option><option value="handAttack">Your hand attack</option></select></label>{abilityMode.targetType === "laneCard" && <label className="app-layout-167">Choose lane card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.poleaBuffLaneCards.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "laneAttack" && <label className="app-layout-167">Choose lane attack<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select attacking lane</option>{clickableTargets.poleaBuffLaneAttacks.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "handAttack" && <label className="app-layout-167">Choose hand attack<select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))} className="app-layout-170"><option value="">Select hand attack</option>{clickableTargets.poleaBuffHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}</select></label>}</>}
+        <button onClick={confirmAbility} className="app-layout-169">Confirm Ability</button><button onClick={resetSelections}>Cancel</button>
       </div>
     );
   } else if (abilityMode?.type === "lafayette") {
     rightPanel = (
-      <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Lafayette Ability</h3><label style={{ display: "block", marginBottom: 10 }}>Lane with your face-down card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.lafayetteLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label><label style={{ display: "block", marginBottom: 10 }}>Hand card to swap in<select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select hand card</option>{me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}</select></label><button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button><button onClick={resetSelections}>Cancel</button></div>
+      <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Lafayette Ability</h3><label className="app-layout-167">Lane with your face-down card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.lafayetteLanes.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label><label className="app-layout-167">Hand card to swap in<select value={abilityMode.handIndex} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handIndex: e.target.value }))} className="app-layout-170"><option value="">Select hand card</option>{me.hand.map((card, idx) => <option key={card.id} value={idx}>{idx}: {getCardShortLabel(card)}</option>)}</select></label><button onClick={confirmAbility} className="app-layout-169">Confirm Ability</button><button onClick={resetSelections}>Cancel</button></div>
     );
   } else if (abilityMode?.type === "focus") {
     rightPanel = (
-      <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Focus Ability</h3><p><strong>Acceleration Counters:</strong> {me.accelerationCounters}</p><label style={{ display: "block", marginBottom: 10 }}>Target type<select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select target type</option><option value="laneCard">Your face-down lane card</option><option value="laneAttack">Your lane attack</option><option value="handAttack">Your hand attack</option></select></label>{abilityMode.targetType === "laneCard" && <label style={{ display: "block", marginBottom: 10 }}>Choose lane card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select lane</option>{clickableTargets.focusLaneCards.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "laneAttack" && <label style={{ display: "block", marginBottom: 10 }}>Choose lane attack<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select attacking lane</option>{clickableTargets.focusLaneAttacks.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "handAttack" && <label style={{ display: "block", marginBottom: 10 }}>Choose hand attack<select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))} style={{ display: "block", width: "100%", marginTop: 4 }}><option value="">Select hand attack</option>{clickableTargets.focusHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}</select></label>}<button onClick={confirmAbility} style={{ marginRight: 10 }}>Confirm Ability</button><button onClick={resetSelections}>Cancel</button></div>
+      <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Focus Ability</h3><p><strong>Acceleration Counters:</strong> {me.accelerationCounters}</p><label className="app-layout-167">Target type<select value={abilityMode.targetType} onChange={(e) => setAbilityMode((prev) => ({ ...prev, targetType: e.target.value, lane: "", handAttackId: "" }))} className="app-layout-170"><option value="">Select target type</option><option value="laneCard">Your face-down lane card</option><option value="laneAttack">Your lane attack</option><option value="handAttack">Your hand attack</option></select></label>{abilityMode.targetType === "laneCard" && <label className="app-layout-167">Choose lane card<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select lane</option>{clickableTargets.focusLaneCards.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "laneAttack" && <label className="app-layout-167">Choose lane attack<select value={abilityMode.lane} onChange={(e) => setAbilityMode((prev) => ({ ...prev, lane: e.target.value }))} className="app-layout-170"><option value="">Select attacking lane</option>{clickableTargets.focusLaneAttacks.map((laneIdx) => <option key={laneIdx} value={laneIdx}>Lane {laneIdx + 1}</option>)}</select></label>}{abilityMode.targetType === "handAttack" && <label className="app-layout-167">Choose hand attack<select value={abilityMode.handAttackId} onChange={(e) => setAbilityMode((prev) => ({ ...prev, handAttackId: e.target.value }))} className="app-layout-170"><option value="">Select hand attack</option>{clickableTargets.focusHandAttacks.map((a) => <option key={a.id} value={a.id}>{a.id} - {getCardShortLabel(a.card)}</option>)}</select></label>}<button onClick={confirmAbility} className="app-layout-169">Confirm Ability</button><button onClick={resetSelections}>Cancel</button></div>
     );
   } else {
-    rightPanel = <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Action Panel</h3><p>No action selected.</p>{!isSpectator && <p style={{ color: "#555" }}>Choose an attack, block, placement, or faction ability from the left.</p>}</div>;
+    rightPanel = <div><h3 style={{ marginTop: 0, color: myTheme.primary }}>Action Panel</h3><p>No action selected.</p>{!isSpectator && <p className="app-layout-158">Choose an attack, block, placement, or faction ability from the left.</p>}</div>;
   }
 
   return (
@@ -9015,8 +8927,8 @@ export default function App() {
         />
       )}
 
-      {copyNotice && <div style={{ color: "#92400e", marginBottom: 6, fontSize: 13, fontWeight: "bold", flex: "0 0 auto" }}>{copyNotice}</div>}
-      {error && <div style={{ color: "red", marginBottom: 12 }}><strong>Error:</strong> {error}</div>}
+      {copyNotice && <div className="app-layout-172">{copyNotice}</div>}
+      {error && <div className="app-layout-173"><strong>Error:</strong> {error}</div>}
       {!isSpectator && me && (
         <div className="mobile-life-hud" aria-label="Player life summary">
           <span><strong>You</strong> {me.life} life</span>
@@ -9028,7 +8940,7 @@ export default function App() {
         <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: `2px solid ${myTheme.border}`, background: myTheme.light }}>
           <div style={{ color: myTheme.primary, fontSize: 10, fontWeight: 900, letterSpacing: ".1em", textTransform: "uppercase" }}>{factionVoice.speaker || me?.faction?.commander?.name || "Commander"}</div>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontStyle: "italic", color: myTheme.primary }}>"{factionVoice.quote}"</div>
-          <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>{factionVoice.detail}</div>
+          <div className="app-layout-174">{factionVoice.detail}</div>
         </div>
       )}
 
@@ -9036,7 +8948,7 @@ export default function App() {
         <div style={{ marginBottom: 16, padding: 16, borderRadius: 12, border: "2px solid #111", background: game.winner == null ? "#f3f4f6" : "#dcfce7", fontSize: 20, fontWeight: "bold" }}>
           {game.winner == null ? "Game Over — Draw" : `Game Over — Player ${game.winner} wins!`}
           {game.winner === player && game.campaign?.afterBattle && (
-            <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.45, fontWeight: "normal", color: "#14532d" }}>
+            <div className="app-layout-175">
               <strong>After Battle:</strong> {game.campaign.afterBattle}
             </div>
           )}
@@ -9072,8 +8984,8 @@ export default function App() {
             <strong>{normalizedEvents[0] ? normalizeCardDisplayText(normalizedEvents[0].text) : "The match is ready."}</strong>
             <em>Open Log</em>
           </button>
-        <div className="game-main" style={{ minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
-          <div style={{ display: "none" }}>
+        <div className="game-main app-layout-176" >
+          <div className="app-layout-177">
             <p><strong>Player 1:</strong> {game.players[1].faction.name} — {game.players[1].life} life — {game.players[1].connected ? "Connected" : "Disconnected"}</p>
             <p><strong>Player 2:</strong> {game.players[2].faction.name} — {game.players[2].life} life — {game.players[2].connected ? "Connected" : "Disconnected"}</p>
           </div>
@@ -9085,7 +8997,7 @@ export default function App() {
                   <strong>{me.faction.name}</strong>
                   <button type="button" onClick={() => setMatchDrawer("faction")}>Faction Details</button>
                 </div>
-                <div className="focus-power-strip" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                <div className="focus-power-strip app-layout-178" >
                   {powerCards.map((power) => (
                     <CompactPowerCard
                       key={power.id}
@@ -9164,7 +9076,7 @@ export default function App() {
           )}
 
           <SectionCard className="board-lanes" title="Lanes" borderColor="#111" background="rgba(255,255,255,0.92)" style={{ padding: 8, marginBottom: 6 }}>
-            <div className="lane-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(130px, 1fr))", gap: 7 }}>
+            <div className="lane-grid app-layout-179" >
             {game.lanes.map((lane, i) => {
               const attacker = lane.attack?.player ?? null;
               const defender = attacker ? (attacker === 1 ? 2 : 1) : null;
@@ -9172,29 +9084,29 @@ export default function App() {
               const myLaneDone = !isSpectator ? game.endPlaced?.[player]?.[i] : false;
               return (
                 <div key={i} className={`lane-card${lane.attack ? " has-combat" : ""}${game.phase === "end" && i === currentEndLane ? " is-active-lane" : ""}${game.phase === "end" && i !== currentEndLane ? " is-dimmed-lane" : ""}${canDeclareAttack && lane.facedown[player] && !lane.attack ? " is-legal-lane" : ""}`} style={{ border: `2px solid ${lane.attack ? oppTheme.border : "#111"}`, borderRadius: 8, padding: 7, minHeight: lane.attack || lane.block.length > 0 ? 170 : 132, background: lane.attack ? "#fff7f7" : "#fafafa", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", fontSize: 12 }}>
-                  <p style={{ fontSize: 14, margin: "0 0 5px 0" }}><strong>Lane {i + 1}</strong></p>
+                  <p className="app-layout-180"><strong>Lane {i + 1}</strong></p>
                   {!isSpectator ? (
-                    <div style={{ display: "grid", gap: 5 }}>
+                    <div className="app-layout-181">
                       <LaneCardLabel label="Your lane card" card={lane.facedown[player]} />
                       <LaneCardLabel label="Opponent lane card" card={lane.facedown[player === 1 ? 2 : 1]} hidden={!!lane.facedown[player === 1 ? 2 : 1]} />
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gap: 5 }}>
+                    <div className="app-layout-181">
                       <LaneCardLabel label="Player 1 lane card" card={lane.facedown[1]} hidden={!!lane.facedown[1]} />
                       <LaneCardLabel label="Player 2 lane card" card={lane.facedown[2]} hidden={!!lane.facedown[2]} />
                     </div>
                   )}
                   {(lane.attack || lane.block.length > 0) && (
-                    <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
+                    <div className="app-layout-182">
                       {lane.attack && <div><strong>Attack:</strong> P{lane.attack.player} {getCardShortLabel(lane.attack.card)} ({lane.attack.effectiveValue})</div>}
                       {lane.attack?.notes?.length > 0 && <div><strong>Bonuses:</strong> {lane.attack.notes.join(", ")}</div>}
-                      {lane.block.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} style={{ marginRight: 8 }}>P{entry.player}:{getCardShortLabel(entry.card)} ({entry.effectiveValue || 0})</span>)}</div>}
+                      {lane.block.length > 0 && <div><strong>Blocks:</strong> {lane.block.map((entry, idx) => <span key={idx} className="app-layout-183">P{entry.player}:{getCardShortLabel(entry.card)} ({entry.effectiveValue || 0})</span>)}</div>}
                     </div>
                   )}
-                  {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
-                  {defenderMayBlock && lane.attack && iAmDefender && lane.block.length === 0 && <div style={{ marginTop: 10 }}><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
-                  {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && !lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => startPlacement(i)} style={{ marginRight: 8 }}>Place Facedown Here</button><button onClick={() => skipPlacement(i)}>Skip This Lane</button></div>}
-                  {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && lane.facedown[player] && <div style={{ marginTop: 10 }}><button onClick={() => skipPlacement(i)}>Lane Already Filled - Mark Done</button></div>}
+                  {!isSpectator && canDeclareAttack && !lane.attack && lane.facedown[player] && <div className="app-layout-184"><button onClick={() => startAttackFromLane(i)}>Attack from Lane</button></div>}
+                  {defenderMayBlock && lane.attack && iAmDefender && lane.block.length === 0 && <div className="app-layout-184"><button onClick={() => startBlockLaneAttack(i)}>Block This Lane Attack</button></div>}
+                  {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && !lane.facedown[player] && <div className="app-layout-184"><button onClick={() => startPlacement(i)} className="app-layout-183">Place Facedown Here</button><button onClick={() => skipPlacement(i)}>Skip This Lane</button></div>}
+                  {!isSpectator && game.phase === "end" && i === currentEndLane && isMyEndPlacementTurn && !myLaneDone && lane.facedown[player] && <div className="app-layout-184"><button onClick={() => skipPlacement(i)}>Lane Already Filled - Mark Done</button></div>}
                 </div>
               );
             })}

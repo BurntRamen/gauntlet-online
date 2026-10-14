@@ -132,16 +132,17 @@ test("database guards prevent silent rewrites and unsupported schema versions fa
   assert.throws(() => createGoldEconomy({ ...f.options, filename: future }), /Unsupported/);
 });
 test("simultaneous separate processes cannot exceed claim or purchase limits", async (t) => {
-  const f = fixture(t); f.economy.player(account); const configPath = path.join(f.dir, "release.json"); fs.writeFileSync(configPath, JSON.stringify(f.release()));
+  const f = fixture(t, { legacyGoldImport: true }); const configPath = path.join(f.dir, "release.json"); fs.writeFileSync(configPath, JSON.stringify(f.release()));
   const run = (operation, input) => new Promise((resolve, reject) => {
-    const code = `const {createGoldEconomy}=require('./server/goldEconomy'); const e=createGoldEconomy({filename:process.argv[1],publication:{published:()=>JSON.parse(require('fs').readFileSync(process.argv[2]))},now:()=> '2026-10-12T12:00:00.000Z'});try{e[process.argv[3]](JSON.parse(process.argv[4]),JSON.parse(process.argv[5]));process.stdout.write('ok')}catch(err){process.stdout.write('rejected:'+err.message)}finally{e.close()}`;
-    const child = spawn(process.execPath, ["-e", code, f.filename, configPath, operation, JSON.stringify(account), JSON.stringify(input)], { cwd: path.resolve(__dirname, "../.."), windowsHide: true });
+    const code = `const {createGoldEconomy}=require('./server/goldEconomy'); const e=createGoldEconomy({filename:process.argv[1],legacyGoldImport:true,publication:{published:()=>JSON.parse(require('fs').readFileSync(process.argv[2]))},now:()=> '2026-10-12T12:00:00.000Z'});try{e[process.argv[3]](JSON.parse(process.argv[4]),JSON.parse(process.argv[5]));process.stdout.write('ok')}catch(err){process.stdout.write('rejected:'+err.message)}finally{e.close()}`;
+    const child = spawn(process.execPath, ["-e", code, f.filename, configPath, operation, JSON.stringify({ ...account, stats: { economy: { gold: 1000 } } }), JSON.stringify(input)], { cwd: path.resolve(__dirname, "../.."), windowsHide: true });
     let output = ""; child.stdout.on("data", (s) => { output += s; }); child.on("error", reject); child.on("exit", (code) => code ? reject(new Error(`Child failed ${code}`)) : resolve(output));
   });
   const claims = await Promise.all(Array.from({ length: 6 }, () => run("claim", { key: key(), awardId: "welcome" })));
-  assert.equal(claims.filter((r) => r === "ok").length, 1); assert.equal(f.economy.player(account).balance, 500);
+  assert.equal(claims.filter((r) => r === "ok").length, 1); assert.equal(f.economy.player(account).balance, 1500);
+  assert.equal(f.economy.admin().totals.imported, 1000); assert.equal(f.economy.player(account).transactions.filter(t => t.kind === "opening-balance").length, 1);
   const q = f.quote(); const purchases = await Promise.all(Array.from({ length: 6 }, () => run("purchase", { key: key(), quoteId: q.id })));
-  assert.equal(purchases.filter((r) => r === "ok").length, 1); assert.equal(f.economy.player(account).balance, 200); assert.equal(f.economy.player(account).grants.length, 1);
+  assert.equal(purchases.filter((r) => r === "ok").length, 1); assert.equal(f.economy.player(account).balance, 1200); assert.equal(f.economy.player(account).grants.length, 1);
 });
 test("analysis computes real owned finalized evidence without gating free history", () => {
   const a = record({ combatStats: { byPlayer: { 1: { damageDealt: 12 } } } });

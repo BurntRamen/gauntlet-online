@@ -1,7 +1,7 @@
+const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
-const origin = "http://127.0.0.1:4117";
 
 test("Admin publication becomes a free human event with durable Prestige and inspectable evidence", async ({ page, request, browser }) => {
   test.setTimeout(180000);
@@ -9,12 +9,12 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     // Real server-signed sessions from the isolated fixture; auth rate-limit
     // behavior is tested separately and remains enabled in this server.
     const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"))[name];
-    await target.goto(`http://127.0.0.1:3117${admin ? "/admin/gauntlet" : "/"}`);
+    await target.goto(`${clientOrigin}${admin ? "/admin/gauntlet" : "/"}`);
     await target.evaluate((token) => localStorage.setItem("gauntlet_auth_token", token), token); await target.reload();
     return token;
   }
   const token = await login(page, "simply", true), headers = { Authorization: `Bearer ${token}` };
-  const get = async (route) => (await (await request.get(`${origin}${route}`, { headers })).json());
+  const get = async (route) => (await (await request.get(`${origin}${route}`, { headers, maxRetries: 2 })).json());
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
@@ -41,7 +41,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   await createEvent("runtime-qualifier", "Runtime Classic Trial", 1, "qualifier");
   await createEvent("runtime-invitational", "Runtime Invitational", 2, "invitational");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   const publish = async (name) => { await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
   await publish("Browser official runtime event"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
@@ -79,7 +79,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     expect(before).toHaveLength(1); expect(before[0].releaseId).toBe(release); expect(before[0].evidence).toHaveLength(2);
     await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click(); await choose("Events");
     await page.getByRole("button", { name: /^Runtime Classic Trial runtime-qualifier/ }).click(); await page.getByLabel("Prestige for 0 wins", { exact: true }).fill("99"); await save();
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await publish("Later scoring definition");
+    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await publish("Later scoring definition");
     expect((await get("/api/admin/para")).awards).toEqual(before);
     await nav.getByRole("button", { name: "Competition", exact: true }).click();
     await expect(page.getByText(/12 Prestige/)).toBeVisible();

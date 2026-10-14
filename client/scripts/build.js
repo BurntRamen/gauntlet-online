@@ -9,11 +9,11 @@ require.cache[configPath].exports = (environment) => {
   // Keep maps for bundle attribution and manual debugging without downloading
   // their discovery comments in every production chunk.
   if (config.devtool === "source-map") config.devtool = "hidden-source-map";
-  // A second safe compression pass keeps the new card UI within the existing
-  // bundle budget without relaxing CRA's compatibility safeguards.
+  // Repeated standard compression reduces duplicated UI expressions without
+  // relaxing CRA's compatibility safeguards or excluding counted chunks.
   for (const plugin of config.optimization.minimizer) {
     const compress = plugin.options?.minimizer?.options?.compress;
-    if (compress && typeof compress === "object") compress.passes = 2;
+    if (compress && typeof compress === "object") compress.passes = 4;
   }
   config.optimization.splitChunks = {
     ...config.optimization.splitChunks,
@@ -30,10 +30,10 @@ require.cache[configPath].exports = (environment) => {
         priority: 15
       },
       adminShared: {
-        // Workshop panels share these small modules; count the named split in
-        // the aggregate Admin budget rather than duplicating it in each panel.
+        // Compress related workshop panels together while retaining the separate
+        // Admin entry. Every workshop byte remains in the aggregate budget.
         test: /[\\/]src[\\/]admin[\\/](?:WorkshopShell|RelatedContent)\.js$/,
-        name: "gauntlet-admin-shared",
+        name: "gauntlet-admin-workshops",
         chunks: "async",
         minChunks: 2,
         enforce: true,

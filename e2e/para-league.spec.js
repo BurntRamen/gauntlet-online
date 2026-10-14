@@ -1,6 +1,6 @@
+const { origin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
-const origin = "http://127.0.0.1:4117";
 
 test("operators author Para definitions, simulate, publish and restore without touching accounts", async ({ page, request }) => {
   test.setTimeout(120000);
@@ -10,7 +10,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   const { token } = await response.json(), headers = { Authorization: `Bearer ${token}` };
   await page.evaluate((value) => localStorage.setItem("gauntlet_auth_token", value), token);
   await page.reload();
-  const get = async (route) => (await (await request.get(`${origin}${route}`, { headers })).json());
+  const get = async (route) => (await (await request.get(`${origin}${route}`, { headers, maxRetries: 2 })).json());
   const before = { players: await get("/api/admin/players"), matches: await get("/api/admin/matches"), content: await get("/api/game-content"), authoring: await get("/api/admin/authoring") };
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
@@ -95,7 +95,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await nav.getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Previous release restored for future games.");
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await get("/api/admin/authoring")).activeReleaseId).toBe(before.authoring.activeReleaseId);
   expect(await get("/api/admin/players")).toEqual(before.players);
   expect(await get("/api/admin/matches")).toEqual(before.matches);

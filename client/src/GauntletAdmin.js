@@ -3,8 +3,9 @@ import "./GauntletAdmin.css";
 
 import { targetFromLocation } from "./admin/useWorkshopContext";
 import GauntletAuthoring from "./GauntletAuthoring";
-const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-matches" */ "./admin/MatchInspector"));
-const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/AdminSearch"));
+const Competition = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletCompetition"));
+const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/MatchInspector"));
+const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/AdminSearch"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
 const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System", "Para League & Economy", "Competition"];
 const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
@@ -39,18 +40,26 @@ function Facts({ values }) {
 }
 
 function Issues({ issues = [] }) {
-  return issues.length > 0 ? <ul className="admin-alert">{issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul> : <p className="admin-good">No failures reported by these checks.</p>;
+  return issues.length > 0 ? <ul className="admin-alert">{issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul> : <p className="admin-good">These checks reported no failures.</p>;
 }
+
+function System({ request, revision, operations }) {
+  const state = useAdminData(request, "/api/admin/system", revision);
+  return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><details className="admin-json"><summary>Schema and rules versions</summary><Facts values={data.versions} /></details><details className="admin-json"><summary>Content and runtime boundaries</summary>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></details></>}</State>
+    <details className="admin-legacy"><summary>Existing Studio operations and archive recovery</summary><p>Archive recovery requires preview and confirmation.</p>{operations}</details>
+  </>;
+}
+
 
 function Overview({ catalog, request, revision, onSelect }) {
   const system = useAdminData(request, "/api/admin/system", revision);
   const recent = useAdminData(request, "/api/admin/matches", revision);
   return <>
-    <p className="admin-lede">Choose a workspace to edit content, review players or inspect a match.</p>
+    <p className="admin-lede">Edit content, review players or inspect matches.</p>
     <State state={catalog}>{(data) => <>
       <details className="admin-json"><summary>Advanced / Technical · content and rules versions</summary><Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} /></details>
       <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content", key)}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
-      <p className="admin-note">Live content counts. Decks are templates; player decks are under Players.</p>
+      <p className="admin-note">Live counts. Player decks are under Players.</p>
       <details className="admin-json"><summary>Available game entry points</summary><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
       <p className="admin-note">Mode availability is managed in code.</p></details>
     </>}</State>
@@ -125,7 +134,7 @@ function PlayerProfile({ player, catalog, onBack, request, guard, onSaved }) {
     {section === "Campaigns" && <><h5>Campaign progress</h5>{!campaigns.length && <p>No campaign progress recorded.</p>}{campaigns.map((campaign) => {
       const chapters = catalog?.domains?.campaigns?.find((item) => item.id === campaign.factionId)?.definition?.chapters;
       return <details className="admin-player-card" key={campaign.factionId}><summary><strong>{name("factions", campaign.factionId)}</strong><span>{campaign.completedChapterIds.length} / {campaign.totalChapters} chapters cleared</span></summary>
-        {chapters ? <ul className="admin-player-rows">{chapters.map((chapter) => <li key={chapter.id}><span>{chapter.title}</span><small>{campaign.completedChapterIds.includes(chapter.id) ? "Cleared" : campaign.unlockedChapterIds.includes(chapter.id) ? "Available" : "Locked"}</small></li>)}</ul> : <p>Chapter names are unavailable. Refresh admin to reload the content catalog.</p>}
+        {chapters ? <ul className="admin-player-rows">{chapters.map((chapter) => <li key={chapter.id}><span>{chapter.title}</span><small>{campaign.completedChapterIds.includes(chapter.id) ? "Cleared" : campaign.unlockedChapterIds.includes(chapter.id) ? "Available" : "Locked"}</small></li>)}</ul> : <p>Refresh admin to reload chapter names.</p>}
       </details>;
     })}</>}
     {section === "Collection" && <><h5>Collection & unlocks</h5><Facts values={{ packCredits: unlocks.packCredits, achievements: unlocks.achievementIds?.length }} />
@@ -137,7 +146,7 @@ function PlayerProfile({ player, catalog, onBack, request, guard, onSaved }) {
         {current ? <ul className="admin-player-rows">{Object.entries(current.cardQuantities || {}).map(([id, count]) => <li key={id}><span>{name("cards", id)}</span><small>×{count}</small></li>)}</ul> : <p>Current deck version not recorded.</p>}
       </details>;
     })}</>}
-    {section === "Technical" && <><h5>Account records</h5><p className="admin-note">Permanent account identity and original records for troubleshooting.</p><Facts values={{ accountId: player.id, source: player.source, created: date(player.createdAt), lastSeen: date(player.lastSeenAt) }} /><Json value={player} title="Complete player record" /></>}
+    {section === "Technical" && <><h5>Account records</h5><p className="admin-note">Account identity and source records.</p><Facts values={{ accountId: player.id, source: player.source, created: date(player.createdAt), lastSeen: date(player.lastSeenAt) }} /><Json value={player} title="Complete player record" /></>}
   </section>;
 }
 
@@ -150,7 +159,7 @@ function Players({ request, revision, catalog, guard }) {
   const list = useRef(null);
   const state = useAdminData(request, `/api/admin/players?offset=${offset}&limit=25`, `${revision}:${reload}`);
   const select = (id) => { if (id === selectedId) return true; if (!guard.current()) return false; setSelectedId(id); setNotice(""); return true; };
-  return <><p className="admin-lede">Find a player, then open their profile to explore progress, collection and decks.</p>{notice && <p role="status" className="admin-good">{notice}</p>}<State state={state}>{(data) => {
+  return <><p className="admin-lede">Open a player profile to inspect progress, collection and decks.</p>{notice && <p role="status" className="admin-good">{notice}</p>}<State state={state}>{(data) => {
     const filtered = data.players.filter((player) => `${player.name} ${player.id}`.toLowerCase().includes(query.toLowerCase()));
     const selected = data.players.find((player) => player.id === selectedId);
     return <div className={`admin-players-layout${selected ? " has-selection" : ""}`}>
@@ -161,7 +170,7 @@ function Players({ request, revision, catalog, guard }) {
         <div className="admin-object-list">{filtered.map((player) => <button key={player.id} aria-label={`View player ${player.name}`} aria-pressed={selectedId === player.id} onClick={() => select(player.id)}><strong>{player.name}</strong><small>Last seen {date(player.lastSeenAt)}</small></button>)}</div>
         <div className="admin-actions"><button disabled={!offset} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(Math.max(0, offset - 25)); } }}>Previous players</button><button disabled={!data.hasMore} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(offset + 25); } }}>Next players</button></div>
       </div>
-      {selected ? <PlayerProfile key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => { if (select(null)) requestAnimationFrame(() => list.current?.focus()); }} /> : <div className="admin-player-empty"><h4>Select a player</h4><p>Choose a name to view their profile.</p></div>}
+      {selected ? <PlayerProfile key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => { if (select(null)) requestAnimationFrame(() => list.current?.focus()); }} /> : <div className="admin-player-empty"><h4>Select a player</h4><p>Choose a player name.</p></div>}
     </div>;
   }}</State></>;
 }
@@ -191,31 +200,7 @@ function Matches({ request, revision, onInspectContent }) {
   </>;
 }
 
-function Competition({ request, revision }) {
-  const [updated, setUpdated] = useState(0), [error, setError] = useState("");
-  const state = useAdminData(request, "/api/admin/para", `${revision}-${updated}`);
-  return <State state={state}>{(data) => !data.enabled ? <p>{data.reason}</p> : <>
-    <p>Active runtime: <code>{data.activeReleaseId}</code> · Free official entry.</p>
-    {error && <p role="alert">{error}</p>}
-    {data.events.map((event) => <article key={event.id}><h4>{event.definition.name} · {event.status}</h4>
-      <p>{event.definitionMismatch ? "Published definition differs; pinned rules retained." : "Definition matches active publication."}</p>
-      <form className="admin-actions" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget, fields = new FormData(form); try { await request("/api/admin/para/operation", { method: "POST", body: JSON.stringify({ eventId: event.id, action: fields.get("action"), reason: fields.get("reason") }) }); setError(""); setUpdated(updated + 1); } catch (failure) { setError(failure.message); } }}>
-        <label>Operation<select name="action"><option value="pause">Pause</option><option value="resume">Resume</option><option value="cancel">Cancel permanently</option></select></label>
-        <label>Reason<input name="reason" required maxLength={500} /></label><button disabled={event.status === "cancelled"}>Apply operation</button>
-      </form><Json title="Pinned event and scoring version" value={event} />
-    </article>)}
-    {data.awards.map((award) => <article key={award.id}><h4>{award.accountId} · {award.amount} Prestige</h4><p>{award.eventId} · <code>{award.releaseId}</code></p>{award.evidence.map((e) => <p key={e.matchId}>Match <code>{e.matchId}</code> · SHA-256 {e.sha256}</p>)}<Json title="Award receipt and distinctions" value={award} /></article>)}
-    {["attempts", "standings", "matches", "receipts", "failures", "audit"].map((key) => <Json key={key} title={label(key)} value={data[key]} />)}
-  </>}</State>;
-}
 
-
-function System({ request, revision, operations }) {
-  const state = useAdminData(request, "/api/admin/system", revision);
-  return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><details className="admin-json"><summary>Schema and rules versions</summary><Facts values={data.versions} /></details><details className="admin-json"><summary>Content and runtime boundaries</summary>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></details></>}</State>
-    <details className="admin-legacy"><summary>Existing Studio operations and archive recovery</summary><p>Existing collector, active-room, season and explicit archive-import tools. Recovery imports write to the archive after preview and confirmation.</p>{operations}</details>
-  </>;
-}
 
 export default function GauntletAdmin({ request, onClose, operations, exitGuard }) {
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).has("workshop") && targetFromLocation() ? "Design" : "Overview");
@@ -266,7 +251,7 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}
       {area === "Players" && <Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} />}
       {matchesOpened && <div hidden={area !== "Matches"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
-      {area === "Competition" && <Competition request={request} revision={revision} />}
+      {area === "Competition" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
       {area === "System" && <System request={request} revision={revision} operations={operations} />}
     </div>
   </section>;

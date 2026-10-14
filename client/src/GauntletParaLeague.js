@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Economy from "./GauntletEconomy";
 
@@ -36,7 +36,7 @@ function Simulator({ state, config, request, disabled }) {
   const [busy, setBusy] = useState(false);
   const event = config.events?.find((e) => e.id === eventId);
   useEffect(() => { setResult(null); }, [state.revision, runs, eventId]);
-  return <section className="admin-playtest" aria-label="Para eligibility simulator"><h4>Eligibility simulator</h4><p>Preview only. Perfect means zero losses; no records or awards change.</p>
+  return <section className="admin-playtest" aria-label="Para eligibility simulator"><h4>Eligibility simulator</h4><p>Preview only; no awards. Perfect means zero losses.</p>
     <label className="admin-search">Target event<select value={eventId} onChange={(e) => { setEventId(e.target.value); setRuns({}); }}><option value="">Choose event</option>{(config.events || []).filter((e) => e.status !== "archived").map((e) => <option key={e.id} value={e.id}>Week {e.week}: {e.name} ({e.id})</option>)}</select></label>
     {(config.events || []).filter((e) => e.seasonId === event?.seasonId && e.week < event?.week && e.eventType !== "championship" && e.status !== "archived").map((e) => <label className="admin-search" key={e.id}>Week {e.week}: {e.name}<select aria-label={`Week ${e.week}: ${e.name}`} value={runs[e.id] || ""} onChange={(change) => setRuns({ ...runs, [e.id]: change.target.value })}><option value="">No result</option>{Array.from({ length: e.winTarget + e.lossLimit }, (_, i) => i < e.winTarget ? [i, e.lossLimit] : [e.winTarget, i - e.winTarget]).map(([w, l]) => <option key={`${w}-${l}`} value={`${w}-${l}`}>{w} wins · {l} losses</option>)}</select></label>)}
     <button disabled={disabled || busy || !event || !state.validation.valid} onClick={async () => {
@@ -44,7 +44,7 @@ function Simulator({ state, config, request, disabled }) {
       try { setResult(await request("/api/admin/authoring/para-simulate", { method: "POST", body: JSON.stringify({ expectedRevision: state.revision, seasonId: event.seasonId, eventId, results: Object.entries(runs).filter(([, value]) => value).map(([id, value]) => { const [wins, losses] = value.split("-").map(Number); return { eventId: id, wins, losses }; }) }) })); }
       catch (failure) { setError(failure.message); } finally { setBusy(false); }
     }}>{busy ? "Simulating…" : "Simulate saved rules"}</button>
-    {error && <p role="alert">{error}</p>}{result && <div role="status"><p>Qualifying Prestige: {result.qualifyingPrestige} · Combined Prestige: {result.combinedPrestige}</p><p>Score requirement: {result.targetEligibleByScore ? "met" : "not met"}. Preview only; enter through Para League.</p><p>Counted events: {result.countedEventIds.join(", ") || "None"}. Gold: 0 · Gems: 0.</p></div>}
+    {error && <p role="alert">{error}</p>}{result && <div role="status"><p>Qualifying Prestige: {result.qualifyingPrestige} · Combined Prestige: {result.combinedPrestige}</p><p>Requirement: {result.targetEligibleByScore ? "met" : "not met"}. Enter through Para League.</p><p>Counted events: {result.countedEventIds.join(", ") || "None"}. Gold: 0 · Gems: 0.</p></div>}
   </section>;
 }
 
@@ -71,18 +71,18 @@ export default function GauntletParaLeague({ state, act, busy, request, onDirty,
     {!domain ? <><h4>Configuration overview</h4><p>Review definitions in Publishing before activation.</p><ul>{state.para.invariants.map((text) => <li key={text}>{text}</li>)}</ul>
       <button disabled={disabled || Object.values(config).some((rows) => Array.isArray(rows) && rows.length)} onClick={() => mutate({ operation: "seed" })}>Create Season Zero draft</button>
       <dl className="admin-facts">{Object.keys(state.para.fields).map((key) => <div key={key}><dt>{key}</dt><dd>{config[key]?.length || 0} proposals</dd></div>)}</dl>
-    </> : <><p className="admin-note">{tab === "Prestige" ? "Edit awards and simulate; thresholds are in Seasons." : "Save typed definitions to the shared draft. Archive retains history."}</p>
+    </> : <><p className="admin-note">{tab === "Prestige" ? "Edit awards and simulate; thresholds are in Seasons." : "Save to the shared draft. Archiving preserves history."}</p>
       <div className="admin-actions"><label className="admin-search">Search definitions<input value={query} onChange={(e) => setQuery(e.target.value)} /></label><label>Filter state<select value={filter} onChange={(e) => setFilter(e.target.value)}><option value="all">All</option><option value="current">Unarchived</option><option value="archived">Archived</option></select></label>
         <button disabled={disabled} onClick={() => { if (leave()) { const row = copy(state.para.templates[domain]); row.seasonId = Object.hasOwn(row, "seasonId") && domain !== "entitlements" ? config.seasons?.[0]?.id || "" : row.seasonId; if (!Object.hasOwn(state.para.templates[domain], "seasonId")) delete row.seasonId; setEditor({ row, original: null }); } }}>New {domain === "awards" ? "Gold award" : domain.slice(0, -1)}</button></div>
       <div className="admin-authoring-layout"><div className="admin-object-list">{(config[domain] || []).filter((row) => `${row.id} ${row.name}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || (row.status === "archived") === (filter === "archived"))).map((row) => <button key={row.id} onClick={() => { if (leave()) setEditor({ row: copy(row), original: copy(row) }); }}><strong>{row.name}</strong><small>{row.id} · {row.status || row.provenance}</small></button>)}</div>
         <section className="admin-editor" aria-label="Para definition editor">{editor ? <><h4>{editor.original ? "Edit definition" : "New definition"} · {dirty ? "Unsaved" : state.draft ? "Saved draft" : "Published proposal"}</h4><form className="admin-contract-fields" onSubmit={(e) => { e.preventDefault(); mutate({ operation: editor.original ? "update" : "create", domain, id: editor.row.id, value: editor.row }); }}>
           {Object.entries(state.para.fields[domain]).map(([key, field]) => <Field key={key} id={`para-${domain}-${key}`} field={field} value={editor.row[key]} onChange={(value) => update(key, value)} config={config} assets={state.assetLibrary} disabled={disabled || (key === "id" && !!editor.original)} />)}
           <div className="admin-actions"><button type="submit" disabled={disabled || !dirty}>Save definition to draft</button><button type="button" onClick={() => { if (leave()) setEditor(null); }}>Close definition</button>{editor.original && Object.hasOwn(editor.row, "status") && <button type="button" disabled={disabled || dirty || editor.row.status === "archived"} onClick={() => mutate({ operation: "archive", domain, id: editor.row.id })}>Archive definition</button>}</div>
-        </form>{editor.original && <div className="admin-actions"><label className="admin-search">Duplicate ID<input value={duplicateId} onChange={(e) => setDuplicateId(e.target.value)} /></label><button disabled={disabled || dirty || !duplicateId} onClick={() => mutate({ operation: "duplicate", domain, id: duplicateId, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>Select or create a definition. Duplication requires a new ID and clears dates.</p>}</section></div>
+        </form>{editor.original && <div className="admin-actions"><label className="admin-search">Duplicate ID<input value={duplicateId} onChange={(e) => setDuplicateId(e.target.value)} /></label><button disabled={disabled || dirty || !duplicateId} onClick={() => mutate({ operation: "duplicate", domain, id: duplicateId, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>Choose a definition. Copies need a new ID; dates reset.</p>}</section></div>
     </>}
 
     {["Overview", "Seasons", "Events"].includes(tab) && <section><h4>Proposed calendar</h4><ol>{(config.events || []).slice().sort((a, b) => a.week - b.week).map((e) => <li key={e.id}>Week {e.week} · {e.name} · {e.winTarget}/{e.lossLimit} · {e.startsAt || "Unscheduled"} · {e.status}</li>)}</ol></section>}
     {["Events", "Prestige"].includes(tab) && <Simulator state={state} config={config} request={request} disabled={disabled || dirty} />}
-    {(["Overview", "Gold Awards", "Marketplace", "Entitlements"].includes(tab) || preview) && <Suspense fallback={<p role="status">Loading Economy…</p>}><Economy request={request} tab={tab} catalog={state.para.catalog} summary={state.para.summary} preview={preview} /></Suspense>}
+    {(["Overview", "Gold Awards", "Marketplace", "Entitlements"].includes(tab) || preview) && <Economy request={request} tab={tab} catalog={state.para.catalog} summary={state.para.summary} preview={preview} />}
   </div>;
 }
