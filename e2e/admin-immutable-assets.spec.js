@@ -1,6 +1,6 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto"), { spawn } = require("node:child_process"), sharp = require("sharp");
-const serverUrl = "http://127.0.0.1:4117", cardId = "rumin-vault-shield-bearer";
+const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, cardId = "rumin-vault-shield-bearer";
 const artifactRoot = path.resolve(__dirname, "../artifacts/immutable-assets");
 let child, root;
 async function start() {

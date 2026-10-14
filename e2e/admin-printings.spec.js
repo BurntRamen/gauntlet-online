@@ -1,6 +1,6 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process"), sharp = require("sharp");
-const serverUrl = "http://127.0.0.1:4117", cardId = "rumin-vault-shield-bearer", artifactRoot = path.resolve(__dirname, "../artifacts/printings/browser");
+const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, cardId = "rumin-vault-shield-bearer", artifactRoot = path.resolve(__dirname, "../artifacts/printings/browser");
 let child, root;
 async function start() {
   child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PRINTING_FIXTURE: "true" }, windowsHide: true, stdio: ["ignore", "pipe", "pipe", "ipc"] });

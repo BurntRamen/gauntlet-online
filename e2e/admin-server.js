@@ -9,7 +9,7 @@ Object.assign(process.env, {
   ACCOUNT_DATA_FILE: path.join(root, "accounts.json"), MATCH_DATA_FILE: path.join(root, "matches.json"),
   MATCH_ARCHIVE_DATA_DIR: path.join(root, "archive"), FACTION_STATS_DATA_FILE: path.join(root, "factions.json"),
   ROOM_STATE_DATA_FILE: path.join(root, "rooms.json"), ROOM_STATE_RECOVERY_ENABLED: "false",
-  ACCOUNT_AUTH_SECRET: "isolated-admin-browser-test-secret", NODE_ENV: "test", CLIENT_URL: "http://127.0.0.1:3117",
+  ACCOUNT_AUTH_SECRET: "isolated-admin-browser-test-secret", NODE_ENV: "test", CLIENT_URL: `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_CLIENT_PORT || 3117}`,
   GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   GAUNTLET_ADMIN_BURNT_RAMEN_ACCOUNT_ID: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
 });
@@ -74,7 +74,7 @@ function stopFixture() {
   server.close(() => process.exit(0));
   for (const socket of fixtureConnections) socket.destroy();
 }
-server.listen(4117, "127.0.0.1", () => console.log("Isolated admin fixture server ready"));
+server.listen(Number(process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117), "127.0.0.1", () => console.log("Isolated admin fixture server ready"));
 process.once("SIGTERM", stopFixture);
 process.once("SIGINT", stopFixture);
 // IPC exercises the same shutdown on Windows, where kill() skips signal handlers.

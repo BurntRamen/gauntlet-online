@@ -349,11 +349,11 @@ Each directly reported advisory is linked below. Wrapper entries inherit the lis
 - undefined@undefined → socket.io@4.8.3 → socket.io-parser@4.2.7 (`node_modules/socket.io-parser`).
 - undefined@undefined → socket.io@4.8.3 → engine.io@6.6.11 → ws@8.21.3 (`node_modules/ws`).
 
-## Purpose-connected pass refresh (12 October 2026)
+## Purpose-connected pass refresh (14 October 2026)
 
-Audits were rerun against all three actual lockfiles after the new PostgreSQL test dependency and compatible refresh. Root and server remain zero findings. Client remains 99 affected packages (63 high, 33 moderate, 3 low; zero critical), representing 25 unique advisory URLs and 13 directly advised packages. Raw results: `artifacts/purpose/audit-root-final.json`, `audit-server-final.json`, `audit-client-final.json`. Targeted compatible refresh of braces, node-forge, postcss, sprintf-js and underscore reported up to date; it did not resolve these findings. No forced upgrade, override, suppression or threshold reduction was applied.
+Audits were rerun against all three actual lockfiles after the PostgreSQL test dependency, compatible refresh and npm 10 lockfile repair. Root and server remain zero findings. Client remains 99 affected packages (63 high, 33 moderate, 3 low; zero critical), representing 25 unique advisory URLs and 13 directly advised packages. Latest raw results: `artifacts/purpose/audit-root-resume.json`, `audit-server-resume.json`, `audit-client-resume.json`. Targeted compatible refresh of braces, node-forge, postcss, sprintf-js and underscore reported up to date; it did not resolve these findings. The repaired lockfile passed CI clean install and all 734 client tests at `74fd6e7`. No forced upgrade, override, suppression or threshold reduction was applied.
 
-The user authorized deployment, but that does not supply evidence to clear this production-readiness blocker. The PR audit gate checks all three lockfiles after regression/browser checks. New deck purchases independently remain fail-closed until Case applies the account concurrency migration. The actual current production repository was read-only checked and is public; private GitHub uploads/notes are therefore blocked, with visibility unchanged.
+The user authorized deployment, but that does not supply evidence to clear this production-readiness blocker. The PR audit job checks all three committed lockfiles independently of regression/browser jobs; failing tests can no longer hide its result. New deck purchases independently remain fail-closed until Case applies the account concurrency migration. The production repository was read-only checked and is public; private GitHub uploads/notes are therefore blocked, with visibility unchanged.
 
 ### Bounded next security workstream
 
