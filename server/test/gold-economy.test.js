@@ -188,6 +188,10 @@ test("legacy Gold imports once outside seasonal caps and preserves original curr
   const opening = f.economy.player(later).transactions.filter(row => row.kind === "opening-balance");
   assert.equal(opening.length, 1); assert.deepEqual(opening[0].sourceSnapshot, legacy.stats.economy);
   assert.equal(f.economy.admin().totals.imported, 1200000);
+  const backup = path.join(f.dir, "opening-backup.sqlite");
+  require("../../scripts/backup-gold-ledger").backupGoldLedger(f.filename, backup);
+  const recovered = createGoldEconomy({ ...f.options, filename: backup });
+  try { assert.deepEqual(recovered.player(later), f.economy.player(later)); } finally { recovered.close(); }
   const db = new DatabaseSync(f.filename);
   assert.throws(() => db.exec("UPDATE gold_openings SET delta=0"), /immutable/); db.close();
 });
@@ -198,4 +202,41 @@ test("unapproved or invalid legacy imports fail closed without partial bindings 
   const invalid = fixture(t, { legacyGoldImport: true });
   for (const gold of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, "500"]) assert.throws(() => invalid.economy.player({ ...account, stats: { economy: { gold } } }), /invalid/);
   assert.equal(invalid.economy.admin().totals.balance, 0);
+});
+
+test("version 1 ledger upgrades without rewriting its receipts or grants", (t) => {
+  const f = fixture(t); f.claim(); const purchase = f.buy();
+  // A version 1 database predates the separate opening-balance table.
+  const legacyFile = path.join(f.dir, "v1.sqlite"); f.economy.backup(legacyFile);
+  const db = new DatabaseSync(legacyFile); db.exec("DROP TABLE gold_openings; PRAGMA user_version=1"); db.close();
+  const upgraded = createGoldEconomy({ ...f.options, filename: legacyFile });
+  try {
+    assert.equal(upgraded.player(account).balance, 200);
+    assert.deepEqual(upgraded.player(account).purchases, [purchase]);
+    assert.equal(upgraded.access(account, purchase.entitlementIds[0]).delivery.kind, "analysis");
+    assert.equal(upgraded.player(account).transactions.filter(row => row.kind === "opening-balance").length, 1);
+  } finally { upgraded.close(); }
+});
+
+test("existing legacy runs retain their rewards before the finite wallet opens", (t) => {
+  const f = fixture(t, { legacyGoldImport: true });
+  const { EVENT_DEFINITIONS, applyEventResult } = require("../events"), event = EVENT_DEFINITIONS[0];
+  const legacy = { ...account, stats: { economy: { gold: 1200 }, events: { runs: { [event.id]: { id: "existing-run", eventId: event.id, status: "active", wins: 0, losses: 0, claimedTiers: [] } } } } };
+  assert.equal(f.economy.wallet(legacy).source, "legacy-event-settlement");
+  assert.throws(() => f.economy.player(legacy), /Finish or resign/);
+  assert.equal(f.economy.admin().accounts.length, 0);
+  const result = applyEventResult(legacy.stats, event.id, "existing-run", "win");
+  legacy.stats.events = result.progress;
+  legacy.stats.economy.gold += result.rewards.reduce((sum, row) => sum + row.gold, 0);
+  legacy.stats.events.runs[event.id].status = "complete";
+  assert.equal(f.economy.player(legacy).balance, 1700);
+  assert.equal(f.economy.player(legacy).seasons[0].issued, 0);
+});
+
+test("credits cannot overflow an imported exact-integer balance", (t) => {
+  const f = fixture(t, { legacyGoldImport: true }), legacy = { ...account, stats: { economy: { gold: Number.MAX_SAFE_INTEGER } } };
+  assert.equal(f.economy.player(legacy).balance, Number.MAX_SAFE_INTEGER);
+  assert.throws(() => f.economy.claim(legacy, { key: key(), awardId: "welcome" }), /integer range/);
+  assert.equal(f.economy.player(legacy).balance, Number.MAX_SAFE_INTEGER);
+  assert.equal(f.economy.admin().claims.length, 0);
 });

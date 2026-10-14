@@ -28,6 +28,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
   };
   const owned = (table, accountId) => rows(table, "WHERE account_id=?", [accountId]);
   const audit = (action, actorId, facts) => put("audit", { id: id(), at: now(), action, actorId, ...facts });
+  const pendingLegacyRuns = (account) => Object.values(require("./events").normalizeEventProgress(account.stats || {}).runs).some(run => run.status === "active");
   function transaction(work) {
     db.exec("BEGIN IMMEDIATE");
     try { const result = work(); db.exec("COMMIT"); return result; }
@@ -39,6 +40,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
     if (previous && previous.createdAt !== identity.createdAt) fail("Account identity changed; operator recovery is required.", 403);
     if (!previous) put("accounts", { ...identity, boundAt: now() });
     if (!get("openings", account.id)) {
+      if (pendingLegacyRuns(account)) fail("Finish or resign existing legacy event runs before opening Gold & Library. Their earned Gold will be included in your opening balance.");
       const source = account.stats?.economy || {}, amount = source.gold ?? 0;
       if (!Number.isSafeInteger(amount) || amount < 0) fail("Legacy Gold is invalid; operator recovery is required.", 503);
       if (amount && !legacyGoldImport) fail("Existing Gold requires the approved opening-balance migration before this wallet can open.", 503);
@@ -233,7 +235,12 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
         claims: rows("claims"), evidence: rows("evidence"), purchases: rows("purchases"), grants: accounts.flatMap((a) => grants(a.id)), transactions, audit: rows("audit"), refunds: rows("refunds") };
     });
   }
-  return { enabled: true, status: () => status, wallet: (account) => transaction(() => { bind(account); return { gold: balance(account.id), source: "finite-gold-ledger", daily: { quests: [] } }; }), ingest, claim, quote, purchase, access, operate, player, admin,
+  return { enabled: true, status: () => status, wallet: (account) => transaction(() => {
+    // Keep login and existing runs usable until their promised rewards settle.
+    // New legacy runs are closed by the route layer before migration starts.
+    if (!get("openings", account.id) && pendingLegacyRuns(account)) return { source: "legacy-event-settlement", daily: { quests: [] } };
+    bind(account); return { gold: balance(account.id), source: "finite-gold-ledger", daily: { quests: [] } };
+  }), ingest, claim, quote, purchase, access, operate, player, admin,
     failed: (matchId, error) => audit("evidence-import-failed", null, { matchId, reason: error.message }),
     backup: (destination) => db.prepare("VACUUM INTO ?").run(destination), close: () => db.close() };
 }

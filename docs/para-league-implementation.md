@@ -1,5 +1,50 @@
 # Para League runtime and Economy Admin handoff
 
+## Live integration status (2026-10-14)
+
+Release work is in the isolated `codex/para-gold-live` worktree, integrated with
+`804d9fe467b69bbfad8f6204a09403fca9753dce` from current main. The original dirty
+checkout and its two Para patches remain preserved. Historical sections below
+describe the earlier local implementation; their old counts and provider limitations
+are not claims about this release.
+
+The user authorized production deployment and importing existing Gold as opening
+balances outside seasonal earning caps. No new season, award, storefront offer,
+Gem checkout or paid infrastructure is activated by this code release.
+
+Current-main integration retains the existing gameplay, voice assets, legacy events,
+account/collector ownership and GitHub publishing adapter. Para definitions now use
+that adapter's shared drafts, review, checks, merge and deployment lifecycle. Runtime
+configuration stays on the exact packaged deployed release, including while a newer
+release is pending. Admin release review includes each Para/Gold field and compares
+rollback additions/removals. Competition retains pause/resume/cancel and pinned evidence.
+
+Gold schema version 2 adds immutable opening balances separately from earned
+transactions. The approved policy is `GAUNTLET_GOLD_MIGRATION=legacy-opening-v1`.
+Account ID and creation time remain bound; each account imports once on first wallet
+access. Its original economy snapshot and digest are retained, premium balances and
+historical purchases stay in the account store, and the opening amount never consumes
+a seasonal budget. Invalid amounts and arithmetic overflow fail without partial writes.
+Version 1 ledgers upgrade in place; backups include opening balances and grants.
+
+With the new ledger enabled, repeatable daily Gold, new legacy event runs, gameplay-pack
+currency purchases and premium fulfillment routes retire. Already-active legacy runs
+remain playable and retain their promised rewards. Login remains available; Gold &
+Library waits until those runs finish or are resigned, then imports the resulting
+balance once. Before enabling migration, quiesce all old server writers and take
+coordinated account/ledger backups. This is not a cross-database atomic migration.
+Never roll back to old writers after cutover without reconciling ledger changes.
+
+Production still requires verified persistent private storage for
+`GAUNTLET_ECONOMY_DATA_DIR` and `GAUNTLET_PARA_DATA_DIR`, a single ledger-owning service,
+and qualified canonical match persistence and restore procedures. Unconfigured
+runtime features fail closed and existing live economy behavior continues. The public
+storage diagnostic reports feature enablement without paths or credentials. Deployment
+of the interface alone does not prove durable operational wallets or official events.
+
+Verification and deployment evidence for this integrated release will be recorded
+at the end of this document.
+
 Updated 2026-10-12. Branch: `codex/para-league-economy`; starting commit: `bc1b7e7`.
 
 **Current handoff:** see [Operational Gold and usable entitlements](#operational-gold-and-usable-entitlements) below.

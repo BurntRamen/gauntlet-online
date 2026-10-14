@@ -323,6 +323,8 @@ app.get("/api/storage-status", async (_req, res) => {
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
       matchArchive: archiveStorage,
+      paraLeague: { enabled: !!paraRuntime?.enabled },
+      goldEconomy: { enabled: !!goldEconomy?.enabled, openingBalancePolicy: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1" ? "legacy-opening-v1" : "disabled" },
       supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
     });
   } catch (error) {
@@ -2725,7 +2727,7 @@ function applyProgressionForResult(stats, result, context = {}) {
         collection.packCredits += credits;
         collection.earnedPackCredits += credits;
         const gold = Math.max(0, Number(reward.gold || 0));
-        if (gold && !goldEconomy?.enabled) {
+        if (gold) {
           const economy = normalizeEconomy(stats, { now });
           economy.gold += gold;
           economy.totals.goldEarned += gold;
@@ -3759,6 +3761,9 @@ app.post("/api/events/:eventId/join", async (req, res) => {
   }
   try {
     const stats = context.account.stats || {};
+    if (goldEconomy?.enabled && normalizeEventProgress(stats).runs[event.id]?.status !== "active") {
+      return res.status(409).json({ error: "New legacy event runs are closed. Existing runs retain their rewards; official events are available through Para League." });
+    }
     const started = startEventRun(stats, event.id);
     if (started.created) {
       const collection = normalizeCollection(stats);

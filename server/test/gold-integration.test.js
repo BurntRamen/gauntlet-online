@@ -35,7 +35,12 @@ test("Admin-authored published award and real service complete earn-purchase-acc
   await newRow("entitlements", { id: "test-analysis-content", name: "Personal evidence analysis", category: "analytics", provenance: "commercial", asset: ANALYSIS, rightsReference: "First-party aggregation of owned canonical matches", fulfillment: "available" });
   await newRow("products", { id: "test-analysis", name: "Personal evidence analysis", category: "analytics", status: "active", entitlements: ["test-analysis-content"], goldPrice: 200, ...window });
   assert.equal((await api("/api/economy/claim", { key: "prepublication", awardId: "test-training" }, 2)).status, 404);
-  await author("preview"); const published = await author("publish", { label: "Operational Gold test release" });
+  await author("preview");
+  const review = (await api("/api/admin/workshops/review")).data;
+  assert.equal(review.readiness.ready, true);
+  assert.equal(review.readiness.engineTestRequired, false);
+  assert.ok(review.groups.find(group => group.id === "para-economy").changes.some(change => change.id === "test-analysis" && change.field === "goldPrice" && change.after === 200));
+  const published = await author("publish", { label: "Operational Gold test release" });
   const claim = await api("/api/economy/claim", { key: "verified-training", awardId: "test-training" }, 2); assert.equal(claim.status, 200, JSON.stringify(claim.data)); assert.match(claim.data.view.summary, /^700 Gold/);
   assert.equal((await api("/api/economy/claim", { key: "another-training", awardId: "test-training" }, 2)).status, 409);
   const q = await api("/api/economy/quote", { key: "quote-analysis", productId: "test-analysis" }, 2); assert.equal(q.status, 200);
@@ -71,4 +76,7 @@ test("the migrated player wallet preserves opening Gold and Gems while retiring 
   assert.equal((await api("/api/admin/economy/fulfill-timetwisters", { productId: "timetwisters-750", transactionId: "new-cash" }, 0)).status, 409);
   assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), before);
   assert.equal(__test.goldEconomy.player(accounts[3]).transactions.filter(t => t.kind === "opening-balance").length, 1);
+  const eventId = require("../events").EVENT_DEFINITIONS[0].id;
+  const denied = await api(`/api/events/${eventId}/join`, {}, 3);
+  assert.equal(denied.status, 409); assert.match(denied.data.error, /New legacy event runs are closed/);
 });

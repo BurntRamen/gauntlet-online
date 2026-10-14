@@ -223,7 +223,7 @@ function registerParaRoutes(app, runtime, requireAccount) {
     try {
       const account = admin ? req.gauntletAdminAccount : (await requireAccount(req, res))?.account;
       if (!account) { if (!res.headersSent) res.status(403).json({ error: "Account required." }); return; }
-      if (!runtime.enabled) return res.status(method === "get" ? 200 : 503).json(runtime.status());
+      if (!runtime.enabled) return res.status(method === "get" ? 200 : 503).json(admin ? runtime.status() : { enabled: false, reason: "Official Para League registration is not available yet." });
       res.json(await operation(account.id, req.body || {}));
     } catch (error) { res.status(error.status || 503).json({ error: error.status ? error.message : "Para storage unavailable. Refresh before retrying." }); }
   });

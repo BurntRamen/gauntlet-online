@@ -6,7 +6,7 @@ import GauntletAuthoring from "./GauntletAuthoring";
 const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-matches" */ "./admin/MatchInspector"));
 const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/AdminSearch"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
-const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System", "Para League & Economy"];
+const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System", "Para League & Economy", "Competition"];
 const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
 const DOMAINS = { campaigns: "Campaigns", encounters: "Encounters", factions: "Factions", cards: "Cards", decks: "Decks", characters: "Characters / opponents" };
 const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
@@ -191,6 +191,25 @@ function Matches({ request, revision, onInspectContent }) {
   </>;
 }
 
+function Competition({ request, revision }) {
+  const [updated, setUpdated] = useState(0), [error, setError] = useState("");
+  const state = useAdminData(request, "/api/admin/para", `${revision}-${updated}`);
+  return <State state={state}>{(data) => !data.enabled ? <p>{data.reason}</p> : <>
+    <p>Active runtime: <code>{data.activeReleaseId}</code> · Free official entry.</p>
+    {error && <p role="alert">{error}</p>}
+    {data.events.map((event) => <article key={event.id}><h4>{event.definition.name} · {event.status}</h4>
+      <p>{event.definitionMismatch ? "Published definition differs; pinned rules retained." : "Definition matches active publication."}</p>
+      <form className="admin-actions" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget, fields = new FormData(form); try { await request("/api/admin/para/operation", { method: "POST", body: JSON.stringify({ eventId: event.id, action: fields.get("action"), reason: fields.get("reason") }) }); setError(""); setUpdated(updated + 1); } catch (failure) { setError(failure.message); } }}>
+        <label>Operation<select name="action"><option value="pause">Pause</option><option value="resume">Resume</option><option value="cancel">Cancel permanently</option></select></label>
+        <label>Reason<input name="reason" required maxLength={500} /></label><button disabled={event.status === "cancelled"}>Apply operation</button>
+      </form><Json title="Pinned event and scoring version" value={event} />
+    </article>)}
+    {data.awards.map((award) => <article key={award.id}><h4>{award.accountId} · {award.amount} Prestige</h4><p>{award.eventId} · <code>{award.releaseId}</code></p>{award.evidence.map((e) => <p key={e.matchId}>Match <code>{e.matchId}</code> · SHA-256 {e.sha256}</p>)}<Json title="Award receipt and distinctions" value={award} /></article>)}
+    {["attempts", "standings", "matches", "receipts", "failures", "audit"].map((key) => <Json key={key} title={label(key)} value={data[key]} />)}
+  </>}</State>;
+}
+
+
 function System({ request, revision, operations }) {
   const state = useAdminData(request, "/api/admin/system", revision);
   return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><details className="admin-json"><summary>Schema and rules versions</summary><Facts values={data.versions} /></details><details className="admin-json"><summary>Content and runtime boundaries</summary>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></details></>}</State>
@@ -241,12 +260,13 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
     <header className="admin-header"><div><span className="admin-eyebrow">Private operator workspace</span><h3>Gauntlet Admin</h3><p>Design content, inspect players, and manage releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
     <Suspense fallback={null}><AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} /></Suspense>
     <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index] || ICONS[0]} /></svg>{name}</button>)}</nav>
-    <div className="admin-body"><div className="admin-title-row" hidden={area === "Design"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
+    <div className="admin-body"><div className="admin-title-row" hidden={area === "Design"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "Competition" ? "Official event operations" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
       {area === "Design" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
       {area === "Overview" && <Overview catalog={catalog} request={request} revision={revision} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}
       {area === "Players" && <Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} />}
       {matchesOpened && <div hidden={area !== "Matches"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
+      {area === "Competition" && <Competition request={request} revision={revision} />}
       {area === "System" && <System request={request} revision={revision} operations={operations} />}
     </div>
   </section>;

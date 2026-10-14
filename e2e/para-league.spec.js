@@ -65,7 +65,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await nav.getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Unsaved edit");
-  await page.getByRole("button", { name: "Back to Gauntlet", exact: true }).click();
+  await page.getByRole("button", { name: "Close admin", exact: true }).click();
   await page.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Unsaved edit");
   await page.getByLabel("Name", { exact: true }).fill("Browser season");

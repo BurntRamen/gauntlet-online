@@ -10,7 +10,7 @@ const grantColumns = ["Grant", "Account", "Content", "Source purchase", "Acquire
 const grantRow = (g) => [g.id, g.accountId, g.term.name, g.purchaseId, g.acquiredAt, g.expiresAt || "Permanent", g.state, g.releaseId];
 const transactions = (rows) => table("Gold transactions", ["Transaction", "Account", "Kind", "Gold", "Season", "Receipt / claim", "At", "Reason"], rows.map((t) => [t.id, t.accountId, t.kind, t.delta, t.seasonId, t.purchaseId || t.claimId, t.at, t.reason]));
 function playerView(data) {
-  if (!data.enabled) return { title: "Gold & Library", summary: data.reason };
+  if (!data.enabled) return { title: "Gold & Library", summary: "Gold & Library is not available yet. Your existing balance and collection are unchanged." };
   return { title: "Gold & Library", summary: `${data.balance} Gold · Published release ${data.activeReleaseId}. Gold buys optional digital content only. Basic history, replay, Para entry and the legal card pool remain free.`,
     tables: [table("Seasonal Gold eligibility", ["Season", "Issued", "Cap", "Remaining", "Pinned release"], data.seasons.map((s) => [s.id, s.issued, s.budget, Math.max(0, s.budget - s.issued), s.releaseId])),
       table("Gold awards", ["Award", "Gold", "Progress", "Claims", "Eligibility", "Release", "Terms"], data.awards.map((a) => [a.name, a.amount, `${a.progress}/${a.minimumOccurrences}`, `${a.claimed}/${a.claimLimit}`, a.reason, a.releaseId, a.currentDefinitionChanged ? "Original terms pinned" : "Current"])),
