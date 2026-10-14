@@ -184,6 +184,8 @@ const {
 } = require("./collectorEntitlements");
 
 let contentPublication = null;
+let paraRuntime = null;
+let goldEconomy = null;
 function getPublicGameContent() { return contentPublication ? contentPublication.active().manifest : getSourceGameContent(); }
 const { createAuthoredBaseline, pinGameContent } = require("./authoredContent");
 const { createContentPublication, registerContentPublicationRoutes } = require("./contentPublication");
@@ -321,6 +323,8 @@ app.get("/api/storage-status", async (_req, res) => {
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
       matchArchive: archiveStorage,
+      paraLeague: { enabled: !!paraRuntime?.enabled },
+      goldEconomy: { enabled: !!goldEconomy?.enabled, openingBalancePolicy: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1" ? "legacy-opening-v1" : "disabled" },
       supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
     });
   } catch (error) {
@@ -1754,14 +1758,15 @@ function economySummary(stats = {}) {
 function publicAccount(account) {
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
+  const economy = { ...economySummary(stats), ...(goldEconomy?.enabled ? goldEconomy.wallet(account) : {}) };
   return {
     id: account.id,
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
     profile: publicAccountProfile(account),
-    stats: publicAccountStats(stats),
-    economy: economySummary(stats),
+    stats: { ...publicAccountStats(stats), economy },
+    economy,
     progression: progressionSummary(stats),
     collection: collectionSummary(stats),
     events: normalizeEventProgress(stats)
@@ -2360,6 +2365,12 @@ const finalizeCompletedMatch = createFinalizeCompletedMatch({
   recoverFinalizedConsequences: async ({ consequences }) => {
     for (const consequence of consequences) await commitAccountConsequence(consequence);
   },
+  onFinalized: async (record) => {
+    try { paraRuntime?.settle(record); }
+    catch (error) { paraRuntime.failed(record.matchId, error); }
+    try { goldEconomy?.ingest(record); }
+    catch (error) { try { goldEconomy.failed(record.matchId, error); } catch { console.error("Gold evidence audit unavailable; canonical match remains finalized."); } }
+  },
   buildEnvelope: buildCompletionEnvelope,
   buildNextMission: async ({ account, factionId, chapterId, result, setup }) => getNextCampaignMission(account, factionId, chapterId, result, setup)
 });
@@ -2847,7 +2858,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
     applySeasonResult(stats, result, context);
     applyDeckResult(stats, context.deckVersionId, result, context.matchId);
     applyProgressionForResult(stats, result, context);
-    applyDailyQuestProgress(stats, result, context);
+    if (!goldEconomy?.enabled && !context.para) applyDailyQuestProgress(stats, result, context);
     const facts = accountConsequenceFacts(beforeStats, stats, result, context);
     if (key && context.compatibilityPersistence) {
       stats.matchConsequenceReceipts = { ...receipts, [key]: facts };
@@ -2908,7 +2919,7 @@ async function recordAccountGameResult(accountId, result, context = {}) {
   applySeasonResult(account.stats, result, context);
   applyDeckResult(account.stats, context.deckVersionId, result, context.matchId);
   applyProgressionForResult(account.stats, result, context);
-  applyDailyQuestProgress(account.stats, result, context);
+  if (!goldEconomy?.enabled && !context.para) applyDailyQuestProgress(account.stats, result, context);
   const facts = accountConsequenceFacts(beforeStats, account.stats, result, context);
   if (context.deferPersistence) {
     return { alreadyApplied: false, account: publicAccountProjection(account), nextStats: clonePlain(account.stats), ...facts };
@@ -3576,7 +3587,7 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       : loadAccountStore().accounts;
     const seasonStanding = buildSeasonStandings(accounts, season).find((entry) => entry.accountId === account.id) || null;
     res.json({
-      profile: buildPublicPlayerProfile(account, records, { season, seasonStanding }),
+      profile: { ...buildPublicPlayerProfile(account, records, { season, seasonStanding }), ...(paraRuntime?.enabled ? { para: paraRuntime.profile(account.id) } : {}) },
       storage: publicMatchStorageStatus()
     });
   } catch (error) {
@@ -3750,6 +3761,9 @@ app.post("/api/events/:eventId/join", async (req, res) => {
   }
   try {
     const stats = context.account.stats || {};
+    if (goldEconomy?.enabled && normalizeEventProgress(stats).runs[event.id]?.status !== "active") {
+      return res.status(409).json({ error: "New legacy event runs are closed. Existing runs retain their rewards; official events are available through Para League." });
+    }
     const started = startEventRun(stats, event.id);
     if (started.created) {
       const collection = normalizeCollection(stats);
@@ -3885,6 +3899,7 @@ app.post("/api/collection/open-pack", async (req, res) => {
 });
 
 app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
+  if (goldEconomy?.enabled) return res.status(409).json({ error: "Currency purchases of gameplay packs are retired. Existing cards and pack credits remain owned." });
   const context = await requireAccountRecord(req, res);
   if (!context) return;
   try {
@@ -3910,6 +3925,7 @@ app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
 });
 
 app.post("/api/economy/timetwister-purchase-link", async (req, res) => {
+  if (goldEconomy?.enabled) return res.status(409).json({ error: "Gem payments are inactive. Existing premium balances are preserved." });
   const context = await requireAccountRecord(req, res);
   if (!context) return;
   const product = resolveTimetwisterProduct(String(req.body?.productId || ""));
@@ -3984,6 +4000,7 @@ async function findCollectorFulfillmentAccount(input = {}) {
 }
 
 app.post("/api/admin/economy/fulfill-timetwisters", async (req, res) => {
+  if (goldEconomy?.enabled) return res.status(409).json({ error: "New Gem fulfillment requires the separately approved payment ledger." });
   if (!requireOwnerAuthorization(req, res)) return;
   const account = await findCollectorFulfillmentAccount(req.body || {});
   if (!account) {
@@ -4737,14 +4754,28 @@ const adminRuntime = {
     };
 const publicationBaseline = createAuthoredBaseline(buildCatalog(adminRuntime));
 contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((process.env.NODE_ENV === "production" || process.env.RENDER === "true") && process.env.GAUNTLET_CONTENT_PROVIDER !== "file"))
-  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline })
+  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
   : createContentPublication({
   baseline: publicationBaseline,
   directory: process.env.GAUNTLET_CONTENT_DATA_DIR || `${ACCOUNT_DATA_FILE}.content`,
+  provider: process.env.GAUNTLET_CONTENT_PUBLICATION_PROVIDER || "local",
+  runtimeCapabilities: () => paraRuntime?.status() || { enabled: false },
+  economyCapabilities: () => goldEconomy?.status() || { enabled: false },
   writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR
 });
 registerContentPublicationRoutes(app, contentPublication);
 require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
+const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
+paraRuntime = createParaRuntime({ filename: process.env.GAUNTLET_PARA_DATA_DIR ? path.join(process.env.GAUNTLET_PARA_DATA_DIR, "para.sqlite") : null, publication: contentPublication });
+registerParaRoutes(app, paraRuntime, requireAccountRecord);
+goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: process.env.GAUNTLET_ECONOMY_DATA_DIR ? path.join(process.env.GAUNTLET_ECONOMY_DATA_DIR, "economy.sqlite") : null, publication: contentPublication });
+require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
+  findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
+const paraQueue = new Map();
+function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }
+async function recoverParaMatches() {
+  return paraRuntime.recover(findMatchRecordById, (id) => [...rooms.values()].some((room) => room.game?.matchId === id));
+}
 const { createAdminPlaytests, registerAdminPlaytestRoutes } = require("./adminPlaytest");
 const adminPlaytests = createAdminPlaytests({ publication: contentPublication, chooseAi: chooseSemanticTrainingAiCommand,
   createGame(resolved, selection, id) {
@@ -5115,6 +5146,7 @@ function isDraftRoom(roomState) {
 }
 
 function removeFromMatchmaking(socketId) {
+  removeFromParaQueue(socketId);
   const index = matchmakingQueue.findIndex((entry) => entry.socketId === socketId);
   if (index >= 0) matchmakingQueue.splice(index, 1);
   removeFromEventMatchmaking(socketId);
@@ -5326,7 +5358,7 @@ function deleteRoom(roomCode) {
 
 function canOfferRematch(roomState) {
   const players = roomState?.lobby?.players || {};
-  return !!roomState?.game
+  return !roomState?.para && !!roomState?.game
     && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
     && !roomState.draft
     && !roomState.event
@@ -5389,7 +5421,22 @@ async function sweepRoomLifecycle(options = {}) {
   const config = options.config || roomLifecycleConfig;
   const result = { skipped: false, abandoned: 0, deleted: 0, actions: [] };
   try {
+    await recoverParaMatches();
     for (const roomState of [...rooms.values()]) {
+      if (roomState.para && roomState.game?.phase !== "gameOver") {
+        const official = paraRuntime.event(roomState.para.eventId);
+        if (official.status === "cancelled" || now >= Date.parse(official.definition.endsAt)) {
+          await abandonActiveRoom(roomState, official.status === "cancelled" ? "event_cancelled" : "event_window_closed", now);
+          continue;
+        }
+        const absent = [1, 2].filter((n) => !roomState.lobby.players[n].socket && now - Date.parse(roomState.lobby.players[n].paraDisconnectedAt || roomState.recoveredAt || new Date(now).toISOString()) >= config.reconnectGraceMs);
+        if (absent.length === 1 && roomState.lobby.players[3 - absent[0]].socket) {
+          roomState.game.phase = "gameOver"; roomState.game.winner = 3 - absent[0];
+          roomState.game.message = "Official match forfeited after the reconnect grace period.";
+          await recordFinalGameStats(roomState, { completionReason: "disconnect_forfeit", completedAt: new Date(now).toISOString() });
+          emitState(roomState); continue;
+        }
+      }
       const action = getRoomLifecycleAction(roomState, now, config);
       if (action === "abandon_match") {
         await abandonActiveRoom(roomState, "reconnect_timeout", now);
@@ -5689,6 +5736,7 @@ function attachPlayerSocket(roomState, socket, playerNum) {
 function detachSocketFromRoom(roomState, socket, { leaveSocket = true, intentional = false } = {}) {
   for (const p of getLobbyPlayerNumbers(roomState)) {
     if (roomState.lobby.players[p].socket === socket.id) {
+      if (roomState.para) roomState.lobby.players[p].paraDisconnectedAt = new Date().toISOString();
       roomState.lobby.players[p].connected = false;
       roomState.lobby.players[p].socket = null;
       if (roomState.game?.players?.[p]) roomState.game.players[p].connected = false;
@@ -7020,7 +7068,7 @@ async function recordFinalGameStats(roomState, options = {}) {
   });
 
   const consequences = [];
-  const shouldApplyAccountConsequences = completionReason !== "abandoned" && (!isTrainingAiRoom(roomState) || !!game.campaign);
+  const shouldApplyAccountConsequences = !roomState.para && completionReason !== "abandoned" && (!isTrainingAiRoom(roomState) || !!game.campaign);
   if (shouldApplyAccountConsequences) {
     for (const playerNum of getLobbyPlayerNumbers(roomState)) {
       const accountId = roomState.lobby.players[playerNum].accountId;
@@ -8042,6 +8090,50 @@ function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPubli
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
   const onClientEvent = createSocketBoundary(socket, { getRoomForSocket });
+
+  socket.on("leaveParaQueue", () => { removeFromParaQueue(socket.id); socket.emit("paraStatus", { message: "Left queue. Your run is retained." }); });
+  socket.on("joinParaQueue", async ({ authToken, attemptId, factionId, cards = [] } = {}, ack) => {
+    const reply = (value) => { socket.emit("paraStatus", value); if (typeof ack === "function") ack(value); };
+    try {
+      if (!paraRuntime.enabled) throw new Error(paraRuntime.status().reason);
+      const account = await getAccountRecordFromToken(authToken);
+      if (!account || socket.data.roomCode) throw new Error("Sign in and leave your current room first.");
+      const { event } = paraRuntime.canPlay(attemptId, account.id);
+      const resolved = paraRuntime.content(event.id);
+      const classic = event.definition.format === "classic";
+      if (!classic && !resolved.manifest.factions.some((faction) => faction.id === factionId)) throw new Error("Choose a legal faction.");
+      if (!Array.isArray(cards) || cards.length > MAX_CONSTRUCTED_REPLACEMENTS || (classic && cards.length)) throw new Error("Invalid official deck.");
+      const officialCards = cards.map((selection) => {
+        const card = resolved.manifest.cards.find((c) => c.id === selection.id && c.factionId === factionId);
+        if (!card || !DRAFT_CARD_SUITS.includes(selection.suit)) throw new Error("Choose cards and suits from the equal official pool.");
+        return { ...card, gameplayCardId: card.id, variantId: `${card.id}:standard`, suit: selection.suit, replacementSuit: selection.suit };
+      });
+      validateReplacementCardSet(officialCards, { factionId });
+      removeFromMatchmaking(socket.id); removeFromDraftLeague(socket.id);
+      paraQueue.delete(account.id);
+      const entry = { accountId: account.id, accountName: account.name, socketId: socket.id, attemptId, eventId: event.id, factionId, cards: officialCards };
+      let opponent;
+      for (const candidate of paraQueue.values()) {
+        if (!io.sockets.sockets.has(candidate.socketId)) { paraQueue.delete(candidate.accountId); continue; }
+        try { paraRuntime.canPlay(candidate.attemptId, candidate.accountId); } catch { paraQueue.delete(candidate.accountId); continue; }
+        if (candidate.eventId === event.id) { opponent = candidate; break; }
+      }
+      if (!opponent) { paraQueue.set(account.id, entry); reply({ inQueue: true, message: "Waiting for an official human opponent. Entry is free." }); return; }
+      paraQueue.delete(opponent.accountId);
+      const room = createRoom();
+      try {
+        room.lobby.gameMode = classic ? "basic" : "factions";
+        const entries = Math.random() < 0.5 ? [entry, opponent] : [opponent, entry];
+        entries.forEach((item, i) => Object.assign(room.lobby.players[i + 1], { accountId: item.accountId, accountName: item.accountName, reconnectToken: makeReconnectToken(), isGuest: false, factionId: classic ? null : item.factionId, savedConstructedDeck: classic ? null : { name: "Official Para deck", factionId: item.factionId, cards: item.cards, replacementCount: item.cards.length } }));
+        room.para = { eventId: event.id, seasonId: event.seasonId, releaseId: event.release.id, attemptIds: entries.map((item) => item.attemptId) };
+        createGameFromLobby(room, { contentRelease: resolved });
+        room.game.para = clonePlain(room.para);
+        paraRuntime.reserve(room.game.matchId, entries[0].attemptId, entries[1].attemptId);
+        entries.forEach((item, i) => { const playerSocket = io.sockets.sockets.get(item.socketId); attachPlayerSocket(room, playerSocket, i + 1); playerSocket.emit("paraStatus", { inQueue: false, message: "Official match started." }); });
+        persistRoomsNow(); emitState(room); reply({ inQueue: false, message: "Official match started." });
+      } catch (error) { deleteRoom(room.roomCode); throw error; }
+    } catch (error) { reply({ inQueue: false, error: error.message }); }
+  });
 
   // Deterministic browser qualification setup. This hook is unavailable in
   // normal server runs and only moves an already-started campaign to the
@@ -9300,6 +9392,7 @@ io.on("connection", (socket) => {
   onClientEvent("requestUndo", (ack) => {
     console.log("[Socket] requestUndo");
     const roomState = getRoomForSocket(socket);
+    if (roomState?.para) { acknowledgeMatchControl(ack, roomState, { accepted: false, code: "OFFICIAL_UNDO_UNAVAILABLE", message: "Official Para matches do not allow takebacks." }); return; }
     if (!roomState?.game) {
       acknowledgeMatchControl(ack, roomState, { accepted: false, code: "MATCH_UNAVAILABLE", message: "The match is not available." });
       return;
@@ -10239,6 +10332,7 @@ io.on("connection", (socket) => {
     console.log("[Socket] leaveRoom");
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
+    removeFromParaQueue(socket.id);
     const roomState = getRoomForSocket(socket);
     if (!roomState) return;
     detachSocketFromRoom(roomState, socket, { intentional: true });
@@ -10248,6 +10342,7 @@ io.on("connection", (socket) => {
     console.log(`[Socket] Disconnected: ${socket.id}`);
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
+    removeFromParaQueue(socket.id);
     const roomState = getRoomForSocket(socket);
     if (roomState) {
       detachSocketFromRoom(roomState, socket, { leaveSocket: false });
@@ -10302,6 +10397,9 @@ module.exports = {
     createFreeForAllGameFromLobby,
     createGameFromLobby,
     contentPublication,
+    paraRuntime,
+    goldEconomy,
+    recoverParaMatches,
     createMatchedRoom,
     createDraftLeagueRoom,
     continueBestOf3Series,

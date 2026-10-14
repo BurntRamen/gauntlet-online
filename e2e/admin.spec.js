@@ -1,3 +1,4 @@
+const { origin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
@@ -23,9 +24,10 @@ async function quickActions(playtest) {
 }
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
-    const response = await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name, password: "test-password" } });
-    expect(response.ok()).toBeTruthy();
-    loginSessions.set(name, (await response.json()).token);
+    // Keep unrelated operator flows independent of login throttling when a
+    // failed test restarts the worker. The first test still exercises UI login.
+    const sessions = JSON.parse(require("node:fs").readFileSync(require("node:path").resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"));
+    loginSessions.set(name, sessions[name]);
   }
   const token = loginSessions.get(name);
   await page.evaluate((value) => localStorage.setItem("gauntlet_auth_token", value), token);
@@ -35,7 +37,7 @@ async function signIn(page, request, name) {
 test("both authorized accounts can inspect every section; other accounts and guests cannot", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("heading", { name: "Private administration" })).toBeVisible();
-  expect((await request.get("http://127.0.0.1:4117/admin/gauntlet/content")).status()).toBe(401);
+  expect((await request.get(origin + "/admin/gauntlet/content")).status()).toBe(401);
   await page.getByRole("button", { name: "Sign in through Identity" }).click();
   await page.getByPlaceholder("Account name", { exact: true }).fill("simply");
   await page.getByPlaceholder("Password", { exact: true }).fill("test-password");
@@ -44,7 +46,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   const visitor = await signIn(page, request, "Visitor");
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("alert")).toContainText("does not have access");
-  expect((await request.get("http://127.0.0.1:4117/api/admin/catalog", { headers: { Authorization: `Bearer ${visitor}` } })).status()).toBe(403);
+  expect((await request.get(origin + "/api/admin/catalog", { headers: { Authorization: `Bearer ${visitor}` } })).status()).toBe(403);
 
   await signIn(page, request, "simply");
   await page.reload();
@@ -142,7 +144,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   await page.goto("/admin/gauntlet");
   const visitor = await signIn(page, request, "Visitor");
   const path = "/api/admin/players/cccccccc-cccc-4ccc-8ccc-cccccccccccc/metadata";
-  const denied = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${visitor}` }, data: { expectedName: "Visitor", metadata: { name: "Changed by visitor" } } });
+  const denied = await request.patch(`${origin}${path}`, { headers: { Authorization: `Bearer ${visitor}` }, data: { expectedName: "Visitor", metadata: { name: "Changed by visitor" } } });
   expect(denied.status()).toBe(403);
   const admin = await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
@@ -172,7 +174,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   await page.reload();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
-  const restored = await request.patch(`http://127.0.0.1:4117${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
+  const restored = await request.patch(`${origin}${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
   expect(restored.ok()).toBeTruthy();
 });
 
@@ -180,9 +182,9 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` };
-  const live = async () => (await (await request.get("http://127.0.0.1:4117/api/game-content", { maxRetries: 2 })).json()).content;
+  const live = async () => (await (await request.get(origin + "/api/game-content", { maxRetries: 2 })).json()).content;
   const original = await live();
-  const historyBefore = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
+  const historyBefore = await (await request.get(origin + "/api/admin/matches", { headers, maxRetries: 2 })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Design", { exact: true }).click();
   await otherContent(page, "Campaigns");
@@ -232,7 +234,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await live()).contentVersion).toBe(original.contentVersion);
-  const historyAfter = await (await request.get("http://127.0.0.1:4117/api/admin/matches", { headers })).json();
+  const historyAfter = await (await request.get(origin + "/api/admin/matches", { headers, maxRetries: 2 })).json();
   expect(historyAfter).toEqual(historyBefore);
   await nav.getByText("Design", { exact: true }).click();
   await otherContent(page, "Factions");
@@ -248,7 +250,7 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` };
-  const before = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const before = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Design", { exact: true }).click();
   await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
@@ -275,12 +277,12 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
   await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
-  const content = await (await request.get("http://127.0.0.1:4117/api/game-content", { maxRetries: 2 })).json();
+  const content = await (await request.get(origin + "/api/game-content", { maxRetries: 2 })).json();
   expect(content.content.campaigns.rumin.chapters[0].setup.bossLife).toBe(31);
   await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
-  const after = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const after = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
   expect(after.activeReleaseId).toBe(before.activeReleaseId);
 });
 
@@ -288,7 +290,7 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: "Bearer " + token };
-  const original = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const original = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
   const artwork = original.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
   expect(artwork).toBeTruthy();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
@@ -308,9 +310,9 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
     await expect.poll(() => image.evaluate((element) => element.complete && element.naturalWidth > 0)).toBeTruthy();
     await preview.screenshot({ path: "artifacts/admin-qualification-" + field.replace(/ /g, "-") + ".png" });
   }
-  const current = await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json();
+  const current = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
   expect(current.activeReleaseId).toBe(original.activeReleaseId);
-  expect((await request.post("http://127.0.0.1:4117/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+  expect((await request.post(origin + "/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
 });
 
 test("Admin is discoverable only after access approval and review controls retain keyboard context", async ({ page, request }) => {
@@ -327,7 +329,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await page.getByRole("button", { name: "Close admin", exact: true }).click();
   await expect(adminLink).toBeVisible();
   await adminLink.click();
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await expect(workshops(page).getByRole("button", { name: "Encounters", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await page.getByLabel("Search encounters").fill("nothing matches this encounter");
@@ -411,8 +413,8 @@ test("a reported authoring outage keeps real live testing available without publ
   });
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  const before = await (await request.get(base, { headers })).json();
+  const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
+  const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await expect(page.getByText(/Shared draft and publication history are unavailable/)).toBeVisible();
   await expect(page.getByText("Connection setup details", { exact: true })).toHaveCount(0);
@@ -429,7 +431,7 @@ test("a reported authoring outage keeps real live testing available without publ
   pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
   await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
   expect((await (await pending).json()).playtest.acceptedCommands).toBe(1);
-  const after = await (await request.get(base, { headers })).json();
+  const after = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(after.revision).toBe(before.revision);
   expect(after.draft).toEqual(before.draft);
 });
@@ -438,10 +440,10 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   test.setTimeout(180000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  const saved = async () => (await request.get(base, { headers })).json();
+  const headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
+  const saved = async () => (await request.get(base, { headers, maxRetries: 2 })).json();
   const initial = await saved();
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   const story = page.getByLabel("Draft story", { exact: true });
@@ -582,24 +584,24 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
 test("a second operator's revision conflict preserves local typing and requires an explicit retry", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: `Bearer ${token}` }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  const headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Draft story", { exact: true }).fill("Local operator story.");
-  const login = await (await request.post("http://127.0.0.1:4117/api/auth/login", { data: { name: "Burnt Ramen", password: "test-password" } })).json();
-  const before = await (await request.get(base, { headers })).json();
+  const login = await (await request.post(origin + "/api/auth/login", { data: { name: "Burnt Ramen", password: "test-password" } })).json();
+  const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect((await request.patch(`${base}/draft`, { headers: { Authorization: `Bearer ${login.token}` }, data: { expectedRevision: before.revision, domain: "encounters", id: "brothers-of-destiny", field: "story", value: "Other operator story." } })).ok()).toBeTruthy();
   await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
   await expect(page.getByLabel("Draft story", { exact: true })).toHaveValue("Local operator story.");
   await expect(page.getByText(/The shared draft changed. Your local values were kept/)).toBeVisible();
-  const changed = await (await request.get(base, { headers })).json();
+  const changed = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(changed.draft.snapshot.domains.encounters.find((row) => row.id === "brothers-of-destiny").story).toBe("Other operator story.");
   await page.locator("#admin-field-story").getByText("Saved shared draft value", { exact: true }).click();
   await expect(page.locator("#admin-field-story").getByText("Other operator story.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Use latest revision for retry", exact: true }).click();
   await page.getByRole("button", { name: "Save story to draft", exact: true }).click();
   await expect(page.getByText("Field saved to the shared draft. Live content is unchanged.", { exact: true })).toBeVisible();
-  const final = await (await request.get(base, { headers })).json();
+  const final = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(final.draft.snapshot.domains.encounters.find((row) => row.id === "brothers-of-destiny").story).toBe("Local operator story.");
   await request.post(`${base}/discard`, { headers, data: { expectedRevision: final.revision } });
 });
@@ -608,8 +610,8 @@ test("card workshop previews and executes a custom live scenario without creatin
   test.setTimeout(120000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  const before = await (await request.get(base, { headers })).json();
+  const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
+  const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(before.draft).toBeFalsy();
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -675,7 +677,7 @@ test("card workshop previews and executes a custom live scenario without creatin
   session = (await (await pending).json()).playtest;
   expect(session.acceptedCommands).toBe(1);
   await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
-  const after = await (await request.get(base, { headers })).json();
+  const after = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(after.draft).toBeFalsy();
   expect(after.revision).toBe(before.revision);
   await cardSection(page, "Mechanics");
@@ -705,8 +707,8 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   test.setTimeout(90000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  const original = await (await request.get(base, { headers })).json();
+  const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
+  const original = await (await request.get(base, { headers, maxRetries: 2 })).json();
   const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
   await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -734,7 +736,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   await page.screenshot({ path: "artifacts/admin-asset-picker-mobile.png" });
   await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click();
   await expect(art.getByLabel("Draft artwork reference", { exact: true })).toHaveValue(asset.id);
-  expect((await (await request.get(base, { headers })).json()).draft).toBeFalsy();
+  expect((await (await request.get(base, { headers, maxRetries: 2 })).json()).draft).toBeFalsy();
   await expect(page.getByLabel("Collector version")).toBeDisabled();
   await workshops(page).getByRole("button", { name: "Engine / Rules", exact: true }).click();
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
@@ -745,7 +747,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   await page.getByRole("button", { name: "Review release", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Presentation · 1", exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "Saved draft artwork", exact: true })).toHaveAttribute("src", asset.path);
-  const final = await (await request.get(base, { headers })).json();
+  const final = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(final.activeReleaseId).toBe(original.activeReleaseId);
   expect(final.changes[0].domain).toBe("assets");
   expect((await request.post(base + "/discard", { headers, data: { expectedRevision: final.revision } })).ok()).toBeTruthy();
@@ -756,20 +758,20 @@ test("workshop metadata, relationships, review and test APIs keep the stable-ID 
   const visitor = await signIn(page, request, "Visitor");
   const headers = { Authorization: "Bearer " + visitor };
   for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
-    expect((await request.get("http://127.0.0.1:4117" + path)).status()).toBe(401);
-    expect((await request.get("http://127.0.0.1:4117" + path, { headers })).status()).toBe(403);
+    expect((await request.get(origin + path)).status()).toBe(401);
+    expect((await request.get(origin + path, { headers, maxRetries: 2 })).status()).toBe(403);
   }
   for (const path of ["/api/admin/authoring/playtest", "/api/admin/authoring/playtest/preview-command"]) {
-    expect((await request.post("http://127.0.0.1:4117" + path, { data: {} })).status()).toBe(401);
-    expect((await request.post("http://127.0.0.1:4117" + path, { headers, data: {} })).status()).toBe(403);
+    expect((await request.post(origin + path, { data: {} })).status()).toBe(401);
+    expect((await request.post(origin + path, { headers, data: {} })).status()).toBe(403);
   }
 });
 
 test("direct workshop sections and browser forward navigation resolve local edits before leaving", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply");
-  const headers = { Authorization: "Bearer " + token }, base = "http://127.0.0.1:4117/api/admin/authoring";
-  const before = await (await request.get(base, { headers })).json();
+  const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
+  const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
   await page.goto("/admin/gauntlet?workshop=cards&object=rumin-coin-scale-spear&section=mechanics");
   const card = page.getByRole("region", { name: "Card Workshop", exact: true });
   await expect(card.getByRole("heading", { name: "Dividend Yield Blade", exact: true, level: 3 })).toBeVisible();
@@ -793,7 +795,7 @@ test("direct workshop sections and browser forward navigation resolve local edit
   await expect(page.getByRole("region", { name: "Engine / Rules Workshop", exact: true })).toBeVisible();
   await page.goBack();
   await expect(name).toHaveValue("2");
-  const after = await (await request.get(base, { headers })).json();
+  const after = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(after.revision).toBe(before.revision);
   expect(after.draft).toEqual(before.draft);
 });
@@ -806,7 +808,7 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   const capture = async name => page.screenshot({ path: `artifacts/admin-visual-pass/${name}.png`, fullPage: false });
   await expect(page.getByRole("button", { name: /^\d+ Cards$/ })).toBeVisible();
   await capture("overview-desktop");
-  await page.getByRole("button", { name: "56 Encounters", exact: true }).click();
+  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await expect(page.getByLabel("Filter encounters by campaign", { exact: true })).toHaveCSS("background-color", "rgb(12, 24, 34)");
@@ -884,17 +886,22 @@ test("visual menu pass preserves review context and keeps phone editing focused"
 test("Admin search opens exact prose editors, guards local edits, and publishes page copy", async ({ page, request }) => {
   test.setTimeout(120000);
   await page.goto("/admin/gauntlet");
-  const token = await signIn(page, request, "Burnt Ramen"); await page.reload();
+  const token = await signIn(page, request, "Burnt Ramen");
   const headers = { Authorization: "Bearer " + token };
-  const state = async () => (await (await request.get("http://127.0.0.1:4117/api/admin/authoring", { headers })).json());
+  const state = async () => (await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json());
   let releasePreview, previewRequested;
   const previewGate = new Promise(resolve => { releasePreview = resolve; });
   const previewStarted = new Promise(resolve => { previewRequested = resolve; });
-  await page.route("**/gauntlet-admin-cards.*.chunk.js", async route => {
+  await page.route("**/gauntlet-admin-workshops.*.chunk.js", async route => {
     previewRequested();
     await previewGate;
     await route.continue();
   });
+  await page.reload();
+  await previewStarted;
+  await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Search Admin/ })).toHaveCount(0);
+  releasePreview();
   const finder = page.getByRole("region", { name: "Search Admin", exact: true });
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Search Admin/ })).toBeVisible();
@@ -905,9 +912,6 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(headingResult).toBeVisible();
   await page.screenshot({ path: "artifacts/admin-search-prose-release/search-desktop.png", fullPage: false });
   await headingResult.click();
-  await previewStarted;
-  await expect(page.getByText("Loading workshop…", { exact: true })).toBeVisible();
-  releasePreview();
   const heading = page.getByLabel("Draft page heading", { exact: true });
   await expect(heading).toBeFocused();
   await expect(heading).toHaveValue("Master your next move.");

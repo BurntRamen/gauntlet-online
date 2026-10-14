@@ -8,7 +8,7 @@ function Value({ value, library, label, resolvedAsset }) {
 }
 
 function Change({ change, onInspect, library, comparison = false }) {
-  return <article className="design-change"><div className="admin-title-row"><h5>{change.label || change.id} · {change.fieldLabel || change.field}</h5>{onInspect && <button type="button" onClick={() => onInspect(change.domain, change.id)}>Open {change.label || change.id}</button>}</div><div className="design-change-values"><Value label="Live" value={change.before ?? change.live} library={library} resolvedAsset={change.liveAsset} /><Value label={comparison ? "Selected release" : "Saved draft"} value={change.after ?? change.draft} library={library} resolvedAsset={change.draftAsset} /></div></article>;
+  return <article className="design-change"><div className="admin-title-row"><h5>{change.label || change.id} · {change.fieldLabel || change.field}</h5>{onInspect && !change.domain.startsWith("para:") && <button type="button" onClick={() => onInspect(change.domain, change.id)}>Open {change.label || change.id}</button>}</div><div className="design-change-values"><Value label="Live" value={change.before ?? change.live} library={library} resolvedAsset={change.liveAsset} /><Value label={comparison ? "Selected release" : "Saved draft"} value={change.after ?? change.draft} library={library} resolvedAsset={change.draftAsset} /></div></article>;
 }
 
 export default function ReleaseReview({ state, review, onInspect, onPublish, onDiscard, onRollback, onCompare, releaseName = "", onReleaseName, busy, unsaved }) {

@@ -137,6 +137,7 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
       </section>
 
       <section className="competitive-stat-band" aria-label="Competitive statistics">
+        {profile.para && <p>{profile.para.summary}</p>}
         <div><span>Lifetime record</span><strong>{recordLabel(all)}</strong><small>{all.gamesPlayed || 0} games tracked</small></div>
         <div><span>Ranked record</span><strong>{recordLabel(ranked)}</strong><small>{ranked.winRate || 0}% win rate</small></div>
         <div><span>Largest attack</span><strong>{profile.notableStats?.largestAttack?.value || 0}</strong><small>verified value</small></div>
@@ -268,6 +269,7 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
       {profile && !loading && (
         <>
           <section className="competitive-panel-stats">
+            {profile.para && <p>{profile.para.summary}</p>}
             <div><span>{profile.competitiveRecord?.activeSeason?.season?.displayName || "Season"}</span><strong>{profile.competitiveRecord?.activeSeason?.record?.points || 0} pts{profile.competitiveRecord?.activeSeason?.rank ? ` · #${profile.competitiveRecord.activeSeason.rank}` : ""}</strong></div>
             <div><span>Ranked</span><strong>{profile.competitiveRecord?.ranked?.wins || 0}W {profile.competitiveRecord?.ranked?.losses || 0}L</strong></div>
             <div><span>Verified</span><strong>{profile.verifiedMatchCount || 0}</strong></div>

@@ -14,7 +14,8 @@ const budgets = Object.freeze({
   totalJavaScriptGzip: 753 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
-const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
+const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|GauntletParaLeague|GauntletEconomy|GauntletCompetition|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
+const sharedEconomy = asset => /^gauntlet-admin-economy-shared\./.test(asset.name) || (asset.sources || []).some(source => /(?:^|\/)EconomyConsole\.js(?:$|\?)/.test(source.replace(/\\/g, "/")));
 
 function readAssets(directory) {
   if (!fs.existsSync(directory)) throw new Error("Client build output is missing. Run npm run build:client first.");
@@ -31,11 +32,12 @@ function evaluateBudgets(assets, limits = budgets) {
   const mains = assets.filter(asset => /^main\./.test(asset.name)), main = mains[0];
   const asynchronous = assets.filter(asset => !mains.includes(asset));
   const largestAsync = asynchronous.reduce((largest, asset) => !largest || asset.gzipBytes > largest.gzipBytes ? asset : largest, null);
-  const adminAssets = assets.filter(asset => adminName(asset.name) || (asset.sources || []).some(adminSource));
+  const adminAssets = assets.filter(asset => adminName(asset.name) || (asset.sources || []).some(adminSource) || sharedEconomy(asset));
   const adminEntries = assets.filter(asset => /^gauntlet-admin\./i.test(asset.name));
   const sum = rows => rows.reduce((total, asset) => total + asset.gzipBytes, 0);
   const adminGzipBytes = sum(adminAssets), adminEntryGzipBytes = sum(adminEntries);
-  const totalGzipBytes = sum(assets.filter(asset => !adminAssets.includes(asset)));
+  // Shared Economy UI is charged to both original budget categories.
+  const totalGzipBytes = sum(assets.filter(asset => !adminAssets.includes(asset) || sharedEconomy(asset)));
   const failures = [];
   if (mains.length !== 1) failures.push("Expected exactly one main client bundle.");
   if (adminEntries.length !== 1) failures.push("Expected exactly one named gauntlet-admin entry bundle.");

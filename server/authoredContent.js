@@ -13,6 +13,7 @@ const encounterDefaults = require("./encounterDefinitions.json");
 const assets = require("./contentAssets");
 const config = require("../shared/duel-rules/gameConfig");
 const { proseFields } = require("./websiteProse");
+const paraLeague = require("./paraLeague");
 const SCHEMA = "gauntlet.authored-content.v2";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const fieldValue = (row, field, spec) => row?.[field] === undefined ? spec.defaultValue : row[field];
@@ -107,7 +108,12 @@ function validateAuthoredContent(snapshot, baseline) {
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
   if (canonicalJson(snapshot.engine) !== canonicalJson(baseline.engine)) issue(null, null, "engine", "Engine contract or mechanic identifiers changed; a compatible code deployment is required.");
-  if (canonicalJson(Object.keys(snapshot).sort()) !== canonicalJson(Object.keys(baseline).sort()) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
+  // Optional additive extension: old immutable v2 snapshots retain their bytes and hashes.
+  if (canonicalJson(Object.keys(snapshot).filter((key) => key !== "paraLeague").sort()) !== canonicalJson(Object.keys(baseline).filter((key) => key !== "paraLeague").sort()) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
+  if (Object.hasOwn(snapshot, "paraLeague")) {
+    const validation = paraLeague.validateConfig(snapshot.paraLeague);
+    errors.push(...validation.errors); warnings.push(...validation.warnings);
+  }
   const maps = {};
   for (const [domain, originals] of Object.entries(baseline.domains)) {
     const rows = snapshot.domains[domain];

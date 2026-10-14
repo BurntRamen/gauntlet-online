@@ -52,6 +52,36 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+test("Para conflicts retain the original revision until the operator explicitly retries", async () => {
+  const season = { id: "season-one", name: "Original season" };
+  state.live.paraLeague = { seasons: [season], events: [], products: [] };
+  state.para = { fields: { seasons: { id: { type: "text", label: "ID" }, name: { type: "text", label: "Name" } } }, templates: { seasons: season }, capabilities: {}, invariants: [], summary: [], catalog: [] };
+  const normal = request, attempts = [];
+  request = jest.fn(async (path, options) => {
+    if (path === "/api/admin/economy") return { view: { title: "Economy operations" } };
+    if (path.endsWith("/para-draft")) {
+      const body = JSON.parse(options.body); attempts.push(body.expectedRevision);
+      expect(body.value.name).toBe("Retained local season");
+      if (body.expectedRevision === 0) { state.revision = 1; throw Object.assign(new Error("Another operator saved this draft."), { status: 409 }); }
+      state.revision = 2; return { ...clone(state), notice: "Definition saved." };
+    }
+    return normal(path, options);
+  });
+  render(<GauntletAuthoring {...props()} area="Para League & Economy" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Seasons", exact: true }, { timeout: 5000 }));
+  fireEvent.click(screen.getByRole("button", { name: /Original season/ }));
+  fireEvent.change(screen.getByLabelText("Name", { exact: true }), { target: { value: "Retained local season" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));
+  const retry = await screen.findByRole("button", { name: "Use latest revision for retry" });
+  fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));
+  await waitFor(() => expect(attempts).toEqual([0, 0]));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save definition to draft" })).toBeEnabled());
+  fireEvent.click(retry);
+  fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));
+  await waitFor(() => expect(attempts).toEqual([0, 0, 1]));
+  await waitFor(() => expect(screen.queryByLabelText("Name", { exact: true })).not.toBeInTheDocument());
+});
+
 async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true }, { timeout: 5000 })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
 async function selectOther(tab) { fireEvent.click(await screen.findByRole("button", { name: "Other content" })); fireEvent.click(await screen.findByRole("button", { name: tab, exact: true })); }
 

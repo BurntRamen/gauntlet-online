@@ -1,3 +1,4 @@
+const { serverPort, clientOrigin } = require("./admin-urls");
 // Isolated fixture server for administration browser checks. Never uses live data.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -5,11 +6,14 @@ const crypto = require("node:crypto");
 const root = path.resolve(__dirname, "../.playwright-data/admin");
 fs.mkdirSync(root, { recursive: true });
 Object.assign(process.env, {
+  GAUNTLET_CONTENT_PROVIDER: "file", GAUNTLET_GOLD_MIGRATION: "legacy-opening-v1",
+  GAUNTLET_PARA_DATA_DIR: fs.mkdtempSync(path.join(root, "para-")),
+  GAUNTLET_ECONOMY_DATA_DIR: fs.mkdtempSync(path.join(root, "economy-")),
   GAUNTLET_CONTENT_DATA_DIR: fs.mkdtempSync(path.join(root, "content-")),
   ACCOUNT_DATA_FILE: path.join(root, "accounts.json"), MATCH_DATA_FILE: path.join(root, "matches.json"),
   MATCH_ARCHIVE_DATA_DIR: path.join(root, "archive"), FACTION_STATS_DATA_FILE: path.join(root, "factions.json"),
   ROOM_STATE_DATA_FILE: path.join(root, "rooms.json"), ROOM_STATE_RECOVERY_ENABLED: "false",
-  ACCOUNT_AUTH_SECRET: "isolated-admin-browser-test-secret", NODE_ENV: "test", CLIENT_URL: "http://127.0.0.1:3117",
+  ACCOUNT_AUTH_SECRET: "isolated-admin-browser-test-secret", NODE_ENV: "test", CLIENT_URL: clientOrigin,
   GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   GAUNTLET_ADMIN_BURNT_RAMEN_ACCOUNT_ID: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
 });
@@ -31,7 +35,8 @@ const record = buildMatchRecord({ roomCode: "ADMIN", matchMetadata: { matchId: "
 } }, { completedAt: "2026-10-02T12:08:00Z" });
 record.completion = { status: "finalized", envelopeVersion: "gauntlet.match-completion.v1", finalizedAt: record.completedAt, consequences: [] };
 fs.writeFileSync(process.env.MATCH_DATA_FILE, JSON.stringify({ matches: [record] }));
-const { server } = require("../server/index");
-server.listen(4117, "127.0.0.1", () => console.log("Isolated admin fixture server ready"));
+const { server, __test } = require("../server/index");
+fs.writeFileSync(path.join(root, "sessions.json"), JSON.stringify(Object.fromEntries(accounts.map(account => [account.name, __test.issueAccountSession(account).token]))));
+server.listen(Number(serverPort), "127.0.0.1", () => console.log("Isolated admin fixture server ready"));
 process.on("SIGTERM", () => server.close(() => process.exit(0)));
 process.on("SIGINT", () => server.close(() => process.exit(0)));

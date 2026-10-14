@@ -52,3 +52,14 @@ test("CRA production maps identify Admin modules without a src prefix", () => {
     assert.match(result.failures.join(" "), /Admin modules appeared in 123/);
   }
 });
+
+test("shared Economy bytes count against both budgets even if their chunk is renamed", () => {
+  const shared = asset("gauntlet-admin-economy-shared.a.chunk.js", 2, ["EconomyConsole.js"]);
+  const assets = [asset("main.a.js", 170), asset("gauntlet-admin.a.chunk.js", 18), shared];
+  for (const name of [shared.name, "gauntlet-admin-workshops.a.chunk.js"]) {
+    shared.name = name;
+    const result = evaluateBudgets(assets);
+    assert.equal(result.adminGzipBytes, 20 * KIB);
+    assert.equal(result.totalGzipBytes, 172 * KIB);
+  }
+});
