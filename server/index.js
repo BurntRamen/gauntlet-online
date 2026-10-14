@@ -7699,6 +7699,7 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
     startDialogueAudio: chapter.dialogueAudio || [],
     endDialogue: buildCampaignEndDialogue(chapter, faction),
     endDialogueAudio: chapter.endDialogueAudio || [],
+    cinematic: clonePlain(chapter.cinematic || null),
     playerCampaignCardCount: playerCampaignCards.length,
     bossCampaignCardCount: bossCampaignCards.length,
     bossAbility,

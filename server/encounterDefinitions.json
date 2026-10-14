@@ -1462,5 +1462,337 @@
     "attackTiming": "clear-priority",
     "winRoute": "first-uncompleted",
     "lossRoute": "retry"
+  },
+  "falling-star": {
+    "version": 1,
+    "bossLife": 18,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 1,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Drop Assault",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Scavenger Captain Rusk: Drop Assault"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "outpost-zero": {
+    "version": 1,
+    "bossLife": 21,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 2,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Drop Assault",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "The Glasswind Raiders: Drop Assault"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "silent-relay": {
+    "version": 1,
+    "bossLife": 24,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 3,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Drop Assault",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Signal Warden Vey: Drop Assault"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "lumen-gate": {
+    "version": 1,
+    "bossLife": 27,
+    "attacksPerTurn": 2,
+    "minAttackValue": 2,
+    "maxAttackValue": 5,
+    "chapterNumber": 4,
+    "bossAbility": {
+      "id": "first-strike",
+      "title": "Drop Assault",
+      "text": "The boss's first scripted attack each turn gets +1 value.",
+      "tier": 1,
+      "name": "Prefect Solenne: Drop Assault"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team"
+    ],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "ghosts-in-orbit": {
+    "version": 1,
+    "bossLife": 30,
+    "attacksPerTurn": 3,
+    "minAttackValue": 2,
+    "maxAttackValue": 6,
+    "chapterNumber": 5,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Orbital Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Admiral Sable's Ghost Fleet: Orbital Pressure"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "directive-black-sky": {
+    "version": 1,
+    "bossLife": 33,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Orbital Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Director-Captain Orin Vale: Orbital Pressure"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-red-orbit": {
+    "version": 1,
+    "bossLife": 36,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 7,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Orbital Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 2,
+      "name": "Commodore Vaska: Orbital Pressure"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "no-one-left-below": {
+    "version": 1,
+    "bossLife": 39,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "odd-pressure",
+      "title": "Orbital Pressure",
+      "text": "Odd-numbered boss attacks get +1 value.",
+      "tier": 2,
+      "name": "The Ashfall Front: Orbital Pressure"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "mutiny-at-zenith": {
+    "version": 1,
+    "bossLife": 42,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 9,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Encirclement Protocol",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 2,
+      "name": "Colonel Garran Holt: Encirclement Protocol"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist",
+      "astral-vanguard-combat-medic",
+      "astral-vanguard-fleet-command"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order",
+      "astral-vanguard-powered-breacher",
+      "astral-vanguard-emp-grenadier",
+      "astral-vanguard-orbital-interdiction",
+      "astral-vanguard-aegis-shock-company"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "breach-the-ascendant": {
+    "version": 1,
+    "bossLife": 45,
+    "attacksPerTurn": 4,
+    "minAttackValue": 3,
+    "maxAttackValue": 7,
+    "chapterNumber": 10,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Encirclement Protocol",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "Fleet Marshal Cael Draven: Encirclement Protocol"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist",
+      "astral-vanguard-combat-medic",
+      "astral-vanguard-fleet-command"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order",
+      "astral-vanguard-powered-breacher",
+      "astral-vanguard-emp-grenadier",
+      "astral-vanguard-orbital-interdiction",
+      "astral-vanguard-aegis-shock-company"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "the-long-descent": {
+    "version": 1,
+    "bossLife": 48,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 11,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Encirclement Protocol",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "The Directorate Loyalists: Encirclement Protocol"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist",
+      "astral-vanguard-combat-medic",
+      "astral-vanguard-fleet-command"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order",
+      "astral-vanguard-powered-breacher",
+      "astral-vanguard-emp-grenadier",
+      "astral-vanguard-orbital-interdiction",
+      "astral-vanguard-aegis-shock-company"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "vanguard-of-reath": {
+    "version": 1,
+    "bossLife": 51,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 12,
+    "bossAbility": {
+      "id": "first-and-final",
+      "title": "Encirclement Protocol",
+      "text": "The boss's first and final scripted attacks each turn get +1 value.",
+      "tier": 3,
+      "name": "The Astral Directorate: Encirclement Protocol"
+    },
+    "playerAdditions": [
+      "astral-vanguard-orbital-pathfinder",
+      "astral-vanguard-breach-team",
+      "astral-vanguard-shock-trooper",
+      "astral-vanguard-electronic-warfare-specialist",
+      "astral-vanguard-combat-medic",
+      "astral-vanguard-fleet-command"
+    ],
+    "bossAdditions": [
+      "astral-vanguard-incendiary-trooper",
+      "astral-vanguard-suppression-order",
+      "astral-vanguard-powered-breacher",
+      "astral-vanguard-emp-grenadier",
+      "astral-vanguard-orbital-interdiction",
+      "astral-vanguard-aegis-shock-company"
+    ],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
   }
 }
