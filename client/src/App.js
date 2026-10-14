@@ -50,6 +50,8 @@ const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
 const LegaciesPanel = lazy(() => import("./LegaciesPanel"));
+const ParaEventHub = lazy(() => import("./ParaEventHub"));
+const EconomyConsole = lazy(() => import(/* webpackChunkName: "gauntlet-admin-economy-shared" */ "./EconomyConsole"));
 const EventHub = lazy(() => import("./EventHub"));
 const EconomyShop = lazy(() => import("./EconomyShop"));
 const MatchReplayScreen = lazy(() => import("./babylon/MatchReplayScreen"));
@@ -3470,6 +3472,7 @@ export default function App() {
       game
       && (game.phase === "gameOver" || game.winner != null)
       && !game.campaign
+        && !game.para
       && game.gameMode !== "freeForAll"
       && lobby?.gameMode !== "draft"
       && !lobby?.players?.[1]?.isAI
@@ -5241,6 +5244,7 @@ export default function App() {
           {homeArea === "play" && (
             <PlayMenu modeMetadata={gameContent.modeMetadata} view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
 
+              {playView === "para" && <Suspense fallback={<p role="status">Loading Para League…</p>}><ParaEventHub serverUrl={SOCKET_URL} authToken={authToken} socket={socket} onOpenMatch={(id) => openPublicView("match", id)} /></Suspense>}
               {playView === "practice" && (
                 <MenuCard className="play-focus-panel" title="Training Grounds">
                   <div className="play-format-heading">
@@ -5535,11 +5539,13 @@ export default function App() {
           {homeArea === "identity" && (
             <div className="identity-hub">
               <div className="identity-view-tabs" role="tablist" aria-label="Identity views">
-                {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"]].map(([viewId, label]) => (
+                {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"], ["economy", "Gold & Library"]].map(([viewId, label]) => (
                   <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => { if (identityView !== viewId) playMenuCue("tab"); setIdentityView(viewId); }}>{label}</button>
                 ))}
               </div>
+              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} /></Suspense>}
               {identityView === "profile" && <>
+              <MenuButton onClick={() => { setPlayView("para"); navigateHomeArea("play"); }}>Para membership, Prestige and event history</MenuButton>
               <IdentityDossierHero
                 account={account}
                 featuredDecks={enrichedFeaturedDecks}

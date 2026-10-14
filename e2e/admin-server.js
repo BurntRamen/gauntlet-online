@@ -5,6 +5,9 @@ const crypto = require("node:crypto");
 const root = path.resolve(__dirname, "../.playwright-data/admin");
 fs.mkdirSync(root, { recursive: true });
 Object.assign(process.env, {
+  GAUNTLET_CONTENT_PROVIDER: "file", GAUNTLET_GOLD_MIGRATION: "legacy-opening-v1",
+  GAUNTLET_PARA_DATA_DIR: fs.mkdtempSync(path.join(root, "para-")),
+  GAUNTLET_ECONOMY_DATA_DIR: fs.mkdtempSync(path.join(root, "economy-")),
   GAUNTLET_CONTENT_DATA_DIR: fs.mkdtempSync(path.join(root, "content-")),
   ACCOUNT_DATA_FILE: path.join(root, "accounts.json"), MATCH_DATA_FILE: path.join(root, "matches.json"),
   MATCH_ARCHIVE_DATA_DIR: path.join(root, "archive"), FACTION_STATS_DATA_FILE: path.join(root, "factions.json"),

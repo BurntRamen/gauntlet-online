@@ -8,6 +8,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
 
 
+const GauntletParaLeague = lazy(() => import(/* webpackChunkName: "gauntlet-admin-para" */ "./GauntletParaLeague"));
 const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-navigation" */ "./admin/WorkshopNavigation"));
 const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/WorkshopPreview"));
 const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-encounters" */ "./EncounterWorkshop"));
@@ -51,11 +52,12 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   }, [confirm]);
   const [notice, setNotice] = useState("");
   const domain = area === "Game" || domainChoice === "modes" ? "game" : domainChoice;
-  const unsaved = Object.keys(buffers).length > 0;
+  const [paraDirty, setParaDirty] = useState(false), [paraEditor, setParaEditor] = useState(0);
+  const unsaved = Object.keys(buffers).length > 0 || paraDirty;
   const selected = selections[domainChoice];
   const context = useWorkshopContext({
     initialTarget: { domain: initialDomain?.name || (area === "Content" ? "campaigns" : "encounters"), id: initialDomain?.id || null, section: initialDomain?.section, field: initialDomain?.field },
-    dirty: unsaved || scenarioDirty, busy, onDiscard: () => { setBuffers({}); bufferRevision.current = null; setScenario(null); setScenarioDirty(false); },
+    dirty: unsaved || scenarioDirty, busy, onDiscard: () => { setParaDirty(false); setParaEditor(value => value + 1); setBuffers({}); bufferRevision.current = null; setScenario(null); setScenarioDirty(false); },
     beforeNavigate, onExit,
     onBusy: () => setNotice("Wait for the current operation to finish."),
     onNavigate: (target) => { setScenario(null); setScenarioDirty(false); setDomainChoice(target.domain); setSelections(current => ({ ...current, [target.domain]: target.id })); onNavigate?.("Design"); }
@@ -141,7 +143,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       const result = await request(`/api/admin/authoring/${action}`, { method: action === "draft" ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: state.revision, ...body }) });
       setState(result); bufferRevision.current = result.revision; setPreview(result.preview || null); setConfirm(null);
       if (action === "publish" || action === "rollback") { setReleaseName(""); onPublished(); }
-      setNotice(result.pending ? guide.publicationPending : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? "Previous release restored for future games." : action === "discard" ? "Shared draft discarded." : action === "validate" ? "Draft validation completed." : "Saved draft preview is ready.");
+      setNotice(result.pending ? guide.publicationPending : action === "para-draft" ? result.notice : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? "Previous release restored for future games." : action === "discard" ? "Shared draft discarded." : action === "validate" ? "Draft validation completed." : "Saved draft preview is ready.");
       return true;
     } catch (failure) { setError(failure.message); if (failure.status === 409) await refresh(); return false; }
     finally { setBusy(false); }
@@ -183,7 +185,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     {state.pending && <section className="admin-preview" aria-label="Publication progress"><h4>Publication: {state.pending.phase.replaceAll("-", " ")}</h4><p>{guide.deploymentPending}</p>{state.pending.url && <a href={state.pending.url} target="_blank" rel="noreferrer">View publication in GitHub</a>}<div className="admin-actions"><button disabled={busy} onClick={() => act("reconcile")}>Check publication</button>{state.pending.phase !== "deploying" && <button disabled={busy} onClick={() => setConfirm({ action: "cancel-publication" })}>Cancel publication</button>}</div></section>}
     {projectionError && <p role="status" className="admin-note">Workshop reference data: {projectionError}</p>}{error && <p role="alert" className="admin-alert">{error}</p>}{notice && <p role="status" className="admin-good">{notice}</p>}
     <details className="admin-json admin-global-validation" open={!state.validation.valid} hidden={area !== "Publishing" && !state.draft && state.validation.valid}><summary>Global validation · {state.validation.errors.length} errors · {state.validation.warnings.length} warnings</summary><Validation guide={guide} validation={state.validation} /></details>
-    {area === "Publishing" ? <>
+    {area === "Para League & Economy" ? (state.para ? <GauntletParaLeague key={paraEditor} state={state} act={act} busy={busy} request={request} onDirty={setParaDirty} preview={preview} /> : <p role="status">Para definitions are unavailable until shared authoring reconnects.</p>) : area === "Publishing" ? <>
       <p className="admin-lede">{guide.publishingHelp}</p>
       <details className="admin-json"><summary>{guide.releaseIdentity}</summary><p className="admin-note">Active release: <code>{state.activeReleaseId}</code><br />Draft revision: {state.revision}<br />{state.storage}</p></details>
       <ReleaseReview state={state} review={review} busy={busy} unsaved={unsaved} onInspect={inspect} releaseName={releaseName} onReleaseName={setReleaseName} onPublish={() => setConfirm({ action: "publish", label: releaseName })} onDiscard={() => setConfirm({ action: "discard" })} />

@@ -51,8 +51,8 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   return { request, readFile, putFile };
 }
 
-function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
-  const seed = createContentPublication({ baseline, memory: true });
+function createGitHubContentPublication({ baseline, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+  const seed = createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true });
   const initial = seed.exportState();
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
   if (packaged) {
@@ -63,7 +63,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   const deployed = initial.releases[initial.activeReleaseId];
   const deployedContent = resolveEngineContent(deployed.snapshot, deployed.id);
   const active = () => clone(deployedContent);
-  const core = (state) => createContentPublication({ baseline, memory: true, initialState: state });
+  const core = (state) => createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
     if (!token) return { state: clone(initial), sha: null };
@@ -78,6 +78,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   function project(state) {
     const view = core(state).status();
     return { ...view, writable: !!token && !state.pending, provider: "github", storage: "Shared drafts and release history in GitHub. Publishing merges a content pull request, then waits for deployment.",
+      publication: { provider: "github", supported: true, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Shared GitHub drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
       activeReleaseId: deployed.id, live: clone(deployed.snapshot), pending: clone(state.pending || null),
       connectionRequired: !token, repositoryUrl: `https://github.com/${REPOSITORY}` };
   }
@@ -178,7 +179,10 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     if (hash(pending) !== beforePending) { state.revision += 1; await save(loaded, state, `Gauntlet Admin: publication ${pending.phase}`); }
     return project(state);
   }
-  return { active, status: async () => project((await load()).state),
+  return { active, published: () => clone(deployed),
+    paraDraft: (args, actor) => operate("paraDraft", args, actor),
+    paraSimulation: async args => core((await load()).state).paraSimulation(args),
+    status: async () => project((await load()).state),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),
     patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),

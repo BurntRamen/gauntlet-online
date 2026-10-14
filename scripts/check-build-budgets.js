@@ -34,7 +34,8 @@ function evaluateBudgets(assets, limits = budgets) {
   const adminEntries = assets.filter(asset => /^gauntlet-admin\./i.test(asset.name));
   const sum = rows => rows.reduce((total, asset) => total + asset.gzipBytes, 0);
   const adminGzipBytes = sum(adminAssets), adminEntryGzipBytes = sum(adminEntries);
-  const totalGzipBytes = sum(assets.filter(asset => !adminAssets.includes(asset)));
+  // Shared Economy UI is charged to both original budget categories.
+  const totalGzipBytes = sum(assets.filter(asset => !adminAssets.includes(asset) || /^gauntlet-admin-economy-shared\./.test(asset.name)));
   const failures = [];
   if (mains.length !== 1) failures.push("Expected exactly one main client bundle.");
   if (adminEntries.length !== 1) failures.push("Expected exactly one named gauntlet-admin entry bundle.");

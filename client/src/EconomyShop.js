@@ -2,6 +2,7 @@ import CurrencyWallet from "./CurrencyWallet";
 
 export default function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters }) {
   if (!economy) return <p className="economy-sign-in">Sign in to earn gold, complete daily quests, and use the shop.</p>;
+  if (economy.source === "finite-gold-ledger") return <div className="economy-shop"><CurrencyWallet economy={economy} /><h3>Gold & Library</h3><p>Open Identity → Gold & Library for finite awards, optional digital products and your purchases. Existing cards and pack credits remain owned. Gem payments are inactive.</p></div>;
   const quests = economy.daily?.quests || [];
   const prices = economy.gameplayPackPrices || { gold: 1000, timetwisters: 200 };
   return <div className="economy-shop">

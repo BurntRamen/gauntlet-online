@@ -7,7 +7,8 @@ const SCENES = [
   { id: "tables", label: "Tables", detail: "Play with friends", mark: "02", title: "A seat at your table.", eyebrow: "Private matches", description: "Challenge a friend to a duel, bring a group together, or watch a match unfold.", image: "play" },
   { id: "ranked", label: "Ranked", detail: "Enter the competition", mark: "03", title: "Make your mark.", eyebrow: "The ranked arena", description: "Bring your best game. Find an opponent, build your record, and climb the seasonal standings.", image: "matches" },
   { id: "events", label: "Events", detail: "Scheduled competition", mark: "04", title: "Rise to the occasion.", eyebrow: "The tournament hall", description: "Find your next event, choose your lineup, and compete alongside the Gauntlet community.", image: "matches" },
-  { id: "draft", label: "Draft", detail: "Draft & sealed", mark: "05", title: "Every pick is a possibility.", eyebrow: "The drafting room", description: "Draft your picks or open a Sealed pool. Build a deck that is yours, one card at a time.", image: "build" }
+  { id: "draft", label: "Draft", detail: "Draft & sealed", mark: "05", title: "Every pick is a possibility.", eyebrow: "The drafting room", description: "Draft your picks or open a Sealed pool. Build a deck that is yours, one card at a time.", image: "build" },
+  { id: "para", label: "Para League", detail: "Free official events", mark: "06", title: "Para League", eyebrow: "Official competition", description: "Complete official runs, earn Prestige and qualify for the next event.", image: "matches" }
 ];
 
 export function PlayMenu({ view, onSelectView, children, modeMetadata = {} }) {

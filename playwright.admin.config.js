@@ -1,6 +1,6 @@
 const { defineConfig } = require("@playwright/test");
 module.exports = defineConfig({
-  testDir: "./e2e", testMatch: "admin.spec.js", workers: 1, timeout: 60000,
+  testDir: "./e2e", testMatch: ["admin.spec.js", "para-league.spec.js", "para-runtime.spec.js", "gold-economy.spec.js"], workers: 1, timeout: 60000,
   use: { baseURL: "http://127.0.0.1:3117", channel: "chromium", viewport: { width: 1440, height: 1000 }, screenshot: "only-on-failure", trace: "retain-on-failure" },
   webServer: [
     { command: "node e2e/admin-server.js", url: "http://127.0.0.1:4117/api/game-content", reuseExistingServer: false, timeout: 30000 },

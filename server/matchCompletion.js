@@ -96,6 +96,7 @@ function createFinalizeCompletedMatch({
   applyAccountConsequence,
   prepareAccountConsequence = null,
   recoverFinalizedConsequences = async () => {},
+  onFinalized = async () => {},
   buildEnvelope = buildCompletionEnvelope,
   buildNextMission = () => null,
   now = () => new Date().toISOString()
@@ -111,6 +112,7 @@ function createFinalizeCompletedMatch({
       // process replacement reconciles that partial state without duplicating
       // rewards or season points.
       await recoverFinalizedConsequences({ record: existing, consequences });
+      await onFinalized(existing);
       const existingConsequence = existing.completion.consequences?.find((entry) => Number(entry.playerNum) === Number(playerNum)) || existing.completion.consequences?.[0] || null;
       return {
         alreadyFinalized: true,
@@ -190,6 +192,7 @@ function createFinalizeCompletedMatch({
         }
       };
       await persistMatchRecord(finalized, { accountApplications });
+      await onFinalized(finalized);
       const playerConsequence = appliedConsequences.find((entry) => Number(entry.playerNum) === Number(playerNum)) || appliedConsequences[0] || null;
       return {
         alreadyFinalized: false,
