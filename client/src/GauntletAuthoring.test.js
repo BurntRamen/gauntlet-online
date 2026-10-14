@@ -68,7 +68,7 @@ test("Para conflicts retain the original revision until the operator explicitly 
     return normal(path, options);
   });
   render(<GauntletAuthoring {...props()} area="Para League & Economy" />);
-  fireEvent.click(await screen.findByRole("button", { name: "Seasons", exact: true }));
+  fireEvent.click(await screen.findByRole("button", { name: "Seasons", exact: true }, { timeout: 5000 }));
   fireEvent.click(screen.getByRole("button", { name: /Original season/ }));
   fireEvent.change(screen.getByLabelText("Name", { exact: true }), { target: { value: "Retained local season" } });
   fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));

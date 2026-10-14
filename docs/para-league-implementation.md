@@ -42,8 +42,7 @@ runtime features fail closed and existing live economy behavior continues. The p
 storage diagnostic reports feature enablement without paths or credentials. Deployment
 of the interface alone does not prove durable operational wallets or official events.
 
-Verification and deployment evidence for this integrated release will be recorded
-at the end of this document.
+Integrated-release evidence and rollout boundaries are recorded at the end of this document.
 
 Updated 2026-10-12. Branch: `codex/para-league-economy`; starting commit: `bc1b7e7`.
 
@@ -607,3 +606,49 @@ combined build and CI results supersede the pre-merge figures above. The isolate
 browser run passed all 17 existing Admin flows, the full Gold flow and official Para
 settlement (19 passing). The remaining Para authoring assertion was updated to match
 the shortened simulator copy and is pending a clean rerun.
+
+### Combined production build and release gates
+
+After integrating main 6304434, the production build measures:
+
+| Counted category | Gzip bytes | Ceiling |
+| --- | ---: | ---: |
+| Main | 179,532 | 184,320 |
+| Initial Admin | 20,438 | 20,480 |
+| All Admin | 49,122 | 49,152 |
+| Player JavaScript | 770,079 | 771,072 |
+| Largest async chunk | 292,618 | 358,400 |
+
+All categories pass. Remaining aggregate headroom is 30 bytes for Admin and 993 for
+player JavaScript; the 2 KiB target remains unmet. The player ceiling comes from
+upstream campaign PR #74, not a budget increase for the Gold integration.
+
+Release gates comprise 385 server tests, 728 client tests in 95 suites, 50 local
+qualification tests, content validation (144 cards and 1,650 immutable references),
+and the 20-case Admin/Para/Gold browser suite. The CI workflow also runs the existing
+live Babylon, draft, workshop, collector, usability and performance browser suites.
+The combined server and client CI gates passed at c80685d; final checks and deployed
+commit evidence are tracked in [release PR #75](https://github.com/BurntRamen/gauntlet-online/pull/75).
+A local full client run required a rerun of the new asynchronous Para editor test;
+its lazy-loading wait now matches the existing five-second workshop waits. All 13
+authoring tests passed after that adjustment. Windows Jest retained an open handle
+after the full local run; CI completed the client suite normally.
+
+Local screenshots retained in artifacts: gold-player-purchase.png,
+gold-analysis-desktop.png, gold-analysis-mobile.png, gold-admin-receipt.png,
+para-runtime-player-mobile.png, para-runtime-admin-evidence.png and
+para-marketplace-mobile.png. Gold purchase/access/refund and two-human-match Prestige
+settlement passed before the campaign merge; the combined suite rechecks them.
+The mobile library and Para hub and the operator evidence screens were visually
+inspected. Browser assertions include accessibility and horizontal-overflow checks.
+
+Operational locally: finite awards, opening-balance migration, purchases, usable
+personal match analysis, permanent/expiring access, compensation, backup/restore,
+free official events and pinned Prestige receipts. Configuration-only until reviewed:
+Season Zero, future offers and proposed currencies. Unavailable: Gem payments and
+currency conversion. Safe to deploy with runtime flags absent: the integrated Admin
+and player interfaces, preserving existing live economy behavior. Not qualified for
+production activation: durable Para/Gold storage and canonical match recovery.
+No additional deployment authorization is needed; the user already authorized it.
+Infrastructure access and verification remain a technical prerequisite, not a request
+to approve the same deployment again.
