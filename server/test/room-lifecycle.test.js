@@ -210,3 +210,17 @@ test("failed finalization survives a checkpoint and retries with the original ou
   assert.equal(JSON.parse(fs.readFileSync(process.env.ROOM_STATE_DATA_FILE)).rooms.some(entry => entry.roomCode === room.roomCode), false);
   __test.deleteRoom(room.roomCode);
 });
+
+test("simultaneous completion and recovery share post-finalization faction accounting", async t => {
+  const room = makeActiveGame(__test.createRoom());
+  room.matchMetadata.matchId = "77777777-7777-4777-8777-777777777777";
+  room.game.matchId = room.matchMetadata.matchId; room.game.phase = "gameOver"; room.game.winner = 1;
+  const before = JSON.parse(fs.readFileSync(process.env.FACTION_STATS_DATA_FILE)).totalGames;
+  const write = fs.writeFileSync; let factionWrites = 0;
+  t.mock.method(fs, "writeFileSync", (filename, ...args) => { if (filename === process.env.FACTION_STATS_DATA_FILE) factionWrites += 1; return write(filename, ...args); });
+  await Promise.all([__test.recordFinalGameStats(room, { completionReason: "concession" }), __test.recordFinalGameStats(room)]);
+  assert.equal(factionWrites, 1);
+  assert.equal(JSON.parse(fs.readFileSync(process.env.FACTION_STATS_DATA_FILE)).totalGames, before + 1);
+  assert.equal(room.finalizationPromise, undefined); assert.equal(room.pendingFinalization, undefined);
+  __test.deleteRoom(room.roomCode);
+});

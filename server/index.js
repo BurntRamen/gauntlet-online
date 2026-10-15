@@ -7125,6 +7125,13 @@ function buildAccountResultContext(roomState, matchRecord, playerNum) {
 }
 
 async function recordFinalGameStats(roomState, options = {}) {
+  if (roomState.finalizationPromise) return roomState.finalizationPromise;
+  roomState.finalizationPromise = finalizeRoomGameStats(roomState, options);
+  try { return await roomState.finalizationPromise; }
+  finally { delete roomState.finalizationPromise; }
+}
+
+async function finalizeRoomGameStats(roomState, options = {}) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
