@@ -142,8 +142,12 @@ begin
     match_id, sequence, turn, phase, actor_player_num, event_type,
     public_payload, server_timestamp, state_checksum
   )
-  select v_match_id, sequence, turn, phase, actor_player_num, event_type,
-         public_payload, server_timestamp, state_checksum
+  -- Accept both the existing backend's canonical event names and the new
+  -- explicit database projection so this migration can precede deployment.
+  select v_match_id, sequence, turn, phase,
+         coalesce(actor_player_num, "actorPlayerNum"), coalesce(event_type, "eventType"),
+         coalesce(public_payload, "publicPayload", '{}'::jsonb),
+         coalesce(server_timestamp, "serverTimestamp"), coalesce(state_checksum, "stateChecksum")
   from jsonb_to_recordset(coalesce(p_events, '[]'::jsonb)) as event(
     sequence integer,
     turn integer,
@@ -152,7 +156,12 @@ begin
     event_type text,
     public_payload jsonb,
     server_timestamp timestamptz,
-    state_checksum text
+    state_checksum text,
+    "actorPlayerNum" integer,
+    "eventType" text,
+    "publicPayload" jsonb,
+    "serverTimestamp" timestamptz,
+    "stateChecksum" text
   ) on conflict (match_id, sequence) do nothing;
 
   for v_application in select * from jsonb_array_elements(coalesce(p_account_applications, '[]'::jsonb)) loop

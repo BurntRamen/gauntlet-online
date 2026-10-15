@@ -53,6 +53,10 @@ test("private authoring and full match persistence survive new clients, enforce 
     const other = { ...record, matchId: "33333333-3333-4333-8333-333333333333" };
     await assert.rejects(persistence.persist(other, { accountApplications: applications }), /Account data changed/);
     assert.equal((await db.query("select count(*)::int as n from public.gauntlet_match_records")).rows[0].n, 1, "Stale account update rolls back the full match transaction");
+    const legacy = { ...record, matchId: "44444444-4444-4444-8444-444444444444" };
+    await db.query("select public.finalize_gauntlet_match($1,$2)", [legacy, record.auditEvents]);
+    const legacyEvent = (await db.query("select event_type,public_payload,actor_player_num from public.gauntlet_match_events where match_id=$1", [legacy.matchId])).rows[0];
+    assert.deepEqual(legacyEvent, { event_type: "attack", public_payload: { lane: 1 }, actor_player_num: 1 }, "Migration remains compatible with the currently deployed event format");
     await db.exec("reset role");
     for (const role of ["anon", "authenticated"]) {
       await db.exec(`set role ${role}`);
