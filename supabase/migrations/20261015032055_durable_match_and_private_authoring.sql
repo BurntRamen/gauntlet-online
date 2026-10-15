@@ -269,4 +269,3 @@ do $$ begin
 end $$;
 notify pgrst, 'reload schema';
 commit;
-
