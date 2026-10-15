@@ -250,6 +250,7 @@ function createAdminData(deps) {
     const persistence = deps.persistence.status();
     const archive = deps.archive.status();
     const current = await catalog();
+    const runtime = deps.runtimeStorage?.();
     return {
       checkedAt, environment: deps.environment || "unspecified", applicationVersion: require("./package.json").version,
       backendCommit: deps.backendCommit || null,
@@ -262,7 +263,8 @@ function createAdminData(deps) {
         accounts: { source: accountSource(), status: checks[0].status === "fulfilled" ? "read succeeded" : "unavailable" },
         matches: { mode: persistence.mode, status: checks[1].status === "fulfilled" ? "read succeeded" : "unavailable", capabilities: persistence.capabilities },
         archive: { mode: archive.mode || null, status: checks[2].status === "fulfilled" && archive.available ? "available" : "unavailable", durable: !!archive.durable },
-        rooms: { enabled: deps.roomRecovery, source: "Private local room snapshots", note: "Never exposed through admin." },
+        rooms: { enabled: deps.roomRecovery, source: runtime?.persistentMountVerified ? "Private persistent-volume checkpoints" : "Private local room snapshots", note: "Room contents are never exposed through admin.", ...(runtime ? { persistentVolume: runtime.persistentMountVerified, lastCheckpoint: runtime.checkpoint.lastSavedAt || "None saved this process", checkpointFailed: runtime.checkpoint.lastSaveFailed } : {}) },
+        ...(runtime ? { runtimeBackups: { enabled: runtime.backups.enabled, source: "Private Supabase Storage", lastSuccessfulAt: runtime.backups.lastSuccessfulAt || "No verified backup", status: runtime.backups.lastError ? "Failed; inspect server logs" : runtime.backups.running ? "Backing up" : runtime.backups.enabled ? "Scheduled hourly" : "Not configured" } } : {}),
         content: { source: current.publishing.storage || "Configured content provider", status: deps.publication ? "read succeeded" : "source baseline only", writable: !!current.publishing.writable, activeRelease: current.versions.content }
       },
       validation: current.validation, sources: current.sources,
@@ -272,6 +274,8 @@ function createAdminData(deps) {
         ...checks.flatMap((check, index) => check.status === "rejected" ? [`${["Account read", "Match storage probe", "Archive probe"][index]} failed. Details remain in server logs.`] : []),
         ...(!archive.available ? ["Canonical archive is unavailable. This does not prove that all match records are unavailable."] : []),
         ...(persistence.mode === "account-only" ? ["Account-only persistence: full match evidence is not guaranteed after process replacement."] : []),
+        ...(runtime && !runtime.persistentMountVerified ? ["Runtime files are not on a verified persistent volume. Server replacement can lose active rooms or enabled SQLite ledgers."] : []),
+        ...(runtime?.backups.enabled && (!runtime.backups.lastSuccessfulAt || runtime.backups.lastError) ? ["Runtime backups need attention. A verified off-volume recovery point has not been confirmed for the latest attempt."] : []),
         ...(!current.validation.valid ? [current.validation.message] : [])
       ],
       boundaries: ["Package version is not a deployed release identifier. Commit is shown only if supplied by deployment.", "Authored release IDs identify presentation and mechanical snapshots. Rules, card effects, faction effects, encounter setup and asset manifest versions are pinned separately.", "Account and match reads are fresh; persistence mode and archive availability use existing cached capability probes. This does not verify every database table, storage object, browser asset or remote frontend deployment. Archive hashes are verified during record inspection."]

@@ -52,7 +52,7 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   return { request, readFile, putFile };
 }
 
-function createGitHubContentPublication({ baseline, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+function createGitHubContentPublication({ baseline, draftStore = null, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
   const seed = createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true });
   const initial = seed.exportState();
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
@@ -71,23 +71,29 @@ function createGitHubContentPublication({ baseline, runtimeCapabilities = () => 
   const core = (state) => createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
-    if (!token) return { state: clone(initial), sha: null };
-    const branch = await client.request(`git/ref/heads/${DRAFT_BRANCH}`, { missing: true });
+    const privateDraft = draftStore ? await draftStore.load() : null;
+    if (!token && !privateDraft) return { state: clone(initial), sha: null, privateVersion: 0 };
+    // A first private save imports the existing GitHub draft without deleting
+    // it. Once created, the private store is authoritative: never fall back on
+    // database failure or write new private material to the old draft branch.
+    const branch = privateDraft ? null : await client.request(`git/ref/heads/${DRAFT_BRANCH}`, { missing: true });
     const file = branch ? await client.readFile(branch.object.sha, DRAFT_PATH) : null;
-    const state = file ? file.value : clone(initial);
+    const state = privateDraft ? clone(privateDraft.state) : file ? file.value : clone(initial);
     core(state); // Validate release hashes, compatibility and the active pointer.
     if (state.pending?.releaseId === deployed.id) delete state.pending;
     if (!state.pending && state.activeReleaseId !== deployed.id) fail(409, "The saved draft belongs to another deployed release. Wait for deployment or reconcile its GitHub history.");
-    return { state, sha: file?.sha || null, branchExists: !!branch };
+    return { state, sha: file?.sha || null, branchExists: !!branch, privateVersion: privateDraft?.version || 0 };
   }
   function project(state) {
     const view = core(state).status();
-    return { ...view, writable: !!token && !state.pending, provider: "github", storage: "Shared drafts and release history in GitHub. Publishing merges a content pull request, then waits for deployment.",
+    return { ...view, writable: !!token && !state.pending, provider: "github", draftStorage: draftStore ? "supabase-private" : "github",
+      storage: draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in GitHub. Publishing merges a content pull request, then waits for deployment.",
       publication: { provider: "github", supported: true, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Shared GitHub drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
       activeReleaseId: deployed.id, live: clone(deployed.snapshot), pending: clone(state.pending || null),
       connectionRequired: !token, repositoryUrl: `https://github.com/${REPOSITORY}` };
   }
   async function save(loaded, state, message) {
+    if (draftStore) return draftStore.save(loaded.privateVersion, state);
     if (!loaded.branchExists) {
       try { await client.request("git/refs", { method: "POST", body: { ref: `refs/heads/${DRAFT_BRANCH}`, sha: await mainHead() } }); }
       catch (error) { if (error.status !== 409) throw error; }
@@ -96,8 +102,8 @@ function createGitHubContentPublication({ baseline, runtimeCapabilities = () => 
   }
   async function operate(method, args, actorId) {
     if (!token) fail(503, "Connect the server's repository-scoped GitHub credential before saving Admin changes.");
-    if (method === "uploadAsset" && (await client.request(""))?.private !== true) fail(503, "Private image uploads require a private repository or an approved private storage adapter. No image was saved to GitHub.");
-    if (method === "saveNotes" && (await client.request(""))?.private !== true) fail(503, "Private notes require a verified private repository. No notes were saved.");
+    if (!draftStore && method === "uploadAsset" && (await client.request(""))?.private !== true) fail(503, "Private image uploads require a private repository or an approved private storage adapter. No image was saved to GitHub.");
+    if (!draftStore && method === "saveNotes" && (await client.request(""))?.private !== true) fail(503, "Private notes require a verified private repository. No notes were saved.");
     const loaded = await load();
     if (loaded.state.pending) fail(409, "A publication is in progress. Finish its checks and deployment before editing another draft.");
     const store = core(loaded.state);

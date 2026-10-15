@@ -99,6 +99,45 @@ async function draft(store, { mechanical = false } = {}) {
   return store.preview({ expectedRevision: state.revision });
 }
 
+test("Supabase-private drafts import GitHub history, keep unused uploads and notes private, and publish through the existing gates", async () => {
+  const repo = repository(); repo.client.private = false;
+  const originalStore = repo.store();
+  const old = await draft(originalStore);
+  let privateState = null, version = 0;
+  const draftStore = { load: async () => privateState ? { state: clone(privateState), version } : null,
+    save: async (expected, state) => { if (expected !== version) fail(409); privateState = clone(state); version += 1; } };
+  const store = repo.store({ draftStore });
+  assert.equal((await store.status()).draft.hash, old.draft.hash);
+  const writesBefore = repo.client.writes.length;
+  let state = await store.saveNotes({ expectedRevision: old.revision, id: "standard", value: "PRIVATE-SUPABASE-NOTE" }, "admin");
+  const data = (await require("sharp")({ create: { width: 32, height: 32, channels: 3, background: "red" } }).png().toBuffer()).toString("base64");
+  state = await store.uploadAsset({ expectedRevision: state.revision, title: "PRIVATE-UPLOAD-TITLE", description: "PRIVATE-DESCRIPTION", notes: "PRIVATE-SOURCE", data }, "admin");
+  const selected = state.uploaded;
+  state = await store.uploadAsset({ expectedRevision: state.revision, title: "PRIVATE-UNUSED", description: "", notes: "", data }, "admin");
+  const unused = state.uploaded;
+  assert.equal(repo.client.writes.length, writesBefore, "No new draft or private bytes were written to the public repository");
+  state = await store.patch({ expectedRevision: state.revision, domain: "assets", id: "rumin-coin-scale-spear:standard", field: "art", value: selected.id }, "admin");
+  state = await store.preview({ expectedRevision: state.revision });
+  state = await store.publish({ expectedRevision: state.revision, label: "Private staging release" }, "admin");
+  assert.equal(state.pending.phase, "checks"); assert.equal(repo.pulls[0].merged, false);
+  const release = (await repo.client.readFile(repo.pulls[0].head.ref, RELEASE_PATH)).value;
+  assert.ok(!JSON.stringify(release).includes("PRIVATE-"));
+  assert.equal(release.assetPackage.versions.some(row => row.id === unused.id), false);
+  assert.equal(release.assetPackage.versions.some(row => row.id === selected.id), true);
+  repo.client.ready = true; await store.reconcile();
+  const deployed = repo.store({ draftStore, deployedRelease: release, deployedCommit: repo.refs.get("main") });
+  const restored = await deployed.status();
+  assert.equal(restored.privateNotes.standard.value, "PRIVATE-SUPABASE-NOTE");
+  assert.equal(restored.pending, null);
+  assert.equal(Buffer.from((await deployed.privateAsset(unused.id)).data, "base64").length, unused.bytes);
+  assert.throws(() => deployed.publicAsset(unused.id, unused.sha256), { status: 404 });
+  draftStore.load = async () => { throw Object.assign(new Error("Private database unavailable"), { status: 503 }); };
+  const before = repo.client.writes.length;
+  await assert.rejects(deployed.status(), { status: 503 });
+  await assert.rejects(deployed.saveNotes({ expectedRevision: restored.revision, id: "standard", value: "No fallback" }), { status: 503 });
+  assert.equal(repo.client.writes.length, before);
+});
+
 test("GitHub drafts are shared, conflict checked and never change deployed content", async () => {
   const repo = repository(), first = repo.store(), second = repo.store();
   const before = first.active();
