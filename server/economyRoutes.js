@@ -2,7 +2,11 @@
 const { playerView, adminView, quoteView } = require("./economyViews");
 const { matchAnalysis } = require("./digitalDelivery");
 const { assetEntry } = require("./contentAssets");
-function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount }) {
+function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts }) {
+  async function operations() {
+    const data = economy.admin(), accounts = listAccounts ? await listAccounts() : data.accounts;
+    return adminView({ ...data, accountOptions: accounts.map(a => ({ id: a.id, name: a.name || a.id })) });
+  }
   async function reconcile(account) { for (const record of await records(account.id, 100)) economy.ingest(record); }
   const send = (admin, work) => async (req, res) => {
     res.set("Cache-Control", "private, no-store");
@@ -17,7 +21,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
     } catch (e) { res.status([400, 401, 403, 404, 409, 422].includes(e.status) ? e.status : 503).json({ error: e.status ? e.message : "Gold service unavailable. Retry with the same request key." }); }
   };
   app.get("/api/economy", send(false, async (account) => { await reconcile(account); return { view: playerView(economy.player(account)) }; }));
-  app.get("/api/admin/economy", send(true, () => ({ view: adminView(economy.admin()) })));
+  app.get("/api/admin/economy", send(true, async () => ({ view: await operations() })));
   for (const action of ["claim", "quote", "purchase"]) app.post(`/api/economy/${action}`, send(false, async (account, req) => {
     if (action === "claim") await reconcile(account);
     const receipt = economy[action](account, req.body);
@@ -30,6 +34,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
   }));
   app.post("/api/economy/access", send(false, async (account, req) => {
     const { grant, delivery } = economy.access(account, req.body?.entitlementId);
+    if (delivery.kind === "deck") return { view: { title: grant.term.name, summary: "This purchased recipe and its exact cosmetic grants are available in your Deck Library. Refunds revoke their purchased cosmetic contribution; saved recipe knowledge is retained.", tables: [{ title: "Captured recipe", columns: ["Card", "Printing"], rows: delivery.receipt.template.composition.cards.map(row => [row.cardId, row.printingId]) }] } };
     if (delivery.kind === "analysis") return { view: matchAnalysis(await records(account.id, 100), account.id) };
     // Existing assets are already public content. Entitlement access is checked
     // here; downloads cannot be revoked after delivery and are not DRM.
@@ -38,7 +43,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
   app.post("/api/admin/economy/operate", send(true, async (actor, req) => {
     const target = req.body?.operation === "adjust" && typeof req.body.accountId === "string" ? await findAccount(req.body.accountId) : null;
     const receipt = economy.operate(actor, req.body, target);
-    return { view: adminView(economy.admin()), notice: `Operator receipt ${receipt.id} recorded.` };
+    return { view: await operations(), notice: `Operator receipt ${receipt.id} recorded.` };
   }));
 }
 module.exports = { registerEconomyRoutes };

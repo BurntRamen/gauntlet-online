@@ -11,7 +11,7 @@ This uses the existing Supabase database; it creates no hosting service or new a
 
 If SQL fails, preserve the error and check the project/table identity. Do not bypass the capability check or remove the trigger to make a purchase succeed. If the PostgREST schema cache has not refreshed after successful SQL, reload its schema using the project's normal administration procedure and retry the read-only capability check.
 
-The separately released finite Gold ledger is a different purchase system. If `GAUNTLET_ECONOMY_DATA_DIR` enables it, deck products deliberately report `ready: false`: atomic deck fulfillment across that ledger and the account store is not implemented. This migration does not enable that integration. Do not disable or roll back an active ledger to force deck purchases through an old account balance. Leave the existing economy configuration unchanged during this rollout.
+PR72 by itself disables deck products when the finite ledger is enabled. The local modular Admin integration adds a tested single-authority path: Gold debit, immutable recipe/printing/back grant and captured receipt commit together in SQLite; account collections and saved decks are a rebuildable projection. Timetwisters continue through the revision-guarded account transaction. The migration alone does not install or enable this code. Verify the deployed capability reports `authority.gold: finite-gold-ledger` before qualifying that path. Never disable or roll back an active ledger to force purchases through a stale account balance. See [current implementation and activation status](modular-admin-suite.md); this integration has not been deployed.
 
 ## What this protects
 

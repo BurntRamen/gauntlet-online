@@ -186,9 +186,37 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
     transaction(() => bind(account));
     const grant = grants(account.id).find((g) => g.id === entitlementId && g.state === "active");
     if (!grant) fail("Active owned access is required.", 403);
-    const delivery = resolveDelivery(grant.term);
+    const delivery = grant.term.delivery.kind === "deck" ? grant.term.delivery : resolveDelivery(grant.term);
     if (delivery.sha256 !== grant.term.delivery.sha256) fail("Pinned content integrity failed.", 503);
     return { grant, delivery };
+  }
+  function purchaseDeck(account, input, resolved, adapters) {
+    if (input?.currency !== "gold") fail("The Gold ledger only accepts Gold; account Timetwisters use their own atomic receipt.", 422);
+    const receipt = execute(account, "deck-purchase", { ...input, key: input.requestId }, ({ release }) => {
+      if (resolved.releaseId !== release.id) fail("The published offer changed. Refresh its terms.");
+      const source = structuredClone(account);
+      source.stats ||= {}; source.stats.economy = { ...source.stats.economy, gold: balance(account.id) };
+      source.stats.economy.purchaseReceipts = { ...source.stats.economy.purchaseReceipts };
+      for (const purchase of owned("purchases", account.id)) if (purchase.deckReceipt) source.stats.economy.purchaseReceipts[`deck:${purchase.deckReceipt.requestId}`] = purchase.deckReceipt;
+      const prepared = require("./deckCommerce").preparePurchase(source, input, resolved, { ...adapters, now: now() });
+      if (prepared.alreadyPurchased) fail("This request belongs to an existing account purchase; use its original receipt.");
+      if (prepared.receipt.price > 1000000) fail("This price exceeds the finite ledger's supported transaction limit.", 422);
+      const offer = resolved.manifest.deckOffers.find(o => o.id === input.offerId), purchaseId = id(), grantId = id();
+      const quote = put("quotes", { id: id(), accountId: account.id, releaseId: release.id, product: offer, createdAt: now(), expiresAt: now() });
+      const publicReceipt = { ...prepared.receipt, ledgerPurchaseId: purchaseId, productName: offer.name, fulfillment: "fulfilled" };
+      const printingCounts = {};
+      for (const selection of offer.template.composition.cards) printingCounts[selection.printingId] = (printingCounts[selection.printingId] || 0) + 1;
+      const delivery = { id: `deck:${purchaseId}`, kind: "deck", printingCounts, cardBackId: offer.cardBackId,
+        deckRecord: prepared.stats.deckLibrary.decks.find(d => d.id === publicReceipt.deckId), receipt: publicReceipt, sha256: hash({ template: offer.template, terms: offer.terms }) };
+      const term = { id: offer.id, name: offer.name, category: "deck-recipe", duration: "permanent", provenance: "commercial", delivery };
+      const purchase = { id: purchaseId, accountId: account.id, product: { id: offer.id, name: offer.name, category: "deck-recipe" }, terms: [term], releaseId: release.id, quoteId: quote.id, gold: publicReceipt.price, at: now(), fulfillment: "fulfilled", entitlementIds: [grantId], deckReceipt: publicReceipt };
+      put("purchases", purchase, { account_id: account.id, product_id: offer.id, quote_id: quote.id });
+      move(account.id, "purchase", -publicReceipt.price, { purchaseId, releaseId: release.id });
+      put("entitlements", { id: grantId, accountId: account.id, term, acquiredAt: now(), expiresAt: null, releaseId: release.id, purchaseId }, { account_id: account.id, purchase_id: purchaseId });
+      audit("deck-purchase-fulfilled", account.id, { purchaseId, requestId: input.requestId });
+      return publicReceipt;
+    });
+    return { receipt };
   }
   function operate(actor, input, target) {
     return execute(actor, "operator", input, ({ config, release }) => {
@@ -229,7 +257,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
   function admin() {
     return transaction(() => {
       const { release, config } = sync(), transactions = [...rows("openings"), ...rows("transactions")], accounts = rows("accounts"), seasons = rows("seasons");
-      return { ...status, activeReleaseId: release.id, catalog: config.products, definitions: rows("definitions"),
+      return { ...status, activeReleaseId: release.id, catalog: config.products, seasonOptions: config.seasons.filter(s => s.status !== "archived").map(s => [s.id, s.name]), definitions: rows("definitions"),
         totals: { imported: rows("openings").reduce((n, t) => n + t.delta, 0), issued: transactions.filter((t) => ["award", "adjust-credit"].includes(t.kind)).reduce((n, t) => n + t.delta, 0), retired: -transactions.filter((t) => t.delta < 0).reduce((n, t) => n + t.delta, 0), restored: transactions.filter((t) => t.kind === "refund").reduce((n, t) => n + t.delta, 0), balance: transactions.reduce((n, t) => n + t.delta, 0), pending: 0 },
         accounts: accounts.map((a) => ({ ...a, balance: balance(a.id) })), budgets: accounts.flatMap((a) => seasons.map((s) => ({ accountId: a.id, seasonId: s.id, budget: s.definition.goldBudget, issued: issued(a.id, s.id), releaseId: s.releaseId }))),
         claims: rows("claims"), evidence: rows("evidence"), purchases: rows("purchases"), grants: accounts.flatMap((a) => grants(a.id)), transactions, audit: rows("audit"), refunds: rows("refunds") };
@@ -240,7 +268,9 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
     // New legacy runs are closed by the route layer before migration starts.
     if (!get("openings", account.id) && pendingLegacyRuns(account)) return { source: "legacy-event-settlement", daily: { quests: [] } };
     bind(account); return { gold: balance(account.id), source: "finite-gold-ledger", daily: { quests: [] } };
-  }), ingest, claim, quote, purchase, access, operate, player, admin,
+  }), ingest, claim, quote, purchase, purchaseDeck, access, operate, player, admin,
+    inspectAccount: accountId => transaction(() => ({ balance: get("accounts", accountId) ? balance(accountId) : null, grants: grants(accountId), purchases: owned("purchases", accountId), transactions: history(accountId) })),
+    accountGrants: accountId => transaction(() => grants(accountId)),
     failed: (matchId, error) => audit("evidence-import-failed", null, { matchId, reason: error.message }),
     backup: (destination) => db.prepare("VACUUM INTO ?").run(destination), close: () => db.close() };
 }

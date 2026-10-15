@@ -16,8 +16,12 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   const offer = resolved.manifest.deckOffers?.find(offer => offer.id === input.offerId);
   if (!offer || offer.status !== "available") fail(409, "This product is unavailable. No payment was taken.");
   if (offer.revision !== input.revision) fail(409, "The product or recipe changed. Review its current terms before purchasing.");
+  const sale = offer.sale || {};
+  if (sale.startsAt && now < sale.startsAt || sale.endsAt && now >= sale.endsAt) fail(409, "This product is outside its sale window. No payment was taken.");
+  if (sale.purchaseLimit && Object.values(economy.purchaseReceipts).filter(receipt => receipt.offerId === offer.id).length >= sale.purchaseLimit) fail(409, "This account has reached the product's lifetime purchase limit, including refunded purchases.");
   const price = offer.prices[input.currency];
   if (!Number.isSafeInteger(price) || price < 0) fail(422, "That currency is not enabled for this product.");
+  if (!Number.isSafeInteger(economy[input.currency])) fail(503, "The account currency needs operator reconciliation before it can be spent.");
   if (economy[input.currency] < price) fail(422, `You need ${price} ${input.currency === "gold" ? "Gold" : "Timetwisters"}.`);
   const loadout = resolveComposition(offer.template.composition, resolved.manifest, { channel: "constructed" });
   const collection = normalizeCollection(stats);
@@ -25,6 +29,7 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   stats.collection = collection;
   const progression = normalizeProgression(stats);
   progression.cosmetics.unlockedCardBacks = [...new Set([...progression.cosmetics.unlockedCardBacks, offer.cardBackId])];
+  if (stats.ledgerProjection) stats.ledgerProjection.baseBacks = [...new Set([...(stats.ledgerProjection.baseBacks || []), offer.cardBackId])];
   stats.progression = progression;
   const { record } = saveDeck(stats, { ...compositionPayload(offer.template), accessMode: "competitive", deckBoxId: offer.deckBoxId, cardBackId: offer.cardBackId }, account.id);
   economy[input.currency] -= price;

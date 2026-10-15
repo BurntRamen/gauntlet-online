@@ -357,7 +357,17 @@ app.get("/api/storage-status", async (_req, res) => {
 });
 
 // ============ ACCOUNT AUTH ============
-function loadAccountStore() { return require("./accountStore").read(ACCOUNT_DATA_FILE); }
+function projectEconomyAccount(account) {
+  if (!account || !goldEconomy?.enabled) return account;
+  return require("./ledgerAccountProjection").projectLedgerAccount(account, goldEconomy.accountGrants(account.id), {
+    collection: normalizeCollection, progression: normalizeProgression, library: normalizeDeckLibrary, syncDecks: syncLegacyDeckPointers
+  });
+}
+function loadAccountStore() {
+  const store = require("./accountStore").read(ACCOUNT_DATA_FILE);
+  store.accounts = store.accounts.map(projectEconomyAccount);
+  return store;
+}
 function saveAccountStore(store) { return require("./accountStore").save(ACCOUNT_DATA_FILE, store); }
 
 function emptyFactionStatsStore() {
@@ -1750,7 +1760,7 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  const { _accountRevision, ...visible } = stats;
+  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, ...visible } = stats;
   return profile ? { ...visible, profile, economy } : { ...visible, economy };
 }
 
@@ -1766,6 +1776,7 @@ function economySummary(stats = {}) {
 }
 
 function publicAccount(account) {
+  account = projectEconomyAccount(account);
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
   const economy = { ...economySummary(stats), ...(goldEconomy?.enabled ? goldEconomy.wallet(account) : {}) };
@@ -2416,7 +2427,7 @@ async function saveFactionStatsStore(store) {
 
 function accountFromSupabaseRow(row) {
   if (!row) return null;
-  return {
+  return projectEconomyAccount({
     id: row.id,
     name: row.name,
     nameKey: row.name_key,
@@ -2426,7 +2437,7 @@ function accountFromSupabaseRow(row) {
     lastLoginAt: row.last_login_at,
     lastSeenAt: row.last_seen_at,
     stats: row.stats || {}
-  };
+  });
 }
 
 async function findSupabaseAccountByName(name) {
@@ -3759,7 +3770,7 @@ app.get("/api/auth/me", async (req, res) => {
 
 app.get("/api/events", (_req, res) => {
   res.set("Cache-Control", "no-store");
-  res.json({ events: listEventDefinitions() });
+  res.json({ events: listEventDefinitions().map(event => goldEconomy?.enabled ? { ...event, entryDisabledReason: "New legacy runs are closed after the Gold cutover. Existing runs keep their promised rewards.", availability: { ...event.availability, canEnter: false } } : event) });
 });
 
 app.post("/api/events/:eventId/join", async (req, res) => {
@@ -3910,13 +3921,11 @@ app.post("/api/collection/open-pack", async (req, res) => {
 });
 
 async function deckPurchaseCapability() {
-  // Deck fulfillment is atomic in the account store. It cannot debit the
-  // separate finite Gold ledger or reuse a pre-migration account balance.
-  if (goldEconomy?.enabled) return { ready: false, reason: "Deck products are unavailable with the finite Gold ledger until atomic deck fulfillment is supported." };
-  if (!useSupabaseStore()) return { ready: true, storage: "atomic-account-file" };
+  const authority = { gold: goldEconomy?.enabled ? "finite-gold-ledger" : "account", timetwisters: "account" };
+  if (!useSupabaseStore()) return { ready: true, storage: "atomic-account-file", authority };
   try {
     const version = await supabaseRequest("rpc/gauntlet_account_write_capability", { method: "POST", body: "{}" });
-    if (version === 1) return { ready: true, storage: "supabase-revision-guard" };
+    if (version === 1) return { ready: true, storage: "supabase-revision-guard", authority };
   } catch { /* Absence is a capability failure, never permission to debit. */ }
   return { ready: false, reason: "Deck purchases require the account concurrency migration on this service's database." };
 }
@@ -3926,7 +3935,13 @@ async function purchaseDeckProduct(accountId, input) {
     const store = useSupabaseStore() ? null : loadAccountStore();
     const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
     if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
-    const result = require("./deckCommerce").preparePurchase(account, input, contentPublication.active(), { normalizeCollection, normalizeProgression, saveDeck: saveConstructedDeckToLibrary });
+    const adapters = { normalizeCollection, normalizeProgression, saveDeck: saveConstructedDeckToLibrary };
+    const prior = account.stats?.economy?.purchaseReceipts?.[`deck:${input?.requestId}`];
+    if (goldEconomy?.enabled && input?.currency === "gold" && (!prior || prior.ledgerPurchaseId)) {
+      const result = goldEconomy.purchaseDeck(account, input, contentPublication.active(), adapters);
+      return { account: publicAccount(account), receipt: result.receipt, alreadyPurchased: !!prior };
+    }
+    const result = require("./deckCommerce").preparePurchase(account, input, contentPublication.active(), adapters);
     if (!result.alreadyPurchased) {
       if (store) { account.stats = result.stats; saveAccountStore(store); }
       else await patchSupabaseAccount(accountId, { stats: result.stats, last_seen_at: result.receipt.purchasedAt });
@@ -4852,6 +4867,7 @@ paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publicati
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
 goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: runtimeStorage.paths.economy, publication: contentPublication });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
+  listAccounts: loadStudioAccounts,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
 function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }
@@ -4910,6 +4926,7 @@ registerAdminRoutes(app, {
     para: paraRuntime,
     gold: goldEconomy,
     deckCapability: deckPurchaseCapability,
+    projectAccount: projectEconomyAccount,
     loadAccounts: loadStudioAccounts,
     runtime: adminRuntime,
     publication: contentPublication

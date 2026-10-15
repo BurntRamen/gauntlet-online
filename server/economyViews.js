@@ -24,6 +24,10 @@ function playerView(data) {
 }
 function adminView(data) {
   if (!data.enabled) return { title: "Economy operations", summary: data.reason };
+  const names = new Map((data.accountOptions || []).map(a => [a.id, a.name]));
+  const accounts = (data.accountOptions || data.accounts).map(a => [a.id, a.name || a.id]);
+  const seasons = data.seasonOptions || [...new Map(data.budgets.map(b => [b.seasonId, b.seasonId])).entries()];
+  const purchases = data.purchases.filter(p => !data.refunds.some(r => r.purchaseId === p.id)).map(p => [p.id, `${p.product.name} · ${names.get(p.accountId) || p.accountId} · ${p.gold} Gold · ${p.at}`]);
   return { title: "Economy operations", summary: `Imported ${data.totals.imported || 0} · Issued ${data.totals.issued} · Retired ${data.totals.retired} · Refunds restored ${data.totals.restored} · Outstanding ${data.totals.balance} Gold · Pending ${data.totals.pending}. Delivery is committed with the debit. Active deployed release ${data.activeReleaseId}.`,
     tables: [table("Player balances", ["Account", "Gold", "Created", "Ledger binding"], data.accounts.map((a) => [a.id, a.balance, a.createdAt, a.boundAt])),
       table("Seasonal issuance budgets", ["Account", "Season", "Issued", "Cap", "Remaining", "Pinned release"], data.budgets.map((b) => [b.accountId, b.seasonId, b.issued, b.budget, b.budget - b.issued, b.releaseId])),
@@ -33,8 +37,8 @@ function adminView(data) {
       table("Pinned definitions and versions", ["Definition", "Name", "Release", "Gold / price", "Cap / limit", "Delivery", "Recorded"], data.definitions.map((d) => [d.id, d.definition.name, d.releaseId, d.definition.amount ?? d.definition.goldPrice, d.definition.claimLimit ?? d.definition.purchaseLimit, d.terms?.map((t) => `${t.id}: ${t.asset} (${t.duration})`).join("; "), d.at])),
       table("Purchase receipts", receiptColumns, data.purchases.map(purchaseRow)), table("Fulfillment and expirations", grantColumns, data.grants.map(grantRow)), transactions(data.transactions),
       table("Operator audit and failures", ["Audit", "Actor", "Action", "Operation", "Reason", "Receipt / match", "At"], data.audit.map((a) => [a.id, a.actorId, a.action, a.operation, a.reason, a.purchaseId || a.claimId || a.transactionId || a.matchId, a.at]))],
-    forms: [form("Record Gold correction", "operate", { operation: "adjust" }, [field("accountId", "Existing account ID"), field("seasonId", "Gold season ID (required for credits)", "text", { required: false }), field("delta", "Signed Gold correction", "number", { min: -1000000, max: 1000000 }), field("reason", "Correction reason", "text", { minLength: 8, maxLength: 1000 })]),
-      form("Refund purchase and revoke its grants", "operate", { operation: "refund" }, [field("purchaseId", "Purchase receipt ID"), field("reason", "Refund reason", "text", { minLength: 8, maxLength: 1000 })])],
+    forms: [form("Record Gold correction", "operate", { operation: "adjust" }, [field("accountId", "Player", "choice", { options: accounts }), field("seasonId", "Gold season (required for credits)", "choice", { required: false, options: seasons }), field("delta", "Signed Gold correction", "number", { min: -1000000, max: 1000000 }), field("reason", "Correction reason", "text", { minLength: 8, maxLength: 1000 })]),
+      form("Refund purchase and revoke its grants", "operate", { operation: "refund" }, [field("purchaseId", "Purchase to refund", "choice", { options: purchases }), field("reason", "Refund reason", "text", { minLength: 8, maxLength: 1000 })])],
     note: `Claims: ${data.claims.length}. Failures: ${data.audit.filter((a) => a.action.includes("failed")).length}. Search applies across loaded records. Author catalog and price changes in the definition editor, then preview and publish; these operator forms affect accounts immediately and append an audit trail. Credits consume the original season cap; refunds do not reset issuance or purchase limits. Local volume only; this does not verify remote activation.` };
 }
 function quoteView(q) {

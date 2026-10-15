@@ -73,9 +73,9 @@ test("the migrated player wallet preserves opening Gold and Gems while retiring 
   assert.equal((await api("/api/auth/me", null, 3)).data.account.economy.gold, 2800);
   for (const currency of ["gold", "timetwisters"]) assert.equal((await api("/api/economy/buy-gameplay-pack", { currency }, 3)).status, 409);
   const deckCapability = (await api("/api/economy/deck-products", null, 3)).data.capability;
-  assert.equal(deckCapability.ready, false);
-  assert.match(deckCapability.reason, /finite Gold ledger/);
-  for (const currency of ["gold", "timetwisters"]) assert.equal((await api("/api/economy/buy-deck-product", { currency, offerId: "old-ledger-offer", requestId: "must-not-debit" }, 3)).status, 503);
+  assert.equal(deckCapability.ready, true);
+  assert.equal(deckCapability.authority.gold, "finite-gold-ledger");
+  for (const currency of ["gold", "timetwisters"]) assert.equal((await api("/api/economy/buy-deck-product", { currency, offerId: "old-ledger-offer", requestId: "must-not-debit" }, 3)).status, 422);
   assert.equal((await api("/api/economy/timetwister-purchase-link", { productId: "timetwisters-750" }, 3)).status, 409);
   assert.equal((await api("/api/admin/economy/fulfill-timetwisters", { productId: "timetwisters-750", transactionId: "new-cash" }, 0)).status, 409);
   assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), before);
