@@ -243,12 +243,16 @@ test("structured definitions survive GitHub packaging with version bindings and 
 
 test("Para definitions use GitHub drafts and become runtime-active only after the exact release deploys", async () => {
   const repo = repository(), store = repo.store({ runtimeCapabilities: () => ({ enabled: true }), economyCapabilities: () => ({ enabled: true }) });
-  let state = await store.paraDraft({ expectedRevision: 0, operation: "seed" }, "approved-account");
+  let state = await store.create({ expectedRevision: 0, domain: "sets", name: "Mixed release set" }, "approved-account");
+  state = await store.paraDraft({ expectedRevision: state.revision, operation: "seed" }, "approved-account");
+  assert.equal(state.validation.valid, true);
+  state = await store.create({ expectedRevision: state.revision, domain: "decks", name: "Mixed release recipe", factionId: "rumin" }, "approved-account");
   assert.equal(state.provider, "github"); assert.equal(state.publication.provider, "github");
   assert.equal(state.para.capabilities.currencyOperations, true);
   assert.equal(store.published().snapshot.paraLeague, undefined);
   state = await store.preview({ expectedRevision: state.revision });
   assert.equal(state.validation.valid, true);
+  state = await store.recordPlaytest(state.draft.hash, "approved-account");
   state = await store.publish({ expectedRevision: state.revision, label: "Inactive Para and Gold definitions" }, "approved-account");
   assert.equal(state.pending.phase, "checks");
   repo.client.ready = true; state = await store.reconcile();
@@ -258,5 +262,6 @@ test("Para definitions use GitHub drafts and become runtime-active only after th
   const deployed = repo.store({ deployedRelease: packaged, deployedCommit: repo.refs.get("main") });
   assert.equal(deployed.published().id, packaged.id);
   assert.equal(deployed.published().snapshot.paraLeague.seasons[0].status, "draft");
+  assert.equal(deployed.published().snapshot.domains.decks.at(-1).name, "Mixed release recipe");
   assert.ok(deployed.published().snapshot.paraLeague.products.every(p => p.status !== "active"));
 });

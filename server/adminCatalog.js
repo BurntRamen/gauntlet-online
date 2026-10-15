@@ -85,7 +85,7 @@ function createObject(snapshot, input) {
 function validateCatalog(snapshot, baseline, validateLegacy) {
   const errors = [], warnings = [];
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
-  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : [])]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
+  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : []), ...(Object.hasOwn(snapshot, "paraLeague") ? ["paraLeague"] : [])]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
   const legacy = { ...snapshot, schemaVersion: baseline.schemaVersion, domains: {} };
   const added = {};
   for (const [domain, originals] of Object.entries(baseline.domains)) {

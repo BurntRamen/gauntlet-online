@@ -11,6 +11,25 @@ function fixture() {
   store.create({ expectedRevision: 1, domain: "cards", name: "New blade", setId: set.id, effectId: "coin-scale-spear" }, "admin");
   return { store, set, snapshot: store.status().draft.snapshot };
 }
+
+test("Para definitions coexist with card and deck schema upgrades and retain strict validation", () => {
+  for (const includeDeck of [false, true]) {
+    const { store } = fixture();
+    let state = store.paraDraft({ expectedRevision: store.status().revision, operation: "seed" }, "admin");
+    if (includeDeck) state = store.create({ expectedRevision: state.revision, domain: "decks", name: "Mixed release recipe", factionId: "rumin" }, "admin");
+    assert.equal(state.validation.valid, true, JSON.stringify(state.validation));
+    assert.equal(state.draft.snapshot.schemaVersion, `gauntlet.authored-content.v${includeDeck ? 4 : 3}`);
+    for (const mutate of [s => { s.paraLeague.seasons[0].goldBudget = -1; }, s => { s.paraLeague.script = "execute"; }, s => { s.unknownExtension = {}; }]) {
+      const invalid = authored.clone(state.draft.snapshot); mutate(invalid);
+      assert.equal(authored.validateAuthoredContent(invalid, baseline).valid, false);
+    }
+    state = store.preview({ expectedRevision: state.revision });
+    state = store.recordPlaytest(state.draft.hash, "admin");
+    state = store.publish({ expectedRevision: state.revision, label: "Mixed authored release" }, "admin");
+    assert.equal(state.live.paraLeague.seasons[0].id, "para-season-zero");
+    assert.equal(store.active().manifest.cards.at(-1).name, "New blade");
+  }
+});
 test("unsupported identity, executable behavior, parameters, media, fields and membership fail validation", () => {
   const { snapshot } = fixture();
   const cases = [
