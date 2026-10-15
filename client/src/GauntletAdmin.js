@@ -3,13 +3,13 @@ import "./GauntletAdmin.css";
 
 import { targetFromLocation } from "./admin/useWorkshopContext";
 import GauntletAuthoring from "./GauntletAuthoring";
+import AREAS from "../../shared/admin/areas.json";
+const ModuleHome = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/ModuleHome"));
 const Competition = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletCompetition"));
 const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/MatchInspector"));
 const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/AdminSearch"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
-const AREAS = ["Overview", "Design", "Players", "Matches", "Publishing", "System", "Para League & Economy", "Competition"];
 const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
-const DOMAINS = { campaigns: "Campaigns", encounters: "Encounters", factions: "Factions", cards: "Cards", decks: "Decks", characters: "Characters / opponents" };
 const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
 const date = (value) => value ? new Date(value).toLocaleString() : "Not recorded";
 
@@ -51,21 +51,9 @@ function System({ request, revision, operations }) {
 }
 
 
-function Overview({ catalog, request, revision, onSelect }) {
-  const system = useAdminData(request, "/api/admin/system", revision);
-  const recent = useAdminData(request, "/api/admin/matches", revision);
-  return <>
-    <p className="admin-lede">Edit content, review players or inspect matches.</p>
-    <State state={catalog}>{(data) => <>
-      <details className="admin-json"><summary>Advanced / Technical · content and rules versions</summary><Facts values={{ contentVersion: data.versions.content, registryRules: data.versions.registryRules, engineRules: data.versions.engineRules }} /></details>
-      <div className="admin-counts">{Object.entries(data.counts).map(([key, count]) => <button key={key} onClick={() => onSelect("Content", key)}><strong>{count}</strong><span>{DOMAINS[key]}</span></button>)}</div>
-      <p className="admin-note">Live counts. Player decks are under Players.</p>
-      <details className="admin-json"><summary>Available game entry points</summary><div className="admin-tags">{data.game.modes.map((mode) => <span key={mode.id}>{mode.name}</span>)}</div>
-      <p className="admin-note">Mode availability is managed in code.</p></details>
-    </>}</State>
-    <h4>System checks</h4><State state={system}>{(data) => <><Issues issues={data.issues} /><p className="admin-note">Checked {date(data.checkedAt)} · {data.environment}</p></>}</State>
-    <h4>Recent matches</h4><State state={recent}>{(data) => <><Issues issues={data.issues} /><MatchList records={data.matches.slice(0, 5)} /><button onClick={() => onSelect("Matches")}>Browse match evidence</button><p className="admin-note">{data.scope}</p></>}</State>
-  </>;
+function Overview({ request, revision, onSelect }) {
+  const state = useAdminData(request, "/api/admin/home", revision);
+  return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} /></Suspense>}</State>;
 }
 
 function PlayerMetadataEditor({ player, request, guard, onSaved }) {
@@ -203,7 +191,8 @@ function Matches({ request, revision, onInspectContent }) {
 
 
 export default function GauntletAdmin({ request, onClose, operations, exitGuard }) {
-  const [area, setArea] = useState(() => new URLSearchParams(window.location.search).has("workshop") && targetFromLocation() ? "Design" : "Overview");
+  const [area, setArea] = useState(() => new URLSearchParams(window.location.search).has("workshop") && targetFromLocation() ? "Content" : "Home");
+  const [workspace, setWorkspace] = useState({ Competition: "Para definitions", "Store & Economy": "Products", Operations: "Health" });
   const areaScroll = useRef({});
   useLayoutEffect(() => {
     if (areaScroll.current[area] !== undefined) window.scrollTo(0, areaScroll.current[area]);
@@ -213,7 +202,7 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
   const guard = useRef(action => { action?.(); return true; });
   const playerGuard = useRef(() => true);
   const canLeave = action => playerGuard.current() && guard.current(action);
-  const [authoringArea, setAuthoringArea] = useState(() => new URLSearchParams(window.location.search).has("workshop") && targetFromLocation() ? "Design" : null);
+  const [authoringArea, setAuthoringArea] = useState(() => new URLSearchParams(window.location.search).has("workshop") && targetFromLocation() ? "Content" : null);
   const historyExit = useRef(onClose);
   historyExit.current = onClose;
   useEffect(() => {
@@ -230,29 +219,36 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
   }, [authoringArea]);
   useEffect(() => { if (exitGuard) exitGuard.current = action => playerGuard.current() && guard.current(() => { if (action) clearAdminLocation(); action?.(); }); return () => { if (exitGuard) exitGuard.current = action => { action?.(); return true; }; }; }, [exitGuard]);
   const [contentDomain, setContentDomain] = useState(null);
-  const authoring = ["Design", "Publishing", "Para League & Economy"].includes(area);
+  const authoring = ["Content", "Publishing", "Store & Economy"].includes(area) || area === "Competition" && workspace.Competition === "Para definitions";
   const selectArea = (name, domain, id, section, field, accepted) => canLeave(() => {
-    const next = ["Content", "Game"].includes(name) ? "Design" : name;
+    const next = ({ Design: domain === "offers" ? "Store & Economy" : "Content", Game: "Content", Overview: "Home", System: "Operations", Matches: "Operations", "Para League & Economy": "Competition" })[name] || name;
     if (next !== area) areaScroll.current[area] = window.scrollY;
-    if (["Design", "Publishing", "Para League & Economy"].includes(next)) setAuthoringArea(next);
-    if (domain || name === "Game") setContentDomain({ name: domain || "game", id, section, field });
-    if (next === "Matches") setMatchesOpened(true);
+    if (["Content", "Publishing", "Competition", "Store & Economy"].includes(next)) setAuthoringArea(next === "Store & Economy" && workspace[next] === "Gold & Rewards" ? "Economy" : next);
+    if (domain || name === "Game" || next === "Store & Economy" && next !== area) setContentDomain({ name: domain || (next === "Store & Economy" ? "offers" : "game"), id, section, field });
+    if (name === "Matches") { setMatchesOpened(true); setWorkspace(current => ({ ...current, Operations: "Match evidence" })); }
+    if (name === "System") setWorkspace(current => ({ ...current, Operations: "Health" }));
     setArea(next); accepted?.();
   });
-  const inspectContent = (domain, id) => selectArea("Design", domain, id);
+  const selectWorkspace = value => canLeave(() => { setWorkspace(current => ({ ...current, [area]: value }));
+    if (area === "Store & Economy") { setAuthoringArea(value === "Products" ? area : "Economy"); if (value === "Products") setContentDomain({ name: "offers" }); }
+    if (area === "Competition" && value === "Para definitions") setAuthoringArea("Competition");
+    if (value === "Match evidence") setMatchesOpened(true);
+  });
+  const inspectContent = (domain, id) => selectArea("Content", domain, id);
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
   return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
     <header className="admin-header"><div><span className="admin-eyebrow">Private operator workspace</span><h3>Gauntlet Admin</h3><p>Design content, inspect players, and manage releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
     <Suspense fallback={null}><AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} /></Suspense>
     <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index] || ICONS[0]} /></svg>{name}</button>)}</nav>
-    <div className="admin-body"><div className="admin-title-row" hidden={area === "Design"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "Competition" ? "Official event operations" : area === "System" ? "Diagnostics and recovery" : "Read-only inspection"}</span></div>
-      {area === "Design" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
-      {area === "Overview" && <Overview catalog={catalog} request={request} revision={revision} onSelect={selectArea} />}
+    <div className="admin-body"><div className="admin-title-row" hidden={area === "Content"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "Competition" ? "Event operations" : area === "Operations" ? "Diagnostics and recovery" : "Current capabilities"}</span></div>
+      {workspace[area] && <nav className="admin-subnav" aria-label={`${area} workspaces`}>{({ Competition: ["Para definitions", "Para results"], "Store & Economy": ["Products", "Gold & Rewards"], Operations: ["Health", "Match evidence"] })[area].map(value => <button key={value} aria-pressed={workspace[area] === value} onClick={() => selectWorkspace(value)}>{value}</button>)}</nav>}
+      {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
+      {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}
       {area === "Players" && <Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} />}
-      {matchesOpened && <div hidden={area !== "Matches"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
-      {area === "Competition" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
-      {area === "System" && <System request={request} revision={revision} operations={operations} />}
+      {matchesOpened && <div hidden={area !== "Operations" || workspace.Operations !== "Match evidence"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
+      {area === "Competition" && workspace.Competition === "Para results" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
+      {area === "Operations" && workspace.Operations === "Health" && <System request={request} revision={revision} operations={operations} />}
     </div>
   </section>;
 }

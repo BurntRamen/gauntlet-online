@@ -4899,6 +4899,9 @@ registerAdminRoutes(app, {
     runtimeStorage: () => ({ ...runtimeStorageStatus, checkpoint: roomStateStore.status(), backups: runtimeBackupService.status() }),
     deckSchemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
     adminAccountCount: gauntletAdminAuthorization.configuredAccounts,
+    para: paraRuntime,
+    gold: goldEconomy,
+    deckCapability: deckPurchaseCapability,
     runtime: adminRuntime,
     publication: contentPublication
   })

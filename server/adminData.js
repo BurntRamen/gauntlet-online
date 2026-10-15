@@ -178,15 +178,51 @@ function createAdminData(deps) {
 
   async function players(query = {}) {
     const { offset, limit } = pageOptions(query);
+    const search = typeof query.q === "string" ? query.q.trim().slice(0, 80) : "";
+    const byId = /^[0-9a-f-]{36}$/i.test(search);
     let accounts;
     if (deps.useSupabase()) {
-      const rows = await deps.request(`gauntlet_accounts?select=id,name,created_at,last_seen_at,stats&order=id.asc&offset=${offset}&limit=${limit + 1}`);
+      const filter = !search ? "" : byId ? `&id=eq.${encodeURIComponent(search)}` : `&name=ilike.${encodeURIComponent(`*${search.replace(/[\\*%_]/g, "\\$&")}*`)}`;
+      const rows = await deps.request(`gauntlet_accounts?select=id,name,created_at,last_seen_at,stats&order=id.asc&offset=${offset}&limit=${limit + 1}${filter}`);
       if (!Array.isArray(rows)) throw new Error("Invalid account response.");
       accounts = rows.map((row) => ({ id: row.id, name: row.name, createdAt: row.created_at, lastSeenAt: row.last_seen_at, stats: row.stats }));
     } else {
-      accounts = readLocalRows(deps.accountFile, "accounts").sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(offset, offset + limit + 1);
+      accounts = readLocalRows(deps.accountFile, "accounts").filter(a => !search || (byId ? a.id === search : String(a.name).toLowerCase().includes(search.toLowerCase()))).sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(offset, offset + limit + 1);
     }
-    return { source: accountSource(), offset, limit, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => projectPlayer(account, deps.runtime, accountSource())) };
+    return { source: accountSource(), offset, limit, query: search, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => ({ ...projectPlayer(account, deps.runtime, accountSource()), commerce: {
+      source: deps.gold?.enabled ? "Finite Gold ledger owns Gold; account Gold is historical only." : "Account balances",
+      gold: deps.gold?.enabled ? null : require("./economy").normalizeEconomy(account.stats).gold,
+      timetwisters: require("./economy").normalizeEconomy(account.stats).timetwisters,
+      receipts: Object.entries(account.stats?.economy?.purchaseReceipts || {}).filter(([key]) => key.startsWith("deck:")).map(([, receipt]) => receipt),
+      premiumReceipts: Object.entries(account.stats?.economy?.purchaseReceipts || {}).filter(([key]) => !key.startsWith("deck:")).map(([, receipt]) => receipt),
+      ...(deps.gold?.inspectAccount ? { ledger: deps.gold.inspectAccount(account.id) } : {})
+    } })) };
+  }
+
+  async function modules() {
+    const [authoring, deck] = await Promise.allSettled([deps.publication?.status(), deps.deckCapability?.()]);
+    return require("./adminModules").projectModules({ environment: deps.environment, authoring: authoring.status === "fulfilled" ? authoring.value : null,
+      deck: deck.status === "fulfilled" ? deck.value : null, para: deps.para?.status(), gold: deps.gold?.status() });
+  }
+
+  async function home() {
+    const reads = await Promise.allSettled([modules(), deps.publication?.status(), players({ limit: "100" }), system()]);
+    const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
+    const registry = value(0), state = value(1), people = value(2), health = value(3);
+    const config = state?.live?.paraLeague || {};
+    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message })));
+    if (state?.draft) tasks.unshift({ area: "Publishing", title: "Shared draft needs review", message: `${state.changes.length} saved changes; validation ${state.validation.valid ? "passes" : "needs attention"}.` });
+    if (state?.pending) tasks.unshift({ area: "Publishing", title: "Release pending", message: `Publication is ${state.pending.phase}. Verify deployment before calling it active.` });
+    for (const message of health?.issues || []) tasks.push({ area: "Operations", title: "Storage or recovery needs attention", message });
+    for (let i = 0; i < reads.length; i++) if (reads[i].status === "rejected") tasks.push({ area: "Operations", title: "A data source could not be read", message: `${["Module capabilities", "Shared authoring", "Player accounts", "System health"][i]} is unavailable; no empty-success state is inferred.` });
+    return { checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
+      seasons: [deps.runtime.season(), ...(config.seasons || []).map(s => ({ ...s, kind: "Para", runtimeEnabled: !!deps.para?.enabled }))],
+      events: require("./events").listEventDefinitions(),
+      storefront: { accountProducts: state?.live?.domains?.offers?.filter(o => o.status === "available").length || 0, digitalProducts: config.products?.filter(p => p.status === "active").length || 0, goldEnabled: !!deps.gold?.enabled },
+      players: { sampled: people?.players.length ?? null, more: people?.hasMore || false, seenLastDay: people ? people.players.filter(p => Date.parse(p.lastSeenAt) >= Date.now() - 86400000).length : null, scope: "Up to 100 accounts; last-seen activity is not online presence." },
+      purchases: (people?.players || []).flatMap(p => p.commerce.receipts.map(receipt => ({ ...receipt, playerName: p.name }))).sort((a, b) => String(b.at || b.purchasedAt).localeCompare(String(a.at || a.purchasedAt))).slice(0, 10),
+      publication: state ? { hasDraft: !!state.draft, pending: state.pending?.phase || null, activeReleaseId: state.activeReleaseId } : null,
+      storage: health?.storage || null };
   }
 
   async function storedMatches(limit) {
@@ -281,12 +317,12 @@ function createAdminData(deps) {
       boundaries: ["Package version is not a deployed release identifier. Commit is shown only if supplied by deployment.", "Authored release IDs identify presentation and mechanical snapshots. Rules, card effects, faction effects, encounter setup and asset manifest versions are pinned separately.", "Account and match reads are fresh; persistence mode and archive availability use existing cached capability probes. This does not verify every database table, storage object, browser asset or remote frontend deployment. Archive hashes are verified during record inspection."]
     };
   }
-  return { catalog, players, matches, match, system };
+  return { catalog, players, matches, match, system, modules, home };
 }
 
 function registerAdminRoutes(app, { authorize, data }) {
   for (const [route, read] of [
-    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)],
+    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)], ["modules", () => data.modules()], ["home", () => data.home()],
     ["matches", () => data.matches()], ["matches/:matchId", (req) => data.match(req.params.matchId)], ["system", () => data.system()]
   ]) {
     app.get(`/api/admin/${route}`, async (req, res) => {

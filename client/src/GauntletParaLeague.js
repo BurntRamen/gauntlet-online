@@ -48,7 +48,7 @@ function Simulator({ state, config, request, disabled }) {
   </section>;
 }
 
-export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview }) {
+export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope }) {
   const [tab, setTab] = useState("Overview");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -67,7 +67,7 @@ export default function GauntletParaLeague({ state, act, busy, request, onDirty,
     return { ...current, row };
   });
   return <div className="para-workspace"><p className="admin-lede">{state.para.capabilities.message}</p>
-    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => { if (leave()) { setTab(name); setEditor(null); setQuery(""); setFilter("all"); } }}>{name}</button>)}</nav>
+    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).filter(name => scope === "Competition" ? ["Overview", "Seasons", "Events", "Prestige"].includes(name) : scope === "Economy" ? !["Events", "Prestige"].includes(name) : true).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => { if (leave()) { setTab(name); setEditor(null); setQuery(""); setFilter("all"); } }}>{name}</button>)}</nav>
     {!domain ? <><h4>Configuration overview</h4><p>Review definitions in Publishing before activation.</p><ul>{state.para.invariants.map((text) => <li key={text}>{text}</li>)}</ul>
       <button disabled={disabled || Object.values(config).some((rows) => Array.isArray(rows) && rows.length)} onClick={() => mutate({ operation: "seed" })}>Create Season Zero draft</button>
       <dl className="admin-facts">{Object.keys(state.para.fields).map((key) => <div key={key}><dt>{key}</dt><dd>{config[key]?.length || 0} proposals</dd></div>)}</dl>

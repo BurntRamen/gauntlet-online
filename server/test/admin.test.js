@@ -54,7 +54,7 @@ test("every new admin route rejects missing, player, tampered and expired operat
   fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify({ accounts: [account, player, burnt] }));
   const playerToken = __test.issueAccountSession(player).token;
   const burntToken = __test.issueAccountSession(burnt).token;
-  for (const route of ["catalog", "players", "matches", `matches/${record.matchId}`, "system"]) {
+  for (const route of ["catalog", "players", "matches", `matches/${record.matchId}`, "system", "modules", "home"]) {
     for (const token of [null, `${session}tampered`, `${session}.extra`, expired, __test.issueAccountSession({ id: "ffffffff-ffff-4fff-8fff-ffffffffffff", name: "Deleted", stats: {} }).token]) {
       const response = await get(route, token);
       assert.equal(response.status, 401, route);
@@ -87,7 +87,7 @@ test("catalog reflects the live registry, campaign-only content and deterministi
   const { body, status } = await get("catalog");
   assert.equal(status, 200);
   assert.equal(body.counts.cards, require("../gameContent").COLLECTION_CARDS.length);
-  assert.equal(body.counts.encounters, 128);
+  assert.equal(body.counts.encounters, Object.values(require("../gameContent").campaignChapters).flat().length);
   assert.equal(body.counts.factions, 11);
   assert.match(body.domains.factions.find((f) => f.id === "xendra").definition.availability, /campaign only/);
   const encounter = body.domains.encounters[0];
