@@ -2,7 +2,7 @@ name: Gauntlet Content Checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'codex/**']
     paths:
       - 'content/**'
       - 'server/**'

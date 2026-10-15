@@ -184,3 +184,29 @@ test("graceful shutdown persistence preserves active matches without finalizing 
   const matchStore = JSON.parse(fs.readFileSync(process.env.MATCH_DATA_FILE, "utf8"));
   assert.equal(matchStore.matches.some((entry) => entry.matchId === room.matchMetadata.matchId), false);
 });
+
+test("failed finalization survives a checkpoint and retries with the original outcome facts", async t => {
+  __test.initializeRoomRecovery();
+  const room = makeActiveGame(__test.createRoom());
+  room.matchMetadata.matchId = "66666666-6666-4666-8666-666666666666";
+  room.game.matchId = room.matchMetadata.matchId;
+  room.game.phase = "gameOver"; room.game.winner = 1;
+  const write = fs.writeFileSync;
+  const failure = t.mock.method(fs, "writeFileSync", (filename, ...args) => {
+    if (filename === process.env.MATCH_DATA_FILE) throw new Error("Temporary record write outage");
+    return write(filename, ...args);
+  });
+  const completedAt = "2026-10-14T00:00:00.000Z";
+  await assert.rejects(__test.recordFinalGameStats(room, { completionReason: "concession", completedAt }), /outage/);
+  failure.mock.restore();
+  const persisted = JSON.parse(fs.readFileSync(process.env.ROOM_STATE_DATA_FILE)).rooms.find(entry => entry.roomCode === room.roomCode);
+  assert.equal(persisted.pendingFinalization.completedAt, completedAt);
+  assert.equal(__test.deleteRoom(room.roomCode), false, "Leaving cannot discard pending finalization");
+  assert.equal(__test.canOfferRematch(room), false);
+  await __test.sweepRoomLifecycle({ now: Date.now(), config: TEST_CONFIG });
+  assert.equal(room.pendingFinalization, undefined); assert.equal(room.game.statsRecorded, true);
+  const record = JSON.parse(fs.readFileSync(process.env.MATCH_DATA_FILE)).matches.find(entry => entry.matchId === room.game.matchId);
+  assert.equal(record.completedAt, completedAt); assert.equal(record.completionReason, "concession");
+  assert.equal(JSON.parse(fs.readFileSync(process.env.ROOM_STATE_DATA_FILE)).rooms.some(entry => entry.roomCode === room.roomCode), false);
+  __test.deleteRoom(room.roomCode);
+});
