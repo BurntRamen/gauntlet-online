@@ -7,7 +7,8 @@ This is a follow-on to PR 72. The account revision migration remains independent
 | State | Authoritative storage after configuration | Recovery |
 | --- | --- | --- |
 | Accounts, progression, collections, saved decks, account-based Gold/Timetwisters and purchase receipts | Existing Supabase account tables | Existing database, protected by the account revision guard; database backups are a separate operational requirement |
-| Friends/messages and aggregate faction results | Existing Supabase tables where configured | Same database; this change does not migrate or reset these tables |
+| Friends/messages | Existing Supabase tables | Same database; this change does not migrate or reset these records |
+| Aggregate faction results / compatibility match journals | Private Supabase faction-stats table | The migration supplies this existing adapter's table/grants if missing; dedicated full match records remain authoritative evidence |
 | Full completed match records, events, consequence receipts | Dedicated Supabase match tables | Readable after backend replacement; finalization and account applications commit together |
 | Portable canonical match JSON | Private `gauntlet-match-archives` bucket plus its Supabase index | Hash-verified cloud copies, alongside the existing browser Match Library/export/import |
 | Active games, lobbies, draft picks, private hands/deck order, reconnect identity | Private `rooms.json` checkpoint on the Render disk | Restored on startup; pending finalizations retry using the original completion facts and existing idempotent receipts |

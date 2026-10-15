@@ -2,6 +2,16 @@
 begin;
 grant select on public.gauntlet_accounts to service_role;
 grant update (stats, last_seen_at) on public.gauntlet_accounts to service_role;
+
+-- The existing aggregate/journal adapter also needs its private durable table.
+create table if not exists public.gauntlet_faction_stats (
+  id text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.gauntlet_faction_stats enable row level security;
+revoke all on public.gauntlet_faction_stats from public, anon, authenticated;
+grant select, insert, update on public.gauntlet_faction_stats to service_role;
 create table if not exists public.gauntlet_match_records (
   id uuid primary key,
   series_id uuid,

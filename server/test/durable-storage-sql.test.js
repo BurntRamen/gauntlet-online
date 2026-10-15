@@ -22,6 +22,8 @@ test("private authoring and full match persistence survive new clients, enforce 
       throw new Error(`Unexpected route ${route}`);
     };
     await db.exec("set role service_role");
+    await db.query("insert into public.gauntlet_faction_stats(id,data) values ('global',$1)", [{ totalGames: 4 }]);
+    assert.deepEqual((await db.query("select data from public.gauntlet_faction_stats where id='global'")).rows[0].data, { totalGames: 4 });
     const store = createPrivateAuthoringStore({ request });
     assert.equal(await store.load(), null);
     const envelope = { schemaVersion: "gauntlet.content-store.v1", revision: 7, privateNotes: { secret: "private note" }, assetBlobs: { digest: "private bytes" } };
@@ -54,7 +56,7 @@ test("private authoring and full match persistence survive new clients, enforce 
     await db.exec("reset role");
     for (const role of ["anon", "authenticated"]) {
       await db.exec(`set role ${role}`);
-      for (const table of ["gauntlet_private_authoring", "gauntlet_match_records", "gauntlet_match_events", "gauntlet_match_consequence_receipts", "gauntlet_match_archive_index"]) await assert.rejects(db.query(`select * from public.${table}`), /permission denied/);
+      for (const table of ["gauntlet_faction_stats", "gauntlet_private_authoring", "gauntlet_match_records", "gauntlet_match_events", "gauntlet_match_consequence_receipts", "gauntlet_match_archive_index"]) await assert.rejects(db.query(`select * from public.${table}`), /permission denied/);
       await assert.rejects(db.query("select public.save_gauntlet_private_authoring(2, $1)", [envelope]), /permission denied/);
       await assert.rejects(db.query("select public.finalize_gauntlet_match($1)", [record]), /permission denied/);
       assert.deepEqual((await db.query("select id from storage.objects")).rows, [{ id: "public" }]);
