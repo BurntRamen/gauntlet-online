@@ -52,6 +52,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
   assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  const mekanFaction = content.factions.find((faction) => faction.id === "mekan");
+  const mekanCampaign = content.campaigns.mekan;
+  assert.equal(mekanFaction.homeworld, "Teyotl");
+  assert.match(mekanFaction.origin, /San Mikal/);
+  assert.match(mekanFaction.reathArrival, /consenting travelers/);
+  assert.equal(mekanCampaign.chapters[0].title, "The Flower-Ringed Lake");
+  assert.equal(mekanCampaign.chapters.at(-1).title, "The Procession to Reath");
+  assert.match(mekanCampaign.chapters[0].story, /homeworld Teyotl/);
+  assert.match(mekanCampaign.chapters.at(-1).story, /other homeworlds/);
+  assert.match(mekanCampaign.chapters.at(-1).endDialogue.join(" "), /Teyotl is our origin. Reath is the convergence point/);
   const gracusFaction = content.factions.find((faction) => faction.id === "gracus");
   const gracusCampaign = content.campaigns.gracus;
   assert.equal(gracusFaction.homeworld, "Thalassa");
