@@ -65,7 +65,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const unsaved = Object.keys(buffers).length > 0 || paraDirty;
   const selected = selections[domainChoice];
   const context = useWorkshopContext({
-    initialTarget: { domain: initialDomain?.name || (area === "Content" ? "campaigns" : "encounters"), id: initialDomain?.id || null, section: initialDomain?.section, field: initialDomain?.field },
+    initialTarget: { domain: initialDomain?.name || "encounters", id: initialDomain?.id || null, section: initialDomain?.section, field: initialDomain?.field },
     dirty: unsaved || scenarioDirty, busy, onDiscard: () => { setCreation(null); setParaDirty(false); setParaEditor(value => value + 1); setBuffers({}); bufferRevision.current = null; setScenario(null); setScenarioDirty(false); },
     beforeNavigate, onExit,
     onBusy: () => setNotice("Wait for the current operation to finish."),

@@ -73,6 +73,33 @@ test("one Gold authority: operator product, concurrent receipts, historical pric
   const support = await api(`/api/admin/players?q=${accounts[2].id}`, null, 1); assert.equal(support.status, 200); assert.equal(support.data.players[0].commerce.ledger.balance, 60);
 });
 
+test("refund before an account projection write retains recipe knowledge without retaining paid cosmetics", async () => {
+  const templateId = pub.status().live.domains.decks.find(d => d.name === "Durable recipe").id;
+  const state = await admin("create", { domain: "offers", name: "Refund projection test", templateId });
+  const offerId = state.draft.snapshot.domains.offers.at(-1).id;
+  await patch("offers", offerId, "prices", { gold: 25, timetwisters: null });
+  await patch("offers", offerId, "cardBackId", "campaignMap"); await patch("offers", offerId, "status", "available");
+  await admin("preview"); const playtest = (await admin("playtest", { subject: { kind: "deck", id: templateId } })).playtest;
+  await admin("playtest/command", { id: playtest.id, gameRevision: playtest.game.revision, command: { type: "passPriority", player: playtest.game.priority } });
+  await publish("Refund projection terms");
+  const offer = pub.active().manifest.deckOffers.find(o => o.id === offerId), printingId = offer.template.composition.cards[0].printingId;
+  const priorFile = fs.readFileSync(process.env.ACCOUNT_DATA_FILE);
+  const purchase = await api("/api/economy/buy-deck-product", { offerId, revision: offer.revision, currency: "gold", requestId: crypto.randomUUID() }, 1);
+  assert.equal(purchase.status, 200, JSON.stringify(purchase.data));
+  const result = await api("/api/admin/economy/operate", { operation: "refund", key: "refund-before-projection-save", purchaseId: purchase.data.receipt.ledgerPurchaseId, reason: "Refund before any account projection write" }, 0);
+  assert.equal(result.status, 200, JSON.stringify(result.data));
+  assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), priorFile);
+  for (let i = 0; i < 2; i++) {
+    const account = (await api("/api/auth/me", null, 1)).data.account;
+    assert.equal(account.economy.gold, 100);
+    assert.equal(account.collection.collectorVariants[printingId] || 0, 0);
+    assert.ok(!account.progression.cosmetics.unlockedCardBacks.includes("campaignMap"));
+    assert.ok(account.stats.deckLibrary.decks.some(d => d.id === purchase.data.receipt.deckId));
+    account.stats.deckLibrary.activeConstructedDeckId = purchase.data.receipt.deckId;
+    assert.throws(() => __test.getSavedConstructedDeck(account.stats, null, { competitive: true }), /printing selection is unavailable or not owned/, "A paid printing cannot be used after its only grant is revoked");
+  }
+});
+
 test("sale windows reject unstarted and ended products before preparation can debit or grant", () => {
   for (const sale of [{ startsAt: "2099-01-01T00:00:00.000Z" }, { endsAt: "2020-01-01T00:00:00.000Z" }]) {
     const account = structuredClone(accounts[2]);

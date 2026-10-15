@@ -36,7 +36,7 @@ function validate(config, snapshot) {
         if (spec.type === "integer" && (!Number.isSafeInteger(value) || value < spec.min || value > spec.max)) add(domain, row.id, field, `Use a whole number from ${spec.min} to ${spec.max}.`);
         if (spec.type === "choice" && !spec.options.includes(value)) add(domain, row.id, field, "Choose a supported value.");
         if (spec.type === "choices" && (!Array.isArray(value) || !value.length || new Set(value).size !== value.length || value.some(v => !spec.options.includes(v)))) add(domain, row.id, field, "Choose unique supported formats.");
-        if (spec.type === "date" && value !== null && (typeof value !== "string" || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(value) || !Number.isFinite(Date.parse(value)))) add(domain, row.id, field, "Use an authoritative UTC timestamp.");
+        if (spec.type === "date" && value !== null && (typeof value !== "string" || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value)) add(domain, row.id, field, "Use an authoritative UTC timestamp with a valid calendar date.");
       }
       if (row.status !== "draft" && (!row.startsAt || !row.endsAt || row.endsAt <= row.startsAt)) add(domain, row.id, "endsAt", "Published events need an ordered start and end.");
       if (["paused", "cancelled", "archived"].includes(row.status) && (typeof row.reason !== "string" || row.reason.trim().length < 8)) add(domain, row.id, "reason", "Record a specific reason (at least eight characters).");

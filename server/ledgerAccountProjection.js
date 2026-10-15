@@ -28,9 +28,12 @@ function projectLedgerAccount(account, grants, { collection, progression, librar
   const decks = library(stats, account.id), applied = new Set(previous.applied || []);
   for (const grant of relevant) {
     const delivery = grant.term.delivery;
-    if (grant.state === "active" && !applied.has(grant.id)) {
+    // Recipe knowledge is retained even if the grant was refunded before an
+    // account write persisted this projection. Cosmetic ownership above still
+    // comes only from active grants; ordinary deck validation enforces it.
+    if (!applied.has(grant.id)) {
       if (!decks.decks.some(d => d.id === delivery.deckRecord.id)) decks.decks.push(structuredClone(delivery.deckRecord));
-      decks.activeConstructedDeckId = delivery.deckRecord.id;
+      if (grant.state === "active") decks.activeConstructedDeckId = delivery.deckRecord.id;
     }
     applied.add(grant.id);
     stats.economy ||= {};
