@@ -5,6 +5,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { migrateV1 } = require("./contentMigration");
 const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
+const catalog = require("./adminCatalog");
+const imageAssets = require("./authoredAssets");
 const paraLeague = require("./paraLeague");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
@@ -73,6 +75,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       } finally { fs.closeSync(lock); fs.unlinkSync(lockfile); }
     }
     if (!state.releases[state.activeReleaseId] || !compatible(state.releases[state.activeReleaseId])) fail(503, "Active content is incompatible with this engine deployment.");
+    for (const row of state.releases[state.activeReleaseId].snapshot.assetVersions || []) imageAssets.verifiedBytes(row, state.assetBlobs);
     return state;
   }
   // Detect incompatible or damaged active content at boot, rather than silently
@@ -139,38 +142,96 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   function project(state) {
     const live = state.releases[state.activeReleaseId];
     const validation = validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline);
+    for (const row of state.draft?.snapshot.assetVersions || []) { try { imageAssets.verifiedBytes(row, state.assetBlobs); } catch (error) { validation.valid = false; validation.errors.push({ domain: "asset-library", id: row.id, message: error.message }); } }
     if (state.draft && state.draft.baseReleaseId !== live.id) { validation.valid = false; validation.errors.push({ message: "Draft base differs from the active release. Discard and recreate this draft." }); }
     return { revision: state.revision, writable: writable && provider === "local", storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
       publication: { provider, supported: provider === "local", github: "unavailable", activeReleaseId: live.id, deployment: provider === "local" ? "active-on-this-server" : "unsupported-provider", message: "Local publication activates this server immediately." },
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
-      assetLibrary: require("./digitalDelivery").deliveryOptions(),
+      assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
+      assetCapacity: imageAssets.capacity(state),
       live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: hash(state.draft.snapshot) } : null, changes: changes(state), validation,
-      fields: Object.fromEntries(Object.entries(baseline.domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, fieldsFor(domain, row)]))])),
-      releases: Object.values(state.releases).map(({ snapshot, ...release }) => ({ ...release, compatible: compatible({ snapshot }) })),
+      capabilities: { catalogCreation: 1, imageUploads: 1, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
+      privateNotes: clone(state.privateNotes || {}),
+      deckFactions: Object.values(require("./gameContent").factionsData).map(({ id, name, campaignOnly, general, generals, commander, city }) => ({ id, name, campaignOnly, general, generals, commander, city })),
+      printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
+      fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, fieldsFor(domain, row)]))])),
+      releases: Object.values(state.releases).map(({ snapshot, assetPackage, ...release }) => ({ ...release, compatible: compatible({ snapshot }), rollbackBlocked: catalog.rollbackProblem(live.snapshot, snapshot) })),
       activations: clone(state.activations).reverse(),
       para: { fields: paraLeague.FIELDS, templates: Object.fromEntries(Object.keys(paraLeague.FIELDS).map((key) => [key, paraLeague.newDefinition(key)])),
         capabilities: { ...paraLeague.CAPABILITIES, officialEntry: runtimeCapabilities().enabled, currencyOperations: economyCapabilities().enabled, purchases: economyCapabilities().enabled, fulfillment: economyCapabilities().enabled, runtime: runtimeCapabilities(), economy: economyCapabilities() }, invariants: paraLeague.INVARIANTS,
         catalog: validation.valid ? paraLeague.catalog(state.draft?.snapshot.paraLeague || live.snapshot.paraLeague || paraLeague.emptyConfig()) : [],
         summary: validation.valid ? paraLeague.summary(state.draft?.snapshot.paraLeague || live.snapshot.paraLeague || paraLeague.emptyConfig()) : [] } };
+
   }
-  function active() {
-    const state = read(), release = state.releases[state.activeReleaseId];
-    return resolveEngineContent(release.snapshot, release.id);
+  let activeCache = null;
+  function resolvedActive() {
+    const stat = !memory && fs.existsSync(filename) ? fs.statSync(filename, { bigint: true }) : null;
+    if (!memory && persisted && !stat) fail(503, "Content store disappeared. Restore its durable state before serving content.");
+    const sourceSignature = memory ? `memory:${memoryState.revision}` : stat ? `${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}` : "baseline";
+    const signature = sourceSignature + require("./contentAssets").getDeliveryOrigin();
+    if (!activeCache || activeCache.signature !== signature) {
+      const state = read(), release = state.releases[state.activeReleaseId];
+      const resolved = resolveEngineContent(release.snapshot, release.id);
+      activeCache = { signature, resolved, cards: new Map(resolved.manifest.cards.map(card => [card.id, card])), variants: new Map(resolved.manifest.collectorVariants.map(variant => [variant.variantId, variant])) };
+    }
+    return activeCache;
   }
+  function active() { return clone(resolvedActive().resolved); }
+  const lookupCard = id => clone(resolvedActive().cards.get(id) || null);
+  const lookupVariant = id => clone(resolvedActive().variants.get(id) || null);
+  const lookupSet = id => clone(resolvedActive().resolved.manifest.draftSets.find(set => set.id === id) || null);
   function patch({ expectedRevision, domain, id, field, value, revert = false }, actorId) {
     return transaction(expectedRevision, (state) => {
-      const original = baseline.domains[domain]?.find((row) => row.id === id);
+      const original = (state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).domains[domain]?.find((row) => row.id === id);
       if (!original || !Object.hasOwn(fieldsFor(domain, original), field)) fail(400, "This field is engine-controlled or unknown.");
       if (!revert && value === undefined) fail(400, "A draft value is required.");
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null };
+      if (domain === "encounters" && field === "opponentDeckId") require("./adminSuiteContent").upgrade(state.draft.snapshot);
       const row = state.draft.snapshot.domains[domain].find((entry) => entry.id === id);
-      const next = revert ? state.releases[state.activeReleaseId].snapshot.domains[domain].find(entry => entry.id === id)[field] : value;
+      const liveRow = state.releases[state.activeReleaseId].snapshot.domains[domain]?.find(entry => entry.id === id);
+      if (domain === "cards" && liveRow?.origin === "admin-v1" && ["factionId", "type", "value", "suit"].includes(field) && value !== liveRow[field]) fail(422, "This card has published deck references. Duplicate it to change faction, type or its printed slot; mechanics and wording remain editable.");
+      if (revert && !liveRow) fail(400, "This object has not been published. Edit its saved fields or discard the shared draft.");
+      const next = revert ? liveRow[field] : value;
+      if (domain === "assets" && field === "edition" && next !== row.edition && !revert && require("./adminPrintings").editions(state.draft.snapshot).find(set => set.id === next)?.status === "archived") fail(422, "Choose an active digital set / edition. Existing archived membership is retained.");
+      // Executable compositions reject malformed saves atomically as well as
+      // passing through the full preview/publication validation gates.
+      if (domain === "cards" && field === "effect" && next?.id === require("../shared/duel-rules/compositionContract").ID) {
+        const problems = require("../shared/duel-rules/compositionContract").errors(next, row);
+        if (problems.length) fail(422, problems.map(problem => `${problem.path}: ${problem.message}`).join(" "));
+      }
       if (next === undefined) delete row[field]; else row[field] = clone(next);
+      if (domain === "decks" && row.origin === require("./adminDecks").ORIGIN || domain === "offers") {
+        const problems = require(domain === "decks" ? "./adminDecks" : "./adminDeckOffers").errors(row, state.draft.snapshot).filter(problem => problem.field === field);
+        if (problems.length) fail(422, problems.map(problem => problem.message).join(" "));
+      }
+      imageAssets.attachVersions(state.draft.snapshot, state);
+      if (domain === "assets" && row.origin === require("./adminPrintings").ORIGIN) {
+        const problems = require("./adminPrintings").errors(row, state.draft.snapshot);
+        if (problems.length) fail(422, problems.map(problem => problem.message).join(" "));
+      }
+      if (domain === "cards" && row.origin === "admin-v1" && field === "suit") row.replacementSuit = row.suit;
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
     });
   }
+  function create({ expectedRevision, ...input }, actorId) {
+    return transaction(expectedRevision, state => {
+      if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot) };
+      catalog.createObject(state.draft.snapshot, input);
+      imageAssets.attachVersions(state.draft.snapshot, state);
+      const validation = validateAuthoredContent(state.draft.snapshot, baseline);
+      if (!validation.valid) fail(422, validation.errors.map(issue => issue.message).join(" "));
+      Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
+    });
+  }
   function discard({ expectedRevision }) { return transaction(expectedRevision, (state) => { state.draft = null; }); }
+  function saveNotes({ expectedRevision, id, value }, actorId) {
+    return transaction(expectedRevision, state => {
+      if (typeof value !== "string" || value.length > 4000 || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value) || !(state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).domains.decks.some(row => row.id === id)) fail(422, "Choose an existing template and notes up to 4,000 characters.");
+      state.privateNotes ||= {};
+      state.privateNotes[id] = { value, updatedBy: actorId, updatedAt: new Date().toISOString() };
+    });
+  }
   function paraDraft({ expectedRevision, operation, domain, id, value, sourceId }, actorId) {
     return transaction(expectedRevision, (state) => {
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), previewedHash: null };
@@ -244,8 +305,9 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         && state.draft.playtestedHash !== hash(state.draft.snapshot)) fail(409, "Playtest this exact saved mechanical draft before publishing.");
       if (typeof label !== "string" || !label.trim() || label.length > 160) fail(400, "Give the release a name of 1–160 characters.");
       const snapshot = state.draft.snapshot, id = releaseId(snapshot), timestamp = new Date().toISOString();
+      imageAssets.packageAssets(state, snapshot); // Verify exact retained and required bytes before changing the pointer.
       // Publishing identical content reuses its original immutable release.
-      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, snapshot: clone(snapshot) };
+      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, snapshot: clone(snapshot), ...(snapshot.assetVersions?.length ? { assetDependencies: require("./releaseAssetDependencies").version } : {}) };
       state.activations.push({ action: "publish", from: state.activeReleaseId, to: id, at: timestamp, by: actorId });
       state.activeReleaseId = id; state.draft = null;
     });
@@ -255,6 +317,9 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (state.draft) fail(409, "Publish or discard the shared draft before changing the active release.");
       const release = Object.hasOwn(state.releases, id) && state.releases[id];
       if (!release || !compatible(release)) fail(422, "The selected release does not exist or is incompatible with this engine.");
+      const problem = catalog.rollbackProblem(state.releases[state.activeReleaseId].snapshot, release.snapshot);
+      if (problem) fail(422, problem);
+      imageAssets.packageAssets(state, release.snapshot);
       state.activations.push({ action: "rollback", from: state.activeReleaseId, to: id, at: new Date().toISOString(), by: actorId });
       state.activeReleaseId = id;
     });
@@ -283,15 +348,54 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!release || !compatible(release)) fail(503, "Published release unavailable or incompatible.");
     return clone(release);
   }
-  return { exportState: () => clone(read()), releaseSnapshot, published, paraDraft, paraSimulation, active, status: () => project(read()), patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  async function uploadAsset(input, actor) {
+    const state = read(), prior = imageAssets.priorUpload(state, input, actor);
+    if (prior) return { ...project(state), uploaded: prior };
+    if (input?.expectedRevision !== read().revision) fail(409, "Content changed. Refresh before uploading.");
+    const processed = await imageAssets.processUpload(input);
+    let uploaded;
+    const result = transaction(input.expectedRevision, state => { uploaded = imageAssets.insert(state, input, processed, actor); });
+    return { ...result, uploaded };
+  }
+  function archiveAsset({ expectedRevision, assetId, archived }) {
+    return transaction(expectedRevision, state => {
+      const row = state.uploads?.find(row => row.id === assetId);
+      if (!row || typeof archived !== "boolean") fail(422, "Choose an uploaded asset to archive or restore.");
+      row.archived = archived; // Version bytes and every reference are retained.
+    });
+  }
+  function privateAsset(id) {
+    const state = read(), row = state.uploads?.flatMap(asset => asset.versions).find(row => row.id === id);
+    if (!row) fail(404, "Image version not found.");
+    return { mediaType: row.mediaType, data: imageAssets.verifiedBytes(row, state.assetBlobs).toString("base64"), sha256: row.sha256 };
+  }
+  function publicAsset(id, digest) {
+    const state = read(), row = Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []).find(row => row.id === id && row.sha256 === digest);
+    if (!row) fail(404, "Published image version not found.");
+    return { mediaType: row.mediaType, body: imageAssets.verifiedBytes(row, state.assetBlobs), sha256: row.sha256 };
+  }
+  return { published, paraDraft, paraSimulation, saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
+  app.get("/api/content-assets/:id/:digest.webp", async (req, res) => {
+    try {
+      const asset = await publication.publicAsset(req.params.id, req.params.digest);
+      res.set({ "Content-Type": asset.mediaType, "Content-Length": asset.body.length, "Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff", "ETag": '"' + asset.sha256 + '"' });
+      res.send(asset.body);
+    } catch (error) { res.set("Cache-Control", "no-store").status(error.status || 503).json({ error: error.status ? error.message : "Published artwork unavailable." }); }
+  });
+  app.delete("/api/admin/authoring/assets/:id", (req, res) => res.status(409).json({ error: "Image removal is unavailable. Archive the logical asset; retained versions and references must survive." }));
   const notices = { "para-draft": "Definition saved to the shared draft. Published rules are unchanged.", draft: "Field saved to the shared draft. Live content is unchanged.", publish: "Publication requested. Check the release and deployment status.", rollback: "Rollback requested. Check the release and deployment status.", discard: "Shared draft discarded.", validate: "Draft validation completed.", preview: "Saved draft preview is ready." };
   // Mounted beneath the existing mandatory two-account namespace middleware.
   for (const [method, route, operation] of [
     ["get", "authoring", () => require("./adminLiveAvailability").readAuthoringStatus(publication)],
     ["patch", "authoring/draft", (req) => publication.patch(req.body, req.gauntletAdminAccount.id)],
+    ["patch", "authoring/notes", (req) => publication.saveNotes(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/assets/upload", (req) => publication.uploadAsset(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/assets/archive", (req) => publication.archiveAsset(req.body)],
+    ["get", "authoring/assets/:id", (req) => publication.privateAsset(req.params.id)],
+    ["post", "authoring/create", (req) => publication.create(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/para-draft", (req) => publication.paraDraft(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/para-simulate", (req) => publication.paraSimulation(req.body)],
     ["post", "authoring/discard", (req) => publication.discard(req.body)],

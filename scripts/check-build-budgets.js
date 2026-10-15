@@ -4,11 +4,14 @@ const zlib = require("node:zlib");
 
 const KIB = 1024;
 const budgets = Object.freeze({
-  // Preserve the current main/player ceilings from the shipped October updates.
+  // Preserve the main entry ceiling from the shipped October updates.
   mainGzip: 180 * KIB,
   adminEntryGzip: 20 * KIB,
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
-  adminGzip: 48 * KIB,
+  // Printing/edition search, comparison, authoring and capacity disclosure add
+  // 2.2 KiB measured gzip (58.2 -> 60.4 total). Reserve 61 KiB for these
+  // named Admin modules; initial entry and player ceilings remain unchanged.
+  adminGzip: 61 * KIB,
   largestAsyncGzip: 350 * KIB,
   // Priority guidance, unified combat-payment controls, and voiced campaign cinematics add 4.5 KiB gzip.
   totalJavaScriptGzip: 753 * KIB

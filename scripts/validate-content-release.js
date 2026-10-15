@@ -18,5 +18,7 @@ try {
     const body = fs.readFileSync(filename);
     if (body.length !== asset.bytes || crypto.createHash("sha256").update(body).digest("hex") !== asset.sha256) throw new Error(`Asset integrity mismatch: ${asset.id}`);
   }
+  const dependencies = require("../server/releaseAssetDependencies").verify();
+  console.log(`Verified ${dependencies.count} source delivery dependencies, including card backs.`);
   console.log(`Validated ${content.releaseId}; ${content.manifest.cards.length} cards; ${manifest.entries.length} immutable asset references.`);
 } finally { fs.rmSync(directory, { recursive: true, force: true }); }
