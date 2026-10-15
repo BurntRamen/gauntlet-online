@@ -14,6 +14,8 @@ Initial integration verification: all **99 client suites / 738 tests** pass; **4
 
 Main `e1ef70a` was subsequently integrated to preserve the concurrent Para League/Gold release. Its normal four-pass compression and stricter shared-Economy accounting are retained in the replacement toolchain. Navigation, references and review share a small Admin chunk to avoid duplicated overhead. The combined strict CI build passes: main 168.4 KiB, player 716.5, initial Admin 17.6, total Admin 60.9 and largest async 274.2. No dependency lockfile or budget ceiling changed during that merge; full combined regression results are tracked in release PR #72.
 
+Combined release checkpoint: **416 server tests, 101 client suites / 745 tests, 4 toolchain checks, 50 qualification tests, 15 mixed-catalog/publication regressions, all 22 Admin browser journeys and both immutable-asset/printing journeys** pass locally. The mixed-catalog regression adds one server test for the next complete run. The default browser fixture now isolates archive records, and Para rollback restores the release captured before that journey rather than attempting to remove identities created by earlier journeys. An earlier Linux usability run exhausted its spectator-start allowance while rendering two software WebGL scenes; the player accessibility and spectator assertions now run sequentially, while the separate concurrent-client test remains intact. No assertion or timeout was relaxed. Final combined CI and purchase/restart verification remain release gates; this checkpoint is not a deployment claim.
+
 ## Historical audit before toolchain remediation
 
 Audited 12 October 2026 against the root, server and client npm lockfiles, before and after compatible updates. Raw audit JSON, original lockfiles, update logs and npm explain output are in `artifacts/printings/`. No forced upgrade, override or advisory suppression was applied. Counts are npm affected-package totals (including propagated findings), not counts of distinct exploitable vulnerabilities.
@@ -24,7 +26,7 @@ Audited 12 October 2026 against the root, server and client npm lockfiles, befor
 | server/package-lock.json | 1/4/2/1 | 0/0/0/0 | No reported advisories after update |
 | client/package-lock.json | 3/78/18/4 | 0/63/33/3 | BLOCKED for production readiness |
 
-## Exposure and remediation decisions
+## Historical exposure and remediation decisions
 
 The critical `proxy-addr` advisory GHSA-jqcg-44mw-7w3h was fixed to 2.0.8 in server and CRA dev-server paths. The application uses one-hop `trust proxy` and `req.ip` for rate limiting. The malformed mapped-IPv6 CIDR example is not the configured trust rule, but real deployment routing has not been verified; it is not treated as unreachable. A regression checks the advisory subnet and normal IPv4 trust behavior. Other critical client findings (`shell-quote` and `websocket-driver`) were cleared by compatible updates.
 
@@ -34,7 +36,7 @@ Client leaf and compatible parent updates leave 13 directly advised packages, pr
 
 The next security work is a controlled build/test toolchain migration (or individually reviewed upstream backports), followed by clean-install, full regression, bundle and audit verification. Exact exploitability against every plugin option and CI trust boundary has not been proven or disproven. The GitHub CI workflow installs locked dependencies and runs compiler/test code; untrusted source or asset processing can reach vulnerable tools. No external service or production audit was performed.
 
-## Remaining underlying advisories
+## Historical underlying advisories (resolved by the replacement toolchain)
 
 ### @tootallnate/once
 
@@ -365,7 +367,7 @@ Each directly reported advisory is linked below. Wrapper entries inherit the lis
 - undefined@undefined → socket.io@4.8.3 → socket.io-parser@4.2.7 (`node_modules/socket.io-parser`).
 - undefined@undefined → socket.io@4.8.3 → engine.io@6.6.11 → ws@8.21.3 (`node_modules/ws`).
 
-## Purpose-connected pass refresh (14 October 2026)
+## Historical purpose-connected pass refresh (before toolchain replacement)
 
 Audits were rerun against all three actual lockfiles after the PostgreSQL test dependency, compatible refresh and npm 10 lockfile repair. Root and server remain zero findings. Client remains 99 affected packages (63 high, 33 moderate, 3 low; zero critical), representing 25 unique advisory URLs and 13 directly advised packages. Latest raw results: `artifacts/purpose/audit-root-resume.json`, `audit-server-resume.json`, `audit-client-resume.json`. Targeted compatible refresh of braces, node-forge, postcss, sprintf-js and underscore reported up to date; it did not resolve these findings. The repaired lockfile passed CI clean install and all 734 client tests at `74fd6e7`. No forced upgrade, override, suppression or threshold reduction was applied.
 
