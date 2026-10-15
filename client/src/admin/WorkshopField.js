@@ -1,10 +1,10 @@
 import GauntletContractFields from "../GauntletContractFields";
 import Validation from "./WorkshopValidation";
 import { lazy, Suspense } from "react";
-const CatalogField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./CatalogControls").then(module => ({ default: module.CatalogField })));
-const DeckField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./DeckCompositionField").then(module => ({ default: module.DeckField })));
-const MechanicsEditor = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./MechanicsEditor"));
-const GeneratedWording = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./MechanicsEditor").then(module => ({ default: module.GeneratedWording })));
+const CatalogField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./CatalogControls").then(module => ({ default: module.CatalogField })));
+const DeckField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./DeckCompositionField").then(module => ({ default: module.DeckField })));
+const MechanicsEditor = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./MechanicsEditor"));
+const GeneratedWording = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./MechanicsEditor").then(module => ({ default: module.GeneratedWording })));
 export const displayValue = value => Array.isArray(value) ? value.join("\n") : value && typeof value === "object" ? JSON.stringify(value, null, 2) : String(value ?? "");
 
 export default function WorkshopField({ state, domain, row, field, buffer, busy, onEdit, onSave, onInspect, onAsset, renderContract }) {

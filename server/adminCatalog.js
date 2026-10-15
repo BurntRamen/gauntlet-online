@@ -85,7 +85,7 @@ function createObject(snapshot, input) {
 function validateCatalog(snapshot, baseline, validateLegacy) {
   const errors = [], warnings = [];
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
-  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : []), ...(Object.hasOwn(snapshot, "paraLeague") ? ["paraLeague"] : [])]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
+  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : []), ...["paraLeague", "competition"].filter(key => Object.hasOwn(snapshot, key))]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
   const legacy = { ...snapshot, schemaVersion: baseline.schemaVersion, domains: {} };
   const added = {};
   for (const [domain, originals] of Object.entries(baseline.domains)) {
@@ -150,6 +150,8 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
 }
 function available(card, channel) { return !!card && (card.origin !== "admin-v1" || (card.availability?.[channel] === true && (!(["earnedPacks", "draft", "sealed"].includes(channel)) || card.status !== "archived"))); }
 function rollbackProblem(live, target) {
+  const competitionProblem = require("./competitionConfig").retainedProblem(live.competition, target.competition);
+  if (competitionProblem) return competitionProblem;
   for (const domain of ["cards", "assets", "sets", "decks", "offers"]) for (const row of live.domains[domain] || []) {
     const previous = target.domains[domain]?.find(r => r.id === row.id);
     if (!previous) return `Cannot restore: ${row.name || row.id} would lose its published identity. Publish a compatible retirement release instead; collections and decks must remain resolvable.`;

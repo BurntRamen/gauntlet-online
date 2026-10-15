@@ -218,11 +218,19 @@ function createAdminData(deps) {
     return { checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
       seasons: [deps.runtime.season(), ...(config.seasons || []).map(s => ({ ...s, kind: "Para", runtimeEnabled: !!deps.para?.enabled }))],
       events: require("./events").listEventDefinitions(),
-      storefront: { accountProducts: state?.live?.domains?.offers?.filter(o => o.status === "available").length || 0, digitalProducts: config.products?.filter(p => p.status === "active").length || 0, goldEnabled: !!deps.gold?.enabled },
+      storefront: { accountProducts: state ? state.live?.domains?.offers?.filter(o => o.status === "available").length || 0 : null, digitalProducts: state ? config.products?.filter(p => p.status === "active").length || 0 : null, goldEnabled: !!deps.gold?.enabled },
       players: { sampled: people?.players.length ?? null, more: people?.hasMore || false, seenLastDay: people ? people.players.filter(p => Date.parse(p.lastSeenAt) >= Date.now() - 86400000).length : null, scope: "Up to 100 accounts; last-seen activity is not online presence." },
       purchases: (people?.players || []).flatMap(p => p.commerce.receipts.map(receipt => ({ ...receipt, playerName: p.name }))).sort((a, b) => String(b.at || b.purchasedAt).localeCompare(String(a.at || a.purchasedAt))).slice(0, 10),
       publication: state ? { hasDraft: !!state.draft, pending: state.pending?.phase || null, activeReleaseId: state.activeReleaseId } : null,
       storage: health?.storage || null };
+  }
+  async function competition() {
+    const accounts = deps.loadAccounts ? await deps.loadAccounts() : readLocalRows(deps.accountFile, "accounts");
+    const resolved = deps.publication.active(), config = resolved.manifest.competition || require("./competitionConfig").empty();
+    const seasons = [require("./seasons").ACTIVE_SEASON, ...config.ranked.filter(row => row.status !== "draft").map(row => require("./competitionConfig").season(row, resolved.releaseId))];
+    return { activeSeason: require("./seasons").getActiveSeason(), seasons: seasons.map(season => ({ definition: season, standings: require("./seasons").buildSeasonStandings(accounts, season) })),
+      events: require("./events").listEventDefinitions(), runs: accounts.flatMap(account => Object.values(require("./events").normalizeEventProgress(account.stats).runs).map(run => ({ ...run, playerName: account.name, accountId: account.id }))),
+      note: "Standings and runs are authoritative account projections. Match evidence is under Operations. Pausing/cancelling blocks new play after publication; completed results retain their captured terms." };
   }
 
   async function storedMatches(limit) {
@@ -317,12 +325,12 @@ function createAdminData(deps) {
       boundaries: ["Package version is not a deployed release identifier. Commit is shown only if supplied by deployment.", "Authored release IDs identify presentation and mechanical snapshots. Rules, card effects, faction effects, encounter setup and asset manifest versions are pinned separately.", "Account and match reads are fresh; persistence mode and archive availability use existing cached capability probes. This does not verify every database table, storage object, browser asset or remote frontend deployment. Archive hashes are verified during record inspection."]
     };
   }
-  return { catalog, players, matches, match, system, modules, home };
+  return { catalog, players, matches, match, system, modules, home, competition };
 }
 
 function registerAdminRoutes(app, { authorize, data }) {
   for (const [route, read] of [
-    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)], ["modules", () => data.modules()], ["home", () => data.home()],
+    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)], ["modules", () => data.modules()], ["home", () => data.home()], ["competition", () => data.competition()],
     ["matches", () => data.matches()], ["matches/:matchId", (req) => data.match(req.params.matchId)], ["system", () => data.system()]
   ]) {
     app.get(`/api/admin/${route}`, async (req, res) => {

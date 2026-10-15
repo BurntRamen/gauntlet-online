@@ -65,6 +65,8 @@ function compareSnapshots(live, draft) {
     }
   }
   groups.set(group.id, group);
+  const competitionChanges = require("./competitionConfig").changes(live.competition, draft.competition).map(change => ({ ...change, path: change.field, before: change.live, after: change.draft, mechanical: false }));
+  groups.set("competition", { id: "competition", label: "Ranked & Gauntlet", category: "Competition", changes: competitionChanges });
   return [...groups.values()].filter(group => group.changes.length);
 }
 

@@ -3592,7 +3592,7 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       return;
     }
     const records = await listMatchRecordsByAccount(account.id, 100);
-    const season = getActiveSeason() || ACTIVE_SEASON;
+    const season = require("./seasons").getCurrentSeason();
     const accounts = useSupabaseStore()
       ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
       : loadAccountStore().accounts;
@@ -4530,7 +4530,7 @@ app.get("/api/leaderboard", async (req, res) => {
     .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses || a.name.localeCompare(b.name))
     .slice(0, 25);
 
-  const season = getActiveSeason() || ACTIVE_SEASON;
+  const season = require("./seasons").getCurrentSeason();
   const standings = buildSeasonStandings(accounts, season);
   const authHeader = req.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
@@ -4812,7 +4812,7 @@ const adminRuntime = {
       progression: normalizeProgression,
       collection: normalizeCollection,
       decks: normalizeDeckLibrary,
-      season: () => publicSeasonDefinition(getActiveSeason() || ACTIVE_SEASON),
+      season: () => publicSeasonDefinition(require("./seasons").getCurrentSeason()),
       encounter: (factionId, chapter, index) => ({
         difficulty: getCampaignDifficulty(factionId, chapter.id, chapter.setup),
         bossAbility: getCampaignBossAbility(factionId, index, chapter),
@@ -4838,6 +4838,14 @@ contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((pr
   writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR || runtimeStorageStatus.persistentMountVerified
 });
 registerContentPublicationRoutes(app, contentPublication);
+require("./seasons").setSeasonProvider(() => {
+  const resolved = contentPublication.active();
+  return (resolved.manifest.competition?.ranked || []).map(row => require("./competitionConfig").season(row, resolved.releaseId));
+});
+require("./events").setEventProvider(() => {
+  const resolved = contentPublication.active();
+  return (resolved.manifest.competition?.events || []).map(row => require("./competitionConfig").event(row, resolved.releaseId));
+});
 require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
 const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
 paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
@@ -4902,6 +4910,7 @@ registerAdminRoutes(app, {
     para: paraRuntime,
     gold: goldEconomy,
     deckCapability: deckPurchaseCapability,
+    loadAccounts: loadStudioAccounts,
     runtime: adminRuntime,
     publication: contentPublication
   })
@@ -4912,7 +4921,7 @@ app.get("/api/admin/overview", async (req, res) => {
   if (!requireOwnerAuthorization(req, res)) return;
   try {
     const accounts = await loadStudioAccounts();
-    const season = getActiveSeason() || ACTIVE_SEASON;
+    const season = require("./seasons").getCurrentSeason();
     const matchState = await studioMatchState(accounts);
     const storage = publicMatchStorageStatus();
     const recentRecords = await Promise.all(matchState.records.slice(0, 30).map(async (record) => {
@@ -5281,6 +5290,7 @@ function findMatchForEntry(entry) {
   return findMatchForEntryInQueue(entry, matchmakingQueue.filter((candidate) => (
     (candidate.bestOf || 1) === (entry.bestOf || 1)
     && (candidate.gameMode || "factions") === (entry.gameMode || "factions")
+    && candidate.season?.seasonId === entry.season?.seasonId
   )));
 }
 
@@ -5297,7 +5307,7 @@ function createMatchedRoom(entryA, entryB, options = {}) {
   const roomState = createRoom();
   roomState.ranked = options.ranked !== false;
   roomState.lobby.gameMode = entryA.gameMode === "basic" ? "basic" : "factions";
-  roomState.season = roomState.ranked ? buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1) : null;
+  roomState.season = roomState.ranked ? clonePlain(entryA.season || buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1)) : null;
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
@@ -5318,6 +5328,7 @@ function createMatchedRoom(entryA, entryB, options = {}) {
     roomState.event = {
       eventId: options.event.id,
       name: options.event.name,
+      definition: clonePlain(options.event),
       entries: Object.fromEntries(assignments.map(({ playerNum, entry }) => [playerNum, {
         accountId: entry.accountId,
         runId: entry.runId
@@ -8286,6 +8297,8 @@ io.on("connection", (socket) => {
   onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1, gameMode = "factions", factionId, generalId } = {}) => {
     console.log("[Socket] joinMatchmaking");
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
+    const season = buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf);
+    if (!season) { socket.emit("matchmakingStatus", { inQueue: false, message: "This ranked format has no open season." }); return; }
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Sign in to use matchmaking." });
@@ -8312,6 +8325,7 @@ io.on("connection", (socket) => {
       accountName: account.name,
       profile: publicAccountProfile(account),
       bestOf: requestedBestOf,
+      season,
       gameMode: selectedMode,
       factionId: selectedFaction?.id || null,
       generalId: selectedFaction?.general?.id || null,
@@ -8336,7 +8350,7 @@ io.on("connection", (socket) => {
     )).length;
     socket.emit("matchmakingStatus", {
       inQueue: true,
-      message: `Searching ${ACTIVE_SEASON.displayName} ${selectedMode === "basic" ? "Classic" : "Faction"} Ranked${requestedBestOf === 3 ? " best-of-3" : ""} for a similar record... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
+      message: `Searching ${season.displayName} ${selectedMode === "basic" ? "Classic" : "Faction"} Ranked${requestedBestOf === 3 ? " best-of-3" : ""} for a similar record... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
       queueSize,
       bestOf: requestedBestOf,
       season: buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf)
@@ -8350,7 +8364,7 @@ io.on("connection", (socket) => {
 
   onClientEvent("joinEventMatchmaking", async ({ authToken, eventId, factionId, generalId } = {}) => {
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
-    const event = eventById(String(eventId || ""));
+    let event = eventById(String(eventId || ""));
     if (!account || !event) {
       socket.emit("eventMatchmakingStatus", { inQueue: false, message: account ? "Choose a valid event." : "Sign in to play events." });
       return;
@@ -8368,6 +8382,7 @@ io.on("connection", (socket) => {
       socket.emit("eventMatchmakingStatus", { inQueue: false, eventId: event.id, message: "This scheduled event is not currently live." });
       return;
     }
+    event = run.definition || event;
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
     const selectedFaction = event.format === "factions" && factionId ? getFactionById(factionId, generalId) : null;

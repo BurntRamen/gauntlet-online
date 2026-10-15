@@ -122,10 +122,14 @@ function validateAuthoredContent(snapshot, baseline, catalogCards) {
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
   if (canonicalJson(snapshot.engine) !== canonicalJson(baseline.engine)) issue(null, null, "engine", "Engine contract or mechanic identifiers changed; a compatible code deployment is required.");
   // Optional additive extension: old immutable v2 snapshots retain their bytes and hashes.
-  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "assetVersions"].includes(key)).sort();
+  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "competition", "assetVersions"].includes(key)).sort();
   if (canonicalJson(coreKeys(snapshot)) !== canonicalJson(coreKeys(baseline)) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
   if (Object.hasOwn(snapshot, "paraLeague")) {
     const validation = paraLeague.validateConfig(snapshot.paraLeague);
+    errors.push(...validation.errors); warnings.push(...validation.warnings);
+  }
+  if (Object.hasOwn(snapshot, "competition")) {
+    const validation = require("./competitionConfig").validate(snapshot.competition, snapshot);
     errors.push(...validation.errors); warnings.push(...validation.warnings);
   }
   const maps = {};
@@ -234,6 +238,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(row => row.origin === require("./adminDecks").ORIGIN ? require("./adminDecks").project(row) : { id: row.id, name: row.name, description: row.description, legacy: true });
   manifest.deckOffers = (domains.offers || []).map(row => require("./adminDeckOffers").project(row, manifest.deckTemplates, releaseId));
+  if (snapshot.competition) manifest.competition = clone(snapshot.competition);
   manifest.contentVersion = releaseId;
   manifest.presentationAssets = Object.fromEntries(require("./presentationAssetManifest.json").map(row => [row.source, row.path]));
   for (const offer of manifest.deckOffers) offer.cardBack = manifest.presentationAssets[({ classic: "/assets/gauntlet/match/gauntlet-card-back-official.jpg", arenaCircuit: "/assets/gauntlet/card-backs/arena-circuit-v1.webp", victorGold: "/assets/gauntlet/card-backs/victor-gold-v1.webp", campaignMap: "/assets/gauntlet/card-backs/campaign-map-v1.webp" })[offer.cardBackId]];

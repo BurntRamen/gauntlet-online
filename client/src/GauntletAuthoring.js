@@ -5,22 +5,23 @@ import "./admin/TestHarness.css";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
 const display = value => Array.isArray(value) ? value.join("\n") : value && typeof value === "object" ? JSON.stringify(value, null, 2) : String(value ?? "");
-const WorkshopField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./admin/WorkshopField"));
-const CatalogControls = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./admin/CatalogControls"));
-const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-references" */ "./admin/WorkshopNavigation"));
-const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/WorkshopPreview"));
-const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./EncounterWorkshop"));
-const GauntletPlaytest = lazy(() => import(/* webpackChunkName: "gauntlet-admin-test" */ "./GauntletPlaytest"));
+const WorkshopField = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/WorkshopField"));
+const CatalogControls = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/CatalogControls"));
+const WorkshopNavigation = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/WorkshopNavigation"));
+const Preview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/WorkshopPreview"));
+const EncounterWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./EncounterWorkshop"));
+const GauntletPlaytest = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletPlaytest"));
 const title = (row) => row.name || row.title || row.commanderName || row.id;
-const EditionPrintings = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/PrintingWorkshop").then(module => ({ default: module.EditionPrintings })));
-const DeckWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./admin/DeckWorkshop"));
-const OfferWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-editors" */ "./admin/OfferWorkshop"));
-const CardWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-cards" */ "./admin/CardWorkshop"));
-const EngineWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-test" */ "./admin/EngineWorkshop"));
-const AssetPicker = lazy(() => import(/* webpackChunkName: "gauntlet-admin-assets" */ "./admin/AssetPicker"));
-const ReleaseReview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-references" */ "./admin/ReleaseReview"));
-const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-references" */ "./admin/RelatedContent"));
+const EditionPrintings = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/PrintingWorkshop").then(module => ({ default: module.EditionPrintings })));
+const DeckWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/DeckWorkshop"));
+const OfferWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/OfferWorkshop"));
+const CardWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/CardWorkshop"));
+const EngineWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/EngineWorkshop"));
+const AssetPicker = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/AssetPicker"));
+const ReleaseReview = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/ReleaseReview"));
+const RelatedContent = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/RelatedContent"));
 const GauntletParaLeague = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletParaLeague"));
+const CompetitionWorkshop = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/CompetitionWorkshop"));
 const ENGINE_DOMAINS = ["card-effects", "faction-effects", "encounter-mechanics", "game"];
 
 export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onPublished, guard, onNavigate, beforeNavigate, onExit }) {
@@ -149,12 +150,12 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   async function act(action, body = {}) {
     setBusy(true); setError(""); setNotice("");
     try {
-      const result = await request(`/api/admin/authoring/${action}`, { method: ["draft", "notes"].includes(action) ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: action === "para-draft" ? bufferRevision.current ?? state.revision : state.revision, ...body }) });
+      const result = await request(`/api/admin/authoring/${action}`, { method: ["draft", "notes"].includes(action) ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: ["para-draft", "competition-draft"].includes(action) ? bufferRevision.current ?? state.revision : state.revision, ...body }) });
       setState(result); if (!action.startsWith("assets/") || bufferRevision.current == null || bufferRevision.current === state.revision) bufferRevision.current = result.revision;
       if (action.startsWith("assets/")) setAssetPicker(current => current && ({ ...current, baseRevision: current.baseRevision === state.revision ? result.revision : current.baseRevision }));
       setPreview(result.preview || null); setConfirm(null);
       if (action === "publish" || action === "rollback") { setReleaseName(""); onPublished(); }
-      setNotice(result.pending ? guide.publicationPending : action === "para-draft" ? result.notice : action === "assets/upload" ? "Image uploaded privately. Choose its exact version, then save the artwork field." : action === "assets/archive" ? "Asset selection updated. Existing versions and references are retained." : action === "create" ? "New content saved to the shared draft. Configure, test and publish it when ready." : action === "notes" ? "Private notes saved. Published content is unchanged." : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? "Previous release restored for future games." : action === "discard" ? "Shared draft discarded." : action === "validate" ? "Draft validation completed." : "Saved draft preview is ready.");
+      setNotice(result.pending ? guide.publicationPending : ["para-draft", "competition-draft"].includes(action) ? result.notice || "Definition saved to the shared draft." : action === "assets/upload" ? "Image uploaded privately. Choose its exact version, then save the artwork field." : action === "assets/archive" ? "Asset selection updated. Existing versions and references are retained." : action === "create" ? "New content saved to the shared draft. Configure, test and publish it when ready." : action === "notes" ? "Private notes saved. Published content is unchanged." : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? "Previous release restored for future games." : action === "discard" ? "Shared draft discarded." : action === "validate" ? "Draft validation completed." : "Saved draft preview is ready.");
       return result;
     } catch (failure) { setError(failure.message); if (failure.status === 409) await refresh(); if (action === "assets/upload") throw failure; return false; }
     finally { setBusy(false); }
@@ -196,7 +197,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     {state.pending && <section className="admin-preview" aria-label="Publication progress"><h4>Publication: {state.pending.phase.replaceAll("-", " ")}</h4><p>{guide.deploymentPending}</p>{state.pending.url && <a href={state.pending.url} target="_blank" rel="noreferrer">View publication in GitHub</a>}<div className="admin-actions"><button disabled={busy} onClick={() => act("reconcile")}>Check publication</button>{state.pending.phase !== "deploying" && <button disabled={busy} onClick={() => setConfirm({ action: "cancel-publication" })}>Cancel publication</button>}</div></section>}
     {projectionError && <p role="status" className="admin-note">Workshop reference data: {projectionError}</p>}{error && <p role="alert" className="admin-alert">{error}</p>}{notice && <p role="status" className="admin-good">{notice}</p>}
     <details className="admin-json admin-global-validation" open={!state.validation.valid} hidden={area !== "Publishing" && !state.draft && state.validation.valid}><summary>Global validation · {state.validation.errors.length} errors · {state.validation.warnings.length} warnings</summary><Validation guide={guide} validation={state.validation} /></details>
-    {["Para League & Economy", "Competition", "Economy"].includes(area) ? (state.para ? <GauntletParaLeague key={`${paraEditor}-${area}`} scope={area} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">Definitions are unavailable until shared authoring reconnects.</p>) : area === "Publishing" ? <>
+    {area === "Ranked & Gauntlet" ? <CompetitionWorkshop key={paraEditor} state={state} act={act} busy={busy} onDirty={onParaDirty} /> : ["Para League & Economy", "Competition", "Economy"].includes(area) ? (state.para ? <GauntletParaLeague key={`${paraEditor}-${area}`} scope={area} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">Definitions are unavailable until shared authoring reconnects.</p>) : area === "Publishing" ? <>
       <p className="admin-lede">{guide.publishingHelp}</p>
       <details className="admin-json"><summary>{guide.releaseIdentity}</summary><p className="admin-note">Active release: <code>{state.activeReleaseId}</code><br />Draft revision: {state.revision}<br />{state.storage}</p></details>
       <ReleaseReview state={state} review={review} busy={busy} unsaved={unsaved} onInspect={inspect} releaseName={releaseName} onReleaseName={setReleaseName} onPublish={() => setConfirm({ action: "publish", label: releaseName })} onDiscard={() => setConfirm({ action: "discard" })} />
