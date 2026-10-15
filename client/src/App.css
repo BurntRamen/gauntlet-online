@@ -1598,6 +1598,54 @@ textarea:focus-visible {
   margin-bottom: 10px;
 }
 
+.campaign-guest-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(125, 211, 252, .3);
+  border-radius: 7px;
+  background: rgba(6, 21, 34, .82);
+}
+
+.campaign-guest-entry div { display: grid; gap: 3px; }
+.campaign-guest-entry strong { color: #f6df9a; }
+.campaign-guest-entry span { color: #c6d8df; font-size: 12px; }
+
+.campaign-origin-record {
+  display: grid;
+  grid-template-columns: minmax(150px, .38fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(137, 163, 174, .18);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--faction-accent) 12%, rgba(5, 14, 23, .9)), rgba(5, 14, 23, .82));
+}
+
+.campaign-origin-record div { display: grid; gap: 2px; }
+.campaign-origin-record span { color: #9eb4bc; font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.campaign-origin-record strong { color: #fff1c7; font: 700 20px var(--font-display); }
+.campaign-origin-record p { margin: 0; color: #cfdee3; font-size: 13px; line-height: 1.5; }
+
+.campaign-transit-model {
+  margin: 12px 14px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(96, 165, 250, .28);
+  border-radius: 6px;
+  background: rgba(8, 22, 36, .76);
+  color: #c9dce4;
+}
+
+.campaign-transit-model summary { color: #f3d88e; font-weight: 900; cursor: pointer; }
+.campaign-transit-model p, .campaign-transit-model li { font-size: 12px; line-height: 1.55; }
+.campaign-transit-model ul { padding-left: 20px; }
+
+.campaign-briefing-guest-entry { display: grid; gap: 8px; margin-top: 12px; }
+.campaign-briefing-guest-entry .campaign-briefing-lock-note { margin: 0; }
+.campaign-briefing-guest-entry button { padding: 8px 10px; border: 1px solid #60a5fa; border-radius: 4px; background: #173d69; color: #eef7ff; font-weight: 900; cursor: pointer; }
+
 .campaign-faction-tab {
   --faction-accent: #c89b52;
   display: flex;

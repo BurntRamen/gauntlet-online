@@ -52,6 +52,7 @@ export default function CampaignChapterBriefing({
   musicVolume = 0.18,
   onBack,
   onStartChapter,
+  onEnableGuest,
   onPrevious,
   onNext
 }) {
@@ -64,7 +65,7 @@ export default function CampaignChapterBriefing({
 
   return (
     <section className="campaign-briefing" style={{ "--faction-accent": theme.primary, "--faction-border": theme.border }} aria-labelledby="campaign-briefing-title">
-      <header className="campaign-briefing-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,.96) 0%, rgba(3,7,12,.72) 48%, rgba(3,7,12,.2) 100%), url(${art})` }}>
+      <header className="campaign-briefing-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,.84) 0%, rgba(3,7,12,.56) 48%, rgba(3,7,12,.08) 100%), url(${art})` }}>
         <button type="button" className="campaign-briefing-back" onClick={onBack}>← Back to Chapter Map</button>
         <div className="campaign-briefing-hero-copy">
           <span>{campaign.factionName} archive · Chapter {chapterNumber} of {campaign.chapters.length}</span>
@@ -132,7 +133,7 @@ export default function CampaignChapterBriefing({
           </div>
           {chapter.deckTemplate && <div className="campaign-briefing-notes"><strong>{chapter.deckTemplate.name}</strong><p>{chapter.deckTemplate.description}</p></div>}
           {!unlocked && <p className="campaign-briefing-lock-note">Clear Chapter {chapterIndex} to unlock this battle.</p>}
-          {!canPlayAsPlayer && <p className="campaign-briefing-lock-note">{previewOnly ? "Admin preview: battle launch is disabled." : "Sign in or enable guest play to begin."}</p>}
+          {!canPlayAsPlayer && <div className="campaign-briefing-guest-entry"><p className="campaign-briefing-lock-note">{previewOnly ? "Admin preview: battle launch is disabled." : "Play immediately as a guest, or sign in to save progress and rewards."}</p>{!previewOnly && <button type="button" onClick={onEnableGuest}>Enable Guest Play</button>}</div>}
           <button type="button" className="campaign-briefing-start" onClick={() => onStartChapter(factionId, chapter.id)} disabled={previewOnly || !canPlayAsPlayer || !unlocked}>{battleLabel}</button>
         </Dossier>
       </div>
