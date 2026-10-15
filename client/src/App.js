@@ -2921,7 +2921,7 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
@@ -2952,7 +2952,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
-        {!canPlayAsPlayer && <div className="app-layout-113">Sign in or enable guest play on the main menu to start a campaign battle.</div>}
+        {!canPlayAsPlayer && <div className="campaign-guest-entry"><div><strong>Ready to deploy?</strong><span>Start immediately as a guest. Sign in later if you want campaign progress and rewards saved.</span></div><MenuButton onClick={onEnableGuest}>Play Campaign as Guest</MenuButton></div>}
         <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
           {campaignEntries.map(([factionId, campaign]) => {
             const selected = factionId === activeFactionId;
@@ -2965,7 +2965,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.42), rgba(4,8,13,0.92)), url(${resolveVisualAsset(campaign.coverImage || FACTION_VISUALS[factionId]?.art || JOURNEY_ART)})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(campaign.coverImage || FACTION_VISUALS[factionId]?.art || JOURNEY_ART)})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -2989,6 +2989,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
             completed={briefingCompleted}
             current={briefingChapterIndex === nextChapterIndex}
             canPlayAsPlayer={canPlayAsPlayer}
+            onEnableGuest={onEnableGuest}
             onBack={() => changeBriefing("")}
             onStartChapter={onStartChapter}
             onPrevious={briefingChapterIndex > 0 ? () => changeBriefing(activeCampaign.chapters[briefingChapterIndex - 1].id) : null}
@@ -2996,7 +2997,7 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
           />
         ) : (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
-            <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.96) 0%, rgba(3,7,12,0.72) 54%, rgba(3,7,12,0.18) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+            <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.84) 0%, rgba(3,7,12,0.56) 54%, rgba(3,7,12,0.08) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
               <div className="campaign-archive-copy">
                 <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
                 <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
@@ -3020,6 +3021,16 @@ function CampaignScreen({ onBack, onStartChapter, canPlayAsPlayer, account, camp
                 </div>
               )}
             </header>
+            {(activeCampaign.homeworld || activeCampaign.arrivalOnReath) && <section className="campaign-origin-record" aria-label="Faction origin record">
+              <div><span>Homeworld</span><strong>{activeCampaign.homeworld || "Origin unconfirmed"}</strong></div>
+              <p>{activeCampaign.arrivalOnReath}</p>
+            </section>}
+            {activeCampaign.transitModel && <details className="campaign-transit-model">
+              <summary>{activeCampaign.transitModel.name}</summary>
+              <p>{activeCampaign.transitModel.summary}</p>
+              <ul>{activeCampaign.transitModel.principles?.map((principle) => <li key={principle}>{principle}</li>)}</ul>
+              <p><strong>Known limits:</strong> {activeCampaign.transitModel.limits}</p>
+            </details>}
             <div className="campaign-map-heading">
               <div><span>Campaign archive</span><h3>Chapter Map</h3></div>
               <small>Clear chapters in order. Each first clear awards a faction pack.</small>
@@ -4865,6 +4876,7 @@ export default function App() {
       <CampaignScreen
         onBack={() => { playMenuCue("panelClose"); setShowCampaign(false); }}
         onStartChapter={startCampaignChapter}
+        onEnableGuest={() => { setPlayAsGuest(true); playMenuCue("success"); }}
         canPlayAsPlayer={canPlayAsPlayer}
         account={account}
         campaigns={gameContent.campaigns}

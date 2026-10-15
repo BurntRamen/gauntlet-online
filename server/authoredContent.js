@@ -54,7 +54,7 @@ function createAuthoredBaseline(catalog) {
     campaign.chapters.forEach((chapter, index) => {
       const encounter = { id: chapter.id, campaignId: id, factionId: id, deckId: `${chapter.id}:decks`, opponentId: `${chapter.id}:opponent`, nextEncounterId: campaign.chapters[index + 1]?.id || null, branches: [] };
       for (const [key, field] of Object.entries(FIELDS.encounters)) encounter[key] = clone(chapter[key] ?? (field.type === "lines" || field.type === "assets" ? [] : ""));
-      encounter.setup = clone(encounterDefaults[chapter.id]);
+      encounter.setup = clone(chapter.setup || encounterDefaults[chapter.id]);
       domains.encounters.push(encounter);
       domains.characters.push({ id: encounter.opponentId, kind: "opponent", factionId: id, encounterId: chapter.id, name: chapter.opponentName });
     });
