@@ -5,13 +5,13 @@ const { EVENT_DEFINITIONS } = require("./events");
 const clone = value => structuredClone(value);
 const text = (label, maxLength = 160) => ({ type: "text", label, maxLength });
 const integer = (label, min, max) => ({ type: "integer", label, min, max });
-const choice = (label, options) => ({ type: "choice", label, options });
+const choice = (label, options, optionLabels) => ({ type: "choice", label, options, ...(optionLabels && { optionLabels }) });
 const date = label => ({ type: "date", label });
 const common = { id: text("Permanent identity", 80), name: text("Name"), description: text("Player introduction", 2000),
   status: choice("State", ["draft", "scheduled", "paused", "cancelled", "archived"]), startsAt: date("Starts"), endsAt: date("Ends"), reason: text("Reason for status change", 500) };
 const FIELDS = {
-  ranked: { ...common, formats: { type: "choices", label: "Ranked formats", options: ["ranked-bo1", "ranked-bo3"] }, winPoints: integer("Win points", 0, 100), drawPoints: integer("Draw points", 0, 100), lossPoints: integer("Loss points", 0, 100) },
-  events: { ...common, format: choice("Format", ["basic", "factions"]), winTarget: integer("Wins to finish", 1, 12), lossLimit: integer("Losses to finish", 1, 5), attemptLimit: integer("Entries per player", 1, 100), entryClosesAt: date("Registration closes"), rewards: { type: "legacy-rewards", label: "Promised reward tiers" } }
+  ranked: { ...common, formats: { type: "choices", label: "Ranked formats", options: ["ranked-bo1", "ranked-bo3"], optionLabels: { "ranked-bo1": "Best of 1", "ranked-bo3": "Best of 3" } }, winPoints: integer("Win points", 0, 100), drawPoints: integer("Draw points", 0, 100), lossPoints: integer("Loss points", 0, 100) },
+  events: { ...common, format: choice("Format", ["basic", "factions"], { basic: "Classic", factions: "Factions" }), winTarget: integer("Wins to finish", 1, 12), lossLimit: integer("Losses to finish", 1, 5), attemptLimit: integer("Entries per player", 1, 100), entryClosesAt: date("Registration closes"), rewards: { type: "legacy-rewards", label: "Promised reward tiers" } }
 };
 const empty = () => ({ schemaVersion: "gauntlet.competition.v1", ranked: [], events: [] });
 function template(domain, sourceId) {

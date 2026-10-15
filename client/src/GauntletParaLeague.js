@@ -14,13 +14,13 @@ export function Field({ field, value, onChange, config = {}, assets = [], disabl
     <button type="button" disabled={disabled} onClick={() => onChange(value.filter((_, i) => i !== index))}>Remove reward {index + 1}</button></div>)}<button type="button" disabled={disabled || value.length >= 50} onClick={() => onChange([...value, { wins: 0, entitlementId: "" }])}>Add reward tier</button></fieldset>;
   if (field.type === "numbers") return <fieldset><legend>{field.label}</legend><div className="para-score-grid">{value.map((n, i) => <label key={i}>{i} wins<input type="number" aria-label={`Prestige for ${i} wins`} min={field.min} max={field.max} value={n} disabled={disabled} onChange={(e) => onChange(value.map((v, index) => index === i ? Number(e.target.value) : v))} /></label>)}</div></fieldset>;
   if (field.type === "choices" || field.type === "references") {
-    const options = field.options?.map((v) => [v, v]) || refs;
+    const options = field.options?.map((v) => [v, field.optionLabels?.[v] || v]) || refs;
     return <fieldset><legend>{field.label}</legend>{options.map(([key, name]) => <label className="para-check" key={key}><input type="checkbox" checked={value.includes(key)} disabled={disabled} onChange={(e) => onChange(e.target.checked ? [...value, key] : value.filter((v) => v !== key))} />{name}</label>)}{!options.length && <p>Create a referenced definition first.</p>}</fieldset>;
   }
   let control;
   if (field.type === "boolean") control = <input {...props} type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />;
   else if (["choice", "reference", "asset"].includes(field.type)) {
-    const options = field.type === "asset" ? assets.filter((a) => !field.media || a.mediaType.startsWith(`${field.media}/`)).map((a) => [a.id, a.source]) : field.options?.map((v) => [v, v]) || refs;
+    const options = field.type === "asset" ? assets.filter((a) => !field.media || a.mediaType.startsWith(`${field.media}/`)).map((a) => [a.id, a.source]) : field.options?.map((v) => [v, field.optionLabels?.[v] || v]) || refs;
     control = <select {...props} value={value} onChange={(e) => onChange(typeof field.options?.[0] === "number" ? Number(e.target.value) : e.target.value)}>{field.type !== "choice" && <option value="">None selected</option>}{options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select>;
   } else if (field.type === "date") {
     const date = value && new Date(value);

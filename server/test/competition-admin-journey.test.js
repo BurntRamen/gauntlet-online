@@ -44,7 +44,7 @@ test("both operators author, publish and run Ranked/legacy competitions through 
   const season = { ...state.draft.snapshot.competition.ranked[0], name: "Managed season", status: "scheduled", startsAt: "2026-01-01T00:00:00.000Z", endsAt: "2099-01-01T00:00:00.000Z", winPoints: 7, drawPoints: 2 };
   await draft({ operation: "update", domain: "ranked", id: season.id, value: season });
   state = await draft({ operation: "duplicate", domain: "events", sourceId: "classic-trial" });
-  const event = { ...state.draft.snapshot.competition.events[0], name: "Managed Classic", status: "scheduled", startsAt: season.startsAt, endsAt: season.endsAt, entryClosesAt: season.endsAt, winTarget: 1, lossLimit: 1, rewards: [{ wins: 1, gold: 123, boosterCredits: 2, cardStyleId: "" }] };
+  const event = { ...state.draft.snapshot.competition.events[0], name: "Managed Classic", status: "scheduled", startsAt: season.startsAt, endsAt: season.endsAt, entryClosesAt: season.endsAt, winTarget: 1, lossLimit: 1, rewards: [{ wins: 1, gold: 123, boosterCredits: 2, cardStyleId: "rumin-vault-shield-bearer:collector-foil" }] };
   await draft({ operation: "update", domain: "events", id: event.id, value: event });
   const stale = await api("/api/admin/authoring/competition-draft", { expectedRevision: 0, operation: "create", domain: "events" }); assert.equal(stale.status, 409);
   assert.equal((await api("/api/events", null, null)).data.events.some(e => e.id === event.id), false);
@@ -60,6 +60,9 @@ test("both operators author, publish and run Ranked/legacy competitions through 
   assert.equal(view.runs.find(r => r.accountId === accounts[3].id).definition.rewardTiers[0].gold, 123);
   assert.equal((await api(`/api/events/${event.id}/join`, {}, 2)).status, 400);
   const before = fs.readFileSync(process.env.ACCOUNT_DATA_FILE, "utf8");
+  const winner = JSON.parse(before).accounts.find(account => account.id === accounts[3].id);
+  assert.equal(winner.stats.collection.collectorVariants["rumin-vault-shield-bearer:collector-foil"], 1);
+  assert.equal(result.event.definition.rewardTiers[0].cardStyleId, "rumin-vault-shield-bearer:collector-foil");
   await __test.recordFinalGameStats([...__test.rooms.values()].find(r => r.game?.matchId === result.matchId));
   assert.equal(fs.readFileSync(process.env.ACCOUNT_DATA_FILE, "utf8"), before);
   state = await draft({ operation: "update", domain: "ranked", id: season.id, value: { ...season, winPoints: 100 } });
