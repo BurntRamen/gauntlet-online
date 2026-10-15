@@ -4516,6 +4516,11 @@ function getCampaignChapterIndex(factionId, chapterId) {
   return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
 }
 
+function getCampaignEncounterSetup(factionId, chapterId) {
+  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId)?.setup
+    || encounterDefaults[chapterId];
+}
+
 function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
   const chapters = campaignChapters[factionId] || [];
   const chapterIndex = getCampaignChapterIndex(factionId, chapterId);
@@ -4525,13 +4530,16 @@ function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
   return completed.includes(chapters[chapterIndex - 1]?.id);
 }
 
-function getCampaignDifficulty(factionId, chapterId, setup = encounterDefaults[chapterId]) {
-  if (!setup) throw new Error("Unknown encounter setup.");
-  return campaignDifficulty(setup);
+function getCampaignDifficulty(factionId, chapterId, setup) {
+  const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
+  if (!resolvedSetup) throw new Error("Unknown encounter setup.");
+  return campaignDifficulty(resolvedSetup);
 }
 
-function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup = encounterDefaults[campaignChapters[factionId]?.[chapterIndex]?.id]) {
-  return (setup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup) {
+  const chapterId = campaignChapters[factionId]?.[chapterIndex]?.id;
+  const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
+  return (resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
     .map((cardId) => getCollectionCatalogCard(cardId)).filter(Boolean)
     .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }));
 }
