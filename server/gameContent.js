@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v22";
+const CONTENT_VERSION = "gauntlet-content-v23";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
@@ -11,6 +11,13 @@ const {
   ADDITIONAL_CAMPAIGN_METADATA,
   ADDITIONAL_CAMPAIGN_CHARACTERS
 } = require("./additionalCampaigns");
+const {
+  REATH_CAMPAIGN,
+  REATH_CAMPAIGN_METADATA,
+  REATH_CAMPAIGN_CHARACTERS,
+  TIMETWISTER_TRANSIT_MODEL,
+  FACTION_HOMEWORLDS
+} = require("./reathCampaign");
 const MEKAN_LEGACY = LEGACIES.factions.find((faction) => faction.id === "mekan");
 const JALI_LEGACY = LEGACIES.factions.find((faction) => faction.id === "jali");
 const GRACUS_LEGACY = LEGACIES.factions.find((faction) => faction.id === "gracus");
@@ -1515,6 +1522,7 @@ const campaignChapters = {
 };
 
 Object.assign(campaignChapters, ADDITIONAL_CAMPAIGNS);
+campaignChapters["astral-vanguard"] = REATH_CAMPAIGN;
 
 const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.frumo) {
@@ -1899,13 +1907,20 @@ const CAMPAIGN_NARRATION = {
   }
 };
 
+for (const chapter of REATH_CAMPAIGN) {
+  CAMPAIGN_NARRATION[chapter.id] = {
+    beforeBattle: chapter.beforeBattle,
+    afterBattle: chapter.afterBattle
+  };
+}
+
 const CAMPAIGN_METADATA = {
   ...ADDITIONAL_CAMPAIGN_METADATA,
   rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "Guide the Sheen from rebellion and living-city prosperity through reform, civil war, and renewal." },
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
   bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.", coverImage: BIZI_CAMPAIGN_ART["golden-empire"] },
-  "astral-vanguard": { commanderName: "No One Left Below", pitch: "Lead Alden and Myra from a shattered expedition through first contact, orbital blockade, mutiny, and the defense of Reath.", coverImage: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
+  "astral-vanguard": REATH_CAMPAIGN_METADATA,
   xendra: { commanderName: "The Deep Currents", pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual." }
 };
 
@@ -2041,6 +2056,15 @@ const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
     }
   }
 };
+
+CAMPAIGN_CHARACTER_DESCRIPTIONS["astral-vanguard"] = REATH_CAMPAIGN_CHARACTERS;
+
+for (const [factionId, profile] of Object.entries(FACTION_HOMEWORLDS)) {
+  if (!factionsData[factionId]) continue;
+  factionsData[factionId].homeworld = profile.homeworld;
+  factionsData[factionId].origin = profile.origin;
+  factionsData[factionId].reathArrival = profile.reathArrival;
+}
 
 const DECK_RULES = {
   basePlayingDeckSize: BASE_PLAYING_DECK_SIZE,
@@ -2201,6 +2225,9 @@ function getPublicGameContent() {
       commanderName: CAMPAIGN_METADATA[factionId].commanderName,
       pitch: CAMPAIGN_METADATA[factionId].pitch,
       coverImage: CAMPAIGN_METADATA[factionId].coverImage || null,
+      homeworld: CAMPAIGN_METADATA[factionId].homeworld || factionsData[factionId].homeworld || null,
+      arrivalOnReath: CAMPAIGN_METADATA[factionId].arrivalOnReath || factionsData[factionId].reathArrival || null,
+      transitModel: CAMPAIGN_METADATA[factionId].transitModel || null,
       characters: CAMPAIGN_CHARACTER_DESCRIPTIONS[factionId] || {},
       chapters: chapters.map((chapter) => ({ ...chapter, ...(CAMPAIGN_NARRATION[chapter.id] || {}) }))
     }
@@ -2219,6 +2246,7 @@ function getPublicGameContent() {
       })
     }],
     campaigns,
+    worldLore: { reath: { role: "Convergence world", transitModel: TIMETWISTER_TRANSIT_MODEL } },
     cards: COLLECTION_CARDS,
     collectorVariants: COLLECTOR_VARIANTS,
     deckRules: { ...DECK_RULES, factions: listFactions() }

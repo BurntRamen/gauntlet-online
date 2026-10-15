@@ -45,6 +45,13 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(zynarth.campaignOnly, undefined);
   assert.equal(content.campaigns["astral-vanguard"].chapters.length, 12);
   assert.equal(content.campaigns["astral-vanguard"].coverImage, "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp");
+  assert.equal(content.campaigns["astral-vanguard"].commanderName, "The World Between");
+  assert.equal(content.campaigns["astral-vanguard"].chapters[0].title, "New Horizon");
+  assert.equal(content.campaigns["astral-vanguard"].chapters.at(-1).title, "When the Stars Remember");
+  assert.equal(content.worldLore.reath.transitModel.name, "The Timetwister Transit Model");
+  assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
+  assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
+  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
