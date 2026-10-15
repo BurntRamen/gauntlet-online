@@ -52,6 +52,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
   assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  const indelaFaction = content.factions.find((faction) => faction.id === "indela");
+  const indelaCampaign = content.campaigns.indela;
+  assert.equal(indelaFaction.homeworld, "Varuna");
+  assert.match(indelaFaction.origin, /beetle-wizard city of Kashi/);
+  assert.match(indelaFaction.reathArrival, /only later sent a scholarly delegation from Varuna/);
+  assert.equal(indelaCampaign.chapters[0].title, "The Founding Flame");
+  assert.equal(indelaCampaign.chapters.at(-1).title, "The Knowledge That Endures");
+  assert.match(indelaCampaign.chapters[0].story, /homeworld Varuna/);
+  assert.match(indelaCampaign.chapters.at(-1).story, /Centuries later on Varuna/);
+  assert.match(indelaCampaign.chapters.at(-1).endDialogue.join(" "), /campaign ends at home beneath Varuna/);
   const mekanFaction = content.factions.find((faction) => faction.id === "mekan");
   const mekanCampaign = content.campaigns.mekan;
   assert.equal(mekanFaction.homeworld, "Teyotl");
