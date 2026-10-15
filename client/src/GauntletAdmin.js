@@ -4,10 +4,11 @@ import "./GauntletAdmin.css";
 import { targetFromLocation } from "./admin/useWorkshopContext";
 import GauntletAuthoring from "./GauntletAuthoring";
 import AREAS from "../../shared/admin/areas.json";
-const ModuleHome = lazy(() => import(/* webpackChunkName: "gauntlet-admin-home" */ "./admin/ModuleHome"));
+import ModuleHome from "./admin/ModuleHome";
 const Competition = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./GauntletCompetition"));
 const MatchInspector = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/MatchInspector"));
-const AdminSearch = lazy(() => import(/* webpackChunkName: "gauntlet-admin-search" */ "./admin/AdminSearch"));
+import AdminSearch from "./admin/AdminSearch";
+const Players = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/Players"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
 const ICONS = ["M3 10 12 3l9 7v11h-6v-7H9v7H3Z", "M4 20h4L20 8l-4-4L4 16Zm10-14 4 4", "M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9v-3c0-5 12-5 12 0v3m2-16c6-2 7 8 1 8m0 3c5 0 5 3 5 5", "M5 3h14v18H5Zm4 5h6m-6 4h6m-6 4h4", "M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6", "M3 6h18M3 12h18M3 18h18M8 3v6m8 0v6m-8 0v6"];
 const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
@@ -54,113 +55,6 @@ function System({ request, revision, operations }) {
 function Overview({ request, revision, onSelect }) {
   const state = useAdminData(request, "/api/admin/home", revision);
   return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} /></Suspense>}</State>;
-}
-
-function PlayerMetadataEditor({ player, request, guard, onSaved }) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(player.name);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const pending = useRef(false);
-  const input = useRef(null);
-  useEffect(() => { if (editing) input.current?.focus(); }, [editing]);
-  const dirty = editing && value !== player.name;
-  function leave() {
-    if (pending.current) return false;
-    if (dirty && !window.confirm("Discard unsaved player metadata changes?")) return false;
-    // A single departure can pass both the Players and workshop guards before
-    // React commits the reset. Do not prompt again for an accepted discard.
-    guard.current = () => true;
-    setEditing(false); setValue(player.name); setError("");
-    return true;
-  }
-  useEffect(() => { guard.current = leave; return () => { guard.current = () => true; }; });
-  useEffect(() => {
-    if (!dirty && !busy) return;
-    const warn = (event) => { event.preventDefault(); event.returnValue = ""; };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty, busy]);
-  async function save(event) {
-    event.preventDefault();
-    if (pending.current) return;
-    pending.current = true; setBusy(true); setError("");
-    try {
-      await request(`/api/admin/players/${encodeURIComponent(player.id)}/metadata`, {
-        method: "PATCH", body: JSON.stringify({ expectedName: player.name, metadata: { name: value } })
-      });
-      pending.current = false; guard.current = () => true;
-      setEditing(false); onSaved();
-    } catch (failure) { setError(failure.message); }
-    finally { pending.current = false; setBusy(false); }
-  }
-  return editing ? <form className="admin-player-edit" onSubmit={save} aria-label="Edit player metadata">
-    <label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={(event) => setValue(event.target.value)} /></label>
-    <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p>
-    {error && <p role="alert" className="admin-alert">{error}</p>}
-    <div className="admin-actions"><button type="submit" disabled={busy || !dirty}>{busy ? "Saving…" : "Save player name"}</button><button type="button" disabled={busy} onClick={leave}>Cancel</button></div>
-  </form> : <button onClick={() => setEditing(true)}>Edit player name</button>;
-}
-
-function PlayerProfile({ player, catalog, onBack, request, guard, onSaved }) {
-  const [section, setSection] = useState("Summary");
-  const heading = useRef(null);
-  useEffect(() => { heading.current?.focus(); }, [player.id]);
-  const name = (domain, id) => catalog?.domains?.[domain]?.find((item) => item.id === id)?.name || label(id);
-  const unlocks = player.unlocks || {};
-  const decks = player.decks || [];
-  const campaigns = player.campaigns || [];
-  return <section className="admin-player-profile" aria-label="Selected player">
-    <button className="admin-player-back" onClick={onBack}>Back to player list</button>
-    <header className="admin-player-heading"><div><span className="admin-eyebrow">Player profile</span><h4 ref={heading} tabIndex={-1}>{player.name}</h4><p className="admin-note">Last seen {date(player.lastSeenAt)}</p></div></header>
-    <PlayerMetadataEditor player={player} request={request} guard={guard} onSaved={onSaved} />
-    <nav className="admin-subnav" aria-label="Player details">{["Summary", "Campaigns", "Collection", "Decks", "Technical"].map((item) => <button key={item} aria-pressed={section === item} onClick={() => setSection(item)}>{item}</button>)}</nav>
-    {section === "Summary" && <><h5>At a glance</h5><Facts values={{ gamesPlayed: player.results?.gamesPlayed, wins: player.results?.gamesWon, losses: player.results?.gamesLost, draws: player.results?.gamesDrawn }} />
-      <div className="admin-player-totals"><p><strong>{campaigns.reduce((sum, campaign) => sum + campaign.completedChapterIds.length, 0)}</strong> campaign chapters cleared</p><p><strong>{decks.filter((deck) => !deck.archived).length}</strong> active saved decks</p></div>
-      <p className="admin-note">Joined {date(player.createdAt)}. Choose a section above to see more.</p>
-    </>}
-    {section === "Campaigns" && <><h5>Campaign progress</h5>{!campaigns.length && <p>No campaign progress recorded.</p>}{campaigns.map((campaign) => {
-      const chapters = catalog?.domains?.campaigns?.find((item) => item.id === campaign.factionId)?.definition?.chapters;
-      return <details className="admin-player-card" key={campaign.factionId}><summary><strong>{name("factions", campaign.factionId)}</strong><span>{campaign.completedChapterIds.length} / {campaign.totalChapters} chapters cleared</span></summary>
-        {chapters ? <ul className="admin-player-rows">{chapters.map((chapter) => <li key={chapter.id}><span>{chapter.title}</span><small>{campaign.completedChapterIds.includes(chapter.id) ? "Cleared" : campaign.unlockedChapterIds.includes(chapter.id) ? "Available" : "Locked"}</small></li>)}</ul> : <p>Refresh admin to reload chapter names.</p>}
-      </details>;
-    })}</>}
-    {section === "Collection" && <><h5>Collection & unlocks</h5><Facts values={{ packCredits: unlocks.packCredits, achievements: unlocks.achievementIds?.length }} />
-      {[ ["Gameplay cards", Object.entries(unlocks.gameplayEntitlements || {}).map(([id, count]) => `${name("cards", id)} · ${count}`)], ["Collector variants", Object.entries(unlocks.collectorVariants || {}).map(([id, count]) => `${label(id)} · ${count}`)], ["Titles", (unlocks.titles || []).map(label)], ["Card backs", (unlocks.cardBacks || []).map(label)], ["Faction badges", (unlocks.factionBadges || []).map((id) => name("factions", id))] ].map(([title, items]) => <details className="admin-player-card" key={title}><summary>{title}<span>{items.length} recorded</span></summary>{items.length ? <ul>{items.map((item, index) => <li key={index}>{item}</li>)}</ul> : <p>None recorded.</p>}</details>)}
-    </>}
-    {section === "Decks" && <><h5>Saved decks</h5>{!decks.length && <p>No saved decks.</p>}{decks.map((deck) => {
-      const current = deck.versions?.find((version) => version.id === deck.currentVersionId);
-      return <details className="admin-player-card" key={deck.id}><summary><strong>{deck.name || "Untitled deck"}</strong><span>{name("factions", deck.factionId || "basic")} · {deck.archived ? "Archived" : "Active"}</span></summary><p className="admin-note">{label(deck.format || "Not recorded")} · {deck.versions?.length || 0} saved versions · Updated {date(deck.updatedAt)}</p>
-        {current ? <ul className="admin-player-rows">{Object.entries(current.cardQuantities || {}).map(([id, count]) => <li key={id}><span>{name("cards", id)}</span><small>×{count}</small></li>)}</ul> : <p>Current deck version not recorded.</p>}
-      </details>;
-    })}</>}
-    {section === "Technical" && <><h5>Account records</h5><p className="admin-note">Account identity and source records.</p><Facts values={{ accountId: player.id, source: player.source, created: date(player.createdAt), lastSeen: date(player.lastSeenAt) }} /><Json value={player} title="Complete player record" /></>}
-  </section>;
-}
-
-function Players({ request, revision, catalog, guard }) {
-  const [offset, setOffset] = useState(0);
-  const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(null);
-  const [reload, setReload] = useState(0);
-  const [notice, setNotice] = useState("");
-  const list = useRef(null);
-  const state = useAdminData(request, `/api/admin/players?offset=${offset}&limit=25`, `${revision}:${reload}`);
-  const select = (id) => { if (id === selectedId) return true; if (!guard.current()) return false; setSelectedId(id); setNotice(""); return true; };
-  return <><p className="admin-lede">Open a player profile to inspect progress, collection and decks.</p>{notice && <p role="status" className="admin-good">{notice}</p>}<State state={state}>{(data) => {
-    const filtered = data.players.filter((player) => `${player.name} ${player.id}`.toLowerCase().includes(query.toLowerCase()));
-    const selected = data.players.find((player) => player.id === selectedId);
-    return <div className={`admin-players-layout${selected ? " has-selection" : ""}`}>
-      <div className="admin-player-directory"><label className="admin-search">Filter this page<input ref={list} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Player name or account ID" /></label>
-        <p className="admin-note">Players {data.players.length ? offset + 1 : 0}–{offset + data.players.length} · Filter searches this page.</p>
-        {!data.players.length && <p>No accounts in this page.</p>}
-        {data.players.length > 0 && !filtered.length && <p role="status">No players match this filter on the loaded page. Clear the filter or try another page.</p>}
-        <div className="admin-object-list">{filtered.map((player) => <button key={player.id} aria-label={`View player ${player.name}`} aria-pressed={selectedId === player.id} onClick={() => select(player.id)}><strong>{player.name}</strong><small>Last seen {date(player.lastSeenAt)}</small></button>)}</div>
-        <div className="admin-actions"><button disabled={!offset} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(Math.max(0, offset - 25)); } }}>Previous players</button><button disabled={!data.hasMore} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(offset + 25); } }}>Next players</button></div>
-      </div>
-      {selected ? <PlayerProfile key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => { if (select(null)) requestAnimationFrame(() => list.current?.focus()); }} /> : <div className="admin-player-empty"><h4>Select a player</h4><p>Choose a player name.</p></div>}
-    </div>;
-  }}</State></>;
 }
 
 function MatchList({ records, onInspect }) {
@@ -245,7 +139,7 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
       {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
       {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}
-      {area === "Players" && <Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} />}
+      {area === "Players" && <Suspense fallback={<p>Loading players…</p>}><Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
       {matchesOpened && <div hidden={area !== "Operations" || workspace.Operations !== "Match evidence"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
       {area === "Competition" && workspace.Competition === "Results" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
       {area === "Operations" && workspace.Operations === "Health" && <System request={request} revision={revision} operations={operations} />}

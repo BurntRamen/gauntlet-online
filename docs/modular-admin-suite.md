@@ -52,8 +52,10 @@ Each milestone will record changed paths, tests and limitations below. A partial
 | --- | --- | --- | --- |
 | Existing content fields, decks/printings/products | Shared revision-checked draft → immutable release | `resolveEngineContent`, production game factory, collection, deck offer/player store | PR72 `admin-deck-journey.test.js`, retained IDs and receipts |
 | Para seasons/events/scoring/eligibility | Same release `paraLeague` | `paraRuntime` captures rules; qualification and canonical settlement | `para-integration`, `para-runtime`, browser Para journey |
+| Future Ranked/Gauntlet seasons, dates, formats, scoring and prizes | Same release `competition` extension | `seasons` matchmaking identity and points; `events` entry/queue/run rewards | `competition-admin-journey`; canonical record captures event definition; terms lock after publication |
+| Deck prices, sale windows, limits, exact recipe/printing/back | Same release `domains.offers` | `deckCommerce`; finite Gold `purchaseDeck` or account Timetwister transaction | `unified-store-journey`; original captured receipt and grant survive new prices, retirement and process restart |
 | Gold awards, budgets, products/access | Same release `paraLeague` | `goldEconomy` quotes/claims/purchases; `digitalDelivery` | `gold-economy`, `gold-integration`, browser Gold journey |
-| Player name | Account revision-checked metadata route | Account profile | Existing authorization and metadata tests; no wallet permission inferred |
+| Player name and reason | Account revision-checked metadata route; private `operatorAudit` appended in same write | Sign-in name and account profile | Two-operator authorization, before/after evidence, CAS conflict and private-audit redaction tests; no wallet permission inferred |
 | Publish/revert | Existing publication provider | Exact packaged deployed content; future matches | Exact-hash preview/test gates and compatible retained identities |
 | Event operations / Gold corrections | Existing runtime audit transactions | Pinned event state / append-only financial evidence | Reason and original identity retained; disabled runtime never reports success |
 
@@ -92,3 +94,17 @@ Local implementation milestones (2026-10-15; none deployed):
 Important boundaries: the supported deployment remains a single service writer. Gold ledger grants must be restored with their source account checkpoint; account fields alone are not a financial backup. A refund revokes that purchase's printing/back contribution; saved recipe knowledge remains. Pre-existing ownership and later Timetwister grants survive. New legacy runs remain closed after finite Gold cutover; existing runs settle before opening import. Configuring a future legacy event does not bypass this gate. Generic image/audio entitlements deliver library assets, not automatic in-game equipment; use deck products for implemented printing/back grants. Arbitrary cosmetic equip providers, Variant Lab, payments and premium pricing migration remain unsupported.
 
 The seven requested journeys remain acceptance obligations until final evidence is recorded below.
+
+## Acceptance evidence to date
+
+| Journey | Verified local evidence | Remaining qualification |
+| --- | --- | --- |
+| Season | `competition-admin-journey`: create, schedule, rewards, publish, real Ranked and event socket matches, once-only standings/rewards, locked terms and retired history. Existing `para-integration` uses real human sockets and canonical settlements. | Updated browser navigation/calendar journey running. Production Para is disabled. |
+| Store | `unified-store-journey`: actual published deck offer, exact printing/back/deck, authoritative debit, receipts, retirement, backup reopen and fresh server process. Existing digital-analysis HTTP journey exercises its actual provider. | Browser recipe/store and analysis journeys after navigation update. |
+| Price change | Same test rejects stale revision and preserves original 30-Gold receipt after a 40-Gold release. New sale-window test rejects unstarted/ended purchases before preparation. | No production purchase or price changed. |
+| Concurrency | Duplicate simultaneous requests commit once; account file CAS, actual PostgreSQL guard tests, SQLite cap/refund/idempotency tests and finalization retry tests pass in the 433-test run. | Single service writer is a required topology; multi-host account/SQLite atomicity is not claimed. |
+| Publication | Shared exact revision/hash, preview/playtest gating, real consumers, immutable release reopen, compatible rollback and incompatible pinned-term rejection pass. | Hosted merge/deployment requires separate authorization; no live activation performed. |
+| Security | Missing, ordinary, tampered and expired sessions denied; only two stable operator IDs; private authoring/asset/SQL tests pass. Name audit hidden from public account projection. | Full updated browser authorization and accessibility suite running. |
+| Recovery | `runtime-backup` restores active games, draft picks and committed SQLite WAL data into a fresh process; hash/path/private-bucket checks pass. New store test rebuilds 3 purchased decks/printing copies and 30 Gold from durable records after retirement in a fresh server process. | Coordinated production account/objects/volume backup and restore drill remains an infrastructure prerequisite. |
+
+Read the complete [operator workflow guide](modular-admin-operator-guide.md). Artifacts are local test output; they are not production audit evidence.

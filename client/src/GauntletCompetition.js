@@ -5,6 +5,7 @@ export default function Competition({ request, revision, useData, State, Json, l
   const [source, setSource] = useState("Para"), [query, setQuery] = useState("");
   const state = useData(request, "/api/admin/para", `${revision}-${updated}`);
   const managed = useData(request, "/api/admin/competition", `${revision}-${updated}`);
+  const name = id => managed.data?.players?.find(p => p.id === id)?.name || id;
   return <><nav className="admin-subnav" aria-label="Competition results">{["Para", "Ranked & Gauntlet"].map(name => <button key={name} aria-pressed={source === name} onClick={() => setSource(name)}>{name}</button>)}</nav>
     <label className="admin-search">Find player or event<input value={query} onChange={e => setQuery(e.target.value)} /></label>
     {source === "Ranked & Gauntlet" ? <State state={managed}>{data => <><p>{data.note}</p>{data.seasons.map(season => <details key={season.definition.seasonId} className="admin-player-card"><summary>{season.definition.displayName} · {season.definition.status}</summary>
@@ -19,8 +20,11 @@ export default function Competition({ request, revision, useData, State, Json, l
         <label>Reason<input name="reason" required maxLength={500} /></label><button disabled={event.status === "cancelled"}>Apply operation</button>
       </form><Json title="Pinned rules" value={event} />
     </article>)}
-    {data.awards.map((award) => <article key={award.id}><h4>{award.accountId} · {award.amount} Prestige</h4><p>{award.eventId} · <code>{award.releaseId}</code></p>{award.evidence.map((e) => <p key={e.matchId}>Match <code>{e.matchId}</code> · SHA-256 {e.sha256}</p>)}<Json title="Award details" value={award} /></article>)}
-    {["attempts", "standings", "matches", "receipts", "failures", "audit"].map((key) => <Json key={key} title={label(key)} value={data[key]} />)}
+    <h4>Standings</h4>{data.standings.map(season => <article key={season.seasonId}><h5>{season.entries[0]?.season.name || season.seasonId}</h5>{season.entries.filter(row => name(row.accountId).toLowerCase().includes(query.toLowerCase())).map((row, i) => <p key={row.accountId}>#{i + 1} · {name(row.accountId)} · {row.seasonPrestige} Prestige · Invitational {row.invitationalEligible ? "qualified" : "not yet qualified"} · Championship {row.championshipEligible ? "qualified" : "not yet qualified"}</p>)}</article>)}
+    <h4>Participation</h4>{data.attempts.filter(a => name(a.accountId).toLowerCase().includes(query.toLowerCase())).map(a => <p key={a.id}>{name(a.accountId)} · {data.events.find(e => e.id === a.eventId)?.definition.name} · {a.status} · {a.wins} wins / {a.losses} losses</p>)}
+    <h4>Settlement failures</h4>{!data.failures.length && <p>No pending Para settlement failures.</p>}{data.failures.map(f => <article key={f.id}><p>{f.message}</p><p>Inspect match {f.id} under Operations. Preserve the canonical record; restart recovery retries its original settlement after storage is repaired.</p></article>)}
+    {data.awards.map((award) => <details key={award.id}><summary>{name(award.accountId)} · {award.amount} Prestige</summary><p>{data.events.find(e => e.id === award.eventId)?.definition.name}</p>{award.evidence.map(e => <p key={e.matchId}>Match <code>{e.matchId}</code></p>)}<Json title="Award details" value={award} /></details>)}
+    {["matches", "receipts", "audit"].map((key) => <Json key={key} title={label(key)} value={data[key]} />)}
   </>}</State>}</>;
 }
 

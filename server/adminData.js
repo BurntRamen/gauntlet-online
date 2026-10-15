@@ -135,6 +135,7 @@ function projectPlayer(account, runtime, source) {
   return {
     id: account.id, name: account.name, createdAt: account.createdAt || null, lastSeenAt: account.lastSeenAt || null, source,
     results: pick(stats, ["gamesPlayed", "gamesWon", "gamesLost", "gamesDrawn", "rankedGamesPlayed", "rankedGamesWon", "rankedGamesLost", "rankedGamesDrawn"]),
+    corrections: clone(stats.operatorAudit || []),
     campaigns: Object.entries(content.campaignChapters).map(([factionId, chapters]) => {
       const completed = stringList(progression.campaign?.[factionId]);
       return { factionId, completedChapterIds: completed, totalChapters: chapters.length,
@@ -189,6 +190,7 @@ function createAdminData(deps) {
     } else {
       accounts = readLocalRows(deps.accountFile, "accounts").filter(a => !search || (byId ? a.id === search : String(a.name).toLowerCase().includes(search.toLowerCase()))).sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(offset, offset + limit + 1);
     }
+    accounts = accounts.map(account => deps.projectAccount ? deps.projectAccount(account) : account);
     return { source: accountSource(), offset, limit, query: search, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => ({ ...projectPlayer(account, deps.runtime, accountSource()), commerce: {
       source: deps.gold?.enabled ? "Finite Gold ledger owns Gold; account Gold is historical only." : "Account balances",
       gold: deps.gold?.enabled ? null : require("./economy").normalizeEconomy(account.stats).gold,
@@ -229,6 +231,7 @@ function createAdminData(deps) {
     const resolved = deps.publication.active(), config = resolved.manifest.competition || require("./competitionConfig").empty();
     const seasons = [require("./seasons").ACTIVE_SEASON, ...config.ranked.filter(row => row.status !== "draft").map(row => require("./competitionConfig").season(row, resolved.releaseId))];
     return { activeSeason: require("./seasons").getActiveSeason(), seasons: seasons.map(season => ({ definition: season, standings: require("./seasons").buildSeasonStandings(accounts, season) })),
+      players: accounts.map(a => ({ id: a.id, name: a.name })),
       events: require("./events").listEventDefinitions(), runs: accounts.flatMap(account => Object.values(require("./events").normalizeEventProgress(account.stats).runs).map(run => ({ ...run, playerName: account.name, accountId: account.id }))),
       note: "Standings and runs are authoritative account projections. Match evidence is under Operations. Pausing/cancelling blocks new play after publication; completed results retain their captured terms." };
   }

@@ -81,7 +81,7 @@ test("player edits retain typed metadata on failure and protect section navigati
   const editorRequest = jest.fn(async (path, options) => {
     if (path.endsWith("/metadata")) {
       expect(options.method).toBe("PATCH");
-      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" } });
+      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
       if (failSave) throw new Error("This player's name changed elsewhere.");
       playerName = "Player B";
       return { player: { id, name: playerName } };
@@ -99,6 +99,7 @@ test("player edits retain typed metadata on failure and protect section navigati
     fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
     expect(screen.getByRole("button", { name: "Save player name" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
     select("Matches");
     expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
     expect(exitGuard.current()).toBe(false);
@@ -127,6 +128,7 @@ test("Players protects browser Back before a workshop has mounted and resolves d
     fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
     fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
     fireEvent(window, new PopStateEvent("popstate", { state: null }));
     expect(go).toHaveBeenLastCalledWith(1);
     expect(downstream).not.toHaveBeenCalled();

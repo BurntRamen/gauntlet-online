@@ -29,7 +29,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const guide = state?.guide || {};
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [domainChoice, setDomainChoice] = useState(initialDomain?.name || (area === "Content" ? "campaigns" : "encounters"));
+  const [domainChoice, setDomainChoice] = useState(initialDomain?.name || "encounters");
   const [selections, setSelections] = useState({});
   const [session, setSession] = useState(null);
   const [scenario, setScenario] = useState(null), [scenarioDirty, setScenarioDirty] = useState(false);
