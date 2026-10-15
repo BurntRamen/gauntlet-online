@@ -93,7 +93,9 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.screenshot({ path: "artifacts/para-marketplace-mobile.png", fullPage: true });
   await nav.getByRole("button", { name: "Publishing", exact: true }).click();
-  await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
+  const priorRelease = before.authoring.releases.find(release => release.id === before.authoring.activeReleaseId);
+  expect(priorRelease).toBeTruthy();
+  await page.getByRole("button", { name: `Restore ${priorRelease.label}`, exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await get("/api/admin/authoring")).activeReleaseId).toBe(before.authoring.activeReleaseId);

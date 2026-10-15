@@ -11,7 +11,7 @@ Object.assign(process.env, {
   GAUNTLET_ECONOMY_DATA_DIR: process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? "" : fs.mkdtempSync(path.join(root, "economy-")),
   GAUNTLET_CONTENT_DATA_DIR: process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? path.join(root, "content") : fs.mkdtempSync(path.join(root, "content-")),
   ACCOUNT_DATA_FILE: path.join(root, "accounts.json"), MATCH_DATA_FILE: path.join(root, "matches.json"),
-  MATCH_ARCHIVE_DATA_DIR: path.join(root, "archive"), FACTION_STATS_DATA_FILE: path.join(root, "factions.json"),
+  MATCH_ARCHIVE_DATA_DIR: process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? path.join(root, "archive") : fs.mkdtempSync(path.join(root, "archive-")), FACTION_STATS_DATA_FILE: path.join(root, "factions.json"),
   ROOM_STATE_DATA_FILE: path.join(root, "rooms.json"), ROOM_STATE_RECOVERY_ENABLED: "false",
   ACCOUNT_AUTH_SECRET: "isolated-admin-browser-test-secret", NODE_ENV: "test", CLIENT_URL: clientOrigin,
   GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
