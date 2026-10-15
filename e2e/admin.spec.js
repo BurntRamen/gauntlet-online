@@ -1,3 +1,4 @@
+const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
 const { test: base, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
@@ -57,12 +58,12 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await signIn(page, request, "simply");
   await page.reload();
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
-  await page.getByText("Advanced / Technical · content and rules versions", { exact: true }).click();
-  await expect(page.locator(".admin-facts").getByText(/^gauntlet-content-[a-f0-9]{64}$/)).toBeVisible();
-  await page.getByText("Advanced / Technical · content and rules versions", { exact: true }).click();
+  await page.getByText("Advanced · active content release", { exact: true }).click();
+  await expect(page.getByText(/^gauntlet-content-[a-f0-9]{64}$/, { exact: true })).toBeVisible();
+  await page.getByText("Advanced · active content release", { exact: true }).click();
   await page.screenshot({ path: "artifacts/admin-overview-desktop.png", fullPage: true });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Design", { exact: true }).click();
+  await adminArea(page, "Content");
   await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
@@ -76,7 +77,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await nav.getByText("Players", { exact: true }).click();
   await page.getByRole("button", { name: "View player simply", exact: true }).click();
   await expect(page.getByRole("region", { name: "Selected player" }).getByText("At a glance", { exact: true })).toBeVisible();
-  await nav.getByText("Matches", { exact: true }).click();
+  await adminArea(page, "Matches");
   await page.getByRole("button", { name: "Inspect match dddddddd-dddd-4ddd-8ddd-dddddddddddd", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Authoritative audit history/ })).toBeVisible();
   const match = page.getByRole("region", { name: "Match design inspection", exact: true });
@@ -95,7 +96,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.screenshot({ path: "artifacts/admin-match-design-navigation.png", fullPage: true });
   await nav.getByText("Publishing", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Release history and rollback" })).toBeVisible();
-  await nav.getByText("System", { exact: true }).click();
+  await adminArea(page, "System");
   await expect(page.getByText("Schema and rules versions", { exact: true })).toBeVisible();
   const accessibility = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();
   expect(accessibility.violations).toEqual([]);
@@ -104,7 +105,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.reload();
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(nav.getByText("System", { exact: true })).toBeVisible();
+  await expect(nav.getByText("Operations", { exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/admin-overview-mobile.png", fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
@@ -135,13 +136,13 @@ test("player profiles keep records out of the summary and support focused browsi
   await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
   await expect(profile.getByText("At a glance", { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByLabel("Filter this page")).toBeHidden();
+  await expect(page.getByLabel("Search all players")).toBeHidden();
   await page.screenshot({ path: "artifacts/admin-players-mobile.png", fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   await profile.getByRole("button", { name: "Back to player list" }).click();
-  await expect(page.getByLabel("Filter this page")).toBeFocused();
-  await page.getByLabel("Filter this page").fill("simply");
+  await expect(page.getByLabel("Search all players")).toBeFocused();
+  await page.getByLabel("Search all players").fill("simply"); await page.getByRole("button", { name: "Search players", exact: true }).click();
   await expect(page.getByRole("button", { name: "View player Visitor", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "View player simply", exact: true })).toBeVisible();
 });
@@ -155,16 +156,16 @@ test("only admins can save player metadata, with unsaved-change protection and p
   const admin = await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   // Keep the content editor mounted to exercise both independent exit guards.
-  await nav.getByRole("button", { name: "Design", exact: true }).click();
+  await adminArea(page, "Content");
   await expect(page.getByLabel("Search encounters")).toBeVisible();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
   const profile = page.getByRole("region", { name: "Selected player" });
   await profile.getByRole("button", { name: "Edit player name" }).click();
   await expect(page.getByLabel("Player name", { exact: true })).toBeFocused();
-  await page.getByLabel("Player name", { exact: true }).fill("Visitor Updated");
+  await page.getByLabel("Player name", { exact: true }).fill("Visitor Updated"); await page.getByLabel("Correction reason").fill("Support requested name correction");
   page.once("dialog", (dialog) => dialog.dismiss());
-  await nav.getByRole("button", { name: "Matches", exact: true }).click();
+  await adminArea(page, "Matches");
   await expect(page.getByLabel("Player name", { exact: true })).toHaveValue("Visitor Updated");
   await page.route(`**${path}`, (route) => route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "This player's name changed elsewhere. Refresh the profile before saving again." }) }));
   await profile.getByRole("button", { name: "Save player name" }).click();
@@ -180,7 +181,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   await page.reload();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
-  const restored = await request.patch(`${origin}${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" } } });
+  const restored = await request.patch(`${origin}${path}`, { headers: { Authorization: `Bearer ${admin}` }, data: { expectedName: "Visitor Updated", metadata: { name: "Visitor" }, reason: "Restore isolated test fixture name" } });
   expect(restored.ok()).toBeTruthy();
 });
 
@@ -192,7 +193,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   const original = await live();
   const historyBefore = await (await request.get(origin + "/api/admin/matches", { headers, maxRetries: 2 })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Design", { exact: true }).click();
+  await adminArea(page, "Content");
   await otherContent(page, "Campaigns");
   await page.getByRole("button", { name: "Inspect The Jewel of Rumie", exact: true }).click();
   await page.getByLabel("Draft campaign introduction").fill("A saved draft introduction for browser verification.");
@@ -242,7 +243,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   expect((await live()).contentVersion).toBe(original.contentVersion);
   const historyAfter = await (await request.get(origin + "/api/admin/matches", { headers, maxRetries: 2 })).json();
   expect(historyAfter).toEqual(historyBefore);
-  await nav.getByText("Design", { exact: true }).click();
+  await adminArea(page, "Content");
   await otherContent(page, "Factions");
   await page.getByRole("button", { name: "Inspect Rumin", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -258,7 +259,7 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   const headers = { Authorization: `Bearer ${token}` };
   const before = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Design", { exact: true }).click();
+  await adminArea(page, "Content");
   await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await encounterSection(page, "setup");
@@ -300,7 +301,7 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const artwork = original.assetLibrary.find((entry) => entry.source === "/assets/gauntlet/sheen-card.webp");
   expect(artwork).toBeTruthy();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByText("Design", { exact: true }).click();
+  await adminArea(page, "Content");
   const role = original.live.domains.characters.find((entry) => entry.factionId === "rumin" && entry.role === "commander");
   for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
     await otherContent(page, tab);
@@ -335,7 +336,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await page.getByRole("button", { name: "Close admin", exact: true }).click();
   await expect(adminLink).toBeVisible();
   await adminLink.click();
-  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await expect(workshops(page).getByRole("button", { name: "Encounters", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await page.getByLabel("Search encounters").fill("nothing matches this encounter");
@@ -368,8 +369,8 @@ test("Admin is discoverable only after access approval and review controls retai
   await page.getByRole("button", { name: "Confirm discard", exact: true }).click();
   await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
-  await page.getByLabel("Filter this page").fill("not a registered name");
-  await expect(page.getByRole("status")).toContainText("No players match this filter on the loaded page");
+  await page.getByLabel("Search all players").fill("not a registered name"); await page.getByRole("button", { name: "Search players", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("No players match this search");
   await page.getByRole("button", { name: "Back to Gauntlet", exact: true }).click();
   await page.getByRole("button", { name: /^Identity Profile/ }).click();
   await page.getByRole("button", { name: "Sign Out", exact: true }).click();
@@ -385,7 +386,7 @@ test("disconnected authoring explains the blocker and preserves readable technic
   });
   await page.goto("/admin/gauntlet");
   await signIn(page, request, "simply"); await page.reload();
-  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("Browsing live content");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -421,7 +422,7 @@ test("a reported authoring outage keeps real live testing available without publ
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
   const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
-  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await expect(page.getByText(/Shared draft and publication history are unavailable/)).toBeVisible();
   await expect(page.getByText("Connection setup details", { exact: true })).toHaveCount(0);
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
@@ -449,7 +450,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   const headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
   const saved = async () => (await request.get(base, { headers, maxRetries: 2 })).json();
   const initial = await saved();
-  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   const story = page.getByLabel("Draft story", { exact: true });
@@ -591,7 +592,7 @@ test("a second operator's revision conflict preserves local typing and requires 
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
-  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await page.getByLabel("Draft story", { exact: true }).fill("Local operator story.");
   const login = await (await request.post(origin + "/api/auth/login", { data: { name: "Burnt Ramen", password: "test-password" } })).json();
@@ -619,7 +620,7 @@ test("card workshop previews and executes a custom live scenario without creatin
   const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
   const before = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(before.draft).toBeFalsy();
-  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   const card = page.getByRole("region", { name: "Card Workshop", exact: true });
@@ -717,7 +718,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
   const original = await (await request.get(base, { headers, maxRetries: 2 })).json();
   const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
-  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Capital Investment Spear");
   await page.getByRole("button", { name: "Inspect Capital Investment Spear", exact: true }).click();
   await cardSection(page, "Artwork");
@@ -813,9 +814,9 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   const capture = async name => page.screenshot({ path: `artifacts/admin-visual-pass/${name}.png`, fullPage: false });
-  await expect(page.getByRole("button", { name: /^\d+ Cards$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^\d+ Season definitions$/ })).toBeVisible();
   await capture("overview-desktop");
-  await page.getByRole("button", { name: /^\d+ Encounters$/ }).click();
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Encounters", exact: true }).click();
   await page.getByLabel("Search encounters").fill("Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await expect(page.getByLabel("Filter encounters by campaign", { exact: true })).toHaveCSS("background-color", "rgb(12, 24, 34)");
@@ -825,8 +826,8 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await capture("encounters-mobile");
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await nav.getByRole("button", { name: "Overview", exact: true }).click();
-  await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+  await adminArea(page, "Overview");
+  await adminArea(page, "Content"); await workshops(page).getByRole("button", { name: "Cards", exact: true }).click();
   await page.getByLabel("Search cards").fill("Soldier");
   await page.getByRole("button", { name: "Inspect Soldier", exact: true }).click();
   await page.getByLabel("Search cards").fill("Sergeant");
@@ -873,7 +874,7 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   await expect(workshops(page).getByRole("button", { name: "Other content", exact: true })).toHaveAttribute("aria-pressed", "true");
   await capture("other-content-desktop");
   for (const area of ["Players", "Matches", "System"]) {
-    await nav.getByRole("button", { name: area, exact: true }).click();
+    await adminArea(page, area);
     if (area === "Players") await page.getByRole("button", { name: "View player simply", exact: true }).click();
     if (area === "Matches") {
       await page.getByRole("button", { name: "Inspect match dddddddd-dddd-4ddd-8ddd-dddddddddddd", exact: true }).click();
@@ -905,9 +906,12 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
     await route.continue();
   });
   await page.reload();
+  await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Search Admin/ })).toBeVisible();
+  await adminArea(page, "Content");
   await previewStarted;
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Search Admin/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Search Admin/ })).toBeVisible();
   releasePreview();
   const finder = page.getByRole("region", { name: "Search Admin", exact: true });
   await expect(page.getByRole("heading", { name: "Gauntlet Admin", exact: true })).toBeVisible();
@@ -972,7 +976,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await page.getByRole("button", { name: "Create set", exact: true }).click();
   await expect(page.getByLabel("New content name")).toBeFocused();
   await page.getByLabel("New content name").fill("Browser lifecycle set");
-  await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Matches", exact: true }).click();
+  await adminArea(page, "Matches");
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing" }).click();
   await expect(page.getByLabel("New content name")).toHaveValue("Browser lifecycle set");
   await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();

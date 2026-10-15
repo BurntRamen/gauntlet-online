@@ -77,7 +77,7 @@ After deployment, `/api/storage-status` must report:
 - `privateAuthoring.provider: "supabase-private"`, `available: true`.
 - `runtimeBackups.enabled: true`, then a non-null `lastSuccessfulAt` and `failed: false` after the first minute. A successful backup means the uploaded object was downloaded and hash-verified, not merely accepted for upload.
 
-Admin → System exposes volume/checkpoint/backup status without private room contents. The first backup runs a minute after startup, then hourly. A failure is reported and retains the previous successful recovery point. Backups are immutable and are not automatically pruned; Case should monitor Storage usage and manage retention after a restore drill. The initial backup envelope is bounded to 64 MiB; exceeding the bound fails visibly and requires a larger/streaming backup implementation.
+Admin → Operations → Health exposes volume/checkpoint/backup status without private room contents. The first backup runs a minute after startup, then hourly. A failure is reported and retains the previous successful recovery point. Backups are immutable and are not automatically pruned; Case should monitor Storage usage and manage retention after a restore drill. The initial backup envelope is bounded to 64 MiB; exceeding the bound fails visibly and requires a larger/streaming backup implementation.
 
 Use both allowed Admin accounts to verify shared saved changes and a stale-revision rejection. Confirm ordinary accounts and signed-out requests still get denied. Private notes/unused image versions must not appear in a content PR; only explicitly published artwork does. No real purchase/grant is needed for a smoke test.
 

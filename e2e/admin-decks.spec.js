@@ -1,13 +1,13 @@
 const { test, expect } = require("./admin-release-test");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process");
 const endpoint = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, artifacts = path.resolve(__dirname, "../artifacts/purpose/browser");
-let root, child;
+let root, child, finiteGold;
 async function start() {
-  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), windowsHide: true, env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PURPOSE_FIXTURE: "true" }, stdio: ["ignore", "pipe", "pipe", "ipc"] });
+  child = spawn(process.execPath, [path.join(__dirname, "admin-server.js")], { cwd: path.resolve(__dirname, ".."), windowsHide: true, env: { ...process.env, GAUNTLET_ASSET_FIXTURE_ROOT: root, GAUNTLET_PURPOSE_FIXTURE: "true", GAUNTLET_DECK_LEDGER_FIXTURE: String(finiteGold) }, stdio: ["ignore", "pipe", "pipe", "ipc"] });
   await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error("Fixture timeout")), 30000); child.once("exit", code => { clearTimeout(timer); reject(new Error(`Fixture exit ${code}`)); }); child.stderr.on("data", bytes => fs.appendFileSync(path.join(artifacts, "server.log"), bytes)); child.stdout.on("data", bytes => { fs.appendFileSync(path.join(artifacts, "server.log"), bytes); if (String(bytes).includes("fixture server ready")) { clearTimeout(timer); resolve(); } }); });
 }
 async function stop() { if (child && child.exitCode === null) await new Promise((resolve, reject) => { child.once("exit", code => code === 0 ? resolve() : reject(new Error(`Fixture shutdown failed: ${code}`))); child.send("shutdown"); }); }
-test.beforeAll(async () => { fs.mkdirSync(artifacts, { recursive: true }); root = fs.mkdtempSync(path.resolve(__dirname, "../.playwright-data/purpose-")); await start(); });
+test.beforeAll(async ({}, info) => { finiteGold = info.project.name === "finite-gold"; fs.mkdirSync(artifacts, { recursive: true }); root = fs.mkdtempSync(path.resolve(__dirname, "../.playwright-data/purpose-")); await start(); });
 test.afterAll(stop);
 test("author, reopen, test, publish and buy a deck product; retain it across restart and a fresh browser", async ({ page, request, browser }) => {
   const login = async name => (await (await request.post(endpoint + "/api/auth/login", { headers: { Connection: "close" }, data: { name, password: "test-password" } })).json()).token;
@@ -56,7 +56,10 @@ test("author, reopen, test, publish and buy a deck product; retain it across res
     await expect(p.getByText(/Purchased Browser recipe/)).toBeVisible(); await p.getByRole("tab", { name: "Decks", exact: true }).click(); await p.getByLabel("Saved deck", { exact: true }).selectOption(result.receipt.deckId); await expect(p.getByLabel("Deck card back")).toHaveValue("campaignMap"); await p.screenshot({ path: path.join(artifacts, "purchased-deck.png") });
     await stop(); await start();
     const fresh = await browser.newContext(); try { await fresh.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const f = await fresh.newPage(); await f.goto("/"); await f.locator('button[data-area="build"]').click(); await f.getByRole("button", { name: "Open Collection Workshop" }).click(); await f.getByRole("tab", { name: "Shop", exact: true }).click(); await expect(f.getByText("Your deck purchase receipts", { exact: true })).toBeVisible(); } finally { await fresh.close(); }
-    const stored = JSON.parse(fs.readFileSync(path.join(root, "accounts.json"))).accounts[2]; expect(stored.stats.economy.gold).toBe(70); expect(stored.stats.deckLibrary.decks).toHaveLength(1);
-    fs.writeFileSync(path.join(artifacts, "journey.json"), JSON.stringify({ templateId: id, offerId: result.receipt.offerId, printing, receipt: result.receipt, restart: true }, null, 2));
+    const stored = JSON.parse(fs.readFileSync(path.join(root, "accounts.json"))).accounts[2]; expect(stored.stats.economy.gold).toBe(finiteGold ? 100 : 70);
+    const recovered = (await (await request.get(endpoint + "/api/auth/me", { headers: { Authorization: `Bearer ${playerToken}` } })).json()).account;
+    expect(recovered.economy.gold).toBe(70); expect(recovered.stats.deckLibrary.decks).toHaveLength(1);
+    expect(Boolean(result.receipt.ledgerPurchaseId)).toBe(finiteGold);
+    fs.writeFileSync(path.join(artifacts, `journey-${finiteGold ? "finite-gold" : "account"}.json`), JSON.stringify({ templateId: id, offerId: result.receipt.offerId, printing, receipt: result.receipt, restart: true }, null, 2));
   } finally { await buyer.close(); }
 });
