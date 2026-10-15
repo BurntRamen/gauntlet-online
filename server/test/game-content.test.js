@@ -52,6 +52,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
   assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  const gracusFaction = content.factions.find((faction) => faction.id === "gracus");
+  const gracusCampaign = content.campaigns.gracus;
+  assert.equal(gracusFaction.homeworld, "Thalassa");
+  assert.match(gracusFaction.origin, /marble island world Thalassa/);
+  assert.match(gracusFaction.reathArrival, /voluntary Gracus delegation to Reath/);
+  assert.equal(gracusCampaign.chapters[0].title, "The City of Questions");
+  assert.equal(gracusCampaign.chapters.at(-1).title, "The World of Meeting");
+  assert.match(gracusCampaign.chapters[0].story, /homeworld Thalassa/);
+  assert.match(gracusCampaign.chapters.at(-1).story, /other homeworlds/);
+  assert.match(gracusCampaign.chapters.at(-1).endDialogue.join(" "), /Reath is the convergence point/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
