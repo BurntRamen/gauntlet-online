@@ -363,6 +363,7 @@ function buildMatchRecord(roomState, options = {}) {
     mode,
     rulesVersion: RULES_VERSION,
     contentVersion: game.contentVersion || CONTENT_VERSION,
+    ...(roomState.para ? { para: clonePlain(roomState.para) } : {}),
     ...(game.contentBinding ? { contentBinding: clonePlain(game.contentBinding), contentDefinitions: clonePlain(game.contentDefinitions), gameConfig: clonePlain(game.config) } : {}),
     ranked: !!roomState.ranked,
     season: roomState.season ? clonePlain(roomState.season) : null,

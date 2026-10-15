@@ -6,6 +6,21 @@ const { releaseReview, compareSnapshots } = require("../adminReleaseReview");
 const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
 
+test("Para definitions participate in exact-hash review and rollback removals", () => {
+  const store = createContentPublication({ baseline, memory: true });
+  const original = store.status().activeReleaseId;
+  let status = store.paraDraft({ expectedRevision: 0, operation: "seed" }, "operator");
+  assert.equal(releaseReview(status).readiness.ready, false);
+  status = store.preview({ expectedRevision: status.revision });
+  const review = releaseReview(status), group = review.groups.find(group => group.id === "para-economy");
+  assert.equal(review.readiness.ready, true); assert.equal(review.readiness.engineTestRequired, false);
+  assert.ok(group.changes.some(change => change.field === "prestige" && change.after[0].includes("Prestige")));
+  status = store.publish({ expectedRevision: status.revision, label: "Inactive proposals" }, "operator");
+  const comparison = releaseReview(status, store.releaseSnapshot(original));
+  assert.equal(comparison.comparison.canRollback, true);
+  assert.ok(comparison.groups[0].changes.every(change => change.after === null));
+});
+
 test("release review expands human setup differences and groups cross-workshop changes", () => {
   const draft = clone(baseline), encounter = draft.domains.encounters[0];
   encounter.story = "A changed story."; encounter.setup.bossLife += 2;

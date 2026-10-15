@@ -12,7 +12,7 @@ test("keyboard navigation selects, focuses, and links the active play scene", ()
   render(<MenuHarness />);
   const practice = screen.getByRole("tab", { name: /Practice/ });
   const tables = screen.getByRole("tab", { name: /Tables/ });
-  const draft = screen.getByRole("tab", { name: /Draft/ });
+  const para = screen.getByRole("tab", { name: /Para League/ });
   fireEvent.keyDown(practice, { key: "ArrowRight" });
   expect(tables).toHaveFocus();
   expect(tables).toHaveAttribute("aria-selected", "true");
@@ -24,12 +24,12 @@ test("keyboard navigation selects, focuses, and links the active play scene", ()
   fireEvent.keyDown(ranked, { key: "ArrowRight" });
   expect(screen.getByRole("tab", { name: "Events" })).toHaveFocus();
   fireEvent.keyDown(tables, { key: "End" });
-  expect(draft).toHaveFocus();
-  fireEvent.keyDown(draft, { key: "ArrowRight" });
+  expect(para).toHaveFocus();
+  fireEvent.keyDown(para, { key: "ArrowRight" });
   expect(practice).toHaveFocus();
   fireEvent.keyDown(practice, { key: "ArrowLeft" });
-  expect(draft).toHaveFocus();
-  fireEvent.keyDown(draft, { key: "Home" });
+  expect(para).toHaveFocus();
+  fireEvent.keyDown(para, { key: "Home" });
   expect(practice).toHaveFocus();
 });
 

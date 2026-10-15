@@ -22,7 +22,7 @@ async function call(route = "", body, account = accounts[0], method = body ? "PO
 }
 
 test("all authoring reads and writes retain the exact two-account server gate", async () => {
-  for (const [route, method] of [["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
+  for (const [route, method] of [["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
     assert.equal((await call(route, method === "GET" ? undefined : {}, null, method)).status, 401);
     assert.equal((await call(route, method === "GET" ? undefined : {}, accounts[2], method)).status, 403);
   }
@@ -230,4 +230,27 @@ test("uploaded private bytes require stable-ID authorization; published bytes us
   assert.match(result.headers.get("cache-control"), /immutable/); assert.equal(result.headers.get("x-content-type-options"), "nosniff");
   assert.equal(require("../authoredAssets").digest(Buffer.from(await result.arrayBuffer())), asset.sha256);
   assert.equal((await call("/assets/" + asset.id, undefined, null)).status, 401, "private metadata endpoint stays private after publication");
+});
+
+test("Para HTTP lifecycle and simulation preserve account, deck and canonical match bytes", async () => {
+  const accountBytes = fs.readFileSync(process.env.ACCOUNT_DATA_FILE), matchBytes = fs.readFileSync(process.env.MATCH_DATA_FILE);
+  let state = (await call()).body;
+  const originalId = state.activeReleaseId;
+  const seed = await call("/para-draft", { expectedRevision: state.revision, operation: "seed" }, accounts[1]);
+  assert.equal(seed.status, 200, JSON.stringify(seed.body)); state = seed.body;
+  assert.equal(state.draft.updatedBy, accounts[1].id);
+  assert.equal(state.live.paraLeague, undefined);
+  const simulated = await call("/para-simulate", { expectedRevision: state.revision, seasonId: "para-season-zero", eventId: "para-season-zero-week-7", results: [{ eventId: "para-season-zero-week-1", wins: 7, losses: 0 }] });
+  assert.equal(simulated.status, 200);
+  assert.equal(simulated.body.qualifyingPrestige, 30);
+  assert.equal(simulated.body.simulationOnly, true);
+  assert.equal((await call()).body.revision, state.revision);
+  assert.equal((await call("/para-draft", { expectedRevision: state.revision - 1, operation: "seed" })).status, 409);
+  state = (await call("/preview", { expectedRevision: state.revision })).body;
+  const published = await call("/publish", { expectedRevision: state.revision, label: "Inactive Para proposals" });
+  assert.equal(published.status, 200, JSON.stringify(published.body)); state = published.body;
+  assert.equal(state.live.paraLeague.events.length, 8);
+  assert.equal((await call("/rollback", { expectedRevision: state.revision, releaseId: originalId })).status, 200);
+  assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), accountBytes);
+  assert.deepEqual(fs.readFileSync(process.env.MATCH_DATA_FILE), matchBytes);
 });

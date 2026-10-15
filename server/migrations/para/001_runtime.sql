@@ -1,0 +1,21 @@
+-- Private SQLite operational database; never run against account/content stores.
+BEGIN IMMEDIATE;
+CREATE TABLE para_seasons (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_events (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_attempts (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_matches (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_receipts (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_awards (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_audit (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE para_failures (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE UNIQUE INDEX para_award_attempt ON para_awards(json_extract(body,'$.attemptId'));
+CREATE INDEX para_attempt_account_event ON para_attempts(json_extract(body,'$.accountId'),json_extract(body,'$.eventId'));
+CREATE INDEX para_award_account_season ON para_awards(json_extract(body,'$.accountId'),json_extract(body,'$.seasonId'));
+CREATE TRIGGER para_awards_no_update BEFORE UPDATE ON para_awards BEGIN SELECT RAISE(ABORT,'Awards are immutable'); END;
+CREATE TRIGGER para_awards_no_delete BEFORE DELETE ON para_awards BEGIN SELECT RAISE(ABORT,'Awards are immutable'); END;
+CREATE TRIGGER para_receipts_no_update BEFORE UPDATE ON para_receipts BEGIN SELECT RAISE(ABORT,'Receipts are immutable'); END;
+CREATE TRIGGER para_receipts_no_delete BEFORE DELETE ON para_receipts BEGIN SELECT RAISE(ABORT,'Receipts are immutable'); END;
+CREATE TRIGGER para_audit_no_update BEFORE UPDATE ON para_audit BEGIN SELECT RAISE(ABORT,'Audit is immutable'); END;
+CREATE TRIGGER para_audit_no_delete BEFORE DELETE ON para_audit BEGIN SELECT RAISE(ABORT,'Audit is immutable'); END;
+PRAGMA user_version=1;
+COMMIT;

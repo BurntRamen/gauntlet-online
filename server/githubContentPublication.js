@@ -52,8 +52,8 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   return { request, readFile, putFile };
 }
 
-function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
-  const seed = createContentPublication({ baseline, memory: true });
+function createGitHubContentPublication({ baseline, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+  const seed = createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true });
   const initial = seed.exportState();
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
   if (packaged) {
@@ -68,7 +68,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   const active = () => resolveEngineContent(deployed.snapshot, deployed.id);
   const cardIndex = new Map(deployedContent.manifest.cards.map(card => [card.id, card]));
   const variantIndex = new Map(deployedContent.manifest.collectorVariants.map(variant => [variant.variantId, variant]));
-  const core = (state) => createContentPublication({ baseline, memory: true, initialState: state });
+  const core = (state) => createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
     if (!token) return { state: clone(initial), sha: null };
@@ -83,6 +83,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
   function project(state) {
     const view = core(state).status();
     return { ...view, writable: !!token && !state.pending, provider: "github", storage: "Shared drafts and release history in GitHub. Publishing merges a content pull request, then waits for deployment.",
+      publication: { provider: "github", supported: true, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Shared GitHub drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
       activeReleaseId: deployed.id, live: clone(deployed.snapshot), pending: clone(state.pending || null),
       connectionRequired: !token, repositoryUrl: `https://github.com/${REPOSITORY}` };
   }
@@ -186,7 +187,7 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     if (hash(pending) !== beforePending) { state.revision += 1; await save(loaded, state, `Gauntlet Admin: publication ${pending.phase}`); }
     return project(state);
   }
-  return { active,
+  return { active, published: () => clone(deployed),
     saveNotes: (args, actor) => operate("saveNotes", args, actor),
     uploadAsset: (args, actor) => operate("uploadAsset", args, actor), archiveAsset: args => operate("archiveAsset", args),
     privateAsset: async id => core((await load()).state).privateAsset(id),
@@ -198,6 +199,8 @@ function createGitHubContentPublication({ baseline, token = process.env.GAUNTLET
     status: async () => project((await load()).state),
     lookupCard: id => clone(cardIndex.get(id) || null), lookupVariant: id => clone(variantIndex.get(id) || null),
     lookupSet: id => clone(deployedContent.manifest.draftSets.find(set => set.id === id) || null),
+    paraDraft: (args, actor) => operate("paraDraft", args, actor),
+    paraSimulation: async args => core((await load()).state).paraSimulation(args),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),
     create: (args, actor) => operate("create", args, actor), patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),

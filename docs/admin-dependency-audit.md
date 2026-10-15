@@ -12,6 +12,8 @@ The replacement development server binds only to loopback, validates Host/Origin
 
 Initial integration verification: all **99 client suites / 738 tests** pass; **4 toolchain security/compatibility tests** pass; the production build succeeds. Measured gzip: main **172.7 KiB**, player **712.6 KiB**, initial Admin **17.5 KiB**, total Admin **55.9 KiB**, largest async **274.2 KiB**. All existing ceilings remain unchanged. Raw results and subsequent clean-install/browser verification are in `artifacts/security/`; release readiness still requires the complete CI/browser results and Case's separate migration.
 
+Main `e1ef70a` was subsequently integrated to preserve the concurrent Para League/Gold release. Its normal four-pass compression and stricter shared-Economy accounting are retained in the replacement toolchain. Navigation, references and review share a small Admin chunk to avoid duplicated overhead. The combined strict CI build passes: main 168.4 KiB, player 716.5, initial Admin 17.6, total Admin 60.9 and largest async 274.2. No dependency lockfile or budget ceiling changed during that merge; full combined regression results are tracked in release PR #72.
+
 ## Historical audit before toolchain remediation
 
 Audited 12 October 2026 against the root, server and client npm lockfiles, before and after compatible updates. Raw audit JSON, original lockfiles, update logs and npm explain output are in `artifacts/printings/`. No forced upgrade, override or advisory suppression was applied. Counts are npm affected-package totals (including propagated findings), not counts of distinct exploitable vulnerabilities.

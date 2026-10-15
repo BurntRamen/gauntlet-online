@@ -53,7 +53,7 @@ module.exports = function createConfig(mode = "production", environment = proces
     ] }] },
     optimization: {
       minimize: production,
-      minimizer: [new TerserPlugin({ terserOptions: { parse: { ecma: 8 }, compress: { ecma: 5, comparisons: false, inline: 2, passes: 2 }, mangle: { safari10: true }, format: { ecma: 5, comments: false, ascii_only: true } } }), new CssMinimizerPlugin()],
+      minimizer: [new TerserPlugin({ terserOptions: { parse: { ecma: 8 }, compress: { ecma: 5, comparisons: false, inline: 2, passes: 4 }, mangle: { safari10: true }, format: { ecma: 5, comments: false, ascii_only: true } } }), new CssMinimizerPlugin()],
       splitChunks: require("./splitChunks")
     },
     plugins: [new webpack.DefinePlugin({ "process.env": Object.fromEntries(Object.entries(exposed).map(([key, value]) => [key, JSON.stringify(value)])) }), new HtmlWebpackPlugin({ templateContent: html, inject: "body", scriptLoading: "defer", minify: production }), new MiniCssExtractPlugin({ filename: "static/css/[name].[contenthash:8].css", chunkFilename: "static/css/[name].[contenthash:8].chunk.css" }), new AssetManifestPlugin(publicPath)],

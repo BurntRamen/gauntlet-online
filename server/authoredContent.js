@@ -16,6 +16,7 @@ const { proseFields } = require("./websiteProse");
 const authoredCatalog = require("./adminCatalog");
 const composition = require("../shared/duel-rules/compositionContract");
 const { resolvePrinting } = require("../shared/duel-rules/printings");
+const paraLeague = require("./paraLeague");
 const SCHEMA = "gauntlet.authored-content.v2";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const fieldValue = (row, field, spec) => row?.[field] === undefined ? spec.defaultValue : row[field];
@@ -120,7 +121,13 @@ function validateAuthoredContent(snapshot, baseline, catalogCards) {
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
   if (canonicalJson(snapshot.engine) !== canonicalJson(baseline.engine)) issue(null, null, "engine", "Engine contract or mechanic identifiers changed; a compatible code deployment is required.");
-  if (canonicalJson(Object.keys(snapshot).filter(key => key !== "assetVersions").sort()) !== canonicalJson(Object.keys(baseline).sort()) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
+  // Optional additive extension: old immutable v2 snapshots retain their bytes and hashes.
+  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "assetVersions"].includes(key)).sort();
+  if (canonicalJson(coreKeys(snapshot)) !== canonicalJson(coreKeys(baseline)) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
+  if (Object.hasOwn(snapshot, "paraLeague")) {
+    const validation = paraLeague.validateConfig(snapshot.paraLeague);
+    errors.push(...validation.errors); warnings.push(...validation.warnings);
+  }
   const maps = {};
   for (const [domain, originals] of Object.entries(baseline.domains)) {
     const rows = snapshot.domains[domain];

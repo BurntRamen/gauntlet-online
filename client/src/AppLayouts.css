@@ -1,0 +1,182 @@
+/* Static layout values moved intact from App JSX; dynamic styles remain inline. */
+#root .app-layout-1 { display: flex; justify-content: space-between; align-items: flex-start; }
+#root .app-layout-2 { font-size: 18px; }
+#root .app-layout-3 { font-size: 16px; }
+#root .app-layout-4 { font-size: 9px; color: #666; text-align: right; }
+#root .app-layout-5 { width: 100%; height: 100%; object-fit: cover; display: block; }
+#root .app-layout-6 { margin-bottom: 5px; }
+#root .app-layout-7 { font-size: 10px; font-weight: bold; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .app-layout-8 { font-size: 9px; color: #555; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .app-layout-9 { font-size: 14px; }
+#root .app-layout-10 { font-size: 13px; }
+#root .app-layout-11 { position: fixed; inset: 0; z-index: 80; background: rgba(2,6,23,0.82); display: grid; place-items: center; padding: 18px; }
+#root .app-layout-12 { position: relative; width: min(390px, 88vw); max-height: 90dvh; overflow: auto; border: 1px solid rgba(241,199,121,0.8); border-radius: 8px; background: #090704; box-shadow: 0 28px 90px rgba(0,0,0,0.72); }
+#root .app-layout-13 { width: 100%; max-height: 78dvh; object-fit: contain; display: block; }
+#root .app-layout-14 { position: absolute; right: 10px; top: 10px; border: 1px solid rgba(255,255,255,0.45); border-radius: 4px; background: rgba(7,16,26,0.9); color: #fff; padding: 6px 10px; cursor: pointer; }
+#root .app-layout-15 { position: fixed; inset: 0; z-index: 80; background: rgba(2,6,23,0.72); display: grid; place-items: center; padding: 18px; }
+#root .app-layout-16 { width: min(420px, 94vw); border: 2px solid rgba(250, 204, 21, 0.75); border-radius: 10px; background: linear-gradient(180deg, #f8fafc, #e5e7eb); box-shadow: 0 24px 80px rgba(0,0,0,0.55); overflow: hidden; }
+#root .app-layout-17 { position: relative; height: 210px; background: #0f172a; }
+#root .app-layout-18 { position: absolute; right: 10px; top: 10px; border: 0; border-radius: 6px; background: rgba(15,23,42,0.86); color: #fff; padding: 6px 10px; cursor: pointer; }
+#root .app-layout-19 { padding: 16px; }
+#root .app-layout-20 { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+#root .app-layout-21 { margin: 0; color: #111827; }
+#root .app-layout-22 { color: #475569; margin-top: 4px; }
+#root .app-layout-23 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+#root .app-layout-24 { margin-top: 14px; border: 1px solid rgba(15,23,42,0.14); border-radius: 8px; padding: 10px; color: #1f2937; background: #fff7ed; line-height: 1.35; }
+#root .app-layout-25 { position: fixed; inset: 0; z-index: 78; background: rgba(2,6,23,0.72); display: grid; place-items: center; padding: 18px; }
+#root .app-layout-26 { width: min(820px, 94vw); max-height: 86dvh; overflow: auto; border: 2px solid rgba(250,204,21,0.72); border-radius: 10px; background: linear-gradient(180deg, #21150c, #090604); color: #fff7e6; box-shadow: 0 24px 80px rgba(0,0,0,0.58); padding: 14px; }
+#root .app-layout-27 { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
+#root .app-layout-28 { margin: 0; font-family: Georgia, serif; color: #f7d99e; }
+#root .app-layout-29 { border: 1px solid rgba(247,217,158,0.52); border-radius: 6px; background: rgba(8,5,3,0.62); color: #fff7e6; padding: 6px 10px; cursor: pointer; }
+#root .app-layout-30 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+#root .app-layout-31 { border: 1px solid rgba(247,217,158,0.36); border-radius: 8px; background: rgba(255,239,207,0.06); padding: 10px; }
+#root .app-layout-32 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 8px; }
+#root .app-layout-33 { color: #f7d99e; }
+#root .app-layout-34 { display: flex; flex-wrap: wrap; gap: 8px; }
+#root .app-layout-35 { border: 0; background: transparent; padding: 0; cursor: zoom-in; }
+#root .app-layout-36 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #bfdbfe; font-size: 13px; }
+#root .app-layout-37 { color: #fca5a5; font-weight: bold; }
+#root .app-layout-38 { position: fixed; right: 14px; top: 58px; z-index: 40; width: min(340px, calc(100vw - 28px)); border: 2px solid rgba(125, 211, 252, 0.65); border-radius: 8px; background: rgba(15, 23, 42, 0.96); color: #e5eef8; box-shadow: 0 18px 50px rgba(0,0,0,0.4); padding: 12px; }
+#root .app-layout-39 { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+#root .app-layout-40 { margin: 0; color: #facc15; font-size: 16px; }
+#root .app-layout-41 { padding: 3px 8px; }
+#root .app-layout-42 { display: grid; gap: 6px; font-size: 13px; }
+#root .app-layout-43 { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; align-items: center; }
+#root .app-layout-44 { border: 1px solid rgba(191, 219, 254, 0.45); border-radius: 5px; padding: 3px 6px; text-align: center; background: rgba(30, 41, 59, 0.92); color: #f8fafc; }
+#root .app-layout-45 { margin-top: 0; }
+#root .app-layout-46 { margin: 0 0 10px; color: #bfdbfe; font-size: 13px; }
+#root .app-layout-47 { display: grid; gap: 10px; }
+#root .app-layout-48 { color: #93c5fd; line-height: 1.4; }
+#root .app-layout-49 { color: #fca5a5; font-size: 13px; }
+#root .app-layout-50 { z-index: 2; justify-self: start; border: 1px solid rgba(255,255,255,0.26); border-radius: 6px; padding: 6px 9px; background: rgba(2,6,23,0.48); color: #fff7dc; font-weight: 900; font-size: 12px; }
+#root .app-layout-51 { z-index: 2; color: #fde68a; line-height: 1.25; }
+#root .app-layout-52 { margin: 0; color: #bfdbfe; }
+#root .app-layout-53 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+#root .app-layout-54 { color: #fde68a; }
+#root .app-layout-55 { margin-bottom: 8px; }
+#root .app-layout-56 { color: #bfdbfe; font-size: 12px; }
+#root .app-layout-57 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+#root .app-layout-58 { min-width: 160px; border: 1px solid rgba(125,211,252,0.28); border-radius: 6px; padding: 7px 9px; background: rgba(15,23,42,0.74); color: #e5e7eb; }
+#root .app-layout-59 { border: 1px solid rgba(125,211,252,0.28); border-radius: 6px; padding: 7px 9px; background: rgba(15,23,42,0.74); color: #e5e7eb; }
+#root .app-layout-60 { display: inline-flex; align-items: center; gap: 6px; color: #bfdbfe; font-size: 12px; font-weight: 800; }
+#root .app-layout-61 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+#root .app-layout-62 { color: #bfdbfe; font-size: 13px; }
+#root .app-layout-63 { display: flex; justify-content: space-between; gap: 8px; }
+#root .app-layout-64 { color: #f8fafc; font-weight: bold; }
+#root .app-layout-65 { color: #bfdbfe; font-size: 12px; margin: 3px 0; }
+#root .app-layout-66 { color: #e5e7eb; font-size: 12px; line-height: 1.35; }
+#root .app-layout-67 { color: #fde68a; font-size: 11px; margin-top: 6px; }
+#root .app-layout-68 { margin-top: 0; color: #bfdbfe; }
+#root .app-layout-69 { color: #fca5a5; font-size: 13px; margin-bottom: 10px; }
+#root .app-layout-70 { color: #bfdbfe; font-size: 12px; margin: 3px 0 8px; }
+#root .app-layout-71 { color: #bfdbfe; font-size: 12px; margin-bottom: 10px; }
+#root .app-layout-72 { margin-top: 5px; color: #475569; font-size: 12px; line-height: 1.3; }
+#root .app-layout-73 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+#root .app-layout-74 { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+#root .app-layout-75 { margin-top: 8px; font-weight: bold; }
+#root .app-layout-76 { font-size: 12px; margin-top: 4px; }
+#root .app-layout-80 { width: 78px; padding: 3px 6px; border: 1px solid currentColor; border-radius: 6px; background: rgba(255,255,255,0.7); color: inherit; font-weight: bold; font-size: 13px; text-align: center; }
+#root .app-layout-81 { border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; padding: 3px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+#root .app-layout-82 { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }
+#root .app-layout-83 { display: block; width: 96px; height: 96px; border-radius: 8px; border: 2px solid rgba(125,211,252,0.5); background: #fff; padding: 4px; }
+#root .app-layout-84 { min-width: 0; }
+#root .app-layout-85 { margin: 0 0 8px; color: #bfdbfe; font-size: 13px; }
+#root .app-layout-86 { min-width: 0; align-self: center; }
+#root .app-layout-87 { display: block; font-size: 14px; font-weight: bold; color: #29170d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .app-layout-88 { width: 42px; min-height: 56px; border: 1px solid rgba(82,50,26,0.62); border-radius: 5px; background: linear-gradient(180deg, #f8ecd5, #d6b386); padding: 4px; display: grid; align-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.35); }
+#root .app-layout-89 { font-size: 8px; color: #475569; text-align: right; }
+#root .app-layout-90 { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+#root .app-layout-91 { color: #f7d99e; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .app-layout-92 { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 8px; }
+#root .app-layout-93 { margin: 0; font-size: 15px; }
+#root .app-layout-94 { padding: 4px 8px; font-size: 12px; }
+#root .app-layout-95 { display: grid; gap: 8px; }
+#root .app-layout-96 { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 6px; font-size: 12px; align-items: stretch; }
+#root .app-layout-97 { color: #6b7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; }
+#root .app-layout-98 { color: #475569; margin-top: 4px; line-height: 1.25; }
+#root .app-layout-99 { display: grid; gap: 6px; max-height: min(20dvh, 190px); overflow-y: auto; padding-right: 4px; }
+#root .app-layout-100 { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+#root .app-layout-101 { position: relative; overflow: hidden; border: 1px solid rgba(250,204,21,0.46); border-radius: 10px; padding: 16px; margin-bottom: 18px; background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(69,36,12,0.86)), radial-gradient(circle at 82% 24%, rgba(250,204,21,0.18), transparent 30%); box-shadow: 0 18px 40px rgba(0,0,0,0.24); }
+#root .app-layout-102 { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 12px; }
+#root .app-layout-103 { color: #f59e0b; font-size: 12px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+#root .app-layout-104 { margin: 0; color: #f8fafc; font-size: 28px; }
+#root .app-layout-105 { margin: 8px 0 0; color: #bfdbfe; line-height: 1.45; max-width: 780px; }
+#root .app-layout-106 { flex: 0 0 auto; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; padding: 6px 9px; background: rgba(2,6,23,0.52); color: #dbeafe; font-weight: 900; }
+#root .app-layout-107 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px; }
+#root .app-layout-108 { border: 1px solid rgba(125,211,252,0.22); border-radius: 8px; padding: 10px; background: rgba(2,6,23,0.34); }
+#root .app-layout-109 { display: block; color: #fde68a; margin-bottom: 4px; }
+#root .app-layout-110 { color: #dbeafe; font-size: 13px; line-height: 1.35; }
+#root .app-layout-111 { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+#root .app-layout-112 { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#root .app-layout-113 { margin-bottom: 14px; color: #fecaca; }
+#root .app-layout-114 { color: #fde68a; margin-bottom: 12px; font-size: 13px; }
+#root .app-layout-115 { color: #fca5a5; margin-bottom: 12px; }
+#root .app-layout-116 { border: 1px solid #64748b; border-radius: 10px; padding: 12px; margin-bottom: 12px; color: #e2e8f0; }
+#root .app-layout-117 { display: block; margin-bottom: 8px; }
+#root .app-layout-118 { display: block; }
+#root .app-layout-119 { display: grid; gap: 6px; margin-bottom: 12px; color: #dbeafe; font-weight: 800; }
+#root .app-layout-120 { padding: 10px; border-radius: 6px; }
+#root .app-layout-121 { color: #bfdbfe; }
+#root .app-layout-122 { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; border-bottom: 1px solid rgba(125, 211, 252, 0.28); padding-bottom: 16px; margin-bottom: 18px; }
+#root .app-layout-123 { color: #f59e0b; font-size: 12px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+#root .app-layout-124 { margin: 0; font-size: 40px; color: #f8fafc; text-shadow: 0 0 18px rgba(56,189,248,0.4); }
+#root .app-layout-125 { color: #bfdbfe; font-size: 13px; text-align: right; display: grid; gap: 8px; justify-items: end; }
+#root .app-layout-126 { color: #dbeafe; }
+#root .app-layout-127 { margin: 0; }
+#root .app-layout-128 { margin: 0 0 10px 0; font-family: Georgia, serif; font-size: clamp(36px, 7vw, 58px); color: #2a160b; text-shadow: 0 2px 0 rgba(255,255,255,0.48); }
+#root .app-layout-129 { margin: 0 auto 20px auto; max-width: 560px; font-size: 18px; color: #2f1c10; }
+#root .app-layout-130 { margin: 0 auto 18px; max-width: 620px; display: grid; gap: 8px; text-align: left; font-size: 14px; color: #2f1c10; }
+#root .app-layout-131 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 22px; text-align: left; }
+#root .app-layout-132 { color: #555; font-weight: normal; }
+#root .app-layout-133 { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+#root .app-layout-134 { margin: 12px 0 0; color: #4b2d16; font-size: 13px; }
+#root .app-layout-135 { border: 1px solid rgba(17,24,39,0.16); border-radius: 6px; padding: 5px 6px; color: #111827; font-size: 12px; background: rgba(255,255,255,0.58); font-weight: bold; }
+#root .app-layout-136 { color: #555; font-size: 12px; }
+#root .app-layout-137 { color: #92400e; font-size: 12px; font-weight: bold; }
+#root .app-layout-138 { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 8px; max-width: 1500px; margin: 0 auto; }
+#root .app-layout-139 { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+#root .app-layout-140 { font-size: 13px; font-weight: bold; }
+#root .app-layout-141 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#root .app-layout-142 { color: #fde68a; font-weight: bold; }
+#root .app-layout-143 { color: #b91c1c; font-weight: bold; }
+#root .app-layout-144 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+#root .app-layout-145 { color: #991b1b; font-weight: bold; }
+#root .app-layout-146 { color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+#root .app-layout-147 { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 8px; min-height: 0; }
+#root .app-layout-148 { display: grid; gap: 8px; align-content: start; }
+#root .app-layout-149 { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 7px; overflow-x: auto; }
+#root .app-layout-150 { display: grid; gap: 4px; margin-top: 6px; }
+#root .app-layout-151 { margin-top: 6px; }
+#root .app-layout-152 { margin-left: 6px; }
+#root .app-layout-153 { width: 100%; font-size: 10px; }
+#root .app-layout-154 { display: grid; gap: 4px; }
+#root .app-layout-155 { font-size: 9px; color: #4b5563; }
+#root .app-layout-156 { margin-bottom: 10px; padding: 10px; border-radius: 8px; background: #fef3c7; border: 1px solid #f59e0b; }
+#root .app-layout-157 { display: flex; gap: 8px; margin-top: 8px; }
+#root .app-layout-158 { color: #555; }
+#root .app-layout-159 { display: grid; gap: 8px; margin-top: 8px; }
+#root .app-layout-160 { color: #991b1b; }
+#root .app-layout-161 { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+#root .app-layout-162 { border: 1px solid rgba(247,217,158,0.28); border-radius: 5px; padding: 5px 6px; color: #fff4d6; font-size: 12px; background: rgba(255,239,207,0.06); }
+#root .app-layout-163 { color: #fcd34d; font-size: 12px; font-weight: bold; }
+#root .app-layout-164 { color: #991b1b; font-size: 12px; font-weight: bold; }
+#root .app-layout-165 { font-size: 11px; color: #555; margin-bottom: 3px; }
+#root .app-layout-166 { margin: 6px 0 0 0; }
+#root .app-layout-167 { display: block; margin-bottom: 10px; }
+#root .app-layout-168 { margin-bottom: 10px; color: #991b1b; font-weight: bold; }
+#root .app-layout-169 { margin-right: 10px; }
+#root .app-layout-170 { display: block; width: 100%; margin-top: 4px; }
+#root .app-layout-171 { margin-bottom: 10px; padding: 10px; background: #f3f4f6; border-radius: 8px; }
+#root .app-layout-172 { color: #92400e; margin-bottom: 6px; font-size: 13px; font-weight: bold; flex: 0 0 auto; }
+#root .app-layout-173 { color: red; margin-bottom: 12px; }
+#root .app-layout-174 { font-size: 12px; color: #555; margin-top: 4px; }
+#root .app-layout-175 { margin-top: 8px; font-size: 13px; line-height: 1.45; font-weight: normal; color: #14532d; }
+#root .app-layout-176 { min-height: 0; overflow-y: auto; padding-right: 4px; }
+#root .app-layout-177 { display: none; }
+#root .app-layout-178 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#root .app-layout-179 { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 7px; }
+#root .app-layout-180 { font-size: 14px; margin: 0 0 5px 0; }
+#root .app-layout-181 { display: grid; gap: 5px; }
+#root .app-layout-182 { margin-top: 6px; display: grid; gap: 4px; }
+#root .app-layout-183 { margin-right: 8px; }
+#root .app-layout-184 { margin-top: 10px; }

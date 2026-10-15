@@ -1,0 +1,22 @@
+-- Private Gold ledger, separate from accounts and the unchanged Para database.
+BEGIN IMMEDIATE;
+CREATE TABLE gold_accounts(id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_seasons(id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_definitions(id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_evidence(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, condition TEXT NOT NULL, at TEXT NOT NULL, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE INDEX gold_evidence_account ON gold_evidence(account_id,condition,at);
+CREATE TABLE gold_transactions(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, season_id TEXT, kind TEXT NOT NULL CHECK(kind IN ('award','purchase','refund','adjust-credit','adjust-debit')), delta INTEGER NOT NULL CHECK(delta BETWEEN -1000000 AND 1000000), body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE INDEX gold_transactions_account ON gold_transactions(account_id,season_id,kind);
+CREATE TABLE gold_claims(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, award_id TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL CHECK(json_valid(body)), UNIQUE(account_id,award_id,ordinal));
+CREATE TABLE gold_claim_evidence(claim_id TEXT NOT NULL REFERENCES gold_claims(id), evidence_id TEXT NOT NULL REFERENCES gold_evidence(id), account_id TEXT NOT NULL, award_id TEXT NOT NULL, PRIMARY KEY(account_id,award_id,evidence_id));
+CREATE TABLE gold_quotes(id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_purchases(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, product_id TEXT NOT NULL, quote_id TEXT NOT NULL UNIQUE REFERENCES gold_quotes(id), body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE INDEX gold_purchases_account ON gold_purchases(account_id,product_id);
+CREATE TABLE gold_entitlements(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, purchase_id TEXT NOT NULL REFERENCES gold_purchases(id), body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE INDEX gold_entitlements_account ON gold_entitlements(account_id);
+CREATE TABLE gold_refunds(id TEXT PRIMARY KEY, purchase_id TEXT NOT NULL UNIQUE REFERENCES gold_purchases(id), body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_revocations(id TEXT PRIMARY KEY, entitlement_id TEXT NOT NULL UNIQUE REFERENCES gold_entitlements(id), body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_requests(id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, body TEXT NOT NULL CHECK(json_valid(body)));
+CREATE TABLE gold_audit(id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
+PRAGMA user_version=1;
+COMMIT;

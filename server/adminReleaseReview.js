@@ -49,6 +49,22 @@ function compareSnapshots(live, draft) {
       visit(fieldValue(original, field, spec), fieldValue(row, field, spec), [field]);
     }
   }
+  const para = require("./paraLeague");
+  const previous = live.paraLeague || para.emptyConfig(), next = draft.paraLeague || para.emptyConfig();
+  const group = { id: "para-economy", label: "Para League & Economy", category: "Para League & Economy", changes: [] };
+  for (const [domain, fields] of Object.entries(para.FIELDS)) {
+    for (const id of new Set([...previous[domain], ...next[domain]].map(row => row.id))) {
+      const before = previous[domain].find(row => row.id === id), after = next[domain].find(row => row.id === id);
+      for (const [field, spec] of Object.entries(fields)) {
+        if (equal(before?.[field], after?.[field])) continue;
+        const display = value => field === "rewards" && Array.isArray(value) ? value.map(reward => `${reward.wins} wins: ${reward.entitlementId}`)
+          : field === "prestige" && Array.isArray(value) ? value.map((points, wins) => `${wins} wins: ${points} Prestige`) : value ?? null;
+        group.changes.push({ domain: `para:${domain}`, id, label: after?.name || before?.name || id, field, path: field, fieldLabel: spec.label,
+          live: clone(before?.[field] ?? null), draft: clone(after?.[field] ?? null), before: display(before?.[field]), after: display(after?.[field]), mechanical: false });
+      }
+    }
+  }
+  groups.set(group.id, group);
   return [...groups.values()].filter(group => group.changes.length);
 }
 

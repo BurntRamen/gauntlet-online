@@ -240,3 +240,23 @@ test("structured definitions survive GitHub packaging with version bindings and 
   assert.deepEqual(deployed.lookupCard(card.id).effect, effect);
   assert.equal(deployed.active().manifest.contentBinding.compositionVersion, composition.VERSION);
 });
+
+test("Para definitions use GitHub drafts and become runtime-active only after the exact release deploys", async () => {
+  const repo = repository(), store = repo.store({ runtimeCapabilities: () => ({ enabled: true }), economyCapabilities: () => ({ enabled: true }) });
+  let state = await store.paraDraft({ expectedRevision: 0, operation: "seed" }, "approved-account");
+  assert.equal(state.provider, "github"); assert.equal(state.publication.provider, "github");
+  assert.equal(state.para.capabilities.currencyOperations, true);
+  assert.equal(store.published().snapshot.paraLeague, undefined);
+  state = await store.preview({ expectedRevision: state.revision });
+  assert.equal(state.validation.valid, true);
+  state = await store.publish({ expectedRevision: state.revision, label: "Inactive Para and Gold definitions" }, "approved-account");
+  assert.equal(state.pending.phase, "checks");
+  repo.client.ready = true; state = await store.reconcile();
+  assert.equal(state.pending.phase, "deploying");
+  assert.equal(store.published().snapshot.paraLeague, undefined);
+  const packaged = (await repo.client.readFile("main", RELEASE_PATH)).value;
+  const deployed = repo.store({ deployedRelease: packaged, deployedCommit: repo.refs.get("main") });
+  assert.equal(deployed.published().id, packaged.id);
+  assert.equal(deployed.published().snapshot.paraLeague.seasons[0].status, "draft");
+  assert.ok(deployed.published().snapshot.paraLeague.products.every(p => p.status !== "active"));
+});

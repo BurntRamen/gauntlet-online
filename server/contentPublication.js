@@ -7,6 +7,7 @@ const { migrateV1 } = require("./contentMigration");
 const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
 const catalog = require("./adminCatalog");
 const imageAssets = require("./authoredAssets");
+const paraLeague = require("./paraLeague");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
 function fail(status, message) { const error = new Error(message); error.status = status; throw error; }
@@ -14,7 +15,7 @@ function fail(status, message) { const error = new Error(message); error.status 
 // One atomic state file is the transaction boundary: snapshot insertion, pointer
 // activation and draft removal either all commit, or none do. A separate exclusive
 // lock and revision checks prevent lost updates across operators/processes.
-function createContentPublication({ baseline, directory = ".", writable = true, memory = false, initialState = null }) {
+function createContentPublication({ baseline, directory = ".", writable = true, memory = false, initialState = null, provider = "local", runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }) }) {
   const filename = path.join(directory, "content-state.json");
   const lockfile = path.join(directory, "content-state.lock");
   const initialId = releaseId(baseline);
@@ -102,6 +103,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     }
   }
   function transaction(expectedRevision, operate) {
+    if (provider !== "local") fail(503, `Publication provider '${provider}' is unsupported in this deployment. No GitHub or deployment adapter is installed.`);
     if (!writable) fail(503, "Publishing requires GAUNTLET_CONTENT_DATA_DIR on a persistent server volume. Configure it before authoring in production.");
     if (memory) {
       const state = read();
@@ -124,20 +126,29 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   function changes(state) {
     if (!state.draft) return [];
     const live = state.releases[state.activeReleaseId].snapshot;
-    return Object.entries(state.draft.snapshot.domains).flatMap(([domain, rows]) => rows.flatMap((row) => {
+    const contentChanges = Object.entries(state.draft.snapshot.domains).flatMap(([domain, rows]) => rows.flatMap((row) => {
       const original = live.domains[domain]?.find((entry) => entry.id === row.id);
       return Object.entries(fieldsFor(domain, original || row)).filter(([field, spec]) => hash(fieldValue(row, field, spec) ?? null) !== hash(fieldValue(original, field, spec) ?? null)).map(([field, spec]) => ({ domain, id: row.id, field, live: fieldValue(original, field, spec), draft: fieldValue(row, field, spec) }));
     }));
+    const previous = live.paraLeague || paraLeague.emptyConfig();
+    const next = state.draft.snapshot.paraLeague || paraLeague.emptyConfig();
+    const paraChanges = Object.keys(paraLeague.FIELDS).flatMap((domain) => next[domain].flatMap((row) => {
+      const original = previous[domain].find((entry) => entry.id === row.id);
+      return Object.keys(paraLeague.FIELDS[domain]).filter((field) => hash(row[field] ?? null) !== hash(original?.[field] ?? null))
+        .map((field) => ({ domain: `para:${domain}`, id: row.id, field, live: original?.[field] ?? null, draft: row[field] }));
+    }));
+    return [...contentChanges, ...paraChanges];
   }
   function project(state) {
     const live = state.releases[state.activeReleaseId];
     const validation = validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline);
     for (const row of state.draft?.snapshot.assetVersions || []) { try { imageAssets.verifiedBytes(row, state.assetBlobs); } catch (error) { validation.valid = false; validation.errors.push({ domain: "asset-library", id: row.id, message: error.message }); } }
     if (state.draft && state.draft.baseReleaseId !== live.id) { validation.valid = false; validation.errors.push({ message: "Draft base differs from the active release. Discard and recreate this draft." }); }
-    return { revision: state.revision, writable, storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
+    return { revision: state.revision, writable: writable && provider === "local", storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
+      publication: { provider, supported: provider === "local", github: "unavailable", activeReleaseId: live.id, deployment: provider === "local" ? "active-on-this-server" : "unsupported-provider", message: "Local publication activates this server immediately." },
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
-      assetLibrary: [...require("./contentAssets").assetManifest.entries, ...imageAssets.entries(state)],
+      assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
       assetCapacity: imageAssets.capacity(state),
       live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: hash(state.draft.snapshot) } : null, changes: changes(state), validation,
       capabilities: { catalogCreation: 1, imageUploads: 1, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
@@ -146,7 +157,12 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
       fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, fieldsFor(domain, row)]))])),
       releases: Object.values(state.releases).map(({ snapshot, assetPackage, ...release }) => ({ ...release, compatible: compatible({ snapshot }), rollbackBlocked: catalog.rollbackProblem(live.snapshot, snapshot) })),
-      activations: clone(state.activations).reverse() };
+      activations: clone(state.activations).reverse(),
+      para: { fields: paraLeague.FIELDS, templates: Object.fromEntries(Object.keys(paraLeague.FIELDS).map((key) => [key, paraLeague.newDefinition(key)])),
+        capabilities: { ...paraLeague.CAPABILITIES, officialEntry: runtimeCapabilities().enabled, currencyOperations: economyCapabilities().enabled, purchases: economyCapabilities().enabled, fulfillment: economyCapabilities().enabled, runtime: runtimeCapabilities(), economy: economyCapabilities() }, invariants: paraLeague.INVARIANTS,
+        catalog: validation.valid ? paraLeague.catalog(state.draft?.snapshot.paraLeague || live.snapshot.paraLeague || paraLeague.emptyConfig()) : [],
+        summary: validation.valid ? paraLeague.summary(state.draft?.snapshot.paraLeague || live.snapshot.paraLeague || paraLeague.emptyConfig()) : [] } };
+
   }
   let activeCache = null;
   function resolvedActive() {
@@ -216,6 +232,59 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       state.privateNotes[id] = { value, updatedBy: actorId, updatedAt: new Date().toISOString() };
     });
   }
+  function paraDraft({ expectedRevision, operation, domain, id, value, sourceId }, actorId) {
+    return transaction(expectedRevision, (state) => {
+      if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), previewedHash: null };
+      const snapshot = state.draft.snapshot;
+      if (operation === "seed") {
+        if (snapshot.paraLeague && Object.keys(paraLeague.FIELDS).some((key) => snapshot.paraLeague[key].length)) fail(409, "The Para catalog already has definitions. Seed only an empty catalog; existing work is preserved.");
+        snapshot.paraLeague = paraLeague.seedSeasonZero();
+      } else {
+        if (!Object.hasOwn(paraLeague.FIELDS, domain) || typeof id !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(id)) fail(400, "Choose a definition type and a stable lowercase ID.");
+        snapshot.paraLeague ||= paraLeague.emptyConfig();
+        const rows = snapshot.paraLeague[domain], index = rows.findIndex((row) => row.id === id);
+        if (operation === "archive") {
+          if (index < 0 || !Object.hasOwn(paraLeague.FIELDS[domain], "status")) fail(400, "This definition cannot be archived.");
+          rows[index].status = "archived";
+        } else if (operation === "duplicate") {
+          const source = rows.find((row) => row.id === sourceId);
+          if (!source || index >= 0 || rows.length >= 500) fail(409, "Choose an existing source and a new unused ID; catalog limit is 500.");
+          const copy = { ...clone(source), id, name: `${source.name.slice(0, 150)} copy` };
+          if (Object.hasOwn(copy, "status")) copy.status = domain === "products" ? "unavailable" : "draft";
+          for (const key of Object.keys(copy).filter((key) => paraLeague.FIELDS[domain][key].type === "date")) copy[key] = null;
+          rows.push(copy);
+        } else if (operation === "create" || operation === "update") {
+          if (!value || typeof value !== "object" || Array.isArray(value) || value.id !== id || Object.keys(value).sort().join() !== Object.keys(paraLeague.FIELDS[domain]).sort().join()) fail(400, "Supply the exact typed fields for this definition. Identity and protected fields cannot be patched.");
+          if (operation === "create" && (index >= 0 || rows.length >= 500)) fail(409, "ID already exists or the catalog is full.");
+          if (operation === "update" && index < 0) fail(404, "Definition no longer exists. Refresh the shared draft.");
+          // Keep malformed structures out of storage. Cross-reference and semantic
+          // errors remain reviewable in the shared draft but cannot be published.
+          for (const [key, field] of Object.entries(paraLeague.FIELDS[domain])) {
+            const entry = value[key];
+            if (["references", "choices", "numbers", "rewards"].includes(field.type) && (!Array.isArray(entry) || entry.length > 64)) fail(400, "Invalid list field.");
+            if (field.type === "text" && (typeof entry !== "string" || entry.length > field.maxLength)) fail(400, "Invalid text field.");
+            if (["reference", "asset"].includes(field.type) && typeof entry !== "string") fail(400, "Invalid reference field.");
+            if (field.type === "choice" && typeof entry !== typeof field.options[0]) fail(400, "Invalid choice field.");
+            if (field.type === "integer" && !Number.isFinite(entry)) fail(400, "Invalid numeric field.");
+            if (field.type === "boolean" && typeof entry !== "boolean") fail(400, "Invalid boolean field.");
+            if (field.type === "date" && entry !== null && typeof entry !== "string") fail(400, "Invalid date field.");
+            if (["choices", "references"].includes(field.type) && entry.some((item) => typeof item !== "string")) fail(400, "Invalid reference list.");
+            if (field.type === "numbers" && entry.some((item) => !Number.isFinite(item))) fail(400, "Invalid numeric list.");
+            if (field.type === "rewards" && entry.some((item) => !item || Object.keys(item).sort().join() !== "entitlementId,wins" || typeof item.entitlementId !== "string" || !Number.isFinite(item.wins))) fail(400, "Invalid reward tier.");
+          }
+          if (operation === "create") rows.push(clone(value)); else rows[index] = clone(value);
+        } else fail(400, "Unknown Para draft operation.");
+      }
+      state.draft.updatedBy = actorId; state.draft.updatedAt = new Date().toISOString();
+      state.draft.previewedHash = null; state.draft.playtestedHash = null;
+    });
+  }
+  function paraSimulation({ expectedRevision, ...input }) {
+    const state = read();
+    if (state.revision !== expectedRevision) fail(409, "Content changed. Refresh before simulating this draft.");
+    const config = (state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).paraLeague || paraLeague.emptyConfig();
+    return { revision: state.revision, ...paraLeague.simulate(config, input) };
+  }
   function preview({ expectedRevision }) {
     const result = transaction(expectedRevision, (state) => {
       if (!state.draft) fail(400, "Save a draft before previewing.");
@@ -223,14 +292,16 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       state.draft.previewedHash = hash(state.draft.snapshot);
       state.draft.previewedRevision = state.revision + 1;
     });
-    return { ...result, preview: resolveEngineContent(result.draft.snapshot, `draft:${result.draft.previewedHash}`) };
+    const preview = resolveEngineContent(result.draft.snapshot, `draft:${result.draft.previewedHash}`);
+    preview.presentation = require("./adminPreview").buildAdminPreview(result.draft.snapshot, preview);
+    return { ...result, preview };
   }
   function publish({ expectedRevision, label }, actorId) {
     return transaction(expectedRevision, (state) => {
       if (!state.draft || !changes(state).length) fail(400, "There are no draft changes to publish.");
       if (!project(state).validation.valid) fail(422, "Draft validation failed. Nothing was published.");
       if (state.draft.previewedHash !== hash(state.draft.snapshot)) fail(409, "Preview this exact saved draft before publishing.");
-      if (changes(state).some((change) => fieldsFor(change.domain, state.draft.snapshot.domains[change.domain].find((row) => row.id === change.id))[change.field]?.mechanical)
+      if (changes(state).some((change) => !change.domain.startsWith("para:") && fieldsFor(change.domain, state.draft.snapshot.domains[change.domain].find((row) => row.id === change.id))[change.field]?.mechanical)
         && state.draft.playtestedHash !== hash(state.draft.snapshot)) fail(409, "Playtest this exact saved mechanical draft before publishing.");
       if (typeof label !== "string" || !label.trim() || label.length > 160) fail(400, "Give the release a name of 1–160 characters.");
       const snapshot = state.draft.snapshot, id = releaseId(snapshot), timestamp = new Date().toISOString();
@@ -272,6 +343,11 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!release) fail(404, "Content release not found.");
     return { ...clone(release), compatible: compatible(release) };
   }
+  function published(id) {
+    const state = read(), release = state.releases[id || state.activeReleaseId];
+    if (!release || !compatible(release)) fail(503, "Published release unavailable or incompatible.");
+    return clone(release);
+  }
   async function uploadAsset(input, actor) {
     const state = read(), prior = imageAssets.priorUpload(state, input, actor);
     if (prior) return { ...project(state), uploaded: prior };
@@ -298,7 +374,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!row) fail(404, "Published image version not found.");
     return { mediaType: row.mediaType, body: imageAssets.verifiedBytes(row, state.assetBlobs), sha256: row.sha256 };
   }
-  return { saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  return { published, paraDraft, paraSimulation, saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
@@ -310,6 +386,7 @@ function registerContentPublicationRoutes(app, publication) {
     } catch (error) { res.set("Cache-Control", "no-store").status(error.status || 503).json({ error: error.status ? error.message : "Published artwork unavailable." }); }
   });
   app.delete("/api/admin/authoring/assets/:id", (req, res) => res.status(409).json({ error: "Image removal is unavailable. Archive the logical asset; retained versions and references must survive." }));
+  const notices = { "para-draft": "Definition saved to the shared draft. Published rules are unchanged.", draft: "Field saved to the shared draft. Live content is unchanged.", publish: "Publication requested. Check the release and deployment status.", rollback: "Rollback requested. Check the release and deployment status.", discard: "Shared draft discarded.", validate: "Draft validation completed.", preview: "Saved draft preview is ready." };
   // Mounted beneath the existing mandatory two-account namespace middleware.
   for (const [method, route, operation] of [
     ["get", "authoring", () => require("./adminLiveAvailability").readAuthoringStatus(publication)],
@@ -319,6 +396,8 @@ function registerContentPublicationRoutes(app, publication) {
     ["post", "authoring/assets/archive", (req) => publication.archiveAsset(req.body)],
     ["get", "authoring/assets/:id", (req) => publication.privateAsset(req.params.id)],
     ["post", "authoring/create", (req) => publication.create(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/para-draft", (req) => publication.paraDraft(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/para-simulate", (req) => publication.paraSimulation(req.body)],
     ["post", "authoring/discard", (req) => publication.discard(req.body)],
     ["post", "authoring/validate", () => publication.status()],
     ["post", "authoring/preview", (req) => publication.preview(req.body)],
@@ -330,7 +409,7 @@ function registerContentPublicationRoutes(app, publication) {
     // Defense in depth if these routes are ever mounted elsewhere.
     if (!req.gauntletAdminAccount?.id) return res.status(403).json({ error: "Admin access required." });
     res.set("Cache-Control", "private, no-store");
-    try { res.json(await operation(req)); }
+    try { const result = await operation(req); res.json({ ...result, ...(notices[route.split("/")[1]] ? { notice: notices[route.split("/")[1]] } : {}) }); }
     catch (error) { res.status(error.status || 503).json({ error: error.status ? error.message : "Content storage is unavailable. No operation was confirmed; refresh to inspect its state." }); }
   });
 }
