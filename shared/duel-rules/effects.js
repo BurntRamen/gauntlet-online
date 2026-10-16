@@ -78,10 +78,10 @@ const PENDING_EFFECTS = {
   indelaOpponentTax: ['Opening omen', 'Opponent cost increase']
 };
 function pendingEffects(player) {
-  return Object.entries(PENDING_EFFECTS).flatMap(([key, [source, label]]) => {
+  return [...(player?.turnData?.frumoAdditionalBonuses || []).map((entry, index) => ({ key: `frumo-pending-${index}`, source: "Frumo support", label: `Next ${entry.kind || "attack or block"} bonus`, value: entry.amount, duration: "Until used or turn ends" })), ...Object.entries(PENDING_EFFECTS).flatMap(([key, [source, label]]) => {
     const value = player?.turnData?.[key];
     return value ? [{ key, source, label, value, duration: key === 'jaliRevenantCreated' ? 'This turn · once per eligible card' : 'Until used or turn ends' }] : [];
-  });
+  })];
 }
 function recordEffectChanges(before, after, events, event) {
   const oldCards = cardEntries(before), newCards = cardEntries(after);

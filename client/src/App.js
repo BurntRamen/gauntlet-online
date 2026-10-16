@@ -3272,7 +3272,7 @@ export default function App() {
   const babylonGameplayActive = Boolean(
     game
     && ["basic", "factions"].includes(game.gameMode)
-    && shouldUseProductionMatchRenderer()
+    && (shouldUseProductionMatchRenderer() || game.rulesVersion === "gauntlet-duel-v12")
   );
 
   useEffect(() => {
@@ -5565,6 +5565,7 @@ export default function App() {
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
             options={{
+              forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
               cardBackAsset: resolveCardBackAsset(account?.progression?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,

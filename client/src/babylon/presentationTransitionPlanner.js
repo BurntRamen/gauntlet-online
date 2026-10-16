@@ -34,6 +34,7 @@ const EVENT_TYPES_BY_ROUTE = Object.freeze({
   "attachment>none:attachment": ["damage.calculated"],
   "hand>lane:facedown": ["card.placedFacedown", "laneCard.swappedWithHand"],
   "hand>lane:support": ["card.supportPlaced"],
+  "lane>none:support": ["support.discarded"],
   "lane>lane:facedown": ["lanes.swapped"],
   "lane>hand:hand": ["laneCard.swappedWithHand"],
   "none>hand:hand": ["cards.drawn"]

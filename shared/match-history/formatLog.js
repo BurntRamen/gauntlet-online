@@ -106,6 +106,11 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
   const damage = numeric(entry.damage ?? entry.amount);
 
   switch (entry.type) {
+    case "card.supportPlaced":
+      return { icon: "placement", title: `${actor} placed ${entry.card ? logCardName(entry.card) : "a concealed Ambush"}`,
+        detail: `Support Zone ${Number(entry.laneIndex) + 1}${entry.permission === "polea-put-empty-lane" ? " · Polea's explicit free placement" : " · paid play"}` };
+    case "support.discarded":
+      return { icon: "discard", title: `${logCardName(entry.card)} resolved and was discarded`, detail: `Support Zone ${Number(entry.laneIndex) + 1} is available again.` };
     case "effect.applied":
     case "effect.expired":
     case "effect.consumed":

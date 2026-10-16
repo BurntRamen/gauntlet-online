@@ -1,4 +1,5 @@
 import { hasCardEffect } from "@gauntlet/duel-rules/effectRegistry";
+import { definition as supportDefinition } from "@gauntlet/duel-rules/supportContract";
 import { cardCombatLabel, cardTypeLabel } from "./cardType";
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
@@ -49,6 +50,8 @@ export function cardDetails(preview, viewModel, snapshot) {
   const ownLaneCard = viewModel?.lanes?.some((lane) => lane.localCard?.id === card.id);
   const isOwnCard = !viewModel?.perspective?.spectator && (handCard || ownLaneCard);
   let abilityStatus = "";
+  const support = !card.hidden && supportDefinition(card);
+  if (support && snapshot?.rulesVersion === "gauntlet-duel-v12") abilityStatus = `Support Zone · cost ${card.value} (printed value, before payment modifiers) · open priority. ${support.onPlay ? `On play: ${support.onPlay}. ` : ""}Exit: ${support.discardCondition}. ${support.charges == null ? "Persistent; triggering does not consume it." : "One charge; consumed only by its printed effect."}`;
 
   if ((hasCardEffect(card, "heat-sink-matrix") || hasCardEffect(card, "gearplate-shield")) && isOwnCard) {
     const counters = snapshot?.players?.[player]?.accelerationCounters;

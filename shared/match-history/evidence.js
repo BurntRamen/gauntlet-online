@@ -8,7 +8,7 @@ function sanitizeLeagueCommand(command = {}) {
   };
   for (const field of [
     "abilityId", "laneIndex", "laneA", "laneB", "targetPlayerId", "source",
-    "useMeerusFreeAttack", "useJewelBankBonus", "useBeliAwakenedBonus",
+    "useMeerusFreeAttack", "useJewelBankBonus", "useBeliAwakenedBonus", "useAssemblyStation",
     "useSandstormProcessor", "sunforgeAccelerationToSpend", "useVoltaricUltimatum",
     "primeSignalBonus", "lastGambleChoice"
   ]) copyScalar(field);
@@ -84,9 +84,13 @@ function enrichPublicEventCards(game, payload, beforeGame = null) {
 function sanitizeLeagueEvent(event = {}) {
   const type = String(event.type || "unknown");
   const { id: _id, sequence: _sequence, revision: _revision, type: _type, ...detail } = clonePlain(event);
+  if (detail.concealedSupport) {
+    delete detail.required;
+    delete detail.calculation;
+  }
   if (type.startsWith("effect.")) {
     if (detail.private) return { player: detail.player, private: true };
-    if (detail.target && ["hand", "lane", "deck"].includes(detail.target.zone) && !detail.target.public) {
+    if (detail.target && ["hand", "lane", "deck", "support"].includes(detail.target.zone) && !detail.target.public) {
       detail.target = { owner: detail.target.owner, zone: detail.target.zone, name: "Hidden card", ...(detail.target.laneIndex != null ? { laneIndex: detail.target.laneIndex } : {}) };
       delete detail.before; delete detail.after;
     }
@@ -120,11 +124,13 @@ function sanitizeLeagueEvent(event = {}) {
       laneIndex: detail.laneIndex ?? null
     };
   }
+  if (type === "card.supportPlaced" && !detail.concealed && detail.permission) return detail;
   if (type === "card.placedFacedown" || type === "card.supportPlaced") {
     return {
       ...(detail.publicTotals ? { publicTotals: detail.publicTotals } : {}),
       player: detail.player ?? null,
       laneIndex: detail.laneIndex ?? null,
+      ...(type === "card.supportPlaced" && detail.permission ? { permission: detail.permission, concealed: true } : {}),
       ...(detail.source ? { source: detail.source } : {})
     };
   }

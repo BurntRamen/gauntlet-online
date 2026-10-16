@@ -39,6 +39,14 @@ export default function AccessibleMatchControls({
         <p role="status" aria-live="polite">
           {interactionStatus || viewModel?.instruction || "Waiting for match state."}
         </p>
+            <div className="babylon-accessible-control-row" aria-label="Support Zone inspection">
+              {viewModel.lanes.flatMap(lane => [["Your", lane.localSupport, lane.hasLocalSupport], ["Opponent", lane.opponentSupport, lane.hasOpponentSupport]].filter(([, , occupied]) => occupied).map(([owner, card]) => (
+                <button type="button" key={`${lane.id}-${owner}-support`} disabled={!card?.visible}
+                  onClick={() => commands.inspectCard?.(card.raw)}>
+                  {owner} Support Zone {lane.index + 1}: {card?.visible ? card.raw?.name || card.label : "Concealed Ambush"}
+                </button>
+              )))}
+            </div>
         {!spectator && (
           <>
             {!!viewModel.interactions.abilities?.length && (
@@ -123,11 +131,12 @@ export default function AccessibleMatchControls({
                     )}
                   >
                     {viewModel.selection.abilityMode?.targetOwner === "opponent" ? "Opponent " : ""}
-                    Lane {lane.index + 1}
+                    {viewModel.selection.placementMode?.support ? "Support Zone" : "Lane"} {lane.index + 1}
                   </button>
                 )];
               })}
             </div>
+
             {unavailableLaneReasons.length > 0 && (
               <ul className="babylon-accessible-reasons" aria-label="Unavailable lane reasons">
                 {unavailableLaneReasons.map((entry) => (
