@@ -211,3 +211,9 @@
 .mechanic-studio .mechanic-types { display: flex; flex-wrap: wrap; gap: 10px 20px; }
 .mechanic-studio .mechanic-types label { flex: 0 1 125px; }
 .mechanic-studio .mechanics-operation { min-width: 0; }
+.design-tabs:has(+ .mechanic-studio) { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); }
+.mechanic-studio .admin-editor > fieldset > fieldset:not(.mechanic-types) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.mechanic-studio .admin-editor > fieldset > fieldset > :is(p,.admin-actions,.mechanics-operation) { grid-column:1 / -1; }
+.mechanic-studio .mechanics-operation { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:10px; }
+.mechanic-studio .mechanics-operation > :is(small,.admin-actions) { grid-column:1 / -1; }
+@media(max-width:750px) { .mechanic-studio .admin-editor > fieldset > fieldset:not(.mechanic-types),.mechanic-studio .mechanics-operation { grid-template-columns:minmax(0,1fr); } }
