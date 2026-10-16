@@ -262,6 +262,12 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
           for (const key of Object.keys(copy).filter((key) => paraLeague.FIELDS[domain][key].type === "date")) copy[key] = null;
           rows.push(copy);
         } else if (operation === "create" || operation === "update") {
+          // Optional fields added to the contract acquire defaults only when an
+          // operator saves a revision. Historical release snapshots stay exact.
+          if (value && typeof value === "object" && !Array.isArray(value)) {
+            const defaults = paraLeague.newDefinition(domain);
+            value = { ...Object.fromEntries(Object.entries(defaults).filter(([key]) => paraLeague.FIELDS[domain][key].optional)), ...value };
+          }
           if (!value || typeof value !== "object" || Array.isArray(value) || value.id !== id || Object.keys(value).sort().join() !== Object.keys(paraLeague.FIELDS[domain]).sort().join()) fail(400, "Supply the exact typed fields for this definition. Identity and protected fields cannot be patched.");
           if (operation === "create" && (index >= 0 || rows.length >= 500)) fail(409, "ID already exists or the catalog is full.");
           if (operation === "update" && index < 0) fail(404, "Definition no longer exists. Refresh the shared draft.");

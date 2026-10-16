@@ -266,6 +266,7 @@ app.use("/api/admin/authoring/assets/upload", (error, req, res, next) => {
 });
 app.use("/api/admin/authoring", express.json({ limit: "160kb" }));
 app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
+app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "64kb" }));
 app.use(express.json({ limit: "20kb" }));
 
 function getRequestAddress(req) {
@@ -4906,7 +4907,9 @@ const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
 paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
 goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", gemsEnabled: process.env.GAUNTLET_GEMS_ENABLED === "true", filename: runtimeStorage.paths.economy, publication: contentPublication });
-require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
+const paymentService = require("./paymentService").createPaymentService({ ledger: goldEconomy.payments });
+require("./paymentService").registerPaymentRoutes(app, paymentService, { requireAccount: requireAccountRecord });
+require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { paymentService, requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
   listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct, equip: equipCosmetic, accountView: publicAccount,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();

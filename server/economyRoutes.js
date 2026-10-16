@@ -2,7 +2,7 @@
 const { playerView, adminView, quoteView } = require("./economyViews");
 const { matchAnalysis } = require("./digitalDelivery");
 const { assetEntry } = require("./contentAssets");
-function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck, equip, accountView }) {
+function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck, equip, accountView, paymentService }) {
   function library(account) {
     const data = economy.player(account), view = playerView(data), equipment = require("./cosmeticEquipment").view(account, data.grants);
     return { ...view, forms: [...(view.forms || []), ...(equip ? equipment.forms : [])], tables: [...(view.tables || []), ...equipment.tables] };
@@ -10,8 +10,8 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
   async function operations() {
     const data = economy.enabled ? economy.admin() : economy.status(), accounts = listAccounts ? await listAccounts() : data.accounts || [];
     const ledger = adminView({ ...data, accountOptions: accounts.map(a => ({ id: a.id, name: a.name || a.id })) });
-    const account = require("./accountCommerce").adminView(accounts);
-    return { ...ledger, tables: [...(ledger.tables || []), ...account.tables], forms: [...(ledger.forms || []), ...(refundDeck ? account.forms : [])], note: `${ledger.note || ""} Timetwister refunds use the captured receipt and the same atomic account storage as its purchase. Saved recipes remain; refunded printing grants are revoked.` };
+    const account = require("./accountCommerce").adminView(accounts), payment = paymentService?.adminView(accounts) || {};
+    return { ...ledger, tables: [...(ledger.tables || []), ...account.tables, ...(payment.tables || [])], forms: [...(ledger.forms || []), ...(refundDeck ? account.forms : []), ...(payment.forms || [])].filter(form => !form.fields.some(field => field.required && field.options && !field.options.length)), note: `${ledger.note || ""} ${payment.summary || ""} Timetwister refunds use the captured receipt and the same atomic account storage as its purchase. Saved recipes remain; refunded printing grants are revoked.` };
   }
   async function reconcile(account) { for (const record of await records(account.id, 100)) economy.ingest(record); }
   const send = (admin, work, ledgerRequired = true) => async (req, res) => {
@@ -57,6 +57,11 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
     // Existing assets are already public content. Entitlement access is checked
     // here; downloads cannot be revoked after delivery and are not DRM.
     return { view: { title: grant.term.name, summary: `Acquired ${grant.acquiredAt} · ${grant.expiresAt || "Permanent"} · Purchase ${grant.purchaseId}`, media: { kind: delivery.kind, url: assetEntry(grant.term.asset).path, name: grant.term.name } } };
+  }));
+  app.post("/api/admin/economy/payment-operate", send(true, async (actor, req) => {
+    if (!paymentService) throw Object.assign(new Error("Payment adapter unavailable."), { status: 503 });
+    const result = await paymentService.operate(actor, req.body);
+    return { view: await operations(), notice: result.notice };
   }));
   app.post("/api/admin/economy/operate", send(true, async (actor, req) => {
     const target = req.body?.operation === "adjust" && typeof req.body.accountId === "string" ? await findAccount(req.body.accountId) : null;

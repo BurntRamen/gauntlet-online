@@ -12,13 +12,14 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
   const db = new (require("node:sqlite").DatabaseSync)(filename);
   db.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=10000;");
   const version = db.prepare("PRAGMA user_version").get().user_version;
-  if (version > 3) { db.close(); throw new Error("Unsupported Gold database version."); }
+  if (version > 4) { db.close(); throw new Error("Unsupported Gold database version."); }
   if (!version) db.exec(fs.readFileSync(path.join(__dirname, "migrations/economy/001_gold.sql"), "utf8"));
   if (version < 2) db.exec(fs.readFileSync(path.join(__dirname, "migrations/economy/002_opening_balances.sql"), "utf8"));
   if (version < 3) db.exec(fs.readFileSync(path.join(__dirname, "migrations/economy/003_gems.sql"), "utf8"));
+  if (version < 4) db.exec(fs.readFileSync(path.join(__dirname, "migrations/economy/004_payments.sql"), "utf8"));
   // All authoritative records are append-only, including compensations. There
   // is no mutable balance cache or account-store write in this database.
-  for (const table of ["openings", "accounts", "seasons", "definitions", "evidence", "transactions", "gem_transactions", "claims", "claim_evidence", "quotes", "purchases", "entitlements", "refunds", "revocations", "requests", "audit"]) {
+  for (const table of ["payment_intents", "payment_checkouts", "payment_events", "payment_settlements", "payment_commands", "payment_actions", "openings", "accounts", "seasons", "definitions", "evidence", "transactions", "gem_transactions", "claims", "claim_evidence", "quotes", "purchases", "entitlements", "refunds", "revocations", "requests", "audit"]) {
     for (const action of ["UPDATE", "DELETE"]) db.exec(`CREATE TRIGGER IF NOT EXISTS gold_${table}_${action} BEFORE ${action} ON gold_${table} BEGIN SELECT RAISE(ABORT,'Gold records are immutable'); END;`);
   }
   const rows = (table, where = "", args = []) => db.prepare(`SELECT body FROM gold_${table} ${where} ORDER BY rowid`).all(...args).map((r) => JSON.parse(r.body));
@@ -145,6 +146,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
   function offer(productId, config) {
     const p = config.products.find((p) => p.id === productId);
     if (!p || p.status !== "active" || !inWindow(p)) fail("Product is unavailable or outside its offer window.");
+    if (p.pricing === "cash") fail("Real-money checkout is unavailable until a provider is qualified and connected.");
     if (!pricing.choices(p, gemsEnabled).length) fail("Product unavailable: its currency is disabled on this service.");
     const terms = p.entitlements.map((key) => {
       const term = config.entitlements.find((e) => e.id === key);
@@ -166,6 +168,20 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
   function grants(accountId) {
     return owned("entitlements", accountId).map((g) => ({ ...g, state: rows("revocations", "WHERE entitlement_id=?", [g.id]).length ? "revoked" : g.expiresAt && g.expiresAt <= now() ? "expired" : "active" }));
   }
+  function prepareDelivery(q, accountId) {
+    const existing = grants(accountId), seen = new Set();
+    return q.terms.map((term) => {
+      if (term.duration === "season" && (!term.endsAt || term.endsAt <= now())) fail("Seasonal delivery expired; refund the payment.");
+      const deliveryKey = ownershipKey(term);
+      if (seen.has(deliveryKey)) fail("Bundle contains duplicate delivery assets."); seen.add(deliveryKey);
+      const previous = existing.filter((g) => ownershipKey(g.term) === deliveryKey && g.state === "active");
+      if (previous.some((g) => !g.expiresAt)) fail("Permanent access is already owned.");
+      const start = previous.reduce((t, g) => g.expiresAt > t ? g.expiresAt : t, now());
+      const expiresAt = term.duration === "permanent" ? null : term.duration === "season" ? term.endsAt : new Date(Date.parse(start) + term.durationDays * 86400000).toISOString();
+      if (term.duration === "season" && previous.some((g) => g.expiresAt >= expiresAt)) fail("Seasonal access is already owned.");
+      return { id: id(), accountId: accountId, term, acquiredAt: now(), expiresAt, releaseId: q.releaseId };
+    });
+  }
   function purchase(account, input) {
     return execute(account, "purchase", input, ({ release, config }) => {
       const q = get("quotes", input.quoteId);
@@ -180,17 +196,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
       if (owned("purchases", account.id).filter((p) => p.product.id === q.product.id).length >= q.product.purchaseLimit) fail("Product purchase limit reached.");
       if (balance(account.id) < payment.gold) fail("Insufficient Gold.");
       if (payment.gems && gemBalance(account.id) < payment.gems) fail("Insufficient Gems.");
-      const existing = grants(account.id), seen = new Set();
-      const delivery = q.terms.map((term) => {
-        const deliveryKey = ownershipKey(term);
-        if (seen.has(deliveryKey)) fail("Bundle contains duplicate delivery assets."); seen.add(deliveryKey);
-        const previous = existing.filter((g) => ownershipKey(g.term) === deliveryKey && g.state === "active");
-        if (previous.some((g) => !g.expiresAt)) fail("Permanent access is already owned.");
-        const start = previous.reduce((t, g) => g.expiresAt > t ? g.expiresAt : t, now());
-        const expiresAt = term.duration === "permanent" ? null : term.duration === "season" ? term.endsAt : new Date(Date.parse(start) + term.durationDays * 86400000).toISOString();
-        if (term.duration === "season" && previous.some((g) => g.expiresAt >= expiresAt)) fail("Seasonal access is already owned.");
-        return { id: id(), accountId: account.id, term, acquiredAt: now(), expiresAt, releaseId: q.releaseId };
-      });
+      const delivery = prepareDelivery(q, account.id);
       const receipt = { id: id(), accountId: account.id, product: q.product, terms: q.terms, releaseId: q.releaseId, quoteId: q.id, gold: payment.gold, gems: payment.gems, payment, at: now(), fulfillment: "fulfilled", entitlementIds: delivery.map((g) => g.id) };
       put("purchases", receipt, { account_id: account.id, product_id: q.product.id, quote_id: q.id });
       move(account.id, "purchase", -payment.gold, { purchaseId: receipt.id, releaseId: q.releaseId });
@@ -243,6 +249,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
       if (input.operation === "refund") {
         const p = get("purchases", input.purchaseId);
         if (!p) fail("Unknown purchase.", 404);
+        if (p.paymentIntentId) fail("Cash payments require a provider refund request; only a verified event can compensate delivery.");
         if (rows("refunds", "WHERE purchase_id=?", [p.id]).length) fail("Purchase already refunded.");
         const refund = { id: id(), purchaseId: p.id, accountId: p.accountId, amount: p.gold, gems: p.gems || 0, at: now(), actorId: actor.id, reason: input.reason };
         put("refunds", refund, { purchase_id: p.id });
@@ -278,12 +285,13 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
     return transaction(() => {
       const { release, config } = sync(), transactions = [...rows("openings"), ...rows("transactions")], accounts = rows("accounts"), seasons = rows("seasons");
       return { ...status, activeReleaseId: release.id, catalog: config.products, seasonOptions: config.seasons.filter(s => s.status !== "archived").map(s => [s.id, s.name]), definitions: rows("definitions"),
-        totals: { imported: rows("openings").reduce((n, t) => n + t.delta, 0), issued: transactions.filter((t) => ["award", "adjust-credit"].includes(t.kind)).reduce((n, t) => n + t.delta, 0), retired: -transactions.filter((t) => t.delta < 0).reduce((n, t) => n + t.delta, 0), restored: transactions.filter((t) => t.kind === "refund").reduce((n, t) => n + t.delta, 0), balance: transactions.reduce((n, t) => n + t.delta, 0), pending: 0 },
+        totals: { imported: rows("openings").reduce((n, t) => n + t.delta, 0), issued: transactions.filter((t) => ["award", "adjust-credit"].includes(t.kind)).reduce((n, t) => n + t.delta, 0), retired: -transactions.filter((t) => t.delta < 0).reduce((n, t) => n + t.delta, 0), restored: transactions.filter((t) => t.kind === "refund").reduce((n, t) => n + t.delta, 0), balance: transactions.reduce((n, t) => n + t.delta, 0), pending: payments.pending() },
         accounts: accounts.map((a) => ({ ...a, balance: balance(a.id), gems: gemBalance(a.id) })), gemTransactions: rows("gem_transactions"), budgets: accounts.flatMap((a) => seasons.map((s) => ({ accountId: a.id, seasonId: s.id, budget: s.definition.goldBudget, issued: issued(a.id, s.id), releaseId: s.releaseId }))),
         claims: rows("claims"), evidence: rows("evidence"), purchases: rows("purchases"), grants: accounts.flatMap((a) => grants(a.id)), transactions, audit: rows("audit"), refunds: rows("refunds") };
     });
   }
-  return { enabled: true, status: () => status, wallet: (account) => transaction(() => {
+  const payments = require("./paymentLedger").createPaymentLedger({ transaction, execute, rows, get, put, owned, audit, now, id, gemsEnabled, moveGems, prepareDelivery });
+  return { enabled: true, payments, status: () => status, wallet: (account) => transaction(() => {
     // Keep login and existing runs usable until their promised rewards settle.
     // New legacy runs are closed by the route layer before migration starts.
     if (!get("openings", account.id) && pendingLegacyRuns(account)) return { source: "legacy-event-settlement", daily: { quests: [] } };

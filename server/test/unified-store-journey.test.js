@@ -18,6 +18,19 @@ const patch = (domain, id, field, value) => admin("draft", { domain, id, field, 
 const me = async () => (await api("/api/auth/me", null, 2)).data.account;
 async function publish(label) { await admin("preview"); await admin("publish", { label }); }
 
+test("Admin publishes cash Gem definitions without connecting a provider; the real HTTP namespace stays private and disabled", async () => {
+  const para = require("../paraLeague"), product = { ...para.newDefinition("products"), id: "adapter-only-credit", name: "Configured Gem credit", category: "gem-credit", status: "active", pricing: "cash", cashPriceMinor: 499, cashCurrency: "usd", gemCredit: 20, startsAt: "2020-01-01T00:00:00.000Z", endsAt: "2099-01-01T00:00:00.000Z" };
+  await admin("para-draft", { operation: "create", domain: "products", id: product.id, value: product }); await publish("Adapter-only cash catalog");
+  assert.deepEqual(pub.published().snapshot.paraLeague.products[0], product);
+  const input = { productId: product.id, country: "US", key: crypto.randomUUID() };
+  assert.equal((await api("/api/payments/checkout", input, null)).status, 401);
+  const checkout = await api("/api/payments/checkout", input, 2); assert.equal(checkout.status, 503); assert.match(checkout.data.error, /No provider/);
+  const readiness = await api("/api/payments", null, 2); assert.equal(readiness.data.status.checkoutsEnabled, false); assert.deepEqual(readiness.data.orders, []);
+  assert.equal((await api("/api/admin/economy/payment-operate", { operation: "retry", intentId: "unknown", key: crypto.randomUUID(), reason: "Unauthorized recovery" }, 2)).status, 403);
+  for (const operator of [0, 1]) { const view = (await api("/api/admin/economy", null, operator)).data.view; assert.ok(view.tables.find(t => t.title === "Payment readiness").rows[0].includes("Disabled")); }
+  assert.equal(ledger.wallet(accounts[2]).gems, 0);
+});
+
 test("one Gold authority: operator product, concurrent receipts, historical prices, account projection, retirement, restart and refund", async () => {
   let state = await admin("create", { domain: "decks", name: "Durable recipe", factionId: "rumin" });
   const deckId = state.draft.snapshot.domains.decks.at(-1).id;

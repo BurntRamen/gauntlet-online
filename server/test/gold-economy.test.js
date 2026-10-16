@@ -209,7 +209,7 @@ test("version 1 ledger upgrades without rewriting its receipts or grants", (t) =
   const f = fixture(t); f.claim(); const purchase = f.buy();
   // A version 1 database predates the separate opening-balance table.
   const legacyFile = path.join(f.dir, "v1.sqlite"); f.economy.backup(legacyFile);
-  const db = new DatabaseSync(legacyFile); db.exec("DROP TABLE gold_openings; DROP TABLE gold_gem_transactions; PRAGMA user_version=1"); db.close();
+  const db = new DatabaseSync(legacyFile); db.exec("DROP TABLE gold_payment_actions; DROP TABLE gold_payment_commands; DROP TABLE gold_payment_settlements; DROP TABLE gold_payment_events; DROP TABLE gold_payment_checkouts; DROP TABLE gold_payment_intents; DROP TABLE gold_openings; DROP TABLE gold_gem_transactions; PRAGMA user_version=1"); db.close();
   const upgraded = createGoldEconomy({ ...f.options, filename: legacyFile });
   try {
     assert.equal(upgraded.player(account).balance, 200);

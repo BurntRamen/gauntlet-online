@@ -16,6 +16,7 @@ function select(product, currency, gemsEnabled) {
   return selected;
 }
 function label(payment) {
+  if (payment.payment?.currency === "cash") return `${(payment.payment.amountMinor / 100).toFixed(2)} ${payment.payment.denomination.toUpperCase()}`;
   return [payment.gold > 0 && `${payment.gold} Gold`, payment.gems > 0 && `${payment.gems} Gems`].filter(Boolean).join(" + ") || "0 Gold";
 }
 module.exports = { choices, select, label };

@@ -9,7 +9,7 @@ function backupGoldLedger(source, destination) {
   if (!fs.statSync(from).isFile() || from === to || fs.existsSync(to)) throw new Error("Use an existing ledger and a new, distinct backup path.");
   const db = new DatabaseSync(from);
   try {
-    if (![1, 2, 3].includes(db.prepare("PRAGMA user_version").get().user_version) || !db.prepare("SELECT name FROM sqlite_master WHERE name='gold_transactions'").get()) throw new Error("Expected a supported currency ledger.");
+    if (![1, 2, 3, 4].includes(db.prepare("PRAGMA user_version").get().user_version) || !db.prepare("SELECT name FROM sqlite_master WHERE name='gold_transactions'").get()) throw new Error("Expected a supported currency ledger.");
     db.exec("PRAGMA busy_timeout=10000"); db.prepare("VACUUM INTO ?").run(to);
     const copy = new DatabaseSync(to, { readOnly: true });
     try { if (copy.prepare("PRAGMA integrity_check").get().integrity_check !== "ok") throw new Error("Backup integrity check failed."); } finally { copy.close(); }

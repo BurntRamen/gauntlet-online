@@ -18,8 +18,9 @@ test("uncertain purchase retries retain the exact idempotency key and quote", as
 test("ledger tables are readable and searchable; operator cancellation sends no mutation", async () => {
   const request = jest.fn(async () => ({ view })); const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
   render(<EconomyConsole request={request} admin />);
-  await screen.findByText("receipt-two"); fireEvent.change(screen.getByLabelText("Search economy records"), { target: { value: "receipt-one" } });
+  await screen.findByText("receipt-two"); expect(screen.getByText("receipt-two")).not.toBeVisible(); fireEvent.change(screen.getByLabelText("Search economy records"), { target: { value: "receipt-one" } });
   expect(screen.queryByText("receipt-two")).not.toBeInTheDocument(); expect(screen.getByText("receipt-one")).toBeVisible();
+  fireEvent.change(screen.getByLabelText("Search economy records"), { target: { value: "no-matching-record" } }); expect(screen.queryByText(/Receipts ·/)).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Confirm purchase · 300 Gold" }));
   await waitFor(() => expect(confirm).toHaveBeenCalled()); expect(request).toHaveBeenCalledTimes(1); confirm.mockRestore();
 });
