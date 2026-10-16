@@ -73,6 +73,9 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(jaliCampaign.chapters[0].story, /homeworld Aozora/);
   assert.match(jaliCampaign.chapters.at(-1).story, /Timetwister receiver on Reath/);
   assert.match(jaliCampaign.chapters.at(-1).endDialogue.join(" "), /Aozora remains our home. Reath is the convergence point/);
++  assert.match(jaliCampaign.chapters[4].story, /young scholar Seimei-no-Mikoto/);
++  assert.match(jaliCampaign.chapters[9].dialogue.join(" "), /We offer the freedom I forbid/);
++  assert.match(jaliCampaign.chapters[10].endDialogue.join(" "), /Yamabuki relinquishes the empire/);
   const mekanFaction = content.factions.find((faction) => faction.id === "mekan");
   const mekanCampaign = content.campaigns.mekan;
   assert.equal(mekanFaction.homeworld, "Teyotl");
