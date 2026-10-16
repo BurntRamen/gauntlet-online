@@ -2,7 +2,8 @@ const { bossAttackBase, bossAttackBonus } = require("./encounterContract");
 const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("./effectRegistry");
 "use strict";
 
-const RULES_VERSION = "gauntlet-duel-v11";
+const RULES_VERSION = "gauntlet-duel-v12";
+const supportContract = require("./supportContract");
 const mekan = require("./mekan");
 const jali = require("./jali");
 const gracus = require("./gracus");
@@ -312,7 +313,7 @@ function event(game, type, detail = {}) {
   };
 }
 
-// Public, immutable receipts only for cards revealed by combat/payment.
+// Card receipts; concealed support entries are stripped by perspective projection.
 function publicLogCard(card) {
   if (!card) return null;
   return { type: card.type || "playing-card", definitionId: card.definitionId || card.gameplayCardId || null, text: card.text || null, factionId: card.factionId || null, id: card.id, name: card.name || "", rank: card.rank || "", suit: card.suit || "", value: cardValue(card) };
@@ -496,12 +497,13 @@ function controlledSupportEntries(game, playerNumber) {
 }
 
 function supportCards(game, playerNumber) {
-  return [
+  const cards = [
     ...controlledSupportEntries(game, playerNumber).map((entry) => entry.card),
     ...controlledLaneEntries(game, playerNumber).map((entry) => entry.card),
     ...game.handAttacks.filter((attack) => attack.player === playerNumber).map((attack) => attack.card),
     ...game.lanes.flatMap((lane) => lane.attack?.player === playerNumber ? [lane.attack.card] : [])
   ];
+  return supportContract.enabled(game) ? [...new Map(cards.map(card => [card.id, card])).values()] : cards;
 }
 
 function playerControlsEffect(game, playerNumber, definitionId) {
@@ -527,18 +529,24 @@ function cardMatchesIndelaOmen(player, card) {
   return parity ? (cardValue(card) % 2 === 0 ? "even" : "odd") === parity : false;
 }
 
-function consumeControlledSupport(game, playerNumber, definitionId, events, source) {
-  for (const lane of game.lanes) {
+function consumeControlledSupport(game, playerNumber, definitionId, events, source, exactCardId = null) {
+  for (const [laneIndex, lane] of game.lanes.entries()) {
     for (const zone of ["support", "facedown"]) {
       const card = lane[zone]?.[playerNumber];
       if (!hasCardEffect(card, definitionId)) continue;
+      if (exactCardId && card.id !== exactCardId) continue;
+      if (supportContract.enabled(game) && supportContract.definition(card)?.charges !== 1) continue;
       lane[zone][playerNumber] = null;
       card.revealed = true;
+      if (card.supportState) card.supportState.charges = 0;
       game.players[playerNumber].discard.push(card);
       events.push(event(game, "support.triggered", {
         player: playerNumber,
         source: source || card.name || definitionId,
         card: publicLogCard(card)
+      }));
+      if (supportContract.enabled(game)) events.push(event(game, "support.discarded", {
+        player: playerNumber, laneIndex, cardId: card.id, card: publicLogCard(card), reason: "printed-consumption"
       }));
       return card;
     }
@@ -610,14 +618,18 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
     bonus += 1;
     notes.push("Think payment +1");
   }
-  if (
+  const assemblyEligible = (
     context.action === "attack"
     && cardHasType(context.card, "servitor")
     && Number(player.turnData.attacksDeclaredThisTurn || 0) === 0
     && !player.turnData.neutralAssemblyUsed
     && playerControlsEffect(game, playerNumber, "neutral-assembly-station")
     && paymentCards.length
-  ) {
+  );
+  if (supportContract.enabled(game) && command.useAssemblyStation && !assemblyEligible) {
+    return { error: "Assembly Station can enhance one payment on your first Servitor attack only." };
+  }
+  if (assemblyEligible && (!supportContract.enabled(game) || command.useAssemblyStation === true)) {
     bonus += 1;
     player.turnData.neutralAssemblyUsed = true;
     notes.push("Assembly Station payment +1");
@@ -638,6 +650,8 @@ function constructedPaymentBonus(game, playerNumber, command, context, paymentCa
 
   if (command.useJewelBankBonus) {
     if (
+      (supportContract.enabled(game) && context.action === "support")
+      ||
       !player.turnData.ruminJewelBankAvailable
       || context.card?.factionId !== "rumin"
       || paymentCards.length !== 1
@@ -963,8 +977,10 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     && player.turnData.previousAttackSuit
     && !suitsMatch(player.turnData.previousAttackSuit, card.suit)
   );
-  if (differentSuit && playerControlsEffect(game, playerNumber, "constanti-conduit")) {
+  if (differentSuit && playerControlsEffect(game, playerNumber, "constanti-conduit")
+    && (!supportContract.enabled(game) || Number(player.turnData.biziConduitTriggers || 0) < 2)) {
     bonus += 1;
+    if (supportContract.enabled(game)) player.turnData.biziConduitTriggers = Number(player.turnData.biziConduitTriggers || 0) + 1;
     notes.push("Signal Line +1");
   }
   if (differentSuit && hasCardEffect(card, "dune-circuit-runner")) {
@@ -1009,7 +1025,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   }
 
   const primeSignalBonus = Number(command.primeSignalBonus || 0);
-  const primeSignalLimit = Math.min(4, Number(player.turnData.biziPrimeSignalAvailable || 0));
+  const primeSignalLimit = primeSignalLimitFor(game, player);
   if (!Number.isInteger(primeSignalBonus) || primeSignalBonus < 0 || primeSignalBonus > primeSignalLimit) {
     return { error: `Interference Matrix may add from 0 through ${primeSignalLimit}.` };
   }
@@ -1018,6 +1034,8 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     notes.push(`Interference Matrix +${primeSignalBonus}`);
     player.turnData.biziPrimeSignalAvailable = 0;
   }
+
+  if (supportContract.enabled(game)) player.turnData.biziPrimeSignalAvailable = 0;
 
   if (source === "lane" && hasCardEffect(card, "tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
     bonus += 2;
@@ -1048,6 +1066,7 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
     bonus += 3;
     notes.push("Sink or Swim +3");
   }
+  if (supportContract.enabled(game)) bonus += consumeAdditionalFrumoBonuses(player, "attack", notes);
   if (
     player.turnData.frumoNextActionBonus
     && (!player.turnData.frumoNextActionKind || player.turnData.frumoNextActionKind === "attack")
@@ -1290,6 +1309,7 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
     player.turnData.frumoLaneSwappedThisTurn = true;
     notes.push("Frozen Barrier +1");
   }
+  if (supportContract.enabled(game)) bonus += consumeAdditionalFrumoBonuses(player, "block", notes);
   if (
     player.turnData.frumoNextActionBonus
     && (!player.turnData.frumoNextActionKind || player.turnData.frumoNextActionKind === "block")
@@ -1357,7 +1377,7 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
 
   if (context.firstBlocker) {
     const primeSignalBonus = Number(command.primeSignalBonus || 0);
-    const primeSignalLimit = Math.min(4, Number(player.turnData.biziPrimeSignalAvailable || 0));
+    const primeSignalLimit = primeSignalLimitFor(game, player);
     if (!Number.isInteger(primeSignalBonus) || primeSignalBonus < 0 || primeSignalBonus > primeSignalLimit) {
       return { error: `Interference Matrix may add from 0 through ${primeSignalLimit}.` };
     }
@@ -1366,6 +1386,7 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
       notes.push(`Interference Matrix +${primeSignalBonus}`);
       player.turnData.biziPrimeSignalAvailable = 0;
     }
+    if (supportContract.enabled(game)) player.turnData.biziPrimeSignalAvailable = 0;
   }
   return { bonus, notes, preventDamage };
 }
@@ -1375,14 +1396,14 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0);
   if (
     playerControlsEffect(game, playerNumber, "beli-vinebinder")
-    && blockNumber >= 2
+    && (supportContract.enabled(game) ? blockNumber === 2 : blockNumber >= 2)
   ) {
     player.turnData.sheenNextAttackBonus += 1;
     blockEntries[0].notes.push("Entwined Thicket next attack +1");
   }
   if (
     playerControlsEffect(game, playerNumber, "tangs-patient-hand")
-    && blockNumber >= 2
+    && (supportContract.enabled(game) ? blockNumber === 2 : blockNumber >= 2)
   ) {
     player.turnData.sheenEndTurnDraws += 1;
     gainLifeFromBlocking(
@@ -1414,6 +1435,25 @@ function applyAfterConstructedBlock(game, playerNumber, blockEntries, events) {
   }
 }
 
+function readyFrumoSupportBonus(player, amount, kind) {
+  const data = player.turnData;
+  if (data.frumoNextActionBonus && data.frumoNextActionKind !== kind) {
+    data.frumoAdditionalBonuses = [...(data.frumoAdditionalBonuses || []), { amount: data.frumoNextActionBonus, kind: data.frumoNextActionKind }];
+    data.frumoNextActionBonus = 0;
+  }
+  data.frumoNextActionBonus = Number(data.frumoNextActionBonus || 0) + amount;
+  data.frumoNextActionKind = kind;
+}
+
+function consumeAdditionalFrumoBonuses(player, kind, notes) {
+  const data = player.turnData;
+  const pending = data.frumoAdditionalBonuses || [];
+  const total = pending.filter(entry => !entry.kind || entry.kind === kind).reduce((sum, entry) => sum + entry.amount, 0);
+  if (pending.length) data.frumoAdditionalBonuses = pending.filter(entry => entry.kind && entry.kind !== kind);
+  if (total) notes.push(`Frumo additional next ${kind} +${total}`);
+  return total;
+}
+
 function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command, events) {
   const player = game.players[playerNumber];
   if (command.useDeckhandDiverPeek) {
@@ -1428,7 +1468,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
       zone: "deck",
       card: topCard ? { ...topCard } : null
     }));
-    consumeControlledSupport(game, playerNumber, "deckhand-diver", events, "Deep Dive");
+    consumeControlledSupport(game, playerNumber, "deckhand-diver", events, "Deep Dive", supportContract.enabled(game) ? card.id : null);
   }
   if (hasCardEffect(card, "ristus-rises")) {
     addTemporaryBonus(card, 1, "Tidal Surge", game, card.id);
@@ -1444,8 +1484,9 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     player.turnData.frumoLaneSwappedThisTurn = true;
   }
   if (hasCardEffect(card, "abyssal-switchboard")) {
-    player.turnData.frumoNextActionBonus += 1;
-    consumeControlledSupport(game, playerNumber, "abyssal-switchboard", events, "Coordinated Strike");
+    if (supportContract.enabled(game)) readyFrumoSupportBonus(player, 1, null);
+    else player.turnData.frumoNextActionBonus += 1;
+    consumeControlledSupport(game, playerNumber, "abyssal-switchboard", events, "Coordinated Strike", supportContract.enabled(game) ? card.id : null);
   }
   if (hasCardEffect(card, "focus-prime-signal")) {
     const notes = [];
@@ -1626,6 +1667,11 @@ function resolveAttack(game, attack, laneIndex, events) {
   mekan.combat(game, attack, damage);
   jali.combat(game, attack, damage, events, event);
   game.players[attack.player].discard.push(...(attack.attachedCards || []));
+  if (supportContract.enabled(game)) for (const card of attack.attachedCards || []) {
+    if (!card.supportState) continue;
+    card.supportState.charges = 0;
+    events.push(event(game, "support.discarded", { player: attack.player, cardId: card.id, laneIndex: card.supportState.laneIndex, card: publicLogCard(card), reason: "combat-ended" }));
+  }
   (attack.block || []).forEach((block) => {
     if (!block.card?.token) game.players[block.player].discard.push(block.card);
   });
@@ -1873,6 +1919,62 @@ function normalizeCommand(command) {
   return command;
 }
 
+function primeSignalLimitFor(game, player) {
+  const available = Number(player.turnData.biziPrimeSignalAvailable || 0);
+  return Math.min(4, available, supportContract.enabled(game) ? Number(player.accelerationCounters || 0) : available);
+}
+
+function supportPlayError(game, player, card, laneIndex, command) {
+  if (!supportContract.enabled(game)) return "Paid support requires rules v12.";
+  if (game.gameMode !== "factions") return "Support play requires a faction duel.";
+  if (game.phase !== "priority" || game.priority !== player) return "Support play requires your priority window.";
+  // No currently deployed printed definition grants a responsive play window.
+  // Revealing an already placed Ambush is a trigger, not permission to play it.
+  if (hasPendingAttack(game)) return "This support has no printed timing permission during pending combat.";
+  if (!Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= 3) return "Choose a Support Zone in one of your three lanes.";
+  if (!card) return "Select a support card from the acting player's hand.";
+  if (!isSupportCard(card) || !supportContract.definition(card)) return "Unsupported support card category or effect definition.";
+  if (game.lanes[laneIndex].support?.[player]) return "That Support Zone is occupied; replacement is not allowed.";
+  if (!campaignBossHasAction(game, player)) return "The campaign boss has used all actions this turn.";
+  if (command.useDeckhandDiverPeek && !hasCardEffect(card, "deckhand-diver")) return "Only Deep Dive offers this on-play choice.";
+  if (command.useDeckhandDiverPeek != null && typeof command.useDeckhandDiverPeek !== "boolean") return "The private inspection choice must be true or false.";
+  if (command.useMeerusFreeAttack || command.useBeliAwakenedBonus || command.useSandstormProcessor || command.useVoltaricUltimatum || command.sunforgeAccelerationToSpend || command.lastGambleChoice || command.armWeaponCardIds?.length || command.accelerationBlockerCardIds?.length) return "Unsupported combat choice for a support play.";
+  const prime = Number(command.primeSignalBonus || 0);
+  const limit = primeSignalLimitFor(game, game.players[player]);
+  if (!Number.isInteger(prime) || prime < 0 || prime > limit) return `Interference Matrix may add from 0 through ${limit}.`;
+  return null;
+}
+
+function enterSupport(game, player, card, laneIndex, command, events, permission = "paid-support") {
+  const definition = supportContract.definition(card);
+  game.lanes[laneIndex].support ||= { 1: null, 2: null };
+  card.supportState = { version: supportContract.VERSION, laneIndex, enteredTurn: game.turn, enteredRevision: game.revision + 1,
+    duration: definition.duration, charges: definition.charges, discardCondition: definition.discardCondition, permission };
+  game.lanes[laneIndex].support[player] = card;
+  // Entry must precede its consequences even when one command also removes it.
+  events.push(event(game, "card.supportPlaced", { player, cardId: card.id, laneIndex, permission,
+    concealed: definition.concealed, card: publicLogCard(card) }));
+  return applyConstructedLaneEntry(game, player, card, laneIndex, command, events);
+}
+
+function supportActions(game, player) {
+  if (!supportContract.enabled(game) || game.gameMode !== "factions" || game.phase !== "priority" || game.priority !== player || hasPendingAttack(game)) return [];
+  return game.players[player].hand.flatMap(card => !supportContract.definition(card) ? [] : game.lanes.flatMap((lane, laneIndex) => lane.support?.[player] ? [] : [{
+    type: "playSupport", cardId: card.id, laneIndex, requiredPayment: Math.max(0, cardValue(card) + indela.paymentAdjustment(game, player).amount),
+    support: supportContract.definition(card), label: `Play ${card.name} in Support Zone ${laneIndex + 1}`,
+    optionalEffects: [
+      ...(hasCardEffect(card, "deckhand-diver") ? [{ id: "deckhand-diver-peek", kind: "toggle", private: true, label: "Deep Dive · reveal, inspect your top deck card, then discard" }] : []),
+      ...(game.players[player].turnData.biziPrimeSignalAvailable > 0 ? [{ id: "focus-prime-signal", kind: "amount", minimum: 0, maximum: primeSignalLimitFor(game, game.players[player]), valuePerUnit: 1, label: "Interference Matrix · choose the next-card bonus" }] : [])
+    ]
+  }]));
+}
+
+function supportCommandFingerprint(envelope) {
+  const sorted = value => Array.isArray(value) ? value.map(sorted) : value && typeof value === "object"
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : value;
+  return JSON.stringify(sorted([envelope.actorPlayerId, envelope.baseRevision, envelope.command]));
+}
+
 function applyCommand(current, rawCommand) {
   const envelope = rawCommand?.command && typeof rawCommand.command === "object"
     ? rawCommand
@@ -1887,6 +1989,19 @@ function applyCommand(current, rawCommand) {
       }
     : rawCommand);
   if (!current || !command) return reject(current, command, "A match and command are required.");
+  if (command.type === "playSupport") {
+    if (!envelope || typeof commandId !== "string" || !commandId.trim() || !Number.isSafeInteger(envelope.baseRevision)) {
+      return reject(current, command, "Support commands require a stable command ID and expected revision.", commandId);
+    }
+    if (Number(command.player) !== Number(envelope.actorPlayerId)) return reject(current, command, "Command player does not match its authenticated actor.", commandId);
+    const prior = current.supportCommandReceipts?.[commandId];
+    const fingerprint = supportCommandFingerprint(envelope);
+    if (prior) {
+      if (prior !== fingerprint) return reject(current, command, "Command ID already used for a different support play.", commandId);
+      return { accepted: true, duplicate: true, commandId, state: current, revision: current.revision,
+        legalActions: getLegalActions(current, current.priority), animationEvents: [], rejection: null, rejectionReason: "" };
+    }
+  }
   if (
     envelope
     && Number.isFinite(Number(envelope.baseRevision))
@@ -1908,7 +2023,52 @@ function applyCommand(current, rawCommand) {
 
   if (!actor) return reject(current, command, "Unknown player.");
 
-  if (command.type === "declareCampaignBossAttack") {
+  if (command.type === "playSupport") {
+    const laneIndex = command.laneIndex;
+    const card = findHandCard(actor, command.cardId);
+    const error = supportPlayError(game, player, card, laneIndex, command);
+    if (error) return reject(current, command, error);
+    if (!Array.isArray(command.paymentCardIds)) return reject(current, command, "Select payment cards explicitly.");
+    const selection = validatePayment(actor, command.paymentCardIds, 0, [card.id]);
+    if (selection.error) return reject(current, command, selection.error);
+    const hera = heraPaymentBonus(actor, command, selection.cardIds);
+    const modifiers = constructedPaymentBonus(game, player, command, { action: "support", card }, selection.cards);
+    if (hera.error || modifiers.error) return reject(current, command, hera.error || modifiers.error);
+    const required = Math.max(0, cardValue(card) + indela.paymentAdjustment(game, player).amount);
+    const payment = validatePayment(actor, selection.cardIds, required, [card.id], hera.bonus + modifiers.bonus);
+    if (payment.error) return reject(current, command, payment.error);
+    const playBonuses = [calculateFrumoConsecutiveBonus(actor, card), mekan.playBonus(actor, card), gracus.playBonus(actor, card), indela.playBonus(actor, card)];
+    removeCardsFromHand(actor, payment.cardIds, actor.discard);
+    mekan.paid(actor, payment.cards);
+    removeCardsFromHand(actor, [card.id]);
+    for (const effect of playBonuses) if (effect.bonus) addTemporaryBonus(card, effect.bonus, effect.notes.join(", "), game);
+    if (hera.bonus) actor.turnData.heraUsed = true;
+    consumeConstructedPaymentBonus(actor, modifiers.consume);
+    addPaymentSuits(actor, payment.cards);
+    const concealedPayment = supportContract.definition(card).concealed ? { concealedSupport: true } : {};
+    game.paymentLog.push({ type: "support", player, cards: payment.cards, total: payment.total, required, ...concealedPayment });
+    events.push(event(game, "payment.discarded", { player, cardIds: payment.cardIds, cards: payment.cards.map(publicLogCard), total: payment.total, required, ...concealedPayment,
+      calculation: paymentReceipt(payment, [...modifiers.notes, ...(hera.bonus ? ["Hera payment +2"] : [])]) }));
+    // Payment triggers see only supports already in play when payment occurred.
+    applyOverpayFactionEffects(actor, payment.total, required, events, game);
+    applyConstructedOverpayEffects(game, player, card, payment.total, required, [], events);
+    if (command.primeSignalBonus > 0) {
+      addTemporaryBonus(card, command.primeSignalBonus, "Interference Matrix", game);
+      actor.turnData.biziPrimeSignalAvailable = 0;
+    }
+    actor.turnData.biziPrimeSignalAvailable = 0; // Declining applies only to this next card.
+    enterSupport(game, player, card, laneIndex, command, events);
+    recordPlayedCard(actor, card);
+    if (card.factionId === "bizi") actor.turnData.biziCardsPlayedThisTurn += 1;
+    spendCampaignBossAction(game, player);
+    game.priorityPassed = { 1: false, 2: false };
+    label = `Player ${player} paid ${payment.total} to play ${supportContract.definition(card).concealed ? "an Ambush" : card.name} in Support Zone ${laneIndex + 1}.`;
+    game.message = `${label} Player ${player} retains priority.`;
+    events.push(event(game, "priority.retained", { player, passesReset: true }));
+    game.supportCommandReceipts = { ...(game.supportCommandReceipts || {}), [commandId]: supportCommandFingerprint(envelope) };
+    const ids = Object.keys(game.supportCommandReceipts);
+    ids.slice(0, Math.max(0, ids.length - 100)).forEach(id => delete game.supportCommandReceipts[id]);
+  } else if (command.type === "declareCampaignBossAttack") {
     if (!command.__system) {
       return reject(current, command, "Campaign boss commands are server-authenticated.");
     }
@@ -2394,21 +2554,32 @@ function applyCommand(current, rawCommand) {
           return reject(current, command, "Choose an empty lane.");
         }
         const slot = isSupportCard(card) ? "support" : "facedown";
+        if (supportContract.enabled(game) && (game.lanes[laneIndex].facedown[player] || game.lanes[laneIndex].support?.[player])) {
+          return reject(current, command, "Polea requires an empty lane, including both zones.");
+        }
+        if (supportContract.enabled(game) && slot === "support") {
+          const error = supportPlayError(game, player, card, laneIndex, command);
+          if (error) return reject(current, command, error);
+        }
         if (!game.lanes[laneIndex][slot]) game.lanes[laneIndex][slot] = { 1: null, 2: null };
         if (game.lanes[laneIndex][slot][player]) {
           return reject(current, command, `Polea can only place into an empty ${slot === "support" ? "support" : "combat"} slot.`);
         }
         removeCardsFromHand(actor, [card.id]);
-        game.lanes[laneIndex][slot][player] = card;
-        const laneEntry = applyConstructedLaneEntry(game, player, card, laneIndex, command, events);
-        if (laneEntry.error) return reject(current, command, laneEntry.error);
-        events.push(event(game, slot === "support" ? "card.supportPlaced" : "card.placedFacedown", {
-          player,
-          cardId: card.id,
-          laneIndex,
-          source: "Polea",
-          card: slot === "support" ? publicLogCard(card) : undefined
-        }));
+        if (supportContract.enabled(game) && slot === "support") {
+          enterSupport(game, player, card, laneIndex, command, events, "polea-put-empty-lane");
+        } else {
+          game.lanes[laneIndex][slot][player] = card;
+          const laneEntry = applyConstructedLaneEntry(game, player, card, laneIndex, command, events);
+          if (laneEntry.error) return reject(current, command, laneEntry.error);
+          events.push(event(game, slot === "support" ? "card.supportPlaced" : "card.placedFacedown", {
+            player,
+            cardId: card.id,
+            laneIndex,
+            source: "Polea",
+            card: slot === "support" ? publicLogCard(card) : undefined
+          }));
+        }
         label = `Player ${player} used Polea to place a card in Lane ${laneIndex + 1}.`;
       } else if (abilityId === "polea-swap") {
         const laneA = Number(command.laneA ?? command.targets?.laneA);
@@ -2478,8 +2649,11 @@ function applyCommand(current, rawCommand) {
           card: { ...card }
         }));
         if (lastGambleChoice) {
-          actor.turnData.frumoNextActionBonus = 4;
-          actor.turnData.frumoNextActionKind = lastGambleChoice;
+          if (supportContract.enabled(game)) readyFrumoSupportBonus(actor, 4, lastGambleChoice);
+          else {
+            actor.turnData.frumoNextActionBonus = 4;
+            actor.turnData.frumoNextActionKind = lastGambleChoice;
+          }
           events.push(event(game, "choice.committed", {
             player,
             source: "Rally the Crew",
@@ -2489,8 +2663,11 @@ function applyCommand(current, rawCommand) {
         }
         for (const support of supportCards(game, player)) {
           if (hasCardEffect(support, "riptide-smuggler") && !actor.turnData.frumoRiptideSmugglerUsed) {
-            actor.turnData.frumoNextActionBonus += 1;
-            actor.turnData.frumoNextActionKind = "attack";
+            if (supportContract.enabled(game)) readyFrumoSupportBonus(actor, 1, "attack");
+            else {
+              actor.turnData.frumoNextActionBonus += 1;
+              actor.turnData.frumoNextActionKind = "attack";
+            }
             actor.turnData.frumoRiptideSmugglerUsed = true;
             events.push(event(game, "card.buffApplied", {
               player,
@@ -2621,6 +2798,7 @@ function applyCommand(current, rawCommand) {
     if (command.type === "placeFacedown") {
       const card = findHandCard(actor, command.cardId);
       if (!card) return reject(current, command, "Select a card from the acting player’s hand.");
+      if (supportContract.enabled(game) && isSupportCard(card)) return reject(current, command, "Support cards require paid play during open priority, not end-turn commitment placement.");
       const slot = isSupportCard(card) ? "support" : "facedown";
       if (!game.lanes[laneIndex][slot]) game.lanes[laneIndex][slot] = { 1: null, 2: null };
       if (game.lanes[laneIndex][slot][player]) {
@@ -2660,6 +2838,14 @@ function applyCommand(current, rawCommand) {
     events.push(event(game, "priority.retained", { player, abilityId: command.abilityId.split(":").slice(0, 2).join(":"), passesReset: true }));
   }
 
+  if (supportContract.enabled(game)) for (const [laneIndex, lane] of current.lanes.entries()) for (const owner of [1, 2]) {
+    const prior = lane.support?.[owner];
+    if (!prior || game.lanes[laneIndex].support?.[owner]?.id === prior.id) continue;
+    const discarded = game.players[owner].discard.find(card => card.id === prior.id);
+    const attached = [...game.handAttacks, ...game.lanes.map(entry => entry.attack).filter(Boolean)].flatMap(attack => attack.attachedCards || []).find(card => card.id === prior.id);
+    if ((discarded || attached)?.supportState) (discarded || attached).supportState.charges = 0;
+    if (discarded && !events.some(entry => entry.type === "support.discarded" && entry.cardId === prior.id)) events.push(event(game, "support.discarded", { player: owner, laneIndex, cardId: prior.id, card: publicLogCard(discarded), reason: "printed-consumption" }));
+  }
   effects.recordEffectChanges(current, game, events, event);
   game.revision = Number(current.revision || 0) + 1;
   game.lastCommandId = commandId;
@@ -2672,7 +2858,7 @@ function applyCommand(current, rawCommand) {
   const actionLogEntry = appendHistory(game, player, label, events);
   // Only already-public combat/payment receipts enter the reconnectable log.
   game.publicCombatLog = [...(game.publicCombatLog || []), ...events.filter((entry) =>
-    ["payment.discarded", "attack.declared", "block.declared", "damage.calculated"].includes(entry.type)
+    ["payment.discarded", "attack.declared", "block.declared", "damage.calculated", ...(supportContract.enabled(game) ? ["card.supportPlaced", "support.discarded"] : [])].includes(entry.type)
   ).map((entry) => clone(entry))].slice(-300);
   game.lastEvents = events.map((entry) => ({ ...entry }));
   return {
@@ -2692,6 +2878,18 @@ function applyCommand(current, rawCommand) {
 // Evaluate on a clone because some conditional helpers consume turn flags.
 function previewPayment(state, player, command) {
   const game = clone(state), actor = game.players[player];
+  if (actor && command.type === "playSupport") {
+    const card = findHandCard(actor, command.cardId);
+    if (!card) return null;
+    const ids = command.paymentCardIds || [];
+    const selection = validatePayment(actor, ids, 0, [card.id]);
+    if (selection.error) return { total: 0, required: cardValue(card), error: selection.error };
+    const hera = heraPaymentBonus(actor, command, ids);
+    const modifiers = constructedPaymentBonus(game, player, command, { action: "support", card }, selection.cards);
+    return { total: selection.total + Number(hera.bonus || 0) + Number(modifiers.bonus || 0),
+      required: Math.max(0, cardValue(card) + indela.paymentAdjustment(game, player).amount), notes: modifiers.notes,
+      error: hera.error || modifiers.error || supportPlayError(game, player, card, command.laneIndex, command) };
+  }
   const blocking = command.type?.includes("Block");
   if (!actor || !/declare(Hand|Lane)(Attack|Block)/.test(command.type || "")) return null;
   const cards = blocking
@@ -2722,7 +2920,8 @@ function getFactionAbilityActions(game, playerNumber) {
   actions.push(...astralVanguard.actions(game, playerNumber));
   const ownLaneCount = game.lanes.filter((lane) => lane.facedown[playerNumber]).length;
   const canPoleaPlace = actor.hand.some((card) => game.lanes.some((lane) => (
-    isSupportCard(card) ? !lane.support?.[playerNumber] : !lane.facedown[playerNumber]
+    supportContract.enabled(game) ? !lane.support?.[playerNumber] && !lane.facedown[playerNumber] && (!isSupportCard(card) || (!hasPendingAttack(game) && supportContract.definition(card)))
+      : isSupportCard(card) ? !lane.support?.[playerNumber] : !lane.facedown[playerNumber]
   )));
   const activeCombat = pendingAttack(game);
   const controlsActiveAttack = activeCombat?.attack?.player === playerNumber;
@@ -2741,7 +2940,10 @@ function getFactionAbilityActions(game, playerNumber) {
           type: "useFactionAbility",
           abilityId: "polea-place",
           label: "Polea · place a hand card",
-          intent: FACTION_ABILITY_INTENTS["polea-place"]
+          intent: FACTION_ABILITY_INTENTS["polea-place"],
+          ...(supportContract.enabled(game) ? { optionalEffects: actor.hand.some(card => hasCardEffect(card, "deckhand-diver"))
+            ? [{ id: "deckhand-diver-peek", kind: "toggle", private: true, cardIds: actor.hand.filter(card => hasCardEffect(card, "deckhand-diver")).map(card => card.id), label: "Deep Dive · reveal, inspect your top deck card, then discard" }]
+            : [] } : {})
         });
       }
       if (ownLaneCount >= 1) {
@@ -2808,6 +3010,10 @@ function getFactionAbilityActions(game, playerNumber) {
 function getConstructedAttackOptions(game, playerNumber, card, source) {
   const player = game.players[playerNumber];
   const options = [];
+  if (supportContract.enabled(game) && cardHasType(card, "servitor") && Number(player.turnData.attacksDeclaredThisTurn || 0) === 0
+    && !player.turnData.neutralAssemblyUsed && playerControlsEffect(game, playerNumber, "neutral-assembly-station")) {
+    options.push({ id: "assembly-station", kind: "toggle", amount: 1, label: "Assembly Station · enhance one payment card by +1" });
+  }
   if (
     hasCardEffect(card, "forum-ledger-runner")
     && Number(player.turnData.attacksDeclaredThisTurn || 0) === 0
@@ -2890,7 +3096,7 @@ function getConstructedAttackOptions(game, playerNumber, card, source) {
       id: "focus-prime-signal",
       kind: "amount",
       minimum: 0,
-      maximum: Math.min(4, Number(player.turnData.biziPrimeSignalAvailable || 0)),
+      maximum: primeSignalLimitFor(game, player),
       valuePerUnit: 1,
       label: "Interference Matrix · choose the next-card bonus"
     });
@@ -2919,7 +3125,7 @@ function getConstructedBlockOptions(game, playerNumber, candidateCards) {
       id: "focus-prime-signal",
       kind: "amount",
       minimum: 0,
-      maximum: Math.min(4, Number(player.turnData.biziPrimeSignalAvailable || 0)),
+      maximum: primeSignalLimitFor(game, player),
       valuePerUnit: 1,
       label: "Interference Matrix · choose the next-card bonus"
     });
@@ -2981,7 +3187,15 @@ function normalizeLegalAction(game, playerNumber, action) {
   const fixed = {};
   const selected = {};
 
-  if (action.type === "declareHandAttack") {
+  if (action.type === "playSupport") {
+    sources.push(selectionGroup("cardId", "support", handEntities.filter(entity => entity.cardId === action.cardId)));
+    targets.push(selectionGroup("laneIndex", "support", [{ ...laneEntity(action.laneIndex, playerNumber, false), zone: "support" }]));
+    payment = { requiredValue: action.requiredPayment, mode: "cardValueTotal", eligibleCardIds: actor.hand.filter(card => card.id !== action.cardId).map(card => card.id),
+      excludedCardIds: [action.cardId], excludesSelections: ["cardId"], minimumCards: 0, maximumCards: Math.max(0, actor.hand.length - 1), selectionOrderMatters: false };
+    fixed.cardId = action.cardId;
+    fixed.laneIndex = action.laneIndex;
+    selected.paymentCardIds = "payment";
+  } else if (action.type === "declareHandAttack") {
     const source = handEntities.find((entity) => entity.cardId === action.cardId);
     if (source) sources.push(selectionGroup("cardId", "attacker", [source]));
     targets.push(selectionGroup("targetPlayerId", "defender", [{
@@ -3093,8 +3307,11 @@ function normalizeLegalAction(game, playerNumber, action) {
       ? attackEntity(pending.attack, pending.laneIndex)
       : null;
     if (action.abilityId === "polea-place") {
-      sources.push(selectionGroup("cardId", "placement", handEntities));
-      const emptyLanes = game.lanes.flatMap((lane, laneIndex) => !lane.facedown[playerNumber]
+      sources.push(selectionGroup("cardId", "placement", supportContract.enabled(game) ? handEntities.filter(entity => {
+        const card = findHandCard(actor, entity.cardId);
+        return !isSupportCard(card) || (!hasPendingAttack(game) && supportContract.definition(card));
+      }) : handEntities));
+      const emptyLanes = game.lanes.flatMap((lane, laneIndex) => !lane.facedown[playerNumber] && (!supportContract.enabled(game) || !lane.support?.[playerNumber])
         ? [laneEntity(laneIndex, playerNumber, false)]
         : []);
       targets.push(selectionGroup("laneIndex", "destination", emptyLanes));
@@ -3211,6 +3428,7 @@ function getLegalActions(game, player) {
     if (game.priority !== playerNumber) return [];
     return [
       ...getFactionAbilityActions(game, playerNumber),
+      ...supportActions(game, playerNumber),
       ...actor.hand.filter(isCombatCard).map((card) => ({
         type: "declareHandAttack",
         cardId: card.id,
@@ -3244,7 +3462,7 @@ function getLegalActions(game, player) {
     const actions = [{ type: "skipPlacement", laneIndex }];
     const placementCards = actor.hand.filter((card) => (
       isSupportCard(card)
-        ? !game.lanes[laneIndex].support?.[playerNumber]
+        ? supportContract.enabled(game) ? false : !game.lanes[laneIndex].support?.[playerNumber]
         : !game.lanes[laneIndex].facedown[playerNumber]
     ));
     if (placementCards.length) {
@@ -3393,6 +3611,10 @@ function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
   if (entry.type === "card.peeked" && Number(entry.viewer) === viewer) return clone(entry);
 
   const sanitized = clone(entry);
+  if (entry.concealedSupport && Number(entry.player) !== viewer) {
+    delete sanitized.required;
+    delete sanitized.calculation;
+  }
   if (sanitized.target?.cardId && hiddenCardIds.has(sanitized.target.cardId)) {
     const { owner, zone, laneIndex } = sanitized.target;
     sanitized.target = { owner, zone, ...(laneIndex != null ? { laneIndex } : {}), name: zone === "lane" ? "Face-down lane card" : "Hidden card" };
@@ -3425,13 +3647,21 @@ function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
 
 function projectForPerspective(game, perspectivePlayer) {
   const projected = clone(game);
+  delete projected.supportCommandReceipts;
   const viewer = Number(perspectivePlayer);
   const hiddenCardIds = new Set();
   for (const player of [1, 2]) {
     projected.players[player].handCount = projected.players[player].hand.length;
     projected.players[player].deckCount = projected.players[player].deck.length;
     if (player !== viewer) {
-      if (projected.players[player].turnData) delete projected.players[player].turnData.mekanPeek;
+      if (projected.players[player].turnData) {
+        delete projected.players[player].turnData.mekanPeek;
+        if (supportContract.enabled(game)) {
+          // These aggregates also include concealed paid Ambushes.
+          delete projected.players[player].turnData.previousPlayedValue;
+          delete projected.players[player].turnData.suitsPlayedThisTurn;
+        }
+      }
       projected.players[player].hand.forEach((card) => hiddenCardIds.add(card.id));
       projected.players[player].deck.forEach((card) => hiddenCardIds.add(card.id));
       projected.players[player].hand = projected.players[player].hand.map((card, index) => ({
@@ -3460,6 +3690,10 @@ function projectForPerspective(game, perspectivePlayer) {
     .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
   projected.effectHistory = (projected.effectHistory || [])
     .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
+  if (supportContract.enabled(game)) projected.publicCombatLog = (projected.publicCombatLog || [])
+    .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
+  if (supportContract.enabled(game)) projected.paymentLog = (projected.paymentLog || [])
+    .map((entry) => sanitizeEventForPerspective(entry, viewer, hiddenCardIds));
   projected.legalActions = [1, 2].includes(viewer) ? getLegalActions(game, viewer) : [];
   projected.actionAvailability = [1, 2].includes(viewer)
     ? getActionAvailability(game, viewer)
@@ -3467,7 +3701,7 @@ function projectForPerspective(game, perspectivePlayer) {
   projected.snapshotSchemaVersion = Number(projected.snapshotSchemaVersion || projected.schemaVersion || SCHEMA_VERSION);
   projected.commandSchemaVersion = Number(projected.commandSchemaVersion || COMMAND_SCHEMA_VERSION);
   projected.eventSchemaVersion = Number(projected.eventSchemaVersion || EVENT_SCHEMA_VERSION);
-  projected.rulesVersion = projected.rulesVersion || RULES_VERSION;
+  projected.rulesVersion = projected.rulesVersion || "gauntlet-duel-v11";
   projected.cardContentVersion = projected.cardContentVersion || CARD_CONTENT_VERSION;
   return projected;
 }

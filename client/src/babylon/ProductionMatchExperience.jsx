@@ -2126,6 +2126,7 @@ export default function ProductionMatchExperience({
       data-active-event-id={canvasViewModel?.presentationPlayback?.activeEventId || ""}
       data-active-event-type={canvasViewModel?.presentationPlayback?.activeEventType || ""}
       data-playback-catching-up={playbackState.catchingUp ? "true" : "false"}
+      data-gameplay-input-locked={gameplayInputLocked ? "true" : "false"}
       data-playback-queued-frames={playbackState.queuedFrames}
       data-cadence-tier={canvasViewModel?.presentationCues?.[0]?.cadence?.tier || "rest"}
       data-focus-region={sceneMetrics?.boardPresentation?.focus?.region || "board"}
@@ -2151,6 +2152,7 @@ export default function ProductionMatchExperience({
         <BattlefieldAtmosphere factionId={battlefieldFactionId} />
         <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <RecoverableMatchCanvas
+            forceAccessible={options.forceAccessible}
             key={viewModel.matchId}
             viewModel={canvasViewModel}
             commands={gameplayCommands}

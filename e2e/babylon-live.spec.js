@@ -262,10 +262,20 @@ test("the explicit React emergency flag bypasses Babylon without changing the li
   const activePlayer = duel.players[1].state.priority;
   const page = await openPlayer(context, baseURL, duel, activePlayer, "/?renderer=react", false);
 
-  await expect(page.getByTestId("production-babylon-match")).toHaveCount(0);
+  // v12 keeps the authoritative adapter and HUD, replacing only the animated
+  // table with React controls so support actions remain available without WebGL.
+  const match = page.getByTestId("production-babylon-match");
+  await expect(match).toBeVisible();
+  await expect(match).toHaveAttribute("data-match-id", duel.players[activePlayer].state.matchId);
   await expect(page.locator("canvas.babylon-match-canvas")).toHaveCount(0);
-  await expect(page.locator(".focused-match-screen")).toBeVisible();
-  await expect(page.locator(".focused-match-screen")).toContainText(`Browser ${activePlayer === 1 ? "One" : "Two"}`);
+  await expect(page.getByText("Accessible match table", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Keyboard match controls" })).toBeVisible();
+  await expect(match).toContainText(`Browser ${activePlayer === 1 ? "One" : "Two"}`);
+  const revision = Number(await match.getAttribute("data-revision"));
+  await page.getByRole("region", { name: "Current match action" })
+    .getByRole("button", { name: "Pass Priority" }).click();
+  await expect(match).toHaveAttribute("data-revision", String(revision + 1));
+  await expect(page.locator("canvas.babylon-match-canvas")).toHaveCount(0);
 
   await context.close();
 });
