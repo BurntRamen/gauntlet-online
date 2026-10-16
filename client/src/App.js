@@ -1274,7 +1274,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
     <section className="identity-progression" aria-labelledby="identity-progression-title">
       <header className="identity-section-heading">
         <div><span>Personalization</span><h3 id="identity-progression-title">Honors & progression</h3></div>
-        <p>Your selected insignia shapes how your dossier appears.</p>
+        <p>{account.profile?.equipment?.title || account.profile?.equipment?.cardBack ? "Owned equipment takes precedence. Change or reset it in Gold & Library; these choices set your defaults." : "Your selected insignia shapes how your dossier appears."}</p>
       </header>
       <div className="identity-cosmetic-controls">
           <label>
@@ -1284,10 +1284,10 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           <label className="identity-card-back-control">
             <span>Card Back</span>
             <span className="identity-card-back-choice">
-              <CardBackArt cardBackId={selectedCardBack.id} className="identity-card-back-preview" decorative />
+              <CardBackArt cardBackId={selectedCardBack.id} appearance={account?.profile?.equipment?.cardBack} className="identity-card-back-preview" decorative />
               <span className="identity-card-back-copy">
                 {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
-                <small>{selectedCardBack.description}</small>
+                <small>{account.profile?.equipment?.cardBack?.name || selectedCardBack.description}</small>
               </span>
             </span>
           </label>
@@ -1338,12 +1338,13 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
   const badgeId = cosmetics.selectedFactionBadge && cosmetics.selectedFactionBadge !== "none"
     ? cosmetics.selectedFactionBadge
     : featuredDecks?.[0]?.factionId || "basic";
-  const title = definitions.titles?.[cosmetics.selectedTitle]?.name || cosmetics.selectedTitle || (account ? "Recruit" : "Guest Operative");
+  const equipment = account?.profile?.equipment || {};
+  const title = equipment.title?.name || definitions.titles?.[cosmetics.selectedTitle]?.name || cosmetics.selectedTitle || (account ? "Recruit" : "Guest Operative");
   const achievements = Object.keys(progression.achievements || {}).length;
   const chapters = Object.values(progression.campaign || {}).reduce((total, entries) => total + (entries?.length || 0), 0);
   return (
     <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
-      <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />
+      {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />}
       <div className="identity-dossier-portrait">
         <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
       </div>
@@ -1351,6 +1352,7 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
         <span>{title}</span>
         <h3>{account?.name || "Guest Identity"}</h3>
         <p>{account ? "Your honors, progress, and personal style." : "Sign in to save your progress, or choose a guest name below."}</p>
+        {equipment.music && <audio controls preload="none" src={equipment.music.url} aria-label={equipment.music.name} />}
         {account && <details className="identity-portrait-settings">
           <summary>Edit profile picture</summary>
           <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
@@ -5239,7 +5241,7 @@ export default function App() {
                   <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => { if (identityView !== viewId) playMenuCue("tab"); setIdentityView(viewId); }}>{label}</button>
                 ))}
               </div>
-              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} /></Suspense>}
+              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} onAccountUpdated={setAccount} /></Suspense>}
               {identityView === "profile" && <>
               <MenuButton onClick={() => { setPlayView("para"); navigateHomeArea("play"); }}>Para membership, Prestige and event history</MenuButton>
               <IdentityDossierHero
@@ -5497,7 +5499,7 @@ export default function App() {
             onOpenMatches={returnToMatches}
             options={{
               audioEnabled: !accountSoundMuted,
-              cardBackAsset: resolveCardBackAsset(account?.progression?.cosmetics?.selectedCardBack),
+              cardBackAsset: game.players?.[player]?.profile?.equipment?.cardBack?.url || resolveCardBackAsset(game.players?.[player]?.profile?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,
               onAudioEnabledChange: (enabled) => {
                 if (account?.id) setSignedInSoundMuted(!enabled);

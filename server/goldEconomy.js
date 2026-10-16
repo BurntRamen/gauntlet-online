@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
-const { hash } = require("./authoredContent"), { resolveDelivery } = require("./digitalDelivery");
+const { hash } = require("./authoredContent"), { resolveDelivery, ownershipKey } = require("./digitalDelivery");
 const fail = (message, status = 409) => { throw Object.assign(new Error(message), { status }); };
 const id = () => crypto.randomUUID();
 
@@ -167,8 +167,9 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, no
       if (balance(account.id) < q.product.goldPrice) fail("Insufficient Gold.");
       const existing = grants(account.id), seen = new Set();
       const delivery = q.terms.map((term) => {
-        if (seen.has(term.delivery.id)) fail("Bundle contains duplicate delivery assets."); seen.add(term.delivery.id);
-        const previous = existing.filter((g) => g.term.delivery.id === term.delivery.id && g.state === "active");
+        const deliveryKey = ownershipKey(term);
+        if (seen.has(deliveryKey)) fail("Bundle contains duplicate delivery assets."); seen.add(deliveryKey);
+        const previous = existing.filter((g) => ownershipKey(g.term) === deliveryKey && g.state === "active");
         if (previous.some((g) => !g.expiresAt)) fail("Permanent access is already owned.");
         const start = previous.reduce((t, g) => g.expiresAt > t ? g.expiresAt : t, now());
         const expiresAt = term.duration === "permanent" ? null : term.duration === "season" ? term.endsAt : new Date(Date.parse(start) + term.durationDays * 86400000).toISOString();

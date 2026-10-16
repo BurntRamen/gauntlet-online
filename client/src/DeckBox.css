@@ -14,3 +14,5 @@
 .deck-box.is-compact .deck-box-face strong { font-size: 8px; }
 .deck-box.is-compact .deck-box-face small { font-size: 5px; }
 .deck-box.is-compact .deck-box-face em { display: none; }
+.deck-box-cover { box-sizing: border-box; width: 100%; height: 100%; padding: 0; object-fit: cover; }
+.deck-box.is-compact .deck-box-cover { padding: 0; }

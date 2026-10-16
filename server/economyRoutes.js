@@ -2,7 +2,11 @@
 const { playerView, adminView, quoteView } = require("./economyViews");
 const { matchAnalysis } = require("./digitalDelivery");
 const { assetEntry } = require("./contentAssets");
-function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck }) {
+function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck, equip }) {
+  function library(account) {
+    const data = economy.player(account), view = playerView(data), equipment = require("./cosmeticEquipment").view(account, data.grants);
+    return { ...view, forms: [...(view.forms || []), ...(equip ? equipment.forms : [])], tables: [...(view.tables || []), ...equipment.tables] };
+  }
   async function operations() {
     const data = economy.enabled ? economy.admin() : economy.status(), accounts = listAccounts ? await listAccounts() : data.accounts || [];
     const ledger = adminView({ ...data, accountOptions: accounts.map(a => ({ id: a.id, name: a.name || a.id })) });
@@ -22,7 +26,12 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
       res.json(await work(account, req));
     } catch (e) { res.status([400, 401, 403, 404, 409, 422].includes(e.status) ? e.status : 503).json({ error: e.status ? e.message : "Gold service unavailable. Retry with the same request key." }); }
   };
-  app.get("/api/economy", send(false, async (account) => { await reconcile(account); return { view: playerView(economy.player(account)) }; }));
+  app.get("/api/economy", send(false, async (account) => { await reconcile(account); return { view: library(account) }; }));
+  app.post("/api/economy/equip", send(false, async (account, req) => {
+    if (!equip) throw Object.assign(new Error("Equipment selection is unavailable."), { status: 503 });
+    const updated = await equip(account.id, req.body);
+    return { view: library(await findAccount(account.id)), account: updated, notice: "Appearance saved. Expired or revoked ownership falls back to the default; matches already in progress retain their captured presentation." };
+  }));
   app.get("/api/admin/economy", send(true, async () => ({ view: await operations() }), false));
   app.post("/api/admin/economy/refund-deck", send(true, async (actor, req) => {
     if (!refundDeck || typeof req.body?.purchaseRef !== "string" || !/^[a-f0-9-]{36}\/[a-zA-Z0-9-]{16,80}$/.test(req.body.purchaseRef)) throw Object.assign(new Error("Choose an account Timetwister purchase."), { status: 422 });
@@ -33,7 +42,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
   for (const action of ["claim", "quote", "purchase"]) app.post(`/api/economy/${action}`, send(false, async (account, req) => {
     if (action === "claim") await reconcile(account);
     const receipt = economy[action](account, req.body);
-    return action === "quote" ? { view: quoteView(receipt) } : { view: playerView(economy.player(account)), notice: `Recorded ${action} receipt ${receipt.id}.` };
+    return action === "quote" ? { view: quoteView(receipt) } : { view: library(account), notice: `Recorded ${action} receipt ${receipt.id}.` };
   }));
   app.post("/api/economy/reconcile", send(false, async (account, req) => {
     const record = typeof req.body?.matchId === "string" && req.body.matchId.length <= 100 ? await findRecord(req.body.matchId) : null;
@@ -44,6 +53,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
     const { grant, delivery } = economy.access(account, req.body?.entitlementId);
     if (delivery.kind === "deck") return { view: { title: grant.term.name, summary: "This purchased recipe and its exact cosmetic grants are available in your Deck Library. Refunds revoke their purchased cosmetic contribution; saved recipe knowledge is retained.", tables: [{ title: "Captured recipe", columns: ["Card", "Printing"], rows: delivery.receipt.template.composition.cards.map(row => [row.cardId, row.printingId]) }] } };
     if (delivery.kind === "analysis") return { view: matchAnalysis(await records(account.id, 100), account.id) };
+    if (delivery.kind === "title") return { view: { title: grant.term.name, summary: "Owned profile title. Return to Gold & Library and choose it under Profile title to equip it." } };
     // Existing assets are already public content. Entitlement access is checked
     // here; downloads cannot be revoked after delivery and are not DRM.
     return { view: { title: grant.term.name, summary: `Acquired ${grant.acquiredAt} · ${grant.expiresAt || "Permanent"} · Purchase ${grant.purchaseId}`, media: { kind: delivery.kind, url: assetEntry(grant.term.asset).path, name: grant.term.name } } };

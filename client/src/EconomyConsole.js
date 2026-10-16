@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./EconomyConsole.css";
 
-export default function EconomyConsole({ request, serverUrl = "", authToken, admin = false }) {
+export default function EconomyConsole({ request, serverUrl = "", authToken, admin = false, onAccountUpdated }) {
   const [view, setView] = useState(null), [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState(false), [query, setQuery] = useState("");
   const keys = useRef(new Map());
   const base = admin ? "/api/admin/economy" : "/api/economy";
@@ -22,7 +22,7 @@ export default function EconomyConsole({ request, serverUrl = "", authToken, adm
     const signature = JSON.stringify([form.action, values]);
     if (!keys.current.has(signature)) keys.current.set(signature, crypto.randomUUID());
     setBusy(true); setError(""); setNotice("");
-    try { const data = await call(form.action, { ...values, key: keys.current.get(signature) }); setView(data.view); setNotice(data.notice || ""); setQuery(""); keys.current.delete(signature); }
+    try { const data = await call(form.action, { ...values, key: keys.current.get(signature) }); setView(data.view); setNotice(data.notice || ""); setQuery(""); keys.current.delete(signature); if (data.account) onAccountUpdated?.(data.account); }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   return <section className="economy-console" aria-label={admin ? "Economy operations" : "Gold & Library"}>

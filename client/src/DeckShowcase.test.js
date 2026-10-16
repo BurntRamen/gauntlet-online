@@ -22,6 +22,13 @@ test("legacy decks showcase their first replacement and empty decks show an ace"
   expect(screen.getByRole("img", { name: "A of spades standard playing card" })).toBeVisible();
 });
 
+test("owned box appearance decorates the actual deck without changing its card composition", () => {
+  const appearance = { name: "Dawn cover", url: "/owned-cover.webp" };
+  render(<DeckShowcase deck={{ factionId: "sheen", appearance, cardQuantities: { [card.id]: 1 } }} cards={[card]} />);
+  expect(screen.getByRole("img", { name: "Dawn cover deck box for Sheen" }).querySelector("img")).toHaveAttribute("src", appearance.url);
+  expect(screen.getByLabelText("Front card: Raincall Mender")).toBeVisible();
+});
+
 test("public profile showcases retain the selected neutral card's faction and foil", () => {
   const neutral = { id: "neutral-guard", name: "Neutral Guard", factionId: "neutral", value: 3, suit: "clubs", collector: { finish: "foil" } };
   const { container } = render(<DeckShowcase deck={{ factionId: "sheen", deckBoxId: "faction", frontCardSlot: "3:clubs", frontCard: neutral }} compact />);

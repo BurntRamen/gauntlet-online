@@ -2,7 +2,7 @@
 export type ParaFormat = "faction-constructed" | "classic";
 export type ProposalState = "draft" | "archived";
 export type ProductCategory = "profile-music" | "faction-soundtrack" | "digital-publication" |
-  "collector-treatment" | "card-back" | "deck-box" | "analytics" | "variant-lab" | "digital-edition" | "bundle";
+  "collector-treatment" | "card-back" | "deck-box" | "profile-title" | "faction-banner" | "analytics" | "variant-lab" | "digital-edition" | "bundle";
 interface Definition { id: string; name: string; description: string; }
 interface Window { startsAt: string | null; endsAt: string | null; }
 export interface ParaSeason extends Definition, Window {

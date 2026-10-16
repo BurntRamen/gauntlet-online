@@ -10,7 +10,7 @@ const choice = (label, options) => ({ type: "choice", label, options });
 const reference = (label, target, multiple = false) => ({ type: multiple ? "references" : "reference", label, target });
 const date = (label) => ({ type: "date", label });
 const common = { id: text("ID", 80), name: text("Name"), description: text("Description", 4000, false) };
-const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "analytics", "variant-lab", "digital-edition", "bundle"];
+const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "profile-title", "faction-banner", "analytics", "variant-lab", "digital-edition", "bundle"];
 const FORMATS = ["faction-constructed", "classic"];
 const FIELDS = {
   seasons: {
@@ -138,7 +138,7 @@ function validateConfig(config) {
           case "choice": valid = field.options.includes(value); break;
           case "boolean": valid = typeof value === "boolean"; break;
           case "date": valid = value === null || (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value); break;
-          case "asset": valid = typeof value === "string" && (!value || (domain === "entitlements" && key === "asset" && (value === require("./digitalDelivery").ANALYSIS || ["application/pdf", "text/plain"].includes(assets.assetEntry(value)?.mediaType))) || assets.validAssetReference(value, field.media || (assets.assetEntry(value)?.mediaType?.startsWith("audio/") ? "audio" : "image"))); break;
+          case "asset": valid = typeof value === "string" && (!value || (domain === "entitlements" && key === "asset" && ([require("./digitalDelivery").ANALYSIS, require("./digitalDelivery").TITLE].includes(value) || ["application/pdf", "text/plain"].includes(assets.assetEntry(value)?.mediaType))) || assets.validAssetReference(value, field.media || (assets.assetEntry(value)?.mediaType?.startsWith("audio/") ? "audio" : "image"))); break;
           case "reference": valid = typeof value === "string" && value.length <= 80 && (!!value || field.optional); break;
           case "references": valid = Array.isArray(value) && value.length > 0 && value.length <= 50 && value.every((id) => typeof id === "string") && new Set(value).size === value.length; break;
           case "choices": valid = Array.isArray(value) && value.length > 0 && value.every((v) => field.options.includes(v)) && new Set(value).size === value.length; break;
@@ -211,7 +211,7 @@ function summary(config) {
 function catalog(config) {
   return config.products.map((p) => ({ id: p.id, name: p.name, description: p.description, status: p.status,
     price: p.pricing === "free" ? "Free" : p.pricing === "unavailable" ? "No price offered" : [p.goldPrice > 0 && `${p.goldPrice} Gold`, p.gemPrice > 0 && `${p.gemPrice} Gems`].filter(Boolean).join(" or "),
-    inclusions: p.entitlements.map((id) => { const e = config.entitlements.find((entry) => entry.id === id); return `${e?.name} · ${e?.duration === "days" ? `${e.durationDays} days` : e?.duration === "season" ? `Season: ${e.seasonId}` : "Permanent"} · ${e?.provenance} · fulfillment ${e?.fulfillment}`; }) }));
+    inclusions: p.entitlements.map((id) => { const e = config.entitlements.find((entry) => entry.id === id), equipment = require("./cosmeticEquipment"), destination = equipment.LABELS[equipment.SLOTS[e?.category]]; return `${e?.name} · ${e?.duration === "days" ? `${e.durationDays} days` : e?.duration === "season" ? `Season: ${e.seasonId}` : "Permanent"} · ${e?.provenance} · fulfillment ${e?.fulfillment} · ${destination || (e?.category === "collector-treatment" ? "Artwork download only; equippable exact printings use deck products" : "Owned library access")}`; }) }));
 }
 
 function simulate(config, input) {

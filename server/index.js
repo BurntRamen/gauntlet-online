@@ -1417,7 +1417,7 @@ function getSavedConstructedDeck(stats = {}, selection = null, { competitive = f
     gameplayCardQuantities: canonicalQuantities,
     cardSuitChoices: canonicalSuitChoices,
     accessMode: deck.accessMode || "earned",
-    cardBackId: deck.cardBackId || null,
+    cardBackId: normalizeProgression(stats).cosmetics.unlockedCardBacks.includes(deck.cardBackId) ? deck.cardBackId : null,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
     frontCardSlot: normalizeFrontCardSlot(deck.frontCardSlot),
     collectorVariantSelections,
@@ -1715,6 +1715,7 @@ function normalizeProgression(stats = {}) {
       ...(progression.cosmetics || {}),
       unlockedTitles: [...new Set([...(base.cosmetics.unlockedTitles || []), ...((progression.cosmetics || {}).unlockedTitles || [])])],
       unlockedCardBacks,
+      selectedCardBack: unlockedCardBacks.includes(progression.cosmetics?.selectedCardBack) ? progression.cosmetics.selectedCardBack : "classic",
       unlockedFactionBadges: [...new Set([...(base.cosmetics.unlockedFactionBadges || []), ...((progression.cosmetics || {}).unlockedFactionBadges || [])])]
     }
   };
@@ -1745,6 +1746,7 @@ function publicAccountProfile(account) {
   const progression = normalizeProgression(account?.stats || {});
   return {
     avatar: normalizeAccountAvatar(account?.stats || {}, account?.id),
+    equipment: goldEconomy?.enabled && account?.id ? require("./cosmeticEquipment").selected(account, goldEconomy.accountGrants(account.id)) : {},
     cosmetics: {
       selectedCardBack: progression.cosmetics?.selectedCardBack || "classic"
     }
@@ -1760,7 +1762,7 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, ...visible } = stats;
+  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, equipment: _privateEquipment, ...visible } = stats;
   return profile ? { ...visible, profile, economy } : { ...visible, economy };
 }
 
@@ -1780,13 +1782,15 @@ function publicAccount(account) {
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
   const economy = { ...economySummary(stats), ...(goldEconomy?.enabled ? goldEconomy.wallet(account) : {}) };
+  const profile = publicAccountProfile(account), visible = publicAccountStats(stats);
+  if (visible.deckLibrary) visible.deckLibrary = { ...visible.deckLibrary, decks: visible.deckLibrary.decks.map(deck => ({ ...deck, appearance: profile.equipment.deckBox })) };
   return {
     id: account.id,
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
-    profile: publicAccountProfile(account),
-    stats: { ...publicAccountStats(stats), economy },
+    profile,
+    stats: { ...visible, economy },
     economy,
     progression: progressionSummary(stats),
     collection: collectionSummary(stats),
@@ -2082,6 +2086,7 @@ function getPublicDeckFeaturedArt(deck, limit = 3) {
 
 function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   const stats = account?.stats || {};
+  const appearance = publicAccountProfile(account);
   const library = normalizeDeckLibrary(stats, account?.id);
   const ranked = {
     wins: Number(stats.rankedGamesWon || 0),
@@ -2161,10 +2166,11 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
     displayName: account.name,
     memberSince: account.createdAt,
     lastSeenAt: account.lastSeenAt || null,
-    avatar: publicAccountProfile(account).avatar,
+    avatar: appearance.avatar,
+    equipment: appearance.equipment,
     identity: {
       selectedTitle,
-      selectedTitleName: PROGRESSION_COSMETICS.titles[selectedTitle]?.name || selectedTitle,
+      selectedTitleName: appearance.equipment.title?.name || PROGRESSION_COSMETICS.titles[selectedTitle]?.name || selectedTitle,
       selectedFactionBadge,
       selectedFactionBadgeName: PROGRESSION_COSMETICS.factionBadges[selectedFactionBadge]?.name || selectedFactionBadge,
       selectedCardBack,
@@ -2186,6 +2192,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
     })),
     campaignRecords,
     featuredDecks: library.decks.filter((deck) => deck.featured && !deck.archived).slice(0, 3).map((deck) => ({
+      appearance: appearance.equipment.deckBox,
       id: deck.id,
       name: deck.name,
       factionId: deck.factionId,
@@ -3930,6 +3937,19 @@ async function deckPurchaseCapability() {
   } catch { /* Absence is a capability failure, never permission to debit. */ }
   return { ready: false, reason: "Deck purchases require the account concurrency migration on this service's database." };
 }
+async function equipCosmetic(accountId, input) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Equipment selection requires verified account storage."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
+    const grant = input?.entitlementId === "default" ? null : goldEconomy.access(account, input?.entitlementId).grant;
+    const stats = require("./cosmeticEquipment").prepareSelection(account, input, grant);
+    if (store) { account.stats = stats; saveAccountStore(store); }
+    else await patchSupabaseAccount(accountId, { stats });
+    return publicAccount({ ...account, stats });
+  });
+}
 async function refundDeckProduct(accountId, input, actor) {
   return withCollectorAccountLock(accountId, async () => {
     if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Refunds require verified atomic account storage."), { status: 503 });
@@ -4576,6 +4596,7 @@ app.get("/api/leaderboard", async (req, res) => {
 
 function profileForDeck(player) {
   const profile = clonePlain(player.profile || {}), back = player.savedConstructedDeck?.cardBackId;
+  if (profile.equipment) profile.equipment = require("./cosmeticEquipment").revalidate(profile.equipment, player.accountId && goldEconomy?.enabled ? goldEconomy.accountGrants(player.accountId) : []);
   if (back && PROGRESSION_COSMETICS.cardBacks[back]) profile.cosmetics = { ...profile.cosmetics, selectedCardBack: back };
   return Object.keys(profile).length ? profile : null;
 }
@@ -4886,7 +4907,7 @@ paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publicati
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
 goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: runtimeStorage.paths.economy, publication: contentPublication });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
-  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct,
+  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct, equip: equipCosmetic,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
 function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }
@@ -8210,7 +8231,7 @@ function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPubli
     players[playerNum] = {
       accountId: roomState.lobby.players[playerNum].accountId || null,
       accountName: roomState.lobby.players[playerNum].accountName || null,
-      profile: clonePlain(roomState.lobby.players[playerNum].profile || null),
+      profile: profileForDeck(roomState.lobby.players[playerNum]),
       faction,
       life: BASIC_STARTING_LIFE,
       hand: [],

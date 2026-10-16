@@ -36,6 +36,16 @@ const profile = {
   }]
 };
 
+test("public profile displays server-verified equipment with user-controlled soundtrack playback", () => {
+  const equipment = { title: { name: "Dawn keeper" }, banner: { name: "Dawn banner", url: "/banner.webp" }, music: { name: "Dawn theme", url: "/theme.wav" }, cardBack: { name: "Dawn back", url: "/back.webp" } };
+  const { container } = render(<PublicProfileScreen profile={{ ...profile, equipment, identity: { ...profile.identity, selectedTitleName: equipment.title.name } }} />);
+  expect(screen.getByText("Dawn keeper")).toBeVisible();
+  expect(screen.getByLabelText("Equipped card back: Dawn back").querySelector(".card-back-art")).toHaveStyle({ backgroundImage: "url(/back.webp)" });
+  expect(container.querySelector(".competitive-profile-header").style.backgroundImage).toContain("/banner.webp");
+  expect(screen.getByLabelText("Dawn theme")).toHaveAttribute("controls");
+  expect(screen.getByLabelText("Dawn theme")).not.toHaveAttribute("autoplay");
+});
+
 test("opens a public profile and verified match from Identity", () => {
   const onOpenProfile = jest.fn();
   const onOpenMatch = jest.fn();
