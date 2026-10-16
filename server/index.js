@@ -1760,7 +1760,7 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, ...visible } = stats;
+  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, ...visible } = stats;
   return profile ? { ...visible, profile, economy } : { ...visible, economy };
 }
 
@@ -3930,6 +3930,20 @@ async function deckPurchaseCapability() {
   } catch { /* Absence is a capability failure, never permission to debit. */ }
   return { ready: false, reason: "Deck purchases require the account concurrency migration on this service's database." };
 }
+async function refundDeckProduct(accountId, input, actor) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Refunds require verified atomic account storage."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 404 });
+    const result = require("./accountCommerce").prepareRefund(account, input, actor, { normalizeCollection, normalizeProgression });
+    if (!result.alreadyRefunded) {
+      if (store) { account.stats = result.stats; saveAccountStore(store); }
+      else await patchSupabaseAccount(accountId, { stats: result.stats });
+    }
+    return result.receipt;
+  });
+}
 async function purchaseDeckProduct(accountId, input) {
   return withCollectorAccountLock(accountId, async () => {
     if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Deck purchases are not configured safely yet. No payment was taken."), { status: 503 });
@@ -4872,7 +4886,7 @@ paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publicati
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
 goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: runtimeStorage.paths.economy, publication: contentPublication });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
-  listAccounts: loadStudioAccounts,
+  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
 function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }

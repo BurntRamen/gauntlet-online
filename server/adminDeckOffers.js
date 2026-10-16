@@ -45,6 +45,7 @@ function project(row, templates, releaseId) {
       printingIds: template.composition.cards.map(card => card.printingId), deckBoxId: row.deckBoxId, cardBackId: row.cardBackId,
       savedDeck: "Create and activate a separate saved composition. The previous deck is retained. Future recipe revisions do not rewrite it.",
       duplicates: "Printing counts increase by one. Existing boxes and backs remain unlocked; no duplicate compensation.",
+      refunds: "An operator refund restores the captured price and removes only this purchase's printing and card-back contributions. Independent ownership and saved recipe knowledge are retained. Lifetime purchase limits include refunds.",
       deckBoxAccess: "These three existing box styles are already available to all players; the product selects its configured style." } };
 }
 module.exports = { ORIGIN, BOXES, BACKS, fields, create, errors, project };

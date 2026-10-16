@@ -118,6 +118,16 @@ test("Admin deck → exact shop purchase → player game and campaign → revisi
   const receipts = (await call("/api/economy/deck-receipts", null, accounts[2])).body.receipts; assert.equal(receipts.length, 1); assert.equal(receipts[0].releaseId, firstRelease);
   assert.equal((await call("/api/economy/deck-receipts", null, accounts[0])).body.receipts.length, 0);
   assert.ok(!JSON.stringify(__test.publicAccountStats(stored.stats)).includes(input.requestId));
+  assert.equal(__test.goldEconomy.enabled, false);
+  const twisters = await call("/api/economy/buy-deck-product", { ...input, currency: "timetwisters", requestId: crypto.randomUUID() }, accounts[2]);
+  assert.equal(twisters.status, 200, JSON.stringify(twisters.body));
+  const operations = await call("/api/admin/economy"); assert.equal(operations.status, 200);
+  assert.ok(operations.body.view.forms.some(f => f.action === "refund-deck"), "account refunds remain available without a Gold ledger");
+  const refund = await call("/api/admin/economy/refund-deck", { purchaseRef: `${accounts[2].id}/${twisters.body.receipt.requestId}`, key: crypto.randomUUID(), reason: "Return account purchase without Gold runtime" }, accounts[1]);
+  assert.equal(refund.status, 200, JSON.stringify(refund.body));
+  const restored = (await call("/api/auth/me", null, accounts[2])).body.account;
+  assert.equal(restored.economy.timetwisters, 10); assert.equal(restored.economy.gold, 70); assert.equal(restored.collection.collectorVariants[printing.id], 1);
+  assert.ok(restored.progression.cosmetics.unlockedCardBacks.includes("campaignMap"), "original account Gold purchase ownership remains");
 });
 
 test("malformed compositions, dependency changes, unsupported AI, prices and stale transactions cannot activate", async () => {

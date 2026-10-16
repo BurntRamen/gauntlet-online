@@ -21,13 +21,15 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   if (sale.purchaseLimit && Object.values(economy.purchaseReceipts).filter(receipt => receipt.offerId === offer.id).length >= sale.purchaseLimit) fail(409, "This account has reached the product's lifetime purchase limit, including refunded purchases.");
   const price = offer.prices[input.currency];
   if (!Number.isSafeInteger(price) || price < 0) fail(422, "That currency is not enabled for this product.");
-  if (!Number.isSafeInteger(economy[input.currency])) fail(503, "The account currency needs operator reconciliation before it can be spent.");
+  const recordedBalance = stats.economy?.[input.currency] ?? 0;
+  if (!Number.isSafeInteger(recordedBalance) || recordedBalance < 0) fail(503, "The account currency needs operator reconciliation before it can be spent.");
   if (economy[input.currency] < price) fail(422, `You need ${price} ${input.currency === "gold" ? "Gold" : "Timetwisters"}.`);
   const loadout = resolveComposition(offer.template.composition, resolved.manifest, { channel: "constructed" });
   const collection = normalizeCollection(stats);
   for (const card of loadout.cards) collection.collectorVariants[card.variantId] = Number(collection.collectorVariants[card.variantId] || 0) + 1;
   stats.collection = collection;
   const progression = normalizeProgression(stats);
+  const grant = require("./accountCommerce").captureGrant(stats, progression, loadout, offer.cardBackId);
   progression.cosmetics.unlockedCardBacks = [...new Set([...progression.cosmetics.unlockedCardBacks, offer.cardBackId])];
   if (stats.ledgerProjection) stats.ledgerProjection.baseBacks = [...new Set([...(stats.ledgerProjection.baseBacks || []), offer.cardBackId])];
   stats.progression = progression;
@@ -35,7 +37,7 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   economy[input.currency] -= price;
   economy.totals[input.currency === "gold" ? "goldSpent" : "timetwistersSpent"] += price;
   const receipt = { requestId: input.requestId, offerId: offer.id, revision: offer.revision, currency: input.currency, price, purchasedAt: now, releaseId: resolved.releaseId,
-    template: structuredClone(offer.template), terms: structuredClone(offer.terms), deckId: record.id, versionId: record.currentVersionId };
+    template: structuredClone(offer.template), terms: structuredClone(offer.terms), grant, deckId: record.id, versionId: record.currentVersionId };
   economy.purchaseReceipts[receiptKey] = receipt; stats.economy = economy;
   return { stats, receipt, alreadyPurchased: false };
 }

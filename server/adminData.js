@@ -195,6 +195,7 @@ function createAdminData(deps) {
       source: deps.gold?.enabled ? "Finite Gold ledger owns Gold; account Gold is historical only." : "Account balances",
       gold: deps.gold?.enabled ? null : require("./economy").normalizeEconomy(account.stats).gold,
       timetwisters: require("./economy").normalizeEconomy(account.stats).timetwisters,
+      refunds: account.stats?.accountCommerce?.refunds || [],
       receipts: Object.entries(account.stats?.economy?.purchaseReceipts || {}).filter(([key]) => key.startsWith("deck:")).map(([, receipt]) => receipt),
       premiumReceipts: Object.entries(account.stats?.economy?.purchaseReceipts || {}).filter(([key]) => !key.startsWith("deck:")).map(([, receipt]) => receipt),
       ...(deps.gold?.inspectAccount ? { ledger: deps.gold.inspectAccount(account.id) } : {})

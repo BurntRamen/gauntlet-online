@@ -2,13 +2,15 @@
 const { playerView, adminView, quoteView } = require("./economyViews");
 const { matchAnalysis } = require("./digitalDelivery");
 const { assetEntry } = require("./contentAssets");
-function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts }) {
+function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck }) {
   async function operations() {
-    const data = economy.admin(), accounts = listAccounts ? await listAccounts() : data.accounts;
-    return adminView({ ...data, accountOptions: accounts.map(a => ({ id: a.id, name: a.name || a.id })) });
+    const data = economy.enabled ? economy.admin() : economy.status(), accounts = listAccounts ? await listAccounts() : data.accounts || [];
+    const ledger = adminView({ ...data, accountOptions: accounts.map(a => ({ id: a.id, name: a.name || a.id })) });
+    const account = require("./accountCommerce").adminView(accounts);
+    return { ...ledger, tables: [...(ledger.tables || []), ...account.tables], forms: [...(ledger.forms || []), ...(refundDeck ? account.forms : [])], note: `${ledger.note || ""} Timetwister refunds use the captured receipt and the same atomic account storage as its purchase. Saved recipes remain; refunded printing grants are revoked.` };
   }
   async function reconcile(account) { for (const record of await records(account.id, 100)) economy.ingest(record); }
-  const send = (admin, work) => async (req, res) => {
+  const send = (admin, work, ledgerRequired = true) => async (req, res) => {
     res.set("Cache-Control", "private, no-store");
     try {
       // Namespace middleware supplies only the allowlisted identity projection.
@@ -16,12 +18,18 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
       // by player actions, including when an operator owns a wallet.
       const account = admin ? req.gauntletAdminAccount && await findAccount(req.gauntletAdminAccount.id) : (await requireAccount(req, res))?.account;
       if (!account) { if (!res.headersSent) res.status(403).json({ error: "Admin authorization required." }); return; }
-      if (!economy.enabled) { res.status(req.method === "GET" ? 200 : 503).json({ view: (admin ? adminView : playerView)(economy.status()), error: economy.status().reason }); return; }
+      if (ledgerRequired && !economy.enabled) { res.status(req.method === "GET" ? 200 : 503).json({ view: (admin ? adminView : playerView)(economy.status()), error: economy.status().reason }); return; }
       res.json(await work(account, req));
     } catch (e) { res.status([400, 401, 403, 404, 409, 422].includes(e.status) ? e.status : 503).json({ error: e.status ? e.message : "Gold service unavailable. Retry with the same request key." }); }
   };
   app.get("/api/economy", send(false, async (account) => { await reconcile(account); return { view: playerView(economy.player(account)) }; }));
-  app.get("/api/admin/economy", send(true, async () => ({ view: await operations() })));
+  app.get("/api/admin/economy", send(true, async () => ({ view: await operations() }), false));
+  app.post("/api/admin/economy/refund-deck", send(true, async (actor, req) => {
+    if (!refundDeck || typeof req.body?.purchaseRef !== "string" || !/^[a-f0-9-]{36}\/[a-zA-Z0-9-]{16,80}$/.test(req.body.purchaseRef)) throw Object.assign(new Error("Choose an account Timetwister purchase."), { status: 422 });
+    const [accountId, purchaseId] = req.body.purchaseRef.split("/");
+    const receipt = await refundDeck(accountId, { purchaseId, key: req.body.key, reason: req.body.reason }, actor);
+    return { view: await operations(), notice: `Refund ${receipt.id} restored ${receipt.amount} Timetwisters. ${receipt.cardBackPolicy}.` };
+  }, false));
   for (const action of ["claim", "quote", "purchase"]) app.post(`/api/economy/${action}`, send(false, async (account, req) => {
     if (action === "claim") await reconcile(account);
     const receipt = economy[action](account, req.body);

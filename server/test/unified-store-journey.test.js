@@ -71,6 +71,32 @@ test("one Gold authority: operator product, concurrent receipts, historical pric
   assert.equal(ledger.admin().refunds.length, 1); assert.equal(ledger.player(accounts[2]).transactions.filter(t => t.kind === "opening-balance").length, 1);
   assert.equal((await api("/api/economy/deck-receipts", null, 2)).data.receipts.length, 3);
   const support = await api(`/api/admin/players?q=${accounts[2].id}`, null, 1); assert.equal(support.status, 200); assert.equal(support.data.players[0].commerce.ledger.balance, 60);
+  const twisterRefund = { purchaseRef: `${accounts[2].id}/${twisters.data.receipt.requestId}`, key: crypto.randomUUID(), reason: "Return exact Timetwister purchase after product retirement" };
+  assert.equal((await api("/api/admin/economy/refund-deck", twisterRefund, 2)).status, 403);
+  const operations = await api("/api/admin/economy", null, 0);
+  assert.ok(operations.data.view.forms.find(f => f.action === "refund-deck").fields[0].options.some(([id]) => id === twisterRefund.purchaseRef));
+  const failedBefore = fs.readFileSync(process.env.ACCOUNT_DATA_FILE);
+  fs.writeFileSync(`${process.env.ACCOUNT_DATA_FILE}.lock`, "isolated competing writer");
+  try { assert.equal((await api("/api/admin/economy/refund-deck", twisterRefund, 0)).status, 409); }
+  finally { fs.unlinkSync(`${process.env.ACCOUNT_DATA_FILE}.lock`); }
+  assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), failedBefore, "failed commit cannot credit or revoke partial ownership");
+  const reversed = await Promise.all([api("/api/admin/economy/refund-deck", twisterRefund, 0), api("/api/admin/economy/refund-deck", twisterRefund, 0)]);
+  reversed.forEach(r => assert.equal(r.status, 200, JSON.stringify(r.data)));
+  player = await me(); assert.equal(player.economy.timetwisters, 10); assert.equal(player.economy.gold, 60); assert.equal(player.collection.collectorVariants[printing.id], 1);
+  assert.ok(!player.stats.accountCommerce); assert.ok(!player.stats.operatorAudit);
+  assert.ok(player.progression.cosmetics.unlockedCardBacks.includes("campaignMap"), "active Gold ownership survives Timetwister refund");
+  assert.deepEqual((await buy({ ...revised, currency: "timetwisters" })).data.receipt, twisters.data.receipt, "refunded request retries retain original receipt without granting again");
+  assert.equal((await api("/api/admin/economy/refund-deck", { ...twisterRefund, reason: "Changed refund request" }, 0)).status, 409);
+  assert.equal((await api("/api/admin/economy/refund-deck", { ...twisterRefund, key: crypto.randomUUID() }, 1)).status, 409);
+  const stored = JSON.parse(fs.readFileSync(process.env.ACCOUNT_DATA_FILE)).accounts[2];
+  assert.equal(stored.stats.accountCommerce.refunds.length, 1); assert.equal(stored.stats.operatorAudit.filter(r => r.action === "deck-refund").length, 1);
+  assert.equal(stored.stats.accountCommerce.refunds[0].amount, 5); assert.equal(stored.stats.accountCommerce.refunds[0].actorId, accounts[0].id);
+  const last = await api("/api/admin/economy/operate", { ...refund, key: crypto.randomUUID(), purchaseId: second.data.receipt.ledgerPurchaseId }, 1);
+  assert.equal(last.status, 200, JSON.stringify(last.data));
+  player = await me(); assert.equal(player.economy.gold, 100); assert.equal(player.collection.collectorVariants[printing.id] || 0, 0);
+  assert.ok(!player.progression.cosmetics.unlockedCardBacks.includes("campaignMap"), "all refunded contributions disappear without leaving a phantom base back");
+  const restart = require("node:child_process").spawnSync(process.execPath, ["-e", `const a=require('./server/accountStore').read(process.env.ACCOUNT_DATA_FILE).accounts[2]; if(a.stats.economy.timetwisters!==10||a.stats.accountCommerce.refunds.length!==1) process.exitCode=1;`], { cwd: path.resolve(__dirname, "../.."), env: process.env, encoding: "utf8", windowsHide: true, timeout: 10000 });
+  assert.equal(restart.status, 0, restart.stderr);
 });
 
 test("refund before an account projection write retains recipe knowledge without retaining paid cosmetics", async () => {
