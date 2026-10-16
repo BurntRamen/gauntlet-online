@@ -300,6 +300,7 @@ function makePlayer(number, name, deck, faction = null) {
         commander: sourceFaction.commander || null,
         general: sourceFaction.general || null,
         city: sourceFaction.city || null,
+        ...(Object.hasOwn(sourceFaction, "mechanicFamily") ? { mechanicFamily: clone(sourceFaction.mechanicFamily), origin: sourceFaction.origin, campaignOnly: sourceFaction.campaignOnly } : {}),
         ...(Object.hasOwn(sourceFaction, "mechanics") ? { mechanics: clone(sourceFaction.mechanics) } : {})
       }
     : { id: "rumin", name: "Basic Gauntlet" };

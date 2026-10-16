@@ -30,3 +30,11 @@ test("shared reference controls retain selected archived modifiers and disable n
   expect(screen.getByRole("option", { name: "Archived selected" })).toBeEnabled(); expect(screen.getByRole("option", { name: "Archived other" })).toBeDisabled();
   expect(screen.getByRole("combobox", { name: "Draft rules" })).toHaveValue("one");
 });
+
+test("faction creation uses only the backend-qualified rules families", () => {
+  const onCreate = jest.fn();
+  render(<CatalogControls domain="factions" creation={{ domain: "factions" }} value={{ name: "Glass dynasty" }} state={{ ...state, factionFamilies: [{ id: "rumin", name: "Rumin" }] }} onCreate={onCreate} onEdit={jest.fn()} />);
+  expect(screen.getByRole("combobox", { name: "Rules family" })).toHaveValue("rumin");
+  fireEvent.click(screen.getByRole("button", { name: "Save new faction to draft" }));
+  expect(onCreate).toHaveBeenCalledWith({ domain: "factions", name: "Glass dynasty", family: "rumin" });
+});

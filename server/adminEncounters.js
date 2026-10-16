@@ -9,14 +9,14 @@ const fields = {
   order: { label: "Additional encounter order", type: "integer", min: 1, max: 1000, mechanical: true, note: "Additional encounters follow the original campaign chapters. Their order is unique within this campaign; existing source chapter order and rewards are retained." }
 };
 const fail = message => { throw Object.assign(new Error(message), { status: 422 }); };
-function create(snapshot, input, editable) {
+function create(snapshot, input, editable, initialTemplate) {
   if (!input || Object.keys(input).some(key => !["domain", "name", "campaignId", "sourceId"].includes(key)) || typeof input.name !== "string" || !input.name.trim() || input.name.length > 160 || /[\x00-\x1f]/.test(input.name)) fail("Use an encounter name of 1–160 characters and a supported campaign.");
   const source = input.sourceId && snapshot.domains.encounters.find(row => row.id === input.sourceId);
   if (input.sourceId && !source) fail("The encounter to duplicate is unavailable.");
   const campaign = snapshot.domains.campaigns.find(row => row.id === (source?.campaignId || input.campaignId));
   if (!campaign) fail("Choose an existing campaign.");
   if (snapshot.domains.encounters.filter(row => row.origin === ORIGIN).length >= 100) fail("The release supports at most 100 additional encounters.");
-  const template = source || snapshot.domains.encounters.find(row => row.campaignId === campaign.id);
+  const template = source || initialTemplate || snapshot.domains.encounters.find(row => row.campaignId === campaign.id);
   if (!template?.setup) fail("This campaign has no qualified encounter template.");
   const id = `auth-encounter-${crypto.randomUUID()}`;
   const row = { id, origin: ORIGIN, campaignId: campaign.id, factionId: campaign.factionId, deckId: "standard", opponentId: `${id}:opponent`, nextEncounterId: null, branches: [],

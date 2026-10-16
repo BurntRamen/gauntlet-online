@@ -5653,7 +5653,7 @@ function emitLobbyState(roomState) {
     gameMode: getLobbyGameMode(roomState),
     players,
     ranked: Boolean(roomState.ranked),
-    factions: getPublicGameContent().factions.filter((faction) => !faction.draftRules || !isFreeForAllRoom(roomState)),
+    factions: getPublicGameContent().factions.filter((faction) => !faction.campaignOnly && (!faction.draftRules || !isFreeForAllRoom(roomState))),
     spectatorCount: roomState.lobby.spectators.length
   });
 }
@@ -7914,6 +7914,10 @@ function createGameFromLobby(roomState, options = {}) {
   const modifierId = options.ruleModifierId || roomState.lobby.campaign?.ruleModifierId;
   const ruleModifier = modifierId && resolvedContent.manifest.ruleModifiers?.find(row => row.definition.id === modifierId);
   if (modifierId && (!ruleModifier || (!options.isolatedPlaytest && !roomState.lobby.campaign) || isFreeForAllRoom(roomState))) throw Object.assign(new Error("Select a published modifier for a campaign or isolated test."), { status: 422 });
+  for (const player of Object.values(roomState.lobby.players)) {
+    const faction = resolvedContent.factions[player.factionId];
+    if (faction?.origin === "admin-faction-v1" && (isFreeForAllRoom(roomState) || !options.isolatedPlaytest && (!roomState.lobby.campaign || faction.status === "archived"))) throw Object.assign(new Error("Authored factions are available only in active campaigns or isolated engine tests."), { status: 422 });
+  }
   // Recheck queued/cached decks against this game's release, before changing
   // the room. A publication may have changed legality while players waited.
   // The private harness also needs to test cards before they become legal.
@@ -7931,8 +7935,14 @@ function createGameFromLobby(roomState, options = {}) {
         gameNumber: roomState.bestOf3Series?.gameNumber || 1
       });
   const gameMode = getLobbyGameMode(roomState);
-  const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId, roomState.lobby.players[1].generalId);
-  const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId, roomState.lobby.players[2].generalId);
+  const factionFor = player => {
+    const faction = clonePlain(resolvedContent.factions[player.factionId]);
+    if (player.generalId && faction?.generals) faction.general = faction.generals.find(g => g.id === player.generalId);
+    if (!faction || player.generalId && faction.general?.id !== player.generalId) throw Object.assign(new Error("Choose a valid faction and General from this match's release."), { status: 422 });
+    return faction;
+  };
+  const faction1 = gameMode === "basic" ? basicGameProfile : factionFor(roomState.lobby.players[1]);
+  const faction2 = gameMode === "basic" ? basicGameProfile : factionFor(roomState.lobby.players[2]);
   const matchId = roomState.matchMetadata?.matchId || `room-${roomState.roomCode}`;
   const seed = String(options.seed || `${matchId}:game:${roomState.bestOf3Series?.gameNumber || 1}`);
   const random = createSharedSeededRandom(seed);
@@ -8112,6 +8122,7 @@ function createGameFromLobby(roomState, options = {}) {
 }
 
 function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPublication.active()) {
+  if (Object.values(roomState.lobby.players).some(p => resolvedContent.factions[p.factionId]?.origin === "admin-faction-v1")) throw Object.assign(new Error("Authored factions do not support Free-For-All."), { status: 422 });
   // V1 authored mechanics use the two-seat priority/target contract. Reject
   // unsupported decks before creating any multiplayer state or evidence.
   for (const player of Object.values(roomState.lobby.players)) {

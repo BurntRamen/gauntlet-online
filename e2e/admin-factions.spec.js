@@ -1,0 +1,28 @@
+const { test, expect } = require("./admin-release-test");
+const fs = require("node:fs"), path = require("node:path");
+test("operator creates and configures a new faction, publishes it and plays its campaign", async ({ page }) => {
+  test.setTimeout(180000);
+  const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json")))["simply"];
+  await page.goto("/admin/gauntlet"); await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), token); await page.goto("/admin/gauntlet?workshop=factions");
+  await page.getByRole("button", { name: "Create faction", exact: true }).click(); await page.getByLabel("New content name").fill("Glass Dynasty");
+  await expect(page.getByRole("combobox", { name: "Rules family" })).toHaveValue("rumin");
+  let pending = page.waitForResponse(r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new faction to draft", exact: true }).click();
+  const result = await (await pending).json(), faction = result.draft.snapshot.domains.factions.at(-1), encounter = result.draft.snapshot.domains.encounters.at(-1);
+  await page.getByLabel("Parameters Fourth Attack Bonus", { exact: true }).fill("6");
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save faction mechanics to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  await page.goto("/admin/gauntlet?workshop=characters&object=" + faction.id + ":commander"); await page.getByLabel("Draft name", { exact: true }).fill("Glass Marshal");
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save name to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
+  const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
+  page.once("dialog", d => d.accept()); pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start " + encounter.title + " playtest", exact: true }).click();
+  const session = (await (await pending).json()).playtest; expect(session.game.players[1].faction.id).toBe(faction.id); expect(session.game.players[1].faction.commander.name).toBe("Glass Marshal");
+  expect(session.game.players[1].faction.mechanics.parameters.fourthAttackBonus).toBe(6);
+  await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(session.legalActions.find(a => a.type === "passPriority").id);
+  pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Glass Dynasty campaign"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await page.goto("/"); await page.locator('button[data-area="journey"]').click(); await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click(); await page.getByRole("tab", { name: /^Glass Dynasty/ }).click();
+  const chapter = page.locator(".campaign-chapter").filter({ has: page.getByRole("heading", { name: encounter.title, exact: true }) }); await expect(chapter.getByRole("button", { name: "Begin Battle", exact: true })).toBeEnabled();
+  await chapter.screenshot({ path: "artifacts/phase2-faction-campaign.png" }); await chapter.getByRole("button", { name: "Begin Battle", exact: true }).click();
+  await expect(page.getByTestId("production-babylon-match")).toBeVisible(); await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
+  await expect(page.getByText("Glass Marshal", { exact: true }).first()).toBeVisible(); await page.screenshot({ path: "artifacts/phase2-faction-real-match.png" });
+});

@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import MechanicStudio from "./MechanicStudio";
 import contract from "@gauntlet/duel-rules/mechanicContract";
 const definition = { id: "mechanic-11111111-1111-4111-8111-111111111111", name: "Recovery", interpreter: 1, status: "active", cardTypes: ["spell"], abilities: [contract.ability("activate")] };
-const state = { writable: true, capabilities: { mechanicStudio: 1, ruleModifiers: 1 }, live: { studio: { mechanics: [definition] } }, studio: { definitions: [{ ...definition, usedBy: [{ id: "card", name: "New spell" }] }] } };
+const state = { guide: { help: require("../../../server/adminHelpTopics.json") }, writable: true, capabilities: { mechanicStudio: 1, ruleModifiers: 1 }, live: { studio: { mechanics: [definition] } }, studio: { definitions: [{ ...definition, usedBy: [{ id: "card", name: "New spell" }] }] } };
 test("guided costs and primitive bounds prevent invalid saves and preserve unsaved editing", () => {
   const dirty = jest.fn(), act = jest.fn().mockResolvedValue(false);
   render(<MechanicStudio state={state} initialId={definition.id} act={act} onDirty={dirty} />);

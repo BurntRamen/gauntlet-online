@@ -1,3 +1,4 @@
+import { factionMechanicId } from "@gauntlet/duel-rules/effectRegistry";
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
 import { getPlayingCardArtPath } from "../cardArt";
@@ -437,7 +438,7 @@ export class LocalDuelAdapter {
     const actor = this.game.players[this.controller];
     const attackNumber = Number(actor?.turnData?.attacksDeclaredThisTurn || 0) + 1;
     const available = (
-      actor?.faction?.id === "rumin"
+      factionMechanicId(actor) === "rumin"
       && ["handAttack", "laneAttack"].includes(this.selection.kind)
       && attackNumber === 3
       && actor.turnData.ruminFreeThirdReady

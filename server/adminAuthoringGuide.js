@@ -1,6 +1,9 @@
 "use strict";
 // Operator guidance travels with the private authoring projection and its contracts.
 module.exports = {
+  "immutableAsset": "Choose an existing immutable asset.",
+  "catalogField": "Save this configuration to the shared draft; publishing applies it to future games.",
+  "identityLock": "Published identity and deck slot are retained. Duplicate this card to change them.",
   help: require("./adminHelpTopics.json"),
   "validationPassed": "Validation passed. All values use supported content contracts.",
   "previewPurpose": "Presentation preview. Use the separate Live or Saved draft engine test to exercise mechanics. Only an exact saved-draft preview counts toward publication.",

@@ -15,14 +15,14 @@ const fields = {
   status: { label: "Template discovery", type: "choice", options: ["active", "archived"] }
 };
 function manifestFor(snapshot) {
-  return { cards: snapshot.domains.cards, collectorVariants: snapshot.domains.assets.map(({ id, ...row }) => row), factions: Object.values(registry.factionsData) };
+  return { cards: snapshot.domains.cards, collectorVariants: snapshot.domains.assets.map(({ id, ...row }) => row), factions: Object.values(require("./adminFactions").resolve(snapshot)) };
 }
 function create(snapshot, input) {
   const source = input.sourceId && snapshot.domains.decks.find(row => row.id === input.sourceId);
   if (input.sourceId && !source) throw Object.assign(new Error("The template to duplicate is unavailable."), { status: 422 });
   const encounter = source?.plan?.encounterId && snapshot.domains.encounters.find(row => row.id === source.plan.encounterId);
   const factionId = source?.composition?.factionId || encounter?.factionId || input.factionId;
-  const faction = registry.factionsData[factionId];
+  const faction = require("./adminFactions").resolve(snapshot)[factionId];
   if (!faction) throw Object.assign(new Error("Choose an existing faction for this template."), { status: 422 });
   const composition = source?.composition || { factionId, generalId: faction.general?.id || null,
     cards: (encounter?.setup?.bossAdditions || []).map(cardId => ({ cardId, printingId: snapshot.domains.cards.find(row => row.id === cardId)?.defaultVariantId })) };

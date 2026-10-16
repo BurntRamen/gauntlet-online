@@ -336,3 +336,34 @@ test("additional encounters publish into actual campaign unlock, AI, progression
   const incompatible = await call("/rollback", { expectedRevision: status.revision, releaseId: beforeRelease }); assert.ok(incompatible.status >= 400);
   await mutate("/rollback", { releaseId: published }); assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), true);
 });
+
+test("a new faction publishes into a real campaign with independent roles, captured rules and enforced mode boundaries", async () => {
+  let status = (await call()).body;
+  const before = status.activeReleaseId;
+  const mutate = async (route, input, method) => { const response = await call(route, { expectedRevision: status.revision, ...input }, accounts[0], method); assert.equal(response.status, 200, JSON.stringify(response.body)); status = response.body; return status; };
+  await mutate("/create", { domain: "factions", name: "Glass dynasty", family: "rumin" });
+  const faction = status.draft.snapshot.domains.factions.at(-1), encounter = status.draft.snapshot.domains.encounters.at(-1);
+  assert.equal(status.validation.valid, true);
+  await mutate("/draft", { domain: "characters", id: `${faction.id}:commander`, field: "name", value: "Glass Marshal" }, "PATCH");
+  await mutate("/draft", { domain: "factions", id: faction.id, field: "mechanics", value: { ...faction.mechanics, parameters: { fourthAttackBonus: 6 } } }, "PATCH");
+  let response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "encounter", id: encounter.id } }); assert.equal(response.status, 200, JSON.stringify(response.body));
+  const session = response.body.playtest; assert.equal(session.game.players[1].faction.id, faction.id); assert.equal(session.game.players[1].faction.commander.name, "Glass Marshal");
+  response = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(response.status, 200, JSON.stringify(response.body)); status = response.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Glass campaign" }); const first = status.activeReleaseId, resolved = __test.contentPublication.active();
+  assert.equal(resolved.manifest.campaigns[faction.id].chapters[0].id, encounter.id); assert.equal(__test.isCampaignChapterUnlocked({}, faction.id, encounter.id), true);
+  const room = () => ({ roomCode: "authored-faction", lobby: { gameMode: "factions", players: { 1: { factionId: faction.id }, 2: { factionId: faction.id } } } });
+  const campaign = room(); __test.prepareCampaignRoom(campaign, resolved, faction.id, encounter.id); __test.createGameFromLobby(campaign, { contentRelease: resolved, seed: "glass-campaign" });
+  const pinned = JSON.stringify(campaign.game); assert.equal(campaign.game.players[1].faction.mechanics.parameters.fourthAttackBonus, 6);
+  assert.equal(campaign.game.contentBinding.factionFamilyVersion, "gauntlet.faction-families.v1");
+  const ordinary = room(), unchanged = JSON.stringify(ordinary); assert.throws(() => __test.createGameFromLobby(ordinary), /active campaigns/); assert.equal(JSON.stringify(ordinary), unchanged);
+  assert.throws(() => __test.createFreeForAllGameFromLobby(room()), /do not support Free-For-All/);
+  const stats = {}; __test.applyProgressionForResult(stats, "win", { factionId: faction.id, campaign: campaign.game.campaign }); assert.ok(stats.progression.campaign[faction.id].includes(encounter.id));
+  await mutate("/draft", { domain: "factions", id: faction.id, field: "status", value: "archived" }, "PATCH");
+  response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "faction", id: faction.id } }); assert.equal(response.status, 200, JSON.stringify(response.body));
+  const archivedTest = response.body.playtest;
+  response = await call("/playtest/command", { id: archivedTest.id, gameRevision: archivedTest.game.revision, command: { type: "passPriority", player: archivedTest.game.priority } }); assert.equal(response.status, 200); status = response.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Retired Glass campaign" });
+  assert.equal(__test.contentPublication.active().manifest.campaigns[faction.id], undefined); assert.equal(JSON.stringify(campaign.game), pinned); assert.equal(__test.isCampaignChapterUnlocked(stats, faction.id, encounter.id), false);
+  assert.ok((await call("/rollback", { expectedRevision: status.revision, releaseId: before })).status >= 400);
+  await mutate("/rollback", { releaseId: first }); assert.equal(__test.isCampaignChapterUnlocked(stats, faction.id, encounter.id), true);
+});

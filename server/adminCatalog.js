@@ -38,6 +38,7 @@ function exact(value, keys) { return value && typeof value === "object" && !Arra
 function flags(value, keys) { return exact(value, keys) && keys.every(k => typeof value[k] === "boolean"); }
 function validText(value, max, required = true) { return typeof value === "string" && value.length <= max && (!required || value.trim()) && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value); }
 function createObject(snapshot, input) {
+  if (input?.domain === "factions") { upgrade(snapshot); return require("./adminFactions").create(snapshot, input, require("./authoredContent").FIELDS.encounters); }
   if (input?.domain === "encounters") { upgrade(snapshot); return require("./adminEncounters").create(snapshot, input, require("./authoredContent").FIELDS.encounters); }
   if (["decks", "offers"].includes(input?.domain)) {
     if (Object.keys(input).some(key => !["domain", "name", "sourceId", "factionId", "templateId"].includes(key)) || !validText(input.name, 80)) fail("Use a name of 1–80 characters and supported creation fields.");
@@ -76,7 +77,7 @@ function createObject(snapshot, input) {
     text: source?.text || registry.getGameplayCardById(effect.legacyCardId)?.text || "",
     freeAcquisition: registry.FREE_GAMEPLAY_ACQUISITION, defaultVariantId: `${id}:standard`,
     effect: source?.effect && source.effect.id === effect.id ? clone(source.effect) : { id: effect.id, version: effect.version, parameters: Object.fromEntries(Object.entries(effect.parameters).map(([k, rule]) => [k, rule.default])) },
-    availability: defaultAvailability(), status: "active" };
+    availability: { ...defaultAvailability(), ...(snapshot.domains.factions.some(f => f.id === (input.factionId || source?.factionId) && f.origin === "admin-faction-v1") ? { constructed: false } : {}) }, status: "active" };
   const art = input.art || snapshot.domains.assets.find(v => v.id === source?.defaultVariantId)?.art || registry.getCollectorVariantById(`${effect.legacyCardId}:standard`)?.art;
   if (composedSource) row.effect = clone(source.effect);
   if (mechanic) { row.effect = { id: "authored-mechanic", version: 1, mechanicId }; row.text = require("../shared/duel-rules/mechanicContract").explain(mechanic); }
@@ -97,11 +98,11 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
     const ids = new Set(originals.map(row => row.id));
     legacy.domains[domain] = snapshot.domains[domain].filter(row => ids.has(row?.id));
     added[domain] = snapshot.domains[domain].filter(row => !ids.has(row?.id));
-    if (!["cards", "assets", "decks", "encounters", "characters"].includes(domain) && added[domain].length) issue(domain, null, "id", "Creation is not supported for this domain yet.");
+    if (!["cards", "assets", "decks", "encounters", "characters", "factions", "campaigns"].includes(domain) && added[domain].length) issue(domain, null, "id", "Creation is not supported for this domain yet.");
   }
   const authoredEncounters = require("./adminEncounters");
-  for (const domain of ["encounters", "characters"]) for (const row of added[domain]) if (row?.origin !== authoredEncounters.ORIGIN) issue(domain, row?.id, "id", "Choose the supported additional encounter contract.");
-  errors.push(...authoredEncounters.errors(snapshot, require("./authoredContent").FIELDS.encounters));
+  for (const domain of ["encounters", "characters", "factions", "campaigns"]) for (const row of added[domain]) if (!(domain === "encounters" ? [authoredEncounters.ORIGIN] : domain === "characters" ? [authoredEncounters.ORIGIN, "admin-faction-v1"] : ["admin-faction-v1"]).includes(row?.origin)) issue(domain, row?.id, "id", "Choose the supported additional encounter contract.");
+  errors.push(...authoredEncounters.errors(snapshot, require("./authoredContent").FIELDS.encounters), ...require("./adminFactions").errors(snapshot));
   // Legacy reference validation sees the full card and presentation index below.
   const old = validateLegacy(legacy, baseline, snapshot.domains.cards);
   errors.push(...old.errors.filter(e => !(e.message?.startsWith("Broken cards reference:") || e.message?.startsWith("Broken assets reference:")))); warnings.push(...old.warnings);
@@ -118,10 +119,11 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
     if (Object.hasOwn(row, "flavor")) { keys.push("flavor"); if (!validText(row.flavor, 1000, false)) issue("cards", row.id, "flavor", "Flavor text must be at most 1,000 characters."); }
     if (!exact(row, keys) || !/^auth-card-[a-f0-9-]{36}$/.test(row.id) || row.origin !== "admin-v1" || row.gameplayCardId !== row.id || row.defaultVariantId !== `${row.id}:standard` || row.freeAcquisition !== registry.FREE_GAMEPLAY_ACQUISITION) issue("cards", row.id, "id", "Unsupported or modified card identity contract.");
     for (const [key, max] of [["name", 160], ["text", 2000]]) if (!validText(row[key], max)) issue("cards", row.id, key, `Use nonempty text up to ${max} characters.`);
-    for (const key of ["factionId", "type", "rarity", "suit", "status"]) if (!cardFields[key].options.includes(row[key])) issue("cards", row.id, key, "Choose a supported value.");
+    for (const key of ["factionId", "type", "rarity", "suit", "status"]) if (!(key === "factionId" ? [...cardFields.factionId.options, ...snapshot.domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => f.id)] : cardFields[key].options).includes(row[key])) issue("cards", row.id, key, "Choose a supported value.");
     if (!Number.isInteger(row.value) || !registry.PLAYING_DECK_VALUES.includes(row.value) || row.replacementSuit !== row.suit) issue("cards", row.id, "value", "A card must occupy a valid printed value and fixed suit slot.");
     if (!effects.validateCardEffect(row.effect, row)) issue("cards", row.id, "effect", "Choose a compatible faction/type effect and its declared parameter bounds. Custom scripts and undeclared costs, targets or triggers are unsupported.");
     if (row.effect?.id === composition.ID && composition.validate(row.effect, row) && row.text !== explain(row.effect, row)) warnings.push({ domain: "cards", id: row.id, field: "text", message: "Printed wording differs from the generated mechanics explanation. Review it after every mechanical edit; arbitrary prose is not verified as equivalent." });
+    if (snapshot.domains.factions.some(f => f.id === row.factionId && f.origin === "admin-faction-v1") && (row.effect?.id !== "authored-mechanic" || ["constructed", "earnedPacks", "draft", "sealed"].some(key => row.availability?.[key]))) issue("cards", row.id, "availability", "Authored campaign factions support authored mechanics, library display and encounter additions only. Competitive and pack channels require separate qualification.");
     if (!flags(row.availability, availabilityKeys)) issue("cards", row.id, "availability", "Configure visibility, legality and each acquisition channel separately.");
     if (!variants.has(row.defaultVariantId)) issue("cards", row.id, "defaultVariantId", "A free standard printing is required.");
     if (!snapshot.domains.sets.some(s => Array.isArray(s?.members) && s.members.includes(row.id))) issue("cards", row.id, "availability", "Keep at least one set membership, including for archived cards.");
@@ -162,7 +164,7 @@ function rollbackProblem(live, target) {
   if (mechanicProblem) return mechanicProblem;
   const competitionProblem = require("./competitionConfig").retainedProblem(live.competition, target.competition);
   if (competitionProblem) return competitionProblem;
-  for (const domain of ["cards", "assets", "sets", "decks", "offers", "encounters", "characters"]) for (const row of live.domains[domain] || []) {
+  for (const domain of ["cards", "assets", "sets", "decks", "offers", "encounters", "characters", "factions", "campaigns"]) for (const row of live.domains[domain] || []) {
     const previous = target.domains[domain]?.find(r => r.id === row.id);
     if (!previous) return `Cannot restore: ${row.name || row.id} would lose its published identity. Publish a compatible retirement release instead; collections and decks must remain resolvable.`;
     if (domain === "assets" && row.gameplayCardId !== previous.gameplayCardId) return "Cannot restore a printing bound to another gameplay card.";

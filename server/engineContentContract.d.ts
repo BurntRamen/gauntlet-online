@@ -17,6 +17,10 @@ export interface CardPresentation {
   readonly presentation: PublishedCardPresentation;
 }
 export interface FactionPresentation {
+  readonly origin?: "admin-faction-v1";
+  readonly family?: "rumin";
+  readonly status?: "active" | "archived";
+  readonly mechanicFamily?: { readonly version: 1; readonly id: "rumin" };
   readonly id: string;
   readonly name: string;
   readonly cardImage: string;

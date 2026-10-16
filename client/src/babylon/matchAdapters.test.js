@@ -385,12 +385,12 @@ test("Hera is an explicit payment choice with a visible +2 preview", () => {
   adapter.dispose();
 });
 
-test("Meerus is an explicit free-attack choice and does not silently spend itself", () => {
+test.each([false, true])("registered-family third-attack payment stays an explicit production control (authored=%s)", authored => {
   const adapter = createLocalDuelAdapter({
     seed: "adapter-meerus",
     gameMode: "factions",
     factions: {
-      1: { id: "rumin", name: "Rumin" },
+      1: authored ? { id: "auth-faction-11111111-1111-4111-8111-111111111111", name: "Glass dynasty", origin: "admin-faction-v1", campaignOnly: true, mechanicFamily: { version: 1, id: "rumin" }, mechanics: { id: "imperial-rhythm", version: 1, parameters: { fourthAttackBonus: 5 } } } : { id: "rumin", name: "Rumin" },
       2: { id: "rumin", name: "Rumin" }
     }
   });

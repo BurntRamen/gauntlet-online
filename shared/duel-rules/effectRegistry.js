@@ -51,15 +51,16 @@ function validateFactionMechanics(mechanics, factionId) {
   return !!mechanics && Object.keys(mechanics).sort().join() === "id,parameters,version" && mechanics.id === definition.id
     && mechanics.version === definition.version && validateParameters(mechanics.parameters, definition.parameters);
 }
+const { mechanicFamily } = require("./factionFamilyContract");
 function factionMechanicId(player) {
   const faction = player?.faction;
   if (!faction || !Object.hasOwn(faction, "mechanics")) return faction?.id || "basic";
-  return validateFactionMechanics(faction.mechanics, faction.id) && faction.mechanics ? faction.id : "basic";
+  return validateFactionMechanics(faction.mechanics, mechanicFamily(faction)) && faction.mechanics ? mechanicFamily(faction) : "basic";
 }
 function factionParameter(player, key) {
   const faction = player?.faction;
   const mechanics = faction && Object.hasOwn(faction, "mechanics") ? faction.mechanics : defaultFactionMechanics(faction?.id);
-  return validateFactionMechanics(mechanics, faction?.id) ? mechanics?.parameters[key] ?? 0 : 0;
+  return validateFactionMechanics(mechanics, mechanicFamily(faction)) ? mechanics?.parameters[key] ?? 0 : 0;
 }
 module.exports = { CARD_EFFECT_CONTRACT_VERSION, FACTION_EFFECT_CONTRACT_VERSION, cardEffect, hasCardEffect, cardParameter,
   defaultCardEffect, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,

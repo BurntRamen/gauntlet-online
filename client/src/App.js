@@ -1,3 +1,4 @@
+import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
 import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import "./AppLayouts.css";
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -6119,7 +6120,7 @@ export default function App() {
       : 0;
   const meerusFreeAttackApplies =
     activeAttackCard &&
-    me?.faction?.id === "rumin" &&
+    mechanicFamily(me?.faction) === "rumin" &&
     (me?.turnData?.attacksDeclaredThisTurn || 0) === 2 &&
     me?.turnData?.meerusFreeAttackAvailable &&
     getCardNumericValue(activeAttackCard) <= 3;
