@@ -26,6 +26,7 @@ function deriveRelationships(snapshot) {
   };
   for (const [domain, rows] of Object.entries(snapshot.domains)) for (const row of rows) add(domain, row.id, objectLabel(row));
   for (const row of require("./adminPrintings").editions(snapshot)) add("sets", row.id, row.name, { sourceControlled: row.origin !== "admin-v1" });
+  for (const row of snapshot.studio?.modifiers || []) add("rule-modifiers", row.id, row.name);
   for (const row of snapshot.studio?.mechanics || []) add("mechanics", row.id, row.name);
   for (const row of cardAuthoringDefinitions()) add("card-effects", row.id, row.label);
   for (const row of Object.values(factionEffectDefinitions())) add("faction-effects", row.id, row.id);
@@ -50,6 +51,7 @@ function deriveRelationships(snapshot) {
       for (const [field, target, kind] of [["campaignId", "campaigns", "campaign"], ["opponentId", "characters", "opponent"], ["deckId", "decks", "deck-template"], ["nextEncounterId", "encounters", "next-encounter"]]) link(from, target, row[field], kind);
       for (const side of ["player", "boss"]) for (const id of list(row.setup?.[`${side}Additions`])) link(from, "cards", id, `${side}-addition`);
       link(from, "encounter-mechanics", row.setup?.bossAbility?.id, "uses-ability");
+      if (row.ruleModifierId) link(from, "rule-modifiers", row.ruleModifierId, "uses-modifier");
     }
     if (domain === "cards") {
       // A composition belongs to this card, not a shared mutable handler.

@@ -37,6 +37,7 @@ const FIELDS = {
 
 FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechanical: true, abilityIds: encounterContract.bossAbilityIds, rules: encounterAuthoring.rules, abilityLabels: encounterAuthoring.abilityLabels, note: "Save setup, ability and card additions together. Displayed ability text does not change the selected rule. Timing and routing are read-only." };
 FIELDS.encounters.opponentDeckId = { label: "Authored opponent deck", type: "deck-reference", maxLength: 180, required: false, defaultValue: "", mechanical: true, note: "Replaces the opponent composition. Clear legacy boss additions first. Setup, scripted attacks, progression and rewards stay separate." };
+FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type: "modifier-reference", maxLength: 80, required: false, defaultValue: "", mechanical: true, note: "Optional campaign override. Its player/opponent life and hand size replace encounter life and global hand size. Standard and official competitions are unaffected." };
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row) {
@@ -240,6 +241,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(row => row.origin === require("./adminDecks").ORIGIN ? require("./adminDecks").project(row) : { id: row.id, name: row.name, description: row.description, legacy: true });
   manifest.deckOffers = (domains.offers || []).map(row => require("./adminDeckOffers").project(row, manifest.deckTemplates, releaseId));
+  if (snapshot.studio?.modifiers) manifest.ruleModifiers = snapshot.studio.modifiers.map(definition => ({ definition: clone(definition), revision: hash(definition) }));
   if (snapshot.competition) manifest.competition = clone(snapshot.competition);
   manifest.contentVersion = releaseId;
   manifest.presentationAssets = Object.fromEntries(require("./presentationAssetManifest.json").map(row => [row.source, row.path]));

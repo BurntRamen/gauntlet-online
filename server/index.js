@@ -4897,7 +4897,7 @@ const adminPlaytests = createAdminPlaytests({ publication: contentPublication, c
         room.lobby.players[1].savedConstructedDeck = { cards: loadout.cards, templateId: template.id, templateRevision: template.revision };
       }
     }
-    createGameFromLobby(room, { contentRelease: resolved, isolatedPlaytest: true, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
+    createGameFromLobby(room, { contentRelease: resolved, isolatedPlaytest: true, ruleModifierId: selection.ruleModifierId, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
     return room.game;
   }
 });
@@ -7872,6 +7872,7 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
   roomState.lobby.campaign = {
     ...(opponentTemplate ? { opponentTemplate: { id: opponentTemplate.id, revision: opponentTemplate.revision, name: opponentTemplate.name, composition: clonePlain(opponentTemplate.composition) } } : {}),
     setup: clonePlain(chapter.setup),
+    ...(chapter.ruleModifierId ? { ruleModifierId: chapter.ruleModifierId } : {}),
     factionId,
     chapterId,
     title: chapter.title,
@@ -7905,6 +7906,9 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
 function createGameFromLobby(roomState, options = {}) {
   const resolvedContent = options.contentRelease || roomState.draft?.resolvedContent || contentPublication.active();
   if (!options.contentRelease && roomState.draft?.contentVersion && roomState.draft.contentVersion !== resolvedContent.releaseId) throw Object.assign(new Error("This limited session has no recoverable release binding. Its pool is retained; restore its original content before starting a match."), { code: "CONTENT_LIMITED_RELEASE_UNAVAILABLE", status: 422 });
+  const modifierId = options.ruleModifierId || roomState.lobby.campaign?.ruleModifierId;
+  const ruleModifier = modifierId && resolvedContent.manifest.ruleModifiers?.find(row => row.definition.id === modifierId);
+  if (modifierId && (!ruleModifier || (!options.isolatedPlaytest && !roomState.lobby.campaign) || isFreeForAllRoom(roomState))) throw Object.assign(new Error("Select a published modifier for a campaign or isolated test."), { status: 422 });
   // Recheck queued/cached decks against this game's release, before changing
   // the room. A publication may have changed legality while players waited.
   // The private harness also needs to test cards before they become legal.
@@ -8076,14 +8080,6 @@ function createGameFromLobby(roomState, options = {}) {
     eventLog: []
   };
   
-  for (const p of [1, 2]) {
-    for (let i = 0; i < resolvedContent.manifest.gameConfig.handSize; i++) {
-      if (game.players[p].deck.length > 0) {
-        game.players[p].hand.push(game.players[p].deck.pop());
-      }
-    }
-  }
-  
   pinGameContent(game, resolvedContent);
   if (roomState.lobby.campaign) {
     game.campaign = clonePlain(roomState.lobby.campaign);
@@ -8092,14 +8088,17 @@ function createGameFromLobby(roomState, options = {}) {
     game.players[2].life = game.campaign.bossLife;
     game.players[2].opponentKind = "campaign-boss";
   }
+  if (ruleModifier) require("../shared/duel-rules/ruleModifierContract").apply(game, ruleModifier, roomState.lobby.campaign ? "campaign" : "test");
+  for (const player of [1, 2]) for (let i = 0; i < game.config.handSize; i++) if (game.players[player].deck.length) game.players[player].hand.push(game.players[player].deck.pop());
   if (game.players[2]?.opponentKind === "training-ai") game.players[2].accountName = resolvedContent.manifest.trainingOpponent.name;
   roomState.game = game;
   captureLeagueEvidence(game, {
     command: { type: "matchStarted" },
     events: [
       { id: `${matchId}:match-started`, type: "match.started" },
-      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: resolvedContent.manifest.gameConfig.handSize },
-      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: resolvedContent.manifest.gameConfig.handSize },
+      ...(ruleModifier ? [{ id: `${matchId}:modifier`, type: "ruleModifier.applied", ruleModifier: clonePlain(game.ruleModifier), message: require("../shared/duel-rules/ruleModifierContract").explain(ruleModifier.definition) }] : []),
+      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: game.config.handSize },
+      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: game.config.handSize },
       { id: `${matchId}:initial-priority`, type: "priority.granted", player: startingPriority }
     ],
     timestamp: roomState.matchMetadata?.startedAt || new Date().toISOString()

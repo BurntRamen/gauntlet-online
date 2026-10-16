@@ -49,5 +49,15 @@
   "EncounterWorkshop1": "Starting life and scripted attacks. Attack progression offset changes the attack sequence; it does not reorder chapters.",
   "EncounterWorkshop2": "Select a supported ability and its parameters. Ability wording is presentation; the selected rule controls behavior.",
   "EncounterWorkshop3": "Each selected card adds one copy. Up to 12 different cards per side, from this encounter’s faction.",
-  "GauntletPlaytest1": "Select a card to test this effect, or open the encounter that owns this mechanic."
+  "GauntletPlaytest1": "Select a card to test this effect, or open the encounter that owns this mechanic.",
+  "ruleModifier": "Create reusable starting-state rules for campaign encounters and isolated engine tests. Assign a saved modifier in Encounter → Opponent / Setup. Publishing changes future games; captured games retain their life, hand size and modifier revision. Standard, Ranked, Para and Free-For-All do not adopt these modifiers.",
+  "CardWorkshopNote1": "Preview the saved draft to see its resolved card face.",
+  "CardWorkshopNote2": "Save local values before validating or testing them.",
+  "CardWorkshopNote3": "Select a card to edit it and open its test workspace.",
+  "DeckWorkshopNote1": "Standard unselected slots remain in the 52-card inventory.",
+  "EngineWorkshopNote1": "No cards currently use this effect in this source.",
+  "OfferWorkshopNote1": "Save valid fields to preview the actual store presentation.",
+  "PrintingWorkshopNote1": "Resolve the current fields before selecting another printing.",
+  "ReleaseReviewNote1": "Review saved changes together before they reach future games.",
+  "EncounterWorkshopNote1": "Setup, mechanics and card additions save together below."
 }

@@ -32,6 +32,7 @@ function compareSnapshots(live, draft) {
         const child = parts.at(-1), path = parts.join("."), fieldLabel = parts.length === 1 ? spec.label : labels[child] || child;
         const display = (value, snapshot) => {
           if (domain === "decks" && child === "cards" && Array.isArray(value)) return value.map(selection => `${snapshot.domains.cards.find(card => card.id === selection.cardId)?.name || selection.cardId} · ${snapshot.domains.assets.find(printing => printing.id === selection.printingId)?.name || selection.printingId}`);
+          if (spec.type === "modifier-reference") return snapshot.studio?.modifiers?.find(m => m.id === value)?.name || "Standard encounter setup";
           if (spec.type === "deck-reference") return snapshot.domains.decks.find(deck => deck.id === value)?.name || value || "Existing scripted deck";
           if (["playerAdditions", "bossAdditions"].includes(child) && Array.isArray(value)) return value.map(id => snapshot.domains.cards.find(card => card.id === id)?.name || id);
           if (spec.type === "printing-edition") return require("./adminPrintings").editions(snapshot).find(set => set.id === value)?.name || value;
@@ -50,8 +51,9 @@ function compareSnapshots(live, draft) {
     }
   }
   for (const change of require("./mechanicAuthoring").changes(live.studio, draft.studio)) {
-    const before = live.studio?.mechanics.find(row => row.id === change.id), after = draft.studio.mechanics.find(row => row.id === change.id);
-    groups.get("Mechanics").changes.push({ ...change, path: change.field, before: before ? require("../shared/duel-rules/mechanicContract").explain(before) : "New mechanic", after: require("../shared/duel-rules/mechanicContract").explain(after), scope: "All referencing cards use this revision in future games. Captured games and historical evidence retain their original interpreter and definition." });
+    const kind = change.domain.split(":")[1], contract = require("./mechanicAuthoring").kinds[kind];
+    const before = live.studio?.[kind]?.find(row => row.id === change.id), after = draft.studio[kind].find(row => row.id === change.id);
+    groups.get("Mechanics").changes.push({ ...change, path: change.field, before: before ? contract.explain(before) : "New Studio definition", after: contract.explain(after), scope: "Referencing cards or encounters use this revision in future games. Captured games retain their original interpreter and definition." });
   }
   const para = require("./paraLeague");
   const previous = live.paraLeague || para.emptyConfig(), next = draft.paraLeague || para.emptyConfig();

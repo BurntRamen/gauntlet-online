@@ -15,7 +15,7 @@ test("membership search keeps existing selections and availability changes only 
   fireEvent.change(screen.getByRole("searchbox"), { target: { value: "Second" } });
   fireEvent.click(screen.getByRole("checkbox", { name: /Second/ }));
   expect(onChange).toHaveBeenLastCalledWith(["one", "two"]);
-  view.rerender(<CatalogField definition={{ type: "catalog-flags", label: "Availability", keys: ["library", "constructed", "earnedPacks"] }} value={{ library: true, constructed: true, earnedPacks: false }} onChange={onChange} />);
+  view.rerender(<CatalogField definition={{ type: "catalog-flags", label: "Availability", labels: require("../../../server/catalogFlagLabels.json"), keys: ["library", "constructed", "earnedPacks"] }} value={{ library: true, constructed: true, earnedPacks: false }} onChange={onChange} />);
   fireEvent.click(screen.getByLabelText("Eligible for existing earned packs"));
   expect(onChange).toHaveBeenLastCalledWith({ library: true, constructed: true, earnedPacks: true });
 });

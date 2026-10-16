@@ -162,7 +162,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       privateNotes: clone(state.privateNotes || {}),
       deckFactions: Object.values(require("./gameContent").factionsData).map(({ id, name, campaignOnly, general, generals, commander, city }) => ({ id, name, campaignOnly, general, generals, commander, city })),
       printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
-      fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, fieldsFor(domain, row)]))])),
+      fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, Object.fromEntries(Object.entries(fieldsFor(domain, row)).map(([key, spec]) => [key, spec.type === "catalog-flags" ? { ...spec, labels: require("./catalogFlagLabels.json") } : spec]))]))])),
       releases: Object.values(state.releases).map(({ snapshot, assetPackage, ...release }) => ({ ...release, compatible: compatible({ snapshot }), rollbackBlocked: catalog.rollbackProblem(live.snapshot, snapshot) })),
       activations: clone(state.activations).reverse(),
       para: { fields: paraLeague.FIELDS, templates: Object.fromEntries(Object.keys(paraLeague.FIELDS).map((key) => [key, paraLeague.newDefinition(key)])),
@@ -292,26 +292,27 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const config = (state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).paraLeague || paraLeague.emptyConfig();
     return { revision: state.revision, ...paraLeague.simulate(config, input) };
   }
-  function studioDraft({ expectedRevision, operation, id, value, sourceId }, actorId) {
+  function studioDraft({ expectedRevision, operation, id, value, sourceId, kind = "mechanics" }, actorId) {
     return transaction(expectedRevision, state => {
+      if (!Object.hasOwn(mechanicStudio.kinds, kind)) fail(400, "Choose a supported Studio registry.");
       state.draft ||= { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), previewedHash: null };
-      const config = state.draft.snapshot.studio ||= mechanicStudio.empty(), rows = config.mechanics;
+      const config = state.draft.snapshot.studio ||= mechanicStudio.empty(), rows = config[kind] ||= [];
       if (operation === "create" || operation === "duplicate") {
         const source = rows.find(row => row.id === sourceId);
-        if (operation === "duplicate" && !source) fail(404, "Choose an existing mechanic to duplicate.");
-        if (rows.length >= 100) fail(422, "The release supports at most 100 mechanic definitions.");
-        rows.push(mechanicStudio.create(source));
+        if (operation === "duplicate" && !source) fail(404, "Choose an existing definition to duplicate.");
+        if (rows.length >= 100) fail(422, "The release supports at most 100 definitions per Studio registry.");
+        rows.push(mechanicStudio.create(source, kind));
       } else {
         const index = rows.findIndex(row => row.id === id);
-        if (index < 0) fail(404, "Mechanic not found.");
+        if (index < 0) fail(404, "Definition not found.");
         if (operation === "archive") rows[index].status = "archived";
         else if (operation === "update" && value?.id === id) {
-          const errors = require("../shared/duel-rules/mechanicContract").errors(value);
+          const errors = mechanicStudio.kinds[kind].errors(value);
           if (errors.length) fail(422, errors.join(" "));
           rows[index] = clone(value);
-        } else fail(400, "Choose a supported mechanic operation.");
+        } else fail(400, "Choose a supported Studio operation.");
       }
-      state.draft.previewedHash = null; state.draft.playtestedHash = null;
+      Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
   function competitionDraft({ expectedRevision, operation, domain, id, value, sourceId }, actorId) {

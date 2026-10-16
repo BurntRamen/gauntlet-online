@@ -16,13 +16,17 @@ function selectionFor(resolved, body) {
   if (!subject) subject = body.encounterId ? { kind: "encounter", id: body.encounterId } : { kind: "game-config", id: "shared-rules" };
   if (!subject || typeof subject !== "object" || Array.isArray(subject) || Object.keys(subject).some(key => !["kind", "id", "cardId", "printingId"].includes(key)) || typeof subject.id !== "string") fail(422, "Choose a supported test subject.");
   const selection = { ...body }, cards = resolved.manifest.cards;
-  delete selection.templateId;
+  delete selection.templateId; delete selection.ruleModifierId;
   let label, factionId;
   if (subject.kind === "encounter") {
     const entry = Object.entries(resolved.manifest.campaigns).find(([, campaign]) => campaign.chapters.some(chapter => chapter.id === subject.id));
     if (!entry || body.encounterId && body.encounterId !== subject.id) fail(422, "The test encounter does not match its subject.");
     factionId = entry[0]; label = entry[1].chapters.find(chapter => chapter.id === subject.id).title; selection.encounterId = subject.id;
     if (body.scenario) fail(422, "Encounter tests use their authored setup. Open the custom rules harness for a custom board.");
+  } else if (subject.kind === "rule-modifier") {
+    const modifier = resolved.manifest.ruleModifiers?.find(row => row.definition.id === subject.id);
+    if (!modifier || body.scenario) fail(422, "Choose a saved modifier and use its captured starting state.");
+    label = modifier.definition.name; selection.ruleModifierId = subject.id;
   } else if (subject.kind === "deck") {
     const template = resolved.manifest.deckTemplates?.find(row => row.id === subject.id && row.composition);
     if (!template?.destinations.practice) fail(422, "Choose a template enabled for practice in this release.");

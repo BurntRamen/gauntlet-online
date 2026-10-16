@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import CardWorkshop from "./CardWorkshop";
+import { HelpProvider } from "./AuthoringHelp";
+const wrapper = ({ children }) => <HelpProvider value={require("../../../server/adminHelpTopics.json")}>{children}</HelpProvider>;
 
 jest.mock("../SpecialCardFace", () => ({ __esModule: true, default: ({ card }) => <p data-testid="card-face">{card.name} · {card.suit} · {card.presentation?.illustration}</p> }));
 const card = { id: "spear", name: "Coin Spear", factionId: "rumin", type: "weapon", rarity: "rare", value: 6, text: "Old wording", effect: { id: "spear-effect", version: 1, parameters: { armBonus: 2 } }, defaultVariantId: "spear-first" };
@@ -24,7 +26,7 @@ test("keeps wording separate from mechanics and previews resolved suit and colle
 
 test("unsaved artwork prevents silently switching its owner and has no fabricated preview", () => {
   const data = state(); delete data.previewContent;
-  render(<CardWorkshop row={card} state={data} field={() => null} unsaved />);
+  render(<CardWorkshop row={card} state={data} field={() => null} unsaved />, { wrapper });
   expect(screen.getByLabelText("Collector version")).toBeDisabled();
   expect(screen.queryByTestId("card-face")).not.toBeInTheDocument();
   expect(screen.getByText(/Preview the saved draft/)).toBeVisible();

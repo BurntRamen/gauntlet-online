@@ -263,3 +263,37 @@ test("Free-For-All rejects two-player authored mechanics before creating match s
   assert.throws(() => __test.createFreeForAllGameFromLobby(room, resolved), /two-player authored mechanic/);
   assert.deepEqual(room, before);
 });
+
+test("rule modifiers publish, drive actual campaign creation, refill and stay pinned across revisions", async () => {
+  let status = (await call()).body;
+  const mutate = async (route, input, method) => { const result = await call(route, { expectedRevision: status.revision, ...input }, accounts[0], method); assert.equal(result.status, 200, JSON.stringify(result.body)); status = result.body; return result.body; };
+  await mutate("/studio-draft", { kind: "modifiers", operation: "create" });
+  let modifier = structuredClone(status.draft.snapshot.studio.modifiers[0]); Object.assign(modifier, { name: "Tense opening", playerLife: 25, opponentLife: 61, handSize: 5 });
+  await mutate("/studio-draft", { kind: "modifiers", operation: "update", id: modifier.id, value: modifier });
+  assert.equal(status.draft.updatedBy, accounts[0].id);
+  const encounter = status.draft.snapshot.domains.encounters.find(e => e.factionId === "rumin");
+  await mutate("/draft", { domain: "encounters", id: encounter.id, field: "ruleModifierId", value: modifier.id }, "PATCH");
+  const started = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "rule-modifier", id: modifier.id } }); assert.equal(started.status, 200, JSON.stringify(started.body));
+  let session = started.body.playtest; assert.equal(session.game.players[1].life, 25); assert.equal(session.game.players[2].life, 61); assert.equal(session.game.players[1].hand.length, 5);
+  const action = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(action.status, 200, JSON.stringify(action.body)); status = action.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Campaign modifier one" }); const first = status.activeReleaseId, resolved = __test.contentPublication.active();
+  const room = () => ({ roomCode: "modifier-engine", lobby: { gameMode: "factions", players: { 1: { factionId: "rumin" }, 2: { factionId: "rumin" } } } });
+  const campaign = room(); __test.prepareCampaignRoom(campaign, resolved, "rumin", encounter.id); __test.createGameFromLobby(campaign, { contentRelease: resolved, seed: "modifier-start" });
+  assert.equal(campaign.game.players[1].life, 25); assert.equal(campaign.game.players[2].life, 61); assert.equal(campaign.game.config.handSize, 5); assert.equal(campaign.game.players[1].hand.length, 5);
+  const pinned = JSON.stringify(campaign.game); const regular = room(); __test.createGameFromLobby(regular, { contentRelease: resolved }); assert.equal(regular.game.players[1].life, 42); assert.equal(regular.game.players[1].hand.length, resolved.manifest.gameConfig.handSize); assert.equal(regular.game.ruleModifier, undefined);
+  assert.throws(() => __test.createGameFromLobby(room(), { contentRelease: resolved, ruleModifierId: modifier.id }), /campaign or isolated test/);
+  modifier.handSize = 4; modifier.playerLife = 30;
+  await mutate("/studio-draft", { kind: "modifiers", operation: "update", id: modifier.id, value: modifier });
+  const draft = __test.contentPublication.playtestContent(status.revision); let tested = require("../../shared/duel-rules").createMatch({ ruleModifier: draft.resolved.manifest.ruleModifiers.find(m => m.definition.id === modifier.id) }).state;
+  assert.equal(tested.players[1].hand.length, 4); assert.equal(tested.players[1].life, 30);
+  const refillRules = require("../../shared/duel-rules");
+  tested.players[1].discard.push(tested.players[1].hand.pop());
+  const perform = command => { const result = refillRules.applyCommand(tested, command); assert.equal(result.accepted, true, result.rejectionReason); tested = result.state; };
+  perform({ type: "passPriority", player: tested.priority }); perform({ type: "passPriority", player: tested.priority });
+  while (tested.phase === "end") perform({ type: "skipPlacement", player: refillRules.currentPlacementPlayer(tested), laneIndex: tested.endPlacementLaneIndex });
+  assert.equal(tested.players[1].hand.length, 4, "the ordinary turn transition refills to the captured modifier size");
+  __test.contentPublication.recordPlaytest(draft.draftHash, accounts[0].id); status = __test.contentPublication.status(); await mutate("/preview", {}); await mutate("/publish", { label: "Campaign modifier two" });
+  assert.equal(JSON.stringify(campaign.game), pinned); assert.equal(JSON.parse(pinned).ruleModifier.definition.handSize, 5);
+  const future = room(); __test.prepareCampaignRoom(future, __test.contentPublication.active(), "rumin", encounter.id); __test.createGameFromLobby(future); assert.equal(future.game.players[1].hand.length, 4);
+  await mutate("/rollback", { releaseId: first }); assert.equal(__test.contentPublication.active().manifest.ruleModifiers[0].definition.handSize, 5);
+});

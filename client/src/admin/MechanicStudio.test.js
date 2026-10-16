@@ -20,7 +20,20 @@ test("existing card references lead to real card editing and tests; archive requ
   const act = jest.fn().mockResolvedValue(false), inspect = jest.fn(), testCard = jest.fn();
   render(<MechanicStudio state={state} initialId={definition.id} act={act} onDirty={jest.fn()} onInspect={inspect} onTest={testCard} />);
   fireEvent.click(screen.getByRole("button", { name: "New spell" })); expect(inspect).toHaveBeenCalledWith("cards", "card");
-  fireEvent.click(screen.getByRole("button", { name: "Test New spell in engine" })); expect(testCard).toHaveBeenCalledWith("card");
+  fireEvent.click(screen.getByRole("button", { name: "Test New spell in engine" })); expect(testCard).toHaveBeenCalledWith("card", "cards");
   const confirm = jest.spyOn(window, "confirm").mockReturnValue(false); fireEvent.click(screen.getByRole("button", { name: "Archive mechanic" })); expect(act).not.toHaveBeenCalled();
   confirm.mockReturnValue(true); fireEvent.click(screen.getByRole("button", { name: "Archive mechanic" })); expect(act).toHaveBeenCalledWith("studio-draft", { operation: "archive", id: definition.id }); confirm.mockRestore();
+});
+test("modifier editor validates real starting rules and keeps engine buttons outside the saving form", () => {
+  const row = { id: "modifier-11111111-1111-4111-8111-111111111111", name: "Short game", status: "active", interpreter: 1, playerLife: 25, opponentLife: 61, handSize: 5 };
+  const act = jest.fn().mockResolvedValue(false), start = jest.fn();
+  render(<MechanicStudio kind="modifiers" state={{ writable: true, live: { studio: { modifiers: [row] } } }} initialId={row.id} act={act} onDirty={jest.fn()} playtest={<button onClick={start}>Start engine test</button>} />);
+  expect(screen.queryByText("Compatible card types")).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Starting and refill hand size"), { target: { value: "2" } });
+  expect(screen.getByRole("button", { name: "Save modifier to draft" })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Starting and refill hand size"), { target: { value: "4" } });
+  fireEvent.click(screen.getByRole("button", { name: "Start engine test" })); expect(start).toHaveBeenCalledTimes(1); expect(act).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "Start engine test" }).closest("form")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Save modifier to draft" }));
+  expect(act).toHaveBeenCalledWith("studio-draft", { kind: "modifiers", operation: "update", id: row.id, value: { ...row, handSize: 4 } });
 });

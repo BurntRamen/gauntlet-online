@@ -17,7 +17,7 @@ Status columns are independent: a local test does not establish production readi
 | Reusable declarative mechanics | Engine interpreter, strict V1 schema, shared catalog, guided CRUD, card attachment, release diffs and captured versions | 447 server / 751 client tests; browser creation → engine → publication, mobile accessibility | Two-player interpreter qualified locally; deployment/storage prerequisites remain | No | FFA interpreter is explicitly unavailable |
 | New card identities | Existing Card Workshop plus reusable mechanics, unique IDs and explicit acquisition channels | Catalog, publication and browser new-card engine journey | Qualified local authoring; full acquisition → multiplayer journey remains | No | Full player deck acquisition journey |
 | Mechanic structural revision | Same release authority; definition hash and interpreter pinned into every game | Real attack before/after revision, captured match unchanged, restart and compatible rollback | Qualified local release behavior | No | Future production activation |
-| Rule modifiers | Not yet extended | No | No | No | Next dependency phase |
+| Rule modifiers | Shared Studio CRUD, captured V1 rules, explicit encounter assignment, actual engine setup/refill | Contract, recovery, HTTP publication/revision/rollback, guided editor and full browser publication journey | Local scope only until full regression qualification | No | Campaign and isolated tests only; broader variants require explicit engine support |
 | New factions / encounters | Existing definition editing retained | Baseline tests | Existing scope only | Existing source content only | Extend creation and real consumers |
 | Cosmetic equipment | Existing exact printing/deck product delivery retained | Baseline tests | Existing scope only | Existing supported selections only | Remaining ownership/selection/display destinations |
 | Timetwister refunds | Not yet extended | No | No | No | Receipt contribution and audited reversal contract |
@@ -78,3 +78,19 @@ No additional payment choice is needed now: the provider adapter is the agreed s
 - Operator help now comes from the existing private server guide projection through one shared Help provider, aligning deployed contract explanations and avoiding repeated bundled prose. No code or functionality is hidden from budget attribution.
 - The V1 interpreter is two-player only. Free-For-All rejects affected decks before creating match state; standard source cards and existing FFA behavior remain covered by regression tests. Extending it requires explicit multiplayer target contracts and engine hooks.
 - Structural card identity, exact printings, acquisition channels and historical versions are retained. Creation still grants no ownership. Remaining full player acquisition/deck and later commerce journeys are not claimed complete by this milestone.
+
+## Rule modifier workflow and traceability
+
+Content → Engine / Rules → Rule modifiers uses the same shared draft and review workflow as mechanics. Create a definition, set player/opponent starting life and starting/refill hand size, then save. Select the definition to test the captured starting state in the real engine. In an encounter’s Opponent / Setup section, explicitly select the saved modifier and save that assignment. Test the exact final draft, preview, review and publish. Archival retains references and captured games, while excluding the definition from new selections.
+
+The `studio.modifiers` catalog is authoritative. `ruleModifierContract` validates its bounded V1 definition. The compiler records a definition hash; production campaign creation captures the rule before the opening draw, and the ordinary engine turn transition consumes its hand-size configuration. Standard, Ranked, Para and FFA games cannot select these modifiers. Revisions and rollback affect future campaign matches; already-started games keep their original life and refill configuration.
+
+Evidence: `rule-modifiers.test.js` rejects unknown fields, unsupported versions, invalid bounds, duplicate application and ineligible scopes without mutation; serialized match recovery produces the same next turn. `content-publication-routes.test.js` creates, assigns, tests and publishes through authorized HTTP routes, then creates actual campaign matches, verifies refill, revises, and rolls back without changing a prior match. The Studio test verifies invalid-save prevention and independent engine buttons.
+
+## Rule-modifier milestone qualification
+
+- Two focused contract/recovery tests passed. The HTTP campaign creation/revision/rollback/refill journey passed. Thirteen focused Studio/Engine/Encounter UI tests passed.
+- Both guided browser journeys passed (`artifacts/phase2-modifier-browser.log`): reusable mechanic → new card → actual engine → publication, and modifier → encounter assignment → actual engine → publication. The second journey verifies the assignment in the public compiled encounter.
+- Client regression: 751 of 752 passed initially; the sole failure was a fixture missing the shared help provider. The corrected two-case Card Workshop suite passed (`phase2-modifier-client-repair.log`). Server regression is running against this milestone; its final result will be recorded after completion.
+- Production build/lint and unchanged bundle gates passed: Admin **62,348 / 62,464 bytes**, player **740,603 / 771,072 bytes**, main 168.4/180 KiB, entry 17.3/20 KiB, largest async 274.2/350 KiB. Creation forms and engine category navigation are consolidated; labels/help come from the private authoritative field/guide projection.
+- Screenshot: `artifacts/phase2-rule-modifier.png`. No code was deployed, pushed, merged, or published to production.

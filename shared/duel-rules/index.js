@@ -434,6 +434,7 @@ function createMatch(options = {}) {
     event(game, "deck.shuffled", { player: 1 }),
     event(game, "deck.shuffled", { player: 2 })
   ];
+  if (options.ruleModifier) require("./ruleModifierContract").apply(game, options.ruleModifier, "test");
   drawToHandSize(game, 1, events);
   drawToHandSize(game, 2, events);
   indela.revealOmens(game, startingPriority, events, event);

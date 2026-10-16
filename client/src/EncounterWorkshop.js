@@ -22,7 +22,7 @@ export function EncounterSetupFields({ value, onChange, ...props }) {
     <section aria-label="Opponent setup controls"><h5>Opponent / Setup</h5><Help className="admin-note" topic="EncounterWorkshop1" />{render(baseKeys)}</section>
     <section aria-label="Encounter mechanics controls"><h5>Mechanics</h5><Help className="admin-note" topic="EncounterWorkshop2" />{render(["bossAbility"])}{value?.bossAbility?.id && <button type="button" onClick={() => props.onInspect?.("encounter-mechanics", value.bossAbility.id)}>Inspect this encounter rule</button>}</section>
     <section aria-label="Encounter card additions controls"><h5>Deck / Cards</h5><Help className="admin-note" topic="EncounterWorkshop3" />{render(["playerAdditions", "bossAdditions"])}</section>
-    <p className="admin-note">Setup, mechanics and card additions save together below.</p>
+    <Help className="admin-note" topic="EncounterWorkshopNote1" />
   </div>;
 }
 
@@ -90,7 +90,7 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
     {row && <><div className="workshop-editor" hidden={["preview", "test"].includes(group)}>
       <section hidden={group !== "story"} id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</section>
       <section hidden={group !== "setup"} id="workshop-setup" tabIndex={-1}><h4>Opponent / Setup</h4><p>Opponent: {opponent ? <button type="button" onClick={() => onInspect("characters", opponent.id)}>{opponent.name}</button> : "Not recorded"}<br />Effective player faction: {faction ? <button type="button" onClick={() => onInspect("factions", faction.id)}>{faction.name}</button> : "Not recorded"}</p>
-        {field("opponentDeckId")}{row.opponentDeckId && <button type="button" onClick={() => onInspect("decks", row.opponentDeckId)}>Inspect assigned opponent recipe</button>}
+        {field("ruleModifierId")}{field("opponentDeckId")}{row.opponentDeckId && <button type="button" onClick={() => onInspect("decks", row.opponentDeckId)}>Inspect assigned opponent recipe</button>}
         {field("setup", { renderContract: (props) => <EncounterSetupFields {...props} /> })}
         <details><summary>Technical · identity and routing</summary><pre className="admin-protected">{JSON.stringify({ encounter: row.id, campaign: row.campaignId, opponent: row.opponentId, deck: row.deckId, nextEncounter: row.nextEncounterId, branches: row.branches }, null, 2)}</pre></details>
       </section>
