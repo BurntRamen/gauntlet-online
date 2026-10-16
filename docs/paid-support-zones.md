@@ -70,7 +70,7 @@ Final commands and results are recorded in `paid-support-test-results.md`. The r
 | Engine/authority tests | `server/test/paid-support.test.js`, `paid-support-authority.test.js`, `deployment-diagnostics.test.js` |
 | Client tests | `client/src/babylon/paidSupport.test.jsx`, `basicGauntletRules.test.js`, `matchAdapters.test.js` |
 | Historical equivalence | `scripts/content-equivalence-scenarios.js` (explicit v11 pin; golden fixture unchanged) |
-| Browser tests and runner | `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `playwright.support.config.js`, `package.json` |
+| Browser tests and runner | `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `e2e/babylon-live.spec.js`, `playwright.support.config.js`, `package.json` |
 | Release checks | `.github/workflows/pull-request.yml` (runs paid-support browser coverage) |
 | Bundle budget | `scripts/check-build-budgets.js`, `scripts/check-build-budgets.test.js` (explicit +5 KiB player / +1 KiB Admin allocation for this feature; every chunk remains counted) |
 | Review evidence | `docs/paid-support-zones.md`, `docs/paid-support-test-results.md` |

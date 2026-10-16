@@ -46,6 +46,8 @@ Later full server runs while the compiler/browser suite was active hit `ECONNRES
 
 ## Bundle allocation
 
+Release CI at `cc3979e` passed all **424 server tests**, **735 client tests**, build/budgets, the **43-case default browser suite** (3 existing opt-in skips), **3 support cases**, **6 draft cases**, **5 workshop cases** and **1 collector case**. Its usability gate found two instances of the same missing ARIA group role and an obsolete fallback-container assertion. The named control groups now have explicit roles. The fallback test now verifies the v12 React table, no WebGL canvas, the original match ID and a successful authoritative pass command. The support control unit test also asserts its accessible group name. No accessibility rule or command assertion was disabled.
+
 The pre-feature limits failed at **757.3 KiB player JavaScript** (753 KiB limit) and **48.7 KiB aggregate Admin JavaScript** (48 KiB limit). The feature explicitly allocates **+5 KiB player** and **+1 KiB Admin** in `scripts/check-build-budgets.js`, with boundary tests updated. All chunks remain counted, including shared Economy chunks in both relevant totals. No assets were excluded to pass the gate.
 
 Final measured build: main **175.5/180 KiB**, largest asynchronous chunk **285.8/350 KiB**, player **757.4/758 KiB**, Admin entry **20.0/20 KiB**, all Admin **48.7/49 KiB**. Final output is retained at `artifacts/paid-support/final-build`; it was compiled with `node scripts/build.js` from `client`, using an isolated `BUILD_PATH`, then the repository's WebGL pruning and bundle-accounting functions. This avoids replacing the bundle while the regression browser server is using it.

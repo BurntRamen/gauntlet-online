@@ -39,7 +39,7 @@ export default function AccessibleMatchControls({
         <p role="status" aria-live="polite">
           {interactionStatus || viewModel?.instruction || "Waiting for match state."}
         </p>
-            <div className="babylon-accessible-control-row" aria-label="Support Zone inspection">
+            <div className="babylon-accessible-control-row" role="group" aria-label="Support Zone inspection">
               {viewModel.lanes.flatMap(lane => [["Your", lane.localSupport, lane.hasLocalSupport], ["Opponent", lane.opponentSupport, lane.hasOpponentSupport]].filter(([, , occupied]) => occupied).map(([owner, card]) => (
                 <button type="button" key={`${lane.id}-${owner}-support`} disabled={!card?.visible}
                   onClick={() => commands.inspectCard?.(card.raw)}>
@@ -50,7 +50,7 @@ export default function AccessibleMatchControls({
         {!spectator && (
           <>
             {!!viewModel.interactions.abilities?.length && (
-              <div className="babylon-accessible-control-row" aria-label="Faction abilities">
+              <div className="babylon-accessible-control-row" role="group" aria-label="Faction abilities">
                 {viewModel.interactions.abilities.map((ability) => (
                   <button
                     type="button"
@@ -147,7 +147,7 @@ export default function AccessibleMatchControls({
               </ul>
             )}
             {["polea-buff", "focus-buff"].includes(viewModel.selection.abilityMode?.abilityId) && (
-              <div className="babylon-accessible-control-row" aria-label="Active attack targets">
+              <div className="babylon-accessible-control-row" role="group" aria-label="Active attack targets">
                 {(viewModel.attacks || [])
                   .filter((attack) => attack.owner === viewModel.perspective.player)
                   .map((attack) => (

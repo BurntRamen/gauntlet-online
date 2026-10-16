@@ -45,6 +45,7 @@ test("accessible controls expose named support targets, payment, optional choice
   fireEvent.click(screen.getByRole("button", { name: "Support Zone 3" }));
   a.activateHandCard(1); await a.confirmCurrentAction();
   view.rerender(<AccessibleMatchControls viewModel={a.createUpdate().viewModel} commands={a.commands} />);
+  expect(screen.getByRole("group", { name: "Support Zone inspection" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /Your Support Zone 3: deckhand-diver/ })).toBeInTheDocument();
   a.dispose();
 });
