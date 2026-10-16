@@ -49,6 +49,10 @@ function compareSnapshots(live, draft) {
       visit(fieldValue(original, field, spec), fieldValue(row, field, spec), [field]);
     }
   }
+  for (const change of require("./mechanicAuthoring").changes(live.studio, draft.studio)) {
+    const before = live.studio?.mechanics.find(row => row.id === change.id), after = draft.studio.mechanics.find(row => row.id === change.id);
+    groups.get("Mechanics").changes.push({ ...change, path: change.field, before: before ? require("../shared/duel-rules/mechanicContract").explain(before) : "New mechanic", after: require("../shared/duel-rules/mechanicContract").explain(after), scope: "All referencing cards use this revision in future games. Captured games and historical evidence retain their original interpreter and definition." });
+  }
   const para = require("./paraLeague");
   const previous = live.paraLeague || para.emptyConfig(), next = draft.paraLeague || para.emptyConfig();
   const group = { id: "para-economy", label: "Para League & Economy", category: "Para League & Economy", changes: [] };

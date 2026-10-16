@@ -12,6 +12,8 @@ const astralVanguard = require("./astralVanguard");
 const effects = require("./effects");
 const compositionContract = require("./compositionContract");
 const compositionRuntime = require("./compositionRuntime");
+const mechanicRuntime = require("./mechanicRuntime");
+const mechanicContract = require("./mechanicContract");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
@@ -205,6 +207,22 @@ function drawExtraCards(game, playerNumber, count, source, events) {
       source
     }));
   }
+}
+
+function mechanicApi(game, events, player) {
+  return { emit: (type, detail) => events.push(event(game, type, detail)),
+    draw: (owner, amount, source) => drawExtraCards(game, owner, amount, source, events),
+    acceleration: (owner, amount, source) => {
+      if (amount > 0) gainAcceleration(game, owner, amount, source, null, events);
+      else {
+        const spent = Math.min(Number(game.players[owner].accelerationCounters || 0), -amount);
+        game.players[owner].accelerationCounters -= spent;
+        events.push(event(game, "acceleration.spent", { player: owner, amount: spent, source }));
+      }
+    },
+    bonus: (card, amount, source, sourceId) => addTemporaryBonus(card, amount, source, game, sourceId),
+    payment: (ids, required, excluded) => validatePayment(game.players[player], ids, required, excluded),
+    pay: ids => removeCardsFromHand(game.players[player], ids, game.players[player].discard) };
 }
 
 function createTurnData() {
@@ -785,10 +803,11 @@ function attackPaymentRequirement(player, card, useMeerusFreeAttack = false, gam
   const indelaAdjustment = game ? indela.paymentAdjustment(game, player.id) : { amount: 0, reduction: 0, tax: 0 };
   const platusTax = game ? gracus.attackTax(game, player.id) : 0;
   return {
-    required: Math.max(0, cardValue(card) - taxRoadReduction + indelaAdjustment.amount + platusTax),
+    required: Math.max(0, cardValue(card) - taxRoadReduction + indelaAdjustment.amount + platusTax - (game ? mechanicRuntime.paymentReduction(game, player.id, card) : 0)),
     freeAttackUsed: false,
     meerusEligible,
     reductions: [
+      ...(game && mechanicRuntime.paymentReduction(game, player.id, card) ? [{ source: card.name, amount: mechanicRuntime.paymentReduction(game, player.id, card), mechanicId: card.effect.mechanicId }] : []),
       ...(taxRoadReduction ? [{ source: "Insider's Javelin", amount: 1 }] : []),
       ...(indelaAdjustment.reduction ? [{ source: "Indela odd omen", amount: indelaAdjustment.reduction }] : [])
     ],
@@ -1460,6 +1479,7 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     gainAcceleration(game, playerNumber, 2, "Interference Matrix", notes, events);
     player.turnData.biziPrimeSignalAvailable = Math.min(4, player.accelerationCounters);
   }
+  if (isSupportCard(card)) mechanicRuntime.trigger(game, playerNumber, card, "placed", {}, mechanicApi(game, events));
   events.push(event(game, "laneEntry.resolved", {
     player: playerNumber,
     laneIndex,
@@ -1572,7 +1592,7 @@ function pendingAttack(game) {
 function resolveAttack(game, attack, laneIndex, events, trace) {
   const defender = attack.targetPlayer;
   const blockValue = (attack.block || []).reduce((sum, block) => sum + block.effectiveValue, 0);
-  const prevented = (attack.block || []).reduce((sum, block) => sum + Number(block.preventDamage || 0), 0);
+  const prevented = (attack.block || []).reduce((sum, block) => sum + Number(block.preventDamage || 0), 0) + Number(attack.mechanicPrevention || 0);
   const damage = Math.max(0, attack.effectiveValue - blockValue - prevented);
   const before = game.players[defender].life;
   game.players[defender].life -= damage;
@@ -1670,6 +1690,8 @@ function resolveAttack(game, attack, laneIndex, events, trace) {
       laneIndex
     }));
   }
+  mechanicRuntime.trigger(game, attack.player, attack.card, "combatEnd", { attack, payment: attack.payment }, mechanicApi(game, events));
+  for (const block of attack.block || []) mechanicRuntime.trigger(game, block.player, block.card, "combatEnd", { attack, block, payment: block.payment }, mechanicApi(game, events));
   if (laneIndex == null) game.handAttacks = game.handAttacks.filter((entry) => entry.id !== attack.id);
   else {
     game.lanes[laneIndex].attack = null;
@@ -1756,6 +1778,7 @@ function startEndPlacement(game, events) {
 }
 
 function startNextTurn(game, events) {
+  mechanicRuntime.boardTrigger(game, "turnEnd", mechanicApi(game, events));
   clearTemporaryBonuses(game);
   drawToHandSize(game, 1, events);
   drawToHandSize(game, 2, events);
@@ -1801,6 +1824,7 @@ function startNextTurn(game, events) {
   game.endPlacementStep = 0;
   game.players[1].turnData = createTurnData();
   game.players[2].turnData = createTurnData();
+  mechanicRuntime.boardTrigger(game, "turnStart", mechanicApi(game, events));
   indela.revealOmens(game, next, events, event);
   zynarth.startTurn(game, next, events, event);
   let campaignMessage = "";
@@ -1909,6 +1933,7 @@ function applyCommandInternal(current, rawCommand, trace) {
       commandId
     );
   }
+  if (current.contentBinding?.mechanicVersion && current.contentBinding.mechanicVersion !== mechanicContract.VERSION) return reject(current, command, "Unsupported authored mechanic interpreter binding.");
   if (current.phase === "gameOver") return reject(current, command, "The match is already over.");
   const game = clone(current);
   const player = Number(command.player);
@@ -2105,6 +2130,8 @@ function applyCommandInternal(current, rawCommand, trace) {
       attack.notes,
       events
     );
+    mechanicRuntime.trigger(game, player, attackCard, "payment", { payment: attack.payment, attack, conditionGame: current }, mechanicApi(game, events));
+    mechanicRuntime.trigger(game, player, attackCard, "attack", { payment: attack.payment, attack }, mechanicApi(game, events));
     applyAfterConstructedAttack(game, player, attack, attack.payment, events);
     game.phase = "priority";
     game.priority = defender;
@@ -2296,6 +2323,7 @@ function applyCommandInternal(current, rawCommand, trace) {
       blockEntries[0].notes,
       events
     );
+    for (const block of blockEntries) mechanicRuntime.trigger(game, player, block.card, "block", { attack: pending.attack, block, payment }, mechanicApi(game, events));
     applyAfterConstructedBlock(game, player, blockEntries, events);
     game.paymentLog.push({ type: "block", player, cards: payment.cards, total: payment.total, required });
     events.push(
@@ -2357,6 +2385,8 @@ function applyCommandInternal(current, rawCommand, trace) {
       game.message = `Player ${player} declined the block. Player ${pending.attack.player} may pass to resolve combat.`;
       events.push(event(game, "priority.granted", { player: pending.attack.player }));
     }
+  } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("mechanic:")) {
+    label = mechanicRuntime.activate(game, player, command, pendingAttack(game)?.attack, mechanicApi(game, events, player));
   } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("mekan:")) {
     const error = mekan.apply(game, player, command.abilityId, events, event);
     if (error) return reject(current, command, error);
@@ -2679,7 +2709,7 @@ function applyCommandInternal(current, rawCommand, trace) {
     entry.revision = game.revision;
   });
   game.effectHistory = [...(game.effectHistory || []), ...events.filter(entry =>
-    /^(effect\.|resource\.|guest\.|ability\.|jali\.|gracus\.|indela\.|acceleration\.|choice\.|priority\.retained|card\.peeked|lanes\.swapped|laneCard\.)/.test(entry.type)
+    /^(mechanic\.|effect\.|resource\.|guest\.|ability\.|jali\.|gracus\.|indela\.|acceleration\.|choice\.|priority\.retained|card\.peeked|lanes\.swapped|laneCard\.)/.test(entry.type)
   ).map(entry => clone(entry))].slice(-200);
   const actionLogEntry = appendHistory(game, player, label, events);
   // Only already-public combat/payment receipts enter the reconnectable log.
@@ -2703,8 +2733,12 @@ function applyCommandInternal(current, rawCommand, trace) {
 // Private diagnostics never enter state, events, socket projections or archives.
 function applyCommand(current, command, options) {
   const trace = options?.diagnostics === true ? [] : null;
-  const result = applyCommandInternal(current, command, trace);
-  if (trace) result.mechanicsTrace = result.accepted ? trace : [{ step: "rejected", message: result.rejectionReason, costsCommitted: false }];
+  let result;
+  try { result = applyCommandInternal(current, command, trace); } catch (error) {
+    if (error.code !== "MECHANIC_ACTION_INVALID") throw error;
+    result = reject(current, command, error.message);
+  }
+  if (trace) result.mechanicsTrace = result.accepted ? [...trace, ...(result.animationEvents || []).filter(entry => entry.type === "mechanic.effect").map(entry => ({ ...entry, step: "effect", ability: entry.ability + 1 }))] : [{ step: "rejected", message: result.rejectionReason, costsCommitted: false }];
   return result;
 }
 
@@ -2734,7 +2768,7 @@ function getFactionAbilityActions(game, playerNumber) {
   if (!actor || game.gameMode !== "factions" || game.phase !== "priority" || game.priority !== playerNumber) {
     return [];
   }
-  const actions = [];
+  const actions = mechanicRuntime.actions(game, playerNumber, pendingAttack(game)?.attack);
   actions.push(...mekan.actions(game, playerNumber));
   actions.push(...jali.actions(game, playerNumber));
   actions.push(...gracus.actions(game, playerNumber));
@@ -3106,6 +3140,12 @@ function normalizeLegalAction(game, playerNumber, action) {
     fixed.laneIndex = Number(action.laneIndex);
   } else if (action.type === "useFactionAbility") {
     fixed.abilityId = action.abilityId;
+    if (action.abilityId.startsWith("mechanic:")) {
+      fixed.targetCardId = action.targetCardId;
+      if (action.destinationLane != null) fixed.destinationLane = action.destinationLane;
+      payment = { requiredValue: action.requiredPayment, mode: "cardValueTotal", eligibleCardIds: actor.hand.filter(c => c.id !== action.targetCardId).map(c => c.id), excludedCardIds: [action.targetCardId].filter(Boolean), excludesSelections: [], minimumCards: 0, maximumCards: actor.hand.length, selectionOrderMatters: false };
+      selected.paymentCardIds = "payment";
+    }
     const ownLaneCards = game.lanes.flatMap((lane, laneIndex) => lane.facedown[playerNumber]
       ? [laneEntity(laneIndex, playerNumber, true)]
       : []);

@@ -1,6 +1,7 @@
 "use strict";
 // Operator guidance travels with the private authoring projection and its contracts.
 module.exports = {
+  help: require("./adminHelpTopics.json"),
   "validationPassed": "Validation passed. All values use supported content contracts.",
   "previewPurpose": "Presentation preview. Use the separate Live or Saved draft engine test to exercise mechanics. Only an exact saved-draft preview counts toward publication.",
   "cardPreview": "This card uses the published presentation contract. Changed labels or artwork are composed from this release’s references.",

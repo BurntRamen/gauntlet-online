@@ -1,4 +1,7 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { HelpProvider } from "./AuthoringHelp";
+const help = require("../../../server/adminHelpTopics.json");
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={help}>{children}</HelpProvider> });
+import { fireEvent, render as renderWithoutHelp, screen, within } from "@testing-library/react";
 import PrintingWorkshop from "./PrintingWorkshop";
 import AssetCapacity from "./AssetCapacity";
 import CatalogControls from "./CatalogControls";

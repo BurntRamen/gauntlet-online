@@ -26,6 +26,7 @@ function deriveRelationships(snapshot) {
   };
   for (const [domain, rows] of Object.entries(snapshot.domains)) for (const row of rows) add(domain, row.id, objectLabel(row));
   for (const row of require("./adminPrintings").editions(snapshot)) add("sets", row.id, row.name, { sourceControlled: row.origin !== "admin-v1" });
+  for (const row of snapshot.studio?.mechanics || []) add("mechanics", row.id, row.name);
   for (const row of cardAuthoringDefinitions()) add("card-effects", row.id, row.label);
   for (const row of Object.values(factionEffectDefinitions())) add("faction-effects", row.id, row.id);
   for (const [id, label] of Object.entries(abilityLabels)) add("encounter-mechanics", id, label);
@@ -52,7 +53,8 @@ function deriveRelationships(snapshot) {
     }
     if (domain === "cards") {
       // A composition belongs to this card, not a shared mutable handler.
-      if (row.effect?.id !== "composed-rumin-armament") link(from, "card-effects", row.effect?.id, "uses-effect");
+      if (row.effect?.id === "authored-mechanic") link(from, "mechanics", row.effect.mechanicId, "uses-mechanic");
+      else if (row.effect?.id !== "composed-rumin-armament") link(from, "card-effects", row.effect?.id, "uses-effect");
       link(from, "assets", row.defaultVariantId, "default-presentation");
     }
     if (domain === "factions") link(from, "faction-effects", row.mechanics?.id, "uses-effect");

@@ -1094,3 +1094,25 @@ test("a new composed armament is selectable and executed through the player acti
   expect(update.diagnostics.game.lanes[0].support[player]).toBeNull();
   adapter.dispose();
 });
+
+test("authored paid activations use the production payment selection and fixed target contract", () => {
+  const contract = require("@gauntlet/duel-rules/mechanicContract");
+  const adapter = createLocalDuelAdapter({ seed: "mechanic-controls", gameMode: "factions", factions: { 1: "rumin", 2: "rumin" } });
+  const player = adapter.game.players[adapter.controller];
+  const source = player.hand.pop(), target = player.hand.pop(); player.discard.push(target);
+  const definition = { id: "mechanic-11111111-1111-4111-8111-111111111111", name: "Paid recovery", status: "active", interpreter: 1, cardTypes: ["spell"], abilities: [{ ...contract.ability("activate"), target: "discard", cost: { payment: 2, life: 0, counters: 0, consumeSource: false }, effects: [{ kind: "recover", amount: 1, duration: "instant" }] }] };
+  Object.assign(source, { type: "spell", name: "Recovery", effect: { id: contract.ID, version: 1, mechanicId: definition.id, definition, revision: "a".repeat(64) } });
+  adapter.game.lanes[0].support[adapter.controller] = source;
+  const action = getLegalActions(adapter.game, adapter.controller).find(a => a.abilityId?.startsWith("mechanic:"));
+  expect(action).toBeDefined();
+  latestUpdate(adapter).commands.activateAbility(action.abilityId);
+  expect(adapter.confirmState().disabled).toBe(true);
+  const pay = player.hand[0]; adapter.activateHandCard(0);
+  expect(adapter.selection.paymentCardIds).toEqual([pay.id]);
+  expect(adapter.confirmState().disabled).toBe(false);
+  latestUpdate(adapter).commands.confirmCurrentAction();
+  expect(adapter.game.players[adapter.controller].hand.some(c => c.id === target.id)).toBe(true);
+  expect(adapter.game.players[adapter.controller].discard.some(c => c.id === pay.id)).toBe(true);
+  expect(getLegalActions(adapter.game, adapter.controller).some(a => a.abilityId === action.abilityId)).toBe(false);
+  adapter.dispose();
+});

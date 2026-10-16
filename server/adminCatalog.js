@@ -61,12 +61,15 @@ function createObject(snapshot, input) {
   if (!set || set.status === "archived") fail("Choose an active authored set first.");
   const source = input.sourceId && snapshot.domains.cards.find(c => c.id === input.sourceId);
   if (input.sourceId && !source) fail("The card to duplicate no longer exists.");
+  const mechanicId = input.effectId ? input.effectId.startsWith("mechanic-") ? input.effectId : null : source?.effect?.mechanicId;
+  const mechanic = mechanicId && snapshot.studio?.mechanics.find(row => row.id === mechanicId);
+  if (mechanicId && (!mechanic || mechanic.status !== "active")) fail("Choose an active saved mechanic.");
   const composedSource = source?.effect?.id === composition.ID && (!input.effectId || input.effectId === composition.ID);
-  const effect = effects.cardEffectDefinitions().find(e => e.id === (composedSource ? "coin-scale-spear" : input.effectId || source?.effect?.id));
+  const effect = effects.cardEffectDefinitions().find(e => e.id === (mechanic || composedSource ? "coin-scale-spear" : input.effectId || source?.effect?.id));
   if (!effect) fail("Choose a supported mechanical effect.");
   const id = `auth-card-${crypto.randomUUID()}`;
   const row = { id, gameplayCardId: id, origin: "admin-v1", name: input.name.trim(),
-    factionId: input.factionId || source?.factionId || effect.factionId, type: input.type || source?.type || effect.cardType,
+    factionId: input.factionId || source?.factionId || effect.factionId, type: input.type || source?.type || mechanic?.cardTypes[0] || effect.cardType,
     rarity: input.rarity || source?.rarity || "common", value: input.value ?? source?.value ?? 4,
     suit: input.suit || source?.suit || "spades", replacementSuit: input.suit || source?.suit || "spades",
     text: source?.text || registry.getGameplayCardById(effect.legacyCardId)?.text || "",
@@ -75,6 +78,7 @@ function createObject(snapshot, input) {
     availability: defaultAvailability(), status: "active" };
   const art = input.art || snapshot.domains.assets.find(v => v.id === source?.defaultVariantId)?.art || registry.getCollectorVariantById(`${effect.legacyCardId}:standard`)?.art;
   if (composedSource) row.effect = clone(source.effect);
+  if (mechanic) { row.effect = { id: "authored-mechanic", version: 1, mechanicId }; row.text = require("../shared/duel-rules/mechanicContract").explain(mechanic); }
   if (source?.flavor != null) row.flavor = source.flavor;
   const variant = { id: row.defaultVariantId, schemaVersion: 1, variantId: row.defaultVariantId, gameplayCardId: id,
     name: `${row.name} Standard`, edition: set.id, finish: "standard", frame: "faction-standard", border: "standard", art,
@@ -85,7 +89,7 @@ function createObject(snapshot, input) {
 function validateCatalog(snapshot, baseline, validateLegacy) {
   const errors = [], warnings = [];
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
-  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : []), ...["paraLeague", "competition"].filter(key => Object.hasOwn(snapshot, key))]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
+  if (!snapshot.domains || !exact(snapshot, ["schemaVersion", "engine", "domains", ...(snapshot.assetVersions ? ["assetVersions"] : []), ...["paraLeague", "competition", "studio"].filter(key => Object.hasOwn(snapshot, key))]) || !exact(snapshot.domains, [...Object.keys(baseline.domains), "sets"]) || Object.values(snapshot.domains).some(rows => !Array.isArray(rows))) return { valid: false, errors: [{ message: "Invalid authored catalog domains." }], warnings };
   const legacy = { ...snapshot, schemaVersion: baseline.schemaVersion, domains: {} };
   const added = {};
   for (const [domain, originals] of Object.entries(baseline.domains)) {
@@ -150,6 +154,8 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
 }
 function available(card, channel) { return !!card && (card.origin !== "admin-v1" || (card.availability?.[channel] === true && (!(["earnedPacks", "draft", "sealed"].includes(channel)) || card.status !== "archived"))); }
 function rollbackProblem(live, target) {
+  const mechanicProblem = require("./mechanicAuthoring").rollbackProblem(live.studio, target.studio);
+  if (mechanicProblem) return mechanicProblem;
   const competitionProblem = require("./competitionConfig").retainedProblem(live.competition, target.competition);
   if (competitionProblem) return competitionProblem;
   for (const domain of ["cards", "assets", "sets", "decks", "offers"]) for (const row of live.domains[domain] || []) {

@@ -1,3 +1,4 @@
+import Help from "./AuthoringHelp";
 import { useRef, useState } from "react";
 
 export default function AssetUpload({ selected, onUpload, onDone }) {
@@ -26,7 +27,7 @@ export default function AssetUpload({ selected, onUpload, onDone }) {
     } catch (failure) { setError(failure.message); setPhase(""); }
   }
   return <details className="asset-upload"><summary>Upload artwork</summary><form onSubmit={upload}>
-    <p>Still PNG, JPEG or WebP · up to 3 MiB, 4,096 pixels per side and 8 megapixels. Stored as a verified WebP up to 1 MiB. Titles and source notes stay private.</p>
+    <Help topic="AssetUpload1" />
     {selected?.assetId && !selected.archived && <label><input type="checkbox" checked={replacement} disabled={pending} onChange={event => { setReplacement(event.target.checked); if (event.target.checked) { setTitle(selected.label); setDescription(selected.description || ""); setNotes(selected.notes || ""); } }} />New version of {selected.label}. Existing references keep their current version.</label>}
     <label>Artwork title<input required maxLength={160} value={title} disabled={pending} onChange={event => setTitle(event.target.value)} /></label>
     <label>Description<textarea aria-label="Description" maxLength={1000} value={description} disabled={pending} onChange={event => setDescription(event.target.value)} /></label>

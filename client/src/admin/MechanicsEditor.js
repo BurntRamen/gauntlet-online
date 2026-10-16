@@ -1,26 +1,30 @@
+import Help from "./AuthoringHelp";
 import GauntletContractFields from "../GauntletContractFields";
 import contract from "@gauntlet/duel-rules/compositionContract";
+import mechanicContract from "@gauntlet/duel-rules/mechanicContract";
 import guidance from "@gauntlet/duel-rules/compositionExplanation";
 const copy = value => JSON.parse(JSON.stringify(value));
 
-export function GeneratedWording({ row, disabled, onChange }) {
+export function GeneratedWording({ row, studio, disabled, onChange }) {
+  if (row.effect?.id === mechanicContract.ID) { const definition = studio?.definitions.find(m => m.id === row.effect.mechanicId); return definition ? <button type="button" disabled={disabled} onClick={() => onChange(definition.explanation)}>Use generated mechanics explanation as wording</button> : null; }
   if (row.effect?.id !== contract.ID || !contract.validate(row.effect, row)) return null;
   return <button type="button" disabled={disabled} onClick={() => onChange(guidance.explain(row.effect, row))}>Use generated mechanics explanation as wording</button>;
 }
 
 export default function MechanicsEditor(props) {
   const { value, row, onChange, disabled } = props;
+  const authored = value?.id === mechanicContract.ID, mechanics = props.studio?.definitions || [];
   const composed = value?.id === contract.ID;
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: value.abilities.map((ability, i) => i === index ? next : ability) });
   const remove = index => onChange({ ...value, abilities: value.abilities.filter((_, i) => i !== index) });
-  return <div className="mechanics-editor">
+  return <div className="mechanics-editor"><label>Reusable mechanic<select aria-label="Reusable mechanic" disabled={disabled} value={value?.mechanicId || ""} onChange={e => { if (e.target.value) onChange({ id: mechanicContract.ID, version: 1, mechanicId: e.target.value }); else { const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type); if (legacy) onChange({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([k, spec]) => [k, spec.default])) }); } }}><option value="">Existing card-specific effect</option>{mechanics.filter(m => m.cardTypes.includes(row.type) && (m.status === "active" || m.id === value?.mechanicId)).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>{authored ? <><p className="mechanics-explanation">{mechanics.find(m => m.id === value.mechanicId)?.explanation}</p><button type="button" disabled={disabled} onClick={() => props.onInspect?.("mechanics", value.mechanicId)}>Open Mechanics Studio</button><Help topic="MechanicsEditor1" /></> : <>
     <label>Execution model<select aria-label="Execution model" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} onChange={event => {
       const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
       onChange(event.target.value === "composition" ? contract.create() : { id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
     }}><option value="legacy">Registered legacy effect</option><option value="composition">Structured Rumin armament</option></select></label>
-    {!composed ? <><p className="admin-note">Existing source handler; only declared parameters are editable. Switching to composition starts a new definition and does not translate this ability.</p><GauntletContractFields {...props} /></> : <>
-      <p>Build automatic abilities for the existing arming action. Effects resolve top to bottom, before the defender receives priority.</p>
+    {!composed ? <><Help className="admin-note" topic="MechanicsEditor2" /><GauntletContractFields {...props} /></> : <>
+      <Help topic="MechanicsEditor3" />
       {errors.length > 0 && <ul role="alert">{errors.map(issue => <li key={issue.path}>{issue.path}: {issue.message}</li>)}</ul>}
       {(value.abilities || []).map((ability, index) => <fieldset className="mechanics-ability" key={index} disabled={disabled}><legend>Ability {index + 1}</legend>
         <p><strong>When armed to a hand attack</strong> · Once per arming</p>
@@ -35,7 +39,7 @@ export default function MechanicsEditor(props) {
       </fieldset>)}
       <button type="button" disabled={disabled || value.abilities.length >= contract.limits.abilities} onClick={() => onChange({ ...value, abilities: [...value.abilities, contract.ability()] })}>Add ability</button>
       <section aria-label="Generated mechanics explanation"><h5>Executable behavior · generated explanation</h5><p className="mechanics-explanation">{guidance.explain(value, row)}</p><p className="admin-note">{row.text === guidance.explain(value, row) ? "Printed wording matches this generated explanation." : "Printed wording differs. Review it in Details after saving. Arbitrary prose is not verified as equivalent."}</p></section>
-      <details><summary>Engine-owned timing, payment, choices and limits</summary><p>Select this controlled armament through the attack's weapon choice. Pay the normal attack cost; no new activation cost or response window is introduced. Conditions evaluate once from the accepted payment and pre-attack state. A failed condition still consumes the selected weapon. Each ability resolves once in order, with at most four abilities and four effects each.</p><p>Attack bonuses add to existing modifiers for this combat only. Life gain is immediate and does not expire. The source stays attached until combat ends, then goes to discard; it cannot be selected again while attached. There is no turn-based usage reset. Opponents use the existing block and priority windows after declaration. Other timings, targets, durations, recursive triggers and scripts are unsupported.</p><p>Interpreter: {contract.VERSION}. Changing mechanics invalidates the saved draft test. A passing action is not evidence of balance.</p></details>
+      <details><summary>Engine-owned timing, payment, choices and limits</summary><Help topic="MechanicsEditor4" /><Help topic="MechanicsEditor5" /><p>Interpreter: {contract.VERSION}. Changing mechanics invalidates the saved draft test. A passing action is not evidence of balance.</p></details>
     </>}
-  </div>;
+  </>}</div>;
 }

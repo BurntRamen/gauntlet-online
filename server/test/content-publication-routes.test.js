@@ -22,7 +22,7 @@ async function call(route = "", body, account = accounts[0], method = body ? "PO
 }
 
 test("all authoring reads and writes retain the exact two-account server gate", async () => {
-  for (const [route, method] of [["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
+  for (const [route, method] of [["/studio-draft", "POST"], ["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
     assert.equal((await call(route, method === "GET" ? undefined : {}, null, method)).status, 401);
     assert.equal((await call(route, method === "GET" ? undefined : {}, accounts[2], method)).status, 403);
   }
@@ -253,4 +253,13 @@ test("Para HTTP lifecycle and simulation preserve account, deck and canonical ma
   assert.equal((await call("/rollback", { expectedRevision: state.revision, releaseId: originalId })).status, 200);
   assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), accountBytes);
   assert.deepEqual(fs.readFileSync(process.env.MATCH_DATA_FILE), matchBytes);
+});
+
+test("Free-For-All rejects two-player authored mechanics before creating match state", () => {
+  const resolved = structuredClone(__test.contentPublication.active());
+  const card = resolved.manifest.cards[0]; card.effect = { id: "authored-mechanic" };
+  const room = { roomCode: "unsupported-authored-ffa", lobby: { gameMode: "freeForAll", players: { 1: { factionId: card.factionId, savedConstructedDeck: { cards: [{ gameplayCardId: card.id }] } } } } };
+  const before = structuredClone(room);
+  assert.throws(() => __test.createFreeForAllGameFromLobby(room, resolved), /two-player authored mechanic/);
+  assert.deepEqual(room, before);
 });

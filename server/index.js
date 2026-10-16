@@ -8108,6 +8108,14 @@ function createGameFromLobby(roomState, options = {}) {
 }
 
 function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPublication.active()) {
+  // V1 authored mechanics use the two-seat priority/target contract. Reject
+  // unsupported decks before creating any multiplayer state or evidence.
+  for (const player of Object.values(roomState.lobby.players)) {
+    for (const card of player.savedConstructedDeck?.cards || []) {
+      const definition = resolvedContent.manifest.cards.find(row => row.id === (card.gameplayCardId || card.definitionId || card.id));
+      if (definition?.effect?.id === "authored-mechanic") throw Object.assign(new Error(`${definition.name} uses a two-player authored mechanic. Choose a different deck for Free-For-All.`), { status: 422 });
+    }
+  }
   roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];

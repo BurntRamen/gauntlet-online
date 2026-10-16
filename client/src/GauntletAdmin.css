@@ -207,3 +207,7 @@
 .para-workspace select { width:100%; }
 .admin-actions label { display:grid; gap:6px; max-width:100%; }
 .admin-actions input, .admin-actions select { min-width:0; max-width:100%; color:inherit; background:#101b23; border:1px solid #648092; border-radius:5px; padding:8px; font:inherit; }
+/* Keep reusable mechanic type selection compact on desktop and readable on mobile. */
+.mechanic-studio .mechanic-types { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.mechanic-studio .mechanic-types label { flex: 0 1 125px; }
+.mechanic-studio .mechanics-operation { min-width: 0; }

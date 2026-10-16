@@ -27,7 +27,7 @@ function workshopMetadata(selection) {
     "rulesVersion", "cardEffectContractVersion", "factionEffectContractVersion", "encounterContractVersion", "assetManifestVersion", "gameConfigVersion"
   ].map(key => [key, snapshot.engine[key]])) };
   if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
-  return { version: 1, ...identity, cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
+  return { version: 1, ...identity, studio: require("./mechanicAuthoring").metadata(snapshot), cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
     bindings: clone(bindings), capabilities: { liveTests: true, customScenarios: 1, commandPreview: true, livePresentation: true, relationships: true, releaseReview: true } };
 }
 

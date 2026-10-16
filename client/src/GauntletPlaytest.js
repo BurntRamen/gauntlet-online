@@ -1,3 +1,4 @@
+import Help from "./admin/AuthoringHelp";
 import { useState } from "react";
 import ScenarioBuilder, { initialScenario } from "./admin/ScenarioBuilder";
 import EngineActionPanel from "./admin/EngineActionPanel";
@@ -44,7 +45,7 @@ export default function GauntletPlaytest({ request, state, row, domain, disabled
   const evidence = session?.evidence;
   return <section id="workshop-test" className="admin-playtest" aria-label="Real engine playtest"><h4>Real engine test</h4><p className="admin-note">{guide.testIsolation}</p>
     <div className="admin-actions"><label>Test content<select value={source} disabled={busy} onChange={event => setSource(event.target.value)}><option value="live">Live</option><option value="draft" disabled={!state.draft}>Saved draft</option></select></label><label>Test faction<select aria-label="Test faction" disabled={!!contentFaction || !!cardFaction || subject.kind === "faction" || busy} value={subjectFaction} onChange={event => setFaction(event.target.value)}>{snapshot.domains.factions.filter(entry => !entry.campaignOnly || entry.id === subjectFaction).map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label><button disabled={busy || disabled || needsSubject || (draftSource && (!state.draft || !state.validation.valid))} onClick={() => run()}>Start {domain === "encounters" && row ? row.title : draftSource ? "draft duel" : "live duel"} playtest</button></div>
-    {needsSubject && <p>Select a card to test this effect, or open the encounter that owns this mechanic.</p>}
+    {needsSubject && <Help topic="GauntletPlaytest1" />}
     <p className="admin-note">{draftSource ? "Only a successful action on the current saved draft records a publication receipt." : "Live tests use the deployed release and do not write drafts or publication receipts."}</p>
     {!["encounters", "decks"].includes(domain) && !scenario && <button disabled={busy || disabled || needsSubject} onClick={() => onScenario?.(initialScenario(subjectFaction, subjectCard))}>Configure custom starting state</button>}
     {scenario && <ScenarioBuilder request={request} value={scenario} onChange={onScenario} factions={snapshot.domains.factions} cards={snapshot.domains.cards} disabled={busy || disabled} onClose={() => onScenario?.(null)} />}

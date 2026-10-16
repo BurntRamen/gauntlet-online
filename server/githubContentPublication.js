@@ -207,6 +207,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     lookupSet: id => clone(deployedContent.manifest.draftSets.find(set => set.id === id) || null),
     paraDraft: (args, actor) => operate("paraDraft", args, actor),
     competitionDraft: (args, actor) => operate("competitionDraft", args, actor),
+    studioDraft: (args, actor) => operate("studioDraft", args, actor),
     paraSimulation: async args => core((await load()).state).paraSimulation(args),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),

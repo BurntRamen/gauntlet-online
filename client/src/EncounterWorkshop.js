@@ -1,3 +1,4 @@
+import Help from "./admin/AuthoringHelp";
 import { useEffect, useRef, useState } from "react";
 import GauntletContractFields from "./GauntletContractFields";
 
@@ -18,9 +19,9 @@ export function EncounterSetupFields({ value, onChange, ...props }) {
   const render = (keys) => <GauntletContractFields {...props} value={subset(keys)} onChange={(updates) => onChange({ ...value, ...updates })} />;
   const baseKeys = Object.keys(value || {}).filter((key) => !["bossAbility", "playerAdditions", "bossAdditions"].includes(key));
   return <div className="encounter-setup-sections">
-    <section aria-label="Opponent setup controls"><h5>Opponent / Setup</h5><p className="admin-note">Starting life and scripted attacks. Attack progression offset changes the attack sequence; it does not reorder chapters.</p>{render(baseKeys)}</section>
-    <section aria-label="Encounter mechanics controls"><h5>Mechanics</h5><p className="admin-note">Select a supported ability and its parameters. Ability wording is presentation; the selected rule controls behavior.</p>{render(["bossAbility"])}{value?.bossAbility?.id && <button type="button" onClick={() => props.onInspect?.("encounter-mechanics", value.bossAbility.id)}>Inspect this encounter rule</button>}</section>
-    <section aria-label="Encounter card additions controls"><h5>Deck / Cards</h5><p className="admin-note">Each selected card adds one copy. Up to 12 different cards per side, from this encounter’s faction.</p>{render(["playerAdditions", "bossAdditions"])}</section>
+    <section aria-label="Opponent setup controls"><h5>Opponent / Setup</h5><Help className="admin-note" topic="EncounterWorkshop1" />{render(baseKeys)}</section>
+    <section aria-label="Encounter mechanics controls"><h5>Mechanics</h5><Help className="admin-note" topic="EncounterWorkshop2" />{render(["bossAbility"])}{value?.bossAbility?.id && <button type="button" onClick={() => props.onInspect?.("encounter-mechanics", value.bossAbility.id)}>Inspect this encounter rule</button>}</section>
+    <section aria-label="Encounter card additions controls"><h5>Deck / Cards</h5><Help className="admin-note" topic="EncounterWorkshop3" />{render(["playerAdditions", "bossAdditions"])}</section>
     <p className="admin-note">Setup, mechanics and card additions save together below.</p>
   </div>;
 }

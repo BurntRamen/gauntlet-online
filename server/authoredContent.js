@@ -114,6 +114,8 @@ function protectedContent(snapshot) {
 const validAsset = assets.validAssetReference;
 
 function validateAuthoredContent(snapshot, baseline, catalogCards) {
+  const studioErrors = require("./mechanicAuthoring").validate(snapshot || {});
+  if (studioErrors.length) return { valid: false, errors: studioErrors, warnings: [] };
   if (snapshot?.assetVersions !== undefined && !require("./authoredAssets").validateVersions(snapshot.assetVersions)) return { valid: false, errors: [{ message: "Invalid immutable image version metadata." }], warnings: [] };
   if (snapshot?.schemaVersion === require("./adminSuiteContent").SCHEMA) return require("./adminSuiteContent").validate(snapshot, baseline, (value, base) => authoredCatalog.validateCatalog(value, base, validateAuthoredContent));
   if (snapshot?.schemaVersion === authoredCatalog.SCHEMA) return authoredCatalog.validateCatalog(snapshot, baseline, validateAuthoredContent);
@@ -122,7 +124,7 @@ function validateAuthoredContent(snapshot, baseline, catalogCards) {
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
   if (canonicalJson(snapshot.engine) !== canonicalJson(baseline.engine)) issue(null, null, "engine", "Engine contract or mechanic identifiers changed; a compatible code deployment is required.");
   // Optional additive extension: old immutable v2 snapshots retain their bytes and hashes.
-  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "competition", "assetVersions"].includes(key)).sort();
+  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "competition", "studio", "assetVersions"].includes(key)).sort();
   if (canonicalJson(coreKeys(snapshot)) !== canonicalJson(coreKeys(baseline)) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
   if (Object.hasOwn(snapshot, "paraLeague")) {
     const validation = paraLeague.validateConfig(snapshot.paraLeague);
@@ -232,7 +234,7 @@ function resolveEngineContent(snapshot, releaseId) {
   // Preserve the production presentation order, which differs from registry
   // object insertion order as additional factions are introduced.
   manifest.factions = manifest.factions.map((faction) => factions[faction.id]);
-  manifest.cards = clone(domains.cards);
+  manifest.cards = clone(domains.cards).map(card => require("./mechanicAuthoring").resolve(card, snapshot, hash));
   if (snapshot.domains.sets) manifest.draftSets = [...manifest.draftSets, ...authoredCatalog.projectSets(snapshot)];
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
   manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
@@ -246,6 +248,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
+  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = require("../shared/duel-rules/mechanicContract").VERSION;
   if (domains.cards.some(card => card.effect?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
   for (const card of manifest.cards) {
