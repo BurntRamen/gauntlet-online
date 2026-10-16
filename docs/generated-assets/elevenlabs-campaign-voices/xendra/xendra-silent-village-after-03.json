@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "audioTreatment": null,
+  "line": "Ink does not move.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-after-03-elias.mp3",
+  "generatedAt": "2026-10-16T15:17:14.842Z",
+  "publishedAt": "2026-10-16T15:27:00.589Z",
+  "bytes": 23448,
+  "sha256": "20384688851bdc05b5be0ee742536a25fb29b9c72855fca567967bb23dd2c15c"
+}

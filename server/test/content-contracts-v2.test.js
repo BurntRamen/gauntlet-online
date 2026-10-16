@@ -46,7 +46,7 @@ test("all 2,800 current-production pre-conversion engine outcomes remain equival
 
 test("all captured encounter setups remain stable while new campaigns add validated encounters", () => {
   assert.equal(Object.keys(fixture).length, 56);
-  assert.equal(Object.keys(defaults).length, 128);
+  assert.equal(Object.keys(defaults).length, 130);
   for (const [id, legacy] of Object.entries(fixture)) {
     const setup = defaults[id];
     assert.equal(encounters.validateEncounterSetup(setup, baseline.domains.cards, legacy.factionId), true, id);

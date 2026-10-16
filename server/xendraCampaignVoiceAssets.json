@@ -5,66 +5,154 @@
     "longest-night": {
       "dialogueAudio": [
         "/assets/gauntlet/voices/xendra-ch01-before-01-narrator.mp3",
-        "/assets/gauntlet/voices/xendra-ch01-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch01-before-03-terrified-villager.mp3"
+        "/assets/gauntlet/voices/xendra-ch01-before-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-before-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-before-05-terrified-villager.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-after-02-syllith.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-after-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch01-after-04-elias.mp3"
+      ]
     },
     "silent-village": {
       "dialogueAudio": [
         "/assets/gauntlet/voices/xendra-ch02-before-01-elias.mp3",
         "/assets/gauntlet/voices/xendra-ch02-before-02-village-elder.mp3",
-        "/assets/gauntlet/voices/xendra-ch02-before-03-elias.mp3"
+        "/assets/gauntlet/voices/xendra-ch02-before-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch02-before-04-village-elder.mp3",
+        "/assets/gauntlet/voices/xendra-ch02-before-05-elias.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch02-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch02-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch02-after-04-nulth.mp3"
+      ]
     },
     "dreams-that-remember": {
       "dialogueAudio": [
         "/assets/gauntlet/voices/xendra-ch03-before-01-syllith.mp3",
         "/assets/gauntlet/voices/xendra-ch03-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch03-before-03-syllith.mp3"
+        "/assets/gauntlet/voices/xendra-ch03-before-03-syllith.mp3",
+        "/assets/gauntlet/voices/xendra-ch03-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch03-before-05-elias.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch03-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch03-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch03-after-04-syllith.mp3"
+      ]
     },
     "beneath-observatory": {
       "dialogueAudio": [
         "/assets/gauntlet/voices/xendra-ch04-before-01-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
-        "/assets/gauntlet/voices/xendra-ch04-before-03-elias.mp3"
+        "/assets/gauntlet/voices/xendra-ch04-before-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-before-03-thrallmaker.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-before-04-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-before-05-nulth.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-after-02-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-after-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch04-after-04-elias.mp3"
+      ]
     },
     "deep-currents": {
       "dialogueAudio": [
         "/assets/gauntlet/voices/xendra-ch05-before-01-nulth.mp3",
         "/assets/gauntlet/voices/xendra-ch05-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch05-before-03-nulth.mp3"
+        "/assets/gauntlet/voices/xendra-ch05-before-03-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch05-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch05-before-05-elias.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch05-after-01-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch05-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch05-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch05-after-04-nulth.mp3"
+      ]
+    },
+    "maw-of-mirrors": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch06-before-01-thryxis.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-before-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-before-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-before-04-thryxis.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-before-05-mara.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-after-02-thryxis.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-after-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch06-after-04-elias.mp3"
+      ]
     },
     "the-enlightened": {
       "dialogueAudio": [
-        "/assets/gauntlet/voices/xendra-ch06-before-01-arel-voss.mp3",
-        "/assets/gauntlet/voices/xendra-ch06-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch06-before-03-arel-voss.mp3"
+        "/assets/gauntlet/voices/xendra-ch07-before-01-arel-voss.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-before-02-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-before-03-arel-voss.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-before-05-arel-voss.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch07-after-01-arel-voss.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch07-after-04-mara.mp3"
+      ]
+    },
+    "crown-of-static": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch08-before-01-krauth.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-before-02-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-before-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-before-05-krauth.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-after-02-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-after-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch08-after-04-elias.mp3"
+      ]
     },
     "the-eclipse": {
       "dialogueAudio": [
-        "/assets/gauntlet/voices/xendra-ch07-before-01-krauth.mp3",
-        "/assets/gauntlet/voices/xendra-ch07-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch07-before-03-krauth.mp3"
+        "/assets/gauntlet/voices/xendra-ch09-before-01-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-before-02-nulth.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-before-03-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-before-04-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-before-05-nulth.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch09-after-04-syllith.mp3"
+      ]
     },
     "witness-oblivion": {
       "dialogueAudio": [
-        "/assets/gauntlet/voices/xendra-ch08-before-01-defender.mp3",
-        "/assets/gauntlet/voices/xendra-ch08-before-02-elias.mp3",
-        "/assets/gauntlet/voices/xendra-ch08-before-03-narrator.mp3"
+        "/assets/gauntlet/voices/xendra-ch10-before-01-defender.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-before-02-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-before-03-arel-voss.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-before-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-before-05-elias.mp3"
       ],
-      "endDialogueAudio": []
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/xendra-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-after-02-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-after-03-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-after-04-mara.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-after-05-elias.mp3",
+        "/assets/gauntlet/voices/xendra-ch10-after-06-mara.mp3"
+      ]
     }
   }
 }

@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "arel",
   "voiceName": "Arel Voss",
+  "audioTreatment": null,
   "line": "You still believe they are taking people.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-before-01-arel-voss.mp3",
-  "generatedAt": "2026-10-13T19:52:08.696Z",
-  "publishedAt": "2026-10-13T19:52:16.231Z",
-  "bytes": 37660,
-  "sha256": "2d7fa44fec81c115b84c43fafac8e3fa80cec70c3ffc7972c1c744a2541d07bf"
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-before-01-arel-voss.mp3",
+  "generatedAt": "2026-10-16T15:18:02.436Z",
+  "publishedAt": "2026-10-16T15:27:00.660Z",
+  "bytes": 36823,
+  "sha256": "8330465e6cde4b942cd377fc48a421d16f5fabb171c912d7e08d6d65555d8556"
 }

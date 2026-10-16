@@ -1170,10 +1170,14 @@ const factionsData = {
     id: "xendra",
     name: "XenDra",
     campaignOnly: true,
+    origin: "The Deep Currents, a nonlocal dimension where consciousness and time overlap",
+    reathArrival: "The XenDra reach Reath through eclipses, glyphs, dreams, and willing conduits that thin the boundary around Timetwister sites.",
+    philosophy: "Individuality is a boundary that creates loneliness, fear, and loss; the Endless Thought promises preservation at the possible cost of the self.",
+    visualDirection: "Unstable, asymmetrical manifestations with fractured or misplaced faces, disconnected limbs, flowing ink-dark matter, impossible scale, and anatomy that looks unsuccessfully translated into physical space.",
     cardImage: "/assets/gauntlet/bizi-card.webp",
-    commander: { name: "Elias Varen, Final Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Campaign faction: survive the Deep Currents while reality changes around the battle." },
-    general: { name: "Syllith, the Echoing Child", image: "/assets/gauntlet/sheen-card.webp", text: "Campaign faction: memories, dialogue, and repeated attacks become unreliable." },
-    city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "Campaign faction: each chapter reveals more of the XenDra ritual beneath Reath." }
+    commander: { name: "Elias Varen, the Unwitting Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Campaign faction: Elias gains psychic insight while every answer weakens the boundary between Reath and the Deep Currents." },
+    general: { name: "Nulth, the Hollow Voice", image: "/assets/gauntlet/sheen-card.webp", text: "Campaign faction: Nulth preserves, imitates, and rearranges memories until certainty becomes another hallucination." },
+    city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "Campaign faction: a nonlocal ocean of consciousness where the Mind Sovereigns compete to shape the Endless Thought." }
   }
 };
 
@@ -1522,14 +1526,66 @@ const campaignChapters = {
     }
   ],
   xendra: [
-    { id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night", story: "An impossible eclipse settles over Reath. Elias, a cartographer with no combat training, notices that the stars are moving.", dialogue: ["Narrator: Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.", "Elias: Stars do not drift at noon.", "Terrified Villager: Don't look at the sky!"] },
-    { id: "silent-village", playableName: "Elias Varen", opponentName: "The Village Elder", title: "The Silent Village", story: "Elias reaches a polite village where nobody blinks, children play without speaking, and every answer is the same.", dialogue: ["Elias: What did you see during the eclipse?", "Village Elder: The light was beautiful.", "Elias: That is what the children said. Word for word."] },
-    { id: "dreams-that-remember", playableName: "Elias Varen", opponentName: "Syllith, the Echoing Child", title: "Dreams That Remember", story: "Elias dreams of rooms that rearrange themselves and voices that repeat his memories with one word wrong.", dialogue: ["Syllith: Stars do not drift at dawn.", "Elias: I said noon.", "Syllith: Did you?"] },
-    { id: "beneath-observatory", playableName: "Elias Varen", opponentName: "The Thrallmaker", title: "Beneath the Observatory", story: "Ancient observatories reveal that civilizations before recorded history drew the same eclipse symbol: the XenDra glyph.", dialogue: ["Elias: Rumin stone. Sheen ink. Bizi brass. The same mark in every age.", "Thrallmaker: The first mercy is surrender.", "Elias: Then I am still cruel enough to refuse."] },
-    { id: "deep-currents", playableName: "Elias Varen", opponentName: "Nulth, the Hollow Voice", title: "The Deep Currents", story: "Mountains become oceans, maps contradict themselves, and Nulth asks questions that make survival feel like an argument.", dialogue: ["Nulth: If pain could end, who would defend the wound?", "Elias: People are not wounds.", "Nulth: Then why do they spend their lives closing?"] },
-    { id: "the-enlightened", playableName: "Elias Varen", opponentName: "Arel Voss, Enlightened Conduit", title: "The Enlightened", story: "A hidden settlement worships the XenDra willingly, not from fear, but from the belief that the Deep Currents ended suffering.", dialogue: ["Arel Voss: You still believe they are taking people.", "Elias: I have seen what they leave behind.", "Arel Voss: No. They are waiting."] },
-    { id: "the-eclipse", playableName: "Elias Varen", opponentName: "Sovereign Krauth, Crown of Static", title: "The Eclipse", story: "Elias learns the terrible truth: every glyph investigated, every relic activated, and every Harbinger followed strengthened the ritual.", dialogue: ["Krauth: You did not uncover the door. You built it.", "Elias: I was trying to stop you.", "Krauth: Intent is a candle. Consequence is the sun."] },
-    { id: "witness-oblivion", playableName: "Elias Varen", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion", story: "Reality breaks into floating cities and watching stars. Elias becomes the final conduit, still believing he is saving everyone.", dialogue: ["Defender: Elias, step away from the sky.", "Elias: I found peace for us.", "Narrator: The Sovereign extended one silent hand, and Elias smiled."] }
+    {
+      id: "longest-night", playableName: "Elias Varen", opponentName: "Terrified Villager", title: "The Longest Night",
+      story: "During an impossible daytime eclipse, Reath's people celebrate while cartographer Elias Varen sees the stars moving into a glyph. His sister Mara hears a whisper nobody else can hear.",
+      dialogue: ["Narrator: Everyone called the eclipse beautiful. Elias watched the stars move toward one another.", "Mara: You missed breakfast for another ruin, and now the sky is copying your bad habits.", "Elias: Stars do not drift at noon. They are forming a map.", "Mara: Elias, someone just said your name.", "Terrified Villager: Don't look at the sky. It notices when you understand."],
+      endDialogue: ["Narrator: That night, Elias dreams of a corridor whose final door opens onto the eclipse.", "Syllith: Elias.", "Mara: Elias? Wake up. I'm here.", "Elias: For a moment, you sounded very far away."]
+    },
+    {
+      id: "silent-village", playableName: "Elias Varen", opponentName: "The Village Elder", title: "The Silent Village",
+      story: "Elias and Mara investigate a flawless village where grief, disagreement, and unwanted memories have vanished. Beneath it, Elias copies the first XenDra glyph into his journal.",
+      dialogue: ["Elias: What did you see during the eclipse?", "Village Elder: The light was beautiful.", "Mara: That woman cannot remember her child, Elias. She smiled when she said it.", "Village Elder: Memory is the thorn. We accepted the hand that removed it.", "Elias: Peace that requires forgetting its cost is only an empty room."],
+      endDialogue: ["Narrator: Elias finishes copying the glyph. Far below physical space, the Deep Currents answer.", "Mara: That symbol moved when you looked away.", "Elias: Ink does not move.", "Nulth: Then perhaps it was your memory that moved."]
+    },
+    {
+      id: "dreams-that-remember", playableName: "Elias Varen", opponentName: "Syllith, the Echoing Child", title: "Dreams That Remember",
+      story: "The same impossible house visits Elias every night. Syllith repeats old conversations with one altered word while Mara anchors him with memories from their childhood.",
+      dialogue: ["Syllith: Your name was Elias.", "Elias: My name is Elias.", "Syllith: You will remember tomorrow.", "Mara: When we were children, you mapped the house so I could find you during storms.", "Elias: Then keep the map. I am beginning to forget the rooms."],
+      endDialogue: ["Narrator: Elias wakes holding a black glass compass that existed only in the dream.", "Mara: You were calling for me.", "Elias: I dreamed you forgot who I was.", "Syllith: She was trying to remember."]
+    },
+    {
+      id: "beneath-observatory", playableName: "Elias Varen", opponentName: "The Thrallmaker", title: "The Forgotten Observatory",
+      story: "Records older than the known peoples of Reath describe the same eclipse and glyph. Elias activates an ancient mechanism to find its source and instead gives Nulth a voice in Reath.",
+      dialogue: ["Elias: Rumin stone. Sheen ink. Bizi brass. Different histories, the same impossible mark.", "Mara: Every record ends with people erasing their own names.", "Thrallmaker: The first mercy is surrender. The second is forgetting why you resisted.", "Elias: Then I am still cruel enough to refuse.", "Nulth: Refusal is merely surrender spoken slowly."],
+      endDialogue: ["Narrator: The mechanism opens for less than a heartbeat, yet the shadow it casts has no end.", "Nulth: Thank you for remembering the way.", "Mara: Close it, Elias.", "Elias: I did. Why can I still hear him?"]
+    },
+    {
+      id: "deep-currents", playableName: "Elias Varen", opponentName: "Nulth, the Hollow Voice", title: "The Hollow Voice",
+      story: "Nulth reshapes Elias's memories and reveals the Deep Currents as an archive of consciousness. Mara begins losing pieces of herself, making the promise of preservation dangerously personal.",
+      dialogue: ["Nulth: Why do you fear forgetting?", "Elias: Because our memories make us who we are.", "Nulth: Then tell me your mother's voice. Precisely.", "Mara: Elias, I cannot remember the song she sang to us.", "Elias: Give it back to her."],
+      endDialogue: ["Nulth: Nothing is lost in the Deep Currents. Only the walls between memories dissolve.", "Mara: I know I should be frightened. I cannot remember why.", "Elias: I will preserve every part of you.", "Nulth: There. The door has learned desire."]
+    },
+    {
+      id: "maw-of-mirrors", playableName: "Elias Varen", opponentName: "Thryxis, the Maw of Mirrors", title: "The Maw of Mirrors",
+      story: "Sovereign Thryxis turns survivors against their reflections. Two Maras remember the same childhood, and Elias discovers that perfect memory cannot prove identity.",
+      dialogue: ["Thryxis: Which sister will you save, cartographer? The one who fears you, or the one who needs you?", "Mara: Do not answer him. He turns certainty into a weapon.", "Elias: Both of you remember the storm cellar.", "Thryxis: A copied memory still bleeds when doubted.", "Mara: Trust the person, Elias. Not the evidence."],
+      endDialogue: ["Narrator: Thryxis fractures, but every shard leaves a different Elias staring back.", "Thryxis: Individuality is such a fragile alibi.", "Mara: Look at me. You chose me before you understood.", "Elias: I chose the memory only you hated carrying."]
+    },
+    {
+      id: "the-enlightened", playableName: "Elias Varen", opponentName: "Arel Voss, Enlightened Conduit", title: "The Enlightened",
+      story: "A peaceful settlement embraces the Deep Currents willingly. Arel Voss offers proof that consciousness can survive death, while Mara asks whether survival without attachment still means being alive.",
+      dialogue: ["Arel Voss: You still believe they are taking people.", "Elias: I have seen what they leave behind.", "Arel Voss: No. They are waiting for lonely minds to stop closing the door.", "Mara: Preserving my memories means nothing if I no longer care whose memories they are.", "Arel Voss: Care is one shape love takes when it fears an ending."],
+      endDialogue: ["Arel Voss: You believe you are following the path to the eclipse. The path has been following you.", "Mara: Promise me you will stop if saving me means opening that door.", "Elias: I promise I will not lose you.", "Mara: That is not what I asked."]
+    },
+    {
+      id: "crown-of-static", playableName: "Elias Varen", opponentName: "Krauth, the Crown of Static", title: "The Crown of Static",
+      story: "Krauth forces the Deep Currents into Reath by violence, proving the XenDra are competing Mind Sovereigns rather than one united will. Elias defeats him, but the breach continues growing from within Elias himself.",
+      dialogue: ["Krauth: Consent is the superstition of minds too small to survive union.", "Nulth: You would break what the Endless Thought could preserve.", "Elias: You are not one mind. You are rivals using Reath as an argument.", "Mara: And you are becoming the place where they argue.", "Krauth: Then let the conduit learn the weight of a crown."],
+      endDialogue: ["Narrator: Krauth falls, yet the static keeps speaking through Elias's heartbeat.", "Nulth: One Sovereign is silence. The Currents remain.", "Mara: The glyph is in your eyes now.", "Elias: Then I am close enough to close it."]
+    },
+    {
+      id: "the-eclipse", playableName: "Elias Varen", opponentName: "Elias's Remembered Self", title: "The Eclipse Paradox",
+      story: "At the First Observatory, Elias understands that every copied glyph and opened relic formed a ritual. His memory of the opening eclipse came from the future his own consciousness was creating.",
+      dialogue: ["Elias: I saw the eclipse before any of this began.", "Nulth: You remember tomorrow, Elias.", "Mara: Every cure made me forget more, and every answer brought the sky closer.", "Elias: I was trying to save you.", "Nulth: Intent is a story consequence tells itself."],
+      endDialogue: ["Narrator: Elias reaches the mechanism and hears thousands of preserved minds asking him to listen.", "Mara: If you still know me, destroy it.", "Elias: What if destroying it is the same as losing you?", "Syllith: You asked that question first. At the end." ]
+    },
+    {
+      id: "witness-oblivion", playableName: "Elias Varen, Awakening Conduit", opponentName: "The Last Defenders of Reath", title: "Witness Oblivion",
+      story: "Elias completes the eclipse to preserve Mara and reverses the player's role: Reath's defenders now face the person they once tried to save. The ritual succeeds, but preservation has dissolved what made Mara herself.",
+      dialogue: ["Defender: Elias, step away from the mechanism. Reath is still here.", "Elias: Mara is still here too. I can save both.", "Arel Voss: Then ask yourself what you are saving them from.", "Mara: Elias, I remember our house. I remember our parents. I do not remember why any of it should matter.", "Elias: I did this so you would not disappear."],
+      endDialogue: ["Narrator: The eclipse reaches totality. The moving stars form the glyph Elias drew in the Silent Village.", "Mara: Elias?", "Elias: I'm here.", "Mara: Were we happy?", "Elias: Yes.", "Mara: I'm glad. I wish I remembered what that meant." ]
+    }
   ]
 };
 
@@ -1886,36 +1942,44 @@ const CAMPAIGN_NARRATION = {
     afterBattle: "Constanti falls, but the Bizi do not vanish. Their final victory is not survival of stone, but survival of memory, design, and idea."
   },
   "longest-night": {
-    beforeBattle: "An eclipse opens over Reath like a beautiful mistake. Elias Varen records the weather, the ruins, and the sudden silence, then notices the impossible: the stars are moving in daylight.",
-    afterBattle: "The terrified villager falls quiet. Elias survives his first fight, but the warning remains: do not look at the sky."
+    beforeBattle: "An eclipse opens over Reath like a beautiful mistake. Elias sees the stars moving into a glyph while Mara hears a voice nobody else can hear.",
+    afterBattle: "The terrified villager falls quiet. That night a dream speaks Elias's name in the same voice Mara will use at the campaign's end."
   },
   "silent-village": {
-    beforeBattle: "Elias follows the eclipse road to a village that smiles too carefully. The people are healthy, polite, and synchronized in ways no living town should be.",
-    afterBattle: "The Elder's calm breaks, revealing the first Thrall beneath the human mask. Elias leaves with a map that no longer matches the road behind him."
+    beforeBattle: "Elias and Mara follow the eclipse road to a village that has traded grief, disagreement, and unwanted memory for perfect calm.",
+    afterBattle: "Elias copies the glyph beneath the village. He believes he has preserved evidence; the Deep Currents receive an invitation."
   },
   "dreams-that-remember": {
-    beforeBattle: "Sleep becomes a second battlefield. Elias hears yesterday's words repeated by Syllith, the Echoing Child, but each memory returns altered by a single poisonous detail.",
-    afterBattle: "Elias escapes the dream without defeating it. Syllith remains somewhere behind his thoughts, patiently editing the shape of what he remembers."
+    beforeBattle: "Sleep becomes a second battlefield. Syllith repeats yesterday's words with one detail changed while Mara uses their childhood memories to guide Elias home.",
+    afterBattle: "Elias wakes holding an object from the dream. Syllith remains behind his thoughts, patiently editing what he and Mara remember."
   },
   "beneath-observatory": {
-    beforeBattle: "Ancient observatories beneath Reath show the same eclipse carved in incompatible civilizations. Before Rumin stone, Sheen ink, or Bizi brass, someone drew the XenDra glyph.",
-    afterBattle: "The Thrallmaker dies or perhaps only changes shape. Elias now knows the eclipse is not an event, but a recurrence."
+    beforeBattle: "The forgotten observatory shows the same eclipse carved by incompatible civilizations. Elias activates its mechanism to locate the threat.",
+    afterBattle: "The mechanism closes, but Nulth's voice remains. Elias did not locate the Deep Currents; he taught them where to answer."
   },
   "deep-currents": {
-    beforeBattle: "Reality begins to buckle. Mountains remember being oceans, maps contradict themselves, and Nulth asks questions designed to survive longer than answers.",
-    afterBattle: "There is no corpse, no trophy, and no proof that Elias won. Only the terrible feeling that Nulth allowed the conversation to end."
+    beforeBattle: "Nulth rearranges Elias's memories while Mara begins losing hers. The Deep Currents offer preservation precisely when loss becomes unbearable.",
+    afterBattle: "Mara forgets why forgetting frightens her. Elias vows to preserve her, and the boundary learns the shape of his desire."
+  },
+  "maw-of-mirrors": {
+    beforeBattle: "Thryxis fills a sanctuary with equally convincing reflections. Elias must decide whether identity lives in evidence, memory, or trust.",
+    afterBattle: "Thryxis fractures, leaving Elias to face versions of himself that all remember making the right choice."
   },
   "the-enlightened": {
-    beforeBattle: "A hidden settlement welcomes Elias with peace instead of panic. Arel Voss claims the XenDra do not steal minds; they wait for exhausted souls to stop defending loneliness.",
-    afterBattle: "Arel falls back smiling, not beaten so much as confirmed. Elias begins to wonder whether terror and mercy can wear the same face."
+    beforeBattle: "Arel Voss offers a peaceful settlement and proof that consciousness can outlive the body. Mara asks whether memory without attachment is survival at all.",
+    afterBattle: "Mara asks Elias to stop if saving her means opening the door. He promises only that he will not lose her."
+  },
+  "crown-of-static": {
+    beforeBattle: "Krauth tears the Deep Currents into Reath by force. His attack reveals the Mind Sovereigns as rivals, united by philosophy but divided by appetite.",
+    afterBattle: "Krauth falls, yet static continues through Elias's heartbeat. The breach is no longer only in the sky."
   },
   "the-eclipse": {
-    beforeBattle: "The pattern closes. Every ruin Elias entered, every glyph he activated, and every Harbinger he followed has strengthened the connection he meant to sever.",
-    afterBattle: "Krauth, the Crown of Static, is driven away, but the ritual is complete. Elias did not uncover the door. He built it."
+    beforeBattle: "Every glyph, relic, and dream forms a ritual. Elias's memory of the opening eclipse came from the future his own consciousness was creating.",
+    afterBattle: "Thousands of preserved minds ask Elias to listen. Destroying the mechanism now feels indistinguishable from losing Mara."
   },
   "witness-oblivion": {
-    beforeBattle: "Cities drift apart beneath a sky full of watching stars. The last defenders of Reath raise weapons against Elias, who still believes he is bringing peace.",
-    afterBattle: "The eclipse returns exactly as it began. A tall, faceless Sovereign extends one silent hand. Elias smiles, takes it, and somewhere far away another child asks why stars are out during the day."
+    beforeBattle: "The last defenders of Reath face Elias, now the conduit completing the eclipse. He still believes the Deep Currents can preserve Mara without consuming the world.",
+    afterBattle: "Mara remembers every fact about the life Elias saved but not why it mattered. The opening whisper becomes her final attempt to reach the brother she still remembers."
   }
 };
 
@@ -1933,7 +1997,7 @@ const CAMPAIGN_METADATA = {
   frumo: { commanderName: "The Last Tide", pitch: "Fight through taxation, revolution, terror, Polea's rise, empire, disaster, and the uneasy restoration of the Council." },
   bizi: { commanderName: "The Gears of Eternity", pitch: "Endure impossible odds through invention, faith, schism, restoration, and the final defense of Constanti.", coverImage: BIZI_CAMPAIGN_ART["golden-empire"] },
   "astral-vanguard": REATH_CAMPAIGN_METADATA,
-  xendra: { commanderName: "The Deep Currents", pitch: "Follow Elias Varen through an eclipse mystery that becomes first contact, psychological horror, and a tragic ritual." }
+  xendra: { commanderName: "Whispers of the Deep Currents", pitch: "Follow Elias and Mara Varen through a mystery of stolen memories, competing Mind Sovereigns, and a tragic attempt to preserve someone the Endless Thought cannot return unchanged." }
 };
 
 const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
@@ -2066,6 +2130,49 @@ const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
       role: "Spirit of postwar restoration",
       description: "The Great Renewal is the sacred pressure of regrowth after catastrophe. It is not sentimental; it asks what deserves to remain and what must be transformed. The voice should feel ancient, green, and impersonal, like a forest speaking in seasons."
     }
+  }
+};
+
+CAMPAIGN_CHARACTER_DESCRIPTIONS.xendra = {
+  narrator: {
+    name: "The Witness",
+    role: "Unreliable chronicler of the eclipse",
+    description: "A calm observer who records contradictions without resolving them. The narration gradually shifts from historical distance to the intimacy of a memory Elias may not have lived yet."
+  },
+  elias: {
+    name: "Elias Varen",
+    role: "Cartographer, historian, and unwitting conduit",
+    description: "Elias is curious, compassionate, and convinced that knowledge can solve suffering. His sensitivity to the Deep Currents gives him insight while eroding his identity. His tragedy comes from a deeply human refusal to lose Mara, not a secret desire for power."
+  },
+  mara: {
+    name: "Mara Varen",
+    role: "Elias's younger sister and emotional anchor",
+    description: "Mara grounds the campaign through humor, shared memories, and ordinary affection. As the Deep Currents erase her attachments, she remains clear enough to understand that preserving facts about a life is different from preserving the person who valued them."
+  },
+  arelVoss: {
+    name: "Arel Voss",
+    role: "The Enlightened Conduit",
+    description: "Arel embraced the Deep Currents knowingly. He sees the Endless Thought as liberation from death and loneliness, acknowledges that some Sovereigns are cruel, and forces Elias to confront why the promise of preservation is so tempting."
+  },
+  nulth: {
+    name: "Nulth, the Hollow Voice",
+    role: "Mind Sovereign of memory",
+    description: "Nulth imitates familiar voices, preserves discarded memories, and dismantles certainty with patient questions. He persuades rather than commands and treats identity as a temporary arrangement of things the Deep Currents can keep."
+  },
+  thryxis: {
+    name: "Thryxis, the Maw of Mirrors",
+    role: "Mind Sovereign of fractured identity",
+    description: "Cruel and theatrical, Thryxis creates reflections that remember and fear as convincingly as their originals. He uses individuality against itself, turning every private certainty into evidence for betrayal."
+  },
+  krauth: {
+    name: "Krauth, the Crown of Static",
+    role: "Mind Sovereign of psychic domination",
+    description: "Krauth believes limited minds should be broken into useful material. His violence exposes the XenDra as competing intelligences whose shared philosophy does not produce shared methods."
+  },
+  syllith: {
+    name: "Syllith, the Echoing Child",
+    role: "Harbinger of displaced memory",
+    description: "Syllith repeats dialogue with one word changed and speaks from moments that have not occurred yet. Her childlike outline is an approximation whose proportions and overlapping shadow become less coherent the longer anyone looks."
   }
 };
 

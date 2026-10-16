@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Look at me. You chose me before you understood.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-after-03-mara.mp3",
+  "generatedAt": "2026-10-16T15:18:00.782Z",
+  "publishedAt": "2026-10-16T15:27:00.656Z",
+  "bytes": 56049,
+  "sha256": "0e6f25a32e81779ad913340b8a5d66a4277cfd32fbbab22805febda9c53ba3f6"
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "audioTreatment": null,
+  "line": "I chose the memory only you hated carrying.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-after-04-elias.mp3",
+  "generatedAt": "2026-10-16T15:18:01.576Z",
+  "publishedAt": "2026-10-16T15:27:00.658Z",
+  "bytes": 38077,
+  "sha256": "aa4f20438c64e1f744872ab01dd965136db68be482e03fbe25c4803bf204ee97"
+}

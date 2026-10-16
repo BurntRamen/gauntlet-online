@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
-  "line": "Rumin stone. Sheen ink. Bizi brass. The same mark in every age.",
+  "audioTreatment": null,
+  "line": "Rumin stone. Sheen ink. Bizi brass. Different histories, the same impossible mark.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-01-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:26.773Z",
-  "publishedAt": "2026-10-13T19:52:16.205Z",
-  "bytes": 115400,
-  "sha256": "88a0a48779d0878935f5905bb599845891b723e8fed99d7dd510135c73e81254"
+  "generatedAt": "2026-10-16T15:17:28.035Z",
+  "publishedAt": "2026-10-16T15:27:00.611Z",
+  "bytes": 125012,
+  "sha256": "bf531378d649a6c04d44f10dc1f6a335fa96a24fb3f9029489c9c81b91109da4"
 }

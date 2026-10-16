@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elder",
   "voiceName": "The Village Elder",
+  "audioTreatment": null,
   "line": "The light was beautiful.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-before-02-village-elder.mp3",
-  "generatedAt": "2026-10-13T19:50:21.916Z",
-  "publishedAt": "2026-10-13T19:52:16.186Z",
-  "bytes": 61066,
-  "sha256": "a34459d9b371b3d04d7adb59ae42a1fe7a525398ff6f7390fd74510fbcf726d3"
+  "generatedAt": "2026-10-16T15:17:07.706Z",
+  "publishedAt": "2026-10-16T15:27:00.578Z",
+  "bytes": 48526,
+  "sha256": "fc70c41a08ce553e963b09e7a0932086e22f6c14828cfe35514f391861b3a255"
 }

@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "narrator",
   "voiceName": "XenDra Witness",
-  "line": "Everyone celebrated the beautiful eclipse. Elias counted the stars and realized they had changed positions.",
+  "audioTreatment": null,
+  "line": "Everyone called the eclipse beautiful. Elias watched the stars move toward one another.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-before-01-narrator.mp3",
-  "generatedAt": "2026-10-13T19:50:18.434Z",
-  "publishedAt": "2026-10-13T19:52:16.170Z",
-  "bytes": 152599,
-  "sha256": "29c286dc27ce5ca14efb0f21d3dfc32a02ec9e173db1069a2e616e4250c4ab37"
+  "generatedAt": "2026-10-16T15:16:56.333Z",
+  "publishedAt": "2026-10-16T15:27:00.556Z",
+  "bytes": 129610,
+  "sha256": "1e44af00e9cd0958cb14d3bb849ec7db71f5b5b350944f2aae22f1662badafd2"
 }

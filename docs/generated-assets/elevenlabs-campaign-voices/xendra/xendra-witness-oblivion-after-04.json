@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Were we happy?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch10-after-04-mara.mp3",
+  "generatedAt": "2026-10-16T15:18:43.846Z",
+  "publishedAt": "2026-10-16T15:27:00.719Z",
+  "bytes": 18015,
+  "sha256": "2d4ff111ba4056cdfe5f0bc580f6b5269d395383a67458e0b79c9916d00d2548"
+}

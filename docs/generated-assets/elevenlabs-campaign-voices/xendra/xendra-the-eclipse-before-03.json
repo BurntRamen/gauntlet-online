@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "krauth",
-  "voiceName": "Krauth Crown of Static",
-  "line": "Intent is a candle. Consequence is the sun.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-before-03-krauth.mp3",
-  "generatedAt": "2026-10-13T19:52:13.266Z",
-  "publishedAt": "2026-10-13T19:52:16.252Z",
-  "bytes": 47273,
-  "sha256": "426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4"
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Every cure made me forget more, and every answer brought the sky closer.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch09-before-03-mara.mp3",
+  "generatedAt": "2026-10-16T15:18:26.272Z",
+  "publishedAt": "2026-10-16T15:27:00.694Z",
+  "bytes": 76111,
+  "sha256": "efa037815dbab03f6fe59ad190b3fbb4acff79bfe15097d65d2697404c248705"
 }

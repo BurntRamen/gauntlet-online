@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { execFileSync } = require("node:child_process");
 
 const { campaignChapters } = require("../server/gameContent");
 
@@ -100,6 +101,18 @@ function writeJson(filePath, value) { fs.mkdirSync(path.dirname(filePath), { rec
 function sha256(buffer) { return crypto.createHash("sha256").update(buffer).digest("hex"); }
 function requestHash(value) { return sha256(Buffer.from(JSON.stringify(value))); }
 
+function applyAudioTreatment(filePath, treatment, ffmpegPath = process.env.FFMPEG_PATH) {
+  if (!treatment) return;
+  if (!ffmpegPath) throw new Error("FFMPEG_PATH is required for configured voice post-processing.");
+  const processedPath = `${filePath}.processed.mp3`;
+  try {
+    execFileSync(ffmpegPath, ["-y", "-hide_banner", "-loglevel", "error", "-i", filePath, "-af", treatment, processedPath]);
+    fs.renameSync(processedPath, filePath);
+  } finally {
+    if (fs.existsSync(processedPath)) fs.rmSync(processedPath, { force: true });
+  }
+}
+
 async function apiResponse(fetchImpl, url, options, apiKey) {
   const response = await fetchImpl(url, { ...options, headers: { "Content-Type": "application/json", "xi-api-key": apiKey, ...(options.headers || {}) } });
   if (!response.ok) {
@@ -176,9 +189,10 @@ async function generateLines({ manifest, workspaceRoot, apiKey, confirmCost, onl
     const request = {
       text: line.text,
       model_id: manifest.speechModelId,
-      voice_settings: { stability: 0.58, similarity_boost: 0.78, style: 0.28, use_speaker_boost: true }
+      voice_settings: manifest.voices[line.voiceKey].settings || { stability: 0.58, similarity_boost: 0.78, style: 0.28, use_speaker_boost: true }
     };
-    const hash = requestHash({ voiceId, outputFormat: manifest.outputFormat, request });
+    const treatment = manifest.voices[line.voiceKey].postProcess || "";
+    const hash = requestHash({ voiceId, outputFormat: manifest.outputFormat, request, treatment });
     const stagedPath = path.join(paths.staging, "lines", line.fileName);
     if (!force && state.lines[line.id]?.requestHash === hash && fs.existsSync(stagedPath)) continue;
     const response = await apiResponse(fetchImpl, `${API_BASE_URL}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${encodeURIComponent(manifest.outputFormat)}`, { method: "POST", body: JSON.stringify(request) }, apiKey);
@@ -186,7 +200,9 @@ async function generateLines({ manifest, workspaceRoot, apiKey, confirmCost, onl
     if (!buffer.length) throw new Error(`${line.id}: generated speech was empty.`);
     fs.mkdirSync(path.dirname(stagedPath), { recursive: true });
     fs.writeFileSync(stagedPath, buffer);
-    state.lines[line.id] = { ...line, requestHash: hash, bytes: buffer.length, sha256: sha256(buffer), generatedAt: new Date().toISOString() };
+    applyAudioTreatment(stagedPath, treatment);
+    const treatedBuffer = fs.readFileSync(stagedPath);
+    state.lines[line.id] = { ...line, requestHash: hash, bytes: treatedBuffer.length, sha256: sha256(treatedBuffer), generatedAt: new Date().toISOString() };
     writeJson(paths.state, state);
   }
   return state;
@@ -217,6 +233,7 @@ function publishLines({ manifest, workspaceRoot, onlyVoices = [], force = false 
       outputFormat: manifest.outputFormat,
       voiceKey: item.line.voiceKey,
       voiceName: manifest.voices[item.line.voiceKey].name,
+      audioTreatment: manifest.voices[item.line.voiceKey].postProcess || null,
       line: item.line.text,
       clientOutput: path.relative(workspaceRoot, item.outputPath).replaceAll(path.sep, "/"),
       generatedAt: item.record.generatedAt,

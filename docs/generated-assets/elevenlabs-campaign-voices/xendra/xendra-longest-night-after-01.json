@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "XenDra Witness",
+  "audioTreatment": null,
+  "line": "That night, Elias dreams of a corridor whose final door opens onto the eclipse.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-after-01-narrator.mp3",
+  "generatedAt": "2026-10-16T15:17:02.914Z",
+  "publishedAt": "2026-10-16T15:27:00.567Z",
+  "bytes": 118325,
+  "sha256": "80f399b1b85aa7fc6c2f37091651434cf9d3899a9666f68a085ab0517a5bcb28"
+}

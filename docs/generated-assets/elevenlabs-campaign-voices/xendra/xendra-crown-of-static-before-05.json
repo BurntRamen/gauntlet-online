@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "krauth",
+  "voiceName": "Krauth Crown of Static",
+  "audioTreatment": "highpass=f=50,lowpass=f=7200,chorus=0.48:0.94:46|82:0.42|0.3:0.36|0.24:0.28|0.18,aecho=0.8:0.55:120|240:0.3|0.14,loudnorm=I=-18:LRA=9:TP=-1.5",
+  "line": "Then let the conduit learn the weight of a crown.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch08-before-05-krauth.mp3",
+  "generatedAt": "2026-10-16T15:18:18.051Z",
+  "publishedAt": "2026-10-16T15:27:00.681Z",
+  "bytes": 23853,
+  "sha256": "2b0cf89bc6ccedfaec6f95c13c17ed631f38eb041d00de21f5fc9528139234b1"
+}

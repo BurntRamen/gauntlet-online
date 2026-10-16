@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "thryxis",
+  "voiceName": "Thryxis the Maw of Mirrors",
+  "audioTreatment": "highpass=f=120,lowpass=f=10500,chorus=0.52:0.86:21|47|83:0.3|0.22|0.14:0.8|0.55|0.31:0.16|0.12|0.08,aecho=0.8:0.4:60|125|245:0.22|0.13|0.07,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "Individuality is such a fragile alibi.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-after-02-thryxis.mp3",
+  "generatedAt": "2026-10-16T15:17:59.572Z",
+  "publishedAt": "2026-10-16T15:27:00.654Z",
+  "bytes": 39597,
+  "sha256": "10fbf3d10db63f2f4900e5d65788742a859dd4783f39e4ff82f9596762a4eea9"
+}

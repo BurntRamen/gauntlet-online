@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
-  "line": "I found peace for us.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch08-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:52:15.207Z",
-  "publishedAt": "2026-10-13T19:52:16.263Z",
-  "bytes": 27629,
-  "sha256": "8653244df4a099f00066c46bdde424730441dd93bd6b97db644bce9cf0cf3efe"
+  "audioTreatment": null,
+  "line": "Mara is still here too. I can save both.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch10-before-02-elias.mp3",
+  "generatedAt": "2026-10-16T15:18:36.443Z",
+  "publishedAt": "2026-10-16T15:27:00.709Z",
+  "bytes": 60647,
+  "sha256": "798e1a16f9015274dcc58aa18ce7e7235ec5a1d946af11268ee345507166b156"
 }

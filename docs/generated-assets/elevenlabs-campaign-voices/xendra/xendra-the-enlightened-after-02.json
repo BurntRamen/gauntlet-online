@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Promise me you will stop if saving me means opening that door.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-after-02-mara.mp3",
+  "generatedAt": "2026-10-16T15:18:09.033Z",
+  "publishedAt": "2026-10-16T15:27:00.669Z",
+  "bytes": 61065,
+  "sha256": "c71ef9e3a69bc4d12c999251506b398ccc07c68a27086020b554c9425f6cf26b"
+}

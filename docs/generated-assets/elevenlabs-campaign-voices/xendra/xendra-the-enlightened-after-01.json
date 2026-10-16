@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "arel",
+  "voiceName": "Arel Voss",
+  "audioTreatment": null,
+  "line": "You believe you are following the path to the eclipse. The path has been following you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-after-01-arel-voss.mp3",
+  "generatedAt": "2026-10-16T15:18:07.778Z",
+  "publishedAt": "2026-10-16T15:27:00.667Z",
+  "bytes": 81127,
+  "sha256": "6cf9c2484671e8d1fc2f2f050b5b86f44cf33a80e6bea484d6417f1e96e242dd"
+}

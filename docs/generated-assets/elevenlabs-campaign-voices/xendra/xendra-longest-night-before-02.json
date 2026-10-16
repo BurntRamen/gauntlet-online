@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "elias",
-  "voiceName": "Elias Varen",
-  "line": "Stars do not drift at noon.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:19.268Z",
-  "publishedAt": "2026-10-13T19:52:16.176Z",
-  "bytes": 35152,
-  "sha256": "eceb72b6a0cd1a280812e48b2860a712458f3bdfc9ed17ed6cc29cbcdf73faee"
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "You missed breakfast for another ruin, and now the sky is copying your bad habits.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-before-02-mara.mp3",
+  "generatedAt": "2026-10-16T15:16:58.057Z",
+  "publishedAt": "2026-10-16T15:27:00.559Z",
+  "bytes": 96173,
+  "sha256": "67d0cff7469f8c2f257060ac706ae56532367451a3e2e6ce41b525a5e44fe94c"
 }

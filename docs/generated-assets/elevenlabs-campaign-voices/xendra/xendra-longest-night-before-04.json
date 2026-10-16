@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Elias, someone just said your name.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-before-04-mara.mp3",
+  "generatedAt": "2026-10-16T15:17:00.161Z",
+  "publishedAt": "2026-10-16T15:27:00.563Z",
+  "bytes": 38077,
+  "sha256": "6288849024c1a98ffb9769a49e97a3c788ba254ba4b7f6cb2a3d8debc02f784c"
+}

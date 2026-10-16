@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "syllith",
   "voiceName": "Syllith the Echoing Child",
-  "line": "Did you?",
+  "audioTreatment": "highpass=f=100,lowpass=f=10000,chorus=0.55:0.85:28|52:0.32|0.22:0.7|0.45:0.18|0.12,aecho=0.8:0.42:75|150:0.24|0.11,loudnorm=I=-18:LRA=7:TP=-1.5",
+  "line": "You will remember tomorrow.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch03-before-03-syllith.mp3",
-  "generatedAt": "2026-10-13T19:50:25.448Z",
-  "publishedAt": "2026-10-13T19:52:16.202Z",
-  "bytes": 65663,
-  "sha256": "71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308"
+  "generatedAt": "2026-10-16T15:17:20.088Z",
+  "publishedAt": "2026-10-16T15:27:00.597Z",
+  "bytes": 45165,
+  "sha256": "95dbf5bb2e4c7832a3795eadddb050b457ea4e37c0a6cf16432137b5cfb7bbe1"
 }

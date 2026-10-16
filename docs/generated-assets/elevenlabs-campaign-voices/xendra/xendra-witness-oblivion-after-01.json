@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "XenDra Witness",
+  "audioTreatment": null,
+  "line": "The eclipse reaches totality. The moving stars form the glyph Elias drew in the Silent Village.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch10-after-01-narrator.mp3",
+  "generatedAt": "2026-10-16T15:18:41.100Z",
+  "publishedAt": "2026-10-16T15:27:00.714Z",
+  "bytes": 153434,
+  "sha256": "27117f40c9b08847ffe265513902731ad9c96e77001a54542648f393e1345bc2"
+}

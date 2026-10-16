@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "syllith",
   "voiceName": "Syllith the Echoing Child",
-  "line": "Stars do not drift at dawn.",
+  "audioTreatment": "highpass=f=100,lowpass=f=10000,chorus=0.55:0.85:28|52:0.32|0.22:0.7|0.45:0.18|0.12,aecho=0.8:0.42:75|150:0.24|0.11,loudnorm=I=-18:LRA=7:TP=-1.5",
+  "line": "Your name was Elias.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch03-before-01-syllith.mp3",
-  "generatedAt": "2026-10-13T19:50:23.914Z",
-  "publishedAt": "2026-10-13T19:52:16.195Z",
-  "bytes": 51453,
-  "sha256": "341aa24bb06ca3d85904731b6e90df25f994ccdd842300fad1f743d03a7a275c"
+  "generatedAt": "2026-10-16T15:17:17.937Z",
+  "publishedAt": "2026-10-16T15:27:00.594Z",
+  "bytes": 28461,
+  "sha256": "2bb6e2f6cecfcdcdd8379d3e434b7b599d3404a0967a55c11e058282666edf4b"
 }

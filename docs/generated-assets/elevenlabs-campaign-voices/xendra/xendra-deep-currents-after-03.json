@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "audioTreatment": null,
+  "line": "I will preserve every part of you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-after-03-elias.mp3",
+  "generatedAt": "2026-10-16T15:17:47.611Z",
+  "publishedAt": "2026-10-16T15:27:00.640Z",
+  "bytes": 41003,
+  "sha256": "987347abc001a86b6515c0021c4af0849a4555eaf1960cedc6dba0cc615e77ee"
+}

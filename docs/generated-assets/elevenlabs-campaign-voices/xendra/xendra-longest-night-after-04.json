@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "audioTreatment": null,
+  "line": "For a moment, you sounded very far away.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch01-after-04-elias.mp3",
+  "generatedAt": "2026-10-16T15:17:06.039Z",
+  "publishedAt": "2026-10-16T15:27:00.574Z",
+  "bytes": 36823,
+  "sha256": "a74f15a2e1e26e6f9f4ec5f2ebb09501c2496782cba9d46a5ec362c5966fb19c"
+}

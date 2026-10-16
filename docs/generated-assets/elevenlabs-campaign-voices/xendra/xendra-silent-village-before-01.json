@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
+  "audioTreatment": null,
   "line": "What did you see during the eclipse?",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-before-01-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:20.853Z",
-  "publishedAt": "2026-10-13T19:52:16.183Z",
-  "bytes": 33062,
-  "sha256": "ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7"
+  "generatedAt": "2026-10-16T15:17:06.846Z",
+  "publishedAt": "2026-10-16T15:27:00.576Z",
+  "bytes": 27628,
+  "sha256": "8ecfd91b112dceda4d47a2e2fcde575ccd01debf95f521db9615712c9cc9e358"
 }
