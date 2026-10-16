@@ -2,6 +2,8 @@
 
 Updated 16 October 2026. Continues `codex/modular-admin-suite` from `cb6725c` in the isolated `para-gold-live` worktree. Case's original checkout is not an implementation target. This document supersedes the earlier unsupported-feature list only for rows explicitly verified below.
 
+Release update: the user subsequently authorized completing the interface/functionality and publishing the code live. The local qualification below remains the historical implementation record; current deployment and activation status is tracked in [the October 16 release record](admin-suite-live-release.md). Payments remain disconnected. Code deployment does not by itself authorize database migrations, paid infrastructure, balance cutover or competition/content activation.
+
 ## Authority and reconciliation
 
 The user authorized local implementation and isolated tests, not deployment, merging, production publication, production data migration, payment activation or paid provisioning. The payment decision is **provider adapter only**. No concrete provider or live merchant integration is implied. Opening Gold remains the previously agreed import of existing value outside seasonal earning caps.

@@ -118,6 +118,10 @@ jobs:
         run: npx playwright test --config=playwright.printings.config.js
       - name: Test authored deck purchase and restart journey
         run: npx playwright test --config=playwright.purpose.config.js
+      - name: Test authored mechanics, campaigns, cosmetics and payment readiness
+        run: npx playwright test --config=playwright.phase2.config.js
+      - name: Test separate Gems and atomic split-price purchases
+        run: npx playwright test --config=playwright.gems.config.js
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
