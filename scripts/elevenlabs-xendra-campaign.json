@@ -9,7 +9,15 @@
   "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/xendra",
   "contentRegistry": "server/xendraCampaignVoiceAssets.json",
   "libraryVoiceIds": {
+    "narrator": "aMovcQSsPHIEeot1CNuF",
+    "elias": "Iijp4ttvX1NCbJGtDO2U",
+    "mara": "NXaTw4ifg0LAguvKuIwZ",
+    "villager": "gmYGoVNpnvnJJF2kHeNr",
+    "elder": "PbAwbG2PZgT8VJHc68lf",
+    "syllith": "4KuKci14WPwKLXoUNcP5",
+    "thrallmaker": "xM4muJcGNa45LUuaBJFv",
     "nulth": "F4AXgTwG8nWPB9dcXaTh",
+    "thryxis": "xM4muJcGNa45LUuaBJFv",
     "arel": "EXAVITQu4vr4xnSDxMaL",
     "krauth": "SOYHLrjzK2X1ezoPC6cr",
     "defender": "p4TAaoUAniL3oGGYQxGO"
@@ -25,6 +33,11 @@
       "description": "An original thoughtful young cartographer with an intelligent, observant voice, grounded warmth, controlled fear, and growing exhaustion. He begins skeptical and humane, then becomes haunted and eerily serene without losing clear diction. Never imitate a real person.",
       "previewText": "Stars do not drift at noon. Maps can lie, but the sky should not. I will follow the error until it becomes an answer, even if the answer follows me home."
     },
+    "mara": {
+      "name": "Mara Varen",
+      "description": "An original compassionate younger sister with grounded warmth, quick dry humor, emotional honesty, and growing gaps of frightened uncertainty as her memories fade. Natural contemporary English delivery with intimate clarity. Never imitate a real performer.",
+      "previewText": "When we were children, you mapped the house so I could find you during storms. Keep the map, Elias. If I forget the rooms, I still want to know that you remembered me."
+    },
     "villager": {
       "name": "Terrified Villager",
       "description": "An original frightened rural villager with a strained, breathless voice, urgent warning, and the raw panic of someone who has seen an impossible sky. Natural rather than theatrical. Never imitate a real person.",
@@ -37,18 +50,31 @@
     },
     "syllith": {
       "name": "Syllith the Echoing Child",
-      "description": "An original eerie childlike alien voice with soft curiosity, playful pauses, lucid intelligence, and a faint doubled resonance, unsettling through calmness rather than screaming. Never imitate a real person.",
+      "description": "An original abstract childlike alien presence with soft curiosity and lucid intelligence, heard as several near-identical whispers arriving a fraction apart. Glassy resonance, reversed-feeling breaths, long impossible room reflections, and pitch that drifts subtly within a sentence. Unsettling through calmness, never screaming, never resembling a conventional ghost or a real performer.",
+      "settings": { "stability": 0.32, "similarity_boost": 0.7, "style": 0.72, "use_speaker_boost": true },
+      "postProcess": "highpass=f=100,lowpass=f=10000,chorus=0.55:0.85:28|52:0.32|0.22:0.7|0.45:0.18|0.12,aecho=0.8:0.42:75|150:0.24|0.11,loudnorm=I=-18:LRA=7:TP=-1.5",
       "previewText": "Stars do not drift at dawn. Did you say noon, or did you only remember saying it? Memory is a room with many doors, Elias, and I have the keys."
     },
     "thrallmaker": {
       "name": "The Thrallmaker",
-      "description": "An original inhuman persuader with a low, smooth, compassionate voice, slow deliberate pacing, and a nearly comforting certainty that makes surrender sound merciful. Never imitate a real person.",
+      "description": "An original inhuman persuader with a low, smooth, compassionate delivery emerging from a resonant chamber larger than the speaker. Two quiet undertones shadow the central voice at different pitches, making surrender sound merciful and inevitable. Slow, precise, abstract, and nonhuman without growling. Never imitate a real performer.",
+      "settings": { "stability": 0.42, "similarity_boost": 0.74, "style": 0.68, "use_speaker_boost": true },
+      "postProcess": "highpass=f=65,lowpass=f=8500,chorus=0.5:0.9:38|68:0.38|0.24:0.42|0.27:0.22|0.15,aecho=0.8:0.48:95|190:0.25|0.12,loudnorm=I=-18:LRA=7:TP=-1.5",
       "previewText": "The first mercy is surrender. The second is forgetting why you resisted. Be still, and the Deep Currents will carry every sharp thought away."
     },
     "nulth": {
       "name": "Nulth the Hollow Voice",
-      "description": "An original ageless alien philosopher with a hollow resonant voice, precise questions, patient pacing, and layered undertones that suggest more than one speaker sharing a breath. Never imitate a real person.",
+      "description": "An original ageless alien philosopher whose voice seems to originate behind the listener and inside an immense empty sanctuary at once. Deep, patient resonance with overlapping masculine, feminine, and nearly subaudible undertones sharing one breath; sparse words bloom into long harmonic tails. Intimate yet cosmic, articulate, calm, and profoundly nonhuman. Never imitate any existing character or real performer.",
+      "settings": { "stability": 0.28, "similarity_boost": 0.72, "style": 0.82, "use_speaker_boost": true },
+      "postProcess": "highpass=f=55,lowpass=f=7800,chorus=0.45:0.92:42|74:0.4|0.27:0.32|0.21:0.25|0.16,aecho=0.8:0.52:110|220:0.28|0.13,loudnorm=I=-18:LRA=8:TP=-1.5",
       "previewText": "If pain could end, who would defend the wound? If memory could rest, who would demand it wake? You call the silence death because you have never heard it sing."
+    },
+    "thryxis": {
+      "name": "Thryxis the Maw of Mirrors",
+      "description": "An original theatrical alien intelligence made of fractured vocal reflections. The primary voice is elegant and cruel while displaced copies answer from different apparent distances, occasionally disagreeing in pitch or emphasis. Bright metallic resonance, fluid identity, and controlled delight; abstract and inhuman, never a monster growl and never an imitation.",
+      "settings": { "stability": 0.24, "similarity_boost": 0.68, "style": 0.86, "use_speaker_boost": true },
+      "postProcess": "highpass=f=120,lowpass=f=10500,chorus=0.52:0.86:21|47|83:0.3|0.22|0.14:0.8|0.55|0.31:0.16|0.12|0.08,aecho=0.8:0.4:60|125|245:0.22|0.13|0.07,loudnorm=I=-18:LRA=8:TP=-1.5",
+      "previewText": "Which memory belongs to you? Which face taught it how to smile? A reflection does not lie, Elias. It simply remembers the person you might have been."
     },
     "arel": {
       "name": "Arel Voss",
@@ -57,7 +83,9 @@
     },
     "krauth": {
       "name": "Krauth Crown of Static",
-      "description": "An original alien sovereign with vast controlled authority, low measured delivery, a dry electrical edge, and absolute certainty. Menacing through scale and composure, never shouting. Never imitate a real person.",
+      "description": "An original alien Mind Sovereign with vast controlled authority, heard through a cathedral-scale electrical resonance. A low central voice is surrounded by granular static harmonics and distant choral pressure, as though several impossible geometries speak simultaneously. Slow, absolute, and menacing through scale rather than volume; never shout, growl, or imitate an existing character or performer.",
+      "settings": { "stability": 0.34, "similarity_boost": 0.76, "style": 0.8, "use_speaker_boost": true },
+      "postProcess": "highpass=f=50,lowpass=f=7200,chorus=0.48:0.94:46|82:0.42|0.3:0.36|0.24:0.28|0.18,aecho=0.8:0.55:120|240:0.3|0.14,loudnorm=I=-18:LRA=9:TP=-1.5",
       "previewText": "You did not uncover the door. You built it. Intent is a candle. Consequence is the sun. Now the light has found this world, and no shadow can conceal it."
     },
     "defender": {
@@ -69,11 +97,13 @@
   "speakerVoices": {
     "Narrator": "narrator",
     "Elias": "elias",
+    "Mara": "mara",
     "Terrified Villager": "villager",
     "Village Elder": "elder",
     "Syllith": "syllith",
     "Thrallmaker": "thrallmaker",
     "Nulth": "nulth",
+    "Thryxis": "thryxis",
     "Arel Voss": "arel",
     "Krauth": "krauth",
     "Defender": "defender"

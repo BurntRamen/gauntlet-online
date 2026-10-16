@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "nulth",
+  "voiceName": "Nulth the Hollow Voice",
+  "audioTreatment": "highpass=f=55,lowpass=f=7800,chorus=0.45:0.92:42|74:0.4|0.27:0.32|0.21:0.25|0.16,aecho=0.8:0.52:110|220:0.28|0.13,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "Nothing is lost in the Deep Currents. Only the walls between memories dissolve.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-after-01-nulth.mp3",
+  "generatedAt": "2026-10-16T15:17:45.477Z",
+  "publishedAt": "2026-10-16T15:27:00.635Z",
+  "bytes": 42669,
+  "sha256": "69d27af648d51ce8dacc83bef8d43c76509306c0ad5df30a1f258c139e3b2d18"
+}

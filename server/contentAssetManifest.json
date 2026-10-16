@@ -28,6 +28,10 @@
       "source": "/assets/gauntlet/bizi-card.webp",
       "associations": [
         {
+          "object": "content.campaigns.xendra.chapters.9.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "factions.xendra.cardImage",
           "usage": "cardImage"
         }
@@ -202,6 +206,10 @@
         {
           "object": "content.campaigns.bizi.chapters.11.image",
           "usage": "image"
+        },
+        {
+          "object": "content.campaigns.bizi.chapters.11.cinematic.image",
+          "usage": "image"
         }
       ],
       "path": "/assets/gauntlet/releases/27b38ab882ba4fb45be390ae47afaa6d9f64f54a4089b290dd0018e6b9930c85.webp",
@@ -345,6 +353,10 @@
       "associations": [
         {
           "object": "content.campaigns.rumin.chapters.9.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.rumin.chapters.9.cinematic.image",
           "usage": "image"
         }
       ],
@@ -11670,6 +11682,62 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.astral-vanguard.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.0.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.1.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.2.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.3.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.4.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.5.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.6.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.7.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.8.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.9.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.10.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.9.cardImage",
           "usage": "cardImage"
         },
@@ -11779,6 +11847,14 @@
         },
         {
           "object": "content.factions.8.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.zynarth.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.zynarth.chapters.11.cinematic.image",
           "usage": "image"
         },
         {
@@ -11910,6 +11986,14 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.gracus.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.gracus.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.6.cardImage",
           "usage": "cardImage"
         },
@@ -11992,6 +12076,14 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.indela.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.indela.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.7.cardImage",
           "usage": "cardImage"
         },
@@ -12071,6 +12163,14 @@
         },
         {
           "object": "content.upcomingSets.0.factions.1.generals.0.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.jali.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.jali.chapters.11.cinematic.image",
           "usage": "image"
         },
         {
@@ -12419,6 +12519,14 @@
         },
         {
           "object": "content.upcomingSets.0.factions.0.generals.4.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.mekan.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.mekan.chapters.11.cinematic.image",
           "usage": "image"
         },
         {
@@ -16148,6 +16256,10 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.frumo.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.2.commander.image",
           "usage": "image"
         },
@@ -16263,6 +16375,10 @@
       "associations": [
         {
           "object": "content.factions.1.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.sheen.chapters.10.cinematic.image",
           "usage": "image"
         },
         {
@@ -25234,6 +25350,62 @@
       "bytes": 75162
     },
     {
+      "id": "asset:voices/xendra-ch01-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/80f399b1b85aa7fc6c2f37091651434cf9d3899a9666f68a085ab0517a5bcb28.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "80f399b1b85aa7fc6c2f37091651434cf9d3899a9666f68a085ab0517a5bcb28",
+      "bytes": 118325
+    },
+    {
+      "id": "asset:voices/xendra-ch01-after-02-syllith.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-after-02-syllith.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/aaf3cdeba1504dc5da4ebc9cd679a21ce2dd540d2e91335d7e4050fd1f6fa213.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "aaf3cdeba1504dc5da4ebc9cd679a21ce2dd540d2e91335d7e4050fd1f6fa213",
+      "bytes": 17709
+    },
+    {
+      "id": "asset:voices/xendra-ch01-after-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-after-03-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cec5ec384bbbcbc7657a80e4d9cdfc3464ece173137fcd5d367800b9596c7d40.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cec5ec384bbbcbc7657a80e4d9cdfc3464ece173137fcd5d367800b9596c7d40",
+      "bytes": 41838
+    },
+    {
+      "id": "asset:voices/xendra-ch01-after-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-after-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a74f15a2e1e26e6f9f4ec5f2ebb09501c2496782cba9d46a5ec362c5966fb19c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a74f15a2e1e26e6f9f4ec5f2ebb09501c2496782cba9d46a5ec362c5966fb19c",
+      "bytes": 36823
+    },
+    {
       "id": "asset:voices/xendra-ch01-before-01-narrator.mp3",
       "source": "/assets/gauntlet/voices/xendra-ch01-before-01-narrator.mp3",
       "associations": [
@@ -25242,38 +25414,122 @@
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/29c286dc27ce5ca14efb0f21d3dfc32a02ec9e173db1069a2e616e4250c4ab37.mp3",
+      "path": "/assets/gauntlet/releases/1e44af00e9cd0958cb14d3bb849ec7db71f5b5b350944f2aae22f1662badafd2.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "29c286dc27ce5ca14efb0f21d3dfc32a02ec9e173db1069a2e616e4250c4ab37",
-      "bytes": 152599
+      "sha256": "1e44af00e9cd0958cb14d3bb849ec7db71f5b5b350944f2aae22f1662badafd2",
+      "bytes": 129610
     },
     {
-      "id": "asset:voices/xendra-ch01-before-02-elias.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch01-before-02-elias.mp3",
+      "id": "asset:voices/xendra-ch01-before-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-02-mara.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.0.dialogueAudio.1",
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/eceb72b6a0cd1a280812e48b2860a712458f3bdfc9ed17ed6cc29cbcdf73faee.mp3",
+      "path": "/assets/gauntlet/releases/67d0cff7469f8c2f257060ac706ae56532367451a3e2e6ce41b525a5e44fe94c.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "eceb72b6a0cd1a280812e48b2860a712458f3bdfc9ed17ed6cc29cbcdf73faee",
-      "bytes": 35152
+      "sha256": "67d0cff7469f8c2f257060ac706ae56532367451a3e2e6ce41b525a5e44fe94c",
+      "bytes": 96173
     },
     {
-      "id": "asset:voices/xendra-ch01-before-03-terrified-villager.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch01-before-03-terrified-villager.mp3",
+      "id": "asset:voices/xendra-ch01-before-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-03-elias.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.0.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/ac798eebc441a539fe4e8cb4e1fc6df4eb2873f262f7ef823a24e7588ee88b8c.mp3",
+      "path": "/assets/gauntlet/releases/58877f2496b11c2af363145c5c75eaedd8c36985d3c5d29d432a95ea1f27ce80.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "ac798eebc441a539fe4e8cb4e1fc6df4eb2873f262f7ef823a24e7588ee88b8c",
-      "bytes": 35152
+      "sha256": "58877f2496b11c2af363145c5c75eaedd8c36985d3c5d29d432a95ea1f27ce80",
+      "bytes": 67752
+    },
+    {
+      "id": "asset:voices/xendra-ch01-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6288849024c1a98ffb9769a49e97a3c788ba254ba4b7f6cb2a3d8debc02f784c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6288849024c1a98ffb9769a49e97a3c788ba254ba4b7f6cb2a3d8debc02f784c",
+      "bytes": 38077
+    },
+    {
+      "id": "asset:voices/xendra-ch01-before-05-terrified-villager.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch01-before-05-terrified-villager.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.0.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f4a5a3cee461a6a92196abd45efc58acf528caeaa286d5e9de658cca5a3c83bd.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f4a5a3cee461a6a92196abd45efc58acf528caeaa286d5e9de658cca5a3c83bd",
+      "bytes": 94083
+    },
+    {
+      "id": "asset:voices/xendra-ch02-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/003f15003801efc97db72ce68d21345678af5a206c582c25561fddd3d0d8ddf7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "003f15003801efc97db72ce68d21345678af5a206c582c25561fddd3d0d8ddf7",
+      "bytes": 139223
+    },
+    {
+      "id": "asset:voices/xendra-ch02-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/dd03814bb68ebe442eacaffdceae3b5cc93e88dbb80fe82d084d364315152551.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "dd03814bb68ebe442eacaffdceae3b5cc93e88dbb80fe82d084d364315152551",
+      "bytes": 38077
+    },
+    {
+      "id": "asset:voices/xendra-ch02-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/20384688851bdc05b5be0ee742536a25fb29b9c72855fca567967bb23dd2c15c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "20384688851bdc05b5be0ee742536a25fb29b9c72855fca567967bb23dd2c15c",
+      "bytes": 23448
+    },
+    {
+      "id": "asset:voices/xendra-ch02-after-04-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-after-04-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c7e1d12d0b92667c52dc47a8d605d983f20ef05c2641623ad92d3a3ec7083719.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c7e1d12d0b92667c52dc47a8d605d983f20ef05c2641623ad92d3a3ec7083719",
+      "bytes": 24045
     },
     {
       "id": "asset:voices/xendra-ch02-before-01-elias.mp3",
@@ -25284,10 +25540,10 @@
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7.mp3",
+      "path": "/assets/gauntlet/releases/8ecfd91b112dceda4d47a2e2fcde575ccd01debf95f521db9615712c9cc9e358.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "ebd36cc78bfcd0d99974947e83633a388b82503f0f67b56d80989d67669651e7",
-      "bytes": 33062
+      "sha256": "8ecfd91b112dceda4d47a2e2fcde575ccd01debf95f521db9615712c9cc9e358",
+      "bytes": 27628
     },
     {
       "id": "asset:voices/xendra-ch02-before-02-village-elder.mp3",
@@ -25298,24 +25554,108 @@
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/a34459d9b371b3d04d7adb59ae42a1fe7a525398ff6f7390fd74510fbcf726d3.mp3",
+      "path": "/assets/gauntlet/releases/fc70c41a08ce553e963b09e7a0932086e22f6c14828cfe35514f391861b3a255.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "a34459d9b371b3d04d7adb59ae42a1fe7a525398ff6f7390fd74510fbcf726d3",
-      "bytes": 61066
+      "sha256": "fc70c41a08ce553e963b09e7a0932086e22f6c14828cfe35514f391861b3a255",
+      "bytes": 48526
     },
     {
-      "id": "asset:voices/xendra-ch02-before-03-elias.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch02-before-03-elias.mp3",
+      "id": "asset:voices/xendra-ch02-before-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-03-mara.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.1.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/90cabffa23e8f671fa32f540f0152bcc0eee25520bd881054f9e1e0b33ac2696.mp3",
+      "path": "/assets/gauntlet/releases/578c7d3bd12fc2dbd237f959458366933b80a4b3030d25f2aea1db527411feb3.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "90cabffa23e8f671fa32f540f0152bcc0eee25520bd881054f9e1e0b33ac2696",
-      "bytes": 60648
+      "sha256": "578c7d3bd12fc2dbd237f959458366933b80a4b3030d25f2aea1db527411feb3",
+      "bytes": 87814
+    },
+    {
+      "id": "asset:voices/xendra-ch02-before-04-village-elder.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-04-village-elder.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/36858687b50c57a7b4afb0922214af01ca8a79f789e4f46847c461b05f545ef9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "36858687b50c57a7b4afb0922214af01ca8a79f789e4f46847c461b05f545ef9",
+      "bytes": 116235
+    },
+    {
+      "id": "asset:voices/xendra-ch02-before-05-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch02-before-05-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.1.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/56a98b0e16a78f0561793da4ae8dafaa921ca0b7bfefe9003bbaa47c3acb688e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "56a98b0e16a78f0561793da4ae8dafaa921ca0b7bfefe9003bbaa47c3acb688e",
+      "bytes": 61901
+    },
+    {
+      "id": "asset:voices/xendra-ch03-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f95295fbc04a7b5d1ab62080d2ff0c4145bea20ce10c756efad9c59a44e75b89.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f95295fbc04a7b5d1ab62080d2ff0c4145bea20ce10c756efad9c59a44e75b89",
+      "bytes": 115399
+    },
+    {
+      "id": "asset:voices/xendra-ch03-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5a5279201207759bbad6b8fb360338d140376c80938897d1216d179d14169171.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5a5279201207759bbad6b8fb360338d140376c80938897d1216d179d14169171",
+      "bytes": 26374
+    },
+    {
+      "id": "asset:voices/xendra-ch03-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/226c1088365089feb490dddce3b74509b0ec9709fdc2f3dd7db29ebb1845ed2d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "226c1088365089feb490dddce3b74509b0ec9709fdc2f3dd7db29ebb1845ed2d",
+      "bytes": 35151
+    },
+    {
+      "id": "asset:voices/xendra-ch03-after-04-syllith.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-after-04-syllith.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/99407d78c138ef98973ba5132bee88ad4b4b10c27518942423aeeaf6afb9c1c3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "99407d78c138ef98973ba5132bee88ad4b4b10c27518942423aeeaf6afb9c1c3",
+      "bytes": 27117
     },
     {
       "id": "asset:voices/xendra-ch03-before-01-syllith.mp3",
@@ -25326,10 +25666,10 @@
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/341aa24bb06ca3d85904731b6e90df25f994ccdd842300fad1f743d03a7a275c.mp3",
+      "path": "/assets/gauntlet/releases/2bb6e2f6cecfcdcdd8379d3e434b7b599d3404a0967a55c11e058282666edf4b.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "341aa24bb06ca3d85904731b6e90df25f994ccdd842300fad1f743d03a7a275c",
-      "bytes": 51453
+      "sha256": "2bb6e2f6cecfcdcdd8379d3e434b7b599d3404a0967a55c11e058282666edf4b",
+      "bytes": 28461
     },
     {
       "id": "asset:voices/xendra-ch03-before-02-elias.mp3",
@@ -25340,10 +25680,10 @@
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/23ecb8541a2c2edc34f58396c4ebcf014f5de0779b9c60fc28132daa7d834f58.mp3",
+      "path": "/assets/gauntlet/releases/704b049ea77100ccdeca7a2825ddd2b50bbd12b9bad7db5cb1dc62beba42baa4.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "23ecb8541a2c2edc34f58396c4ebcf014f5de0779b9c60fc28132daa7d834f58",
-      "bytes": 19688
+      "sha256": "704b049ea77100ccdeca7a2825ddd2b50bbd12b9bad7db5cb1dc62beba42baa4",
+      "bytes": 26374
     },
     {
       "id": "asset:voices/xendra-ch03-before-03-syllith.mp3",
@@ -25354,10 +25694,94 @@
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308.mp3",
+      "path": "/assets/gauntlet/releases/95dbf5bb2e4c7832a3795eadddb050b457ea4e37c0a6cf16432137b5cfb7bbe1.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "71f19605c9750769b9957b7b7eec60c64f95ebaf14a4718da35f4e38167d1308",
-      "bytes": 65663
+      "sha256": "95dbf5bb2e4c7832a3795eadddb050b457ea4e37c0a6cf16432137b5cfb7bbe1",
+      "bytes": 45165
+    },
+    {
+      "id": "asset:voices/xendra-ch03-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4e0848b2a00796cac0f1e84973b61d9401b8e81413bb88cb8164708108703d7a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4e0848b2a00796cac0f1e84973b61d9401b8e81413bb88cb8164708108703d7a",
+      "bytes": 71096
+    },
+    {
+      "id": "asset:voices/xendra-ch03-before-05-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch03-before-05-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.2.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8e0102ac8287a0054eeb7a4e8284481ecf31a15621f1f5417f2e6aaa0d7e55e1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8e0102ac8287a0054eeb7a4e8284481ecf31a15621f1f5417f2e6aaa0d7e55e1",
+      "bytes": 65662
+    },
+    {
+      "id": "asset:voices/xendra-ch04-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b896e4f9622ca146a402da47f3d0f0b2733f261a55b6fdbe657afbbeb1c30927.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b896e4f9622ca146a402da47f3d0f0b2733f261a55b6fdbe657afbbeb1c30927",
+      "bytes": 145910
+    },
+    {
+      "id": "asset:voices/xendra-ch04-after-02-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-after-02-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0c01d3100c60c9eeea00bdcab91bed20768c6fbb81d2c1587bad015f3f72c283.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0c01d3100c60c9eeea00bdcab91bed20768c6fbb81d2c1587bad015f3f72c283",
+      "bytes": 19245
+    },
+    {
+      "id": "asset:voices/xendra-ch04-after-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-after-03-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f070cb6a10d36476f1edc452c665569ccb551f8a99cdd4ffc02b416cb45c6f3b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f070cb6a10d36476f1edc452c665569ccb551f8a99cdd4ffc02b416cb45c6f3b",
+      "bytes": 21776
+    },
+    {
+      "id": "asset:voices/xendra-ch04-after-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-after-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/043ccb6597d7e4318f6b3dc42935d15f0ad56598efe95f01c94c1ddbbe7daa05.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "043ccb6597d7e4318f6b3dc42935d15f0ad56598efe95f01c94c1ddbbe7daa05",
+      "bytes": 41003
     },
     {
       "id": "asset:voices/xendra-ch04-before-01-elias.mp3",
@@ -25368,38 +25792,122 @@
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/88a0a48779d0878935f5905bb599845891b723e8fed99d7dd510135c73e81254.mp3",
+      "path": "/assets/gauntlet/releases/bf531378d649a6c04d44f10dc1f6a335fa96a24fb3f9029489c9c81b91109da4.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "88a0a48779d0878935f5905bb599845891b723e8fed99d7dd510135c73e81254",
-      "bytes": 115400
+      "sha256": "bf531378d649a6c04d44f10dc1f6a335fa96a24fb3f9029489c9c81b91109da4",
+      "bytes": 125012
     },
     {
-      "id": "asset:voices/xendra-ch04-before-02-thrallmaker.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
+      "id": "asset:voices/xendra-ch04-before-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-02-mara.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.3.dialogueAudio.1",
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293.mp3",
+      "path": "/assets/gauntlet/releases/191035772d5083cab96d0bac26e22c6f35bf2b86e0a8fe4bf36818e6a325e279.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293",
-      "bytes": 50199
+      "sha256": "191035772d5083cab96d0bac26e22c6f35bf2b86e0a8fe4bf36818e6a325e279",
+      "bytes": 54377
     },
     {
-      "id": "asset:voices/xendra-ch04-before-03-elias.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch04-before-03-elias.mp3",
+      "id": "asset:voices/xendra-ch04-before-03-thrallmaker.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-03-thrallmaker.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.3.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/b93269e980459084392b234f1c031a33fb80c93d28799bf8b00391ed28bad55b.mp3",
+      "path": "/assets/gauntlet/releases/0829b254db25c7e730208f7de8049475e4a0b37174e4206b2d5eef743e3f127c.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "b93269e980459084392b234f1c031a33fb80c93d28799bf8b00391ed28bad55b",
-      "bytes": 35988
+      "sha256": "0829b254db25c7e730208f7de8049475e4a0b37174e4206b2d5eef743e3f127c",
+      "bytes": 70125
+    },
+    {
+      "id": "asset:voices/xendra-ch04-before-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/d2c15aecc57980b28b9e8dc872d0da137f223650f66582815352dd7a479e0d4a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "d2c15aecc57980b28b9e8dc872d0da137f223650f66582815352dd7a479e0d4a",
+      "bytes": 48526
+    },
+    {
+      "id": "asset:voices/xendra-ch04-before-05-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch04-before-05-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.3.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fa966be507f92468ea7f1b9b2bd39d3bc5498bc698c95c7fcf4f038e3d319fb2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fa966be507f92468ea7f1b9b2bd39d3bc5498bc698c95c7fcf4f038e3d319fb2",
+      "bytes": 25581
+    },
+    {
+      "id": "asset:voices/xendra-ch05-after-01-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-after-01-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/69d27af648d51ce8dacc83bef8d43c76509306c0ad5df30a1f258c139e3b2d18.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "69d27af648d51ce8dacc83bef8d43c76509306c0ad5df30a1f258c139e3b2d18",
+      "bytes": 42669
+    },
+    {
+      "id": "asset:voices/xendra-ch05-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c73d6e304e396a1058119e862624e61b35079496084cbabc62b2c094dbfa9b2b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c73d6e304e396a1058119e862624e61b35079496084cbabc62b2c094dbfa9b2b",
+      "bytes": 56049
+    },
+    {
+      "id": "asset:voices/xendra-ch05-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/987347abc001a86b6515c0021c4af0849a4555eaf1960cedc6dba0cc615e77ee.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "987347abc001a86b6515c0021c4af0849a4555eaf1960cedc6dba0cc615e77ee",
+      "bytes": 41003
+    },
+    {
+      "id": "asset:voices/xendra-ch05-after-04-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-after-04-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/460935ba526796a91a4406fe22124efb20885c795fc2400982c30fd184874638.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "460935ba526796a91a4406fe22124efb20885c795fc2400982c30fd184874638",
+      "bytes": 22125
     },
     {
       "id": "asset:voices/xendra-ch05-before-01-nulth.mp3",
@@ -25410,10 +25918,10 @@
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060.mp3",
+      "path": "/assets/gauntlet/releases/3beffeabddbeff644ade663c24281e554ed2cae8921efe3810980cdc0984cf9b.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060",
-      "bytes": 51453
+      "sha256": "3beffeabddbeff644ade663c24281e554ed2cae8921efe3810980cdc0984cf9b",
+      "bytes": 15213
     },
     {
       "id": "asset:voices/xendra-ch05-before-02-elias.mp3",
@@ -25424,10 +25932,10 @@
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/b14fe0c39895b94d9d3e02748882d6aa0ad64de569b30e6e4b0f4bb16d8ef0ed.mp3",
+      "path": "/assets/gauntlet/releases/b9867ae0bdb80e01e8ef772f26ddee35802d942418918e8b9f07a07116bc45fa.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "b14fe0c39895b94d9d3e02748882d6aa0ad64de569b30e6e4b0f4bb16d8ef0ed",
-      "bytes": 25539
+      "sha256": "b9867ae0bdb80e01e8ef772f26ddee35802d942418918e8b9f07a07116bc45fa",
+      "bytes": 40585
     },
     {
       "id": "asset:voices/xendra-ch05-before-03-nulth.mp3",
@@ -25438,66 +25946,234 @@
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/d9fa2a364e9de92757f635d20cb63a9f6bb2ee96e7d919767fdd697b07f285e9.mp3",
+      "path": "/assets/gauntlet/releases/6690c74c666fd06477f8067ace3a4171057b4532c40521a60ca163d256cab30f.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "d9fa2a364e9de92757f635d20cb63a9f6bb2ee96e7d919767fdd697b07f285e9",
-      "bytes": 39750
+      "sha256": "6690c74c666fd06477f8067ace3a4171057b4532c40521a60ca163d256cab30f",
+      "bytes": 24429
     },
     {
-      "id": "asset:voices/xendra-ch06-before-01-arel-voss.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch06-before-01-arel-voss.mp3",
+      "id": "asset:voices/xendra-ch05-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6dc5bf00b33b2dbc89c3509ef1ac8328b29bee60deb32894d6cc0ccddd396dc9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6dc5bf00b33b2dbc89c3509ef1ac8328b29bee60deb32894d6cc0ccddd396dc9",
+      "bytes": 53959
+    },
+    {
+      "id": "asset:voices/xendra-ch05-before-05-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch05-before-05-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.4.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b9b5b4e132ce9b107a4341261d5d91d77a46d054ce0376991110aff5ac6b186c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b9b5b4e132ce9b107a4341261d5d91d77a46d054ce0376991110aff5ac6b186c",
+      "bytes": 20941
+    },
+    {
+      "id": "asset:voices/xendra-ch06-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/64ce5b69b700d43514471105299455fb6c5a64ddef5d38908a7c1ae519fc260e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "64ce5b69b700d43514471105299455fb6c5a64ddef5d38908a7c1ae519fc260e",
+      "bytes": 140059
+    },
+    {
+      "id": "asset:voices/xendra-ch06-after-02-thryxis.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-after-02-thryxis.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/10fbf3d10db63f2f4900e5d65788742a859dd4783f39e4ff82f9596762a4eea9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "10fbf3d10db63f2f4900e5d65788742a859dd4783f39e4ff82f9596762a4eea9",
+      "bytes": 39597
+    },
+    {
+      "id": "asset:voices/xendra-ch06-after-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-after-03-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0e6f25a32e81779ad913340b8a5d66a4277cfd32fbbab22805febda9c53ba3f6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0e6f25a32e81779ad913340b8a5d66a4277cfd32fbbab22805febda9c53ba3f6",
+      "bytes": 56049
+    },
+    {
+      "id": "asset:voices/xendra-ch06-after-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-after-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/aa4f20438c64e1f744872ab01dd965136db68be482e03fbe25c4803bf204ee97.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "aa4f20438c64e1f744872ab01dd965136db68be482e03fbe25c4803bf204ee97",
+      "bytes": 38077
+    },
+    {
+      "id": "asset:voices/xendra-ch06-before-01-thryxis.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-01-thryxis.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.5.dialogueAudio.0",
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/2d7fa44fec81c115b84c43fafac8e3fa80cec70c3ffc7972c1c744a2541d07bf.mp3",
+      "path": "/assets/gauntlet/releases/80243a0ae8ed029c68d3c7f80a670d36b9ee985a2c5182c206d881059e0d31fc.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "2d7fa44fec81c115b84c43fafac8e3fa80cec70c3ffc7972c1c744a2541d07bf",
-      "bytes": 37660
+      "sha256": "80243a0ae8ed029c68d3c7f80a670d36b9ee985a2c5182c206d881059e0d31fc",
+      "bytes": 100461
     },
     {
-      "id": "asset:voices/xendra-ch06-before-02-elias.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch06-before-02-elias.mp3",
+      "id": "asset:voices/xendra-ch06-before-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-02-mara.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.5.dialogueAudio.1",
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/46670ce9880fa68f44723621676e02bb57dbd0b6fcfb0bca52ebf12ba2c650e4.mp3",
+      "path": "/assets/gauntlet/releases/0ebea7b86fe10556c0861f32a12b8bb7c76cf9c66c3b9ccd75df6045a46b6fd6.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "46670ce9880fa68f44723621676e02bb57dbd0b6fcfb0bca52ebf12ba2c650e4",
-      "bytes": 47691
+      "sha256": "0ebea7b86fe10556c0861f32a12b8bb7c76cf9c66c3b9ccd75df6045a46b6fd6",
+      "bytes": 52287
     },
     {
-      "id": "asset:voices/xendra-ch06-before-03-arel-voss.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch06-before-03-arel-voss.mp3",
+      "id": "asset:voices/xendra-ch06-before-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-03-elias.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.5.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/c9a3f8a674f0a6ea5edec9681dfe72ecbe47339745f5d3a0417dfc4532d533c7.mp3",
+      "path": "/assets/gauntlet/releases/829ee1f9268fe2076effa2fdc541bb99745bab0e23d4a85140dcbc69d372bd44.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "c9a3f8a674f0a6ea5edec9681dfe72ecbe47339745f5d3a0417dfc4532d533c7",
-      "bytes": 23449
+      "sha256": "829ee1f9268fe2076effa2fdc541bb99745bab0e23d4a85140dcbc69d372bd44",
+      "bytes": 42674
     },
     {
-      "id": "asset:voices/xendra-ch07-before-01-krauth.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch07-before-01-krauth.mp3",
+      "id": "asset:voices/xendra-ch06-before-04-thryxis.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-04-thryxis.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/95dd543ee74fd4d7ad33423c27bee4e3aab1f8bd4b496a6b934b0797422b2ddf.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "95dd543ee74fd4d7ad33423c27bee4e3aab1f8bd4b496a6b934b0797422b2ddf",
+      "bytes": 34797
+    },
+    {
+      "id": "asset:voices/xendra-ch06-before-05-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch06-before-05-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.5.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c90979d0b9240e10c3dc7e22362bba579dfdf1756621e354acf6a21de3239d74.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c90979d0b9240e10c3dc7e22362bba579dfdf1756621e354acf6a21de3239d74",
+      "bytes": 36823
+    },
+    {
+      "id": "asset:voices/xendra-ch07-after-01-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-after-01-arel-voss.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6cf9c2484671e8d1fc2f2f050b5b86f44cf33a80e6bea484d6417f1e96e242dd.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6cf9c2484671e8d1fc2f2f050b5b86f44cf33a80e6bea484d6417f1e96e242dd",
+      "bytes": 81127
+    },
+    {
+      "id": "asset:voices/xendra-ch07-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/c71ef9e3a69bc4d12c999251506b398ccc07c68a27086020b554c9425f6cf26b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "c71ef9e3a69bc4d12c999251506b398ccc07c68a27086020b554c9425f6cf26b",
+      "bytes": 61065
+    },
+    {
+      "id": "asset:voices/xendra-ch07-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/deeaefeef1163ac588b676bd6ed2abfbfa077b863b65832f9eed574829e92c65.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "deeaefeef1163ac588b676bd6ed2abfbfa077b863b65832f9eed574829e92c65",
+      "bytes": 30136
+    },
+    {
+      "id": "asset:voices/xendra-ch07-after-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-after-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7d41fcf8bb03b1875776f346cbbbf51e2045a156915f5a022deb4923c42e9317.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7d41fcf8bb03b1875776f346cbbbf51e2045a156915f5a022deb4923c42e9317",
+      "bytes": 27210
+    },
+    {
+      "id": "asset:voices/xendra-ch07-before-01-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-01-arel-voss.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.6.dialogueAudio.0",
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/89833324cfe4bcfa1fb41bb206e529541676f52d908c0dafb1f07d9e19e94367.mp3",
+      "path": "/assets/gauntlet/releases/8330465e6cde4b942cd377fc48a421d16f5fabb171c912d7e08d6d65555d8556.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "89833324cfe4bcfa1fb41bb206e529541676f52d908c0dafb1f07d9e19e94367",
-      "bytes": 47691
+      "sha256": "8330465e6cde4b942cd377fc48a421d16f5fabb171c912d7e08d6d65555d8556",
+      "bytes": 36823
     },
     {
       "id": "asset:voices/xendra-ch07-before-02-elias.mp3",
@@ -25508,66 +26184,458 @@
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/b292ca8f305fc53df23123871301ce08d95f98dad5de012f3165e3fd70998614.mp3",
+      "path": "/assets/gauntlet/releases/fee182163ee5892cfde158cb2e2731e086f218668aa4091f1c0b6642d71b50c5.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "b292ca8f305fc53df23123871301ce08d95f98dad5de012f3165e3fd70998614",
-      "bytes": 29301
+      "sha256": "fee182163ee5892cfde158cb2e2731e086f218668aa4091f1c0b6642d71b50c5",
+      "bytes": 35987
     },
     {
-      "id": "asset:voices/xendra-ch07-before-03-krauth.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch07-before-03-krauth.mp3",
+      "id": "asset:voices/xendra-ch07-before-03-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-03-arel-voss.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.6.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4.mp3",
+      "path": "/assets/gauntlet/releases/8b0c6a7058af76aa5103e721b97398e8d42e9ae8e307b6c8cba92d84298e2a59.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "426a6d5c90e71f46366b49793755680bc9fdc2ee17295b31efd5253d0585d5b4",
-      "bytes": 47273
+      "sha256": "8b0c6a7058af76aa5103e721b97398e8d42e9ae8e307b6c8cba92d84298e2a59",
+      "bytes": 65662
     },
     {
-      "id": "asset:voices/xendra-ch08-before-01-defender.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch08-before-01-defender.mp3",
+      "id": "asset:voices/xendra-ch07-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/72095ec2ac54260dd467e51279b2310c69ac8b103e16a4d2dc35845e139f8cff.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "72095ec2ac54260dd467e51279b2310c69ac8b103e16a4d2dc35845e139f8cff",
+      "bytes": 75275
+    },
+    {
+      "id": "asset:voices/xendra-ch07-before-05-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch07-before-05-arel-voss.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.6.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/12eb829550128ec8538377a34fbc42b12de708358c4645e3ae74caaf2cff9816.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "12eb829550128ec8538377a34fbc42b12de708358c4645e3ae74caaf2cff9816",
+      "bytes": 53959
+    },
+    {
+      "id": "asset:voices/xendra-ch08-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ea7f36588d5ed08bba633ee13ace7f23bc75bc47dd7dde4ffd8c7e75b9431042.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ea7f36588d5ed08bba633ee13ace7f23bc75bc47dd7dde4ffd8c7e75b9431042",
+      "bytes": 97009
+    },
+    {
+      "id": "asset:voices/xendra-ch08-after-02-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-after-02-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b2e3c9f46496c1ac5af622f8efb03771b2435b97656964b40ebf0ef4ff37ab27.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b2e3c9f46496c1ac5af622f8efb03771b2435b97656964b40ebf0ef4ff37ab27",
+      "bytes": 28077
+    },
+    {
+      "id": "asset:voices/xendra-ch08-after-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-after-03-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fb3d1b0d71d7f53e2862e755e69153ceb6dcbb820f72ec59e833c75c461e25b9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "fb3d1b0d71d7f53e2862e755e69153ceb6dcbb820f72ec59e833c75c461e25b9",
+      "bytes": 32225
+    },
+    {
+      "id": "asset:voices/xendra-ch08-after-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-after-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3c5bc226b9ea464b7e952afcb00f738da0c9f324e12ee0f3ea22e6c60af6e1c7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3c5bc226b9ea464b7e952afcb00f738da0c9f324e12ee0f3ea22e6c60af6e1c7",
+      "bytes": 43510
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-01-krauth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-01-krauth.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.7.dialogueAudio.0",
           "usage": "0"
         }
       ],
-      "path": "/assets/gauntlet/releases/663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121.mp3",
+      "path": "/assets/gauntlet/releases/1b842cedeb9faf52e7fdb682b229d910394842524ea89aafd7aec358111e8bf3.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121",
-      "bytes": 33062
+      "sha256": "1b842cedeb9faf52e7fdb682b229d910394842524ea89aafd7aec358111e8bf3",
+      "bytes": 34029
     },
     {
-      "id": "asset:voices/xendra-ch08-before-02-elias.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch08-before-02-elias.mp3",
+      "id": "asset:voices/xendra-ch08-before-02-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-02-nulth.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.7.dialogueAudio.1",
           "usage": "1"
         }
       ],
-      "path": "/assets/gauntlet/releases/8653244df4a099f00066c46bdde424730441dd93bd6b97db644bce9cf0cf3efe.mp3",
+      "path": "/assets/gauntlet/releases/2aa5f57cbdb11affe61991840b44add1ff7037a9aacc1abc1d92c95b5abbfab0.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "8653244df4a099f00066c46bdde424730441dd93bd6b97db644bce9cf0cf3efe",
-      "bytes": 27629
+      "sha256": "2aa5f57cbdb11affe61991840b44add1ff7037a9aacc1abc1d92c95b5abbfab0",
+      "bytes": 28461
     },
     {
-      "id": "asset:voices/xendra-ch08-before-03-narrator.mp3",
-      "source": "/assets/gauntlet/voices/xendra-ch08-before-03-narrator.mp3",
+      "id": "asset:voices/xendra-ch08-before-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-03-elias.mp3",
       "associations": [
         {
           "object": "content.campaigns.xendra.chapters.7.dialogueAudio.2",
           "usage": "2"
         }
       ],
-      "path": "/assets/gauntlet/releases/e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db.mp3",
+      "path": "/assets/gauntlet/releases/e5d3a26f9a0ea270326a96cfdff02069872be2b1e0d143cdb48150f1b59ac42d.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db",
-      "bytes": 88651
+      "sha256": "e5d3a26f9a0ea270326a96cfdff02069872be2b1e0d143cdb48150f1b59ac42d",
+      "bytes": 87814
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cc42cc5364b40f395a61ca984f11f7ea9ef1258128548b997473baf578c171c9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cc42cc5364b40f395a61ca984f11f7ea9ef1258128548b997473baf578c171c9",
+      "bytes": 47690
+    },
+    {
+      "id": "asset:voices/xendra-ch08-before-05-krauth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch08-before-05-krauth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.7.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2b0cf89bc6ccedfaec6f95c13c17ed631f38eb041d00de21f5fc9528139234b1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2b0cf89bc6ccedfaec6f95c13c17ed631f38eb041d00de21f5fc9528139234b1",
+      "bytes": 23853
+    },
+    {
+      "id": "asset:voices/xendra-ch09-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e356730dc9ae448690a1aa08515661ac64501ab1eb843570615525af2483fc5c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e356730dc9ae448690a1aa08515661ac64501ab1eb843570615525af2483fc5c",
+      "bytes": 130446
+    },
+    {
+      "id": "asset:voices/xendra-ch09-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6c4e505727555540ee3c549769cd99579b72ed83b879368f470e95212fb768f5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6c4e505727555540ee3c549769cd99579b72ed83b879368f470e95212fb768f5",
+      "bytes": 41838
+    },
+    {
+      "id": "asset:voices/xendra-ch09-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/20cd0403a15131f5dd6339b10461caba332c052c76c9400c7c419839eadd12b4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "20cd0403a15131f5dd6339b10461caba332c052c76c9400c7c419839eadd12b4",
+      "bytes": 41838
+    },
+    {
+      "id": "asset:voices/xendra-ch09-after-04-syllith.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-after-04-syllith.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/419a113a09469a304b2eec822463719245d8db9c29070e4f4830322d45f628d8.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "419a113a09469a304b2eec822463719245d8db9c29070e4f4830322d45f628d8",
+      "bytes": 55725
+    },
+    {
+      "id": "asset:voices/xendra-ch09-before-01-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-before-01-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3e520e14bd5b3070a814ff4081ee7d7e7ccc27d0e1a02b5b11d8fce8e4108bd4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3e520e14bd5b3070a814ff4081ee7d7e7ccc27d0e1a02b5b11d8fce8e4108bd4",
+      "bytes": 50198
+    },
+    {
+      "id": "asset:voices/xendra-ch09-before-02-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-before-02-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/88662dc451fbe506f19947754c50fc73f79fb919c20ec8c58234234541a3dfd4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "88662dc451fbe506f19947754c50fc73f79fb919c20ec8c58234234541a3dfd4",
+      "bytes": 18093
+    },
+    {
+      "id": "asset:voices/xendra-ch09-before-03-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-before-03-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/efa037815dbab03f6fe59ad190b3fbb4acff79bfe15097d65d2697404c248705.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "efa037815dbab03f6fe59ad190b3fbb4acff79bfe15097d65d2697404c248705",
+      "bytes": 76111
+    },
+    {
+      "id": "asset:voices/xendra-ch09-before-04-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-before-04-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/12c0ec091c117ca8b5d84f7968fed390a269350cb255c6a9d14dec144481a7b9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "12c0ec091c117ca8b5d84f7968fed390a269350cb255c6a9d14dec144481a7b9",
+      "bytes": 23448
+    },
+    {
+      "id": "asset:voices/xendra-ch09-before-05-nulth.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch09-before-05-nulth.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.8.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b1674f29d0dd10b1f65699022687008c16bb9e5d32b9bff53ba613becc8a933f.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b1674f29d0dd10b1f65699022687008c16bb9e5d32b9bff53ba613becc8a933f",
+      "bytes": 25581
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-01-narrator.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-01-narrator.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/27117f40c9b08847ffe265513902731ad9c96e77001a54542648f393e1345bc2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "27117f40c9b08847ffe265513902731ad9c96e77001a54542648f393e1345bc2",
+      "bytes": 153434
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-02-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-02-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cfa0663c25b35dc48441869001468dc0b6dc337225563b59392bdfaf6d353dde.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cfa0663c25b35dc48441869001468dc0b6dc337225563b59392bdfaf6d353dde",
+      "bytes": 15089
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-03-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-03-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/3e3a7099b6a75a519e4b78006e10f079df077a244b464b2f24deb03658136a02.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "3e3a7099b6a75a519e4b78006e10f079df077a244b464b2f24deb03658136a02",
+      "bytes": 11327
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2d4ff111ba4056cdfe5f0bc580f6b5269d395383a67458e0b79c9916d00d2548.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2d4ff111ba4056cdfe5f0bc580f6b5269d395383a67458e0b79c9916d00d2548",
+      "bytes": 18015
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-05-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-05-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4686be68003518db11828f39b3086abc80b14915f428faa7b1d2678b716e163d.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4686be68003518db11828f39b3086abc80b14915f428faa7b1d2678b716e163d",
+      "bytes": 11327
+    },
+    {
+      "id": "asset:voices/xendra-ch10-after-06-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-after-06-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.endDialogueAudio.5",
+          "usage": "5"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/24a852cfc0eb7f953cbf654e3bd6c893f0e40c5527b62702559699f52e183b81.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "24a852cfc0eb7f953cbf654e3bd6c893f0e40c5527b62702559699f52e183b81",
+      "bytes": 47690
+    },
+    {
+      "id": "asset:voices/xendra-ch10-before-01-defender.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-before-01-defender.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.dialogueAudio.0",
+          "usage": "0"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8f9f65ac6676e264dce6630da99bbc92b2ab5828b2eb2f39cb0079e53e784de1.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8f9f65ac6676e264dce6630da99bbc92b2ab5828b2eb2f39cb0079e53e784de1",
+      "bytes": 53123
+    },
+    {
+      "id": "asset:voices/xendra-ch10-before-02-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-before-02-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/798e1a16f9015274dcc58aa18ce7e7235ec5a1d946af11268ee345507166b156.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "798e1a16f9015274dcc58aa18ce7e7235ec5a1d946af11268ee345507166b156",
+      "bytes": 60647
+    },
+    {
+      "id": "asset:voices/xendra-ch10-before-03-arel-voss.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-before-03-arel-voss.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.dialogueAudio.2",
+          "usage": "2"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8fee7dab724dacf649c855b7ad7f9c9339fc6e4ca6e38ab239e2d64ee0c39150.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8fee7dab724dacf649c855b7ad7f9c9339fc6e4ca6e38ab239e2d64ee0c39150",
+      "bytes": 47272
+    },
+    {
+      "id": "asset:voices/xendra-ch10-before-04-mara.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-before-04-mara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.dialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/42d84f64a2e7b7d4936eaca74bf903a2fcd57d70796c67e05311bbe8e9229aa9.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "42d84f64a2e7b7d4936eaca74bf903a2fcd57d70796c67e05311bbe8e9229aa9",
+      "bytes": 114145
+    },
+    {
+      "id": "asset:voices/xendra-ch10-before-05-elias.mp3",
+      "source": "/assets/gauntlet/voices/xendra-ch10-before-05-elias.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.xendra.chapters.9.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e4a063dae95c9a8f95197699d377922a65ee190397c84346de9fc38b3b84b64c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e4a063dae95c9a8f95197699d377922a65ee190397c84346de9fc38b3b84b64c",
+      "bytes": 33897
     }
   ],
   "faces": {
@@ -26554,5 +27622,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-628767da496e16bd8ceb61d3dce7a4a60bae061c1b6240e449ddf89074089619"
+  "version": "gauntlet-assets-ec32512c0fe1226730e1402d3a45c1232a5d7ea1ee44353806876dee3c34b0ad"
 }

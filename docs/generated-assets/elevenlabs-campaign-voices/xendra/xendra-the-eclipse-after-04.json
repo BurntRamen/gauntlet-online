@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "syllith",
+  "voiceName": "Syllith the Echoing Child",
+  "audioTreatment": "highpass=f=100,lowpass=f=10000,chorus=0.55:0.85:28|52:0.32|0.22:0.7|0.45:0.18|0.12,aecho=0.8:0.42:75|150:0.24|0.11,loudnorm=I=-18:LRA=7:TP=-1.5",
+  "line": "You asked that question first. At the end.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch09-after-04-syllith.mp3",
+  "generatedAt": "2026-10-16T15:18:34.230Z",
+  "publishedAt": "2026-10-16T15:27:00.706Z",
+  "bytes": 55725,
+  "sha256": "419a113a09469a304b2eec822463719245d8db9c29070e4f4830322d45f628d8"
+}

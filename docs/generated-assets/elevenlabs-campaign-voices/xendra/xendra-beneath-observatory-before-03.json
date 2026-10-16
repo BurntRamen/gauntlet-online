@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "elias",
-  "voiceName": "Elias Varen",
-  "line": "Then I am still cruel enough to refuse.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-03-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:28.596Z",
-  "publishedAt": "2026-10-13T19:52:16.214Z",
-  "bytes": 35988,
-  "sha256": "b93269e980459084392b234f1c031a33fb80c93d28799bf8b00391ed28bad55b"
+  "voiceKey": "thrallmaker",
+  "voiceName": "The Thrallmaker",
+  "audioTreatment": "highpass=f=65,lowpass=f=8500,chorus=0.5:0.9:38|68:0.38|0.24:0.42|0.27:0.22|0.15,aecho=0.8:0.48:95|190:0.25|0.12,loudnorm=I=-18:LRA=7:TP=-1.5",
+  "line": "The first mercy is surrender. The second is forgetting why you resisted.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-03-thrallmaker.mp3",
+  "generatedAt": "2026-10-16T15:17:31.493Z",
+  "publishedAt": "2026-10-16T15:27:00.614Z",
+  "bytes": 70125,
+  "sha256": "0829b254db25c7e730208f7de8049475e4a0b37174e4206b2d5eef743e3f127c"
 }

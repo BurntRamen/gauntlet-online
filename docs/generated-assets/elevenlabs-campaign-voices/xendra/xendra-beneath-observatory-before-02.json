@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "thrallmaker",
-  "voiceName": "The Thrallmaker",
-  "line": "The first mercy is surrender.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
-  "generatedAt": "2026-10-13T19:50:27.770Z",
-  "publishedAt": "2026-10-13T19:52:16.210Z",
-  "bytes": 50199,
-  "sha256": "9afb9e9cfb5b4665ba57bc195f4f78c03307fe4f10e05749f9a7541565c7e293"
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "Every record ends with people erasing their own names.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch04-before-02-mara.mp3",
+  "generatedAt": "2026-10-16T15:17:29.211Z",
+  "publishedAt": "2026-10-16T15:27:00.613Z",
+  "bytes": 54377,
+  "sha256": "191035772d5083cab96d0bac26e22c6f35bf2b86e0a8fe4bf36818e6a325e279"
 }

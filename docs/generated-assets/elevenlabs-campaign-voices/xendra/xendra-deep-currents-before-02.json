@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
-  "line": "People are not wounds.",
+  "audioTreatment": null,
+  "line": "Because our memories make us who we are.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:52:06.765Z",
-  "publishedAt": "2026-10-13T19:52:16.220Z",
-  "bytes": 25539,
-  "sha256": "b14fe0c39895b94d9d3e02748882d6aa0ad64de569b30e6e4b0f4bb16d8ef0ed"
+  "generatedAt": "2026-10-16T15:17:40.381Z",
+  "publishedAt": "2026-10-16T15:27:00.630Z",
+  "bytes": 40585,
+  "sha256": "b9867ae0bdb80e01e8ef772f26ddee35802d942418918e8b9f07a07116bc45fa"
 }

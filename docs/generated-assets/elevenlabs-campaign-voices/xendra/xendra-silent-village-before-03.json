@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "elias",
-  "voiceName": "Elias Varen",
-  "line": "That is what the children said. Word for word.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-before-03-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:22.968Z",
-  "publishedAt": "2026-10-13T19:52:16.191Z",
-  "bytes": 60648,
-  "sha256": "90cabffa23e8f671fa32f540f0152bcc0eee25520bd881054f9e1e0b33ac2696"
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "That woman cannot remember her child, Elias. She smiled when she said it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-before-03-mara.mp3",
+  "generatedAt": "2026-10-16T15:17:09.222Z",
+  "publishedAt": "2026-10-16T15:27:00.580Z",
+  "bytes": 87814,
+  "sha256": "578c7d3bd12fc2dbd237f959458366933b80a4b3030d25f2aea1db527411feb3"
 }

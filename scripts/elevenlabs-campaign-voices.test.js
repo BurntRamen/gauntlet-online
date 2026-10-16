@@ -29,11 +29,11 @@ test("Bizi manifest covers every scripted campaign speaker and line", () => {
 
 test("XenDra manifest covers every scripted campaign speaker and line", () => {
   const plan = buildLinePlan(xendraManifest);
-  assert.equal(plan.length, 24);
-  assert.equal(new Set(plan.map((line) => line.chapterId)).size, 8);
-  assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 10);
+  assert.equal(plan.length, 92);
+  assert.equal(new Set(plan.map((line) => line.chapterId)).size, 10);
+  assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 12);
   assert.equal(plan[0].fileName, "xendra-ch01-before-01-narrator.mp3");
-  assert.equal(plan.at(-1).fileName, "xendra-ch08-before-03-narrator.mp3");
+  assert.equal(plan.at(-1).fileName, "xendra-ch10-after-06-mara.mp3");
 });
 
 test("dialogue parsing preserves colons inside spoken text", () => {

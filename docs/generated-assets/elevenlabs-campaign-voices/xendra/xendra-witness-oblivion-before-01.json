@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "defender",
   "voiceName": "Last Defender of Reath",
-  "line": "Elias, step away from the sky.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch08-before-01-defender.mp3",
-  "generatedAt": "2026-10-13T19:52:14.535Z",
-  "publishedAt": "2026-10-13T19:52:16.257Z",
-  "bytes": 33062,
-  "sha256": "663f62d5c5c401f01862dca9a798e38f2584571134b0d2a4d4a7ce6b1a3af121"
+  "audioTreatment": null,
+  "line": "Elias, step away from the mechanism. Reath is still here.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch10-before-01-defender.mp3",
+  "generatedAt": "2026-10-16T15:18:35.633Z",
+  "publishedAt": "2026-10-16T15:27:00.707Z",
+  "bytes": 53123,
+  "sha256": "8f9f65ac6676e264dce6630da99bbc92b2ab5828b2eb2f39cb0079e53e784de1"
 }

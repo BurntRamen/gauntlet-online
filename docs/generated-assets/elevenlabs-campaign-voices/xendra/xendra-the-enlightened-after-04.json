@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "mara",
+  "voiceName": "Mara Varen",
+  "audioTreatment": null,
+  "line": "That is not what I asked.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-after-04-mara.mp3",
+  "generatedAt": "2026-10-16T15:18:10.881Z",
+  "publishedAt": "2026-10-16T15:27:00.673Z",
+  "bytes": 27210,
+  "sha256": "7d41fcf8bb03b1875776f346cbbbf51e2045a156915f5a022deb4923c42e9317"
+}

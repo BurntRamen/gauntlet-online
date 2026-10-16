@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "XenDra Witness",
+  "audioTreatment": null,
+  "line": "Elias finishes copying the glyph. Far below physical space, the Deep Currents answer.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch02-after-01-narrator.mp3",
+  "generatedAt": "2026-10-16T15:17:12.988Z",
+  "publishedAt": "2026-10-16T15:27:00.584Z",
+  "bytes": 139223,
+  "sha256": "003f15003801efc97db72ce68d21345678af5a206c582c25561fddd3d0d8ddf7"
+}

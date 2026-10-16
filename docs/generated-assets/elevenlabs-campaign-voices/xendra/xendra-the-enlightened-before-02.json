@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
+  "audioTreatment": null,
   "line": "I have seen what they leave behind.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:52:09.583Z",
-  "publishedAt": "2026-10-13T19:52:16.233Z",
-  "bytes": 47691,
-  "sha256": "46670ce9880fa68f44723621676e02bb57dbd0b6fcfb0bca52ebf12ba2c650e4"
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-before-02-elias.mp3",
+  "generatedAt": "2026-10-16T15:18:03.332Z",
+  "publishedAt": "2026-10-16T15:27:00.661Z",
+  "bytes": 35987,
+  "sha256": "fee182163ee5892cfde158cb2e2731e086f218668aa4091f1c0b6642d71b50c5"
 }

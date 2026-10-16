@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "nulth",
   "voiceName": "Nulth the Hollow Voice",
-  "line": "If pain could end, who would defend the wound?",
+  "audioTreatment": "highpass=f=55,lowpass=f=7800,chorus=0.45:0.92:42|74:0.4|0.27:0.32|0.21:0.25|0.16,aecho=0.8:0.52:110|220:0.28|0.13,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "Why do you fear forgetting?",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-before-01-nulth.mp3",
-  "generatedAt": "2026-10-13T19:52:05.933Z",
-  "publishedAt": "2026-10-13T19:52:16.217Z",
-  "bytes": 51453,
-  "sha256": "12b2f020ee9b46301aaf66c5d7dcf4883b6cb1af943a82a9a12beab4f86a1060"
+  "generatedAt": "2026-10-16T15:17:39.555Z",
+  "publishedAt": "2026-10-16T15:27:00.628Z",
+  "bytes": 15213,
+  "sha256": "3beffeabddbeff644ade663c24281e554ed2cae8921efe3810980cdc0984cf9b"
 }

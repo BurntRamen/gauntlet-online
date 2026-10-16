@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "thryxis",
+  "voiceName": "Thryxis the Maw of Mirrors",
+  "audioTreatment": "highpass=f=120,lowpass=f=10500,chorus=0.52:0.86:21|47|83:0.3|0.22|0.14:0.8|0.55|0.31:0.16|0.12|0.08,aecho=0.8:0.4:60|125|245:0.22|0.13|0.07,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "Which sister will you save, cartographer? The one who fears you, or the one who needs you?",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch06-before-01-thryxis.mp3",
+  "generatedAt": "2026-10-16T15:17:52.048Z",
+  "publishedAt": "2026-10-16T15:27:00.643Z",
+  "bytes": 100461,
+  "sha256": "80243a0ae8ed029c68d3c7f80a670d36b9ee985a2c5182c206d881059e0d31fc"
+}

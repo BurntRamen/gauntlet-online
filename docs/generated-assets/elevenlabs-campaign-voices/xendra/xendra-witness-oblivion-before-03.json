@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "narrator",
-  "voiceName": "XenDra Witness",
-  "line": "The Sovereign extended one silent hand, and Elias smiled.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch08-before-03-narrator.mp3",
-  "generatedAt": "2026-10-13T19:52:16.158Z",
-  "publishedAt": "2026-10-13T19:52:16.268Z",
-  "bytes": 88651,
-  "sha256": "e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db"
+  "voiceKey": "arel",
+  "voiceName": "Arel Voss",
+  "audioTreatment": null,
+  "line": "Then ask yourself what you are saving them from.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch10-before-03-arel-voss.mp3",
+  "generatedAt": "2026-10-16T15:18:37.313Z",
+  "publishedAt": "2026-10-16T15:27:00.710Z",
+  "bytes": 47272,
+  "sha256": "8fee7dab724dacf649c855b7ad7f9c9339fc6e4ca6e38ab239e2d64ee0c39150"
 }

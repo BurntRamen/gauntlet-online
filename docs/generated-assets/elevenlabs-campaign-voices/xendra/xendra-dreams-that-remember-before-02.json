@@ -7,10 +7,11 @@
   "outputFormat": "mp3_44100_128",
   "voiceKey": "elias",
   "voiceName": "Elias Varen",
-  "line": "I said noon.",
+  "audioTreatment": null,
+  "line": "My name is Elias.",
   "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch03-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:50:24.651Z",
-  "publishedAt": "2026-10-13T19:52:16.198Z",
-  "bytes": 19688,
-  "sha256": "23ecb8541a2c2edc34f58396c4ebcf014f5de0779b9c60fc28132daa7d834f58"
+  "generatedAt": "2026-10-16T15:17:18.705Z",
+  "publishedAt": "2026-10-16T15:27:00.596Z",
+  "bytes": 26374,
+  "sha256": "704b049ea77100ccdeca7a2825ddd2b50bbd12b9bad7db5cb1dc62beba42baa4"
 }

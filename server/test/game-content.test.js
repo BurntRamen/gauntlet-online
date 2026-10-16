@@ -35,7 +35,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
   assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 128);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 130);
   for (const factionId of ["mekan", "jali", "gracus", "indela", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
@@ -66,7 +66,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.cinematic.image)), true, `${chapter.id}: cinematic image`);
   }
   assert.equal(content.campaigns.rumin.chapters.find((chapter) => chapter.id === "ides-of-rumie").cinematic.title, "The Ides of Rumie");
-  assert.equal(content.campaigns.xendra.chapters.length, 8);
+  assert.equal(content.campaigns.xendra.chapters.length, 10);
   for (const chapter of content.campaigns.xendra.chapters) {
     assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length, `${chapter.id}: dialogue audio`);
     chapter.dialogueAudio.forEach((audioPath) => {

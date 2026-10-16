@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "XenDra Witness",
+  "audioTreatment": null,
+  "line": "Elias reaches the mechanism and hears thousands of preserved minds asking him to listen.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch09-after-01-narrator.mp3",
+  "generatedAt": "2026-10-16T15:18:30.203Z",
+  "publishedAt": "2026-10-16T15:27:00.699Z",
+  "bytes": 130446,
+  "sha256": "e356730dc9ae448690a1aa08515661ac64501ab1eb843570615525af2483fc5c"
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "elias",
+  "voiceName": "Elias Varen",
+  "audioTreatment": null,
+  "line": "Give it back to her.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch05-before-05-elias.mp3",
+  "generatedAt": "2026-10-16T15:17:43.493Z",
+  "publishedAt": "2026-10-16T15:27:00.633Z",
+  "bytes": 20941,
+  "sha256": "b9b5b4e132ce9b107a4341261d5d91d77a46d054ce0376991110aff5ac6b186c"
+}

@@ -5,12 +5,13 @@
   "factionId": "xendra",
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
-  "voiceKey": "elias",
-  "voiceName": "Elias Varen",
-  "line": "I was trying to stop you.",
-  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch07-before-02-elias.mp3",
-  "generatedAt": "2026-10-13T19:52:12.146Z",
-  "publishedAt": "2026-10-13T19:52:16.248Z",
-  "bytes": 29301,
-  "sha256": "b292ca8f305fc53df23123871301ce08d95f98dad5de012f3165e3fd70998614"
+  "voiceKey": "nulth",
+  "voiceName": "Nulth the Hollow Voice",
+  "audioTreatment": "highpass=f=55,lowpass=f=7800,chorus=0.45:0.92:42|74:0.4|0.27:0.32|0.21:0.25|0.16,aecho=0.8:0.52:110|220:0.28|0.13,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "You remember tomorrow, Elias.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch09-before-02-nulth.mp3",
+  "generatedAt": "2026-10-16T15:18:25.063Z",
+  "publishedAt": "2026-10-16T15:27:00.693Z",
+  "bytes": 18093,
+  "sha256": "88662dc451fbe506f19947754c50fc73f79fb919c20ec8c58234234541a3dfd4"
 }

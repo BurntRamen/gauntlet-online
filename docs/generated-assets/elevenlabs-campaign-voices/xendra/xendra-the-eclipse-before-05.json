@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "nulth",
+  "voiceName": "Nulth the Hollow Voice",
+  "audioTreatment": "highpass=f=55,lowpass=f=7800,chorus=0.45:0.92:42|74:0.4|0.27:0.32|0.21:0.25|0.16,aecho=0.8:0.52:110|220:0.28|0.13,loudnorm=I=-18:LRA=8:TP=-1.5",
+  "line": "Intent is a story consequence tells itself.",
+  "clientOutput": "client/public/assets/gauntlet/voices/xendra-ch09-before-05-nulth.mp3",
+  "generatedAt": "2026-10-16T15:18:28.631Z",
+  "publishedAt": "2026-10-16T15:27:00.698Z",
+  "bytes": 25581,
+  "sha256": "b1674f29d0dd10b1f65699022687008c16bb9e5d32b9bff53ba613becc8a933f"
+}

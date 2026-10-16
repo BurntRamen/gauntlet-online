@@ -1403,6 +1403,26 @@
     "winRoute": "first-uncompleted",
     "lossRoute": "retry"
   },
+  "maw-of-mirrors": {
+    "version": 1,
+    "bossLife": 35,
+    "attacksPerTurn": 3,
+    "minAttackValue": 3,
+    "maxAttackValue": 6,
+    "chapterNumber": 6,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Hallucination Loop",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 1,
+      "name": "Thryxis, the Maw of Mirrors: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
   "the-enlightened": {
     "version": 1,
     "bossLife": 36,
@@ -1416,6 +1436,26 @@
       "text": "Even-numbered boss attacks get +1 value.",
       "tier": 1,
       "name": "Arel Voss, Enlightened Conduit: Hallucination Loop"
+    },
+    "playerAdditions": [],
+    "bossAdditions": [],
+    "attackTiming": "clear-priority",
+    "winRoute": "first-uncompleted",
+    "lossRoute": "retry"
+  },
+  "crown-of-static": {
+    "version": 1,
+    "bossLife": 41,
+    "attacksPerTurn": 4,
+    "minAttackValue": 4,
+    "maxAttackValue": 7,
+    "chapterNumber": 8,
+    "bossAbility": {
+      "id": "even-feint",
+      "title": "Crown of Static",
+      "text": "Even-numbered boss attacks get +1 value.",
+      "tier": 2,
+      "name": "Krauth, the Crown of Static: Psychic Overload"
     },
     "playerAdditions": [],
     "bossAdditions": [],
