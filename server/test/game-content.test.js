@@ -62,6 +62,17 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(indelaCampaign.chapters[0].story, /homeworld Varuna/);
   assert.match(indelaCampaign.chapters.at(-1).story, /Centuries later on Varuna/);
   assert.match(indelaCampaign.chapters.at(-1).endDialogue.join(" "), /campaign ends at home beneath Varuna/);
+  const jaliFaction = content.factions.find((faction) => faction.id === "jali");
+  const jaliCampaign = content.campaigns.jali;
+  assert.equal(jaliFaction.homeworld, "Aozora");
+  assert.match(jaliFaction.origin, /Celestial Archipelago/);
+  assert.match(jaliFaction.reathArrival, /quantum-correlated with a Reath receiver/);
+  assert.equal(jaliCampaign.commanderName, "The Shattered Heavens");
+  assert.equal(jaliCampaign.chapters[0].title, "The Age of a Thousand Clouds");
+  assert.equal(jaliCampaign.chapters.at(-1).title, "The Last Reflection");
+  assert.match(jaliCampaign.chapters[0].story, /homeworld Aozora/);
+  assert.match(jaliCampaign.chapters.at(-1).story, /Timetwister receiver on Reath/);
+  assert.match(jaliCampaign.chapters.at(-1).endDialogue.join(" "), /Aozora remains our home. Reath is the convergence point/);
   const mekanFaction = content.factions.find((faction) => faction.id === "mekan");
   const mekanCampaign = content.campaigns.mekan;
   assert.equal(mekanFaction.homeworld, "Teyotl");
