@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SpecialCardFace from "./SpecialCardFace";
+import { resolvePrinting } from "@gauntlet/duel-rules/printings";
 import { collectorVersionLabel } from "./collectorPresentation";
 import DeckBox, { DECK_BOXES } from "./DeckBox";
 import DeckShowcase, { getDeckFrontSlot } from "./DeckShowcase";
@@ -36,13 +37,13 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   }, [layout]);
   const slots = buildDeckSlots(cards, quantities, suitChoices);
   const selected = slots.find((slot) => slot.key === selectedKey) || slots[0];
-  const candidates = cards.filter((card) => Number(card.value) === selected.value && card.suit === selected.suit && Number(owned[card.id] || 0) > 0);
+  const candidates = cards.filter((card) => card.availability?.constructed !== false && Number(card.value) === selected.value && card.suit === selected.suit && Number(owned[card.id] || 0) > 0);
   const candidate = candidates.find((card) => card.id === candidateId) || selected.card;
   const preview = candidate ? { ...candidate, factionId: candidate.factionId || factionId } : null;
   const variants = preview ? variantsByCard[preview.id] || [] : [];
   const presentationFor = (card) => {
     const finishes = variantsByCard[card?.id] || [];
-    return finishes.find((variant) => variant.variantId === variantSelections[card?.id]) || finishes.find((variant) => variant.variantId === card?.defaultVariantId) || finishes[0];
+    return resolvePrinting(card?.id, finishes, variantSelections[card?.id], card?.defaultVariantId);
   };
   const selectedVariant = presentationFor(preview);
   const openZoom = (card) => setZoom({ card: { ...card, factionId: card?.factionId || factionId }, presentation: presentationFor(card) });

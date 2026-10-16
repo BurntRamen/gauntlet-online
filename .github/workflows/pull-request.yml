@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - 'codex/**'
 
 permissions:
   contents: read
@@ -43,6 +44,9 @@ jobs:
       - name: Test client behavior
         run: npm run test:client
 
+      - name: Test build configuration and development server boundaries
+        run: npm --prefix client run test:toolchain
+
       - name: Build client
         run: npm run build:client
 
@@ -70,9 +74,6 @@ jobs:
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
 
-      - name: Test private Admin and controlled authoring
-        run: npm run test:e2e:admin
-
       - name: Upload Babylon performance report
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,3 +91,60 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  admin-release:
+    name: Admin release journeys
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - name: Install locked dependencies
+        run: |
+          npm ci
+          npm --prefix server ci
+          npm --prefix client ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test private Admin and build its compiled client
+        run: npm run test:e2e:admin
+      - name: Test immutable assets and printing releases
+        run: npx playwright test --config=playwright.printings.config.js
+      - name: Test authored deck purchase and restart journey
+        run: npx playwright test --config=playwright.purpose.config.js
+      - name: Test authored mechanics, campaigns, cosmetics and payment readiness
+        run: npx playwright test --config=playwright.phase2.config.js
+      - name: Test separate Gems and atomic split-price purchases
+        run: npx playwright test --config=playwright.gems.config.js
+      - name: Upload failed Admin diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-release-diagnostics
+          path: |
+            test-results/
+            artifacts/immutable-assets/
+            artifacts/printings/browser/
+            artifacts/purpose/browser/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  dependency-audit:
+    name: Release dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Audit all committed lockfiles
+        run: |
+          npm audit --audit-level=high
+          npm --prefix server audit --audit-level=high
+          npm --prefix client audit --audit-level=high

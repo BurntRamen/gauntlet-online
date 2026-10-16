@@ -1,3 +1,4 @@
+import { factionMechanicId } from "@gauntlet/duel-rules/effectRegistry";
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
 import { getPlayingCardArtPath } from "../cardArt";
@@ -437,7 +438,7 @@ export class LocalDuelAdapter {
     const actor = this.game.players[this.controller];
     const attackNumber = Number(actor?.turnData?.attacksDeclaredThisTurn || 0) + 1;
     const available = (
-      actor?.faction?.id === "rumin"
+      factionMechanicId(actor) === "rumin"
       && ["handAttack", "laneAttack"].includes(this.selection.kind)
       && attackNumber === 3
       && actor.turnData.ruminFreeThirdReady
@@ -514,6 +515,7 @@ export class LocalDuelAdapter {
   commandForSelection() {
     const s = this.selection;
     const common = { player: this.controller, ...this.constructedCommandFields(), paymentCardIds: s.paymentCardIds, useHeraBonus: s.useHeraBonus, useMeerusFreeAttack: s.useMeerusFreeAttack };
+    if (s.kind === "ability" && s.abilityId?.startsWith("mechanic:")) return { ...common, type: "useFactionAbility", ...this.currentLegalAction()?.confirmationPayload.fixed };
     if (s.kind === "ability") {
       const [laneA, laneB] = s.abilityLaneIndexes || [];
       return { ...common, type: "useFactionAbility", abilityId: s.abilityId, cardId: s.abilityCardId,
@@ -605,6 +607,7 @@ export class LocalDuelAdapter {
     if (this.selection.kind === "ability") {
       const lanes = this.selection.abilityLaneIndexes || [];
       const abilityId = this.selection.abilityId;
+      if (abilityId?.startsWith("mechanic:")) return { label: "Confirm Activation", disabled: !this.currentLegalAction() || values.total < values.required };
       if (/^(mekan|jali|gracus):/.test(abilityId)) return { label: "Confirm Activation", disabled: !this.currentLegalAction() };
       if (abilityId === "polea-place" || abilityId === "lafayette-swap") {
         return {
@@ -702,7 +705,7 @@ export class LocalDuelAdapter {
         : `Placement ${opportunity} of 6 · Player ${actor}: both available slots are occupied, so skip this placement.`;
     }
     if (this.selection.kind === "ability") {
-      if (/^(mekan|jali|gracus):/.test(this.selection.abilityId)) return `${this.currentLegalAction()?.label || "Ability selected"}. Review the target and consequence, then confirm activation.`;
+      if (/^(mechanic|mekan|jali|gracus):/.test(this.selection.abilityId)) return `${this.currentLegalAction()?.label || "Ability selected"}. Review the target and consequence, then confirm activation.`;
       const lanes = this.selection.abilityLaneIndexes || [];
       if (this.selection.abilityId === "polea-place") {
         return this.selection.abilityCardId
@@ -1061,7 +1064,7 @@ export class LocalDuelAdapter {
         paymentCardIds: this.selection.paymentCardIds,
         paymentTotal: values.total,
         paymentRequired: values.required,
-        paymentActive: ["handAttack", "laneAttack", "handBlock", "laneBlock"].includes(this.selection.kind),
+        paymentActive: ["handAttack", "laneAttack", "handBlock", "laneBlock"].includes(this.selection.kind) || this.selection.abilityId?.startsWith("mechanic:"),
         canDeclareAttack: this.game.phase === "priority" && !pending && this.game.priority === this.controller,
         canBlock: !!pending && pending.attack.targetPlayer === this.controller,
         canPlace: this.game.phase === "end" && currentPlacementPlayer(this.game) === this.controller,
@@ -1143,6 +1146,11 @@ export class LocalDuelAdapter {
     this.notice = "";
 
     if (this.selection.kind === "ability") {
+      if (this.selection.abilityId?.startsWith("mechanic:")) {
+        if (this.currentLegalAction()?.payment?.eligibleCardIds.includes(card.id)) this.selection = { ...this.selection, paymentCardIds: toggleId(this.selection.paymentCardIds, card.id), selectionRole: "payment" };
+        else this.notice = "That card is not eligible to pay this activation.";
+        this.emit(); return;
+      }
       const selectableCards = actionSelectionEntities(this.currentLegalAction(), "sources", "cardId");
       if (!selectableCards.some((entity) => entity.cardId === card.id)) {
         this.notice = "That card is not a valid source for the selected ability.";

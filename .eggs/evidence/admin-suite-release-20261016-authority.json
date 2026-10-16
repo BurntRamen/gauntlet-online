@@ -1,0 +1,90 @@
+{
+  "contract": "eggs.authority-resolution@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "admin-suite-release-20261016-authority",
+  "projectId": "gauntlet",
+  "account": "timetwisterbrand@gmail.com",
+  "mode": "live",
+  "resolvedAt": "2026-10-16T07:26:34.495Z",
+  "expiresAt": "2026-10-16T15:26:34.497Z",
+  "resolver": "Codex; connected Drive readback and direct user request to complete functionality/UI and publish live.",
+  "sources": [
+    {
+      "resourceId": "17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4",
+      "canonicalUrl": "https://drive.google.com/file/d/17CjayKnPfdypy0nx5hTxuNum17UZ7K0OgPog9F7tMz4/view",
+      "role": "governance",
+      "required": true,
+      "revisionEvidence": "00-00 Creative OS Governance Directive — Operational; modified 2026-09-21T18:12:16.293Z; live content read 2026-10-16T07:26:34.495Z",
+      "resolvedAt": "2026-10-16T07:26:34.495Z",
+      "constraints": [
+        {
+          "id": "release-governance",
+          "statement": "Preserve source hierarchy, traceability, explicit approval and free fair competitive access; direct user release approval is scoped to this tested code release.",
+          "scope": "admin-suite-release-20261016"
+        }
+      ]
+    },
+    {
+      "resourceId": "1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E",
+      "canonicalUrl": "https://drive.google.com/file/d/1mDxVBj1P2BK9zxze_ZP7vtNt-MCHLq2FE9ZJccn5g9E/view",
+      "role": "master-index",
+      "required": true,
+      "revisionEvidence": "00-00 Master System Index; modified 2026-09-17T13:16:05.502Z; live content read 2026-10-16T07:26:34.495Z",
+      "resolvedAt": "2026-10-16T07:26:34.495Z",
+      "constraints": [
+        {
+          "id": "release-master-index",
+          "statement": "Navigation is not activation authority; no PARA season activation or participant threshold is inferred.",
+          "scope": "admin-suite-release-20261016"
+        }
+      ]
+    },
+    {
+      "resourceId": "1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY",
+      "canonicalUrl": "https://drive.google.com/file/d/1AG4fJulFMm46EB8TSkxN_VZDmAABGdaHTHQctHTPzkY/view",
+      "role": "project-dossier",
+      "required": true,
+      "revisionEvidence": "Gauntlet — Project Dossier & Generation Contract — Operational v1; modified 2026-10-09T19:35:20.881Z; live content read 2026-10-16T07:26:34.495Z",
+      "resolvedAt": "2026-10-16T07:26:34.495Z",
+      "constraints": [
+        {
+          "id": "release-project-dossier",
+          "statement": "Preserve tactical readable Gauntlet identity and Basic rules. Publication-edition child contract does not govern this Admin software release.",
+          "scope": "admin-suite-release-20261016"
+        }
+      ]
+    },
+    {
+      "resourceId": "1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4",
+      "canonicalUrl": "https://drive.google.com/file/d/1ZUxcGBJzspERNwHgV38SyyihOvz_Ab-4tQ-7yMOvXv4/view",
+      "role": "rulebook",
+      "required": true,
+      "revisionEvidence": "Gauntlet Rules — Operational v1; modified 2026-08-19T20:05:18.713Z; live content read 2026-10-16T07:26:34.495Z",
+      "resolvedAt": "2026-10-16T07:26:34.495Z",
+      "constraints": [
+        {
+          "id": "release-rulebook",
+          "statement": "Preserve canonical 42 life, eight cards, three lanes, one blocker, priority, payment, simultaneous damage and empty-lane placement; authored variants remain explicit.",
+          "scope": "admin-suite-release-20261016"
+        }
+      ]
+    },
+    {
+      "resourceId": "1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4",
+      "canonicalUrl": "https://drive.google.com/file/d/1wlRWaiLzQ-usJYi3IkC_VuEwUajARSTTFz0eUIOqfP4/view",
+      "role": "asset-registry",
+      "required": true,
+      "revisionEvidence": "Gauntlet Card Registry — Operational v1; modified 2026-08-19T20:17:38.785Z; live content read 2026-10-16T07:26:34.495Z",
+      "resolvedAt": "2026-10-16T07:26:34.495Z",
+      "constraints": [
+        {
+          "id": "release-asset-registry",
+          "statement": "Only operational sheetId 0 governs existing card facts; no registry edits or automatic creation of new live cards.",
+          "scope": "admin-suite-release-20261016"
+        }
+      ]
+    }
+  ],
+  "conflicts": [],
+  "writebackAllowed": false
+}

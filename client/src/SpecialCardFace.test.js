@@ -38,6 +38,13 @@ test("paid foil presentations receive the animated collector layers", () => {
   expect(container.querySelector(".special-card-presentation")).toHaveAttribute("data-collector-style", "elemental-omen");
   expect(container.querySelector(".collector-card-sheen")).toBeInTheDocument();
 });
+test("selected printing artwork uses its exact release and cannot replace historical artwork from another release", () => {
+  const card = { name: "Versioned card", value: 4, suit: "spades", presentation: { releaseId: "R1", composed: true, illustration: "/exact/a.webp" } };
+  const { rerender } = render(<SpecialCardFace card={card} presentation={{ presentation: { releaseId: "R1", composed: true, illustration: "/exact/printing-b.webp" } }} />);
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/exact/printing-b.webp");
+  rerender(<SpecialCardFace card={card} presentation={{ presentation: { releaseId: "R2", composed: true, illustration: "/newest/c.webp" } }} />);
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/exact/a.webp");
+});
 
 test("an explicit standard choice overrides an equipped foil and restores it when removed", () => {
   const card = { name: "Guard", value: 3, suit: "spades", collector: { finish: "foil", animationStyle: "gilded-march" } };

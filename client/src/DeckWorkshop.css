@@ -213,3 +213,6 @@
   .deck-settings > summary > span { font-size: 9px; }
 }
 .deck-card-version { clear: both; display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid #71859b44; } .deck-card-version small { color: #c0cbd5; font-size: 11px; line-height: 1.4; }
+
+.deck-product-setting { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:12px 0; font-size:13px; }
+.deck-product-setting select { min-height:40px; max-width:100%; border:1px solid #46616b; border-radius:5px; padding:8px 10px; background:#162b31; color:#e4ede8; font:inherit; }

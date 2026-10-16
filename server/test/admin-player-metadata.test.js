@@ -34,7 +34,7 @@ async function patch(body, auth = token(0), id = ids[2]) {
     headers: { "Content-Type": "application/json", ...(auth ? { Authorization: `Bearer ${auth}` } : {}) }, body: JSON.stringify(body) });
   return { status: response.status, body: response.headers.get("content-type")?.includes("json") ? await response.json() : null, cache: response.headers.get("cache-control") };
 }
-const edit = (name = "New Visitor", expectedName = "Visitor") => ({ expectedName, metadata: { name } });
+const edit = (name = "New Visitor", expectedName = "Visitor") => ({ expectedName, metadata: { name }, reason: "Support requested name correction" });
 
 test("metadata writes reject guests, ordinary players and forged sessions server-side", async () => {
   for (const [auth, status] of [[null, 401], [token(2), 403], [`${token(0)}tampered`, 401], [__test.issueAccountSession(structuredClone(accounts[0]), 0).token, 401]]) {
@@ -49,7 +49,10 @@ test("both admins can save names; identities, private data, results and existing
   const saved = await patch(edit());
   assert.equal(saved.status, 200);
   assert.deepEqual(saved.body, { player: { id: ids[2], name: "New Visitor" } });
-  assert.deepEqual(read()[2], { ...accounts[2], name: "New Visitor", nameKey: "new visitor" });
+  const corrected = read()[2], audit = corrected.stats.operatorAudit;
+  assert.equal(audit.length, 1); assert.equal(audit[0].actorId, ids[0]); assert.equal(audit[0].before, "Visitor"); assert.equal(audit[0].reason, edit().reason);
+  assert.deepEqual(corrected, { ...accounts[2], name: "New Visitor", nameKey: "new visitor", stats: { ...accounts[2].stats, operatorAudit: audit } });
+  assert.ok(!__test.publicAccountStats(corrected.stats).operatorAudit);
   const login = await fetch(`${origin}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "New Visitor", password: "test-password" }) });
   assert.equal(login.status, 200);
   const adminSave = await patch(edit("Renamed Admin", "simply"), token(1), ids[0]);
@@ -77,20 +80,23 @@ test("hosted writes use a conditional narrow patch and handle write races and du
     normalizeName: (name) => name.trim().replace(/\s+/g, " "), validName: (name) => /^[A-Za-z0-9 _-]{3,24}$/.test(name),
     request: async (query, options) => {
       calls.push({ query, options });
-      if (!options) return [{ id: ids[2], name: "Visitor" }];
+      if (query.startsWith("rpc/")) return 1;
+      if (!options) return [{ id: ids[2], name: "Visitor", stats: { _accountRevision: 7, gamesWon: 9 } }];
       if (outcome === "duplicate") throw Object.assign(new Error("private database diagnostic"), { code: "23505" });
       return outcome === "race" ? [] : [{ id: ids[2], name: "New Visitor" }];
     }
   });
-  assert.deepEqual(await update(ids[2], edit(" New   Visitor ")), { id: ids[2], name: "New Visitor" });
-  assert.deepEqual(JSON.parse(calls[1].options.body), { name: "New Visitor", name_key: "new visitor" });
-  assert.equal(calls[1].options.method, "PATCH");
-  assert.equal(calls[1].options.headers.Prefer, "return=representation");
-  assert.equal(new URLSearchParams(calls[1].query.split("?")[1]).get("name"), 'eq."Visitor"');
+  assert.deepEqual(await update(ids[2], edit(" New   Visitor "), ids[0]), { id: ids[2], name: "New Visitor" });
+  const body = JSON.parse(calls[2].options.body);
+  assert.equal(body.stats._accountRevision, 7); assert.equal(body.stats.gamesWon, 9); assert.equal(body.stats.operatorAudit[0].actorId, ids[0]);
+  assert.deepEqual({ ...body, stats: undefined }, { name: "New Visitor", name_key: "new visitor", stats: undefined });
+  assert.equal(calls[2].options.method, "PATCH");
+  assert.equal(calls[2].options.headers.Prefer, "return=representation");
+  assert.equal(new URLSearchParams(calls[2].query.split("?")[1]).get("name"), 'eq."Visitor"');
   outcome = "race";
-  await assert.rejects(update(ids[2], edit()), (error) => error.status === 409);
+  await assert.rejects(update(ids[2], edit(), ids[0]), (error) => error.status === 409);
   outcome = "duplicate";
-  await assert.rejects(update(ids[2], edit()), (error) => error.status === 409 && !error.message.includes("private"));
+  await assert.rejects(update(ids[2], edit(), ids[0]), (error) => error.status === 409 && !error.message.includes("private"));
 });
 
 test("storage diagnostics are never returned through the metadata endpoint", async () => {

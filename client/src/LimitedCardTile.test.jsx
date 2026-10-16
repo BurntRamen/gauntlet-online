@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { DraftCardTile } from "./App";
 
+// Importing the tile through App must not open a real socket or keep Jest alive.
+jest.mock("socket.io-client", () => ({ io: jest.fn(() => ({})) }));
+
 const card = {
   id: "neutral-think",
   draftCopyId: "copy-1",

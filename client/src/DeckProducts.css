@@ -1,0 +1,9 @@
+.deck-offer { padding: 1rem; margin: 1rem 0; border: 1px solid #9d885266; border-radius: .7rem; background: #111923; color: #e9e3d5; }
+.deck-offer header { display: flex; align-items: center; gap: 1.2rem; }
+.deck-offer p { max-width: 75ch; }
+.deck-offer button, .deck-purchase-confirm button { padding: .65rem 1rem; margin: .5rem .5rem 0 0; }
+.deck-offer-cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.deck-offer-cards > div { width: 135px; }
+.deck-offer-cards small { display: block; }
+.deck-purchase-confirm { border: 2px solid #c8aa65; padding: 1rem; border-radius: .6rem; }
+@media(max-width: 480px) { .deck-offer header { flex-direction: column; align-items: flex-start; } }

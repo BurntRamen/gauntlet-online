@@ -290,7 +290,7 @@ test("Publishing returns to its caller rather than the previous card in history"
   fireEvent.click(screen.getByRole("button", { name: "Inspect Second card" }));
   view.rerender(<GauntletAuthoring {...options} area="Publishing" />);
   fireEvent.click(await screen.findByRole("button", { name: "Back to previous view" }));
-  expect(options.onNavigate).toHaveBeenLastCalledWith("Design");
+  expect(options.onNavigate).toHaveBeenLastCalledWith("Content");
   view.rerender(<GauntletAuthoring {...options} />);
   expect(screen.getByRole("heading", { name: "Second card" })).toBeVisible();
   expect(screen.getByLabelText("Search cards")).toHaveValue("Second");

@@ -10,7 +10,7 @@ const choice = (label, options) => ({ type: "choice", label, options });
 const reference = (label, target, multiple = false) => ({ type: multiple ? "references" : "reference", label, target });
 const date = (label) => ({ type: "date", label });
 const common = { id: text("ID", 80), name: text("Name"), description: text("Description", 4000, false) };
-const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "analytics", "variant-lab", "digital-edition", "bundle"];
+const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "profile-title", "faction-banner", "analytics", "variant-lab", "digital-edition", "bundle"];
 const FORMATS = ["faction-constructed", "classic"];
 const FIELDS = {
   seasons: {
@@ -48,17 +48,20 @@ const FIELDS = {
     fulfillment: choice("Fulfillment availability", ["unavailable", "available"])
   },
   products: {
-    ...common, category: choice("Category", CATEGORIES), status: choice("Availability", ["unavailable", "active", "archived"]),
+    ...common, category: { ...choice("Category", [...CATEGORIES, "gem-credit"]), optionLabels: { "gem-credit": "Gem credit" } }, status: choice("Availability", ["unavailable", "active", "archived"]),
     artwork: { type: "asset", label: "Existing artwork", media: "image" },
     entitlements: reference("Included entitlements", "entitlements", true),
-    pricing: choice("Pricing", ["gold", "gems", "dual", "free", "unavailable"]),
+    pricing: { ...choice("Pricing", ["gold", "gems", "dual", "split", "cash", "free", "unavailable"]), optionLabels: { gold: "Gold", gems: "Gems", dual: "Gold or Gems", split: "Gold and Gems", cash: "Real money (requires provider)", free: "Free", unavailable: "Unavailable" } },
     goldPrice: integer("Gold price", 0, 1000000), gemPrice: integer("Gem price", 0, 1000000),
+    cashPriceMinor: { ...integer("Cash price in minor units (100 = 1.00, tax included)", 0, 1000000), optional: true },
+    cashCurrency: { ...choice("Cash denomination", ["usd", "eur", "gbp"]), optional: true },
+    gemCredit: { ...integer("Gems delivered (Gem credit products only)", 0, 1000000), optional: true },
     purchaseLimit: integer("Purchases per account", 1, 100), startsAt: date("Start (UTC)"), endsAt: date("End (UTC)")
   }
 };
 const CAPABILITIES = Object.freeze({
   officialEntry: false, currencyOperations: false, purchases: false, fulfillment: false, realPayments: false,
-  message: "Only published definitions run on configured private storage. Drafts never activate operations. Gems and real payments are unavailable."
+  message: "Published definitions run only on configured private storage. Dual offers a choice of Gold or Gems; split requires both in one ledger transaction. Gems need separate runtime activation. Payments remain unavailable."
 });
 const INVARIANTS = Object.freeze([
   "Free membership and official entry; equal legal gameplay pool in official Para competition.",
@@ -131,6 +134,7 @@ function validateConfig(config) {
       for (const key of Object.keys(row)) if (!Object.hasOwn(fields, key)) issue(domain, row.id, key, "Unknown or protected field.");
       for (const [key, field] of Object.entries(fields)) {
         const value = row[key];
+        if (value === undefined && field.optional) continue;
         let valid = false;
         switch (field.type) {
           case "text": valid = typeof value === "string" && value.length <= field.maxLength && (!field.required || !!value.trim()) && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value); break;
@@ -138,9 +142,9 @@ function validateConfig(config) {
           case "choice": valid = field.options.includes(value); break;
           case "boolean": valid = typeof value === "boolean"; break;
           case "date": valid = value === null || (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value); break;
-          case "asset": valid = typeof value === "string" && (!value || (domain === "entitlements" && key === "asset" && (value === require("./digitalDelivery").ANALYSIS || ["application/pdf", "text/plain"].includes(assets.assetEntry(value)?.mediaType))) || assets.validAssetReference(value, field.media || (assets.assetEntry(value)?.mediaType?.startsWith("audio/") ? "audio" : "image"))); break;
+          case "asset": valid = typeof value === "string" && (!value || (domain === "entitlements" && key === "asset" && ([require("./digitalDelivery").ANALYSIS, require("./digitalDelivery").TITLE].includes(value) || ["application/pdf", "text/plain"].includes(assets.assetEntry(value)?.mediaType))) || assets.validAssetReference(value, field.media || (assets.assetEntry(value)?.mediaType?.startsWith("audio/") ? "audio" : "image"))); break;
           case "reference": valid = typeof value === "string" && value.length <= 80 && (!!value || field.optional); break;
-          case "references": valid = Array.isArray(value) && value.length > 0 && value.length <= 50 && value.every((id) => typeof id === "string") && new Set(value).size === value.length; break;
+          case "references": valid = Array.isArray(value) && (value.length > 0 || domain === "products" && row.category === "gem-credit") && value.length <= 50 && value.every((id) => typeof id === "string") && new Set(value).size === value.length; break;
           case "choices": valid = Array.isArray(value) && value.length > 0 && value.every((v) => field.options.includes(v)) && new Set(value).size === value.length; break;
           case "numbers": valid = Array.isArray(value) && value.length <= field.maxItems && value.every((n) => Number.isSafeInteger(n) && n >= field.min && n <= field.max); break;
           case "rewards": valid = Array.isArray(value) && value.length <= 50 && value.every((v) => object(v) && Object.keys(v).sort().join() === "entitlementId,wins" && Number.isSafeInteger(v.wins) && v.wins >= 0 && v.wins <= row.winTarget && typeof v.entitlementId === "string") && new Set(value.map((v) => `${v.wins}:${v.entitlementId}`)).size === value.length; break;
@@ -187,10 +191,12 @@ function validateConfig(config) {
       if (row.condition === "welcome" && (row.minimumOccurrences !== 1 || row.claimLimit !== 1)) issue(domain, row.id, "claimLimit", "An initial account award has exactly one occurrence and one claim.");
     }
     if (domain === "products") {
-      const gold = ["gold", "dual"].includes(row.pricing), gems = ["gems", "dual"].includes(row.pricing);
+      const gold = ["gold", "dual", "split"].includes(row.pricing), gems = ["gems", "dual", "split"].includes(row.pricing);
       if ((gold ? row.goldPrice <= 0 : row.goldPrice !== 0) || (gems ? row.gemPrice <= 0 : row.gemPrice !== 0)) issue(domain, row.id, "pricing", "Set a positive price for each offered currency and zero for every other currency.");
+      if (row.pricing === "cash" ? !(row.cashPriceMinor > 0) || !["usd", "eur", "gbp"].includes(row.cashCurrency) : (row.cashPriceMinor || 0) !== 0) issue(domain, row.id, "cashPriceMinor", "Cash offers need a positive exact tax-inclusive price and denomination. Other offers must have a zero cash price.");
+      if (row.category === "gem-credit" ? row.pricing !== "cash" || !(row.gemCredit > 0) || row.entitlements.length : (row.gemCredit || 0) !== 0) issue(domain, row.id, "gemCredit", "Only cash Gem-credit products may deliver a positive Gem amount, without bundled entitlements. No currency conversion is supported.");
       for (const id of row.entitlements) if (maps.entitlements.get(id)?.provenance !== "commercial") issue(domain, row.id, "entitlements", "Products cannot include earned-only tournament entitlements.");
-      if (row.status === "active" && (!row.startsAt || !["gold", "free"].includes(row.pricing) || row.entitlements.some((id) => maps.entitlements.get(id)?.fulfillment !== "available"))) issue(domain, row.id, "status", "Active offers require dates, Gold or free pricing, and implemented delivery for every inclusion.");
+      if (row.status === "active" && (!row.startsAt || !["gold", "gems", "dual", "split", "cash", "free"].includes(row.pricing) || row.entitlements.some((id) => maps.entitlements.get(id)?.fulfillment !== "available"))) issue(domain, row.id, "status", "Active offers require dates, supported currency pricing, and implemented delivery for every inclusion. Publishing never enables a disabled currency backend.");
     }
   }
   for (const season of config.seasons) {
@@ -210,8 +216,8 @@ function summary(config) {
 
 function catalog(config) {
   return config.products.map((p) => ({ id: p.id, name: p.name, description: p.description, status: p.status,
-    price: p.pricing === "free" ? "Free" : p.pricing === "unavailable" ? "No price offered" : [p.goldPrice > 0 && `${p.goldPrice} Gold`, p.gemPrice > 0 && `${p.gemPrice} Gems`].filter(Boolean).join(" or "),
-    inclusions: p.entitlements.map((id) => { const e = config.entitlements.find((entry) => entry.id === id); return `${e?.name} · ${e?.duration === "days" ? `${e.durationDays} days` : e?.duration === "season" ? `Season: ${e.seasonId}` : "Permanent"} · ${e?.provenance} · fulfillment ${e?.fulfillment}`; }) }));
+    price: p.pricing === "cash" ? Number.isSafeInteger(p.cashPriceMinor) && p.cashPriceMinor > 0 && ["usd", "eur", "gbp"].includes(p.cashCurrency) ? `${(p.cashPriceMinor / 100).toFixed(2)} ${p.cashCurrency.toUpperCase()} (tax included; provider required)` : "Cash price incomplete" : p.pricing === "free" ? "Free" : p.pricing === "unavailable" ? "No price offered" : [p.goldPrice > 0 && `${p.goldPrice} Gold`, p.gemPrice > 0 && `${p.gemPrice} Gems`].filter(Boolean).join(p.pricing === "split" ? " + " : " or "),
+    inclusions: [...(p.category === "gem-credit" ? [`${p.gemCredit} Gems; funding requires a verified payment`] : []), ...p.entitlements.map((id) => { const e = config.entitlements.find((entry) => entry.id === id), equipment = require("./cosmeticEquipment"), destination = equipment.LABELS[equipment.SLOTS[e?.category]]; return `${e?.name} · ${e?.duration === "days" ? `${e.durationDays} days` : e?.duration === "season" ? `Season: ${e.seasonId}` : "Permanent"} · ${e?.provenance} · fulfillment ${e?.fulfillment} · ${destination || (e?.category === "collector-treatment" ? "Artwork download only; equippable exact printings use deck products" : "Owned library access")}`; })] }));
 }
 
 function simulate(config, input) {

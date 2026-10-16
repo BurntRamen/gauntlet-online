@@ -43,8 +43,9 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
+    "@electric-sql/pglite": "0.5.9",
     "@playwright/test": "^1.62.0",
-    "sharp": "^0.35.3",
+    "sharp": "0.35.5",
     "socket.io-client": "^4.8.3"
   }
 }

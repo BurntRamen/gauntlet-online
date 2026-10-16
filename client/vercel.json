@@ -1,4 +1,8 @@
 {
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
   "rewrites": [
     { "source": "/admin/gauntlet", "destination": "/index.html" },
     { "source": "/admin/gauntlet/:path*", "destination": "/index.html" }

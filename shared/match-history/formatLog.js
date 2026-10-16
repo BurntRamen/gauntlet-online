@@ -74,7 +74,7 @@ function abilityName(entry, fallback = 'Ability') {
 
 function isAbilityLogEntry(entry) {
   if (!entry || (entry.private && !entry.source && !entry.card)) return false;
-  if (/^(effect\.|ability\.|guest\.|jali\.|gracus\.|indela\.|acceleration\.|card\.(peeked|buffApplied)$|lanes\.swapped$|laneCard\.swappedWithHand$|choice\.committed$)/.test(entry.type)) return true;
+  if (/^(mechanic\.|effect\.|ability\.|guest\.|jali\.|gracus\.|indela\.|acceleration\.|card\.(peeked|buffApplied)$|lanes\.swapped$|laneCard\.swappedWithHand$|choice\.committed$)/.test(entry.type)) return true;
   if (['card.placedFacedown', 'cards.drawn'].includes(entry.type) && entry.source) return true;
   const calculation = entry.calculation;
   return Boolean(calculation && (calculation.notes?.length || calculation.reductions?.length

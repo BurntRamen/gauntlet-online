@@ -1,0 +1,11 @@
+{
+  "player": "Player templates and deck products",
+  "practice": "Exact-deck practice tests",
+  "encounter": "Supported campaign opponents",
+  "library": "Discoverable in the library",
+  "constructed": "Legal in constructed decks",
+  "encounters": "Available for encounter decks",
+  "earnedPacks": "Eligible for existing earned packs",
+  "draft": "Eligible for Draft",
+  "sealed": "Eligible for Sealed"
+}

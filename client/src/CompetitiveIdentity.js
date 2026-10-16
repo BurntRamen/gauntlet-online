@@ -96,19 +96,21 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
   const activeSeason = profile.competitiveRecord?.activeSeason || null;
   const seasonRecord = activeSeason?.record || {};
   const identityFactionId = identityFaction(profile);
-  const cardBack = getCardBackDefinition(profile.identity?.selectedCardBack);
+  const equipment = profile.equipment || {};
+  const cardBack = equipment.cardBack || getCardBackDefinition(profile.identity?.selectedCardBack);
   const campaignRecords = profile.campaignRecords || [];
   const achievements = profile.achievements || [];
   const factionRecords = profile.factionRecords || [];
   return (
     <>
-      <div className="competitive-profile-header" style={identityFactionId !== "basic" ? { backgroundImage: `linear-gradient(90deg, rgba(5,11,18,0.99), rgba(5,11,18,0.86) 43%, rgba(5,11,18,0.35)), url(${factionArt(identityFactionId)})` } : undefined}>
+      <div className="competitive-profile-header" style={equipment.banner || identityFactionId !== "basic" ? { backgroundImage: `linear-gradient(90deg, rgba(5,11,18,0.99), rgba(5,11,18,0.86) 43%, rgba(5,11,18,0.35)), url(${equipment.banner?.url || factionArt(identityFactionId)})` } : undefined}>
         <div className="competitive-profile-persona">
           <PlayerAvatar subject={profile} name={profile.displayName} serverUrl={serverUrl} size="large" />
           <div>
             <span className="competitive-kicker">{profile.identity?.selectedTitleName || profile.identity?.selectedTitle || "Recruit"}</span>
             <h1>{profile.displayName}</h1>
             <p>Joined {formatDate(profile.memberSince)} · {profile.verifiedMatchCount || 0} verified match archives</p>
+            {equipment.music && <audio controls preload="none" src={equipment.music.url} aria-label={equipment.music.name} />}
             <div className="competitive-identity-tags">
               <span>{profile.identity?.selectedFactionBadgeName || "No Badge"}</span>
               <span>{cardBack.name}</span>
@@ -122,7 +124,7 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
           <small>{all.winRate || 0}% win rate across recorded modes</small>
         </div>
         <aside className="competitive-equipped-back" aria-label={`Equipped card back: ${cardBack.name}`}>
-          <CardBackArt cardBackId={cardBack.id} decorative />
+          <CardBackArt cardBackId={cardBack.id} appearance={equipment.cardBack} decorative />
           <span>Equipped card back</span>
           <strong>{cardBack.name}</strong>
           <small>{cardBack.description}</small>

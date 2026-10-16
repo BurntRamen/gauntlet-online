@@ -13,6 +13,9 @@ const encounterDefaults = require("./encounterDefinitions.json");
 const assets = require("./contentAssets");
 const config = require("../shared/duel-rules/gameConfig");
 const { proseFields } = require("./websiteProse");
+const authoredCatalog = require("./adminCatalog");
+const composition = require("../shared/duel-rules/compositionContract");
+const { resolvePrinting } = require("../shared/duel-rules/printings");
 const paraLeague = require("./paraLeague");
 const SCHEMA = "gauntlet.authored-content.v2";
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -33,9 +36,19 @@ const FIELDS = {
 };
 
 FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechanical: true, abilityIds: encounterContract.bossAbilityIds, rules: encounterAuthoring.rules, abilityLabels: encounterAuthoring.abilityLabels, note: "Save setup, ability and card additions together. Displayed ability text does not change the selected rule. Timing and routing are read-only." };
-FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Only declared integer parameters are supported." };
+FIELDS.encounters.opponentDeckId = { label: "Authored opponent deck", type: "deck-reference", maxLength: 180, required: false, defaultValue: "", mechanical: true, note: "Replaces the opponent composition. Clear legacy boss additions first. Setup, scripted attacks, progression and rewards stay separate." };
+FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type: "modifier-reference", maxLength: 80, required: false, defaultValue: "", mechanical: true, note: "Optional campaign override. Its player/opponent life and hand size replace encounter life and global hand size. Standard and official competitions are unaffected." };
+FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
-function fieldsFor(domain, row) {
+function fieldsFor(domain, row, snapshot) {
+  if (domain === "factions" && row?.origin === "admin-faction-v1") return { ...FIELDS.factions, ...require("./adminFactions").fields };
+  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...require("./adminEncounters").fields };
+  if (domain === "decks" && row?.origin === require("./adminDecks").ORIGIN) return require("./adminDecks").fields;
+  if (domain === "offers") return require("./adminDeckOffers").fields;
+  if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
+  if (domain === "sets") return authoredCatalog.setFields;
+  if (domain === "cards" && row?.origin === "admin-v1") return { ...FIELDS.cards, ...authoredCatalog.cardFields, ...(snapshot ? { factionId: { ...authoredCatalog.cardFields.factionId, options: [...authoredCatalog.cardFields.factionId.options, ...snapshot.domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => ({ id: f.id, name: f.name }))] } } : {}), flavor: { ...text("Flavor text", 1000, false), defaultValue: "", note: "Optional narrative text. No executable behavior." } };
+  if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This new printing requires an immutable image. Select a replacement to change it." } };
   if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true } };
   if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
   if (domain === "factions" && row.campaignOnly) return { name: FIELDS.factions.name, cardImage: FIELDS.factions.cardImage };
@@ -103,15 +116,25 @@ function protectedContent(snapshot) {
 
 const validAsset = assets.validAssetReference;
 
-function validateAuthoredContent(snapshot, baseline) {
+function validateAuthoredContent(snapshot, baseline, catalogCards) {
+  const studioErrors = require("./mechanicAuthoring").validate(snapshot || {});
+  if (studioErrors.length) return { valid: false, errors: studioErrors, warnings: [] };
+  if (snapshot?.assetVersions !== undefined && !require("./authoredAssets").validateVersions(snapshot.assetVersions)) return { valid: false, errors: [{ message: "Invalid immutable image version metadata." }], warnings: [] };
+  if (snapshot?.schemaVersion === require("./adminSuiteContent").SCHEMA) return require("./adminSuiteContent").validate(snapshot, baseline, (value, base) => authoredCatalog.validateCatalog(value, base, validateAuthoredContent));
+  if (snapshot?.schemaVersion === authoredCatalog.SCHEMA) return authoredCatalog.validateCatalog(snapshot, baseline, validateAuthoredContent);
   const errors = [], warnings = [];
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
   if (canonicalJson(snapshot.engine) !== canonicalJson(baseline.engine)) issue(null, null, "engine", "Engine contract or mechanic identifiers changed; a compatible code deployment is required.");
   // Optional additive extension: old immutable v2 snapshots retain their bytes and hashes.
-  if (canonicalJson(Object.keys(snapshot).filter((key) => key !== "paraLeague").sort()) !== canonicalJson(Object.keys(baseline).filter((key) => key !== "paraLeague").sort()) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
+  const coreKeys = value => Object.keys(value).filter(key => !["paraLeague", "competition", "studio", "assetVersions"].includes(key)).sort();
+  if (canonicalJson(coreKeys(snapshot)) !== canonicalJson(coreKeys(baseline)) || !snapshot.domains || canonicalJson(Object.keys(snapshot.domains).sort()) !== canonicalJson(Object.keys(baseline.domains).sort())) return { valid: false, errors: [...errors, { message: "Unexpected or missing content domains/fields." }], warnings };
   if (Object.hasOwn(snapshot, "paraLeague")) {
     const validation = paraLeague.validateConfig(snapshot.paraLeague);
+    errors.push(...validation.errors); warnings.push(...validation.warnings);
+  }
+  if (Object.hasOwn(snapshot, "competition")) {
+    const validation = require("./competitionConfig").validate(snapshot.competition, snapshot);
     errors.push(...validation.errors); warnings.push(...validation.warnings);
   }
   const maps = {};
@@ -129,7 +152,7 @@ function validateAuthoredContent(snapshot, baseline) {
       const editable = fieldsFor(domain, original);
       for (const key of new Set([...Object.keys(original), ...Object.keys(row)])) {
         const field = editable[key];
-        const value = row[key];
+        const value = field ? fieldValue(row, key, field) : row[key];
         if (!field) {
           if (canonicalJson(value ?? null) !== canonicalJson(original[key] ?? null) || Object.hasOwn(row, key) !== Object.hasOwn(original, key)) issue(domain, row.id, key, "Engine-controlled identity, reference or derived value cannot be changed.");
           continue;
@@ -137,9 +160,10 @@ function validateAuthoredContent(snapshot, baseline) {
         if (field.type === "object" || field.type === "integer") {
           const valid = domain === "cards" ? effects.validateCardEffect(value, row)
             : domain === "factions" ? effects.validateFactionMechanics(value, row.id)
-            : domain === "encounters" ? encounterContract.validateEncounterSetup(value, baseline.domains.cards, row.factionId)
+            : domain === "encounters" ? encounterContract.validateEncounterSetup(value, catalogCards || baseline.domains.cards, row.factionId)
             : Number.isSafeInteger(value) && value >= field.min && value <= field.max;
           if (!valid) issue(domain, row.id, key, "Unsupported definition, parameter, reference or bound. Choose a supported contract and its declared values.");
+          if (valid && domain === "cards" && value?.id === composition.ID && row.text !== require("../shared/duel-rules/compositionExplanation").explain(value, row)) warnings.push({ domain, id: row.id, field: "text", message: "Printed wording differs from the generated explanation; review it. Arbitrary prose is not verified as equivalent." });
           if (valid && canonicalJson(value) !== canonicalJson(original[key])) warnings.push({ domain, id: row.id, field: key, message: "Mechanical settings changed. Check the displayed rules wording and playtest this exact saved draft." });
           continue;
         }
@@ -147,7 +171,7 @@ function validateAuthoredContent(snapshot, baseline) {
         if (!Array.isArray(values) || values.length > (field.maxItems || 1)) { issue(domain, row.id, key, `Expected at most ${field.maxItems || 1} entries.`); continue; }
         if (values.some((entry) => !(field.type === "assets" && entry === null) && (typeof entry !== "string" || entry.length > field.maxLength || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(entry) || (field.required && !entry.trim())))) issue(domain, row.id, key, `Use ${field.required ? "nonempty " : ""}text, at most ${field.maxLength} characters per entry.`);
         if (field.type === "asset" || field.type === "assets") {
-          if (values.some((entry) => !validAsset(entry, field.media))) issue(domain, row.id, key, "Choose an existing asset from the versioned manifest with the required media type.");
+          if (values.some((entry) => !validAsset(entry, field.media, snapshot.assetVersions))) issue(domain, row.id, key, "Choose an existing asset from the versioned manifest with the required media type.");
           if (canonicalJson(value) !== canonicalJson(original[key])) warnings.push({ domain, id: row.id, field: key, message: "The reference resolves to immutable, digest-verified bytes in the asset manifest. Inspect its preview before publishing." });
         }
         if (domain === "cards" && key === "text" && value !== original.text) warnings.push({ domain, id: row.id, field: key, message: "Rules wording changed; the executable effect is unchanged. Verify that the wording remains accurate." });
@@ -187,21 +211,18 @@ function validateAuthoredContent(snapshot, baseline) {
 /** @returns {import("./engineContentContract").EngineContentRelease} */
 function resolveEngineContent(snapshot, releaseId) {
   const manifest = clone(registry.getPublicGameContent());
-  const domains = snapshot.domains;
-  const factions = clone(registry.factionsData);
-  for (const row of domains.factions) Object.assign(factions[row.id], { name: row.name, cardImage: row.cardImage, mechanics: clone(row.mechanics) });
-  for (const row of domains.characters.filter((entry) => entry.kind === "faction-role")) Object.assign(factions[row.factionId][row.role], { name: row.name, image: row.image });
-  factions.rumin.commander.text = factions.rumin.commander.text.replace("+3", `+${factions.rumin.mechanics.parameters.fourthAttackBonus}`);
-  factions.sheen.city.text = factions.sheen.city.text.replace("+2", `+${factions.sheen.mechanics.parameters.largeAttackBonus}`);
+  const domains = snapshot.domains, versions = snapshot.assetVersions || [];
+  const factions = require("./adminFactions").resolve(snapshot);
   const characters = new Map(domains.characters.map((row) => [row.id, row]));
   const decks = new Map(domains.decks.map((row) => [row.id, row]));
   const encounters = new Map(domains.encounters.map((row) => [row.id, row]));
   for (const row of domains.campaigns) {
-    const campaign = manifest.campaigns[row.id];
+    if (factions[row.factionId].status === "archived") { delete manifest.campaigns[row.id]; continue; }
+    const campaign = manifest.campaigns[row.id] || (manifest.campaigns[row.id] = { characters: {}, chapters: [] });
     Object.assign(campaign, { factionName: factions[row.factionId].name, commanderName: row.commanderName, pitch: row.pitch, coverImage: row.coverImage || null });
-    campaign.chapters = row.encounterIds.map((id) => {
+    campaign.chapters = require("./adminEncounters").ordered(snapshot, row).map((id) => {
       const encounter = encounters.get(id), deck = decks.get(encounter.deckId);
-      const chapter = { id, ...Object.fromEntries(Object.keys(FIELDS.encounters).map((key) => [key, clone(encounter[key])])), opponentName: characters.get(encounter.opponentId).name,
+      const chapter = { id, ...Object.fromEntries(Object.keys(FIELDS.encounters).map((key) => [key, clone(fieldValue(encounter, key, FIELDS.encounters[key]))])), opponentName: characters.get(encounter.opponentId).name,
         deckTemplate: { id: deck.id, name: deck.name, description: deck.description } };
       return chapter;
     });
@@ -212,52 +233,72 @@ function resolveEngineContent(snapshot, releaseId) {
   }
   // Preserve the production presentation order, which differs from registry
   // object insertion order as additional factions are introduced.
-  manifest.factions = manifest.factions.map((faction) => factions[faction.id]);
-  manifest.cards = clone(domains.cards);
+  manifest.factions = [...manifest.factions.map((faction) => factions[faction.id]), ...domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => factions[f.id])];
+  manifest.cards = clone(domains.cards).map(card => require("./mechanicAuthoring").resolve(card, snapshot, hash));
+  if (snapshot.domains.sets) manifest.draftSets = [...manifest.draftSets, ...authoredCatalog.projectSets(snapshot)];
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
   manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
-  manifest.deckTemplates = domains.decks.map(({ id, name, description }) => ({ id, name, description }));
+  manifest.deckTemplates = domains.decks.map(row => row.origin === require("./adminDecks").ORIGIN ? require("./adminDecks").project(row) : { id: row.id, name: row.name, description: row.description, legacy: true });
+  manifest.deckOffers = (domains.offers || []).map(row => require("./adminDeckOffers").project(row, manifest.deckTemplates, releaseId));
+  if (snapshot.studio?.modifiers) manifest.ruleModifiers = snapshot.studio.modifiers.map(definition => ({ definition: clone(definition), revision: hash(definition) }));
+  if (snapshot.competition) manifest.competition = clone(snapshot.competition);
   manifest.contentVersion = releaseId;
+  manifest.presentationAssets = Object.fromEntries(require("./presentationAssetManifest.json").map(row => [row.source, row.path]));
+  for (const offer of manifest.deckOffers) offer.cardBack = manifest.presentationAssets[({ classic: "/assets/gauntlet/match/gauntlet-card-back-official.jpg", arenaCircuit: "/assets/gauntlet/card-backs/arena-circuit-v1.webp", victorGold: "/assets/gauntlet/card-backs/victor-gold-v1.webp", campaignMap: "/assets/gauntlet/card-backs/campaign-map-v1.webp" })[offer.cardBackId]];
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
-  manifest.assetManifest = { version: assets.assetManifest.version, entries: clone(assets.assetManifest.entries) };
+  manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
+  if (domains.factions.some(f => f.origin === "admin-faction-v1")) manifest.contentBinding.factionFamilyVersion = "gauntlet.faction-families.v1";
+  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = require("../shared/duel-rules/mechanicContract").VERSION;
+  if (domains.cards.some(card => card.effect?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
   for (const card of manifest.cards) {
-    card.presentation = assets.cardPresentation(card, manifest.collectorVariants.find((row) => row.variantId === card.defaultVariantId), source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === card.defaultVariantId), releaseId);
+    card.presentation = assets.cardPresentation(card, manifest.collectorVariants.find((row) => row.variantId === card.defaultVariantId), source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === card.defaultVariantId), releaseId, versions);
   }
   for (const variant of manifest.collectorVariants) {
     const card = manifest.cards.find((row) => row.id === variant.gameplayCardId);
-    variant.presentation = assets.cardPresentation(card, variant, source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === variant.variantId), releaseId);
+    variant.presentation = assets.cardPresentation(card, variant, source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === variant.variantId), releaseId, versions);
+    variant.presentation.printingId = variant.variantId;
+    variant.presentation.printingRevision = hash(domains.assets.find(row => row.id === variant.variantId));
+    variant.presentation.gameplayRevision = hash({ id: card.id, effect: card.effect, factionId: card.factionId, type: card.type, value: card.value, suit: card.suit });
   }
-  return { contractVersion: snapshot.engine.contractVersion, releaseId, factions: assets.resolveAssetFields(factions), manifest: assets.resolveAssetFields(manifest) };
+  for (const card of manifest.cards) card.presentation = clone(resolvePrinting(card.id, manifest.collectorVariants, null, card.defaultVariantId).presentation);
+  return { contractVersion: snapshot.engine.contractVersion, releaseId, factions: assets.resolveAssetFields(factions, "", versions, releaseId), manifest: assets.resolveAssetFields(manifest, "", versions, releaseId) };
 }
 
 /** @param {import("./engineContentContract").EngineContentRelease} resolved */
 function pinGameContent(game, resolved) {
   game.contentVersion = resolved.releaseId;
+  game.presentationAssets = clone(resolved.manifest.presentationAssets);
   game.contentBinding = clone(resolved.manifest.contentBinding);
   game.config = clone(resolved.manifest.gameConfig);
   game.contentDefinitions = { cards: Object.fromEntries(resolved.manifest.cards.map((card) => [card.id, clone(card.effect)])), factions: Object.fromEntries(Object.entries(resolved.factions).map(([id, faction]) => [id, clone(faction.mechanics)])) };
   for (const player of Object.values(game.players || {})) {
-    if (resolved.factions[player.faction?.id]) player.faction = clone(resolved.factions[player.faction.id]);
+    if (resolved.factions[player.faction?.id]) {
+      const generalId = player.faction.general?.id;
+      player.faction = clone(resolved.factions[player.faction.id]);
+      const general = player.faction.generals?.find(row => row.id === generalId);
+      if (general) player.faction.general = clone(general);
+    }
     for (const card of [...(player.hand || []), ...(player.deck || []), ...(player.discard || [])]) {
       const definition = resolved.manifest.cards.find((row) => row.id === (card.gameplayCardId || card.definitionId));
       if (definition) {
         card.effect = clone(definition.effect);
         card.presentation = clone(definition.presentation);
         card.name = definition.name; card.text = definition.text; card.rulesText = definition.text;
-        const variant = resolved.manifest.collectorVariants.find((row) => row.variantId === card.variantId);
+        const variant = resolvePrinting(definition.id, resolved.manifest.collectorVariants, card.variantId, definition.defaultVariantId);
+        if (!variant) throw new Error("The captured release cannot resolve this card printing.");
         if (variant) {
+          card.variantId = variant.variantId;
           card.collector = clone(variant);
-          const source = registry.getPublicGameContent();
-          card.presentation = assets.cardPresentation(definition, variant, source.cards.find((row) => row.id === definition.id), source.collectorVariants.find((row) => row.variantId === variant.variantId), resolved.releaseId);
+          card.presentation = clone(variant.presentation);
         }
       }
       if (!definition) {
         card.presentation = assets.ordinaryPresentation(card, player.faction?.id || "basic", resolved.releaseId);
         const sourceFaction = registry.factionsData[player.faction?.id];
-        if (sourceFaction && (player.faction.name !== sourceFaction.name || player.faction.cardImage !== assets.resolveAsset(sourceFaction.cardImage))) {
+        if (player.faction?.origin === "admin-faction-v1" || sourceFaction && (player.faction.name !== sourceFaction.name || player.faction.cardImage !== assets.resolveAsset(sourceFaction.cardImage))) {
           card.presentation = { ...card.presentation, composed: true, illustration: player.faction.cardImage };
         }
       }

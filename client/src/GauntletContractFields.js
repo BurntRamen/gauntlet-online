@@ -4,7 +4,7 @@ const LOCKED = { version: "Contract version", attackTiming: "Attack timing · cl
 export default function GauntletContractFields({ value, onChange, definition, row, cards, disabled, path = "", onInspect, guide = {} }) {
   const set = (key, next) => { const updated = { ...value, [key]: next }; if (next === undefined) delete updated[key]; onChange(updated); };
   const options = Array.isArray(definition.options) ? definition.options.filter((entry) => entry.factionId === row.factionId && entry.cardType === row.type) : [];
-  const contract = options.find(option => option.id === value?.id) || (definition.options && !Array.isArray(definition.options) ? definition.options[row.id] : null);
+  const contract = options.find(option => option.id === value?.id) || (definition.options && !Array.isArray(definition.options) ? definition.options[row.family || row.id] : null);
   const entries = path === "Boss Ability" ? { ...value, evenBonus: value.evenBonus, healAtTurnStart: value.healAtTurnStart } : value;
   return <div className="admin-contract-fields">{Object.entries(entries || {}).map(([key, entry]) => {
     const field = path ? `${path} ${label(key)}` : label(key), rule = definition.rules?.[key];

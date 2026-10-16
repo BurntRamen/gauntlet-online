@@ -1,3 +1,4 @@
+const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
@@ -13,18 +14,18 @@ test("operators author Para definitions, simulate, publish and restore without t
   const get = async (route) => (await (await request.get(`${origin}${route}`, { headers, maxRetries: 2 })).json());
   const before = { players: await get("/api/admin/players"), matches: await get("/api/admin/matches"), content: await get("/api/game-content"), authoring: await get("/api/admin/authoring") };
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
+  await adminArea(page, "Para League & Economy");
   await page.getByRole("button", { name: "Create Season Zero draft" }).click();
   await expect(page.getByRole("status")).toHaveText("Definition saved to the shared draft. Published rules are unchanged.");
   await expect(page.getByText(/catalog 4000 · budget 4000 · maximum 4000/)).toBeVisible();
   expect((await get("/api/admin/authoring")).live.paraLeague).toBeUndefined();
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
-  const choose = (name) => tabs.getByRole("button", { name, exact: true }).click();
+  const choose = (name) => paraTab(page, name);
   const save = async () => { await page.getByRole("button", { name: "Save definition to draft" }).click(); await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0); };
 
   await choose("Seasons");
   await page.getByRole("button", { name: "New season", exact: true }).click();
-  await page.getByLabel("ID", { exact: true }).fill("browser-season");
+  await identity(page, "browser-season");
   await page.getByLabel("Name", { exact: true }).fill("Browser season");
   await page.getByLabel("faction-constructed", { exact: true }).check();
   await page.getByLabel("Public rules version").fill("review-v1");
@@ -32,23 +33,23 @@ test("operators author Para definitions, simulate, publish and restore without t
   await save();
   await choose("Events");
   await page.getByRole("button", { name: "New event", exact: true }).click();
-  await page.getByLabel("ID", { exact: true }).fill("browser-event");
+  await identity(page, "browser-event");
   await page.getByLabel("Name", { exact: true }).fill("Browser event");
   await page.getByLabel("Season", { exact: true }).selectOption("browser-season");
   await page.getByLabel("Prestige for 7 wins", { exact: true }).fill("35");
   await save();
   await choose("Gold Awards");
   await page.getByRole("button", { name: "New Gold award", exact: true }).click();
-  await page.getByLabel("ID", { exact: true }).fill("browser-award");
+  await identity(page, "browser-award");
   await page.getByLabel("Name", { exact: true }).fill("Browser award");
   await page.getByLabel("Season", { exact: true }).selectOption("browser-season");
   await page.getByLabel("Gold amount").fill("800");
   await save();
   await choose("Marketplace");
   await page.getByRole("button", { name: "New product", exact: true }).click();
-  await page.getByLabel("ID", { exact: true }).fill("browser-product");
+  await identity(page, "browser-product");
   await page.getByLabel("Name", { exact: true }).fill("Browser product");
-  await page.getByLabel("Profile music (profile-music-content)", { exact: true }).check();
+  await page.getByLabel("Profile music", { exact: true }).check();
   await page.getByLabel("Gold price").fill("600");
   await save();
   await choose("Prestige");
@@ -85,7 +86,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect(published.live.paraLeague.products.every((p) => p.status === "unavailable")).toBe(true);
   expect((await get("/api/game-content")).content.cards).toEqual(before.content.content.cards.map((c) => ({ ...c, presentation: { ...c.presentation, releaseId: published.activeReleaseId } })));
   // Inspect the real structured editor on a mobile viewport and retain evidence.
-  await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
+  await adminArea(page, "Para League & Economy");
   await choose("Marketplace");
   await page.getByRole("button", { name: /^Profile music profile-music/ }).click();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -93,7 +94,9 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.screenshot({ path: "artifacts/para-marketplace-mobile.png", fullPage: true });
   await nav.getByRole("button", { name: "Publishing", exact: true }).click();
-  await page.getByRole("button", { name: "Restore Deployed source baseline", exact: true }).click();
+  const priorRelease = before.authoring.releases.find(release => release.id === before.authoring.activeReleaseId);
+  expect(priorRelease).toBeTruthy();
+  await page.getByRole("button", { name: `Restore ${priorRelease.label}`, exact: true }).click();
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
   await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   expect((await get("/api/admin/authoring")).activeReleaseId).toBe(before.authoring.activeReleaseId);

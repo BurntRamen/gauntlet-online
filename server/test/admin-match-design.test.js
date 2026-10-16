@@ -29,3 +29,16 @@ test("legacy and unknown references never acquire fabricated historical names or
   assert.deepEqual(result.events[0].references, []);
   assert.equal(result.recorded.bindings, null);
 });
+
+test("composed abilities remain owned by their recorded cards rather than collapsed into a shared handler", () => {
+  const composition = require("../../shared/duel-rules/compositionContract"), a = composition.create(), b = composition.create();
+  b.abilities[0].effects[0].amount = 5;
+  const current = clone(baseline), [left, right] = current.domains.cards;
+  left.effect = b; right.effect = a;
+  const record = { contentDefinitions: { cards: { [left.id]: a, [right.id]: b } }, auditEvents: [{ publicPayload: { cards: [{ gameplayCardId: left.id }, { gameplayCardId: right.id }] } }] };
+  const result = projectMatchDesign(record, current);
+  assert.deepEqual(result.references.find(ref => ref.id === left.id).recorded.definition.effect, a);
+  assert.deepEqual(result.references.find(ref => ref.id === left.id).current.definition.effect, b);
+  assert.deepEqual(result.references.find(ref => ref.id === right.id).recorded.definition.effect, b);
+  assert.ok(!result.references.some(ref => ref.domain === "card-effects" && ref.id === composition.ID));
+});

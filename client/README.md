@@ -1,70 +1,17 @@
-# Getting Started with Create React App
+# Gauntlet client
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Use the repository's Node 22 version (`.nvmrc`) and `npm ci` in this directory. The application uses React, Webpack, Babel, PostCSS and Jest directly. Create React App is no longer a dependency.
 
-## Available Scripts
+- `npm start` watches source files and serves development output at `http://127.0.0.1:3000`. Set `PORT` to select another loopback port. Refresh the browser after recompilation; this server has no hot reload, proxy, HTTPS certificate generator or public-network binding. Run the backend separately and set `REACT_APP_SOCKET_URL`.
+- `npm test -- --watchAll=false` runs all JavaScript/JSX tests. Add `--watch` for Jest's interactive mode.
+- `npm run lint` checks source errors, JSX references and React hook rules.
+- `npm run test:toolchain` checks environment exposure, the reviewed YAML dependency override and development HTTP boundaries.
+- `npm run build` lints, compiles production output into `build`, then prunes WebGPU-only assets. From the repository root, run `npm run check:bundle` to enforce every existing player/Admin ceiling.
 
-In the project directory, you can run:
+Build output retains hashed classic JavaScript, named lazy Admin/player chunks, extracted CSS, an asset manifest and hidden source maps for debugging and complete budget attribution. Browser targets remain in `package.json`. Static files in `public` are copied; `public/index.html` is the HTML template. Do not place private files in `public`.
 
-### `npm start`
+Environment precedence is the host environment, `.env.<mode>.local`, `.env.local` (except tests), `.env.<mode>`, then `.env`. References support `$NAME`, `${NAME}` and `${NAME:-fallback}`; escape a dollar sign with a backslash. Circular references fail the build. Only `REACT_APP_*`, `NODE_ENV` and `PUBLIC_URL` are exposed to browser JavaScript and HTML; never give a credential a public prefix. Restart the compiler after editing environment files.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Vercel uses the committed `vercel.json`: locked install, `npm run build`, output `build`, and the existing Admin route rewrites. Render's backend build/start commands are unchanged. A frontend preview is not proof that the corresponding backend is deployed.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The scoped `@istanbuljs/load-nyc-config` → `js-yaml` override removes the obsolete parser's `argparse`/`sprintf-js` path. Its YAML loading, inheritance and rejection behavior are tested. Remove it once that parent adopts a patched parser itself; see [the security disposition](../docs/admin-dependency-audit.md).
