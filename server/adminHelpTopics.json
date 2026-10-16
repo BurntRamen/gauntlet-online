@@ -59,5 +59,6 @@
   "OfferWorkshopNote1": "Save valid fields to preview the actual store presentation.",
   "PrintingWorkshopNote1": "Resolve the current fields before selecting another printing.",
   "ReleaseReviewNote1": "Review saved changes together before they reach future games.",
-  "EncounterWorkshopNote1": "Setup, mechanics and card additions save together below."
+  "EncounterWorkshopNote1": "Setup, mechanics and card additions save together below.",
+  "encounterCreation": "Create an additional playable encounter after the original campaign chapters. Configure its narrative, opponent, existing scripted ability, eligible cards and optional rule modifier. The normal first-clear reward is retained. Test the final saved draft before publication. Archiving closes new starts and retains identities and earned results."
 }

@@ -2147,7 +2147,8 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       title: campaign.commanderName,
       pitch: campaign.pitch,
       coverImage: campaign.coverImage,
-      completed: completedChapterIds.length,
+      completed: (campaign.chapters || []).filter(chapter => completedChapterIds.includes(chapter.id)).length,
+      historicalCompleted: completedChapterIds.length,
       total: campaign.chapters?.length || 0
     };
   });
@@ -2345,7 +2346,7 @@ function publicMatchStorageStatus() {
 function getNextCampaignMission(account, factionId, chapterId, result, setup = encounterDefaults[chapterId]) {
   if (result !== "win" || !factionId || !chapterId) return null;
   if (setup && setup.winRoute !== "first-uncompleted") throw new Error("Unsupported encounter routing policy.");
-  const chapters = campaignChapters[factionId] || [];
+  const chapters = activeCampaignChapters(factionId);
   const completed = account?.progression?.campaign?.[factionId]
     || normalizeProgression(account?.stats || {}).campaign[factionId]
     || [];
@@ -4589,18 +4590,22 @@ function buildCampaignEndDialogue(chapter = {}, faction = null) {
   return lines;
 }
 
-function getCampaignChapterIndex(factionId, chapterId) {
-  return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
+function activeCampaignChapters(factionId, resolved = null) {
+  return (resolved || contentPublication?.active())?.manifest.campaigns[factionId]?.chapters || campaignChapters[factionId] || [];
+}
+
+function getCampaignChapterIndex(factionId, chapterId, resolved = null) {
+  return activeCampaignChapters(factionId, resolved).findIndex((chapter) => chapter.id === chapterId);
 }
 
 function getCampaignEncounterSetup(factionId, chapterId) {
-  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId)?.setup
+  return activeCampaignChapters(factionId).find((chapter) => chapter.id === chapterId)?.setup
     || encounterDefaults[chapterId];
 }
 
-function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
-  const chapters = campaignChapters[factionId] || [];
-  const chapterIndex = getCampaignChapterIndex(factionId, chapterId);
+function isCampaignChapterUnlocked(stats = {}, factionId, chapterId, resolved = null) {
+  const chapters = activeCampaignChapters(factionId, resolved);
+  const chapterIndex = getCampaignChapterIndex(factionId, chapterId, resolved);
   if (chapterIndex <= 0) return chapterIndex === 0;
   const progression = normalizeProgression(stats);
   const completed = Array.isArray(progression.campaign[factionId]) ? progression.campaign[factionId] : [];
@@ -4614,7 +4619,7 @@ function getCampaignDifficulty(factionId, chapterId, setup) {
 }
 
 function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup, manifest = getPublicGameContent()) {
-  const chapterId = campaignChapters[factionId]?.[chapterIndex]?.id;
+  const chapterId = manifest.campaigns[factionId]?.chapters[chapterIndex]?.id;
   const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
   return (resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
     .map((cardId) => manifest.cards.find(card => card.id === cardId)).filter(card => contentAvailable(card, "encounters"))
@@ -4622,7 +4627,7 @@ function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setu
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
-  const setup = chapter.setup || encounterDefaults[chapter.id || campaignChapters[factionId]?.[chapterIndex]?.id];
+  const setup = chapter.setup || encounterDefaults[chapter.id || activeCampaignChapters(factionId)[chapterIndex]?.id];
   return setup ? clonePlain(setup.bossAbility) : null;
 }
 
@@ -7860,7 +7865,7 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
   const chapter = getCampaignChapter(factionId, chapterId, resolvedContent);
   if (!faction || !chapter?.setup) throw new Error("Unknown encounter.");
   const difficulty = getCampaignDifficulty(factionId, chapterId, chapter.setup);
-  const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
+  const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId, resolvedContent));
   const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup, resolvedContent.manifest);
   const opponentTemplate = chapter.opponentDeckId && resolvedContent.manifest.deckTemplates.find(row => row.id === chapter.opponentDeckId);
   if (chapter.opponentDeckId && (!opponentTemplate?.destinations.encounter || opponentTemplate.composition.factionId !== factionId || chapter.setup.bossAdditions.length)) throw new Error("This encounter's authored opponent deck is incompatible. Correct the deck assignment and legacy additions before starting.");
@@ -8776,7 +8781,7 @@ io.on("connection", (socket) => {
           ? (await findSupabaseAccountById(identity.id))?.stats || {}
           : (loadAccountStore().accounts.find((entry) => entry.id === identity.id)?.stats || {}))
       : {};
-    if (!isCampaignChapterUnlocked(accountStats, factionId, chapterId)) {
+    if (!isCampaignChapterUnlocked(accountStats, factionId, chapterId, resolvedContent)) {
       socket.emit("errorMessage", "Complete the previous chapter with this account to unlock that battle.");
       return;
     }
@@ -10575,6 +10580,8 @@ module.exports = {
     createTurnData,
     adminPlaytests,
     prepareCampaignRoom,
+    isCampaignChapterUnlocked,
+    getNextCampaignMission,
     chooseSemanticTrainingAiCommand,
     applySemanticAutomatedCommand,
     executeSemanticDuelCommand,

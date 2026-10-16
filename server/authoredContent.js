@@ -41,6 +41,7 @@ FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row) {
+  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...require("./adminEncounters").fields };
   if (domain === "decks" && row?.origin === require("./adminDecks").ORIGIN) return require("./adminDecks").fields;
   if (domain === "offers") return require("./adminDeckOffers").fields;
   if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
@@ -221,7 +222,7 @@ function resolveEngineContent(snapshot, releaseId) {
   for (const row of domains.campaigns) {
     const campaign = manifest.campaigns[row.id];
     Object.assign(campaign, { factionName: factions[row.factionId].name, commanderName: row.commanderName, pitch: row.pitch, coverImage: row.coverImage || null });
-    campaign.chapters = row.encounterIds.map((id) => {
+    campaign.chapters = require("./adminEncounters").ordered(snapshot, row).map((id) => {
       const encounter = encounters.get(id), deck = decks.get(encounter.deckId);
       const chapter = { id, ...Object.fromEntries(Object.keys(FIELDS.encounters).map((key) => [key, clone(fieldValue(encounter, key, FIELDS.encounters[key]))])), opponentName: characters.get(encounter.opponentId).name,
         deckTemplate: { id: deck.id, name: deck.name, description: deck.description } };

@@ -1,6 +1,6 @@
 # Admin Phase 2 — implementation and evidence
 
-Updated 15 October 2026. Continues `codex/modular-admin-suite` from `cb6725c` in the isolated `para-gold-live` worktree. Case's original checkout is not an implementation target. This document supersedes the earlier unsupported-feature list only for rows explicitly verified below.
+Updated 16 October 2026. Continues `codex/modular-admin-suite` from `cb6725c` in the isolated `para-gold-live` worktree. Case's original checkout is not an implementation target. This document supersedes the earlier unsupported-feature list only for rows explicitly verified below.
 
 ## Authority and reconciliation
 
@@ -18,7 +18,8 @@ Status columns are independent: a local test does not establish production readi
 | New card identities | Existing Card Workshop plus reusable mechanics, unique IDs and explicit acquisition channels | Catalog, publication and browser new-card engine journey | Qualified local authoring; full acquisition → multiplayer journey remains | No | Full player deck acquisition journey |
 | Mechanic structural revision | Same release authority; definition hash and interpreter pinned into every game | Real attack before/after revision, captured match unchanged, restart and compatible rollback | Qualified local release behavior | No | Future production activation |
 | Rule modifiers | Shared Studio CRUD, captured V1 rules, explicit encounter assignment, actual engine setup/refill | Contract, recovery, HTTP publication/revision/rollback, guided editor and full browser publication journey | Local scope only until full regression qualification | No | Campaign and isolated tests only; broader variants require explicit engine support |
-| New factions / encounters | Existing definition editing retained | Baseline tests | Existing scope only | Existing source content only | Extend creation and real consumers |
+| Additional encounters | Guided creation/duplication, independent opponents, configuration, ordering, archival and real campaign consumer | Contract, HTTP engine/publication/reward/rollback and full browser journey | Qualified local scope; deployment prerequisites remain | No | New AI behavior requires a qualified handler |
+| New factions | Existing faction editing retained | Baseline tests | Existing scope only | Existing source factions only | New identity and registered-family contracts pending |
 | Cosmetic equipment | Existing exact printing/deck product delivery retained | Baseline tests | Existing scope only | Existing supported selections only | Remaining ownership/selection/display destinations |
 | Timetwister refunds | Not yet extended | No | No | No | Receipt contribution and audited reversal contract |
 | Gold deck purchases | One finite-ledger authority after cutover; captured delivery/projection/refunds | Prior phase concurrency/restart/browser journeys | Infrastructure prerequisites apply | Disabled | Persistent ledger and separate production authorization |
@@ -91,6 +92,24 @@ Evidence: `rule-modifiers.test.js` rejects unknown fields, unsupported versions,
 
 - Two focused contract/recovery tests passed. The HTTP campaign creation/revision/rollback/refill journey passed. Thirteen focused Studio/Engine/Encounter UI tests passed.
 - Both guided browser journeys passed (`artifacts/phase2-modifier-browser.log`): reusable mechanic → new card → actual engine → publication, and modifier → encounter assignment → actual engine → publication. The second journey verifies the assignment in the public compiled encounter.
-- Client regression: 751 of 752 passed initially; the sole failure was a fixture missing the shared help provider. The corrected two-case Card Workshop suite passed (`phase2-modifier-client-repair.log`). Server regression is running against this milestone; its final result will be recorded after completion.
+- Client regression: 751 of 752 passed initially; the sole failure was a fixture missing the shared help provider. The corrected two-case Card Workshop suite passed (`phase2-modifier-client-repair.log`). Server regression completed: **450 passed** (`phase2-modifier-server.log`).
 - Production build/lint and unchanged bundle gates passed: Admin **62,348 / 62,464 bytes**, player **740,603 / 771,072 bytes**, main 168.4/180 KiB, entry 17.3/20 KiB, largest async 274.2/350 KiB. Creation forms and engine category navigation are consolidated; labels/help come from the private authoritative field/guide projection.
 - Screenshot: `artifacts/phase2-rule-modifier.png`. No code was deployed, pushed, merged, or published to production.
+
+## Additional encounter workflow and traceability
+
+Content → Encounters → Create encounter starts from a supported campaign setup. Give it a name and select its campaign. The new encounter owns its opponent identity; edit the opponent name through the linked Characters record. Configure narrative, artwork, real setup and any starting-state modifier, then test the exact saved draft in the actual engine. Preview, review and publish through the existing release workflow. Players find the new chapter after the original chapters, with normal progression unlocking it. Source chapter order, identities, rewards and existing results remain intact.
+
+Additional encounter order is unique within its campaign. Archiving closes future starts and removes discovery while retaining identities, ongoing matches and earned progress. Restore by publishing an active revision or a compatible rollback. A rollback that would erase a published encounter or opponent is rejected. Duplicate creates independent permanent encounter/opponent identities, not aliases to the original.
+
+| Control | Authority and actual consumer | Verification |
+| --- | --- | --- |
+| Create / duplicate / name / campaign | Existing authored snapshot; strict additional-encounter V1 contract; compiler emits actual campaign chapters | Catalog and HTTP creation tests |
+| Story / opponent / scene / setup | Shared field contracts, immutable assets and registered boss handlers | Real engine test and browser player campaign/match |
+| Order / archive | Published chapter list drives unlock, next mission, completion display and new starts | Existing source chapter preservation, first-clear reward idempotency, archival and rollback |
+| Difficulty and recipe preview | Shared encounter presentation reads the same setup, modifier and recipe as the engine | All source setups plus modifier/recipe tests; browser changes life to 23 and attacks to 1, verifies preview and actual 23-life opponent |
+| Test → review → publish | Exact saved-draft engine receipt and shared publication gate | Three browser journeys: mechanics/card, modifier assignment, additional encounter |
+
+Evidence: three contract tests, the HTTP creation → engine → publication → unlock → first-clear → archive → compatible rollback journey, fifteen focused catalog/module regressions, and three campaign relationship/profile regressions passed. Browser journeys passed together (59.7 seconds); inspected screenshots: `artifacts/phase2-published-encounter.png` and `artifacts/phase2-encounter-real-match.png`. Production build/lint and unchanged bundle gates passed: main 171.6/180 KiB, player 723.2/753 KiB, Admin entry 17.3/20 KiB, aggregate Admin 61/61 KiB, largest async 274.2/350 KiB. Full regression results follow after completion.
+
+The creation contract reuses the qualified campaign attack scheduler and bounded registered boss abilities. Arbitrary AI scripts, new routing graphs and unqualified opponent recipes remain unavailable. This milestone does not establish new faction creation or any production deployment.

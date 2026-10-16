@@ -1,5 +1,7 @@
 # Gauntlet Admin operator workflow
 
+Current additive creation capabilities, operator workflows and qualification are tracked in [Admin Phase 2](admin-phase2.md). That record supersedes the earlier unsupported-feature list only where explicitly verified.
+
 This guide describes the local modular suite, not a claim that its code or optional services are enabled in production. See `modular-admin-suite.md` for the verified production baseline and acceptance evidence. Only the two configured, stable administrator account IDs can access Admin. Renaming an account never grants or removes that authorization.
 
 ## Start in Home

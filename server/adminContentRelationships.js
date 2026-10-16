@@ -44,7 +44,7 @@ function deriveRelationships(snapshot) {
     if (row.factionId && !(domain === "cards" && row.factionId === "neutral")) link(from, "factions", row.factionId, "faction");
     for (const field of ["image", "cardImage", "coverImage", "art"]) asset(from, row[field]);
     for (const field of ["dialogueAudio", "endDialogueAudio"]) for (const reference of list(row[field])) asset(from, reference);
-    if (domain === "campaigns") for (const id of row.encounterIds) link(from, "encounters", id, "contains-encounter");
+    if (domain === "campaigns") for (const id of [...row.encounterIds, ...snapshot.domains.encounters.filter(e => e.origin === "admin-encounter-v1" && e.campaignId === row.id).map(e => e.id)]) link(from, "encounters", id, "contains-encounter");
     if (domain === "sets") for (const id of list(row.members)) link(from, "cards", id, "set-member");
     if (domain === "encounters") {
       link(from, "decks", row.opponentDeckId, "opponent-deck");

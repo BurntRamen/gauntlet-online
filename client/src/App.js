@@ -1,3 +1,4 @@
+import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import "./AppLayouts.css";
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -403,88 +404,6 @@ function getFactionTheme(factionId) {
 
 function getBoardBackground(factionId) {
   return BOARD_BACKGROUNDS[factionId] || BOARD_BACKGROUNDS.default;
-}
-
-function getCampaignDifficulty(factionId, chapterIndex) {
-  if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi" || factionId === "astral-vanguard") {
-    return {
-      bossLife: Math.min(58, 18 + chapterIndex * 3),
-      attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 5),
-      maxAttackValue: 5 + Math.floor(chapterIndex / 4)
-    };
-  }
-  if (factionId === "xendra") {
-    return {
-      bossLife: Math.min(48, 16 + chapterIndex * 4),
-      attacksPerTurn: Math.min(4, 1 + Math.floor((chapterIndex + 1) / 2)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 3),
-      maxAttackValue: 4 + Math.floor(chapterIndex / 2)
-    };
-  }
-  return {
-    bossLife: [18, 24, 32][chapterIndex] || 32,
-    attacksPerTurn: Math.min(4, 2 + chapterIndex),
-    minAttackValue: 2 + chapterIndex,
-    maxAttackValue: 5 + chapterIndex
-  };
-}
-
-function getCampaignAddedCardCount(chapterIndex, side = "player") {
-  if (side === "player") {
-    if (chapterIndex < 2) return 0;
-    if (chapterIndex < 5) return 2;
-    if (chapterIndex < 8) return 4;
-    return 6;
-  }
-  if (chapterIndex < 4) return 0;
-  if (chapterIndex < 8) return 2;
-  return 4;
-}
-
-function getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName = "Boss") {
-  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 6 ? 2 : 1;
-  const earlyBonus = tier >= 3 ? 2 : 1;
-  const previews = {
-    rumin: [
-      `${opponentName}: Fortified Claim - first scripted attack each turn gets +1.`,
-      `${opponentName}: Senate Pressure - final scripted attack each turn gets +${earlyBonus}.`,
-      `${opponentName}: Imperial Doctrine - ${tier >= 3 ? "last two scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
-    ],
-    sheen: [
-      `${opponentName}: Ironroot Pressure - odd-numbered attacks get +1.`,
-      `${opponentName}: Thorned Advance - first scripted attack each turn gets +1.`,
-      `${opponentName}: Living Siege - odd-numbered attacks get +1${tier >= 3 ? " and the boss restores 1 life each turn" : ""}.`
-    ],
-    frumo: [
-      `${opponentName}: Tide Feint - even-numbered attacks get +1.`,
-      `${opponentName}: Boarding Rush - final scripted attack each turn gets +${earlyBonus}.`,
-      `${opponentName}: Admiral's Ruse - even-numbered attacks get +${tier >= 3 ? 2 : 1}.`
-    ],
-    bizi: [
-      `${opponentName}: Prototype Surge - final scripted attack each turn gets +1.`,
-      `${opponentName}: Overclock Directive - last two scripted attacks each turn get +1.`,
-      `${opponentName}: Machine Logic - ${tier >= 3 ? "first and final scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
-    ],
-    xendra: [
-      `${opponentName}: Unreliable Perception - first scripted attack each turn gets +1.`,
-      `${opponentName}: Hallucination Loop - even-numbered attacks get +1.`,
-      `${opponentName}: Ritual Completion - first and final scripted attacks each turn get +1.`
-    ]
-  };
-  const options = previews[factionId];
-  return options ? options[Math.min(options.length - 1, Math.floor(chapterIndex / 4))] : null;
-}
-
-function getCampaignComplexityPreview(factionId, chapterIndex, opponentName) {
-  const playerCards = getCampaignAddedCardCount(chapterIndex, "player");
-  const bossCards = getCampaignAddedCardCount(chapterIndex, "boss");
-  const bossAbility = getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName);
-  const details = [];
-  if (playerCards > 0) details.push(`Your deck adds ${playerCards} faction card${playerCards === 1 ? "" : "s"}.`);
-  if (bossCards > 0) details.push(`Boss deck adds ${bossCards} faction card${bossCards === 1 ? "" : "s"}.`);
-  if (bossAbility) details.push(bossAbility);
-  return details;
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
@@ -1400,7 +1319,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           <div className="identity-subheading"><span>Campaign Archives</span><strong>Faction progress</strong></div>
           <div className="identity-campaign-grid">
             {Object.entries(campaigns).map(([factionId, entry]) => {
-              const completed = campaign[factionId]?.length || 0;
+              const completed = entry.chapters.filter(chapter => campaign[factionId]?.includes(chapter.id)).length;
               return (
                 <CampaignArchiveCard key={factionId} factionId={factionId} entry={entry} completed={completed} />
               );
@@ -2931,17 +2850,17 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
   const [briefingChapterId, setBriefingChapterId] = useState("");
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
-  const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
+  const completedChapters = (activeCampaign?.chapters || []).filter(chapter => campaignProgress[activeFactionId]?.includes(chapter.id)).map(chapter => chapter.id);
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
   const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
-  const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
+  const nextDifficulty = nextChapter ? encounterPresentation(nextChapter, manifest).difficulty : null;
   const briefingChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => chapter.id === briefingChapterId) ?? -1;
   const briefingChapter = briefingChapterIndex >= 0 ? activeCampaign.chapters[briefingChapterIndex] : null;
   const briefingUnlocked = briefingChapterIndex === 0 || completedChapters.includes(activeCampaign?.chapters?.[briefingChapterIndex - 1]?.id);
@@ -2967,7 +2886,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
           {campaignEntries.map(([factionId, campaign]) => {
             const selected = factionId === activeFactionId;
             const theme = getFactionTheme(factionId);
-            const factionClears = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId].length : 0;
+            const factionClears = campaign.chapters.filter(chapter => campaignProgress[factionId]?.includes(chapter.id)).length;
             return (
               <button
                 key={factionId}
@@ -2993,8 +2912,8 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
             theme={activeTheme}
             chapter={briefingChapter}
             chapterIndex={briefingChapterIndex}
-            difficulty={getCampaignDifficulty(activeFactionId, briefingChapterIndex)}
-            complexity={getCampaignComplexityPreview(activeFactionId, briefingChapterIndex, briefingChapter.opponentName)}
+            difficulty={encounterPresentation(briefingChapter, manifest).difficulty}
+            complexity={encounterPresentation(briefingChapter, manifest).complexity}
             unlocked={briefingUnlocked}
             completed={briefingCompleted}
             current={briefingChapterIndex === nextChapterIndex}
@@ -3047,7 +2966,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
             </div>
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
-                const difficulty = getCampaignDifficulty(activeFactionId, index);
+                const difficulty = encounterPresentation(chapter, manifest).difficulty;
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
@@ -3062,7 +2981,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
                     <p>{chapter.story}</p>
                     <div className="campaign-chapter-actions">
                       <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)}>View Briefing</button>
-                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked || !chapter.setup}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
                     </div>
                   </article>
                 );
@@ -4883,7 +4802,7 @@ export default function App() {
 
   if (showCampaign) {
     return (
-      <CampaignScreen
+      <CampaignScreen manifest={gameContent}
         onBack={() => { playMenuCue("panelClose"); setShowCampaign(false); }}
         onStartChapter={startCampaignChapter}
         onEnableGuest={() => { setPlayAsGuest(true); playMenuCue("success"); }}

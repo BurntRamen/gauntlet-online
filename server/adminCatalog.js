@@ -38,6 +38,7 @@ function exact(value, keys) { return value && typeof value === "object" && !Arra
 function flags(value, keys) { return exact(value, keys) && keys.every(k => typeof value[k] === "boolean"); }
 function validText(value, max, required = true) { return typeof value === "string" && value.length <= max && (!required || value.trim()) && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value); }
 function createObject(snapshot, input) {
+  if (input?.domain === "encounters") { upgrade(snapshot); return require("./adminEncounters").create(snapshot, input, require("./authoredContent").FIELDS.encounters); }
   if (["decks", "offers"].includes(input?.domain)) {
     if (Object.keys(input).some(key => !["domain", "name", "sourceId", "factionId", "templateId"].includes(key)) || !validText(input.name, 80)) fail("Use a name of 1–80 characters and supported creation fields.");
     require("./adminSuiteContent").upgrade(snapshot);
@@ -96,8 +97,11 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
     const ids = new Set(originals.map(row => row.id));
     legacy.domains[domain] = snapshot.domains[domain].filter(row => ids.has(row?.id));
     added[domain] = snapshot.domains[domain].filter(row => !ids.has(row?.id));
-    if (!["cards", "assets", "decks"].includes(domain) && added[domain].length) issue(domain, null, "id", "Creation is not supported for this domain yet.");
+    if (!["cards", "assets", "decks", "encounters", "characters"].includes(domain) && added[domain].length) issue(domain, null, "id", "Creation is not supported for this domain yet.");
   }
+  const authoredEncounters = require("./adminEncounters");
+  for (const domain of ["encounters", "characters"]) for (const row of added[domain]) if (row?.origin !== authoredEncounters.ORIGIN) issue(domain, row?.id, "id", "Choose the supported additional encounter contract.");
+  errors.push(...authoredEncounters.errors(snapshot, require("./authoredContent").FIELDS.encounters));
   // Legacy reference validation sees the full card and presentation index below.
   const old = validateLegacy(legacy, baseline, snapshot.domains.cards);
   errors.push(...old.errors.filter(e => !(e.message?.startsWith("Broken cards reference:") || e.message?.startsWith("Broken assets reference:")))); warnings.push(...old.warnings);
@@ -158,7 +162,7 @@ function rollbackProblem(live, target) {
   if (mechanicProblem) return mechanicProblem;
   const competitionProblem = require("./competitionConfig").retainedProblem(live.competition, target.competition);
   if (competitionProblem) return competitionProblem;
-  for (const domain of ["cards", "assets", "sets", "decks", "offers"]) for (const row of live.domains[domain] || []) {
+  for (const domain of ["cards", "assets", "sets", "decks", "offers", "encounters", "characters"]) for (const row of live.domains[domain] || []) {
     const previous = target.domains[domain]?.find(r => r.id === row.id);
     if (!previous) return `Cannot restore: ${row.name || row.id} would lose its published identity. Publish a compatible retirement release instead; collections and decks must remain resolvable.`;
     if (domain === "assets" && row.gameplayCardId !== previous.gameplayCardId) return "Cannot restore a printing bound to another gameplay card.";

@@ -6,22 +6,22 @@ import guidance from "@gauntlet/duel-rules/compositionExplanation";
 const copy = value => JSON.parse(JSON.stringify(value));
 
 export function GeneratedWording({ row, studio, disabled, onChange }) {
-  if (row.effect?.id === mechanicContract.ID) { const definition = studio?.definitions.find(m => m.id === row.effect.mechanicId); return definition ? <button type="button" disabled={disabled} onClick={() => onChange(definition.explanation)}>Use generated mechanics explanation as wording</button> : null; }
-  if (row.effect?.id !== contract.ID || !contract.validate(row.effect, row)) return null;
-  return <button type="button" disabled={disabled} onClick={() => onChange(guidance.explain(row.effect, row))}>Use generated mechanics explanation as wording</button>;
+  const wording = row.effect?.id === mechanicContract.ID ? studio?.definitions.find(m => m.id === row.effect.mechanicId)?.explanation : row.effect?.id === contract.ID && contract.validate(row.effect, row) ? guidance.explain(row.effect, row) : null;
+  return wording ? <button type="button" disabled={disabled} onClick={() => onChange(wording)}>Use generated mechanics explanation as wording</button> : null;
 }
 
 export default function MechanicsEditor(props) {
   const { value, row, onChange, disabled } = props;
   const authored = value?.id === mechanicContract.ID, mechanics = props.studio?.definitions || [];
   const composed = value?.id === contract.ID;
+  const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
+  const registered = () => ({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: value.abilities.map((ability, i) => i === index ? next : ability) });
   const remove = index => onChange({ ...value, abilities: value.abilities.filter((_, i) => i !== index) });
-  return <div className="mechanics-editor"><label>Reusable mechanic<select aria-label="Reusable mechanic" disabled={disabled} value={value?.mechanicId || ""} onChange={e => { if (e.target.value) onChange({ id: mechanicContract.ID, version: 1, mechanicId: e.target.value }); else { const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type); if (legacy) onChange({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([k, spec]) => [k, spec.default])) }); } }}><option value="">Existing card-specific effect</option>{mechanics.filter(m => m.cardTypes.includes(row.type) && (m.status === "active" || m.id === value?.mechanicId)).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>{authored ? <><p className="mechanics-explanation">{mechanics.find(m => m.id === value.mechanicId)?.explanation}</p><button type="button" disabled={disabled} onClick={() => props.onInspect?.("mechanics", value.mechanicId)}>Open Mechanics Studio</button><Help topic="MechanicsEditor1" /></> : <>
+  return <div className="mechanics-editor"><label>Reusable mechanic<select aria-label="Reusable mechanic" disabled={disabled} value={value?.mechanicId || ""} onChange={e => { if (e.target.value) onChange({ id: mechanicContract.ID, version: 1, mechanicId: e.target.value }); else if (legacy) onChange(registered()); }}><option value="">Existing card-specific effect</option>{mechanics.filter(m => m.cardTypes.includes(row.type) && (m.status === "active" || m.id === value?.mechanicId)).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>{authored ? <><p className="mechanics-explanation">{mechanics.find(m => m.id === value.mechanicId)?.explanation}</p><button type="button" disabled={disabled} onClick={() => props.onInspect?.("mechanics", value.mechanicId)}>Open Mechanics Studio</button><Help topic="MechanicsEditor1" /></> : <>
     <label>Execution model<select aria-label="Execution model" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} onChange={event => {
-      const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
-      onChange(event.target.value === "composition" ? contract.create() : { id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
+      onChange(event.target.value === "composition" ? contract.create() : registered());
     }}><option value="legacy">Registered legacy effect</option><option value="composition">Structured Rumin armament</option></select></label>
     {!composed ? <><Help className="admin-note" topic="MechanicsEditor2" /><GauntletContractFields {...props} /></> : <>
       <Help topic="MechanicsEditor3" />

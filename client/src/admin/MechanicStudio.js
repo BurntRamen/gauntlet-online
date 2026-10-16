@@ -15,10 +15,11 @@ export default function MechanicStudio({ state, act, busy, onDirty, onInspect, o
   const leave = action => { if (!dirty || window.confirm("Discard unsaved definition changes?")) action(); };
   const update = (field, value) => setEditing(row => ({ ...row, [field]: value }));
   const ability = (index, value) => update("abilities", editing.abilities.map((a, i) => i === index ? value : a));
-  const disabled = busy || !state.writable, errors = editing ? contract.errors(editing) : [];
+  const supported = !!state.capabilities?.[isMechanic ? "mechanicStudio" : "ruleModifiers"];
+  const disabled = busy || !state.writable || !supported, errors = editing ? contract.errors(editing) : [];
   const send = async input => { if (await act("studio-draft", { ...(isMechanic ? {} : { kind }), ...input })) setEditing(null); };
   return <section className="para-workspace mechanic-studio" aria-label={heading}>
-    <h4>{heading}</h4><Help topic={isMechanic ? "MechanicStudio1" : "ruleModifier"} />
+    <h4>{heading}</h4>{!supported && <p role="status">This server does not support this Studio registry.</p>}<Help topic={isMechanic ? "MechanicStudio1" : "ruleModifier"} />
     <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => send({ operation: "create" })}>Create {noun}</button><button disabled={busy || dirty} onClick={onReview}>Review release</button><label>Find {noun}s<input value={query} onChange={e => setQuery(e.target.value)} /></label></div>
     <div className="admin-authoring-layout"><div className="admin-object-list">{rows.filter(row => row.name.toLowerCase().includes(query.toLowerCase())).map(row => <button key={row.id} aria-pressed={editing?.id === row.id} onClick={() => leave(() => { setEditing(clone(row)); onSelect?.(row.id); })}><strong>{row.name}</strong><small>{row.status} · {isMechanic ? `${row.abilities.length} abilities` : "Campaign starting state"}</small></button>)}</div>
       {editing && <form className="admin-editor admin-contract-fields" onSubmit={e => { e.preventDefault(); send({ operation: "update", id: editing.id, value: editing }); }}><fieldset disabled={disabled}><legend>{editing.name}</legend>

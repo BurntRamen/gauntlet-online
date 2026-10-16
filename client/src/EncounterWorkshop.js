@@ -71,7 +71,7 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
   return <section ref={workspace} className={"encounter-workshop " + (row && !showList ? "has-selection" : "")} aria-label="Encounter Workshop">
     <header className="workshop-context" tabIndex={-1} id="workshop-context">
       <span className="admin-eyebrow">Encounter Workshop</span>
-      <h4>{row ? [campaign?.commanderName || "Campaign not recorded", chapterIndex >= 0 ? "Chapter " + (chapterIndex + 1) : "Chapter not recorded", row.title].join(" › ") : "Choose an encounter"}</h4>
+      <h4>{row ? [campaign?.commanderName || "Campaign not recorded", chapterIndex >= 0 ? "Chapter " + (chapterIndex + 1) : row.order ? "Additional encounter " + row.order : "Chapter not recorded", row.title].join(" › ") : "Choose an encounter"}</h4>
       {row && <><p>{opponent?.name || "Opponent not recorded"} · {faction?.name || "Faction not recorded"}</p><div className="admin-tags">
         <span>{unsaved ? "Unsaved local values" : state.draft ? "Shared draft" : "Live content"}</span>
         <span>{state.validation?.valid ? "Saved values valid" : "Validation errors"}</span>
@@ -88,7 +88,7 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
     </header>
     <section className="workshop-list" aria-label="Encounter selection">{search}<div onClick={(event) => { if (event.target.closest("button[aria-pressed]")) setShowList(false); }}>{list}</div></section>
     {row && <><div className="workshop-editor" hidden={["preview", "test"].includes(group)}>
-      <section hidden={group !== "story"} id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</section>
+      <section hidden={group !== "story"} id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "status", "order", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</section>
       <section hidden={group !== "setup"} id="workshop-setup" tabIndex={-1}><h4>Opponent / Setup</h4><p>Opponent: {opponent ? <button type="button" onClick={() => onInspect("characters", opponent.id)}>{opponent.name}</button> : "Not recorded"}<br />Effective player faction: {faction ? <button type="button" onClick={() => onInspect("factions", faction.id)}>{faction.name}</button> : "Not recorded"}</p>
         {field("ruleModifierId")}{field("opponentDeckId")}{row.opponentDeckId && <button type="button" onClick={() => onInspect("decks", row.opponentDeckId)}>Inspect assigned opponent recipe</button>}
         {field("setup", { renderContract: (props) => <EncounterSetupFields {...props} /> })}

@@ -19,3 +19,14 @@ test("membership search keeps existing selections and availability changes only 
   fireEvent.click(screen.getByLabelText("Eligible for existing earned packs"));
   expect(onChange).toHaveBeenLastCalledWith({ library: true, constructed: true, earnedPacks: true });
 });
+test("encounter creation chooses a real campaign without supplying protected identities or rewards", () => {
+  const onCreate = jest.fn();
+  render(<CatalogControls domain="encounters" creation={{ domain: "encounters" }} value={{ name: "Additional challenge", campaignId: "rumin" }} state={{ live: { domains: { sets: [], campaigns: [{ id: "rumin", commanderName: "Rumin archive" }] } } }} onCreate={onCreate} onEdit={jest.fn()} />);
+  fireEvent.click(screen.getByRole("button", { name: "Save new encounter to draft" }));
+  expect(onCreate).toHaveBeenCalledWith({ domain: "encounters", name: "Additional challenge", campaignId: "rumin" });
+});
+test("shared reference controls retain selected archived modifiers and disable new archived assignments", () => {
+  render(<CatalogField definition={{ type: "modifier-reference", label: "Rules" }} modifiers={[{ id: "one", name: "Archived selected", status: "archived" }, { id: "two", name: "Archived other", status: "archived" }]} value="one" onChange={jest.fn()} />);
+  expect(screen.getByRole("option", { name: "Archived selected" })).toBeEnabled(); expect(screen.getByRole("option", { name: "Archived other" })).toBeDisabled();
+  expect(screen.getByRole("combobox", { name: "Draft rules" })).toHaveValue("one");
+});

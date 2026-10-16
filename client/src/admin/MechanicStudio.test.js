@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import MechanicStudio from "./MechanicStudio";
 import contract from "@gauntlet/duel-rules/mechanicContract";
 const definition = { id: "mechanic-11111111-1111-4111-8111-111111111111", name: "Recovery", interpreter: 1, status: "active", cardTypes: ["spell"], abilities: [contract.ability("activate")] };
-const state = { writable: true, live: { studio: { mechanics: [definition] } }, studio: { definitions: [{ ...definition, usedBy: [{ id: "card", name: "New spell" }] }] } };
+const state = { writable: true, capabilities: { mechanicStudio: 1, ruleModifiers: 1 }, live: { studio: { mechanics: [definition] } }, studio: { definitions: [{ ...definition, usedBy: [{ id: "card", name: "New spell" }] }] } };
 test("guided costs and primitive bounds prevent invalid saves and preserve unsaved editing", () => {
   const dirty = jest.fn(), act = jest.fn().mockResolvedValue(false);
   render(<MechanicStudio state={state} initialId={definition.id} act={act} onDirty={dirty} />);
@@ -27,7 +27,7 @@ test("existing card references lead to real card editing and tests; archive requ
 test("modifier editor validates real starting rules and keeps engine buttons outside the saving form", () => {
   const row = { id: "modifier-11111111-1111-4111-8111-111111111111", name: "Short game", status: "active", interpreter: 1, playerLife: 25, opponentLife: 61, handSize: 5 };
   const act = jest.fn().mockResolvedValue(false), start = jest.fn();
-  render(<MechanicStudio kind="modifiers" state={{ writable: true, live: { studio: { modifiers: [row] } } }} initialId={row.id} act={act} onDirty={jest.fn()} playtest={<button onClick={start}>Start engine test</button>} />);
+  render(<MechanicStudio kind="modifiers" state={{ writable: true, capabilities: { mechanicStudio: 1, ruleModifiers: 1 }, live: { studio: { modifiers: [row] } } }} initialId={row.id} act={act} onDirty={jest.fn()} playtest={<button onClick={start}>Start engine test</button>} />);
   expect(screen.queryByText("Compatible card types")).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Starting and refill hand size"), { target: { value: "2" } });
   expect(screen.getByRole("button", { name: "Save modifier to draft" })).toBeDisabled();
@@ -36,4 +36,8 @@ test("modifier editor validates real starting rules and keeps engine buttons out
   expect(screen.getByRole("button", { name: "Start engine test" }).closest("form")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Save modifier to draft" }));
   expect(act).toHaveBeenCalledWith("studio-draft", { kind: "modifiers", operation: "update", id: row.id, value: { ...row, handSize: 4 } });
+});
+test("an older backend cannot accidentally treat modifier creation as a mechanic request", () => {
+  render(<MechanicStudio kind="modifiers" state={{ ...state, capabilities: { mechanicStudio: 1 } }} act={jest.fn()} onDirty={jest.fn()} />);
+  expect(screen.getByRole("button", { name: "Create modifier" })).toBeDisabled(); expect(screen.getByRole("status")).toHaveTextContent("does not support");
 });

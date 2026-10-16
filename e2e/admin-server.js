@@ -26,6 +26,9 @@ const accounts = ["simply", "Burnt Ramen", "Visitor"].map((name, index) => ({
   passwordHash: crypto.pbkdf2Sync("test-password", "admin-browser-fixture", 150000, 32, "sha256").toString("hex"),
   createdAt: "2026-10-02T12:00:00Z", stats: { ...(process.env.GAUNTLET_PURPOSE_FIXTURE ? { economy: { gold: 100, timetwisters: 10 } } : process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? { collection: { gameplayEntitlements: { "rumin-vault-shield-bearer": 1 } } } : {}), progression: { campaign: { rumin: ["brothers-of-destiny"] } } }
 }));
+// Local Phase 2 fixtures have cleared the source campaign, so a newly authored
+// additional encounter can exercise the ordinary player unlock and start path.
+if (process.env.GAUNTLET_PHASE2_FIXTURE === "true") for (const account of accounts) account.stats.progression.campaign = Object.fromEntries(Object.entries(require("../server/gameContent").getPublicGameContent().campaigns).map(([id, campaign]) => [id, campaign.chapters.map(c => c.id)]));
 if (!(process.env.GAUNTLET_PRINTING_FIXTURE || process.env.GAUNTLET_PURPOSE_FIXTURE) || !fs.existsSync(process.env.ACCOUNT_DATA_FILE)) fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify({ accounts }));
 const { buildMatchRecord } = require("../server/matchRecords");
 const record = buildMatchRecord({ roomCode: "ADMIN", matchMetadata: { matchId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", startedAt: "2026-10-02T12:00:00Z" }, lobby: { players: { 1: { accountId: accounts[0].id, accountName: "simply" }, 2: { guestName: "Training AI", isAI: true } } }, game: {

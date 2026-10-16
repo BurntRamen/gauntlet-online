@@ -1,5 +1,7 @@
 # Modular Admin suite — working implementation record
 
+Current additive creation capabilities, operator workflows and qualification are tracked in [Admin Phase 2](admin-phase2.md). That record supersedes the earlier unsupported-feature list only where explicitly verified.
+
 ## Scope and authority
 
 15 October 2026. Direct user assignment: complete supported operator journeys in isolated environments. No production deployment, PR merge, payment activation, paid provisioning, database migration, balance changes or production publication is authorized. Local fixture migrations and transactions are acceptance tests, never production actions. Original dirty checkout and Case's other branches are preserved.
